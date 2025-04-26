@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ClipboardListIcon,
+  ClipboardIcon,
   DocumentTextIcon,
   CurrencyDollarIcon,
   CalendarIcon,
@@ -10,7 +10,7 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-inner p-2 fixed bottom-0 w-full flex justify-around">
       <Link href="/tasks">
-        <ClipboardListIcon className="w-6 h-6" aria-label="Tasks" />
+        <ClipboardIcon className="w-6 h-6" aria-label="Tasks" />
       </Link>
       <Link href="/notes">
         <DocumentTextIcon className="w-6 h-6" aria-label="Notes" />
