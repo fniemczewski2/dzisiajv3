@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { PillIcon, BathtubIcon, LightningBoltIcon, UserGroupIcon, BriefcaseIcon, HomeIcon, SparklesIcon, BookOpenIcon } from '@heroicons/react/solid';
+import {
+  PillIcon,
+  BathtubIcon,
+  LightningBoltIcon,
+  UserGroupIcon,
+  BriefcaseIcon,
+  HomeIcon,
+  SparklesIcon,
+  BookOpenIcon
+} from '@heroicons/react/24/solid';
 
 const icons = [
   { id: 'pills', Icon: PillIcon },
