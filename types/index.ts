@@ -1,11 +1,13 @@
 export type Task = {
   id: string;
   title: string;
+  for_user: string;
   category: string;
   priority: number;
   description: string;
   due_date: string;
   deadline_date: string;
+  status: string;
 };
 
 export type Bill = {
