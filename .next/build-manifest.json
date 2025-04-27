@@ -27,11 +27,6 @@
       "static/chunks/main.js",
       "static/chunks/pages/bills.js"
     ],
-    "/notes": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/notes.js"
-    ],
     "/tasks": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
