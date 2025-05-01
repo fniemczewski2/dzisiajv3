@@ -1,6 +1,11 @@
 {
   "functions": {
-    "api/sendDailySummary.ts": { "memory": 128, "maxDuration": 10 }
+    "pages/api/send-daily-summary.ts": { "memory": 128, "maxDuration": 10 }
   },
-  "crons": [{ "path": "/api/sendDailySummary", "schedule": "* * * *" }]
+  "crons": [
+    {
+      "path": "/api/send-daily-summary",
+      "schedule": "0 * * * * *"
+    }
+  ]
 }
