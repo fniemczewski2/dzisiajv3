@@ -6,6 +6,7 @@ import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2 } from "lucide-react";
+import { usePushSubscription } from "../hooks/usePushSubscription";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -19,26 +20,48 @@ export default function SettingsPage() {
     show_completed: true,
     show_habits: true,
     show_water_tracker: true,
-    notification_enabled: true,
+    notification_enabled: false,
     notification_times: "06:00,12:00,18:00",
   });
 
-  // Fetch current user session & settings
+  // Individual times array for inputs
+  const [times, setTimes] = useState<string[]>([]);
+
+  // Seed times when notification_times changes
+  useEffect(() => {
+    setTimes(
+      settings.notification_times
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t)
+    );
+  }, [settings.notification_times]);
+
+  // Register for push when enabled
+  const userEmail = session?.user?.email ?? "";
+  usePushSubscription(settings.notification_enabled, userEmail);
+
+  // Handlers for times inputs
+  const updateTime = (idx: number, val: string) => {
+    setTimes((ts) => ts.map((t, i) => (i === idx ? val : t)));
+  };
+  const addTime = () => setTimes((ts) => [...ts, ""]);
+  const removeTime = (idx: number) =>
+    setTimes((ts) => ts.filter((_, i) => i !== idx));
+
+  // Fetch settings
   useEffect(() => {
     if (!session) return;
     (async () => {
       setLoading(true);
-      const userEmail = session.user?.email;
-      if (!userEmail) return;
-
+      const email = session.user.email;
       const { data, error } = await supabase
         .from("settings")
         .select(
           "sort_order,show_completed,show_habits,show_water_tracker,notification_enabled,notification_times"
         )
-        .eq("user_name", userEmail)
+        .eq("user_name", email)
         .maybeSingle();
-
       if (!error && data) {
         setSettings({
           sort_order: data.sort_order,
@@ -58,10 +81,11 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!session) return;
     setSaving(true);
-    const userEmail = session.user?.email;
+    const email = session.user.email;
     const payload = {
-      user_name: userEmail,
+      user_name: email,
       ...settings,
+      notification_times: times.join(","),
     };
     const { error } = await supabase
       .from("settings")
@@ -75,7 +99,7 @@ export default function SettingsPage() {
     await supabase.auth.signOut();
   };
 
-  // Loading
+  // Loading state
   if (!session || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -92,7 +116,6 @@ export default function SettingsPage() {
       </Head>
       <Layout>
         <h2 className="text-2xl font-semibold mb-6">Ustawienia</h2>
-
         <form
           onSubmit={handleSave}
           className="mb-6 bg-card p-6 rounded-xl shadow space-y-6"
@@ -118,7 +141,6 @@ export default function SettingsPage() {
               <option value="alphabetical">Alfabetycznie A→Z</option>
             </select>
           </div>
-          {/** repeat for other app settings **/}
           <div className="flex items-center">
             <input
               id="show_completed"
@@ -177,17 +199,12 @@ export default function SettingsPage() {
               id="notification_enabled"
               type="checkbox"
               checked={settings.notification_enabled}
-              onChange={(e) => {
-                const enabled = e.target.checked;
-                setSettings({ ...settings, notification_enabled: enabled });
-                if (
-                  enabled &&
-                  typeof window !== "undefined" &&
-                  "Notification" in window
-                ) {
-                  Notification.requestPermission();
-                }
-              }}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  notification_enabled: e.target.checked,
+                })
+              }
               className="h-4 w-4 text-primary rounded"
             />
             <label
@@ -197,27 +214,41 @@ export default function SettingsPage() {
               Włącz powiadomienia
             </label>
           </div>
+
           {settings.notification_enabled && (
             <div>
               <label
                 htmlFor="notification_times"
                 className="block text-sm font-medium text-gray-700"
               >
-                Godziny powiadomień (HH:mm,&nbsp;rozdzielone&nbsp;przecinkami)
+                Godziny powiadomień
               </label>
-              <input
-                id="notification_times"
-                type="text"
-                value={settings.notification_times}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    notification_times: e.target.value,
-                  })
-                }
-                className="mt-1 w-full p-2 border rounded max-w-xs"
-                placeholder="06:00,12:00,18:00"
-              />
+              {times.map((time, i) => (
+                <div key={i} className="flex items-center space-x-2 mb-2">
+                  <input
+                    id={`time-${i}`}
+                    type="time"
+                    value={time}
+                    onChange={(e) => updateTime(i, e.target.value)}
+                    className="p-2 border rounded"
+                    placeholder="21:37"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeTime(i)}
+                    className="text-red-500"
+                  >
+                    Usuń
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addTime}
+                className="text-primary underline"
+              >
+                Dodaj godzinę
+              </button>
             </div>
           )}
 
@@ -233,7 +264,7 @@ export default function SettingsPage() {
         <div className="bg-card p-6 rounded-xl shadow space-y-4">
           <h3 className="text-xl font-semibold">Użytkownik</h3>
           <p>
-            <strong>Email:</strong> {session.user?.email}
+            <strong>Email:</strong> {session.user.email}
           </p>
           <button
             onClick={handleSignOut}
