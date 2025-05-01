@@ -26,11 +26,5 @@
     "files": [
       "static/chunks/components_AuthGuard_tsx.js"
     ]
-  },
-  "pages\\calendar.tsx -> ../components/CustomCalendar": {
-    "id": "pages\\calendar.tsx -> ../components/CustomCalendar",
-    "files": [
-      "static/chunks/components_CustomCalendar_tsx.js"
-    ]
   }
 }
