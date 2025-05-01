@@ -12,7 +12,9 @@ export function useSettings(userEmail: string) {
     (async () => {
       const { data, error } = await supabase
         .from("settings")
-        .select("sort_order,show_completed,show_habits,show_water_tracker")
+        .select(
+          "sort_order,show_completed,show_habits,show_water_tracker,notification_enabled,notification_times"
+        )
         .eq("user_name", userEmail)
         .maybeSingle();
 
@@ -27,6 +29,8 @@ export function useSettings(userEmail: string) {
           show_completed: true,
           show_habits: true,
           show_water_tracker: true,
+          notification_enabled: false,
+          notification_times: "06:00,12:00,18:00",
         };
         const { error: insertError } = await supabase
           .from("settings")

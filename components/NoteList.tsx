@@ -17,11 +17,11 @@ export function NoteList({ notes, onEdit, onDelete }: NoteListProps) {
         <li
           key={n.id}
           className={clsx(
-            "p-4 m-4 max-w-sm rounded-xl shadow flex flex-col justify-between",
+            "py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-between",
             `bg-${n.bg_color}`
           )}
         >
-          <h3 className="font-semibold mb-2">{n.title}</h3>
+          <h3 className="font-semibold text-lg mb-2">{n.title}</h3>
           <ul className="list-disc pl-5 mb-4">
             {n.items.map((it, i) => (
               <li key={i}>{it}</li>

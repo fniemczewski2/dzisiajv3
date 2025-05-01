@@ -23,13 +23,19 @@ export function useTasks(userEmail: string, settings: Settings | null) {
 
     switch (settings.sort_order) {
       case "due_date":
-        query = query.order("due_date", { ascending: true });
+        query = query
+          .order("status", { ascending: false })
+          .order("due_date", { ascending: true });
         break;
       case "priority":
-        query = query.order("priority", { ascending: true });
+        query = query
+          .order("status", { ascending: false })
+          .order("priority", { ascending: true });
         break;
       default:
-        query = query.order("title", { ascending: true });
+        query = query
+          .order("status", { ascending: false })
+          .order("title", { ascending: true });
     }
 
     const { data, error } = await query;
