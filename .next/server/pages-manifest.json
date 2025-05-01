@@ -2,10 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/notes": "pages/notes.js",
   "/tasks": "pages/tasks.js",
-  "/bills": "pages/bills.js",
-  "/login": "pages/login.js",
-  "/calendar": "pages/calendar.js",
-  "/settings": "pages/settings.js"
+  "/settings": "pages/settings.js",
+  "/login": "pages/login.js"
 }
