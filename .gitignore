@@ -7,6 +7,7 @@ out/222222
 build/
 .next/trace
 .next/cache/webpack/client-development/index.pack.gz
+.next/*
 
 # Local env files
 .env.local
