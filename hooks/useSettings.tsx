@@ -30,7 +30,7 @@ export function useSettings(userEmail: string) {
           show_habits: true,
           show_water_tracker: true,
           notification_enabled: false,
-          notification_times: "06:00,12:00,18:00",
+          notification_times: "07:00",
         };
         const { error: insertError } = await supabase
           .from("settings")
