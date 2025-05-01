@@ -21,7 +21,7 @@ export default function SettingsPage() {
     show_habits: true,
     show_water_tracker: true,
     notification_enabled: false,
-    notification_times: "06:00,12:00,18:00",
+    notification_times: "07:00",
   });
 
   // Individual times array for inputs
@@ -40,14 +40,6 @@ export default function SettingsPage() {
   // Register for push when enabled
   const userEmail = session?.user?.email ?? "";
   usePushSubscription(settings.notification_enabled, userEmail);
-
-  // Handlers for times inputs
-  const updateTime = (idx: number, val: string) => {
-    setTimes((ts) => ts.map((t, i) => (i === idx ? val : t)));
-  };
-  const addTime = () => setTimes((ts) => [...ts, ""]);
-  const removeTime = (idx: number) =>
-    setTimes((ts) => ts.filter((_, i) => i !== idx));
 
   // Fetch settings
   useEffect(() => {
@@ -214,43 +206,6 @@ export default function SettingsPage() {
               Włącz powiadomienia
             </label>
           </div>
-
-          {settings.notification_enabled && (
-            <div>
-              <label
-                htmlFor="notification_times"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Godziny powiadomień
-              </label>
-              {times.map((time, i) => (
-                <div key={i} className="flex items-center space-x-2 mb-2">
-                  <input
-                    id={`time-${i}`}
-                    type="time"
-                    value={time}
-                    onChange={(e) => updateTime(i, e.target.value)}
-                    className="p-2 border rounded"
-                    placeholder="21:37"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeTime(i)}
-                    className="text-red-500"
-                  >
-                    Usuń
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addTime}
-                className="text-primary underline"
-              >
-                Dodaj godzinę
-              </button>
-            </div>
-          )}
 
           <button
             type="submit"
