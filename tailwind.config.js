@@ -3,6 +3,13 @@ module.exports = {
     "./pages/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
   ],
+  safelist: [
+    "bg-zinc-50",
+    "bg-yellow-100",
+    "bg-green-100",
+    "bg-cyan-100",
+    "bg-red-100",
+  ],
   theme: {
     extend: {
       colors: {

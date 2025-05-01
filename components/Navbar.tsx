@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   ClipboardIcon,
   DocumentTextIcon,
@@ -9,12 +8,29 @@ import {
 
 export default function Navbar() {
   return (
-    <nav className="fixed bottom-4 inset-x-4 bg-white/70 backdrop-blur-md rounded-2xl p-2 flex justify-around shadow-lg">
-      <NavLink href="/tasks" Icon={ClipboardIcon} label="Zadania" />
-      <NavLink href="/notes" Icon={DocumentTextIcon} label="Notatki" />
-      <NavLink href="/bills" Icon={CurrencyDollarIcon} label="Rachunki" />
-      <NavLink href="/calendar" Icon={CalendarIcon} label="Kalendarz" />
-      <NavLink href="/settings" Icon={CogIcon} label="Ustawienia" />
+    <nav
+      className="
+    fixed bottom-4
+    inset-x-4
+    px-4
+    bg-white/70 
+    backdrop-blur-md S
+    p-2
+    flex justify-around 
+    shadow-lg
+    rounded-xl
+  "
+    >
+      <div
+        className="m-0 p-0 grid grid-cols-5 gap-4
+        sm:grid-cols-5 sm:gap-0 max-w-[1600px] w-full"
+      >
+        <NavLink href="/tasks" Icon={ClipboardIcon} label="Zadania" />
+        <NavLink href="/notes" Icon={DocumentTextIcon} label="Notatki" />
+        <NavLink href="/bills" Icon={CurrencyDollarIcon} label="Rachunki" />
+        <NavLink href="/calendar" Icon={CalendarIcon} label="Kalendarz" />
+        <NavLink href="/settings" Icon={CogIcon} label="Ustawienia" />
+      </div>
     </nav>
   );
 }
