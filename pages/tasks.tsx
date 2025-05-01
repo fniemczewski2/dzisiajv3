@@ -1,6 +1,8 @@
+// pages/tasks.tsx
 import React, { useEffect, useState } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon } from "lucide-react";
+import { format } from "date-fns";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import TaskIcons from "../components/TaskIcons";
@@ -9,14 +11,18 @@ import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
+import { useTaskNotifications } from "../hooks/useTaskNotifications";
 import { Task } from "../types";
 
 export default function TasksPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
+
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [todayDone, setTodayDone] = useState(0);
+  const [todayTotal, setTodayTotal] = useState(0);
 
   const { settings, loading: loadingSettings } = useSettings(userEmail);
   const {
@@ -25,9 +31,42 @@ export default function TasksPage() {
     fetchTasks,
   } = useTasks(userEmail, settings);
 
+  // Always call notifications hook once, at top level
+  const times =
+    settings?.notification_times?.split(",").map((t) => t.trim()) ?? [];
+  useTaskNotifications(
+    userEmail,
+    settings?.notification_enabled ?? false,
+    times
+  );
+
+  // Fetch tasks list whenever settings change
   useEffect(() => {
     if (settings) fetchTasks();
   }, [settings, fetchTasks]);
+
+  // Compute today’s stats
+  useEffect(() => {
+    if (!session) return;
+    const today = format(new Date(), "yyyy-MM-dd");
+    (async () => {
+      const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
+        supabase
+          .from("tasks")
+          .select("id", { count: "exact", head: true })
+          .eq("user_name", userEmail)
+          .eq("due_date", today),
+        supabase
+          .from("tasks")
+          .select("id", { count: "exact", head: true })
+          .eq("user_name", userEmail)
+          .eq("due_date", today)
+          .eq("status", "done"),
+      ]);
+      setTodayTotal(totalCount || 0);
+      setTodayDone(doneCount || 0);
+    })();
+  }, [session, supabase, userEmail, tasks]);
 
   if (!session || loadingSettings || loadingTasks || !settings) {
     return (
@@ -41,12 +80,10 @@ export default function TasksPage() {
     setEditingTask(null);
     setShowForm(true);
   };
-
   const openEdit = (task: Task) => {
     setEditingTask(task);
     setShowForm(true);
   };
-
   const closeForm = () => setShowForm(false);
 
   return (
@@ -68,8 +105,11 @@ export default function TasksPage() {
       <Layout>
         {settings.show_habits && <TaskIcons />}
         {settings.show_water_tracker && <WaterTracker />}
+
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Zadania</h2>
+          <h2 className="text-xl font-semibold">
+            Zadania&nbsp;({todayDone}/{todayTotal})
+          </h2>
           {!showForm && (
             <button
               onClick={openAdd}
@@ -80,6 +120,7 @@ export default function TasksPage() {
             </button>
           )}
         </div>
+
         {showForm && (
           <div className="mb-6">
             <TaskForm

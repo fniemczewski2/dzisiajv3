@@ -46,7 +46,7 @@ export default function TaskItem({
   return (
     <li
       key={task.id}
-      className="p-4 max-w-[400px] sm:max-w-[480px] m-4 bg-card rounded-xl shadow flex justify-between items-center"
+      className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 bg-card rounded-xl shadow flex justify-between items-center"
     >
       <div className="flex-1">
         <h3
@@ -65,7 +65,7 @@ export default function TaskItem({
                 : ""}
               {task.deadline_date && (
                 <>
-                  &nbsp;&nbsp;|&nbsp;&nbsp;
+                  &nbsp;|&nbsp;
                   {format(parseISO(task.deadline_date), "dd.MM.yyyy")}
                 </>
               )}
@@ -127,10 +127,11 @@ export default function TaskItem({
             )}
           </div>
         </div>
-
-        <p className="mt-2 rounded-lg bg-gray-200 py-1 px-2">
-          {task.description}
-        </p>
+        {task.description && (
+          <p className="mt-2 rounded-lg bg-gray-200 py-1 px-2">
+            {task.description}
+          </p>
+        )}
       </div>
     </li>
   );

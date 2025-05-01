@@ -32,6 +32,8 @@ export type Settings = {
   show_completed: boolean;
   show_habits: boolean;
   show_water_tracker: boolean;
+  notification_enabled: boolean;
+  notification_times: string;
 };
 
 export type HabitRow = {

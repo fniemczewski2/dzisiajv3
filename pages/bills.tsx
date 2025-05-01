@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { useSession } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon } from "lucide-react";
 import { useBills } from "../hooks/useBills";
 import { BillForm } from "../components/BillForm";
@@ -13,6 +13,7 @@ export default function BillsPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
   const { bills, loading, fetchBills } = useBills(userEmail);
+  const supabase = useSupabaseClient();
 
   const [editing, setEditing] = useState<Bill | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -33,7 +34,11 @@ export default function BillsPage() {
     setEditing(b);
     setShowForm(true);
   };
-  const closeForm = () => setShowForm(false);
+  const handleDelete = async (id: string) => {
+    if (!confirm("Czy na pewno chcesz usunąć rachunek?")) return;
+    await supabase.from("bills").delete().eq("id", id);
+    fetchBills();
+  };
 
   return (
     <>
@@ -82,7 +87,8 @@ export default function BillsPage() {
           bills={bills}
           onEdit={openEdit}
           onDelete={(id) => {
-            if (confirm("Usuń rachunek?")) fetchBills();
+            handleDelete(id);
+            fetchBills();
           }}
         />
       </Layout>

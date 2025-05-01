@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { useSession } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
 import { NoteForm } from "../components/NoteForm";
@@ -13,6 +13,7 @@ export default function NotesPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
   const { notes, loading, fetchNotes } = useNotes(userEmail);
+  const supabase = useSupabaseClient();
 
   const [editing, setEditing] = useState<Note | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -32,6 +33,12 @@ export default function NotesPage() {
   const openEdit = (n: Note) => {
     setEditing(n);
     setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Czy na pewno chcesz usunąć notatkę?")) return;
+    await supabase.from("notes").delete().eq("id", id);
+    fetchNotes();
   };
 
   return (
@@ -78,7 +85,8 @@ export default function NotesPage() {
           notes={notes}
           onEdit={openEdit}
           onDelete={(id) => {
-            if (confirm("Usuń notatkę?")) fetchNotes();
+            handleDelete(id);
+            fetchNotes();
           }}
         />
       </Layout>
