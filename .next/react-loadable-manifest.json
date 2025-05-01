@@ -20,5 +20,17 @@
   "node_modules\\@supabase\\storage-js\\dist\\module\\lib\\helpers.js -> @supabase/node-fetch": {
     "id": "node_modules\\@supabase\\storage-js\\dist\\module\\lib\\helpers.js -> @supabase/node-fetch",
     "files": []
+  },
+  "pages\\_app.tsx -> ../components/AuthGuard": {
+    "id": "pages\\_app.tsx -> ../components/AuthGuard",
+    "files": [
+      "static/chunks/components_AuthGuard_tsx.js"
+    ]
+  },
+  "pages\\calendar.tsx -> ../components/CustomCalendar": {
+    "id": "pages\\calendar.tsx -> ../components/CustomCalendar",
+    "files": [
+      "static/chunks/components_CustomCalendar_tsx.js"
+    ]
   }
 }

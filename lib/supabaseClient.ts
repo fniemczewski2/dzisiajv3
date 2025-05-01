@@ -1,5 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+// lib/supabaseClient.ts
+// lib/supabaseClient.ts
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-export const supabase = createClient(supabaseUrl, supabaseKey);
+let browserSupabase: SupabaseClient | null = null;
+
+export function getBrowserSupabaseClient(): SupabaseClient {
+  if (!browserSupabase) {
+    browserSupabase = createPagesBrowserClient();
+  }
+  return browserSupabase;
+}

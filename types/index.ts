@@ -8,6 +8,7 @@ export type Task = {
   due_date: string;
   deadline_date: string;
   status: string;
+  user_name: string;
 };
 
 export type Bill = {
@@ -15,6 +16,7 @@ export type Bill = {
   amount: number;
   description: string;
   date: string;
+  user_name: string;
 };
 
 export type Note = {
@@ -22,4 +24,25 @@ export type Note = {
   title: string;
   items: string[];
   bg_color: string;
+  user_name: string;
 };
+
+export type Settings = {
+  sort_order: string;
+  show_completed: boolean;
+  show_habits: boolean;
+  show_water_tracker: boolean;
+};
+
+export type HabitRow = {
+  date: string;
+  pills: boolean;
+  bath: boolean;
+  workout: boolean;
+  friends: boolean;
+  work: boolean;
+  housework: boolean;
+  plants: boolean;
+  duolingo: boolean;
+};
+export type WaterRow = { date: string; amount: number };

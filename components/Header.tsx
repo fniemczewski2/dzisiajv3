@@ -68,63 +68,70 @@ export default function Header() {
   return (
     <header
       className="
-        bg-card shadow-md rounded-xl mx-4 mt-4 p-4
-        grid grid-cols-1 gap-4
-        sm:grid-cols-3 sm:gap-0
-        items-center
+        bg-card shadow-md rounded-xl p-4
+        flex
+        justify-center
+        w-full
       "
     >
-      {/* 1) Tytuł */}
-      <h1 className="text-2xl font-bold text-primary text-center sm:text-left">
-        Dzisiaj v3
-      </h1>
-
-      {/* 2) Na mobile: flex-row — zegar obok pogody; na desktopie kolumna w środe */}
       <div
-        className="
+        className="m-0 p-0 grid grid-cols-1 gap-4
+        sm:grid-cols-3 sm:gap-0 max-w-[1600px] w-full"
+      >
+        {/* 1) Tytuł */}
+        <h1 className="text-2xl font-bold text-primary text-center sm:text-left">
+          Dzisiaj v3
+        </h1>
+
+        {/* 2) Na mobile: flex-row — zegar obok pogody; na desktopie kolumna w środe */}
+        <div
+          className="
           flex justify-between items-center 
           sm:flex-col sm:items-center sm:w-auto 
         "
-      >
-        {/* czas + data */}
-        <div className="text-gray-700 text-left sm:text-center">
-          <div className="text-xl mb-1">{currentTime}</div>
-          <span className="text-gray-500 text-medium">{currentDate}</span>
-        </div>
+        >
+          {/* czas + data */}
+          <div className="text-gray-700 text-left sm:text-center">
+            <div className="text-xl">{currentTime}</div>
+            <span className="text-gray-500 text-[12px] sm:text-sm">
+              {currentDate}
+            </span>
+          </div>
 
-        <div className="sm:hidden block">
+          <div className="sm:hidden block">
+            {currentTemp != null &&
+              dailyMin != null &&
+              dailyMax != null &&
+              weatherCode != null && (
+                <div className="flex flex-col items-left text-gray-700">
+                  <div className="flex items-center justify-end space-x-1 mb-1">
+                    <WeatherIcon code={weatherCode} />
+                    <span className="text-xl">{currentTemp}°C</span>
+                  </div>
+                  <span className="text-gray-500 text-[12px] ml-5">
+                    min {dailyMin}° · max {dailyMax}°
+                  </span>
+                </div>
+              )}
+          </div>
+        </div>
+        {/* 3) Pusta kolumna na desktopie (wyrównanie) */}
+        <div className="hidden sm:flex sm:justify-end sm:items-center">
           {currentTemp != null &&
             dailyMin != null &&
             dailyMax != null &&
             weatherCode != null && (
-              <div className="flex flex-col items-left text-gray-700">
-                <div className="flex items-center justify-end space-x-1 mb-1">
+              <div className="flex flex-col items-center justify-end text-gray-700">
+                <div className="flex items-end justify-end space-x-1 mb-1">
                   <WeatherIcon code={weatherCode} />
                   <span className="text-xl">{currentTemp}°C</span>
                 </div>
-                <span className="text-gray-500">
-                  min {dailyMin}° · max {dailyMax}°
-                </span>
+                <div className="text-sm text-gray-500">
+                  <span>min {dailyMin}°</span> · <span>max {dailyMax}°</span>
+                </div>
               </div>
             )}
         </div>
-      </div>
-      {/* 3) Pusta kolumna na desktopie (wyrównanie) */}
-      <div className="hidden sm:flex sm:justify-end sm:items-center">
-        {currentTemp != null &&
-          dailyMin != null &&
-          dailyMax != null &&
-          weatherCode != null && (
-            <div className="flex flex-col items-center justify-end text-gray-700">
-              <div className="flex items-end justify-end space-x-1 mb-1">
-                <WeatherIcon code={weatherCode} />
-                <span className="text-xl">{currentTemp}°C</span>
-              </div>
-              <div className="text-medium text-gray-500">
-                <span>min {dailyMin}°</span> · <span>max {dailyMax}°</span>
-              </div>
-            </div>
-          )}
       </div>
     </header>
   );

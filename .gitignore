@@ -5,6 +5,8 @@ node_modules/
 .next/
 out/222222
 build/
+.next/trace
+.next/cache/webpack/client-development/index.pack.gz
 
 # Local env files
 .env.local
@@ -44,3 +46,4 @@ yarn.lock
 # Optional editor-specific files
 *.sublime-workspace
 *.sublime-project
+
