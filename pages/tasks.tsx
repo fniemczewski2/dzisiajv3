@@ -11,7 +11,6 @@ import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
-import { useTaskNotifications } from "../hooks/useTaskNotifications";
 import { Task } from "../types";
 
 export default function TasksPage() {
@@ -30,15 +29,6 @@ export default function TasksPage() {
     loading: loadingTasks,
     fetchTasks,
   } = useTasks(userEmail, settings);
-
-  // Always call notifications hook once, at top level
-  const times =
-    settings?.notification_times?.split(",").map((t) => t.trim()) ?? [];
-  useTaskNotifications(
-    userEmail,
-    settings?.notification_enabled ?? false,
-    times
-  );
 
   // Fetch tasks list whenever settings change
   useEffect(() => {
