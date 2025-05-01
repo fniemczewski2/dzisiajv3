@@ -47,3 +47,4 @@ yarn.lock
 *.sublime-workspace
 *.sublime-project
 
+.next/trace
