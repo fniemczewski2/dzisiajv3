@@ -3,17 +3,19 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon } from "lucide-react";
+import { Backpack, Luggage, Loader2, PlusCircleIcon } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
 import { NoteForm } from "../components/NoteForm";
 import { NoteList } from "../components/NoteList";
 import { Note } from "../types";
+import { useRouter } from "next/router";
 
 export default function NotesPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
   const { notes, loading, fetchNotes } = useNotes(userEmail);
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   const [editing, setEditing] = useState<Note | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -55,7 +57,25 @@ export default function NotesPage() {
       </Head>
       <Layout>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Notatki</h2>
+          <h2 className="text-xl font-semibold flex flex-nowrap justify-between">
+            Notatki&nbsp;
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => router.push("/notes/backpack")}
+                title="Plecak"
+                className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
+              >
+                <Backpack className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/notes/suitcase")}
+                title="Walizka"
+                className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
+              >
+                <Luggage className="w-5 h-5" />
+              </button>
+            </div>
+          </h2>
           {!showForm && (
             <button
               onClick={openNew}
