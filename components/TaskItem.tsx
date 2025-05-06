@@ -77,7 +77,7 @@ export default function TaskItem({
             {isDone ? (
               <button
                 onClick={handleDelete}
-                className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-xl text-red-500 hover:text-red-600 transition-colors"
+                className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-lg text-red-500 hover:text-red-600 transition-colors"
               >
                 <Trash2 className="w-4 h-4 sm:w-6 sm:h-6" />
                 <span className="text-[8px] sm:text-[11px]">Usuń</span>
@@ -87,14 +87,14 @@ export default function TaskItem({
               <>
                 <button
                   onClick={acceptTask}
-                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-xl text-green-600 hover:text-green-800 transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-lg text-green-600 hover:text-green-800 transition-colors"
                 >
                   <Check className="w-4 h-4 sm:w-6 sm:h-6" />
                   <span className="text-[8px] sm:text-[11px]">Akceptuj</span>
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-xl text-red-500 hover:text-red-600 transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-lg text-red-500 hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4 sm:w-6 sm:h-6" />
                   <span className="text-[8px] sm:text-[11px]">Usuń</span>
@@ -104,21 +104,21 @@ export default function TaskItem({
               <>
                 <button
                   onClick={markDone}
-                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-xl text-green-600 hover:text-green-800 transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-lg text-green-600 hover:text-green-800 transition-colors"
                 >
                   <Check className="w-4 h-4 sm:w-6 sm:h-6" />
                   <span className="text-[8px] sm:text-[11px]">Zrobione</span>
                 </button>
                 <button
                   onClick={handleEdit}
-                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-xl text-primary hover:text-secondary transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-lg text-primary hover:text-secondary transition-colors"
                 >
                   <Edit2 className="w-4 h-4 sm:w-6 sm:h-6" />
                   <span className="text-[8px] sm:text-[11px]">Edytuj</span>
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-xl text-red-500 hover:text-red-600 transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center p-1 sm:p-2 border rounded-lg text-red-500 hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4 sm:w-6 sm:h-6" />
                   <span className="text-[8px] sm:text-[11px]">Usuń</span>

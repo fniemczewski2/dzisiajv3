@@ -1,8 +1,16 @@
 // pages/tasks.tsx
 import React, { useEffect, useState } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon } from "lucide-react";
-import { format } from "date-fns";
+import {
+  Loader2,
+  PlusCircleIcon,
+  List,
+  ChevronLeft,
+  Calendar,
+  ChevronRight,
+  ChevronsRight,
+} from "lucide-react";
+import { format, addDays } from "date-fns";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import TaskIcons from "../components/TaskIcons";
@@ -13,6 +21,16 @@ import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
 
+const FILTER_OPTIONS = [
+  { value: "all", icon: List, title: "Wszystkie" },
+  { value: "yesterday", icon: ChevronLeft, title: "Wczoraj" },
+  { value: "today", icon: Calendar, title: "Dzisiaj" },
+  { value: "tomorrow", icon: ChevronRight, title: "Jutro" },
+  { value: "dayAfterTomorrow", icon: ChevronsRight, title: "Pojutrze" },
+] as const;
+
+type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
+
 export default function TasksPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
@@ -22,6 +40,7 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [todayDone, setTodayDone] = useState(0);
   const [todayTotal, setTodayTotal] = useState(0);
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
 
   const { settings, loading: loadingSettings } = useSettings(userEmail);
   const {
@@ -76,6 +95,28 @@ export default function TasksPage() {
   };
   const closeForm = () => setShowForm(false);
 
+  // Calculate filter date string
+  const getFilterDate = (): string | null => {
+    const now = new Date();
+    switch (dateFilter) {
+      case "yesterday":
+        return format(addDays(now, -1), "yyyy-MM-dd");
+      case "today":
+        return format(now, "yyyy-MM-dd");
+      case "tomorrow":
+        return format(addDays(now, 1), "yyyy-MM-dd");
+      case "dayAfterTomorrow":
+        return format(addDays(now, 2), "yyyy-MM-dd");
+      default:
+        return null;
+    }
+  };
+
+  const filterDate = getFilterDate();
+  const filteredTasks = filterDate
+    ? tasks.filter((t) => t.due_date === filterDate)
+    : tasks;
+
   return (
     <>
       <Head>
@@ -111,6 +152,27 @@ export default function TasksPage() {
           )}
         </div>
 
+        {/* Date filter controls */}
+        <div className="flex space-x-2 mb-6">
+          {FILTER_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setDateFilter(opt.value)}
+                title={opt.title}
+                className={`p-2 rounded-lg border transition-colors flex items-center justify-center ${
+                  dateFilter === opt.value
+                    ? "bg-primary text-white border-primary"
+                    : "bg-gray-100 text-gray-700 border-transparent"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+              </button>
+            );
+          })}
+        </div>
+
         {showForm && (
           <div className="mb-6">
             <TaskForm
@@ -126,7 +188,7 @@ export default function TasksPage() {
         )}
 
         <TaskList
-          tasks={tasks}
+          tasks={filteredTasks}
           userEmail={userEmail}
           onTasksChange={fetchTasks}
           onEdit={openEdit}
