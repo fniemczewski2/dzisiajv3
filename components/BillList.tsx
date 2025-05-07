@@ -19,7 +19,10 @@ export function BillList({ bills, onEdit, onDelete }: BillListProps) {
           className="bg-card rounded-xl shadow py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] flex justify-between items-center"
         >
           <div>
-            <p className="font-semibold">{b.amount.toFixed(2)} PLN</p>
+            <p className="font-semibold">
+              {!b.include_in_budget && "-"}
+              {b.amount.toFixed(2)} PLN
+            </p>
             <p className="text-sm text-gray-500">
               {format(parseISO(b.date), "dd.MM.yyyy")} | {b.description}
             </p>

@@ -22,6 +22,9 @@ export function BillForm({
   const [amount, setAmount] = useState(initial?.amount || 0);
   const [description, setDescription] = useState(initial?.description || "");
   const [date, setDate] = useState(initial?.date || "");
+  const [includeInBudget, setIncludeInBudget] = useState(
+    initial?.include_in_budget || false
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export function BillForm({
       setAmount(initial.amount);
       setDescription(initial.description || "");
       setDate(initial.date);
+      setIncludeInBudget(initial.include_in_budget || false);
     }
   }, [initial]);
 
@@ -41,6 +45,7 @@ export function BillForm({
       amount,
       description: description || null,
       date,
+      include_in_budget: includeInBudget,
     };
 
     if (isEdit) {
@@ -55,6 +60,7 @@ export function BillForm({
       setAmount(0);
       setDescription("");
       setDate("");
+      setIncludeInBudget(false);
     }
   };
 
@@ -74,24 +80,39 @@ export function BillForm({
         className="w-full p-2 border rounded"
         required
       />
+
       <label htmlFor="description">Opis:</label>
       <textarea
-        id="decription"
+        id="description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Opis"
         className="w-full p-2 border rounded"
       />
+
       <label htmlFor="date">Data:</label>
       <input
         id="date"
         type="date"
-        placeholder="dd.mm.rrrr"
         value={date}
         onChange={(e) => setDate(e.target.value)}
         className="w-full p-2 border rounded"
         required
       />
+
+      <div className="flex items-center space-x-2">
+        <input
+          id="includeInBudget"
+          type="checkbox"
+          checked={includeInBudget}
+          onChange={() => setIncludeInBudget(!includeInBudget)}
+          className="h-4 w-4"
+        />
+        <label htmlFor="includeInBudget" className="select-none">
+          Uwzględnij w budżecie
+        </label>
+      </div>
+
       <div className="flex space-x-2 items-center">
         <button
           type="submit"

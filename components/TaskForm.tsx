@@ -5,6 +5,7 @@ import React, { useState, FormEvent, useEffect } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../types";
 import { Loader2, PlusCircleIcon } from "lucide-react";
+import { useSettings } from "../hooks/useSettings";
 
 interface TaskFormProps {
   userEmail: string;
@@ -19,6 +20,7 @@ export default function TaskForm({
   onTasksChange,
   onCancel,
 }: TaskFormProps) {
+  const { settings } = useSettings(userEmail);
   const supabase = useSupabaseClient();
   const isEdit = initialTask !== null;
 
@@ -35,7 +37,7 @@ export default function TaskForm({
     status: "pending",
   });
   const [loading, setLoading] = useState(false);
-
+  const userOptions = settings?.users ?? [];
   // populate when editing
   useEffect(() => {
     if (initialTask) {
@@ -128,14 +130,23 @@ export default function TaskForm({
         >
           Dla
         </label>
-        <input
+        <select
           id="for_user"
-          type="email"
           value={form.for_user}
           onChange={(e) => setForm({ ...form, for_user: e.target.value })}
           className="mt-1 w-full p-2 border rounded"
           required
-        />
+        >
+          <option value={userEmail} defaultChecked>
+            mnie
+          </option>
+          <option value="f.niemczewski2@gmail.com">Franka</option>
+          {userOptions.map((email: string) => (
+            <option key={email} value={email}>
+              {email}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Category & Priority */}
@@ -154,16 +165,16 @@ export default function TaskForm({
             className="mt-1 w-full p-2 border rounded"
           >
             {[
-              "education",
-              "work",
-              "personal",
-              "activism",
-              "friends",
-              "shopping",
-              "traveling",
-              "delivery",
-              "holidays",
-              "other",
+              "edukacja",
+              "praca",
+              "osobiste",
+              "aktywizm",
+              "przyjaciele",
+              "zakupy",
+              "podróże",
+              "dostawa",
+              "święta",
+              "inne",
             ].map((cat) => (
               <option key={cat} value={cat}>
                 {cat}

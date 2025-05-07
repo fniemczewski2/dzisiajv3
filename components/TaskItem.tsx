@@ -82,7 +82,7 @@ export default function TaskItem({
                 <Trash2 className="w-4 h-4 sm:w-6 sm:h-6" />
                 <span className="text-[8px] sm:text-[11px]">Usuń</span>
               </button>
-            ) : task.for_user !== userEmail &&
+            ) : task.user_name !== userEmail &&
               task.status === "waiting_for_acceptance" ? (
               <>
                 <button

@@ -17,6 +17,7 @@ export type Bill = {
   description: string;
   date: string;
   user_name: string;
+  include_in_budget: boolean;
 };
 
 export type Note = {
@@ -32,8 +33,8 @@ export type Settings = {
   show_completed: boolean;
   show_habits: boolean;
   show_water_tracker: boolean;
-  notification_enabled: boolean;
-  notification_times: string;
+  show_budget_items: boolean;
+  users: string[];
 };
 
 export type HabitRow = {
