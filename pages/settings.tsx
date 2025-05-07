@@ -5,8 +5,7 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2 } from "lucide-react";
-import { usePushSubscription } from "../hooks/usePushSubscription";
+import { Loader2, PlusCircleIcon, Trash2 } from "lucide-react";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -15,31 +14,21 @@ export default function SettingsPage() {
   // Local settings state with defaults
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<{
+    sort_order: string;
+    show_completed: boolean;
+    show_habits: boolean;
+    show_water_tracker: boolean;
+    show_budget_items: boolean;
+    users: string[];
+  }>({
     sort_order: "priority",
     show_completed: true,
     show_habits: true,
     show_water_tracker: true,
-    notification_enabled: false,
-    notification_times: "07:00",
+    show_budget_items: false,
+    users: [] as string[], // up to 10 friends
   });
-
-  // Individual times array for inputs
-  const [times, setTimes] = useState<string[]>([]);
-
-  // Seed times when notification_times changes
-  useEffect(() => {
-    setTimes(
-      settings.notification_times
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t)
-    );
-  }, [settings.notification_times]);
-
-  // Register for push when enabled
-  const userEmail = session?.user?.email ?? "";
-  usePushSubscription(settings.notification_enabled, userEmail);
 
   // Fetch settings
   useEffect(() => {
@@ -50,7 +39,7 @@ export default function SettingsPage() {
       const { data, error } = await supabase
         .from("settings")
         .select(
-          "sort_order,show_completed,show_habits,show_water_tracker,notification_enabled,notification_times"
+          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,users"
         )
         .eq("user_name", email)
         .maybeSingle();
@@ -60,13 +49,32 @@ export default function SettingsPage() {
           show_completed: data.show_completed,
           show_habits: data.show_habits,
           show_water_tracker: data.show_water_tracker,
-          notification_enabled: data.notification_enabled,
-          notification_times: data.notification_times || "",
+          show_budget_items: data.show_budget_items,
+          users: data.users || [],
         });
       }
       setLoading(false);
     })();
   }, [session, supabase]);
+
+  const addUser = () => {
+    if (settings.users.length < 10) {
+      setSettings((s) => ({ ...s, users: [...s.users, ""] }));
+    }
+  };
+  const removeUser = (idx: number) => {
+    setSettings((s) => ({
+      ...s,
+      users: s.users.filter((_, i) => i !== idx),
+    }));
+  };
+  const updateUser = (idx: number, value: string) => {
+    setSettings((s) => {
+      const users = [...s.users];
+      users[idx] = value;
+      return { ...s, users };
+    });
+  };
 
   // Save handler
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -77,7 +85,6 @@ export default function SettingsPage() {
     const payload = {
       user_name: email,
       ...settings,
-      notification_times: times.join(","),
     };
     const { error } = await supabase
       .from("settings")
@@ -184,27 +191,56 @@ export default function SettingsPage() {
               Pokaż tracker wody
             </label>
           </div>
-
-          <h3 className="text-lg font-semibold">Powiadomienia</h3>
           <div className="flex items-center">
             <input
-              id="notification_enabled"
+              id="show_budget_items"
               type="checkbox"
-              checked={settings.notification_enabled}
+              checked={settings.show_budget_items}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  notification_enabled: e.target.checked,
+                  show_budget_items: e.target.checked,
                 })
               }
-              className="h-4 w-4 text-primary rounded"
+              className="h-4 w-4 text-primary border-gray-300 rounded"
             />
             <label
-              htmlFor="notification_enabled"
+              htmlFor="show_budget_items"
               className="ml-2 text-sm text-gray-700"
             >
-              Włącz powiadomienia
+              Pokaż pozycje z budżetu
             </label>
+          </div>
+          <div className="space-y-2">
+            {settings.users.map((u: string, idx: number) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <input
+                  type="email"
+                  value={u}
+                  placeholder="Email znajomego"
+                  onChange={(e) => updateUser(idx, e.target.value)}
+                  className="flex-1 p-2 border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeUser(idx)}
+                  className="p-2 bg-red-100 rounded-xl text-red-500 hover:bg-red-200"
+                  title="usuń"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            {settings.users.length < 10 && (
+              <button
+                type="button"
+                onClick={addUser}
+                className="flex items-center space-x-1 text-primary"
+              >
+                <PlusCircleIcon className="w-5 h-5" />
+                <span>Dodaj znajomego</span>
+              </button>
+            )}
           </div>
 
           <button

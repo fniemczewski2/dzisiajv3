@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 
-const suitcaseCategories = [
+const categories = [
   {
     title: "Odzież",
     items: [
@@ -99,8 +99,8 @@ const suitcaseCategories = [
     items: [
       "Książka",
       "Notes i długopis",
-      "Gry podróżne / karty",
-      "Mapa / przewodnik (lub aplikacja offline)",
+      "Gry / karty",
+      "Mapa (offline)",
       "Filmy / muzyka",
     ],
   },
@@ -108,21 +108,23 @@ const suitcaseCategories = [
 
 export default function SuitcasePage() {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
-  const toggle = (item: string) =>
+
+  const toggle = (item: string) => {
     setChecked((prev) => ({ ...prev, [item]: !prev[item] }));
+  };
 
   return (
     <>
       <Head>
-        <title>Walizka – Notatki</title>
+        <title>Plecak – Dzisiajv3</title>
       </Head>
       <Layout>
-        <h2 className="text-xl font-semibold mb-4">Lista do walizki</h2>
-        <div className="space-y-6">
-          {suitcaseCategories.map((cat) => (
+        <h2 className="text-xl font-semibold mb-4">Walizka</h2>
+        <div className="space-y-6  ">
+          {categories.map((cat) => (
             <div key={cat.title}>
               <h3 className="font-semibold mb-2">{cat.title}</h3>
-              <ul className="list-disc ml-5 space-y-1">
+              <ul className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 list-disc space-y-1 bg-card rounded-xl shadow">
                 {cat.items.map((item) => (
                   <li key={item} className="flex items-center">
                     <input
@@ -143,4 +145,3 @@ export default function SuitcasePage() {
     </>
   );
 }
-SuitcasePage.auth = true;

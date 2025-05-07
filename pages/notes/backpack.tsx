@@ -143,10 +143,10 @@ export default function BackpackPage() {
   return (
     <>
       <Head>
-        <title>Plecak – Notatki</title>
+        <title>Plecak – Dzisiajv3</title>
       </Head>
       <Layout>
-        <h2 className="text-xl font-semibold mb-4">Lista do plecaka</h2>
+        <h2 className="text-xl font-semibold mb-4">Plecak</h2>
         <div className="space-y-6  ">
           {categories.map((cat) => (
             <div key={cat.title}>

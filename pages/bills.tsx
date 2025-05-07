@@ -3,17 +3,19 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon } from "lucide-react";
+import { Loader2, PlusCircleIcon, Wallet } from "lucide-react";
 import { useBills } from "../hooks/useBills";
 import { BillForm } from "../components/BillForm";
 import { BillList } from "../components/BillList";
 import { Bill } from "../types";
+import { useRouter } from "next/router";
 
 export default function BillsPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
   const { bills, loading, fetchBills } = useBills(userEmail);
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   const [editing, setEditing] = useState<Bill | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -57,7 +59,16 @@ export default function BillsPage() {
       </Head>
       <Layout>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Rachunki</h2>
+          <h2 className="text-xl font-semibold">
+            Rachunki
+            <button
+              onClick={() => router.push("/bills/budget")}
+              title="Budżet"
+              className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
+            >
+              <Wallet className="w-5 h-5" />
+            </button>
+          </h2>
           {!showForm && (
             <button
               onClick={openNew}
