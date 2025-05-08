@@ -71,21 +71,27 @@ export function NoteForm({
       onSubmit={handleSubmit}
       className="space-y-4 bg-card p-4 rounded-xl shadow max-w-lg"
     >
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Tytuł notatki"
-        className="w-full p-2 border rounded"
-        required
-      />
-      <textarea
-        value={itemsText}
-        onChange={(e) => setItemsText(e.target.value)}
-        placeholder="Pozycje listy (jeden element na linię)"
-        className="w-full p-2 border rounded h-24"
-        required
-      />
+      <div>
+        <label>Tytuł:</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Tytuł notatki"
+          className="w-full p-2 border rounded"
+          required
+        />
+      </div>
+      <div>
+        <label>Treść:</label>
+        <textarea
+          value={itemsText}
+          onChange={(e) => setItemsText(e.target.value)}
+          placeholder="Pozycje listy (jeden element na linię)"
+          className="w-full p-2 border rounded h-24"
+          required
+        />
+      </div>
       <div className="flex gap-2">
         {tailwindColors.map((color) => (
           <button
@@ -106,7 +112,7 @@ export function NoteForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-white rounded-xl"
+          className="px-4 py-2 bg-primary text-white rounded-lg"
         >
           {isEdit ? "Zapisz" : "Dodaj"}
         </button>
@@ -114,7 +120,7 @@ export function NoteForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 rounded-xl"
+            className="px-4 py-2 bg-gray-300 rounded-lg"
           >
             Anuluj
           </button>

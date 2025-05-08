@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon, Wallet } from "lucide-react";
+import { Loader2, PlusCircleIcon, ChartColumnBig } from "lucide-react";
 import { useBills } from "../hooks/useBills";
 import { BillForm } from "../components/BillForm";
 import { BillList } from "../components/BillList";
@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 export default function BillsPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
-  const { bills, loading, fetchBills } = useBills(userEmail);
+  const { bills, budgetItems, loading, fetchBills } = useBills(userEmail);
   const supabase = useSupabaseClient();
   const router = useRouter();
 
@@ -50,7 +50,7 @@ export default function BillsPage() {
           name="description"
           content="Zarządzaj rachunkami: dodawaj, edytuj, usuwaj."
         />
-        <link rel="canonical" href="https://yourdomain.com/bills" />
+        <link rel="canonical" href="https://dzisiajv3.vercel.app/bills" />
         <meta property="og:title" content="Rachunki – Dzisiaj v3" />
         <meta
           property="og:description"
@@ -66,7 +66,7 @@ export default function BillsPage() {
               title="Budżet"
               className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
             >
-              <Wallet className="w-5 h-5" />
+              <ChartColumnBig className="w-5 h-5" />
             </button>
           </h2>
           {!showForm && (
@@ -93,15 +93,32 @@ export default function BillsPage() {
             />
           </div>
         )}
-
-        <BillList
-          bills={bills}
-          onEdit={openEdit}
-          onDelete={(id) => {
-            handleDelete(id);
-            fetchBills();
-          }}
-        />
+        {Object.keys(bills).length > 0 && (
+          <>
+            <h3>Wydatki bieżące</h3>
+            <BillList
+              bills={bills}
+              onEdit={openEdit}
+              onDelete={(id) => {
+                handleDelete(id);
+                fetchBills();
+              }}
+            />
+          </>
+        )}
+        {Object.keys(budgetItems).length > 0 && (
+          <>
+            <h3>Wydatki planowane</h3>
+            <BillList
+              bills={budgetItems}
+              onEdit={openEdit}
+              onDelete={(id) => {
+                handleDelete(id);
+                fetchBills();
+              }}
+            />
+          </>
+        )}
       </Layout>
     </>
   );

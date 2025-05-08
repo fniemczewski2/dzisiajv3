@@ -48,7 +48,7 @@ export default function NotesPage() {
       <Head>
         <title>Notatki – Dzisiaj v3</title>
         <meta name="description" content="Twórz i zarządzaj notatkami." />
-        <link rel="canonical" href="https://yourdomain.com/notes" />
+        <link rel="canonical" href="https://dzisiajv3.vercel.app/notes" />
         <meta property="og:title" content="Notatki – Dzisiaj v3" />
         <meta
           property="og:description"

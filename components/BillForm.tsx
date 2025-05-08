@@ -67,38 +67,48 @@ export function BillForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 bg-card p-4 rounded-xl shadow max-w-md"
+      className="space-y-2 bg-card p-4 rounded-xl shadow max-w-md"
     >
-      <label htmlFor="amount">Kwota:</label>
-      <input
-        id="amount"
-        type="number"
-        step="0.01"
-        value={amount}
-        onChange={(e) => setAmount(parseFloat(e.target.value))}
-        placeholder="Kwota"
-        className="w-full p-2 border rounded"
-        required
-      />
-
-      <label htmlFor="description">Opis:</label>
-      <textarea
-        id="description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Opis"
-        className="w-full p-2 border rounded"
-      />
-
-      <label htmlFor="date">Data:</label>
-      <input
-        id="date"
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
+      <div>
+        <label htmlFor="amount" className="w-full">
+          Kwota:
+        </label>
+        <input
+          id="amount"
+          type="number"
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(parseFloat(e.target.value))}
+          placeholder="Kwota"
+          className="w-full p-2 border rounded"
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="description" className="w-full">
+          Opis:
+        </label>
+        <textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Opis"
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="date" className="w-full">
+          Data:
+        </label>
+        <input
+          id="date"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full p-2 border rounded"
+          required
+        />
+      </div>
 
       <div className="flex items-center space-x-2">
         <input
@@ -116,7 +126,7 @@ export function BillForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-white rounded-xl"
+          className="px-4 py-2 bg-primary text-white rounded-lg"
         >
           {isEdit ? "Zapisz" : "Dodaj"}
         </button>
@@ -124,7 +134,7 @@ export function BillForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 rounded-xl"
+            className="px-4 py-2 bg-gray-300 rounded-lg"
           >
             Anuluj
           </button>
