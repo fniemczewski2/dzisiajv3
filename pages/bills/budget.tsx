@@ -34,12 +34,14 @@ export default function BudgetPage() {
 
   const [sums, setSums] = useState<Record<number, number>>({});
   const [rates, setRates] = useState<Record<number, number>>({});
+  const [budgets, setBudgets] = useState<Record<number, number>>({});
+  const [excluded, setExcluded] = useState<Record<number, number>>({});
   const [rows, setRows] = useState<BudgetRow[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Fetch sums and rates
+  // Fetch sums, rates, budgets, and excluded
   useEffect(() => {
     if (!session) return;
     (async () => {
@@ -47,11 +49,29 @@ export default function BudgetPage() {
       const currentMonth = new Date().getMonth() + 1;
       const localSums: Record<number, number> = {};
       const localRates: Record<number, number> = {};
+      const localBudgets: Record<number, number> = {};
+      const localExcluded: Record<number, number> = {};
+
       for (let m = currentMonth; m <= 12; m++) {
         localSums[m] = 0;
         localRates[m] = 0;
+        localBudgets[m] = 0;
+        localExcluded[m] = 0;
       }
-      // fetch bills
+
+      // Sum "Bieżące" bills to budgets
+      const { data: bieżące } = await supabase
+        .from("bills")
+        .select("amount, date")
+        .eq("user_name", userEmail)
+        .eq("include_in_budget", true)
+        .eq("description", "Bieżące");
+      bieżące?.forEach(({ amount, date }) => {
+        const m = new Date(date).getMonth() + 1;
+        if (localBudgets[m] !== undefined) localBudgets[m] += amount;
+      });
+
+      // Sum included bills
       const { data: bills } = await supabase
         .from("bills")
         .select("amount, date")
@@ -61,7 +81,19 @@ export default function BudgetPage() {
         const m = new Date(date).getMonth() + 1;
         if (localSums[m] !== undefined) localSums[m] += amount;
       });
-      // fetch rates
+
+      // Sum excluded bills
+      const { data: excludedBills } = await supabase
+        .from("bills")
+        .select("amount, date")
+        .eq("user_name", userEmail)
+        .eq("include_in_budget", false);
+      excludedBills?.forEach(({ amount, date }) => {
+        const m = new Date(date).getMonth() + 1;
+        if (localExcluded[m] !== undefined) localExcluded[m] += amount;
+      });
+
+      // Fetch rate settings
       const { data: budgetData } = await supabase
         .from("budgets")
         .select(
@@ -69,7 +101,6 @@ export default function BudgetPage() {
         )
         .eq("user_name", userEmail)
         .maybeSingle();
-      // if no record exists, create default row with all rates = default 0
       if (!budgetData) {
         await supabase.from("budgets").insert({ user_name: userEmail });
       }
@@ -93,13 +124,16 @@ export default function BudgetPage() {
           localRates[i] = (budgetData as any)[key] ?? 0;
         }
       }
+
       setSums(localSums);
       setRates(localRates);
+      setBudgets(localBudgets);
+      setExcluded(localExcluded);
       setLoading(false);
     })();
   }, [session, supabase]);
 
-  // Compute rows
+  // Compute rows for first table
   useEffect(() => {
     const result: BudgetRow[] = Object.entries(sums).map(([mStr, sum]) => {
       const month = parseInt(mStr, 10);
@@ -118,7 +152,6 @@ export default function BudgetPage() {
     if (!session) return;
     setSaving(true);
     const userEmail = session.user.email;
-    // prepare payload
     const payload: any = { user_name: userEmail };
     Object.entries(rates).forEach(([mStr, rate]) => {
       const i = parseInt(mStr, 10);
@@ -161,8 +194,9 @@ export default function BudgetPage() {
         <title>Budżet – Dzisiaj</title>
       </Head>
       <Layout>
-        <h2 className="mb-2 text-xl font-semibold">
-          Budżet miesięczny{" "}
+        <h2 className="mb-2 text-xl font-semibold">Statystyki</h2>
+        <h3 className="font-bold mb-2">
+          Budżet roczny&nbsp;
           {isEditing ? (
             <>
               <button
@@ -194,9 +228,11 @@ export default function BudgetPage() {
               <Edit2 className="w-5 h-5" />
             </button>
           )}
-        </h2>
-        <div className="flex items-center mb-4 space-y-4 bg-card p-2 sm:p-4 rounded-xl shadow">
-          <table className="w-full table-auto border-collapse rounded-sm">
+        </h3>
+
+        {/* First table: sums, rates, hours */}
+        <div className="mb-4 bg-card p-4 rounded-xl shadow">
+          <table className="w-full table-auto border-collapse">
             <thead>
               <tr>
                 <th className="border px-1.5 py-1">Miesiąc</th>
@@ -222,7 +258,7 @@ export default function BudgetPage() {
                             parseFloat(e.target.value) || 0
                           )
                         }
-                        className="w-12 p-1 border rounded"
+                        className="w-16 p-1 border rounded"
                         title="stawka"
                       />
                     ) : (
@@ -232,6 +268,36 @@ export default function BudgetPage() {
                   <td className="border px-1.5 py-1">{hours}</td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className="font-bold mb-2">Wydatki bieżące</h3>
+        <div className="bg-card p-4 rounded-xl shadow">
+          <table className="w-full table-auto border-collapse">
+            <thead>
+              <tr>
+                <th className="border px-1.5 py-1">Miesiąc</th>
+                <th className="border px-1.5 py-1">Bieżące</th>
+                <th className="border px-1.5 py-1">Pozostało</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(budgets).map(([mStr, budget]) => {
+                const month = parseInt(mStr, 10);
+                const remaining = budget - (excluded[month] ?? 0);
+                return (
+                  <tr key={month}>
+                    <td className="border px-1.5 py-1">
+                      {MONTH_NAMES[month - 1]}
+                    </td>
+                    <td className="border px-1.5 py-1">{budget.toFixed(2)}</td>
+                    <td className="border px-1.5 py-1">
+                      {remaining.toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -43,7 +43,7 @@ export default function LoginPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-card p-6 rounded-xl shadow text-center">
           <h1 className="text-3xl font-bold mb-4">Dzisiaj v3</h1>
-          <p className="mb-6">Zaloguj się, aby skorzystać z aplikacji</p>
+          <p className="mb-6">Zaloguj się, aby skorzystać z&nbsp;aplikacji</p>
           <button
             onClick={handleLogin}
             className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition"

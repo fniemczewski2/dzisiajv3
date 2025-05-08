@@ -260,7 +260,7 @@ export default function TaskForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-white rounded-xl flex items-center"
+          className="px-4 py-2 bg-primary text-white rounded-lg flex items-center"
         >
           {isEdit ? (
             "Zapisz"
@@ -275,7 +275,7 @@ export default function TaskForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 rounded-xl"
+            className="px-4 py-2 bg-gray-300 rounded-lg"
           >
             Anuluj
           </button>
