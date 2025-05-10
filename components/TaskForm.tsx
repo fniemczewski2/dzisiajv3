@@ -23,6 +23,7 @@ export default function TaskForm({
   const { settings } = useSettings(userEmail);
   const supabase = useSupabaseClient();
   const isEdit = initialTask !== null;
+  const todayIso = new Date().toISOString().slice(0, 10);
 
   // form state
   const [form, setForm] = useState<Omit<Task, "id">>({
@@ -32,8 +33,8 @@ export default function TaskForm({
     category: "other",
     priority: 5,
     description: "",
-    due_date: "",
-    deadline_date: "",
+    due_date: todayIso,
+    deadline_date: todayIso,
     status: "pending",
   });
   const [loading, setLoading] = useState(false);
@@ -60,11 +61,11 @@ export default function TaskForm({
       title: "",
       user_name: userEmail,
       for_user: userEmail,
-      category: "other",
+      category: "inne",
       priority: 5,
       description: "",
-      due_date: "",
-      deadline_date: "",
+      due_date: todayIso,
+      deadline_date: todayIso,
       status: "pending",
     });
   };
@@ -83,8 +84,8 @@ export default function TaskForm({
       priority: form.priority,
       status: nextStatus,
       description: form.description || null,
-      due_date: form.due_date || null,
-      deadline_date: form.deadline_date || null,
+      due_date: new Date(form.due_date) || null,
+      deadline_date: new Date(form.deadline_date) || null,
     };
 
     if (isEdit && initialTask) {
@@ -219,6 +220,7 @@ export default function TaskForm({
             value={form.due_date}
             onChange={(e) => setForm({ ...form, due_date: e.target.value })}
             className="mt-1 w-full p-2 border rounded"
+            required
           />
         </div>
         <div>
@@ -232,10 +234,9 @@ export default function TaskForm({
             id="deadline_date"
             type="date"
             value={form.deadline_date}
-            onChange={(e) =>
-              setForm({ ...form, deadline_date: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
             className="mt-1 w-full p-2 border rounded"
+            required
           />
         </div>
       </div>
