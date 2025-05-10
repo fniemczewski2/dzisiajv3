@@ -26,6 +26,7 @@ export function BillForm({
     initial?.include_in_budget || false
   );
   const [loading, setLoading] = useState(false);
+  const todayIso = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (initial) {
@@ -44,7 +45,7 @@ export function BillForm({
       user_name: userEmail,
       amount,
       description: description || null,
-      date,
+      date: todayIso,
       include_in_budget: includeInBudget,
     };
 
