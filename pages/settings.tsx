@@ -224,7 +224,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => removeUser(idx)}
-                  className="p-2 bg-red-100 rounded-xl text-red-500 hover:bg-red-200"
+                  className="p-2 bg-red-100 rounded-lg text-red-500 hover:bg-red-200"
                   title="usuń"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -235,7 +235,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={addUser}
-                className="flex items-center space-x-1 text-primary"
+                className="flex items-center rounded-lg space-x-1 text-primary"
               >
                 <PlusCircleIcon className="w-5 h-5" />
                 <span>Dodaj znajomego</span>
@@ -246,7 +246,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-primary text-white rounded-xl disabled:opacity-50"
+            className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
           >
             {saving ? "Zapisywanie…" : "Zapisz ustawienia"}
           </button>
@@ -259,7 +259,7 @@ export default function SettingsPage() {
           </p>
           <button
             onClick={handleSignOut}
-            className="px-4 py-2 bg-red-500 text-white rounded-xl"
+            className="px-4 py-2 bg-red-500 text-white rounded-lg"
           >
             Wyloguj się
           </button>

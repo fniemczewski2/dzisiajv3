@@ -18,7 +18,8 @@ export function useBills(userEmail: string) {
       .from("bills")
       .select("*")
       .eq("user_name", userEmail)
-      .eq("include_in_budget", false);
+      .eq("include_in_budget", false)
+      .order("date", { ascending: true });
 
     if (error) {
       console.error("Fetch bills failed:", error.message);
@@ -32,7 +33,8 @@ export function useBills(userEmail: string) {
         .from("bills")
         .select("*")
         .eq("user_name", userEmail)
-        .eq("include_in_budget", true);
+        .eq("include_in_budget", true)
+        .order("date", { ascending: true });
 
       if (error) {
         console.error("Fetch budgetItems failed:", error.message);
