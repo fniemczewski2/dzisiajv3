@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useDailySpending } from "../hooks/useDailySpending";
 import { Loader2, Save, X } from "lucide-react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { toDate } from "date-fns";
 
 interface DailySpendingFormProps {
   userEmail: string;
@@ -26,14 +27,13 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
 
   const handleSave = async () => {
     const { error: updateError } = await supabase
-      .from("daily_activities")
-      .upsert(
-        { user_name: userEmail, date: today, daily_spending: inputValue },
-        { onConflict: "user_name,date" }
-      );
+      .from("daily_habits")
+      .update({ daily_spending: inputValue })
+      .eq("date", today)
+      .eq("user_name", userEmail);
 
-    if (updateError) {
-      console.error("Error updating daily spending:", updateError.message);
+    if (error) {
+      return false;
     } else {
       fetchDailySpending();
     }

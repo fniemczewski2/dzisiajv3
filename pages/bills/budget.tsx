@@ -147,7 +147,38 @@ export default function BudgetPage() {
     setRows(res as BudgetRow[]);
   }, [sums, rates]);
 
-  // Fetch monthly spending
+  // daily spending sums
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      const userEmail = session.user.email;
+      const startDate = `${currentYear}-01-01`;
+      const endDate = `${currentYear}-12-31`;
+      const { data, error } = await supabase
+        .from("daily_habits")
+        .select("date,daily_spending")
+        .eq("user_name", userEmail)
+        .gte("date", startDate)
+        .lte("date", endDate);
+      if (error) {
+        console.error(error.message);
+        return;
+      }
+
+      const localMonthly: Record<number, number> = {};
+      for (let m = currentMonth; m <= 12; m++) {
+        localMonthly[m] = 0;
+      }
+      data?.forEach(({ date, daily_spending }) => {
+        const m = new Date(date).getMonth() + 1;
+        if (localMonthly[m] !== undefined) {
+          localMonthly[m] += daily_spending;
+        }
+      });
+      setMonthlySpending(localMonthly);
+    })();
+  }, [session, supabase, currentYear]);
+
   useEffect(() => {
     if (!session) return;
     (async () => {
@@ -307,6 +338,7 @@ export default function BudgetPage() {
             <tbody>
               {Object.entries(budgets).map(([mStr, budget]) => {
                 const m = +mStr;
+                console.log(monthlySpending);
                 const spent = monthlySpending[m] || 0;
                 const rem = budget - spent;
                 return (
