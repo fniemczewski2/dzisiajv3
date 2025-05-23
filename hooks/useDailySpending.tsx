@@ -31,32 +31,10 @@ export function useDailySpending(userEmail: string, date: string) {
     fetchDailySpending();
   }, [fetchDailySpending]);
 
-  // Updater, also memoized
-  const updateDailySpending = useCallback(
-    async (value: number) => {
-      setError(null);
-      const { error } = await supabase
-        .from("daily_habits")
-        .update({ daily_spending: value })
-        .eq("date", date)
-        .eq("user_name", userEmail);
-
-      if (error) {
-        setError(error.message);
-        return false;
-      }
-
-      setDailySpending(value);
-      return true;
-    },
-    [supabase, date, userEmail]
-  );
-
   return {
     dailySpending,
     loading,
     error,
     fetchDailySpending,
-    updateDailySpending,
   };
 }
