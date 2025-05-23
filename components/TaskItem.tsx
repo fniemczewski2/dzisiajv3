@@ -47,14 +47,14 @@ export default function TaskItem({
     <li
       key={task.id}
       className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 bg-card rounded-xl shadow flex justify-between items-center ${
-        task.priority === 2 ? "shadow-red-800 shadow-sm" : ""
+        task.priority === 1 ? "shadow-red-800 shadow-sm" : ""
       }`}
     >
       <div className="flex-1">
         <h3
           className={`text-xl font-bold mb-3 
             ${isDone ? "text-gray-500 line-through" : ""}
-            ${task.priority === 2 ? "text-red-700" : ""}`}
+            ${task.priority === 1 ? "text-red-700" : ""}`}
         >
           {task.priority} | {task.title}
         </h3>
@@ -134,7 +134,7 @@ export default function TaskItem({
           task.status === "waiting_for_acceptance") && (
           <p className="mt-2 rounded-lg text-sm bg-gray-100 py-1 px-2">
             <span className="text-xs font-bold">
-              {task.priority === 2 && (
+              {task.priority === 1 && (
                 <>
                   PILNE! <br />
                 </>
