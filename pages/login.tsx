@@ -46,7 +46,7 @@ export default function LoginPage() {
           <p className="mb-6">Zaloguj się, aby skorzystać z&nbsp;aplikacji</p>
           <button
             onClick={handleLogin}
-            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition"
+            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
           >
             Zaloguj
           </button>

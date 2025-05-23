@@ -234,7 +234,9 @@ export default function TaskForm({
             id="deadline_date"
             type="date"
             value={form.deadline_date}
-            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, deadline_date: e.target.value })
+            }
             className="mt-1 w-full p-2 border rounded"
             required
           />

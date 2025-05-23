@@ -40,7 +40,7 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [todayDone, setTodayDone] = useState(0);
   const [todayTotal, setTodayTotal] = useState(0);
-  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("today");
 
   const { settings, loading: loadingSettings } = useSettings(userEmail);
   const {
@@ -144,7 +144,7 @@ export default function TasksPage() {
           {!showForm && (
             <button
               onClick={openAdd}
-              className="px-4 py-2 flex items-center bg-primary text-white rounded-xl"
+              className="px-4 py-2 flex items-center bg-primary text-white rounded-lg"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />

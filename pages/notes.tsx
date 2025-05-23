@@ -63,14 +63,14 @@ export default function NotesPage() {
               <button
                 onClick={() => router.push("/notes/backpack")}
                 title="Plecak"
-                className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
+                className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Backpack className="w-5 h-5" />
               </button>
               <button
                 onClick={() => router.push("/notes/suitcase")}
                 title="Walizka"
-                className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
+                className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Luggage className="w-5 h-5" />
               </button>
@@ -79,7 +79,7 @@ export default function NotesPage() {
           {!showForm && (
             <button
               onClick={openNew}
-              className="px-4 py-2 flex items-center bg-primary text-white rounded-xl"
+              className="px-4 py-2 flex items-center bg-primary text-white rounded-lg"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />

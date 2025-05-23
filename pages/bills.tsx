@@ -9,6 +9,7 @@ import { BillForm } from "../components/BillForm";
 import { BillList } from "../components/BillList";
 import { Bill } from "../types";
 import { useRouter } from "next/router";
+import { DailySpendingForm } from "../components/DailySpendingForm";
 
 export default function BillsPage() {
   const session = useSession();
@@ -64,7 +65,7 @@ export default function BillsPage() {
             <button
               onClick={() => router.push("/bills/budget")}
               title="Budżet"
-              className="p-2 ml-2 bg-gray-100 rounded-xl hover:bg-gray-200"
+              className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
             >
               <ChartColumnBig className="w-5 h-5" />
             </button>
@@ -72,7 +73,7 @@ export default function BillsPage() {
           {!showForm && (
             <button
               onClick={openNew}
-              className="px-4 py-2 flex items-center bg-primary text-white rounded-xl"
+              className="px-4 py-2 flex items-center bg-primary text-white rounded-lg"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
@@ -93,9 +94,12 @@ export default function BillsPage() {
             />
           </div>
         )}
+        <div className="bg-card rounded-xl shadow py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] flex justify-between items-center">
+          <DailySpendingForm userEmail={userEmail} />
+        </div>
         {Object.keys(bills).length > 0 && (
           <>
-            <h3>Wydatki bieżące</h3>
+            <h3>Do zwrotu</h3>
             <BillList
               bills={bills}
               onEdit={openEdit}
