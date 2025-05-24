@@ -21,7 +21,7 @@ export function BillList({ bills, onEdit, onDelete }: BillListProps) {
           >
             <div>
               <p className="font-semibold">
-                {!b.include_in_budget && "-"}
+                {b.include_in_budget ? "-" : "+"}
                 {b.amount.toFixed(2)} PLN
               </p>
               <p className="text-sm text-gray-500">
