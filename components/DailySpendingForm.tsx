@@ -84,7 +84,7 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
           className="cursor-pointer font-bold hover:underline"
           title="Click to edit"
         >
-          {dailySpending.toFixed(2)}
+          {dailySpending ? dailySpending.toFixed(2) : 0}
           {" PLN"}
         </span>
       )}
