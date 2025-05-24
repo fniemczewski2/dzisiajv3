@@ -46,7 +46,7 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
 
   return (
     <span className="py-1 flex items-center">
-      <h3 className="mr-1.5">Wydane dzisiaj:</h3>
+      <h3 className="mr-1.5">Wydane dzisiaj:&nbsp;</h3>
       {isEditing ? (
         <div className="flex items-center">
           <input

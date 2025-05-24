@@ -94,8 +94,10 @@ export default function BillsPage() {
             />
           </div>
         )}
-        <div className="bg-card rounded-xl shadow py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] flex justify-between items-center">
-          <DailySpendingForm userEmail={userEmail} />
+        <div className="max-w-md mx-auto">
+          <div className="bg-card rounded-xl shadow py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] flex justify-between items-center">
+            <DailySpendingForm userEmail={userEmail} />
+          </div>
         </div>
         {Object.keys(bills).length > 0 && (
           <>

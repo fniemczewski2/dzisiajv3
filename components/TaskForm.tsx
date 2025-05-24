@@ -111,7 +111,7 @@ export default function TaskForm({
           htmlFor="title"
           className="block text-sm font-medium text-gray-700"
         >
-          Tytuł
+          Tytuł:
         </label>
         <input
           id="title"
@@ -129,7 +129,7 @@ export default function TaskForm({
           htmlFor="for_user"
           className="block text-sm font-medium text-gray-700"
         >
-          Dla
+          Dla:
         </label>
         <select
           id="for_user"
@@ -157,7 +157,7 @@ export default function TaskForm({
             htmlFor="category"
             className="block text-sm font-medium text-gray-700"
           >
-            Kategoria
+            Kategoria:
           </label>
           <select
             id="category"
@@ -189,7 +189,7 @@ export default function TaskForm({
             htmlFor="priority"
             className="block text-sm font-medium text-gray-700"
           >
-            Priorytet
+            Priorytet:
           </label>
           <input
             id="priority"
@@ -212,7 +212,7 @@ export default function TaskForm({
             htmlFor="due_date"
             className="block text-sm font-medium text-gray-700"
           >
-            Due date
+            Data wykonania:&nbsp;
           </label>
           <input
             id="due_date"
@@ -228,7 +228,7 @@ export default function TaskForm({
             htmlFor="deadline_date"
             className="block text-sm font-medium text-gray-700"
           >
-            Deadline date
+            Deadline:&nbsp;
           </label>
           <input
             id="deadline_date"
@@ -249,7 +249,7 @@ export default function TaskForm({
           htmlFor="description"
           className="block text-sm font-medium text-gray-700"
         >
-          Opis
+          Opis:
         </label>
         <textarea
           id="description"

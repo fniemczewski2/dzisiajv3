@@ -19,6 +19,7 @@ export default function TaskItem({
 }: Props) {
   const supabase = useSupabaseClient();
   const isDone = task.status === "done";
+  const today = new Date().toISOString().split("T")[0];
 
   const handleDelete = async () => {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
@@ -46,15 +47,34 @@ export default function TaskItem({
   return (
     <li
       key={task.id}
-      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 bg-card rounded-xl shadow flex justify-between items-center ${
-        task.priority === 1 ? "shadow-red-800 shadow-sm" : ""
-      }`}
+      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 bg-card rounded-xl shadow flex justify-between items-center 
+        ${
+          task.priority === 1
+            ? "shadow-red-800 shadow-sm"
+            : new Date(task.deadline_date).toISOString().split("T")[0] ===
+              new Date().toISOString().split("T")[0]
+            ? ""
+            : new Date(task.deadline_date) < new Date()
+            ? "shadow-red-800 shadow-sm"
+            : ""
+        }`}
     >
       <div className="flex-1">
         <h3
           className={`text-xl font-bold mb-3 
-            ${isDone ? "text-gray-500 line-through" : ""}
-            ${task.priority === 1 ? "text-red-700" : ""}`}
+            ${
+              isDone
+                ? "text-gray-500 line-through"
+                : task.priority === 1
+                ? "text-red-800"
+                : new Date(task.deadline_date).toISOString().split("T")[0] ===
+                  new Date().toISOString().split("T")[0]
+                ? ""
+                : new Date(task.deadline_date) < new Date()
+                ? "text-red-800"
+                : ""
+            }
+            `}
         >
           {task.priority} | {task.title}
         </h3>
@@ -75,7 +95,7 @@ export default function TaskItem({
             <p className="text-sm text-gray-600 ml-1 mb-1">{task.category}</p>
           </div>
 
-          <div className="flex w-full min-w-[140px] sm:min-w-[210px] gap-1.5">
+          <div className="flex justify-end w-full min-w-[140px] sm:min-w-[210px] gap-1.5">
             {isDone ? (
               <button
                 onClick={handleDelete}

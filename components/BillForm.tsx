@@ -72,7 +72,7 @@ export function BillForm({
     >
       <div>
         <label htmlFor="amount" className="w-full">
-          Kwota:
+          Kwota:&nbsp;
         </label>
         <input
           id="amount"
@@ -87,7 +87,7 @@ export function BillForm({
       </div>
       <div>
         <label htmlFor="description" className="w-full">
-          Opis:
+          Opis:&nbsp;
         </label>
         <textarea
           id="description"
@@ -99,7 +99,7 @@ export function BillForm({
       </div>
       <div>
         <label htmlFor="date" className="w-full">
-          Data:
+          Data:&nbsp;
         </label>
         <input
           id="date"
@@ -111,7 +111,7 @@ export function BillForm({
         />
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center py-2 space-x-2">
         <input
           id="includeInBudget"
           type="checkbox"
