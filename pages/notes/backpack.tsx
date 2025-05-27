@@ -150,7 +150,7 @@ export default function BackpackPage() {
           {categories.map((cat) => (
             <div key={cat.title} className="sm:m-6 sm:h-min w-fit">
               <h3 className="font-semibold mb-2">{cat.title}</h3>
-              <ul className="p-4 max-w-[400px] w-full my-2 list-disc space-y-1 bg-card rounded-xl shadow">
+              <ul className="p-4 max-w-[400px] sm:max-w-[480px] min-w-[280px] w-full my-2 list-disc space-y-1 bg-card rounded-xl shadow">
                 {cat.items.map((item) => (
                   <li
                     key={item}
