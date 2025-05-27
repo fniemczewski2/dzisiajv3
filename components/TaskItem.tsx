@@ -19,12 +19,15 @@ export default function TaskItem({
 }: Props) {
   const supabase = useSupabaseClient();
   const isDone = task.status === "done";
-  const today = new Date().toISOString().split("T")[0];
 
   const handleDelete = async () => {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
     await supabase.from("tasks").delete().eq("id", task.id);
     onTasksChange();
+  };
+
+  const handleEdit = () => {
+    onEdit(task);
   };
 
   const acceptTask = async () => {
@@ -38,10 +41,6 @@ export default function TaskItem({
   const markDone = async () => {
     await supabase.from("tasks").update({ status: "done" }).eq("id", task.id);
     onTasksChange();
-  };
-
-  const handleEdit = () => {
-    onEdit(task);
   };
 
   return (
@@ -162,9 +161,20 @@ export default function TaskItem({
             </span>
             {task.description}
             <span className="text-xs">
-              {(task.status === "accepted" ||
-                task.status === "waiting_for_acceptance") &&
-                "Zlecone przez: " + task.user_name}
+              {task.for_user === userEmail ? (
+                (task.status === "accepted" ||
+                  task.status === "waiting_for_acceptance") && (
+                  <>
+                    <br />
+                    Zlecone przez: {task.user_name}
+                  </>
+                )
+              ) : (
+                <>
+                  <br />
+                  Zlecone dla: {task.for_user}
+                </>
+              )}
             </span>
           </p>
         )}

@@ -28,6 +28,18 @@ export type Note = {
   user_name: string;
 };
 
+export type Event = {
+  id: string;
+  title: string;
+  description?: string;
+  start_time: string;
+  end_time: string;
+  place?: string;
+  user_name: string;
+  share?: string;
+  repeat: "none" | "weekly" | "monthly" | "yearly";
+};
+
 export type Settings = {
   sort_order: string;
   show_completed: boolean;
@@ -49,3 +61,4 @@ export type HabitRow = {
   duolingo: boolean;
 };
 export type WaterRow = { date: string; amount: number };
+export type MoneyRow = { date: string; daily_spending: number };

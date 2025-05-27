@@ -73,7 +73,7 @@ export default function BillsPage() {
           {!showForm && (
             <button
               onClick={openNew}
-              className="px-4 py-2 flex items-center bg-primary text-white rounded-lg"
+              className="px-4 py-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />

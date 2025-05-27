@@ -120,18 +120,23 @@ export default function SuitcasePage() {
       </Head>
       <Layout>
         <h2 className="text-xl font-semibold mb-4">Walizka</h2>
-        <div className="space-y-6  ">
+        <div className="space-y-6  flex flex-row flex-wrap">
           {categories.map((cat) => (
-            <div key={cat.title}>
+            <div key={cat.title} className="sm:m-6 sm:h-min w-fit">
               <h3 className="font-semibold mb-2">{cat.title}</h3>
               <ul className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 list-disc space-y-1 bg-card rounded-xl shadow">
                 {cat.items.map((item) => (
-                  <li key={item} className="flex items-center">
+                  <li
+                    key={item}
+                    className={`flex items-center ${
+                      checked[item] ? "line-through text-gray-600" : ""
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       checked={!!checked[item]}
                       onChange={() => toggle(item)}
-                      className="mr-2"
+                      className="mr-2 h-5 w-5"
                       title="Spakowane?"
                     />
                     {item}

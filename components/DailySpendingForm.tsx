@@ -1,9 +1,7 @@
-// components/DailySpendingCell.tsx
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useDailySpending } from "../hooks/useDailySpending";
 import { Loader2, Save, X } from "lucide-react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { toDate } from "date-fns";
 
 interface DailySpendingFormProps {
   userEmail: string;
@@ -13,30 +11,33 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
   userEmail,
 }) => {
   const today = new Date().toISOString().split("T")[0];
-  const { dailySpending, loading, error, fetchDailySpending } =
-    useDailySpending(userEmail, today);
+  const { dailySpending, loading, fetchDailySpending } = useDailySpending(
+    userEmail,
+    today
+  );
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState<number>(0);
   const supabase = useSupabaseClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // sync local input when the fetched value changes
   useEffect(() => {
-    setInputValue(dailySpending);
+    if (inputRef.current) {
+      inputRef.current.value = dailySpending?.toFixed(2) ?? "0";
+    }
   }, [dailySpending]);
 
   const handleSave = async () => {
+    const value = parseFloat(inputRef.current?.value || "0");
     const { error: updateError } = await supabase
       .from("daily_habits")
-      .update({ daily_spending: inputValue })
+      .update({ daily_spending: value })
       .eq("date", today)
       .eq("user_name", userEmail);
 
-    if (error) {
-      return false;
-    } else {
+    if (!updateError) {
       fetchDailySpending();
     }
+
     setIsEditing(false);
   };
 
@@ -50,10 +51,9 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
       {isEditing ? (
         <div className="flex items-center">
           <input
+            ref={inputRef}
             type="number"
             step="0.01"
-            value={inputValue}
-            onChange={(e) => setInputValue(parseFloat(e.target.value))}
             className="w-16 p-1 border rounded"
             title="Daily Spending"
           />
@@ -61,6 +61,7 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
             onClick={handleSave}
             className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200"
             title="Zapisz"
+            type="submit"
           >
             {loading ? (
               <Loader2 className="animate-spin w-5 h-5" />
@@ -69,11 +70,10 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
             )}
           </button>
           <button
-            onClick={() => {
-              setIsEditing(false);
-            }}
+            onClick={() => setIsEditing(false)}
             className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200"
             title="Anuluj"
+            type="button"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,10 +82,9 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
         <span
           onClick={() => setIsEditing(true)}
           className="cursor-pointer font-bold hover:underline"
-          title="Click to edit"
+          title="Kliknij, aby edytować"
         >
-          {dailySpending ? dailySpending.toFixed(2) : 0}
-          {" PLN"}
+          {dailySpending ? dailySpending.toFixed(2) : "0.00"} PLN
         </span>
       )}
     </span>

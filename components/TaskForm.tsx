@@ -1,10 +1,9 @@
-// components/TaskForm.tsx
 "use client";
 
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../types";
-import { Loader2, PlusCircleIcon } from "lucide-react";
+import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { useSettings } from "../hooks/useSettings";
 
 interface TaskFormProps {
@@ -22,70 +21,59 @@ export default function TaskForm({
 }: TaskFormProps) {
   const { settings } = useSettings(userEmail);
   const supabase = useSupabaseClient();
-  const isEdit = initialTask !== null;
+  const isEdit = !!initialTask;
   const todayIso = new Date().toISOString().slice(0, 10);
 
-  // form state
-  const [form, setForm] = useState<Omit<Task, "id">>({
-    title: "",
-    user_name: userEmail,
-    for_user: userEmail,
-    category: "other",
-    priority: 5,
-    description: "",
-    due_date: todayIso,
-    deadline_date: todayIso,
-    status: "pending",
-  });
+  const titleRef = useRef<HTMLInputElement>(null);
+  const forUserRef = useRef<HTMLSelectElement>(null);
+  const categoryRef = useRef<HTMLSelectElement>(null);
+  const priorityRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const dueDateRef = useRef<HTMLInputElement>(null);
+  const deadlineDateRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(false);
   const userOptions = settings?.users ?? [];
-  // populate when editing
+
   useEffect(() => {
     if (initialTask) {
-      setForm({
-        title: initialTask.title,
-        user_name: initialTask.user_name,
-        for_user: initialTask.for_user,
-        category: initialTask.category,
-        priority: initialTask.priority,
-        description: initialTask.description ?? "",
-        due_date: initialTask.due_date ?? "",
-        deadline_date: initialTask.deadline_date ?? "",
-        status: initialTask.status,
-      });
+      titleRef.current!.value = initialTask.title;
+      forUserRef.current!.value = initialTask.for_user;
+      categoryRef.current!.value = initialTask.category;
+      priorityRef.current!.value = String(initialTask.priority);
+      descriptionRef.current!.value = initialTask.description ?? "";
+      dueDateRef.current!.value = initialTask.due_date ?? todayIso;
+      deadlineDateRef.current!.value = initialTask.deadline_date ?? todayIso;
+    } else {
+      // default values
+      titleRef.current!.value = "";
+      forUserRef.current!.value = userEmail;
+      categoryRef.current!.value = "inne";
+      priorityRef.current!.value = "5";
+      descriptionRef.current!.value = "";
+      dueDateRef.current!.value = todayIso;
+      deadlineDateRef.current!.value = todayIso;
     }
-  }, [initialTask]);
-
-  const resetForm = () => {
-    setForm({
-      title: "",
-      user_name: userEmail,
-      for_user: userEmail,
-      category: "inne",
-      priority: 5,
-      description: "",
-      due_date: todayIso,
-      deadline_date: todayIso,
-      status: "pending",
-    });
-  };
+  }, [initialTask, userEmail, todayIso]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    const forUser = forUserRef.current?.value || userEmail;
     const nextStatus =
-      form.for_user !== userEmail ? "waiting_for_acceptance" : "pending";
+      forUser !== userEmail ? "waiting_for_acceptance" : "pending";
+
     const payload = {
-      title: form.title,
+      title: titleRef.current?.value || "",
       user_name: userEmail,
-      for_user: form.for_user,
-      category: form.category,
-      priority: form.priority,
+      for_user: forUser,
+      category: categoryRef.current?.value || "inne",
+      priority: Number(priorityRef.current?.value) || 5,
+      description: descriptionRef.current?.value || null,
+      due_date: new Date(dueDateRef.current?.value || todayIso),
+      deadline_date: new Date(deadlineDateRef.current?.value || todayIso),
       status: nextStatus,
-      description: form.description || null,
-      due_date: new Date(form.due_date) || null,
-      deadline_date: new Date(form.deadline_date) || null,
     };
 
     if (isEdit && initialTask) {
@@ -96,7 +84,6 @@ export default function TaskForm({
 
     await onTasksChange();
     setLoading(false);
-    resetForm();
     if (onCancel) onCancel();
   };
 
@@ -105,7 +92,6 @@ export default function TaskForm({
       onSubmit={handleSubmit}
       className="space-y-4 bg-card p-4 rounded-xl shadow"
     >
-      {/* Title */}
       <div>
         <label
           htmlFor="title"
@@ -115,34 +101,30 @@ export default function TaskForm({
         </label>
         <input
           id="title"
+          ref={titleRef}
           type="text"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
           className="mt-1 w-full p-2 border rounded"
           required
         />
       </div>
 
-      {/* For User */}
       <div>
         <label
-          htmlFor="for_user"
+          htmlFor="for"
           className="block text-sm font-medium text-gray-700"
         >
           Dla:
         </label>
         <select
-          id="for_user"
-          value={form.for_user}
-          onChange={(e) => setForm({ ...form, for_user: e.target.value })}
+          id="for"
+          ref={forUserRef}
           className="mt-1 w-full p-2 border rounded"
           required
+          defaultValue={userEmail}
         >
-          <option value={userEmail} defaultChecked>
-            mnie
-          </option>
+          <option value={userEmail}>mnie</option>
           <option value="f.niemczewski2@gmail.com">Franka</option>
-          {userOptions.map((email: string) => (
+          {userOptions.map((email) => (
             <option key={email} value={email}>
               {email}
             </option>
@@ -150,7 +132,6 @@ export default function TaskForm({
         </select>
       </div>
 
-      {/* Category & Priority */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
@@ -161,8 +142,7 @@ export default function TaskForm({
           </label>
           <select
             id="category"
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            ref={categoryRef}
             className="mt-1 w-full p-2 border rounded"
           >
             {[
@@ -183,7 +163,6 @@ export default function TaskForm({
             ))}
           </select>
         </div>
-
         <div>
           <label
             htmlFor="priority"
@@ -193,83 +172,75 @@ export default function TaskForm({
           </label>
           <input
             id="priority"
+            ref={priorityRef}
             type="number"
             min={1}
             max={10}
-            value={form.priority}
-            onChange={(e) =>
-              setForm({ ...form, priority: parseInt(e.target.value, 10) })
-            }
             className="mt-1 w-full p-2 border rounded"
           />
         </div>
       </div>
 
-      {/* Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
-            htmlFor="due_date"
+            htmlFor="due"
             className="block text-sm font-medium text-gray-700"
           >
-            Data wykonania:&nbsp;
+            Data wykonania:
           </label>
           <input
-            id="due_date"
+            id="due"
+            ref={dueDateRef}
             type="date"
-            value={form.due_date}
-            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
             className="mt-1 w-full p-2 border rounded"
             required
           />
         </div>
         <div>
           <label
-            htmlFor="deadline_date"
+            htmlFor="deadline"
             className="block text-sm font-medium text-gray-700"
           >
-            Deadline:&nbsp;
+            Deadline:
           </label>
           <input
-            id="deadline_date"
+            id="deadline"
+            ref={deadlineDateRef}
             type="date"
-            value={form.deadline_date}
-            onChange={(e) =>
-              setForm({ ...form, deadline_date: e.target.value })
-            }
             className="mt-1 w-full p-2 border rounded"
             required
           />
         </div>
       </div>
 
-      {/* Description */}
       <div>
         <label
-          htmlFor="description"
+          htmlFor="desc"
           className="block text-sm font-medium text-gray-700"
         >
           Opis:
         </label>
         <textarea
-          id="description"
-          value={form.description || ""}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          id="desc"
+          ref={descriptionRef}
           className="mt-1 w-full p-2 border rounded"
         />
       </div>
 
-      {/* Buttons */}
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-white rounded-lg flex items-center"
+          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex items-center"
         >
           {isEdit ? (
-            "Zapisz"
+            <>
+              Zapisz&nbsp;
+              <Save className="w-5 h-5" />
+            </>
           ) : (
             <>
-              Dodaj&nbsp;&nbsp;
+              Dodaj&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
             </>
           )}
@@ -278,7 +249,7 @@ export default function TaskForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 rounded-lg"
+            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
           >
             Anuluj
           </button>

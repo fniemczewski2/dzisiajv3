@@ -6,7 +6,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col items-center">
       <Header />
-      <main className="flex-auto py-4 sm:p-6 mb-20 max-w-[1600px] w-full">
+      <main className="flex-auto py-4 pb-0 sm:p-6 sm:pb-0 mb-[60px] max-w-[1600px] w-full">
         {children}
       </main>
       <Navbar />

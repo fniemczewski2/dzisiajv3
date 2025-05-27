@@ -1,10 +1,11 @@
 import {
-  ClipboardIcon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-  CalendarIcon,
-  CogIcon,
-} from "@heroicons/react/24/outline";
+  Calendar,
+  Coins,
+  ListTodo,
+  Pen,
+  Settings,
+  SquarePen,
+} from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -25,11 +26,11 @@ export default function Navbar() {
         className="m-0 p-0 grid grid-cols-5 gap-4
         sm:grid-cols-5 sm:gap-0 max-w-[1600px] w-full"
       >
-        <NavLink href="/tasks" Icon={ClipboardIcon} label="Zadania" />
-        <NavLink href="/notes" Icon={DocumentTextIcon} label="Notatki" />
-        <NavLink href="/bills" Icon={CurrencyDollarIcon} label="Rachunki" />
-        <NavLink href="/calendar" Icon={CalendarIcon} label="Kalendarz" />
-        <NavLink href="/settings" Icon={CogIcon} label="Ustawienia" />
+        <NavLink href="/tasks" Icon={ListTodo} label="Zadania" />
+        <NavLink href="/notes" Icon={Pen} label="Notatki" />
+        <NavLink href="/bills" Icon={Coins} label="Rachunki" />
+        <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" />
+        <NavLink href="/settings" Icon={Settings} label="Ustawienia" />
       </div>
     </nav>
   );

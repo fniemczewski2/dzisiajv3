@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import clsx from "clsx";
 import { CalendarCell } from "./CalendarCell";
 import { DAY_NAMES } from "../utils/constants";
+import { Event } from "../types";
 
 interface Props {
   days: Date[];
@@ -10,6 +11,8 @@ interface Props {
   tasksCount: Record<string, number>;
   habitCounts: Record<string, number>;
   waterCounts: Record<string, number>;
+  moneyCounts: Record<string, number>;
+  events?: Record<string, Event[]>;
   onDateClick(dateStr: string): void;
 }
 export function CalendarGrid({
@@ -18,6 +21,8 @@ export function CalendarGrid({
   tasksCount,
   habitCounts,
   waterCounts,
+  moneyCounts,
+  events,
   onDateClick,
 }: Props) {
   const weeks: Date[][] = isMobile ? [days] : [];
@@ -34,12 +39,13 @@ export function CalendarGrid({
       )}
       <div
         className={clsx(
-          isMobile ? "grid grid-cols-1" : "grid grid-cols-7",
+          isMobile ? "grid grid-cols-1 my-4" : "grid grid-cols-7 mt-2 mb-6",
           "gap-2 p-2"
         )}
       >
         {weeks.flat().map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
+          const eventTitle = events?.[dateStr]?.[0]?.title;
           return (
             <CalendarCell
               key={dateStr}
@@ -48,6 +54,8 @@ export function CalendarGrid({
               tCount={tasksCount[dateStr] || 0}
               hCount={habitCounts[dateStr] || 0}
               wCount={waterCounts[dateStr] || 0}
+              mCount={moneyCounts[dateStr] || 0}
+              eventTitle={eventTitle}
               onClick={() => onDateClick(dateStr)}
             />
           );
