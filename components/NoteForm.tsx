@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, FormEvent, useEffect } from "react";
+
+import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { PlusCircleIcon, Loader2 } from "lucide-react";
+import { PlusCircleIcon, Loader2, Save } from "lucide-react";
 import clsx from "clsx";
 import { Note } from "../types";
 
@@ -11,6 +12,7 @@ interface NoteFormProps {
   onCancel?: () => void;
   initial?: Note;
 }
+
 export function NoteForm({
   userEmail,
   onChange,
@@ -19,8 +21,9 @@ export function NoteForm({
 }: NoteFormProps) {
   const supabase = useSupabaseClient();
   const isEdit = !!initial;
-  const [title, setTitle] = useState(initial?.title || "");
-  const [itemsText, setItemsText] = useState((initial?.items || []).join("\n"));
+
+  const titleRef = useRef<HTMLInputElement>(null);
+  const itemsRef = useRef<HTMLTextAreaElement>(null);
   const [bgColor, setBgColor] = useState(initial?.bg_color || "zinc-50");
   const [loading, setLoading] = useState(false);
 
@@ -34,9 +37,13 @@ export function NoteForm({
 
   useEffect(() => {
     if (initial) {
-      setTitle(initial.title);
-      setItemsText(initial.items.join("\n"));
+      if (titleRef.current) titleRef.current.value = initial.title;
+      if (itemsRef.current) itemsRef.current.value = initial.items.join("\n");
       setBgColor(initial.bg_color);
+    } else {
+      if (titleRef.current) titleRef.current.value = "";
+      if (itemsRef.current) itemsRef.current.value = "";
+      setBgColor("zinc-50");
     }
   }, [initial]);
 
@@ -44,24 +51,33 @@ export function NoteForm({
     e.preventDefault();
     setLoading(true);
 
-    const items = itemsText
+    const title = titleRef.current?.value.trim() || "";
+    const rawItems = itemsRef.current?.value || "";
+
+    const items = rawItems
       .split("\n")
-      .map((s) => s.trim())
+      .map((line) => line.trim())
       .filter(Boolean);
 
-    const payload = { user_name: userEmail, title, items, bg_color: bgColor };
+    const payload = {
+      user_name: userEmail,
+      title,
+      items,
+      bg_color: bgColor,
+    };
 
-    if (isEdit) {
-      await supabase.from("notes").update(payload).eq("id", initial!.id);
+    if (isEdit && initial) {
+      await supabase.from("notes").update(payload).eq("id", initial.id);
     } else {
       await supabase.from("notes").insert(payload);
     }
 
     setLoading(false);
     onChange();
-    if (!isEdit) {
-      setTitle("");
-      setItemsText("");
+
+    if (!isEdit && titleRef.current && itemsRef.current) {
+      titleRef.current.value = "";
+      itemsRef.current.value = "";
       setBgColor("zinc-50");
     }
   };
@@ -72,26 +88,28 @@ export function NoteForm({
       className="space-y-4 bg-card p-4 rounded-xl shadow max-w-lg"
     >
       <div>
-        <label>Tytuł:</label>
+        <label htmlFor="title">Tytuł:</label>
         <input
+          id="title"
+          ref={titleRef}
           type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
           placeholder="Tytuł notatki"
           className="w-full p-2 border rounded"
           required
         />
       </div>
+
       <div>
-        <label>Treść:</label>
+        <label htmlFor="desc">Treść:</label>
         <textarea
-          value={itemsText}
-          onChange={(e) => setItemsText(e.target.value)}
+          id="desc"
+          ref={itemsRef}
           placeholder="Pozycje listy (jeden element na linię)"
           className="w-full p-2 border rounded h-24"
           required
         />
       </div>
+
       <div className="flex gap-2">
         {tailwindColors.map((color) => (
           <button
@@ -109,18 +127,29 @@ export function NoteForm({
           />
         ))}
       </div>
+
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-white rounded-lg"
+          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex items-center"
         >
-          {isEdit ? "Zapisz" : "Dodaj"}
+          {isEdit ? (
+            <>
+              Zapisz&nbsp;
+              <Save className="w-5 h-5" />
+            </>
+          ) : (
+            <>
+              Dodaj&nbsp;
+              <PlusCircleIcon className="w-5 h-5" />
+            </>
+          )}
         </button>
         {typeof onCancel === "function" && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 rounded-lg"
+            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
           >
             Anuluj
           </button>

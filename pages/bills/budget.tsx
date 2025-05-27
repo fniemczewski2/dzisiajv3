@@ -338,7 +338,6 @@ export default function BudgetPage() {
             <tbody>
               {Object.entries(budgets).map(([mStr, budget]) => {
                 const m = +mStr;
-                console.log(monthlySpending);
                 const spent = monthlySpending[m] || 0;
                 const rem = budget - spent;
                 return (

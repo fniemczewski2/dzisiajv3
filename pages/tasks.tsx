@@ -144,7 +144,7 @@ export default function TasksPage() {
           {!showForm && (
             <button
               onClick={openAdd}
-              className="px-4 py-2 flex items-center bg-primary text-white rounded-lg"
+              className="px-4 py-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
@@ -152,7 +152,6 @@ export default function TasksPage() {
           )}
         </div>
 
-        {/* Date filter controls */}
         <div className="flex space-x-2 mb-6">
           {FILTER_OPTIONS.map((opt) => {
             const Icon = opt.icon;

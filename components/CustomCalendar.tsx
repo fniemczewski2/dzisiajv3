@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+// CustomCalendar.tsx
+import React, { useState, useMemo } from "react";
 import {
   format,
-  parseISO,
   subWeeks,
   addWeeks,
   subMonths,
@@ -10,18 +10,20 @@ import {
   addDays,
 } from "date-fns";
 import Head from "next/head";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 import { Loader2 } from "lucide-react";
 import { generateCalendarDays } from "../utils/calendar";
 import { useResponsive } from "../hooks/useResponsive";
 import { useCalendarData } from "../hooks/useCalendar";
-import { Task } from "../types";
+import { Event } from "../types";
 import { CalendarHeader } from "./CalendarHeader";
 import { CalendarGrid } from "./CalendarGrid";
+import { CalendarDayDetails } from "./CalendarDayDetails";
 import { pl } from "date-fns/locale";
 import { useSettings } from "../hooks/useSettings";
+import { useEvents } from "../hooks/useEvents";
+import { useTasks } from "../hooks/useTasks";
 
-// Generate a single week of dates around a given date
 function generateWeekDays(date: Date, weekStartsOn: 1 | 0 = 1): Date[] {
   const start = startOfWeek(date, { locale: pl, weekStartsOn });
   const days: Date[] = [];
@@ -31,50 +33,63 @@ function generateWeekDays(date: Date, weekStartsOn: 1 | 0 = 1): Date[] {
   return days;
 }
 
-export default function CustomCalendar() {
+interface Props {
+  onEdit: (event: Event) => void;
+}
+
+export default function CustomCalendar({ onEdit }: Props) {
   const session = useSession();
-  const supabase = useSupabaseClient();
   const userEmail = session?.user?.email || "";
   const isMobile = useResponsive();
   const { settings } = useSettings(userEmail);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
-  // Determine displayed days: full month or week
+  // Determine displayed days
   const days = isMobile
     ? generateWeekDays(currentDate)
     : generateCalendarDays(currentDate);
 
-  const rangeStart = format(days[0], "yyyy-MM-dd");
-  const rangeEnd = format(days[days.length - 1], "yyyy-MM-dd");
-  const { tasksCount, habitCounts, waterCounts } = useCalendarData(
+  const rangeStart = addDays(new Date(format(days[0], "yyyy-MM-dd")), -31)
+    .toISOString()
+    .split("T")[0];
+  const rangeEnd = addDays(
+    new Date(format(days[days.length - 1], "yyyy-MM-dd")),
+    31
+  )
+    .toISOString()
+    .split("T")[0];
+
+  const { tasksCount, habitCounts, waterCounts, moneyCounts } = useCalendarData(
     userEmail,
     rangeStart,
     rangeEnd
   );
 
-  // detail state
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [detailTasks, setDetailTasks] = useState<Task[]>([]);
+  const { tasks } = useTasks(userEmail, settings);
+  const { events, loading, refetch } = useEvents(
+    userEmail,
+    rangeStart,
+    rangeEnd
+  );
 
-  // fetch task details on date select
-  useEffect(() => {
-    if (!selectedDate) return;
-    (async () => {
-      const { data: tasksData } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("user_name", userEmail)
-        .eq("due_date", selectedDate);
-      setDetailTasks(tasksData || []);
-    })();
-  }, [selectedDate, supabase, userEmail]);
+  const groupedEvents = useMemo(() => {
+    const map: Record<string, Event[]> = {};
+    for (const ev of events) {
+      const key = ev.start_time.slice(0, 10);
+      if (!map[key]) map[key] = [];
+      map[key].push(ev);
+    }
+    return map;
+  }, [events]);
 
-  if (!settings || session === undefined)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-      </div>
-    );
+  // Filter data for selected day
+  const detailTasks = useMemo(() => {
+    if (!selectedDate) return [];
+    return tasks.filter((t) => t.due_date?.slice(0, 10) === selectedDate);
+  }, [tasks, selectedDate]);
+
+  const detailEvents = groupedEvents[selectedDate] || [];
 
   const onPrev = () =>
     isMobile
@@ -85,9 +100,16 @@ export default function CustomCalendar() {
       ? setCurrentDate((d) => addWeeks(d, 1))
       : setCurrentDate((d) => addMonths(d, 1));
   const onToday = () => setCurrentDate(new Date());
-  const onDateClick = (dateStr: string) => {
-    setSelectedDate(dateStr);
-  };
+  const onDateClick = (dateStr: string) => setSelectedDate(dateStr);
+  const onBack = () => setSelectedDate("");
+
+  if (!settings || session === undefined || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -98,40 +120,35 @@ export default function CustomCalendar() {
           content="Przeglądaj swoje zadania w kalendarzu"
         />
       </Head>
-      <div className="space-y-4">
-        <CalendarHeader
-          currentDate={currentDate}
-          isMobile={isMobile}
-          onPrev={onPrev}
-          onNext={onNext}
-          onToday={onToday}
-        />
-        <CalendarGrid
-          days={days}
-          isMobile={isMobile}
-          tasksCount={tasksCount}
-          habitCounts={habitCounts}
-          waterCounts={waterCounts}
-          onDateClick={onDateClick}
-        />
-        {selectedDate && (
-          <div className="bg-card p-4 shadow rounded space-y-4">
-            <h3 className="font-semibold">
-              {format(parseISO(selectedDate), "d MMMM yyyy", { locale: pl })}
-            </h3>
-            <div>
-              <h4 className="font-medium mb-1">Zadania</h4>
-              {detailTasks.length ? (
-                <ul className="list-disc pl-5 space-y-1">
-                  {detailTasks.map((t) => (
-                    <li key={t.id}>{t.title}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>Brak zadań</p>
-              )}
-            </div>
-          </div>
+      <div>
+        {!selectedDate ? (
+          <>
+            <CalendarHeader
+              currentDate={currentDate}
+              onPrev={onPrev}
+              onNext={onNext}
+              onToday={onToday}
+            />
+            <CalendarGrid
+              days={days}
+              isMobile={isMobile}
+              tasksCount={tasksCount}
+              habitCounts={habitCounts}
+              waterCounts={waterCounts}
+              moneyCounts={moneyCounts}
+              events={groupedEvents}
+              onDateClick={onDateClick}
+            />
+          </>
+        ) : (
+          <CalendarDayDetails
+            selectedDate={selectedDate}
+            tasks={detailTasks}
+            events={detailEvents}
+            onEdit={onEdit}
+            onBack={onBack}
+            onEventsChange={refetch}
+          />
         )}
       </div>
     </>

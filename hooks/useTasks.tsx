@@ -21,26 +21,74 @@ export function useTasks(userEmail: string, settings: Settings | null) {
       query = query.neq("status", "done");
     }
 
-    switch (settings.sort_order) {
-      case "due_date":
-        query = query
-          .order("status", { ascending: false })
-          .order("due_date", { ascending: true });
-        break;
-      case "priority":
-        query = query
-          .order("status", { ascending: false })
-          .order("priority", { ascending: true });
-        break;
-      default:
-        query = query
-          .order("status", { ascending: false })
-          .order("title", { ascending: true });
+    const { data, error } = await query;
+    if (error) {
+      console.error("Fetch tasks failed:", error.message);
+      setLoading(false);
+      return;
     }
 
-    const { data, error } = await query;
-    if (error) console.error("Fetch tasks failed:", error.message);
-    else setTasks(data as Task[]);
+    if (!data) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    const sortedData = [...data]; // Clone before sorting
+
+    const getPriority = (task: Task) =>
+      task.status === "waiting for acceptance" ? 0 : 1;
+
+    switch (settings.sort_order) {
+      case "due_date":
+        sortedData.sort((a, b) => {
+          const aPriority = getPriority(a);
+          const bPriority = getPriority(b);
+          if (aPriority !== bPriority) return aPriority - bPriority;
+
+          return (
+            new Date(a.due_date ?? 0).getTime() -
+            new Date(b.due_date ?? 0).getTime()
+          );
+        });
+        break;
+
+      case "due_date_alphabetical":
+        sortedData.sort((a, b) => {
+          const aPriority = getPriority(a);
+          const bPriority = getPriority(b);
+          if (aPriority !== bPriority) return aPriority - bPriority;
+
+          const dateDiff =
+            new Date(a.due_date ?? 0).getTime() -
+            new Date(b.due_date ?? 0).getTime();
+          if (dateDiff !== 0) return dateDiff;
+
+          return (a.title || "").localeCompare(b.title || "");
+        });
+        break;
+
+      case "priority":
+        sortedData.sort((a, b) => {
+          const aPriority = getPriority(a);
+          const bPriority = getPriority(b);
+          if (aPriority !== bPriority) return aPriority - bPriority;
+
+          return (a.priority ?? Infinity) - (b.priority ?? Infinity);
+        });
+        break;
+
+      default:
+        sortedData.sort((a, b) => {
+          const aPriority = getPriority(a);
+          const bPriority = getPriority(b);
+          if (aPriority !== bPriority) return aPriority - bPriority;
+
+          return (a.title || "").localeCompare(b.title || "");
+        });
+    }
+
+    setTasks(sortedData);
     setLoading(false);
   }, [supabase, userEmail, settings]);
 

@@ -1,8 +1,13 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { Loader2 } from "lucide-react";
+import { Loader2, PlusCircleIcon } from "lucide-react";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useState } from "react";
+import EventForm from "../components/EventForm";
+import type { Event } from "../types";
+import { useResponsive } from "../hooks/useResponsive";
+import { CalendarHeader } from "../components/CalendarHeader";
 
 const CustomCalendar = dynamic(() => import("../components/CustomCalendar"), {
   ssr: false,
@@ -10,17 +15,74 @@ const CustomCalendar = dynamic(() => import("../components/CustomCalendar"), {
 
 export default function CalendarPage() {
   const session = useSession();
-  if (session === undefined) return <Loader2 className="animate-spin m-auto" />;
+  const userEmail = session?.user?.email || "";
+  const isMobile = useResponsive();
+  const [showForm, setShowForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  if (session === undefined) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <Loader2 className="animate-spin w-8 h-8 text-gray-500" />
+      </div>
+    );
+  }
+
+  const openAdd = () => {
+    setEditingEvent(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (event: Event) => {
+    setEditingEvent(event);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingEvent(null);
+  };
+
+  const handleEventsChange = () => {
+    // You can call calendar refresh here if needed
+    closeForm();
+  };
+
   return (
     <>
       <Head>
         <title>Kalendarz – Dzisiaj v3</title>
       </Head>
       <Layout>
-        <h1 className="text-2xl font-bold mb-4">Kalendarz</h1>
-        <CustomCalendar />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Kalendarz</h2>
+          {!showForm && (
+            <button
+              onClick={openAdd}
+              className="px-4 py-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg"
+            >
+              Dodaj&nbsp;&nbsp;
+              <PlusCircleIcon className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        {showForm && (
+          <EventForm
+            userEmail={userEmail}
+            initialEvent={editingEvent}
+            onEventsChange={() => {
+              setShowForm(false);
+              setEditingEvent(null);
+            }}
+            onCancel={() => setShowForm(false)}
+          />
+        )}
+
+        <CustomCalendar onEdit={openEdit} />
       </Layout>
     </>
   );
 }
+
 CalendarPage.auth = true;

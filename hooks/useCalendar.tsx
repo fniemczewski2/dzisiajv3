@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import type { HabitRow, WaterRow } from "../types";
+import type { HabitRow, MoneyRow, WaterRow } from "../types";
 
 export function useCalendarData(
   userEmail: string,
@@ -11,10 +11,11 @@ export function useCalendarData(
   const [tasksCount, setTasksCount] = useState<Record<string, number>>({});
   const [habitCounts, setHabitCounts] = useState<Record<string, number>>({});
   const [waterCounts, setWaterCounts] = useState<Record<string, number>>({});
+  const [moneyCounts, setMoneyCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     async function fetchData() {
-      const [tRes, hRes, wRes] = await Promise.all([
+      const [tRes, hRes, wRes, mRes] = await Promise.all([
         supabase
           .from("tasks")
           .select("due_date")
@@ -30,6 +31,12 @@ export function useCalendarData(
         supabase
           .from("water")
           .select("date,amount")
+          .gte("date", rangeStart)
+          .lte("date", rangeEnd)
+          .eq("user_name", userEmail),
+        supabase
+          .from("daily_habits")
+          .select("date,daily_spending")
           .gte("date", rangeStart)
           .lte("date", rangeEnd)
           .eq("user_name", userEmail),
@@ -58,8 +65,13 @@ export function useCalendarData(
         wMap[w.date] = (wMap[w.date] || 0) + w.amount;
       });
       setWaterCounts(wMap);
+      const mMap: Record<string, number> = {};
+      mRes.data?.forEach((m: MoneyRow) => {
+        mMap[m.date] = (mMap[m.date] || 0) + m.daily_spending;
+      });
+      setMoneyCounts(mMap);
     }
     fetchData();
   }, [supabase, userEmail, rangeStart, rangeEnd]);
-  return { tasksCount, habitCounts, waterCounts };
+  return { tasksCount, habitCounts, waterCounts, moneyCounts };
 }

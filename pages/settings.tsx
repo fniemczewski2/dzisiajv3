@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon, Trash2 } from "lucide-react";
+import { Loader2, PlusCircleIcon, Save, Trash2 } from "lucide-react";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -138,6 +138,9 @@ export default function SettingsPage() {
               <option value="priority">Priorytet</option>
               <option value="due_date">Data wykonania</option>
               <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="due_date_alphabetical">
+                Data i alfabetycznie
+              </option>
             </select>
           </div>
           <div className="flex items-center">
@@ -235,7 +238,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={addUser}
-                className="flex items-center rounded-lg space-x-1 text-primary"
+                className="flex items-center rounded-lg space-x-1 text-primary hover:bg-secondary"
               >
                 <PlusCircleIcon className="w-5 h-5" />
                 <span>Dodaj znajomego</span>
@@ -246,9 +249,19 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
+            className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg disabled:opacity-50"
           >
-            {saving ? "Zapisywanie…" : "Zapisz ustawienia"}
+            {saving ? (
+              <>
+                "Zapisywanie…"&nbsp;&nbsp;
+                <Loader2 className="animate-spin w-5 h-5" />
+              </>
+            ) : (
+              <>
+                Zapisz&nbsp;&nbsp;
+                <Save className="w-5 h-5" />
+              </>
+            )}
           </button>
         </form>
 
