@@ -1,5 +1,5 @@
 // CustomCalendar.tsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   format,
   subWeeks,
@@ -10,7 +10,6 @@ import {
   addDays,
 } from "date-fns";
 import Head from "next/head";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Loader2 } from "lucide-react";
 import { generateCalendarDays } from "../utils/calendar";
 import { useResponsive } from "../hooks/useResponsive";
@@ -35,11 +34,10 @@ function generateWeekDays(date: Date, weekStartsOn: 1 | 0 = 1): Date[] {
 
 interface Props {
   onEdit: (event: Event) => void;
+  userEmail: string;
 }
 
-export default function CustomCalendar({ onEdit }: Props) {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
+export default function CustomCalendar({ onEdit, userEmail }: Props) {
   const isMobile = useResponsive();
   const { settings } = useSettings(userEmail);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -66,7 +64,12 @@ export default function CustomCalendar({ onEdit }: Props) {
     rangeEnd
   );
 
-  const { tasks } = useTasks(userEmail, settings);
+  const {
+    tasks,
+    loading: loadingTasks,
+    fetchTasks,
+  } = useTasks(userEmail, settings);
+
   const { events, loading, refetch } = useEvents(
     userEmail,
     rangeStart,
@@ -82,6 +85,10 @@ export default function CustomCalendar({ onEdit }: Props) {
     }
     return map;
   }, [events]);
+
+  useEffect(() => {
+    if (settings) fetchTasks();
+  }, [settings, fetchTasks]);
 
   // Filter data for selected day
   const detailTasks = useMemo(() => {
@@ -103,7 +110,7 @@ export default function CustomCalendar({ onEdit }: Props) {
   const onDateClick = (dateStr: string) => setSelectedDate(dateStr);
   const onBack = () => setSelectedDate("");
 
-  if (!settings || session === undefined || loading) {
+  if (!settings || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin h-10 w-10 text-gray-500" />

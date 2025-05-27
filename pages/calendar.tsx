@@ -6,19 +6,16 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import EventForm from "../components/EventForm";
 import type { Event } from "../types";
-import { useResponsive } from "../hooks/useResponsive";
-import { CalendarHeader } from "../components/CalendarHeader";
 
 const CustomCalendar = dynamic(() => import("../components/CustomCalendar"), {
   ssr: false,
 });
 
 export default function CalendarPage() {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-  const isMobile = useResponsive();
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
 
   if (session === undefined) {
     return (
@@ -79,7 +76,7 @@ export default function CalendarPage() {
           />
         )}
 
-        <CustomCalendar onEdit={openEdit} />
+        <CustomCalendar onEdit={openEdit} userEmail={userEmail} />
       </Layout>
     </>
   );

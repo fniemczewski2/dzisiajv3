@@ -43,7 +43,6 @@ export function CalendarDayDetails({
 
   return (
     <div className="py-4 mb-5 space-y-6">
-      {/* Header */}
       <span className="bg-card p-4 shadow rounded-xl flex items-center justify-center w-full relative">
         <button
           onClick={onBack}
@@ -57,7 +56,6 @@ export function CalendarDayDetails({
         </h3>
       </span>
 
-      {/* Events */}
       {events.length > 0 && (
         <section className="flex flex-wrap gap-4">
           {events.map((event) => (
@@ -118,7 +116,6 @@ export function CalendarDayDetails({
         </section>
       )}
 
-      {/* Tasks */}
       <section className="bg-card p-4 shadow rounded-xl space-y-4">
         <h4 className="font-medium mb-1">Zadania</h4>
         {tasks.length ? (
