@@ -152,7 +152,7 @@ export function BillForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
+            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 flex flex-nowrap items-center rounded-lg"
           >
             Anuluj
           </button>
