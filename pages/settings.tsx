@@ -249,11 +249,11 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg disabled:opacity-50"
+            className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center disabled:opacity-50"
           >
             {saving ? (
               <>
-                "Zapisywanie…"&nbsp;&nbsp;
+                Zapisywanie…&nbsp;&nbsp;
                 <Loader2 className="animate-spin w-5 h-5" />
               </>
             ) : (
