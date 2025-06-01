@@ -40,10 +40,8 @@ export default function TaskIcons() {
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
 
-  // Formatujemy dzisiejszą datę w ISO YYYY-MM-DD
   const today = new Date().toISOString().split("T")[0];
 
-  // Przechowujemy stan nawyków: true = wykonane
   const [done, setDone] = useState<Record<HabitKey, boolean>>({
     pills: false,
     bath: false,
@@ -56,7 +54,6 @@ export default function TaskIcons() {
   });
   const [loading, setLoading] = useState(true);
 
-  // Fetch existing record (jeśli jest) z daily_habits
   const fetchHabits = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -67,7 +64,6 @@ export default function TaskIcons() {
       .maybeSingle();
 
     if (!error && data) {
-      // Ustawiamy stan na wartościach z DB
       const state: Record<HabitKey, boolean> = {
         pills: data.pills,
         bath: data.bath,
@@ -80,7 +76,6 @@ export default function TaskIcons() {
       };
       setDone(state);
     }
-    // Jeśli brak rekordu (error.code === 'PGRST116'), zostajemy z domyślnymi false
     setLoading(false);
   }, [supabase, today, userEmail]);
 
@@ -90,13 +85,10 @@ export default function TaskIcons() {
     }
   }, [userEmail, fetchHabits]);
 
-  // Toggle pojedynczego nawyku i zapis do DB (upsert)
   const toggleHabit = async (key: HabitKey) => {
     const newValue = !done[key];
     setDone((prev) => ({ ...prev, [key]: newValue }));
 
-    // Przygotowujemy payload, wypełniając tylko ten klucz na newValue,
-    // pozostałe kolumny zostaną domyślnie FALSE albo z poprzedniego zapisu
     const payload: Partial<Record<HabitKey, boolean>> & {
       date: string;
       user_name: string;
@@ -129,7 +121,7 @@ export default function TaskIcons() {
             ${loading ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
-          <Icon className="w-4 h-4 sm:w-6 sm:h-6 mx-auto" />
+          <Icon className="w-3.5 h-3.5 sm:w-6 sm:h-6 mx-auto" />
         </button>
       ))}
     </div>
