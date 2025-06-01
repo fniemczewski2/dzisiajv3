@@ -11,11 +11,14 @@ export function useTasks(userEmail: string, settings: Settings | null) {
   const fetchTasks = useCallback(async () => {
     if (!settings) return;
     setLoading(true);
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
     let query = supabase
       .from("tasks")
       .select("*")
-      .or(`user_name.eq.${userEmail},for_user.eq.${userEmail}`);
+      .or(`user_name.eq.${userEmail},for_user.eq.${userEmail}`)
+      .gte("due_date", oneMonthAgo.toISOString());
 
     if (!settings.show_completed) {
       query = query.neq("status", "done");
@@ -87,6 +90,12 @@ export function useTasks(userEmail: string, settings: Settings | null) {
           return (a.title || "").localeCompare(b.title || "");
         });
     }
+
+    sortedData.sort((a, b) => {
+      const isADone = a.status === "done" ? 1 : 0;
+      const isBDone = b.status === "done" ? 1 : 0;
+      return isADone - isBDone;
+    });
 
     setTasks(sortedData);
     setLoading(false);

@@ -9,6 +9,7 @@ import {
   CloudLightning,
   CloudDrizzle,
   CloudFog,
+  CloudSun,
 } from "lucide-react";
 
 export default function Header() {
@@ -41,27 +42,32 @@ export default function Header() {
       url.searchParams.set("latitude", coords.latitude.toString());
       url.searchParams.set("longitude", coords.longitude.toString());
       url.searchParams.set("current_weather", "true");
-      url.searchParams.set("daily", "temperature_2m_min,temperature_2m_max");
+      url.searchParams.set(
+        "daily",
+        "apparent_temperature_min,apparent_temperature_max"
+      );
       url.searchParams.set("timezone", "auto");
       const res = await fetch(url.toString());
       const json = await res.json();
 
       setCurrentTemp(json.current_weather.temperature);
       setWeatherCode(json.current_weather.weathercode);
-      setDailyMin(json.daily.temperature_2m_min[0]);
-      setDailyMax(json.daily.temperature_2m_max[0]);
+      setDailyMin(Math.min(...json.daily.apparent_temperature_min));
+      setDailyMax(Math.max(...json.daily.apparent_temperature_max));
     });
 
     return () => clearInterval(timer);
   }, []);
 
   function WeatherIcon({ code }: { code: number }) {
-    if (code === 0) return <Sun className="w-6 h-6 text-primary" />;
+    if (code <= 1) return <Sun className="w-6 h-6 text-primary" />;
+    if (code === 2) return <CloudSun className="w-6 h-6 text-primary" />;
     if (code <= 3) return <Cloud className="w-6 h-6 text-primary" />;
     if (code <= 48) return <CloudFog className="w-6 h-6 text-primary" />;
-    if (code <= 57) return <CloudDrizzle className="w-6 h-6 text-primary" />;
-    if (code <= 67) return <CloudRain className="w-6 h-6 text-primary" />;
+    if (code <= 67) return <CloudDrizzle className="w-6 h-6 text-primary" />;
     if (code <= 77) return <CloudSnow className="w-6 h-6 text-primary" />;
+    if (code <= 82) return <CloudRain className="w-6 h-6 text-primary" />;
+    if (code <= 86) return <CloudSnow className="w-6 h-6 text-primary" />;
     return <CloudLightning className="w-6 h-6 text-primary" />;
   }
 
@@ -78,19 +84,16 @@ export default function Header() {
         className="m-0 p-0 grid grid-cols-1 gap-4
         sm:grid-cols-3 sm:gap-0 max-w-[1600px] w-full"
       >
-        {/* 1) Tytuł */}
         <h1 className="text-2xl font-bold text-primary text-center sm:text-left">
           Dzisiaj v3
         </h1>
 
-        {/* 2) Na mobile: flex-row — zegar obok pogody; na desktopie kolumna w środe */}
         <div
           className="
           flex justify-between items-center 
           sm:flex-col sm:items-center sm:w-auto 
         "
         >
-          {/* czas + data */}
           <div className="text-gray-700 text-left sm:text-center">
             <div className="text-xl">{currentTime}</div>
             <span className="text-gray-500 text-[12px] sm:text-sm">
@@ -115,7 +118,6 @@ export default function Header() {
               )}
           </div>
         </div>
-        {/* 3) Pusta kolumna na desktopie (wyrównanie) */}
         <div className="hidden sm:flex sm:justify-end sm:items-center">
           {currentTemp != null &&
             dailyMin != null &&
@@ -127,7 +129,7 @@ export default function Header() {
                   <span className="text-xl">{currentTemp}°C</span>
                 </div>
                 <div className="text-sm text-gray-500">
-                  <span>min {dailyMin}°</span> · <span>max {dailyMax}°</span>
+                  <span>min {dailyMin}°C</span> · <span>max {dailyMax}°C</span>
                 </div>
               </div>
             )}

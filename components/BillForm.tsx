@@ -134,7 +134,7 @@ export function BillForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg"
+          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center"
         >
           {isEdit ? (
             <>
