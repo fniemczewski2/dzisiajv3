@@ -14,6 +14,7 @@ export default function SettingsPage() {
   // Local settings state with defaults
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
   const [settings, setSettings] = useState<{
     sort_order: string;
     show_completed: boolean;
@@ -29,6 +30,37 @@ export default function SettingsPage() {
     show_budget_items: false,
     users: [] as string[], // up to 10 friends
   });
+
+  const requestGeolocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus(
+        "Geolokalizacja nie jest obsługiwana przez tę przeglądarkę."
+      );
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocationStatus(
+          `Lokalizacja uzyskana: ${latitude.toFixed(3)}, ${longitude.toFixed(
+            3
+          )}`
+        );
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationStatus("Odmowa dostępu do lokalizacji.");
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setLocationStatus("Lokalizacja niedostępna.");
+        } else if (error.code === error.TIMEOUT) {
+          setLocationStatus("Przekroczono czas oczekiwania na lokalizację.");
+        } else {
+          setLocationStatus("Nieznany błąd podczas pobierania lokalizacji.");
+        }
+      }
+    );
+  };
 
   // Fetch settings
   useEffect(() => {
@@ -264,6 +296,18 @@ export default function SettingsPage() {
             )}
           </button>
         </form>
+        <div className="bg-card p-6 rounded-xl shadow space-y-4">
+          <h3 className="text-xl font-semibold">Lokalizacja</h3>
+          <button
+            onClick={requestGeolocation}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Poproś ponownie o lokalizację
+          </button>
+          {locationStatus && (
+            <p className="text-sm text-gray-700 mt-2">{locationStatus}</p>
+          )}
+        </div>
 
         <div className="bg-card p-6 rounded-xl shadow space-y-4">
           <h3 className="text-xl font-semibold">Użytkownik</h3>

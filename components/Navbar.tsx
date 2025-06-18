@@ -1,11 +1,4 @@
-import {
-  Calendar,
-  Coins,
-  ListTodo,
-  Pen,
-  Settings,
-  SquarePen,
-} from "lucide-react";
+import { Calendar, Coins, ListTodo, Pen, Settings } from "lucide-react";
 
 export default function Navbar() {
   return (

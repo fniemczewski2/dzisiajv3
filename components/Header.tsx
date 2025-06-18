@@ -11,6 +11,7 @@ import {
   CloudFog,
   CloudSun,
 } from "lucide-react";
+import { useRouter } from "next/router";
 
 export default function Header() {
   const [currentDate, setCurrentDate] = useState("");
@@ -19,6 +20,7 @@ export default function Header() {
   const [dailyMin, setDailyMin] = useState<number | null>(null);
   const [dailyMax, setDailyMax] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const now = new Date();
@@ -37,24 +39,50 @@ export default function Header() {
       setCurrentTime(tick.toLocaleTimeString("pl-PL"));
     }, 1000);
 
-    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
-      const url = new URL("https://api.open-meteo.com/v1/forecast");
-      url.searchParams.set("latitude", coords.latitude.toString());
-      url.searchParams.set("longitude", coords.longitude.toString());
-      url.searchParams.set("current_weather", "true");
-      url.searchParams.set(
-        "daily",
-        "apparent_temperature_min,apparent_temperature_max"
-      );
-      url.searchParams.set("timezone", "auto");
-      const res = await fetch(url.toString());
-      const json = await res.json();
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      return;
+    }
 
-      setCurrentTemp(json.current_weather.temperature);
-      setWeatherCode(json.current_weather.weathercode);
-      setDailyMin(Math.min(...json.daily.apparent_temperature_min));
-      setDailyMax(Math.max(...json.daily.apparent_temperature_max));
-    });
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const url = new URL("https://api.open-meteo.com/v1/forecast");
+          url.searchParams.set("latitude", coords.latitude.toString());
+          url.searchParams.set("longitude", coords.longitude.toString());
+          url.searchParams.set("current_weather", "true");
+          url.searchParams.set(
+            "daily",
+            "apparent_temperature_min,apparent_temperature_max"
+          );
+          url.searchParams.set("timezone", "auto");
+
+          const res = await fetch(url.toString());
+          if (!res.ok) {
+            throw new Error("Weather API error");
+          }
+
+          const json = await res.json();
+          setCurrentTemp(json.current_weather.temperature);
+          setWeatherCode(json.current_weather.weathercode);
+          setDailyMin(Math.min(...json.daily.apparent_temperature_min));
+          setDailyMax(Math.max(...json.daily.apparent_temperature_max));
+        } catch (error) {
+          console.error("Failed to fetch weather data:", error);
+        }
+      },
+      (error) => {
+        console.error(
+          "Geolocation permission denied or error occurred:",
+          error
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
 
     return () => clearInterval(timer);
   }, []);
@@ -101,7 +129,10 @@ export default function Header() {
             </span>
           </div>
 
-          <div className="sm:hidden block">
+          <div
+            onClick={() => router.push("/settings")}
+            className="sm:hidden block"
+          >
             {currentTemp != null &&
               dailyMin != null &&
               dailyMax != null &&
@@ -118,7 +149,10 @@ export default function Header() {
               )}
           </div>
         </div>
-        <div className="hidden sm:flex sm:justify-end sm:items-center">
+        <div
+          onClick={() => router.push("/settings")}
+          className="hidden sm:flex sm:justify-end sm:items-center"
+        >
           {currentTemp != null &&
             dailyMin != null &&
             dailyMax != null &&
