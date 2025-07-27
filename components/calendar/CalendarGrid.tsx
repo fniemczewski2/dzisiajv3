@@ -2,12 +2,13 @@ import React from "react";
 import { format } from "date-fns";
 import clsx from "clsx";
 import { CalendarCell } from "./CalendarCell";
-import { DAY_NAMES } from "../utils/constants";
-import { Event } from "../types";
+import { DAY_NAMES } from "../../utils/constants";
+import { Event } from "../../types";
 
 interface Props {
   days: Date[];
   isMobile: boolean;
+  showMonthView: boolean;
   tasksCount: Record<string, number>;
   habitCounts: Record<string, number>;
   waterCounts: Record<string, number>;
@@ -18,6 +19,7 @@ interface Props {
 export function CalendarGrid({
   days,
   isMobile,
+  showMonthView,
   tasksCount,
   habitCounts,
   waterCounts,
@@ -30,7 +32,7 @@ export function CalendarGrid({
     for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
   return (
     <>
-      {!isMobile && (
+      {!isMobile || showMonthView && (
         <div className="grid grid-cols-7 text-center font-medium">
           {DAY_NAMES.map((d) => (
             <div key={d}>{d}</div>
@@ -39,8 +41,8 @@ export function CalendarGrid({
       )}
       <div
         className={clsx(
-          isMobile ? "grid grid-cols-1 my-4" : "grid grid-cols-7 mt-2 mb-6",
-          "gap-2 p-2"
+          (isMobile && !showMonthView ) ? "grid grid-cols-1 my-4" : "grid grid-cols-7 mt-2 mb-6",
+          (isMobile && showMonthView ) ? "gap-0.5" : "gap-2 p-2"
         )}
       >
         {weeks.flat().map((day) => {
@@ -51,6 +53,7 @@ export function CalendarGrid({
               key={dateStr}
               day={day}
               isMobile={isMobile}
+              showMonthView={showMonthView}
               tCount={tasksCount[dateStr] || 0}
               hCount={habitCounts[dateStr] || 0}
               wCount={waterCounts[dateStr] || 0}

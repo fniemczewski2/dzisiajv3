@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/router";
 
 const categories = [
   {
@@ -134,6 +136,18 @@ const categories = [
 
 export default function BackpackPage() {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
+  const router = useRouter();
+  
+    const handleBack = () => {
+      const pathParts = router.pathname.split("/").filter(Boolean);
+      if (pathParts.length > 1) {
+        const parentPath = "/" + pathParts.slice(0, -1).join("/");
+        router.push(parentPath);
+      } else {
+        router.push("/"); // fallback: home
+      }
+    };
+  
 
   const toggle = (item: string) => {
     setChecked((prev) => ({ ...prev, [item]: !prev[item] }));
@@ -145,7 +159,15 @@ export default function BackpackPage() {
         <title>Plecak – Dzisiajv3</title>
       </Head>
       <Layout>
-        <h2 className="text-xl font-semibold mb-4">Plecak</h2>
+        <div className="flex justify-start gap-3 items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <h2 className="text-xl font-semibold">Plecak</h2>
+        </div>
         <div className="flex flex-row flex-wrap">
           {categories.map((cat) => (
             <div key={cat.title} className="sm:m-6 sm:h-min w-fit">

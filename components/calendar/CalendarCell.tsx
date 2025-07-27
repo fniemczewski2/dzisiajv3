@@ -7,6 +7,7 @@ import { pl } from "date-fns/locale";
 interface Props {
   day: Date;
   isMobile: boolean;
+  showMonthView: boolean;
   tCount: number;
   hCount: number;
   wCount: number;
@@ -18,6 +19,7 @@ interface Props {
 export function CalendarCell({
   day,
   isMobile,
+  showMonthView,
   tCount,
   hCount,
   wCount,
@@ -30,8 +32,8 @@ export function CalendarCell({
     <div
       onClick={onClick}
       className={clsx(
-        "bg-card p-2 flex flex-col justify-between border cursor-pointer rounded-md shadow hover:bg-gray-100",
-        isMobile ? "h-32" : "h-24"
+        "bg-card p-1 flex flex-col justify-between border cursor-pointer rounded-md shadow hover:bg-gray-100",
+        isMobile && !showMonthView ? "h-32" : "h-24"
       )}
     >
       <span
@@ -46,11 +48,11 @@ export function CalendarCell({
       </span>
 
       {eventTitle && (
-        <div className="mt-1 text-sm text-center bg-gray-200 rounded-sm truncate">
+        <div className="mt-1 text-[11px] text-center bg-gray-200 rounded-sm truncate">
           {eventTitle}
         </div>
       )}
-
+      {isMobile || showMonthView &&
       <div className="flex flex-wrap justify-center space-x-2">
         <span className="flex justify-center text-xs">
           <ListTodo size={14} />
@@ -72,7 +74,7 @@ export function CalendarCell({
           &nbsp;
           {mCount}
         </span>
-      </div>
+      </div>}
     </div>
   );
 }

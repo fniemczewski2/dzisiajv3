@@ -5,14 +5,18 @@ import {
   Calendar,
   Check,
   Clock,
+  Coins,
+  CopyCheck,
+  Droplet,
   Edit2,
+  ListTodo,
   MapPin,
   Trash2,
   User,
   X,
 } from "lucide-react";
-import { Task } from "../types";
-import { Event } from "../types";
+import { Task } from "../../types";
+import { Event } from "../../types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 interface Props {
@@ -22,6 +26,10 @@ interface Props {
   onBack: () => void;
   onEdit?: (event: Event) => void;
   onEventsChange: () => void;
+  tCount: number;
+  hCount: number;
+  wCount: number;
+  mCount: number;
 }
 
 export function CalendarDayDetails({
@@ -31,6 +39,10 @@ export function CalendarDayDetails({
   onBack,
   onEdit,
   onEventsChange,
+  tCount,
+  hCount,
+  wCount,
+  mCount,
 }: Props) {
   const supabase = useSupabaseClient();
 
@@ -55,6 +67,29 @@ export function CalendarDayDetails({
           {format(parseISO(selectedDate), "d MMMM yyyy", { locale: pl })}
         </h3>
       </span>
+
+      <div className="flex flex-wrap justify-center space-x-2">
+        <span className="flex justify-center text-xs">
+          <ListTodo size={14} />
+          &nbsp;
+          {tCount}
+        </span>
+        <span className="flex justify-center text-xs">
+          <CopyCheck size={14} />
+          &nbsp;
+          {hCount}
+        </span>
+        <span className="flex justify-center text-xs">
+          <Droplet size={14} />
+          &nbsp;
+          {wCount}
+        </span>
+        <span className="flex justify-center text-xs">
+          <Coins size={14} />
+          &nbsp;
+          {mCount}
+        </span>
+      </div>
 
       {events.length > 0 && (
         <section className="flex flex-wrap gap-4">

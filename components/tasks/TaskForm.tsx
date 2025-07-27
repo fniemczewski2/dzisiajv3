@@ -2,9 +2,9 @@
 
 import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Task } from "../types";
+import { Task } from "../../types";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
-import { useSettings } from "../hooks/useSettings";
+import { useSettings } from "../../hooks/useSettings";
 
 interface TaskFormProps {
   userEmail: string;

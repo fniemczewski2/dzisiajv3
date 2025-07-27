@@ -8,7 +8,6 @@ interface Props {
   currentDate: Date;
   onPrev(): void;
   onNext(): void;
-  onToday(): void;
 }
 export function CalendarHeader({ currentDate, onPrev, onNext }: Props) {
   return (

@@ -21,7 +21,7 @@ export default function Navbar() {
       >
         <NavLink href="/tasks" Icon={ListTodo} label="Zadania" />
         <NavLink href="/notes" Icon={Pen} label="Notatki" />
-        <NavLink href="/bills" Icon={Coins} label="Rachunki" />
+        <NavLink href="/bills" Icon={Coins} label="Finanse" />
         <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" />
         <NavLink href="/settings" Icon={Settings} label="Ustawienia" />
       </div>

@@ -2,173 +2,165 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Edit2, Save, X } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
+
+import BudgetStatsTable from "../../components/budget/StatsTable";
+import BudgetControls from "../../components/budget/BudgetControls";
+import MonthlyBudgetTable from "../../components/budget/MonthlyTable";
+import SummaryTable from "../../components/budget/SummaryTable";
+import { useRouter } from "next/router";
 
 const MONTH_NAMES = [
-  "Styczeń",
-  "Luty",
-  "Marzec",
-  "Kwiecień",
-  "Maj",
-  "Czerwiec",
-  "Lipiec",
-  "Sierpień",
-  "Wrzesień",
-  "Październik",
-  "Listopad",
-  "Grudzień",
+  "sty", "lut", "mar", "kwi", "maj", "cze",
+  "lip", "sie", "wrz", "paź", "lis", "gru",
 ];
-
-type BudgetRow = {
-  month: number;
-  monthName: string;
-  sum: number;
-  rate: number;
-  hours: number;
-};
 
 export default function BudgetPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
   const now = new Date();
   const currentYear = now.getFullYear();
-
+  const currentMonth = now.getMonth() + 1;
   const [sums, setSums] = useState<Record<number, number>>({});
   const [rates, setRates] = useState<Record<number, number>>({});
   const [budgets, setBudgets] = useState<Record<number, number>>({});
-  const [excluded, setExcluded] = useState<Record<number, number>>({});
-  const [monthlySpending, setMonthlySpending] = useState<
-    Record<number, number>
-  >({});
-  const [rows, setRows] = useState<BudgetRow[]>([]);
+  const [incomes, setIncomes] = useState<Record<number, number>>({});
+  const [doneExpenses, setDoneExpenses] = useState<Record<number, number>>({});
+  const [plannedExpenses, setPlannedExpenses] = useState<Record<number, number>>({});
+  const [monthlySpending, setMonthlySpending] = useState<Record<number, number>>({});
+  const [rows, setRows] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const currentMonth = now.getMonth() + 1; // 1-12
-  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-  const [dailySpendingByDate, setDailySpendingByDate] = useState<
-    Record<number, number>
-  >({});
 
-  // Fetch annual sums, rates, budgets, excluded
+  const router = useRouter();
+
+  const handleBack = () => {
+    const pathParts = router.pathname.split("/").filter(Boolean);
+    if (pathParts.length > 1) {
+      const parentPath = "/" + pathParts.slice(0, -1).join("/");
+      router.push(parentPath);
+    } else {
+      router.push("/"); // fallback: home
+    }
+  };
+
   useEffect(() => {
-    if (!session) return;
-    (async () => {
-      const userEmail = session.user.email;
-      const startMonth = now.getMonth() + 1;
-      const localSums: Record<number, number> = {};
-      const localRates: Record<number, number> = {};
-      const localBudgets: Record<number, number> = {};
-      const localExcluded: Record<number, number> = {};
-      for (let m = startMonth; m <= 12; m++) {
-        localSums[m] = 0;
-        localRates[m] = 0;
-        localBudgets[m] = 0;
-        localExcluded[m] = 0;
-      }
-      const { data: bieżące } = await supabase
-        .from("bills")
-        .select("amount,date")
-        .eq("user_name", userEmail)
-        .eq("include_in_budget", true)
-        .eq("description", "Bieżące");
-      bieżące?.forEach(({ amount, date }) => {
-        const m = new Date(date).getMonth() + 1;
-        if (localBudgets[m] !== undefined) localBudgets[m] += amount;
-      });
-      const { data: bills } = await supabase
-        .from("bills")
-        .select("amount,date")
-        .eq("user_name", userEmail)
-        .eq("include_in_budget", true);
-      bills?.forEach(({ amount, date }) => {
-        const m = new Date(date).getMonth() + 1;
-        if (localSums[m] !== undefined) localSums[m] += amount;
-      });
-      const { data: excl } = await supabase
-        .from("bills")
-        .select("amount,date")
-        .eq("user_name", userEmail)
-        .eq("include_in_budget", false);
-      excl?.forEach(({ amount, date }) => {
-        const m = new Date(date).getMonth() + 1;
-        if (localExcluded[m] !== undefined) localExcluded[m] += amount;
-      });
-      const { data: budData } = await supabase
-        .from("budgets")
-        .select(
-          "jan_rate,feb_rate,mar_rate,apr_rate,may_rate,jun_rate,jul_rate,aug_rate,sep_rate,oct_rate,nov_rate,dec_rate"
-        )
-        .eq("user_name", userEmail)
-        .maybeSingle();
-      if (!budData)
-        await supabase.from("budgets").insert({ user_name: userEmail });
-      if (budData)
-        for (let i = 1; i <= 12; i++) {
-          const key =
-            [
-              "jan",
-              "feb",
-              "mar",
-              "apr",
-              "may",
-              "jun",
-              "jul",
-              "aug",
-              "sep",
-              "oct",
-              "nov",
-              "dec",
-            ][i - 1] + "_rate";
-          localRates[i] = (budData as any)[key] || 0;
+  if (!session) return;
+  (async () => {
+    const userEmail = session.user.email;
+
+    const localSums: Record<number, number> = {};
+    const localRates: Record<number, number> = {};
+    const localBudgets: Record<number, number> = {};
+    const localExcluded: Record<number, number> = {};
+    const localIncomes: Record<number, number> = {};
+    const localDone: Record<number, number> = {};
+    const localPlanned: Record<number, number> = {};
+
+    for (let m = 1; m <= 12; m++) {
+      localSums[m] = 0;
+      localRates[m] = 0;
+      localBudgets[m] = 0;
+      localExcluded[m] = 0;
+      localIncomes[m] = 0;
+      localDone[m] = 0;
+      localPlanned[m] = 0;
+    }
+
+    // Bieżące (budżet zaplanowany)
+    const { data: current } = await supabase
+      .from("bills")
+      .select("amount,date")
+      .eq("user_name", userEmail)
+      .eq("include_in_budget", true)
+      .eq("description", "Bieżące");
+
+    current?.forEach(({ amount, date }) => {
+      const m = new Date(date).getMonth() + 1;
+      localBudgets[m] += amount;
+    });
+
+    // Wszystkie rachunki – dla obliczeń sums, incomes, done/planned
+    const { data: bills } = await supabase
+      .from("bills")
+      .select("amount,date,include_in_budget,done")
+      .eq("user_name", userEmail);
+
+    bills?.forEach(({ amount, date, include_in_budget, done }) => {
+      const m = new Date(date).getMonth() + 1;
+
+      if (include_in_budget) {
+        localSums[m] += amount;
+        if (done) {
+          localDone[m] += amount;
+        } else {
+          localPlanned[m] += amount;
         }
-      setSums(localSums);
-      setRates(localRates);
-      setBudgets(localBudgets);
-      setExcluded(localExcluded);
-      setLoading(false);
-    })();
-  }, [session, supabase]);
+      } else {
+        localIncomes[m] += amount;
+      }
+    });
 
-  // Compute rows
+    // Stawki godzinowe
+    const { data: budData } = await supabase
+      .from("budgets")
+      .select("jan_rate,feb_rate,mar_rate,apr_rate,may_rate,jun_rate,jul_rate,aug_rate,sep_rate,oct_rate,nov_rate,dec_rate")
+      .eq("user_name", userEmail)
+      .maybeSingle();
+
+    if (!budData)
+      await supabase.from("budgets").insert({ user_name: userEmail });
+
+    if (budData) {
+      for (let i = 1; i <= 12; i++) {
+        const key = [
+          "jan","feb","mar","apr","may","jun",
+          "jul","aug","sep","oct","nov","dec"
+        ][i - 1] + "_rate";
+        localRates[i] = (budData as any)[key] || 0;
+      }
+    }
+
+    setSums(localSums);
+    setRates(localRates);
+    setBudgets(localBudgets);
+    setIncomes(localIncomes);
+    setDoneExpenses(localDone);
+    setPlannedExpenses(localPlanned);
+    setLoading(false);
+  })();
+}, [session, supabase]);
+
+
   useEffect(() => {
-    const res: Object[] = Object.entries(sums).map(([mStr, sum]) => {
-      const m = +mStr;
-      const r = rates[m] || 0;
+    const res = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const sum = sums[month] ?? 0;
+      const rate = rates[month] ?? 0;
       return {
-        month: m,
-        monthName: MONTH_NAMES[m - 1],
+        month,
+        monthName: MONTH_NAMES[i],
         sum,
-        rate: r,
-        hours: r ? Math.round(sum / r) : 0,
+        rate,
+        hours: rate > 0 ? Math.round(sum / rate) : 0,
       };
     });
-    setRows(res as BudgetRow[]);
+    setRows(res);
   }, [sums, rates]);
 
-  // daily spending sums
   useEffect(() => {
     if (!session) return;
     (async () => {
       const userEmail = session.user.email;
-      const startDate = `${currentYear}-01-01`;
-      const endDate = `${currentYear}-12-31`;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("daily_habits")
         .select("date,daily_spending")
         .eq("user_name", userEmail)
-        .gte("date", startDate)
-        .lte("date", endDate);
-      if (error) {
-        console.error(error.message);
-        return;
-      }
-
+        .gte("date", `${currentYear}-01-01`)
+        .lte("date", `${currentYear}-12-31`);
       const localMonthly: Record<number, number> = {};
-      for (let m = currentMonth; m <= 12; m++) {
-        localMonthly[m] = 0;
-      }
+      for (let m = currentMonth; m <= 12; m++) localMonthly[m] = 0;
       data?.forEach(({ date, daily_spending }) => {
         const m = new Date(date).getMonth() + 1;
         if (localMonthly[m] !== undefined) {
@@ -177,36 +169,7 @@ export default function BudgetPage() {
       });
       setMonthlySpending(localMonthly);
     })();
-  }, [session, supabase, currentYear]);
-
-  useEffect(() => {
-    if (!session) return;
-    (async () => {
-      const userEmail = session.user.email;
-      const monthStr = String(currentMonth).padStart(2, "0");
-      const firstDay = `${currentYear}-${monthStr}-01`;
-      const lastDay = `${currentYear}-${monthStr}-${daysInMonth}`;
-      const { data, error } = await supabase
-        .from("daily_habits")
-        .select("date,daily_spending")
-        .eq("user_name", userEmail)
-        .gte("date", firstDay)
-        .lte("date", lastDay);
-      if (error) {
-        console.error(error.message);
-        return;
-      }
-      const map: Record<number, number> = {};
-      for (let d = 1; d <= daysInMonth; d++) {
-        map[d] = 0;
-      }
-      data?.forEach(({ date, daily_spending }) => {
-        const day = new Date(date).getDate();
-        map[day] = daily_spending;
-      });
-      setDailySpendingByDate(map);
-    })();
-  }, [session, supabase, currentYear, daysInMonth]);
+  }, [session, supabase]);
 
   const saveRates = async () => {
     if (!session) return;
@@ -215,22 +178,7 @@ export default function BudgetPage() {
     const p: any = { user_name: ue };
     Object.entries(rates).forEach(([mStr, r]) => {
       const i = +mStr;
-      p[
-        [
-          "jan",
-          "feb",
-          "mar",
-          "apr",
-          "may",
-          "jun",
-          "jul",
-          "aug",
-          "sep",
-          "oct",
-          "nov",
-          "dec",
-        ][i - 1] + "_rate"
-      ] = r;
+      p[["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][i - 1] + "_rate"] = r;
     });
     await supabase.from("budgets").upsert(p, { onConflict: "user_name" });
     setSaving(false);
@@ -250,140 +198,46 @@ export default function BudgetPage() {
         <title>Budżet – Dzisiaj</title>
       </Head>
       <Layout>
-        <h2 className="mb-2 text-xl font-semibold">Statystyki</h2>
-        <h3 className="font-bold mb-2">
-          Budżet roczny
-          {isEditing ? (
-            <>
-              <button
-                onClick={saveRates}
-                disabled={saving}
-                className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200"
-                title="zapisz"
-              >
-                {saving ? (
-                  <Loader2 className="animate-spin w-5 h-5" />
-                ) : (
-                  <Save className="w-5 h-5" />
-                )}
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200"
-                title="zamknij"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="ml-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-              title="edytuj"
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
-          )}
-        </h3>
-        {/* First table */}
-        <div className="mb-4 bg-card p-4 rounded-xl shadow">
-          <table className="w-full table-auto border-collapse">
-            <thead>
-              <tr>
-                <th className="border px-1.5 py-1">Miesiąc</th>
-                <th className="border px-1.5 py-1">Suma</th>
-                <th className="border px-1.5 py-1">Stawka</th>
-                <th className="border px-1.5 py-1">Godz.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(({ month, monthName, sum, rate, hours }) => (
-                <tr key={month}>
-                  <td className="border px-1.5 py-1">{monthName}</td>
-                  <td className="border px-1.5 py-1">{sum.toFixed(2)}</td>
-                  <td className="border px-1.5 py-1">
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={rate}
-                        onChange={(e) => {
-                          const v = parseFloat(e.target.value) || 0;
-                          setRates((prev) => ({ ...prev, [month]: v }));
-                        }}
-                        className="w-16 p-1 border rounded"
-                        placeholder="5.00"
-                      />
-                    ) : (
-                      rate.toFixed(2)
-                    )}
-                  </td>
-                  <td className="border px-1.5 py-1">{hours}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex justify-start gap-3 items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <h2 className="text-xl font-semibold">Statystyki</h2>
         </div>
-        {/* Second table */}
+
+        <BudgetControls
+          isEditing={isEditing}
+          saving={saving}
+          onSave={saveRates}
+          onCancel={() => setIsEditing(false)}
+          onEdit={() => setIsEditing(true)}
+        />
+
+        <BudgetStatsTable
+          rows={rows}
+          isEditing={isEditing}
+          rates={rates}
+          onRateChange={(month, value) =>
+            setRates((prev) => ({ ...prev, [month]: value }))
+          }
+        />
+        <SummaryTable
+          incomes={incomes}
+          doneExpenses={doneExpenses}
+          plannedExpenses={plannedExpenses}
+          monthNames={MONTH_NAMES}
+        />
+
+
         <h3 className="font-bold mb-2">Wydatki bieżące</h3>
-        <div className="bg-card mb-4 p-4 rounded-xl shadow">
-          <table className="w-full table-auto border-collapse">
-            <thead>
-              <tr>
-                <th className="border px-1.5 py-1">Miesiąc</th>
-                <th className="border px-1.5 py-1">Bieżące</th>
-                <th className="border px-1.5 py-1">Pozostało</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(budgets).map(([mStr, budget]) => {
-                const m = +mStr;
-                const spent = monthlySpending[m] || 0;
-                const rem = budget - spent;
-                return (
-                  <tr key={m}>
-                    <td className="border px-1.5 py-1">{MONTH_NAMES[m - 1]}</td>
-                    <td className="border px-1.5 py-1">{budget.toFixed(2)}</td>
-                    <td className="border px-1.5 py-1">{rem.toFixed(2)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <h3 className="font-bold mb-2">
-          Wydatki dzienne ({MONTH_NAMES[currentMonth - 1]})
-        </h3>
-        <div className="bg-card p-4 rounded-xl shadow mb-8">
-          <table className="w-full table-auto border-collapse">
-            <thead>
-              <tr>
-                <th className="border px-1.5 py-1">Dzień</th>
-                <th className="border px-1.5 py-1">Kwota</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(
-                (day) => (
-                  <tr key={day}>
-                    <td className="border px-1.5 py-1">{day}</td>
-                    <td className="border px-1.5 py-1">
-                      {(dailySpendingByDate[day] ?? 0).toFixed(2)}
-                    </td>
-                  </tr>
-                )
-              )}
-              <tr className="font-semibold">
-                <td className="border px-1.5 py-1">Suma</td>
-                <td className="border px-1.5 py-1">
-                  {Object.values(dailySpendingByDate)
-                    .reduce((acc, val) => acc + val, 0)
-                    .toFixed(2)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <MonthlyBudgetTable
+          budgets={budgets}
+          monthlySpending={monthlySpending}
+          monthNames={MONTH_NAMES}
+        />
       </Layout>
     </>
   );

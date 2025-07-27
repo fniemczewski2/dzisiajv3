@@ -12,6 +12,7 @@ import {
   Home,
   Leaf,
   Languages,
+  Loader2,
 } from "lucide-react";
 
 type HabitKey =
@@ -104,11 +105,11 @@ export default function TaskIcons() {
   };
 
   if (!session) {
-    return <div className="py-6 text-center">Ładowanie…</div>;
+    return <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
   }
 
   return (
-    <div className="grid grid-cols-8 gap-2 mb-4">
+    <div className="grid grid-cols-8 gap-2 mb-2">
       {items.map(({ key, Icon }) => (
         <button
           key={key}
@@ -116,12 +117,12 @@ export default function TaskIcons() {
           disabled={loading}
           onClick={() => toggleHabit(key)}
           className={`
-            p-2 bg-card rounded-xl shadow sm:p-3 border text-center
+            p-1.5 bg-card rounded-xl shadow sm:p-3 border text-center
             ${done[key] ? "bg-green-200" : ""}
             ${loading ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
-          <Icon className="w-3.5 h-3.5 sm:w-6 sm:h-6 mx-auto" />
+          <Icon className="w-4 h-4 sm:w-6 sm:h-6 mx-auto" />
         </button>
       ))}
     </div>

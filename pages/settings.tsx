@@ -6,6 +6,7 @@ import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, Save, Trash2 } from "lucide-react";
+import InstallButton from "../components/InstallButton";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -21,13 +22,17 @@ export default function SettingsPage() {
     show_habits: boolean;
     show_water_tracker: boolean;
     show_budget_items: boolean;
+    show_month_view: boolean;
+    show_notifications: boolean;
     users: string[];
   }>({
     sort_order: "priority",
     show_completed: true,
     show_habits: true,
     show_water_tracker: true,
-    show_budget_items: false,
+    show_budget_items: true,
+    show_month_view: true,
+    show_notifications: true,
     users: [] as string[], // up to 10 friends
   });
 
@@ -71,7 +76,7 @@ export default function SettingsPage() {
       const { data, error } = await supabase
         .from("settings")
         .select(
-          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,users"
+          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_month_view,show_notifications,users"
         )
         .eq("user_name", email)
         .maybeSingle();
@@ -82,6 +87,8 @@ export default function SettingsPage() {
           show_habits: data.show_habits,
           show_water_tracker: data.show_water_tracker,
           show_budget_items: data.show_budget_items,
+          show_month_view: data.show_month_view,
+          show_notifications: data.show_notifications,
           users: data.users || [],
         });
       }
@@ -146,10 +153,14 @@ export default function SettingsPage() {
         <meta name="description" content="Zmień swoje ustawienia aplikacji" />
       </Head>
       <Layout>
-        <h2 className="text-2xl font-semibold mb-6">Ustawienia</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Ustawienia</h2>
+          <InstallButton/>
+        </div>
+        
         <form
           onSubmit={handleSave}
-          className="mb-6 bg-card p-6 rounded-xl shadow space-y-6"
+          className="mb-4 bg-card p-6 rounded-xl shadow space-y-3"
         >
           <h3 className="text-lg font-semibold">Aplikacja</h3>
           <div>
@@ -189,7 +200,7 @@ export default function SettingsPage() {
               htmlFor="show_completed"
               className="ml-2 text-sm text-gray-700"
             >
-              Pokaż wykonane zadania
+              Pokaż zrobione
             </label>
           </div>
           <div className="flex items-center">
@@ -228,6 +239,26 @@ export default function SettingsPage() {
           </div>
           <div className="flex items-center">
             <input
+              id="show_notifiactions"
+              type="checkbox"
+              checked={settings.show_notifications}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  show_notifications: e.target.checked,
+                })
+              }
+              className="h-4 w-4 text-primary border-gray-300 rounded"
+            />
+            <label
+              htmlFor="show_notifications"
+              className="ml-2 text-sm text-gray-700"
+            >
+              Pokaż przypomnienia
+            </label>
+          </div>
+          <div className="flex items-center">
+            <input
               id="show_budget_items"
               type="checkbox"
               checked={settings.show_budget_items}
@@ -246,6 +277,27 @@ export default function SettingsPage() {
               Pokaż pozycje z budżetu
             </label>
           </div>
+          <div className="flex items-center">
+            <input
+              id="show_month_view"
+              type="checkbox"
+              checked={settings.show_month_view}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  show_month_view: e.target.checked,
+                })
+              }
+              className="h-4 w-4 text-primary border-gray-300 rounded"
+            />
+            <label
+              htmlFor="show_month_view"
+              className="ml-2 text-sm text-gray-700"
+            >
+              Pokaż zawsze widok miesiąca
+            </label>
+          </div>
+          
           <div className="space-y-2">
             {settings.users.map((u: string, idx: number) => (
               <div key={idx} className="flex items-center space-x-2">
@@ -296,20 +348,20 @@ export default function SettingsPage() {
             )}
           </button>
         </form>
-        <div className="bg-card p-6 rounded-xl shadow space-y-4">
+        <div className="bg-card mb-4 p-6 rounded-xl shadow space-y-4">
           <h3 className="text-xl font-semibold">Lokalizacja</h3>
           <button
             onClick={requestGeolocation}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-4 py-2 text-white rounded-lg  bg-primary hover:bg-secondary"
           >
-            Poproś ponownie o lokalizację
+            Poproś o lokalizację
           </button>
           {locationStatus && (
             <p className="text-sm text-gray-700 mt-2">{locationStatus}</p>
           )}
         </div>
 
-        <div className="bg-card p-6 rounded-xl shadow space-y-4">
+        <div className="bg-card p-6 mb-6 rounded-xl shadow space-y-4">
           <h3 className="text-xl font-semibold">Użytkownik</h3>
           <p>
             <strong>Email:</strong> {session.user.email}

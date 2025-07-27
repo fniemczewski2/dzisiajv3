@@ -2,7 +2,7 @@
 import React from "react";
 import clsx from "clsx";
 import { Edit2, Trash2 } from "lucide-react";
-import { Note } from "../types";
+import { Note } from "../../types";
 
 interface NoteListProps {
   notes: Note[];
@@ -17,7 +17,7 @@ export function NoteList({ notes, onEdit, onDelete }: NoteListProps) {
         <li
           key={n.id}
           className={clsx(
-            "py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-between",
+            "py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-between hover:shadow-lg",
             `bg-${n.bg_color}`
           )}
         >

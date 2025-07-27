@@ -1,7 +1,7 @@
 import React from "react";
 import { format, parseISO } from "date-fns";
 import { Check, Edit2, Trash2 } from "lucide-react";
-import { Task } from "../types";
+import { Task } from "../../types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 interface Props {
@@ -46,7 +46,7 @@ export default function TaskItem({
   return (
     <li
       key={task.id}
-      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 bg-card rounded-xl shadow flex justify-between items-center 
+      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow flex justify-between items-center 
         ${
           task.priority === 1
             ? "shadow-red-800 shadow-sm"

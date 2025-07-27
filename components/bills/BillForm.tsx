@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
-import { Bill } from "../types";
+import { Bill } from "../../types";
 
 interface BillFormProps {
   userEmail: string;
@@ -127,7 +127,7 @@ export function BillForm({
           className="h-4 w-4"
         />
         <label htmlFor="includeInBudget" className="select-none">
-          Uwzględnij w budżecie
+          Planowany wydatek
         </label>
       </div>
 

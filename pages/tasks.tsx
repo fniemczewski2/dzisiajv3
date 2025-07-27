@@ -9,17 +9,20 @@ import {
   Calendar,
   ChevronRight,
   ChevronsRight,
+  BellDot,
+  ChevronDown,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import TaskIcons from "../components/TaskIcons";
-import WaterTracker from "../components/WaterTracker";
-import TaskForm from "../components/TaskForm";
-import TaskList from "../components/TaskList";
+import TaskIcons from "../components/tasks/TaskIcons";
+import WaterTracker from "../components/tasks/WaterTracker";
+import TaskForm from "../components/tasks/TaskForm";
+import TaskList from "../components/tasks/TaskList";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
+import Reminders from "../components/tasks/Reminders";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -136,6 +139,7 @@ export default function TasksPage() {
       <Layout>
         {settings.show_habits && <TaskIcons />}
         {settings.show_water_tracker && <WaterTracker />}
+        {settings.show_notifications && <Reminders />}
 
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
@@ -144,7 +148,7 @@ export default function TasksPage() {
           {!showForm && (
             <button
               onClick={openAdd}
-              className="px-4 py-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg"
+              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
@@ -152,7 +156,7 @@ export default function TasksPage() {
           )}
         </div>
 
-        <div className="flex space-x-2 mb-6">
+        <div className="flex space-x-2 mb-4">
           {FILTER_OPTIONS.map((opt) => {
             const Icon = opt.icon;
             return (
@@ -160,13 +164,13 @@ export default function TasksPage() {
                 key={opt.value}
                 onClick={() => setDateFilter(opt.value)}
                 title={opt.title}
-                className={`p-2 rounded-lg border transition-colors flex items-center justify-center ${
+                className={`p-1.5 rounded-xl border shadow transition-colors flex items-center justify-center ${
                   dateFilter === opt.value
                     ? "bg-primary text-white border-primary"
                     : "bg-gray-100 text-gray-700 border-transparent"
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-4 h-4" />
               </button>
             );
           })}

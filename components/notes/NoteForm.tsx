@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { PlusCircleIcon, Loader2, Save } from "lucide-react";
 import clsx from "clsx";
-import { Note } from "../types";
+import { Note } from "../../types";
 
 interface NoteFormProps {
   userEmail: string;
