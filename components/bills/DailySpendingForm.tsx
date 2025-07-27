@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useDailySpending } from "../hooks/useDailySpending";
+import { useDailySpending } from "../../hooks/useDailySpending";
 import { Loader2, Save, X } from "lucide-react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 

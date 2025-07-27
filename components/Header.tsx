@@ -10,10 +10,13 @@ import {
   CloudDrizzle,
   CloudFog,
   CloudSun,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/router";
 
+
 export default function Header() {
+  const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState("");
   const [currentTime, setCurrentTime] = useState("");
   const [currentTemp, setCurrentTemp] = useState<number | null>(null);
@@ -23,6 +26,7 @@ export default function Header() {
   const router = useRouter();
 
   useEffect(() => {
+    setLoading(true);
     const now = new Date();
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
@@ -83,92 +87,61 @@ export default function Header() {
         maximumAge: 0,
       }
     );
-
+    setLoading(false);
     return () => clearInterval(timer);
   }, []);
 
   function WeatherIcon({ code }: { code: number }) {
-    if (code <= 1) return <Sun className="w-6 h-6 text-primary" />;
-    if (code === 2) return <CloudSun className="w-6 h-6 text-primary" />;
-    if (code <= 3) return <Cloud className="w-6 h-6 text-primary" />;
-    if (code <= 48) return <CloudFog className="w-6 h-6 text-primary" />;
-    if (code <= 67) return <CloudDrizzle className="w-6 h-6 text-primary" />;
-    if (code <= 77) return <CloudSnow className="w-6 h-6 text-primary" />;
-    if (code <= 82) return <CloudRain className="w-6 h-6 text-primary" />;
-    if (code <= 86) return <CloudSnow className="w-6 h-6 text-primary" />;
-    return <CloudLightning className="w-6 h-6 text-primary" />;
+    if (code <= 1) return <Sun className="w-6 h-6 text-gray-600" />;
+    if (code === 2) return <CloudSun className="w-6 h-6 text-gray-600" />;
+    if (code <= 3) return <Cloud className="w-6 h-6 text-gray-600" />;
+    if (code <= 48) return <CloudFog className="w-6 h-6 text-gray-600" />;
+    if (code <= 67) return <CloudDrizzle className="w-6 h-6 text-gray-600" />;
+    if (code <= 77) return <CloudSnow className="w-6 h-6 text-gray-600" />;
+    if (code <= 82) return <CloudRain className="w-6 h-6 text-gray-600" />;
+    if (code <= 86) return <CloudSnow className="w-6 h-6 text-gray-600" />;
+    return <CloudLightning className="w-6 h-6 text-gray-600" />;
   }
 
   return (
     <header
       className="
-        bg-card shadow-md rounded-xl p-4
+        bg-card shadow-md rounded-xl px-3 py-2 sm:p-4
         flex
         justify-center
         w-full
+        flex-row
+        flex-nowrap
       "
     >
-      <div
-        className="m-0 p-0 grid grid-cols-1 gap-4
-        sm:grid-cols-3 sm:gap-0 max-w-[1600px] w-full"
-      >
-        <h1 className="text-2xl font-bold text-primary text-center sm:text-left">
-          Dzisiaj v3
-        </h1>
-
-        <div
-          className="
-          flex justify-between items-center 
-          sm:flex-col sm:items-center sm:w-auto 
-        "
-        >
-          <div className="text-gray-700 text-left sm:text-center">
-            <div className="text-xl">{currentTime}</div>
+        
+          <div className="text-gray-600 text-left flex flex-col flex-1">
+            <div className="text-xl font-semibold">{currentTime}</div>
             <span className="text-gray-500 text-[12px] sm:text-sm">
               {currentDate}
             </span>
           </div>
 
-          <div
-            onClick={() => router.push("/settings")}
-            className="sm:hidden block"
-          >
+          <h1 className="text-2xl font-bold text-primary sm:block hidden flex-1 text-center">
+            Dzisiaj v3
+          </h1>
+
             {currentTemp != null &&
               dailyMin != null &&
               dailyMax != null &&
               weatherCode != null && (
-                <div className="flex flex-col items-left text-gray-700">
-                  <div className="flex items-center justify-end space-x-1 mb-1">
+                loading ? <Loader2 className="flex-1 animate-spin w-6 h-6 text-gray-500" /> :
+                <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-gray-700">
+                  <div className="flex items-center text-xl font-semibold justify-end space-x-1">
                     <WeatherIcon code={weatherCode} />
-                    <span className="text-xl">{currentTemp}°C</span>
+                    <span className="text-xl text-gray-600">{currentTemp}°C</span>
                   </div>
-                  <span className="text-gray-500 text-[12px] ml-5">
+                  <span className="text-gray-600 text-[12px] sm:text-sm ml-5 text-right">
                     min {dailyMin}° · max {dailyMax}°
                   </span>
                 </div>
               )}
-          </div>
-        </div>
-        <div
-          onClick={() => router.push("/settings")}
-          className="hidden sm:flex sm:justify-end sm:items-center"
-        >
-          {currentTemp != null &&
-            dailyMin != null &&
-            dailyMax != null &&
-            weatherCode != null && (
-              <div className="flex flex-col items-center justify-end text-gray-700">
-                <div className="flex items-end justify-end space-x-1 mb-1">
-                  <WeatherIcon code={weatherCode} />
-                  <span className="text-xl">{currentTemp}°C</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  <span>min {dailyMin}°C</span> · <span>max {dailyMax}°C</span>
-                </div>
-              </div>
-            )}
-        </div>
-      </div>
+
     </header>
   );
 }

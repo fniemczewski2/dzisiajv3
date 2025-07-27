@@ -5,8 +5,8 @@ import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Backpack, Luggage, Loader2, PlusCircleIcon } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
-import { NoteForm } from "../components/NoteForm";
-import { NoteList } from "../components/NoteList";
+import { NoteForm } from "../components/notes/NoteForm";
+import { NoteList } from "../components/notes/NoteList";
 import { Note } from "../types";
 import { useRouter } from "next/router";
 
@@ -79,7 +79,7 @@ export default function NotesPage() {
           {!showForm && (
             <button
               onClick={openNew}
-              className="px-4 py-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg"
+              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />

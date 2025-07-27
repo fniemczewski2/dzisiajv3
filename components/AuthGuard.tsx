@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "@supabase/auth-helpers-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, ReactNode, useCallback, useState } from "react";
 
@@ -25,9 +26,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
   if (session === undefined || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <span className="text-gray-500">Ładowanie…</span>
-      </div>
+      <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
     );
   }
 

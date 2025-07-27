@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import Head from "next/head";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const session = useSession();
@@ -23,15 +24,14 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}${nextPath}` },
+      // options: { redirectTo: `${window.location.origin}${nextPath}` },
     });
     if (error) console.error("Login error:", error.message);
   };
 
   if (session === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Ładowanie…
-      </div>
+      <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
     );
   }
 

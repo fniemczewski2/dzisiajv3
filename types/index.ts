@@ -18,6 +18,7 @@ export type Bill = {
   date: string;
   user_name: string;
   include_in_budget: boolean;
+  done: boolean | null;
 };
 
 export type Note = {
@@ -46,6 +47,8 @@ export type Settings = {
   show_habits: boolean;
   show_water_tracker: boolean;
   show_budget_items: boolean;
+  show_month_view: boolean;
+  show_notifications: boolean;
   users: string[];
 };
 
@@ -60,5 +63,15 @@ export type HabitRow = {
   plants: boolean;
   duolingo: boolean;
 };
+
+export type Reminder = {
+  id: string;
+  user_email: string;
+  tytul: string;
+  data_poczatkowa: string;
+  powtarzanie: number;
+  done: string | null; 
+};
+
 export type WaterRow = { date: string; amount: number };
 export type MoneyRow = { date: string; daily_spending: number };

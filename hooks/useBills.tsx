@@ -14,43 +14,65 @@ export function useBills(userEmail: string) {
     if (!userEmail || settings == null) return;
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: billsData, error: billsError } = await supabase
       .from("bills")
       .select("*")
       .eq("user_name", userEmail)
       .eq("include_in_budget", false)
       .order("date", { ascending: true });
 
-    if (error) {
-      console.error("Fetch bills failed:", error.message);
+    if (billsError) {
+      console.error("Fetch bills failed:", billsError.message);
       setBills([]);
     } else {
-      setBills(data || []);
+      setBills(billsData || []);
     }
 
     if (settings.show_budget_items) {
-      const { data, error } = await supabase
+      const { data: budgetData, error: budgetError } = await supabase
         .from("bills")
         .select("*")
         .eq("user_name", userEmail)
         .eq("include_in_budget", true)
+        .eq("done", false)
         .order("date", { ascending: true });
 
-      if (error) {
-        console.error("Fetch budgetItems failed:", error.message);
+      if (budgetError) {
+        console.error("Fetch budgetItems failed:", budgetError.message);
         setBudgetItems([]);
       } else {
-        setBudgetItems(data || []);
+        setBudgetItems(budgetData || []);
       }
     }
 
     setLoading(false);
   }, [supabase, userEmail, settings?.show_budget_items]);
 
-  // Odpalamy fetch na starcie i przy zmianie ustawienia show_budget_items
   useEffect(() => {
     fetchBills();
   }, [fetchBills]);
 
-  return { bills, budgetItems, loading, fetchBills };
+  const markBudgetItemAsDone = async (id: string) => {
+    const { data, error } = await supabase
+      .from("bills")
+      .update({ done: true })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Mark done failed:", error.message);
+      return;
+    }
+
+    setBudgetItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  return {
+    bills,
+    budgetItems,
+    loading,
+    fetchBills,
+    markBudgetItemAsDone, 
+  };
 }

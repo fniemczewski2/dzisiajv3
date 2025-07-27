@@ -11,17 +11,17 @@ import {
 } from "date-fns";
 import Head from "next/head";
 import { Loader2 } from "lucide-react";
-import { generateCalendarDays } from "../utils/calendar";
-import { useResponsive } from "../hooks/useResponsive";
-import { useCalendarData } from "../hooks/useCalendar";
-import { Event } from "../types";
+import { generateCalendarDays } from "../../utils/calendar";
+import { useResponsive } from "../../hooks/useResponsive";
+import { useCalendarData } from "../../hooks/useCalendar";
+import { Event } from "../../types";
 import { CalendarHeader } from "./CalendarHeader";
 import { CalendarGrid } from "./CalendarGrid";
 import { CalendarDayDetails } from "./CalendarDayDetails";
 import { pl } from "date-fns/locale";
-import { useSettings } from "../hooks/useSettings";
-import { useEvents } from "../hooks/useEvents";
-import { useTasks } from "../hooks/useTasks";
+import { useSettings } from "../../hooks/useSettings";
+import { useEvents } from "../../hooks/useEvents";
+import { useTasks } from "../../hooks/useTasks";
 
 function generateWeekDays(date: Date, weekStartsOn: 1 | 0 = 1): Date[] {
   const start = startOfWeek(date, { locale: pl, weekStartsOn });
@@ -38,13 +38,14 @@ interface Props {
 }
 
 export default function CustomCalendar({ onEdit, userEmail }: Props) {
-  const isMobile = useResponsive();
+  
   const { settings } = useSettings(userEmail);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const isMobile = useResponsive();
 
   // Determine displayed days
-  const days = isMobile
+  const days = isMobile && !settings?.show_month_view
     ? generateWeekDays(currentDate)
     : generateCalendarDays(currentDate);
 
@@ -99,14 +100,14 @@ export default function CustomCalendar({ onEdit, userEmail }: Props) {
   const detailEvents = groupedEvents[selectedDate] || [];
 
   const onPrev = () =>
-    isMobile
+    isMobile && !settings?.show_month_view
       ? setCurrentDate((d) => subWeeks(d, 1))
       : setCurrentDate((d) => subMonths(d, 1));
   const onNext = () =>
-    isMobile
+    isMobile && !settings?.show_month_view
       ? setCurrentDate((d) => addWeeks(d, 1))
       : setCurrentDate((d) => addMonths(d, 1));
-  const onToday = () => setCurrentDate(new Date());
+
   const onDateClick = (dateStr: string) => setSelectedDate(dateStr);
   const onBack = () => setSelectedDate("");
 
@@ -117,7 +118,6 @@ export default function CustomCalendar({ onEdit, userEmail }: Props) {
       </div>
     );
   }
-
   return (
     <>
       <Head>
@@ -134,11 +134,11 @@ export default function CustomCalendar({ onEdit, userEmail }: Props) {
               currentDate={currentDate}
               onPrev={onPrev}
               onNext={onNext}
-              onToday={onToday}
             />
             <CalendarGrid
               days={days}
               isMobile={isMobile}
+              showMonthView={settings?.show_month_view}
               tasksCount={tasksCount}
               habitCounts={habitCounts}
               waterCounts={waterCounts}
@@ -154,6 +154,10 @@ export default function CustomCalendar({ onEdit, userEmail }: Props) {
             events={detailEvents}
             onEdit={onEdit}
             onBack={onBack}
+            tCount={tasksCount[selectedDate] || 0}
+            hCount={habitCounts[selectedDate] || 0}
+            wCount={waterCounts[selectedDate] || 0}
+            mCount={moneyCounts[selectedDate] || 0}
             onEventsChange={refetch}
           />
         )}

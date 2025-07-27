@@ -5,11 +5,12 @@ import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, ChartColumnBig } from "lucide-react";
 import { useBills } from "../hooks/useBills";
-import { BillForm } from "../components/BillForm";
-import { BillList } from "../components/BillList";
+import { BillList } from "../components/bills/BillList";
+import { BillListGrouped } from "../components/bills/BillListGrouped";
 import { Bill } from "../types";
 import { useRouter } from "next/router";
-import { DailySpendingForm } from "../components/DailySpendingForm";
+import { DailySpendingForm } from "../components/bills/DailySpendingForm";
+import { BillForm } from "../components/bills/BillForm";
 
 export default function BillsPage() {
   const session = useSession();
@@ -73,7 +74,7 @@ export default function BillsPage() {
           {!showForm && (
             <button
               onClick={openNew}
-              className="px-4 py-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg"
+              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
@@ -112,14 +113,15 @@ export default function BillsPage() {
             />
           </>
         )}
-        {Object.keys(budgetItems).length > 0 && (
+        {budgetItems.length > 0 && (
           <>
-            <h3>Wydatki planowane</h3>
-            <BillList
+            <h3 className="text-lg font-semibold mb-2 mt-6">Wydatki planowane</h3>
+            <BillListGrouped
               bills={budgetItems}
               onEdit={openEdit}
-              onDelete={(id) => {
-                handleDelete(id);
+              onDelete={handleDelete}
+              onMarkDone={async (id) => {
+                await supabase.from("bills").update({ done: true }).eq("id", id);
                 fetchBills();
               }}
             />
