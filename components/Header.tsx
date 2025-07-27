@@ -44,7 +44,6 @@ export default function Header() {
     }, 1000);
 
     if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
       return;
     }
 
@@ -72,7 +71,6 @@ export default function Header() {
           setDailyMin(Math.min(...json.daily.apparent_temperature_min));
           setDailyMax(Math.max(...json.daily.apparent_temperature_max));
         } catch (error) {
-          console.error("Failed to fetch weather data:", error);
         }
       },
       (error) => {

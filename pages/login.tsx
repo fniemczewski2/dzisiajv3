@@ -24,9 +24,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}${nextPath}` },
-      // options: { redirectTo: `${window.location.origin}${nextPath}` },
     });
-    if (error) console.error("Login error:", error.message);
   };
 
   if (session === undefined) {

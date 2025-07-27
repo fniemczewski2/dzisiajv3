@@ -1,17 +1,33 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
-export default function InstallButton() {
+export default function InstallPromptButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [canInstall, setCanInstall] = useState(false);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setCanInstall(true);
+      setShowInstallButton(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
+
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const ios = /iphone|ipad|ipod/.test(userAgent);
+    const standalone =
+      "standalone" in navigator && (navigator as any).standalone;
+
+    setIsIOS(ios);
+    setIsStandalone(standalone);
+
+    if (ios && !standalone) {
+      setShowInstallButton(true);
+    }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
@@ -19,22 +35,31 @@ export default function InstallButton() {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-    setCanInstall(false);
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+    } else if (isIOS) {
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: "Dzisiaj v3",
+            url: window.location.href,
+          });
+        } 
+      } catch (err) {}
+    }
   };
 
-  //if (!canInstall) return null;
+  if (!showInstallButton) return null;
 
   return (
     <button
-      className="p-2 px-4 rounded-lg bg-blue-600 text-white font-semibold"
       onClick={handleInstall}
+      className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
     >
-      Zainstaluj aplikację
+      Zainstaluj
     </button>
   );
 }

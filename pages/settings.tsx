@@ -128,16 +128,13 @@ export default function SettingsPage() {
     const { error } = await supabase
       .from("settings")
       .upsert(payload, { onConflict: "user_name" });
-    if (error) console.error(error.message);
     setSaving(false);
   };
 
-  // Sign out
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
-  // Loading state
   if (!session || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

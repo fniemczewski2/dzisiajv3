@@ -22,7 +22,6 @@ export function useReminders() {
       .order("data_poczatkowa", { ascending: true });
 
     if (!error && data) setReminders(data);
-    else console.error(error);
   };
 
   const addReminder = async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
@@ -40,7 +39,6 @@ export function useReminders() {
       .single();
 
     if (!error && data) setReminders((prev) => [...prev, data]);
-    else console.error(error);
   };
 
   const postponeReminder = async (id: string, powtarzanie: number) => {
@@ -55,9 +53,7 @@ export function useReminders() {
       .select()
       .single();
 
-    if (error) {
-      console.error("Błąd podczas odkładania przypomnienia:", error);
-    } else if (data) {
+    if (data) {
       setReminders((prev) => prev.map((r) => (r.id === id ? data : r)));
     }
   };
@@ -74,15 +70,12 @@ export function useReminders() {
 
     if (!error && data) {
       setReminders((prev) => prev.map((r) => (r.id === id ? data : r)));
-    } else {
-      console.error(error);
-    }
+    } 
   };
 
   const deleteReminder = async (id: string) => {
     const { error } = await supabase.from("reminders").delete().eq("id", id);
     if (!error) setReminders((prev) => prev.filter((r) => r.id !== id));
-    else console.error(error);
   };
 
   const getVisibleReminders = () => {
