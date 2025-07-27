@@ -18,8 +18,6 @@ export function useSettings(userEmail: string) {
         .eq("user_name", userEmail)
         .maybeSingle();
 
-      if (error) console.error("Fetch settings failed:", error.message);
-
       if (data) {
         setSettings(data);
       } else {
@@ -37,8 +35,7 @@ export function useSettings(userEmail: string) {
         const { error: insertError } = await supabase
           .from("settings")
           .insert(defaults);
-        if (insertError)
-          console.error("Insert default settings failed:", insertError.message);
+
         setSettings(defaults);
       }
       setLoading(false);

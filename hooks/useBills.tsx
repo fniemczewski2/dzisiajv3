@@ -22,7 +22,6 @@ export function useBills(userEmail: string) {
       .order("date", { ascending: true });
 
     if (billsError) {
-      console.error("Fetch bills failed:", billsError.message);
       setBills([]);
     } else {
       setBills(billsData || []);
@@ -38,7 +37,6 @@ export function useBills(userEmail: string) {
         .order("date", { ascending: true });
 
       if (budgetError) {
-        console.error("Fetch budgetItems failed:", budgetError.message);
         setBudgetItems([]);
       } else {
         setBudgetItems(budgetData || []);
@@ -61,7 +59,6 @@ export function useBills(userEmail: string) {
       .single();
 
     if (error) {
-      console.error("Mark done failed:", error.message);
       return;
     }
 

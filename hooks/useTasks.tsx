@@ -26,7 +26,6 @@ export function useTasks(userEmail: string, settings: Settings | null) {
 
     const { data, error } = await query;
     if (error) {
-      console.error("Fetch tasks failed:", error.message);
       setLoading(false);
       return;
     }

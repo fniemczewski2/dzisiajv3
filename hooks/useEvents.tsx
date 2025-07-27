@@ -93,7 +93,6 @@ export function useEvents(
       .or(`user_name.eq.${userEmail},share.eq.${userEmail}`);
 
     if (error) {
-      console.error("Błąd pobierania wydarzeń:", error);
       setLoading(false);
       return;
     }

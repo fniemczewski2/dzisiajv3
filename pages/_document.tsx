@@ -9,7 +9,7 @@ export default function Document() {
           name="description"
           content="Dzisiaj v3 - zarządzaj zadaniami, notatkami, rachunkami i kalendarzem w jednym miejscu."
         />
-        <link rel="manifest" href="../manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
