@@ -17,10 +17,10 @@ export function BillList({ bills, onEdit, onDelete, onMarkDone }: BillListProps)
       {bills.map((b) => (
         <li
           key={b.id}
-          className="bg-card rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center transition hover:shadow-lg"
+          className="bg-card rounded-xl shadow-md p-4 flex flex-row items-center transition hover:shadow-lg hover:bg-gray-100"
         >
-          <div className="flex flex-col space-y-1 text-sm sm:text-base">
-            <span className={`font-semibold ${b.include_in_budget ? "text-red-600" : "text-green-600"}`}>
+          <div className="flex flex-col flex-1 space-y-1 text-sm sm:text-base">
+              <span className={`font-semibold text-lg ${b.include_in_budget ? "text-red-600" : "text-green-600"}`}>
               {b.include_in_budget ? "-" : "+"}
               {b.amount.toFixed(2)} zł
             </span>
@@ -30,7 +30,7 @@ export function BillList({ bills, onEdit, onDelete, onMarkDone }: BillListProps)
             </span>
           </div>
 
-          <div className="flex space-x-4 mt-3 justify-end sm:mt-0 sm:ml-4 text-sm">
+          <div className="flex flex-row flex-nowrap flex-1 space-x-4 justify-end text-sm">
             {b.include_in_budget && onMarkDone && (
               <button
                 onClick={() => onMarkDone(b.id)}

@@ -118,7 +118,7 @@ export default function WeatherPage() {
           <h2 className="text-xl mb-4 font-semibold">Pogoda</h2>
 
           {loading ? (
-            <div className="flex justify-center items-center h-48">
+            <div className="min-h-screen flex items-center justify-center">
               <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
             </div>
           ) : error ? (

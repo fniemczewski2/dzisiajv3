@@ -3,13 +3,18 @@ import Head from "next/head";
 import Layout from "../components/Layout";
 import { Loader2, PlusCircleIcon } from "lucide-react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useState } from "react";
-import EventForm from "../components/calendar/EventForm";
+import { useCallback, useState } from "react";
 import type { Event } from "../types";
 
 const CustomCalendar = dynamic(() => import("../components/calendar/CustomCalendar"), {
   ssr: false,
 });
+
+const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
+  loading: () => <Loader2 className="animate-spin w-5 h-5" />,
+  ssr: false,
+});
+
 
 export default function CalendarPage() {
   const [showForm, setShowForm] = useState(false);
@@ -17,33 +22,15 @@ export default function CalendarPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
 
-  if (session === undefined) {
-    return (
-      <div className="min-h-screen flex justify-center items-center">
-        <Loader2 className="animate-spin w-8 h-8 text-gray-500" />
-      </div>
-    );
-  }
-
-  const openAdd = () => {
+  const openAdd = useCallback(() => {
     setEditingEvent(null);
     setShowForm(true);
-  };
+  }, []);
 
-  const openEdit = (event: Event) => {
+  const openEdit = useCallback((event: Event) => {
     setEditingEvent(event);
     setShowForm(true);
-  };
-
-  const closeForm = () => {
-    setShowForm(false);
-    setEditingEvent(null);
-  };
-
-  const handleEventsChange = () => {
-    // You can call calendar refresh here if needed
-    closeForm();
-  };
+  }, []);
 
   return (
     <>
@@ -63,7 +50,6 @@ export default function CalendarPage() {
             </button>
           )}
         </div>
-
         {showForm && (
           <EventForm
             userEmail={userEmail}

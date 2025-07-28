@@ -32,7 +32,7 @@ interface Props {
   mCount: number;
 }
 
-export function CalendarDayDetails({
+export default function CalendarDayDetails({
   selectedDate,
   tasks,
   events = [],

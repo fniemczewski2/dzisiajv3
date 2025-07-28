@@ -13,6 +13,14 @@ interface NoteFormProps {
   initial?: Note;
 }
 
+const COLOR_MAP: { [key: string]: string } = {
+  "zinc-50": "bg-zinc-50",
+  "yellow-100": "bg-yellow-100",
+  "green-100": "bg-green-100",
+  "cyan-100": "bg-cyan-100",
+  "red-100": "bg-red-100",
+};
+
 export function NoteForm({
   userEmail,
   onChange,
@@ -27,22 +35,16 @@ export function NoteForm({
   const [bgColor, setBgColor] = useState(initial?.bg_color || "zinc-50");
   const [loading, setLoading] = useState(false);
 
-  const tailwindColors = [
-    "zinc-50",
-    "yellow-100",
-    "green-100",
-    "cyan-100",
-    "red-100",
-  ];
+  const tailwindColors = Object.keys(COLOR_MAP);
 
   useEffect(() => {
     if (initial) {
-      if (titleRef.current) titleRef.current.value = initial.title;
-      if (itemsRef.current) itemsRef.current.value = initial.items.join("\n");
-      setBgColor(initial.bg_color);
+      titleRef.current!.value = initial.title || "";
+      itemsRef.current!.value = (initial.items ?? []).join("\n");
+      setBgColor(initial.bg_color || "zinc-50");
     } else {
-      if (titleRef.current) titleRef.current.value = "";
-      if (itemsRef.current) itemsRef.current.value = "";
+      titleRef.current!.value = "";
+      itemsRef.current!.value = "";
       setBgColor("zinc-50");
     }
   }, [initial]);
@@ -110,20 +112,21 @@ export function NoteForm({
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
+        <span className="text-sm text-gray-600">Kolor:</span>
         {tailwindColors.map((color) => (
           <button
             key={color}
             type="button"
             onClick={() => setBgColor(color)}
+            aria-label={`Wybierz kolor ${color}`}
             className={clsx(
-              "w-8 h-8 rounded-full border-2 transition",
+              "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2",
               bgColor === color
-                ? "border-secondary"
+                ? "border-secondary ring-secondary"
                 : "border-transparent hover:border-gray-400",
-              `bg-${color}`
+              COLOR_MAP[color]
             )}
-            title={color}
           />
         ))}
       </div>
@@ -131,7 +134,7 @@ export function NoteForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center"
+          className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
         >
           {isEdit ? (
             <>
@@ -145,15 +148,17 @@ export function NoteForm({
             </>
           )}
         </button>
+
         {typeof onCancel === "function" && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
+            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
           >
             Anuluj
           </button>
         )}
+
         {loading && <Loader2 className="animate-spin w-6 h-6 text-gray-500" />}
       </div>
     </form>

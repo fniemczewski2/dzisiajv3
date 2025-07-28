@@ -22,14 +22,6 @@ export default function BillsPage() {
   const [editing, setEditing] = useState<Bill | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-      </div>
-    );
-  }
-
   const openNew = () => {
     setEditing(undefined);
     setShowForm(true);
@@ -71,6 +63,7 @@ export default function BillsPage() {
               <ChartColumnBig className="w-5 h-5" />
             </button>
           </h2>
+          
           {!showForm && (
             <button
               onClick={openNew}
@@ -81,7 +74,11 @@ export default function BillsPage() {
             </button>
           )}
         </div>
-
+        {(!session || loading) && (
+            <div className="min-h-screen flex items-center justify-center">
+              <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+            </div>
+        )}
         {showForm && (
           <div className="mb-6">
             <BillForm
@@ -102,7 +99,7 @@ export default function BillsPage() {
         </div>
         {Object.keys(bills).length > 0 && (
           <>
-            <h3>Do zwrotu</h3>
+            <h3 className="text-lg font-semibold mb-2 mt-6">Wpływy planowane</h3>
             <BillList
               bills={bills}
               onEdit={openEdit}

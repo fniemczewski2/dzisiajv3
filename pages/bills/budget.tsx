@@ -185,13 +185,6 @@ export default function BudgetPage() {
     setIsEditing(false);
   };
 
-  if (!session || loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-      </div>
-    );
-
   return (
     <>
       <Head>
@@ -207,7 +200,11 @@ export default function BudgetPage() {
           </button>
           <h2 className="text-xl font-semibold">Statystyki</h2>
         </div>
-
+        {(!session || loading) && (
+            <div className="min-h-screen flex items-center justify-center">
+              <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+            </div>
+          )}
         <BudgetControls
           isEditing={isEditing}
           saving={saving}

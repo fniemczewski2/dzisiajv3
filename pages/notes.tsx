@@ -20,14 +20,6 @@ export default function NotesPage() {
   const [editing, setEditing] = useState<Note | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-      </div>
-    );
-  }
-
   const openNew = () => {
     setEditing(undefined);
     setShowForm(true);
@@ -56,26 +48,28 @@ export default function NotesPage() {
         />
       </Head>
       <Layout>
+        
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex flex-nowrap justify-between">
+          <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Notatki&nbsp;
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-2">
               <button
                 onClick={() => router.push("/notes/backpack")}
                 title="Plecak"
-                className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Backpack className="w-5 h-5" />
               </button>
               <button
                 onClick={() => router.push("/notes/suitcase")}
                 title="Walizka"
-                className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Luggage className="w-5 h-5" />
               </button>
             </div>
           </h2>
+          
           {!showForm && (
             <button
               onClick={openNew}
@@ -86,7 +80,11 @@ export default function NotesPage() {
             </button>
           )}
         </div>
-
+        {(!session || loading) && (
+          <div className="min-h-screen flex items-center justify-center">
+            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+          </div>
+        )}
         {showForm && (
           <div className="mb-6">
             <NoteForm

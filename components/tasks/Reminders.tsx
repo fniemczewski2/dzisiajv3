@@ -132,13 +132,13 @@ export default function Reminders() {
             </div>
             <div className="flex justify-start gap-x-3 pt-2">
               <button
-                className="bg-blue-600 text-white py-1 px-4 rounded hover:bg-blue-700"
+                className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
                 onClick={handleAdd}
               >
                 Zapisz
               </button>
               <button
-                className="bg-gray-300 text-gray-800 py-1 px-4 rounded hover:bg-gray-400"
+                className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
                 onClick={() => {
                   setForm({ tytul: "", data_poczatkowa: "", powtarzanie: 1 });
                   setShowForm(false);
