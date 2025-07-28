@@ -28,9 +28,9 @@ export function BillListGrouped({ bills, onEdit, onDelete, onMarkDone }: BillLis
     <div className="max-w-2xl mx-auto space-y-4">
       {Object.entries(grouped).map(([month, monthBills]) => (
         <div key={month}>
-          <h3 className="text-lg font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1 px-1">
+          <h4 className="text-lg font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1 px-1">
             {month.charAt(0).toUpperCase() + month.slice(1)}
-          </h3>
+          </h4>
           <ul className="space-y-3">
             {monthBills.map((b) => (
               <li

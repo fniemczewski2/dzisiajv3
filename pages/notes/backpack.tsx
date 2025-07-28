@@ -144,7 +144,7 @@ export default function BackpackPage() {
         const parentPath = "/" + pathParts.slice(0, -1).join("/");
         router.push(parentPath);
       } else {
-        router.push("/"); // fallback: home
+        router.push("/"); 
       }
     };
   
@@ -168,6 +168,7 @@ export default function BackpackPage() {
           </button>
           <h2 className="text-xl font-semibold">Plecak</h2>
         </div>
+
         <div className="flex flex-row flex-wrap">
           {categories.map((cat) => (
             <div key={cat.title} className="sm:m-6 sm:h-min w-fit">

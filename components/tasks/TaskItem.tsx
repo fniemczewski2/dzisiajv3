@@ -1,6 +1,6 @@
 import React from "react";
 import { format, parseISO } from "date-fns";
-import { Check, Edit2, Trash2 } from "lucide-react";
+import { Check, Edit2, Play, Trash2 } from "lucide-react";
 import { Task } from "../../types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
@@ -9,6 +9,7 @@ interface Props {
   userEmail: string;
   onTasksChange: () => void;
   onEdit: (task: Task) => void;
+  onStartTimer: () => void; 
 }
 
 export default function TaskItem({
@@ -16,6 +17,7 @@ export default function TaskItem({
   userEmail,
   onTasksChange,
   onEdit,
+  onStartTimer,
 }: Props) {
   const supabase = useSupabaseClient();
   const isDone = task.status === "done";
@@ -59,8 +61,32 @@ export default function TaskItem({
         }`}
     >
       <div className="flex-1">
+        <div onClick={onStartTimer} className="flex justify-start gap-2 items-center mb-3">
+        <span
+          className={`w-6 h-6 text-sm font-bold rounded-md text-white flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:brightness-110`}
+          style={{
+            backgroundColor:
+              task.priority === 1
+                ? "#fca5a5" // pastel red
+                : task.priority === 2
+                ? "#fdba74" // pastel orange
+                : task.priority === 3
+                ? "#fde68a" // pastel yellow
+                : task.priority === 4
+                ? "#a7f3d0" // pastel teal-green
+                : "#bbf7d0", // pastel green
+            color:
+              task.priority === 3 || task.priority === 4 || task.priority === 5
+                ? "#065f46" // darker text for lighter backgrounds
+                : "#7f1d1d", // darker red text for high priority
+          }}
+          title={`Priorytet ${task.priority}`}
+        >
+          {task.priority}
+        </span>
+
         <h3
-          className={`text-xl font-bold mb-3 
+          className={`text-xl font-bold break-words
             ${
               isDone
                 ? "text-gray-500 line-through"
@@ -73,14 +99,15 @@ export default function TaskItem({
                 ? "text-red-800"
                 : ""
             }
-            `}
+          `}
         >
-          {task.priority} | {task.title}
+          
+          {task.title}
         </h3>
-
+      </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col">
-            <p className="text-xs sm:text-sm text-gray-700 m-1">
+            <p className="text-xs sm:text-sm w-full text-gray-700 m-1">
               {task.due_date
                 ? format(parseISO(task.due_date), "dd.MM.yyyy")
                 : ""}
@@ -94,7 +121,7 @@ export default function TaskItem({
             <p className="text-sm text-gray-600 ml-1 mb-1">{task.category}</p>
           </div>
 
-          <div className="flex justify-end w-full min-w-[140px] sm:min-w-[210px] gap-1.5">
+          <div className="flex justify-end w-full min-w-[140px] gap-1.5">
             {isDone ? (
               <button
                 onClick={handleDelete}

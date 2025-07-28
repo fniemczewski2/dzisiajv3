@@ -9,8 +9,8 @@ import {
   Calendar,
   ChevronRight,
   ChevronsRight,
-  BellDot,
-  ChevronDown,
+  Timer,
+  Brain,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
@@ -23,6 +23,7 @@ import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
 import Reminders from "../components/tasks/Reminders";
+import { useRouter } from "next/router";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -38,6 +39,7 @@ export default function TasksPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
+  const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -79,15 +81,7 @@ export default function TasksPage() {
       setTodayDone(doneCount || 0);
     })();
   }, [session, supabase, userEmail, tasks]);
-
-  if (!session || loadingSettings || loadingTasks || !settings) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-      </div>
-    );
-  }
-
+  
   const openAdd = () => {
     setEditingTask(null);
     setShowForm(true);
@@ -137,14 +131,33 @@ export default function TasksPage() {
       </Head>
 
       <Layout>
-        {settings.show_habits && <TaskIcons />}
-        {settings.show_water_tracker && <WaterTracker />}
-        {settings.show_notifications && <Reminders />}
+        
+        {settings?.show_habits && <TaskIcons />}
+        {settings?.show_water_tracker && <WaterTracker />}
+        {settings?.show_notifications && <Reminders />}
 
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Zadania&nbsp;({todayDone}/{todayTotal})
-          </h2>
+          
+          <div className="flex justify-between items-center gap-2">
+            <button
+              onClick={() => router.push("/tasks/pomodoro")}
+              title="Pomodoro"
+              className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              <Timer className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => router.push("/tasks/eisenhower")}
+              title="Eisenhower Matrix"
+              className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              <Brain className="w-5 h-5" />
+            </button>
+            </div>
+            </h2>
+          
           {!showForm && (
             <button
               onClick={openAdd}
@@ -155,7 +168,11 @@ export default function TasksPage() {
             </button>
           )}
         </div>
-
+        {(!session || loadingSettings || loadingTasks || !settings) && (
+          <div className="min-h-screen flex items-center justify-center">
+            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+          </div>
+        )}
         <div className="flex space-x-2 mb-4">
           {FILTER_OPTIONS.map((opt) => {
             const Icon = opt.icon;

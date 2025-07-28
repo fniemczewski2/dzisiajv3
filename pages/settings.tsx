@@ -135,14 +135,6 @@ export default function SettingsPage() {
     await supabase.auth.signOut();
   };
 
-  if (!session || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-      </div>
-    );
-  }
-
   return (
     <>
       <Head>
@@ -154,7 +146,11 @@ export default function SettingsPage() {
           <h2 className="text-2xl font-semibold">Ustawienia</h2>
           <InstallButton/>
         </div>
-        
+          {(!session || loading) && (
+            <div className="min-h-screen flex items-center justify-center">
+              <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+            </div>
+          )}
         <form
           onSubmit={handleSave}
           className="mb-4 bg-card p-6 rounded-xl shadow space-y-3"
@@ -330,7 +326,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center disabled:opacity-50"
+            className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
           >
             {saving ? (
               <>
@@ -361,7 +357,7 @@ export default function SettingsPage() {
         <div className="bg-card p-6 mb-6 rounded-xl shadow space-y-4">
           <h3 className="text-xl font-semibold">Użytkownik</h3>
           <p>
-            <strong>Email:</strong> {session.user.email}
+            <strong>Email:</strong> {session?.user.email}
           </p>
           <button
             onClick={handleSignOut}

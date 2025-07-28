@@ -134,7 +134,7 @@ export function BillForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center"
+          className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
         >
           {isEdit ? (
             <>
@@ -152,7 +152,7 @@ export function BillForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 flex flex-nowrap items-center rounded-lg"
+            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
           >
             Anuluj
           </button>

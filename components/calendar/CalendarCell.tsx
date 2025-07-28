@@ -8,26 +8,28 @@ interface Props {
   day: Date;
   isMobile: boolean;
   showMonthView: boolean;
-  tCount: number;
-  hCount: number;
-  wCount: number;
-  mCount: number;
+  tCount?: number;
+  hCount?: number;
+  wCount?: number;
+  mCount?: number;
   eventTitle?: string;
   onClick(): void;
 }
 
-export function CalendarCell({
+export const CalendarCell = React.memo(function CalendarCell({
   day,
   isMobile,
   showMonthView,
-  tCount,
-  hCount,
-  wCount,
-  mCount,
+  tCount = 0,
+  hCount = 0,
+  wCount = 0,
+  mCount = 0,
   eventTitle,
   onClick,
 }: Props) {
   const today = new Date();
+  const showCounts = !isMobile || showMonthView === false;
+
   return (
     <div
       onClick={onClick}
@@ -52,29 +54,35 @@ export function CalendarCell({
           {eventTitle}
         </div>
       )}
-      {isMobile || showMonthView &&
-      <div className="flex flex-wrap justify-center space-x-2">
-        <span className="flex justify-center text-xs">
-          <ListTodo size={14} />
-          &nbsp;
-          {tCount}
-        </span>
-        <span className="flex justify-center text-xs">
-          <CopyCheck size={14} />
-          &nbsp;
-          {hCount}
-        </span>
-        <span className="flex justify-center text-xs">
-          <Droplet size={14} />
-          &nbsp;
-          {wCount}
-        </span>
-        <span className="flex justify-center text-xs">
-          <Coins size={14} />
-          &nbsp;
-          {mCount}
-        </span>
-      </div>}
+
+      {showCounts && (
+        <div className="flex flex-wrap justify-center gap-x-2 text-xs mt-1">
+          {tCount > 0 && (
+            <span className="flex items-center">
+              <ListTodo size={14} />
+              &nbsp;{tCount}
+            </span>
+          )}
+          {hCount > 0 && (
+            <span className="flex items-center">
+              <CopyCheck size={14} />
+              &nbsp;{hCount}
+            </span>
+          )}
+          {wCount > 0 && (
+            <span className="flex items-center">
+              <Droplet size={14} />
+              &nbsp;{wCount}
+            </span>
+          )}
+          {mCount > 0 && (
+            <span className="flex items-center">
+              <Coins size={14} />
+              &nbsp;{mCount}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
-}
+});
