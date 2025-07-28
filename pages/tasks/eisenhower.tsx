@@ -9,7 +9,8 @@ import {
   DndContext,
   closestCenter,
   DragOverlay,
-  PointerSensor,
+  TouchSensor,
+  MouseSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -19,6 +20,8 @@ import {
 } from "@dnd-kit/sortable";
 import { Droppable } from "../../components/eisenhower/Droppable";
 import { DraggableTask } from "../../components/eisenhower/DraggableTask";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/router";
 
 const CATEGORIES = [
   "Pilne i ważne",
@@ -28,22 +31,30 @@ const CATEGORIES = [
 ] as const;
 
 type Category = (typeof CATEGORIES)[number];
-
 type BoardState = Record<Category, Task[]>;
 
 export default function EisenhowerPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
+  const router = useRouter();
 
   const [tasks, setTasks] = useState<Task[]>([]);
-const [board, setBoard] = useState<BoardState>(() => {
-  const entries: [Category, Task[]][] = CATEGORIES.map((cat) => [cat, []]);
-  return Object.fromEntries(entries) as BoardState;
-});
+  const [board, setBoard] = useState<BoardState>(() => {
+    const entries: [Category, Task[]][] = CATEGORIES.map((cat) => [cat, []]);
+    return Object.fromEntries(entries) as BoardState;
+  });
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  );
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -71,8 +82,10 @@ const [board, setBoard] = useState<BoardState>(() => {
       };
 
       for (const task of filtered) {
-        const deadline = task.deadline_date ? new Date(task.deadline_date) : null;
-        const isUrgent = deadline && (deadline <= new Date());
+        const deadline = task.deadline_date
+          ? new Date(task.deadline_date)
+          : null;
+        const isUrgent = deadline && deadline <= new Date();
         const isImportant = task.priority <= 2;
 
         const key: Category = isUrgent
@@ -113,7 +126,7 @@ const [board, setBoard] = useState<BoardState>(() => {
         ? 2
         : newCategory === "Pilne, ale nieważne"
         ? 3
-        : 5;
+        : 4;
 
     const label = `#${newCategory}`;
     const cleanedDescription = (task.description || "")
@@ -126,25 +139,45 @@ const [board, setBoard] = useState<BoardState>(() => {
       .filter(Boolean)
       .join("\n");
 
-    await supabase.from("tasks").update({
-      priority: newPriority,
-      description: updatedDescription,
-    }).eq("id", task.id);
+    await supabase
+      .from("tasks")
+      .update({
+        priority: newPriority,
+        description: updatedDescription,
+      })
+      .eq("id", task.id);
 
-    // Update local state
     setBoard((prev) => {
       const updated: BoardState = {
         ...prev,
         ...Object.fromEntries(
-          CATEGORIES.map((cat) => [cat, prev[cat].filter((t) => t.id !== task.id)])
+          CATEGORIES.map((cat) => [
+            cat,
+            prev[cat].filter((t) => t.id !== task.id),
+          ])
         ),
       };
-      updated[newCategory].push({ ...task, priority: newPriority, description: updatedDescription });
+      updated[newCategory].push({
+        ...task,
+        priority: newPriority,
+        description: updatedDescription,
+      });
       return updated;
     });
 
     setActiveTask(null);
   };
+
+  const handleBack = () => {
+      const pathParts = router.pathname.split("/").filter(Boolean);
+      if (pathParts.length > 1) {
+        const parentPath = "/" + pathParts.slice(0, -1).join("/");
+        router.push(parentPath);
+      } else {
+        router.push("/"); 
+      }
+    };
+
 
   return (
     <>
@@ -153,7 +186,15 @@ const [board, setBoard] = useState<BoardState>(() => {
       </Head>
       <Layout>
         <main className="p-4">
-          <h2 className="text-2xl font-bold text-center mb-6">Tablica Eisenhowera</h2>
+        <div className="flex justify-start gap-3 items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <h2 className="text-xl font-semibold">Tablica Eisenhowera</h2>
+        </div>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -174,13 +215,6 @@ const [board, setBoard] = useState<BoardState>(() => {
                 </Droppable>
               ))}
             </div>
-            <DragOverlay>
-              {activeTask ? (
-                <div className="p-2 bg-white rounded shadow text-sm font-medium">
-                  {activeTask.title}
-                </div>
-              ) : null}
-            </DragOverlay>
           </DndContext>
         </main>
       </Layout>
