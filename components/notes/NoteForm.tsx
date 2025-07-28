@@ -134,7 +134,7 @@ export function NoteForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
         >
           {isEdit ? (
             <>

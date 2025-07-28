@@ -132,7 +132,7 @@ export default function Reminders() {
             </div>
             <div className="flex justify-start gap-x-3 pt-2">
               <button
-                className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+                className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
                 onClick={handleAdd}
               >
                 Zapisz

@@ -326,7 +326,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+            className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
           >
             {saving ? (
               <>
