@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, FormEvent } from "react";
+import React, { useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { Bill } from "../../types";
@@ -21,44 +21,30 @@ export function BillForm({
   const supabase = useSupabaseClient();
   const isEdit = !!initial;
 
-  const amountRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const dateRef = useRef<HTMLInputElement>(null);
-
-  const [includeInBudget, setIncludeInBudget] = useState(
-    initial?.include_in_budget || false
-  );
+  const [amount, setAmount] = useState("0");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [includeInBudget, setIncludeInBudget] = useState(false);
   const [loading, setLoading] = useState(false);
-  const todayIso = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (initial) {
-      if (amountRef.current) amountRef.current.value = String(initial.amount);
-      if (descriptionRef.current)
-        descriptionRef.current.value = initial.description || "";
-      if (dateRef.current) dateRef.current.value = initial.date;
+      setAmount(String(initial.amount ?? "0"));
+      setDescription(initial.description ?? "");
+      setDate(initial.date);
       setIncludeInBudget(initial.include_in_budget);
-    } else {
-      if (amountRef.current) amountRef.current.value = "0";
-      if (descriptionRef.current) descriptionRef.current.value = "";
-      if (dateRef.current) dateRef.current.value = todayIso;
-      setIncludeInBudget(false);
     }
-  }, [initial, todayIso]);
+  }, [initial]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    const amount = parseFloat(amountRef.current?.value || "0");
-    const description = descriptionRef.current?.value.trim() || null;
-    const date = dateRef.current?.value || todayIso;
-
     const payload = {
       user_name: userEmail,
-      amount,
-      description,
-      date,
+      amount: parseFloat(amount) || 0,
+      description: description.trim() || null,
+      date: date,
       include_in_budget: includeInBudget,
     };
 
@@ -72,9 +58,10 @@ export function BillForm({
     onChange();
 
     if (!isEdit) {
-      if (amountRef.current) amountRef.current.value = "0";
-      if (descriptionRef.current) descriptionRef.current.value = "";
-      if (dateRef.current) dateRef.current.value = todayIso;
+      // reset
+      setAmount("0");
+      setDescription("");
+      setDate(new Date().toISOString().slice(0, 10));
       setIncludeInBudget(false);
     }
   };
@@ -87,11 +74,12 @@ export function BillForm({
       <div>
         <label htmlFor="amount">Kwota:</label>
         <input
-          ref={amountRef}
           id="amount"
           type="number"
           step="0.01"
           placeholder="Kwota"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
           className="w-full p-2 border rounded"
           required
         />
@@ -100,9 +88,10 @@ export function BillForm({
       <div>
         <label htmlFor="description">Opis:</label>
         <textarea
-          ref={descriptionRef}
           id="description"
           placeholder="Opis"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           className="w-full p-2 border rounded"
         />
       </div>
@@ -110,9 +99,10 @@ export function BillForm({
       <div>
         <label htmlFor="date">Data:</label>
         <input
-          ref={dateRef}
           id="date"
           type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
           className="w-full p-2 border rounded"
           required
         />
@@ -134,7 +124,7 @@ export function BillForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="x-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
         >
           {isEdit ? (
             <>
@@ -148,7 +138,7 @@ export function BillForm({
             </>
           )}
         </button>
-        {typeof onCancel === "function" && (
+        {onCancel && (
           <button
             type="button"
             onClick={onCancel}

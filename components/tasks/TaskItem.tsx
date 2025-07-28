@@ -48,7 +48,7 @@ export default function TaskItem({
   return (
     <li
       key={task.id}
-      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-2 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow flex justify-between items-center 
+      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow flex justify-between items-center 
         ${
           task.priority === 1
             ? "shadow-red-800 shadow-sm"
@@ -63,7 +63,7 @@ export default function TaskItem({
       <div className="flex-1">
         <div onClick={onStartTimer} className="flex justify-start gap-2 items-center mb-3">
         <span
-          className={`w-6 h-6 text-sm font-bold rounded-md text-white flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:brightness-110`}
+          className={`w-6 h-6 text-sm font-bold rounded-md text-yellow-700 flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:brightness-110`}
           style={{
             backgroundColor:
               task.priority === 1
@@ -76,9 +76,11 @@ export default function TaskItem({
                 ? "#a7f3d0" // pastel teal-green
                 : "#bbf7d0", // pastel green
             color:
-              task.priority === 3 || task.priority === 4 || task.priority === 5
-                ? "#065f46" // darker text for lighter backgrounds
-                : "#7f1d1d", // darker red text for high priority
+              task.priority === 3 
+                ? "#A16207"
+                : task.priority >= 3
+                ? "#15803D"
+                : "#B91C1C" // darker red text for high priority
           }}
           title={`Priorytet ${task.priority}`}
         >

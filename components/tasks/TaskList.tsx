@@ -25,11 +25,11 @@ export default function TaskList({
           task={activeTask}
           onComplete={() => {
             setActiveTask(null);
-            onTasksChange(); // ⏱ odśwież po zapisaniu czasu
+            onTasksChange(); 
           }}
         />
       )}
-      <ul className="flex flex-wrap gap-4">
+      <ul className="flex flex-wrap gap-2">
         {tasks.map((task) => (
           <li key={task.id} className="w-full md:w-[45%] lg:w-[30%]">
             <TaskItem
@@ -37,7 +37,7 @@ export default function TaskList({
               userEmail={userEmail}
               onTasksChange={onTasksChange}
               onEdit={onEdit}
-              onStartTimer={() => setActiveTask(task)} // ⏱ przekazujemy funkcję
+              onStartTimer={() => setActiveTask(task)} 
             />
           </li>
         ))}
