@@ -63,7 +63,7 @@ export default function TaskItem({
       <div className="flex-1">
         <div onClick={onStartTimer} className="flex justify-start gap-2 items-center mb-3">
         <span
-          className={`w-6 h-6 text-sm font-bold rounded-md text-yellow-700 flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:brightness-110`}
+          className={`w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:shadow hover:brightness-110`}
           style={{
             backgroundColor:
               task.priority === 1

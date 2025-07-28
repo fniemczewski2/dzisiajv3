@@ -147,7 +147,7 @@ export default function BackpackPage() {
         router.push("/"); 
       }
     };
-  
+
 
   const toggle = (item: string) => {
     setChecked((prev) => ({ ...prev, [item]: !prev[item] }));

@@ -52,7 +52,7 @@ export default function Reminders() {
         <>
         <div className="px-1 py-3 text-sm shadow space-y-2">
           {liczba === 0 ? (
-            <p className="text-muted-foreground">Brak przypomnień do wykonania</p>
+            <p className="text-muted-foreground ml-4">Brak przypomnień do wykonania</p>
           ) : (
 
           <ul className="space-y-2">
@@ -121,7 +121,7 @@ export default function Reminders() {
               <input
                 type="number"
                 min={1}
-                max={30}
+                max={365}
                 className="w-full border px-2 py-1 rounded"
                 value={form.powtarzanie}
                 onChange={(e) =>
@@ -132,7 +132,7 @@ export default function Reminders() {
             </div>
             <div className="flex justify-start gap-x-3 pt-2">
               <button
-                className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+                className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded flex flex-nowrap items-center transition"
                 onClick={handleAdd}
               >
                 Zapisz
