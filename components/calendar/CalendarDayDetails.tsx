@@ -157,14 +157,43 @@ export default function CalendarDayDetails({
           <ul className="space-y-2">
             {tasks.map((t) => (
               <li key={t.id} className="flex items-center">
-                {t.status === "done" ? (
-                  <Check className="w-5 h-5 text-green-600" />
-                ) : (
-                  <X className="w-5 h-5 text-red-500" />
-                )}
-                <span className="ml-2 font-medium truncate max-w-[240px] sm:max-w-[720px]">
-                  {t.priority} | {t.title}
-                </span>
+                <div className="flex flex-nowrap gap-2 items-center mb-1">
+                    <span
+                        className={`w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm cursor-pointer transition duration-200`}
+                        style={{
+                          backgroundColor:
+                            t.priority === 1
+                              ? "#fca5a5" // pastel red
+                              : t.priority === 2
+                              ? "#fdba74" // pastel orange
+                              : t.priority === 3
+                              ? "#fde68a" // pastel yellow
+                              : t.priority === 4
+                              ? "#a7f3d0" // pastel teal-green
+                              : "#bbf7d0", // pastel green
+                          color:
+                            t.priority === 3 
+                              ? "#A16207"
+                              : t.priority >= 3
+                              ? "#15803D"
+                              : "#B91C1C" // darker red text for high priority
+                        }}
+                        title={`Priorytet ${t.priority}`}
+                      >
+                        {t.priority}
+                      </span>
+
+                      <h3
+                        className="text-lg font-semibold break-words"
+                      >
+                        {t.title}
+                      </h3>
+                      {t.status === "done" ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <X className="w-5 h-5 text-red-500" />
+                      )}
+                </div>
               </li>
             ))}
           </ul>
