@@ -50,9 +50,9 @@ export default function Reminders() {
 
       {open && (
         <>
-        <div className="px-1 py-3 text-sm shadow space-y-2">
+        <div className="px-3 py-3 text-sm shadow space-y-2">
           {liczba === 0 ? (
-            <p className="text-muted-foreground ml-4">Brak przypomnień do wykonania</p>
+            <p className="text-muted-foreground">Brak przypomnień do wykonania</p>
           ) : (
 
           <ul className="space-y-2">
@@ -149,9 +149,7 @@ export default function Reminders() {
             </div>
           </div>
         )}
-
         </>
-
       )}
     </div>
   );
