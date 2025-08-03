@@ -103,7 +103,11 @@ export default function CustomCalendar({ onEdit, userEmail }: Props) {
 
   const detailTasks = useMemo(() => {
     if (!selectedDate) return [];
-    return tasks.filter((t) => t.due_date?.slice(0, 10) === selectedDate);
+    return tasks.filter((t) => {
+      const start = t.due_date?.slice(0, 10);
+      const end = (t.deadline_date || t.due_date)?.slice(0, 10);
+      return start && start <= selectedDate && selectedDate <= end;
+    });
   }, [tasks, selectedDate]);
 
   const detailEvents = groupedEvents[selectedDate] || [];
