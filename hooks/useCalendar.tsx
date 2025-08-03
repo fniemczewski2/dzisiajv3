@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { parseISO, format } from "date-fns";
 import type { HabitRow, MoneyRow, WaterRow } from "../types";
 
 export function useCalendarData(
@@ -18,10 +19,10 @@ export function useCalendarData(
       const [tRes, hRes, wRes, mRes] = await Promise.all([
         supabase
           .from("tasks")
-          .select("due_date")
-          .gte("due_date", rangeStart)
+          .select("due_date,deadline_date")
+          .eq("user_name", userEmail)
           .lte("due_date", rangeEnd)
-          .eq("user_name", userEmail),
+          .or(`due_date.gte.${rangeStart},deadline_date.gte.${rangeStart}`),
         supabase
           .from("daily_habits")
           .select("*")
@@ -42,8 +43,17 @@ export function useCalendarData(
           .eq("user_name", userEmail),
       ]);
       const tMap: Record<string, number> = {};
-      tRes.data?.forEach(({ due_date }) => {
-        tMap[due_date] = (tMap[due_date] || 0) + 1;
+      tRes.data?.forEach(({ due_date, deadline_date }) => {
+        const start = parseISO(due_date);
+        const end = deadline_date ? parseISO(deadline_date) : start;
+        for (
+          let d = new Date(start);
+          d <= end;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const key = format(d, "yyyy-MM-dd");
+          tMap[key] = (tMap[key] || 0) + 1;
+        }
       });
       setTasksCount(tMap);
       const hMap: Record<string, number> = {};
