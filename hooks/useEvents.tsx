@@ -19,25 +19,15 @@ export function expandRepeatingEvents(
   for (const event of events) {
     const originalStart = parseISO(event.start_time);
     const originalEnd = parseISO(event.end_time);
-    const durationDays =
-      differenceInCalendarDays(originalEnd, originalStart) || 0;
     const repeat = event.repeat || "none";
 
     if (repeat === "none") {
-      for (let i = 0; i <= durationDays; i++) {
-        const day = addDays(originalStart, i);
-        if (day >= start && day <= end) {
-          result.push({
-            ...event,
-            start_time: day.toISOString(),
-            end_time: day.toISOString(), // not used for single-day display
-          });
-        }
+      if (originalEnd >= start && originalStart <= end) {
+        result.push(event);
       }
     } else {
       let currentStart = new Date(originalStart);
 
-      // przesuwanie do pierwszego wystąpienia >= start
       while (currentStart < start) {
         currentStart =
           repeat === "weekly"
@@ -50,16 +40,16 @@ export function expandRepeatingEvents(
       }
 
       while (currentStart <= end) {
-        for (let i = 0; i <= durationDays; i++) {
-          const day = addDays(currentStart, i);
-          if (day >= start && day <= end) {
-            result.push({
-              ...event,
-              start_time: day.toISOString(),
-              end_time: day.toISOString(),
-            });
-          }
-        }
+        const duration = differenceInCalendarDays(originalEnd, originalStart);
+        const instanceStart = new Date(currentStart);
+        const instanceEnd = addDays(instanceStart, duration);
+
+        result.push({
+          ...event,
+          id: `${event.id}_${instanceStart.toISOString()}`,
+          start_time: instanceStart.toISOString(),
+          end_time: instanceEnd.toISOString(),
+        });
 
         currentStart =
           repeat === "weekly"

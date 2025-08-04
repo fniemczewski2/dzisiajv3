@@ -1,4 +1,3 @@
-// hooks/useReminders.ts
 import { useState, useEffect } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import { Reminder } from "../types";
@@ -58,7 +57,6 @@ export function useReminders() {
     }
   };
 
-
   const completeReminder = async (id: string) => {
     const doneDate = today;
     const { data, error } = await supabase
@@ -70,7 +68,7 @@ export function useReminders() {
 
     if (!error && data) {
       setReminders((prev) => prev.map((r) => (r.id === id ? data : r)));
-    } 
+    }
   };
 
   const deleteReminder = async (id: string) => {
@@ -89,7 +87,7 @@ export function useReminders() {
   };
 
   return {
-    reminders,
+    allReminders: reminders, // <--- Dodane
     visibleReminders: getVisibleReminders(),
     addReminder,
     completeReminder,

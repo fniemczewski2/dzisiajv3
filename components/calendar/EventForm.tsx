@@ -84,7 +84,6 @@ export default function EventsForm({
     if (onCancel) onCancel();
 
     if (!isEdit) {
-      // reset only for new event
       setTitle("");
       setDescription("");
       setStart("");

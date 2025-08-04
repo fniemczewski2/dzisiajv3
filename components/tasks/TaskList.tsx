@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import TaskItem from "./TaskItem";
-import TaskTimer from "./TaskTimer"; // 👈 Dodaj to
+import TaskTimer from "./TaskTimer";
 import { Task } from "../../types";
 
 interface Props {
@@ -42,8 +42,6 @@ export default function TaskList({
           </li>
         ))}
       </ul>
-
-      
     </div>
   );
 }
