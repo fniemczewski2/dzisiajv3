@@ -143,7 +143,7 @@ export default function WeatherPage() {
             <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
               <ThermometerSnowflake className="w-5 h-5 text-blue-600" />
               <span className="text-base font-medium">
-                Min:{" "}
+                Min&nbsp;
                 <span className="font-semibold">
                   {forecast.daily.temperature_2m_min?.[0]?.toFixed(1) ?? "-"}°C
                 </span>
@@ -153,7 +153,7 @@ export default function WeatherPage() {
             <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
               <ThermometerSun className="w-5 h-5 text-red-500" />
               <span className="text-base font-medium">
-                Max:{" "}
+                Max&nbsp;
                 <span className="font-semibold">
                   {forecast.daily.temperature_2m_max?.[0]?.toFixed(1) ?? "-"}°C
                 </span>
@@ -165,7 +165,7 @@ export default function WeatherPage() {
               <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
                 <CloudRain className="w-5 h-5 text-blue-600" />
                  <div className="flex flex-col">
-                  <span className="font-medium">Opady:</span>
+                  <span className="font-medium">Opady</span>
                   <span className="text-sm">
                     {forecast.daily.precipitation_sum?.[0]?.toFixed(1) ?? "0"} mm
                   </span>
@@ -233,7 +233,7 @@ export default function WeatherPage() {
             <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
                 <Sun className="w-5 h-5 text-yellow-500" />
                 <span className="text-base font-medium">
-                  UV max: <strong>{forecast.daily.uv_index_max?.[0] ?? "-"}</strong>
+                  UV max&nbsp;{forecast.daily.uv_index_max?.[0] ?? "-"}
                 </span>
               </div>
 
@@ -244,7 +244,7 @@ export default function WeatherPage() {
                     
                     <Gauge className={`w-5 h-5 ${biomet.color}`} />
                     <div className="flex flex-col">
-                    <span className="text-base font-medium">Biomet: </span>
+                    <span className="text-base font-medium">Biomet</span>
                     <span className={`text-sm`}>{biomet.label}</span>
                     </div>
                   </div>
@@ -254,7 +254,7 @@ export default function WeatherPage() {
             <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
               <Sunrise className="w-5 h-5 text-yellow-400" />
                <div className="flex flex-col">
-              <span className="text-base font-medium">Wschód:</span>
+              <span className="text-base font-medium">Wschód</span>
                 <span className="text-sm">
                   {new Date(forecast.daily.sunrise?.[0]).toLocaleTimeString("pl-PL", {
                     hour: "2-digit",
@@ -267,8 +267,7 @@ export default function WeatherPage() {
             <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
               <Sunset className="w-5 h-5 text-orange-500" />
                <div className="flex flex-col">
-              <span className="text-base font-medium">
-                Zachód:</span>
+              <span className="text-base font-medium">Zachód</span>
                 <span className="text-sm">
                   {new Date(forecast.daily.sunset?.[0]).toLocaleTimeString("pl-PL", {
                     hour: "2-digit",

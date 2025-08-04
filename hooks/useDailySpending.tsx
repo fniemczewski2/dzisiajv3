@@ -7,7 +7,6 @@ export function useDailySpending(userEmail: string, date: string) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetcher, memoized so effect can depend on it safely
   const fetchDailySpending = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -26,7 +25,6 @@ export function useDailySpending(userEmail: string, date: string) {
     setLoading(false);
   }, [supabase, date, userEmail]);
 
-  // Kick off initial load (and re-load if date or userEmail changes)
   useEffect(() => {
     fetchDailySpending();
   }, [fetchDailySpending]);
