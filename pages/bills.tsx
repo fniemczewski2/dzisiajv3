@@ -92,11 +92,8 @@ export default function BillsPage() {
             />
           </div>
         )}
-        <div className="max-w-md mx-auto">
-          <div className="bg-card rounded-xl shadow py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] flex justify-between items-center">
-            <DailySpendingForm userEmail={userEmail} />
-          </div>
-        </div>
+            <DailySpendingForm userEmail={userEmail}/>
+
         {Object.keys(bills).length > 0 && (
           <>
             <h3 className="text-lg font-semibold mb-2 mt-6">Wpływy planowane</h3>

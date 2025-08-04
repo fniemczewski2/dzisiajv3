@@ -30,7 +30,7 @@ export default function Header() {
     const now = new Date();
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
-        weekday: "long",
+        weekday: "short",
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -113,14 +113,14 @@ export default function Header() {
       "
     >
         
-          <div className="text-gray-600 text-left flex flex-col flex-1">
+          <div className="text-gray-600 text-left flex flex-col sm:flex-1">
             <div className="text-xl font-semibold">{currentTime}</div>
             <span className="text-gray-500 text-[12px] sm:text-sm">
               {currentDate}
             </span>
           </div>
 
-          <h1 className="text-2xl font-bold text-primary sm:block hidden flex-1 text-center">
+          <h1 className="text-2xl font-bold text-primary sm:block hidden sm:flex-1 text-center">
             Dzisiaj v3
           </h1>
 
@@ -128,7 +128,7 @@ export default function Header() {
               dailyMin != null &&
               dailyMax != null &&
               weatherCode != null && (
-                loading ? <Loader2 className="flex-1 animate-spin w-6 h-6 text-gray-500" /> :
+                loading ? <Loader2 className="sm:flex-1 animate-spin w-6 h-6 text-gray-500" /> :
                 <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-gray-700">
                   <div className="flex items-center text-xl font-semibold justify-end space-x-1">
                     <WeatherIcon code={weatherCode} />

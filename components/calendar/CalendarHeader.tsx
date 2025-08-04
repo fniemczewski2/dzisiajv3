@@ -15,20 +15,20 @@ export function CalendarHeader({ currentDate, onPrev, onNext }: Props) {
       <div className="flex items-center">
         <button
           onClick={onPrev}
-          className="w-9 h-9 bg-primary hover:bg-secondary flex items-center justify-center text-white rounded-lg"
+          className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
           title="poprzedni"
         >
-          <ChevronLeft />
+          <ChevronLeft className="w-4 h-4"/>
         </button>
         <h2 className="text-lg font-semibold mx-4">
           {format(currentDate, "LLLL yyyy", { locale: pl })}
         </h2>
         <button
           onClick={onNext}
-          className="w-9 h-9 bg-primary hover:bg-secondary flex items-center justify-center text-white rounded-lg"
+          className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
           title="następny"
         >
-          <ChevronRight />
+          <ChevronRight className="w-4 h-4"/>
         </button>
       </div>
     </div>

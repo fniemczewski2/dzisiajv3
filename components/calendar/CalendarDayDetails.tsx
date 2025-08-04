@@ -5,11 +5,7 @@ import {
   Calendar,
   Check,
   Clock,
-  Coins,
-  CopyCheck,
-  Droplet,
   Edit2,
-  ListTodo,
   MapPin,
   Trash2,
   User,
@@ -17,7 +13,10 @@ import {
 } from "lucide-react";
 import { Task } from "../../types";
 import { Event } from "../../types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import WaterTracker from "../tasks/WaterTracker";
+import { DailySpendingForm } from "../bills/DailySpendingForm";
+import TaskIcons from "../tasks/TaskIcons";
 
 interface Props {
   selectedDate: string;
@@ -26,10 +25,6 @@ interface Props {
   onBack: () => void;
   onEdit?: (event: Event) => void;
   onEventsChange: () => void;
-  tCount: number;
-  hCount: number;
-  wCount: number;
-  mCount: number;
 }
 
 export default function CalendarDayDetails({
@@ -39,12 +34,11 @@ export default function CalendarDayDetails({
   onBack,
   onEdit,
   onEventsChange,
-  tCount,
-  hCount,
-  wCount,
-  mCount,
 }: Props) {
   const supabase = useSupabaseClient();
+
+  const session = useSession();
+  const userEmail = session?.user?.email ?? "";
 
   const handleDelete = async (eventId: string) => {
     const confirmed = confirm("Czy na pewno chcesz usunąć to wydarzenie?");
@@ -68,27 +62,10 @@ export default function CalendarDayDetails({
         </h3>
       </span>
 
-      <div className="flex flex-wrap justify-center space-x-2">
-        <span className="flex justify-center text-xs">
-          <ListTodo size={14} />
-          &nbsp;
-          {tCount}
-        </span>
-        <span className="flex justify-center text-xs">
-          <CopyCheck size={14} />
-          &nbsp;
-          {hCount}
-        </span>
-        <span className="flex justify-center text-xs">
-          <Droplet size={14} />
-          &nbsp;
-          {wCount}
-        </span>
-        <span className="flex justify-center text-xs">
-          <Coins size={14} />
-          &nbsp;
-          {mCount}
-        </span>
+      <div className="flex flex-auto flex-wrap flex-col justify-center">
+        <TaskIcons date={selectedDate} />
+        <WaterTracker date={selectedDate} />
+        <DailySpendingForm userEmail={userEmail} date={selectedDate} />
       </div>
 
       {events.length > 0 && (
@@ -105,8 +82,15 @@ export default function CalendarDayDetails({
                 <div className="space-y-1">
                   <div className="flex items-center text-sm text-gray-700">
                     <Clock className="w-4 h-4 mr-1" />
-                    {format(parseISO(event.start_time), "HH:mm")} –{" "}
-                    {format(parseISO(event.end_time), "HH:mm")}
+                    {format(parseISO(event.start_time), "yyyy-MM-dd") === format(parseISO(event.end_time), "yyyy-MM-dd") ? (
+                      <>
+                        {format(parseISO(event.start_time), "HH:mm")} – {format(parseISO(event.end_time), "HH:mm")}
+                      </>
+                    ) : (
+                      <>
+                        {format(parseISO(event.start_time), "d.MM HH:mm")} – {format(parseISO(event.end_time), "d.MM HH:mm")}
+                      </>
+                    )}
                   </div>
 
                   {event.place && (
@@ -115,7 +99,7 @@ export default function CalendarDayDetails({
                       {event.place}
                     </div>
                   )}
-                  {event.share != "null" && (
+                  {event.share && (
                     <div className="flex items-center text-sm text-gray-600">
                       <User className="w-4 h-4 mr-1" />
                       {event.share}

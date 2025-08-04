@@ -47,7 +47,6 @@ export type Settings = {
   show_habits: boolean;
   show_water_tracker: boolean;
   show_budget_items: boolean;
-  show_month_view: boolean;
   show_notifications: boolean;
   users: string[];
 };

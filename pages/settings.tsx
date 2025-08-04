@@ -22,7 +22,6 @@ export default function SettingsPage() {
     show_habits: boolean;
     show_water_tracker: boolean;
     show_budget_items: boolean;
-    show_month_view: boolean;
     show_notifications: boolean;
     users: string[];
   }>({
@@ -31,7 +30,6 @@ export default function SettingsPage() {
     show_habits: true,
     show_water_tracker: true,
     show_budget_items: true,
-    show_month_view: true,
     show_notifications: true,
     users: [] as string[], // up to 10 friends
   });
@@ -76,7 +74,7 @@ export default function SettingsPage() {
       const { data, error } = await supabase
         .from("settings")
         .select(
-          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_month_view,show_notifications,users"
+          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_notifications,users"
         )
         .eq("user_name", email)
         .maybeSingle();
@@ -87,7 +85,6 @@ export default function SettingsPage() {
           show_habits: data.show_habits,
           show_water_tracker: data.show_water_tracker,
           show_budget_items: data.show_budget_items,
-          show_month_view: data.show_month_view,
           show_notifications: data.show_notifications,
           users: data.users || [],
         });
@@ -268,26 +265,6 @@ export default function SettingsPage() {
               className="ml-2 text-sm text-gray-700"
             >
               Pokaż pozycje z budżetu
-            </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              id="show_month_view"
-              type="checkbox"
-              checked={settings.show_month_view}
-              onChange={(e) =>
-                setSettings({
-                  ...settings,
-                  show_month_view: e.target.checked,
-                })
-              }
-              className="h-4 w-4 text-primary border-gray-300 rounded"
-            />
-            <label
-              htmlFor="show_month_view"
-              className="ml-2 text-sm text-gray-700"
-            >
-              Pokaż zawsze widok miesiąca
             </label>
           </div>
           

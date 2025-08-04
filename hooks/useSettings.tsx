@@ -13,7 +13,7 @@ export function useSettings(userEmail: string) {
       const { data, error } = await supabase
         .from("settings")
         .select(
-          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_month_view,show_notifications,users"
+          "sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_notifications,users"
         )
         .eq("user_name", userEmail)
         .maybeSingle();
@@ -28,7 +28,6 @@ export function useSettings(userEmail: string) {
           show_habits: true,
           show_water_tracker: true,
           show_budget_items: true,
-          show_month_view: true,
           show_notifications: true,
           users: [],
         };

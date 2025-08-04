@@ -3,7 +3,12 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../types";
 import { Settings } from "../types";
 
-export function useTasks(userEmail: string, settings: Settings | null) {
+export function useTasks(
+  userEmail: string,
+  settings: Settings | null,
+  dateFrom?: string,
+  dateTo?: string
+) {
   const supabase = useSupabaseClient();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -11,14 +16,19 @@ export function useTasks(userEmail: string, settings: Settings | null) {
   const fetchTasks = useCallback(async () => {
     if (!settings) return;
     setLoading(true);
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
     let query = supabase
       .from("tasks")
       .select("*")
-      .or(`user_name.eq.${userEmail},for_user.eq.${userEmail}`)
-      .gte("due_date", oneMonthAgo.toISOString());
+      .or(`user_name.eq.${userEmail},for_user.eq.${userEmail}`);
+
+    if (dateFrom) {
+      query = query.gte("due_date", dateFrom);
+    }
+
+    if (dateTo) {
+      query = query.lte("due_date", dateTo);
+    }
 
     if (!settings.show_completed) {
       query = query.neq("status", "done");
@@ -36,7 +46,7 @@ export function useTasks(userEmail: string, settings: Settings | null) {
       return;
     }
 
-    const sortedData = [...data]; // Clone before sorting
+    const sortedData = [...data];
 
     const getPriority = (task: Task) =>
       task.status === "waiting for acceptance" ? 0 : 1;
@@ -98,7 +108,7 @@ export function useTasks(userEmail: string, settings: Settings | null) {
 
     setTasks(sortedData);
     setLoading(false);
-  }, [supabase, userEmail, settings]);
+  }, [supabase, userEmail, settings, dateFrom, dateTo]);
 
   return { tasks, loading, fetchTasks };
 }

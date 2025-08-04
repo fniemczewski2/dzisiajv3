@@ -1,4 +1,3 @@
-// components/TaskIcons.tsx
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -36,12 +35,17 @@ const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "duolingo", Icon: Languages },
 ];
 
-export default function TaskIcons() {
+interface TaskIconsProps {
+  date?: string; // ← opcjonalna data
+}
+
+export default function TaskIcons({ date }: TaskIconsProps) {
   const session = useSession();
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
 
   const today = new Date().toISOString().split("T")[0];
+  const targetDate = date ?? today;
 
   const [done, setDone] = useState<Record<HabitKey, boolean>>({
     pills: false,
@@ -60,7 +64,7 @@ export default function TaskIcons() {
     const { data, error } = await supabase
       .from("daily_habits")
       .select("*")
-      .eq("date", today)
+      .eq("date", targetDate)
       .eq("user_name", userEmail)
       .maybeSingle();
 
@@ -78,7 +82,7 @@ export default function TaskIcons() {
       setDone(state);
     }
     setLoading(false);
-  }, [supabase, today, userEmail]);
+  }, [supabase, targetDate, userEmail]);
 
   useEffect(() => {
     if (userEmail) {
@@ -94,7 +98,7 @@ export default function TaskIcons() {
       date: string;
       user_name: string;
     } = {
-      date: today,
+      date: targetDate,
       user_name: userEmail,
       [key]: newValue,
     };
@@ -105,7 +109,7 @@ export default function TaskIcons() {
   };
 
   if (!session) {
-    return <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
+    return <Loader2 className="animate-spin w-6 h-6 text-gray-500" />;
   }
 
   return (
