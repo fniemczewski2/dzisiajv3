@@ -36,9 +36,11 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
     const value = parseFloat(inputRef.current?.value || "0");
     const { error: updateError } = await supabase
       .from("daily_habits")
-      .upsert({ daily_spending: value })
-      .eq("date", targetDate)
-      .eq("user_name", userEmail);
+      .upsert({
+        user_name: userEmail,
+        date: targetDate,
+        daily_spending: value,
+      }, { onConflict: 'user_name,date' });
     if (!updateError) {
       fetchDailySpending();
     }
