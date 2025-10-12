@@ -82,7 +82,7 @@ export default function CalendarPage() {
   return (
     <>
       <Head>
-        <title>Kalendarz – Dzisiaj v3</title>
+        <title>Kalendarz - Dzisiaj</title>
       </Head>
       <Layout>
         <div className="flex justify-between items-center mb-4">

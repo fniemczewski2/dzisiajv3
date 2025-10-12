@@ -74,3 +74,29 @@ export type Reminder = {
 
 export type WaterRow = { date: string; amount: number };
 export type MoneyRow = { date: string; daily_spending: number };
+
+export type RecipeCategory =
+  | "śniadanie"
+  | "zupa"
+  | "danie główne"
+  | "przystawka"
+  | "sałatka"
+  | "deser";
+
+export interface Recipe {
+  id?: string;
+  name: string;
+  category: RecipeCategory;
+  products: string[];
+  description: string;
+  user_email: string;
+  created_at?: string;
+}
+
+export interface Product {
+  id?: string;
+  name: string;
+  user_email: string;
+  created_at?: string;
+}
+

@@ -135,7 +135,7 @@ export default function SettingsPage() {
   return (
     <>
       <Head>
-        <title>Ustawienia – Dzisiaj v3</title>
+        <title>Ustawienia - Dzisiaj</title>
         <meta name="description" content="Zmień swoje ustawienia aplikacji" />
       </Head>
       <Layout>

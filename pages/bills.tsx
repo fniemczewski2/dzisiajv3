@@ -39,13 +39,13 @@ export default function BillsPage() {
   return (
     <>
       <Head>
-        <title>Rachunki – Dzisiaj v3</title>
+        <title>Rachunki - Dzisiaj</title>
         <meta
           name="description"
           content="Zarządzaj rachunkami: dodawaj, edytuj, usuwaj."
         />
         <link rel="canonical" href="https://dzisiajv3.vercel.app/bills" />
-        <meta property="og:title" content="Rachunki – Dzisiaj v3" />
+        <meta property="og:title" content="Rachunki - Dzisiaj" />
         <meta
           property="og:description"
           content="Zarządzaj rachunkami: dodawaj, edytuj, usuwaj."
