@@ -84,7 +84,7 @@ export type RecipeCategory =
   | "deser";
 
 export interface Recipe {
-  id?: string;
+  id: string;
   name: string;
   category: RecipeCategory;
   products: string[];
@@ -94,9 +94,10 @@ export interface Recipe {
 }
 
 export interface Product {
-  id?: string;
+  id: string;
   name: string;
   user_email: string;
   created_at?: string;
 }
 
+export type RecipeInsert = Omit<Recipe, "id" | "created_at">;

@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import type { Recipe, RecipeCategory, Product } from "../types";
+import type { Recipe, RecipeCategory, Product, RecipeInsert } from "../types";
 
 type NewRecipe = {
   name: string;
@@ -87,7 +87,7 @@ export function useRecipes(userEmail?: string): UseRecipes {
   const addRecipe = useCallback(async (r: NewRecipe, email: string) => {
     try {
       await upsertProducts(r.products, email);
-      const payload: Recipe = {
+      const payload: RecipeInsert = {
         name: r.name.trim(),
         category: r.category,
         products: Array.from(new Set(r.products.map(p => p.trim()))),

@@ -1,77 +1,158 @@
-// pages/recipes.tsx
-import dynamic from "next/dynamic";
-import Head from "next/head";
-import { useSession } from "@supabase/auth-helpers-react";
-import Layout from "../../components/Layout";
+"use client";
+import React, { useMemo, useState } from "react";
+import { Edit2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import type { Recipe } from "../../types";
-import { PlusCircleIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useRecipes } from "../../hooks/useRecipes";
 
-const RecipeForm = dynamic(() => import("../../components/recipes/RecipeForm"), { ssr: false });
-const RecipesList = dynamic(() => import("../../components/recipes/RecipesList"), { ssr: false });
+type Props = {
+  userEmail: string;
+  onEdit?: (r: Recipe) => void;
+  onDelete?: (id: string) => void;
+};
 
-export default function RecipesPage() {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
+export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
+  const { recipes, products } = useRecipes(userEmail);
+  const [qText, setQText] = useState("");
+  const [prodFilter, setProdFilter] = useState<string[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  const [editing, setEditing] = useState<Recipe | undefined>(undefined);
-  const [showForm, setShowForm] = useState(false);
-  const [refreshTick, setRefreshTick] = useState(0);
+  const filtered = useMemo(() => {
+    const t = qText.trim().toLowerCase();
+    return recipes.filter((r) => {
+      const matchesText =
+        !t ||
+        r.name.toLowerCase().includes(t) ||
+        (r.description ?? "").toLowerCase().includes(t);
+      const matchesProd =
+        prodFilter.length === 0 ||
+        (r.products && prodFilter.every((p) => r.products?.includes(p)));
+      return matchesText && matchesProd;
+    });
+  }, [recipes, qText, prodFilter]);
 
-  const refresh = () => setRefreshTick((t) => t + 1);
+  const toggleProd = (p: string) =>
+    setProdFilter((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+    );
 
-  const openNew = () => {
-    setEditing(undefined);
-    setShowForm(true);
-  };
-
-  const openEdit = (r: Recipe) => {
-    setEditing(r);
-    setShowForm(true);
-  };
-
-  const closeForm = () => {
-    setEditing(undefined);
-    setShowForm(false);
+  const toggleOpen = (id: string) => {
+    setOpenId((prev) => (prev === id ? null : id));
   };
 
   return (
-    <>
-      <Head>
-        <title>Przepisy</title>
-      </Head>
-      <Layout>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Przepisy</h2>
-          {!showForm && (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center max-w-2xl mx-auto">
+        <input
+          value={qText}
+          onChange={(e) => setQText(e.target.value)}
+          placeholder="Szukaj po nazwie/opisie…"
+          className="flex-1 rounded-xl border px-3 py-2 bg-white"
+        />
+        <div className="flex-1">
+          <div className="flex flex-wrap gap-2">
+            {products.map((p) => (
+              <button
+                key={p}
+                onClick={() => toggleProd(p)}
+                className={`px-3 py-1 rounded-full border transition-colors ${
+                  prodFilter.includes(p)
+                    ? "bg-black text-white"
+                    : "bg-white hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          {prodFilter.length > 0 && (
             <button
-              onClick={openNew}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+              className="mt-2 text-sm underline text-neutral-600 hover:text-neutral-900"
+              onClick={() => setProdFilter([])}
             >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
+              Wyczyść filtry
             </button>
           )}
         </div>
+      </div>
 
-        {showForm && (
-          <section className="mb-6">
-            <RecipeForm
-              userEmail={userEmail}
-              initial={editing}             
-              onCancel={closeForm}
-              onChange={() => {            
-                refresh();                  
-                closeForm();                
-              }}
-            />
-          </section>
+      <ul className="space-y-4 max-w-2xl mx-auto">
+        {filtered.map((r) => {
+          const open = openId === r.id;
+          return (
+            <li key={r.id} className="bg-card rounded-xl shadow mb-4 overflow-hidden">
+              <div
+                className="flex flex-row items-center justify-between px-3 py-2 sm:p-4 cursor-pointer hover:bg-gray-100 transition"
+                onClick={() => toggleOpen(r.id)}
+              >
+                <h3 className="font-semibold flex flex-row items-center text-lg">
+                  {r.name}
+                </h3>
+                {open ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </div>
+
+              {open && (
+                <div className="px-3 py-3 text-sm shadow-inner space-y-2">
+                  {r.category && (
+                    <span className="inline-block text-xs w-fit px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                      {r.category}
+                    </span>
+                  )}
+
+                  {r.description && (
+                    <p className="text-gray-600 text-sm">{r.description}</p>
+                  )}
+
+                  {r.products && r.products.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {r.products.map((p) => (
+                        <span
+                          key={p}
+                          className="text-xs px-2 py-1 rounded-full bg-neutral-100"
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-row justify-end gap-4 pt-2 border-t">
+                    {onEdit && (
+                      <button
+                        onClick={() => onEdit(r)}
+                        title="Edytuj przepis"
+                        className="flex flex-col items-center text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                        <span className="text-xs mt-1">Edytuj</span>
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={() => onDelete(r.id)}
+                        title="Usuń przepis"
+                        className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                        <span className="text-xs mt-1">Usuń</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </li>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <li className="text-center text-sm text-neutral-500 py-8">
+            Brak przepisów spełniających kryteria.
+          </li>
         )}
-
-        <section>
-          <RecipesList key={refreshTick} userEmail={userEmail} />
-        </section>
-      </Layout>
-    </>
+      </ul>
+    </div>
   );
 }
