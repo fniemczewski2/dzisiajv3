@@ -1,16 +1,20 @@
 "use client";
 import React, { useMemo, useState } from "react";
-import { format, parseISO } from "date-fns";
+import { Edit2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import type { Recipe } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
-import Layout from "../Layout";
 
-type Props = { userEmail: string };
+type Props = {
+  userEmail: string;
+  onEdit?: (r: Recipe) => void;
+  onDelete?: (id: string) => void;
+};
 
-export default function RecipesList({ userEmail }: Props) {
+export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
   const { recipes, products } = useRecipes(userEmail);
   const [qText, setQText] = useState("");
   const [prodFilter, setProdFilter] = useState<string[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const t = qText.trim().toLowerCase();
@@ -31,8 +35,11 @@ export default function RecipesList({ userEmail }: Props) {
       prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
     );
 
+  const toggleOpen = (id: string) => {
+    setOpenId((prev) => (prev === id ? null : id));
+  };
+
   return (
-    <Layout>
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center max-w-2xl mx-auto">
         <input
@@ -68,61 +75,77 @@ export default function RecipesList({ userEmail }: Props) {
         </div>
       </div>
 
-      {/* Bills-like list */}
       <ul className="space-y-4 max-w-2xl mx-auto">
-        {filtered.map((r) => (
-          <li
-            key={r.id}
-            className="bg-card rounded-xl shadow-md p-4 flex flex-row items-center transition hover:shadow-lg hover:bg-gray-100"
-          >
-            {/* Left: main info */}
-            <div className="flex flex-col flex-1 space-y-1 text-sm sm:text-base">
-              <div className="flex items-start justify-between gap-3">
-                <span className="font-semibold text-lg text-neutral-900">
+        {filtered.map((r) => {
+          const open = openId === r.id;
+          return (
+            <li key={r.id} className="bg-card rounded-xl shadow mb-4 overflow-hidden">
+              <div
+                className="flex flex-row items-center justify-between px-3 py-2 sm:p-4 cursor-pointer hover:bg-gray-100 transition"
+                onClick={() => toggleOpen(r.id)}
+              >
+                <h3 className="font-semibold flex flex-row items-center text-lg">
                   {r.name}
-                </span>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {r.created_at
-                    ? format(
-                        typeof r.created_at === "string"
-                          ? parseISO(r.created_at)
-                          : r.created_at,
-                        "dd.MM.yyyy"
-                      )
-                    : ""}
-                </span>
+                </h3>
+                {open ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
               </div>
 
-              {r.description && (
-                <span className="text-gray-600 text-sm">{r.description}</span>
-              )}
-
-              {/* Category chip (mirrors the +/- accent in BillList by using color emphasis) */}
-              {r.category && (
-                <span className="inline-block text-xs w-fit px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-                  {r.category}
-                </span>
-              )}
-
-              {/* Products as small chips */}
-              {r.products && r.products.length > 0 && (
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {r.products.map((p) => (
-                    <span
-                      key={p}
-                      className="text-xs px-2 py-1 rounded-full bg-neutral-100"
-                    >
-                      {p}
+              {open && (
+                <div className="px-3 py-3 text-sm shadow-inner space-y-2">
+                  {r.category && (
+                    <span className="inline-block text-xs w-fit px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                      {r.category}
                     </span>
-                  ))}
+                  )}
+
+                  {r.description && (
+                    <p className="text-gray-600 text-sm">{r.description}</p>
+                  )}
+
+                  {r.products && r.products.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {r.products.map((p) => (
+                        <span
+                          key={p}
+                          className="text-xs px-2 py-1 rounded-full bg-neutral-100"
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-row justify-end gap-4 pt-2 border-t">
+                    {onEdit && (
+                      <button
+                        onClick={() => onEdit(r)}
+                        title="Edytuj przepis"
+                        className="flex flex-col items-center text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                        <span className="text-xs mt-1">Edytuj</span>
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); if (!r.id) return; onDelete?.(r.id); }}
+                        title="Usuń przepis"
+                        className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                        <span className="text-xs mt-1">Usuń</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
-            </div>
-
-            {/* Right: optional slot for future actions (kept empty to stay BillList-like layout) */}
-            <div className="flex flex-row flex-nowrap flex-1 justify-end text-sm" />
-          </li>
-        ))}
+            </li>
+          );
+        })}
 
         {filtered.length === 0 && (
           <li className="text-center text-sm text-neutral-500 py-8">
@@ -131,6 +154,5 @@ export default function RecipesList({ userEmail }: Props) {
         )}
       </ul>
     </div>
-    </Layout>
   );
 }
