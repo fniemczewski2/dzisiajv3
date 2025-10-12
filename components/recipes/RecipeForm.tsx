@@ -114,7 +114,6 @@ export default function RecipeForm({
   // Walidacja minimalna
   const canSave =
     name.trim().length > 1 &&
-    description.trim().length > 0 &&
     picked.length > 0;
 
   // Upsert produktów (unikat po user_email+name)
@@ -287,7 +286,6 @@ export default function RecipeForm({
           className="w-full p-2 border rounded"
           rows={4}
           placeholder="Krótki opis lub kroki przygotowania…"
-          required
         />
       </div>
 
