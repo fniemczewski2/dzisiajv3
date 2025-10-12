@@ -1,8 +1,9 @@
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-let browserSupabase: ReturnType<typeof createPagesBrowserClient> | undefined;
+let browserSupabase: SupabaseClient | null = null;
 
-export function getBrowserSupabaseClient() {
+export function getBrowserSupabaseClient(): SupabaseClient {
   if (!browserSupabase) {
     browserSupabase = createPagesBrowserClient();
   }
