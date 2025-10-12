@@ -2,10 +2,11 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@supabase/auth-helpers-react"; // ⬅️ DODANE
 import Layout from "../../components/Layout";
 import type { Recipe } from "../../types";
-import { PlusCircleIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { PlusCircleIcon } from "lucide-react";
+import { useState, useCallback } from "react";
 
 const RecipeForm = dynamic(() => import("../../components/recipes/RecipeForm"), { ssr: false });
 const RecipesList = dynamic(() => import("../../components/recipes/RecipesList"), { ssr: false });
@@ -13,12 +14,13 @@ const RecipesList = dynamic(() => import("../../components/recipes/RecipesList")
 export default function RecipesPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
+  const supabase = useSupabaseClient(); 
 
   const [editing, setEditing] = useState<Recipe | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
-  const refresh = () => setRefreshTick((t) => t + 1);
+  const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
 
   const openNew = () => {
     setEditing(undefined);
@@ -34,6 +36,22 @@ export default function RecipesPage() {
     setEditing(undefined);
     setShowForm(false);
   };
+
+  // ⬇️ Handler usuwania (z potwierdzeniem i odświeżeniem)
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const ok = window.confirm("Na pewno usunąć ten przepis?");
+      if (!ok) return;
+      const { error } = await supabase.from("recipes").delete().eq("id", id);
+      if (error) {
+        console.error(error);
+        alert("Nie udało się usunąć przepisu.");
+        return;
+      }
+      refresh(); // przeładowanie listy
+    },
+    [supabase, refresh]
+  );
 
   return (
     <>
@@ -58,18 +76,23 @@ export default function RecipesPage() {
           <section className="mb-6">
             <RecipeForm
               userEmail={userEmail}
-              initial={editing}             
+              initial={editing}
               onCancel={closeForm}
-              onChange={() => {            
-                refresh();                  
-                closeForm();                
+              onChange={() => {
+                refresh();
+                closeForm();
               }}
             />
           </section>
         )}
 
         <section>
-          <RecipesList key={refreshTick} userEmail={userEmail} />
+          <RecipesList
+            key={refreshTick}
+            userEmail={userEmail}
+            onEdit={openEdit}        
+            onDelete={handleDelete}  
+          />
         </section>
       </Layout>
     </>
