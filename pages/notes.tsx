@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Backpack, Luggage, Loader2, PlusCircleIcon } from "lucide-react";
+import { Backpack, Luggage, Loader2, PlusCircleIcon, CookingPot } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
 import { NoteForm } from "../components/notes/NoteForm";
 import { NoteList } from "../components/notes/NoteList";
@@ -38,10 +38,10 @@ export default function NotesPage() {
   return (
     <>
       <Head>
-        <title>Notatki – Dzisiaj v3</title>
+        <title>Notatki - Dzisiaj</title>
         <meta name="description" content="Twórz i zarządzaj notatkami." />
         <link rel="canonical" href="https://dzisiajv3.vercel.app/notes" />
-        <meta property="og:title" content="Notatki – Dzisiaj v3" />
+        <meta property="og:title" content="Notatki - Dzisiaj" />
         <meta
           property="og:description"
           content="Twórz i zarządzaj notatkami."
@@ -66,6 +66,13 @@ export default function NotesPage() {
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Luggage className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/notes/recipes")}
+                title="Przepisy"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                <CookingPot className="w-5 h-5" />
               </button>
             </div>
           </h2>

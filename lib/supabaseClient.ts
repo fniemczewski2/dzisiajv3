@@ -1,5 +1,3 @@
-// lib/supabaseClient.ts
-// lib/supabaseClient.ts
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 

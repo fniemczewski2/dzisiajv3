@@ -36,11 +36,11 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>Logowanie – Dzisiaj v3</title>
+        <title>Logowanie - Dzisiaj</title>
       </Head>
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-card p-6 rounded-xl shadow text-center">
-          <h1 className="text-3xl font-bold mb-4">Dzisiaj v3</h1>
+          <h1 className="text-3xl font-bold mb-4">Dzisiaj</h1>
           <p className="mb-6">Zaloguj się, aby skorzystać z&nbsp;aplikacji</p>
           <button
             onClick={handleLogin}

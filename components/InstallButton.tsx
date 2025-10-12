@@ -44,7 +44,7 @@ export default function InstallPromptButton() {
       try {
         if (navigator.share) {
           await navigator.share({
-            title: "Dzisiaj v3",
+            title: "Dzisiaj",
             url: window.location.href,
           });
         } 
