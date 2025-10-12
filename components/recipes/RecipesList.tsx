@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import type { Recipe } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
+import Layout from "../Layout";
 
 type Props = { userEmail: string };
 
@@ -31,8 +32,8 @@ export default function RecipesList({ userEmail }: Props) {
     );
 
   return (
+    <Layout>
     <div className="space-y-6">
-      {/* Toolbar (kept, but visually toned to match BillList simplicity) */}
       <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center max-w-2xl mx-auto">
         <input
           value={qText}
@@ -130,5 +131,6 @@ export default function RecipesList({ userEmail }: Props) {
         )}
       </ul>
     </div>
+    </Layout>
   );
 }
