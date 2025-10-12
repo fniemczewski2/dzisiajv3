@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { getBrowserSupabaseClient } from '../lib/supabaseClient';
 import AuthGuard from '../components/AuthGuard';
-import "./styles.css";
+import "../styles/globals.css";
 
 type AuthedComponent = AppProps['Component'] & { auth?: boolean };
 
