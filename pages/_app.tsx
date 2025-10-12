@@ -1,23 +1,23 @@
 // pages/_app.tsx
-import "../styles/globals.css";
-import type { AppProps } from "next/app";
-import dynamic from "next/dynamic";
+import type { AppProps } from 'next/app';
+import { useMemo } from 'react';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { getBrowserSupabaseClient } from '../lib/supabaseClient';
+import AuthGuard from '../components/AuthGuard';
 
-import { SessionContextProvider } from "@supabase/auth-helpers-react";
-import { getBrowserSupabaseClient } from "../lib/supabaseClient";
+type AuthedComponent = AppProps['Component'] & { auth?: boolean };
 
-// client-only guard
-const AuthGuard = dynamic(() => import("../components/AuthGuard"), {
-  ssr: false,
-});
-
-function MyApp({ Component, pageProps }: AppProps) {
-  const needsAuth = (Component as any).auth === true;
+export default function MyApp({
+  Component,
+  pageProps,
+}: AppProps & { Component: AuthedComponent }) {
+  const supabase = useMemo(() => getBrowserSupabaseClient(), []);
+  const needsAuth = Component?.auth === true;
 
   return (
     <SessionContextProvider
-      supabaseClient={getBrowserSupabaseClient()}
-      initialSession={pageProps.initialSession}
+      supabaseClient={supabase}
+      initialSession={(pageProps as any)?.initialSession}
     >
       {needsAuth ? (
         <AuthGuard>
@@ -30,4 +30,3 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-export default MyApp;
