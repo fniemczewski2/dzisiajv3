@@ -16,9 +16,9 @@ export default function MyApp({ Component, pageProps }: AppProps & { Component: 
       initialSession={(pageProps as any)?.initialSession}
     >
       {needsAuth ? (
-        //<AuthGuard>
+        <AuthGuard>
           <Component {...pageProps} />
-        //</AuthGuard>
+        </AuthGuard>
       ) : (
         <Component {...pageProps} />
       )}
