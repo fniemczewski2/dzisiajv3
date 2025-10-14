@@ -15,10 +15,12 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
   const [qText, setQText] = useState("");
   const [prodFilter, setProdFilter] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false); // NEW: hideable filters
 
-  const filtered = useMemo(() => {
+  const filteredAndSorted = useMemo(() => {
     const t = qText.trim().toLowerCase();
-    return recipes.filter((r) => {
+
+    const list = [...recipes].filter((r) => {
       const matchesText =
         !t ||
         r.name.toLowerCase().includes(t) ||
@@ -27,6 +29,21 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
         prodFilter.length === 0 ||
         (r.products && prodFilter.every((p) => r.products?.includes(p)));
       return matchesText && matchesProd;
+    });
+
+    // NEW: sort by category (A→Z), then by name. Missing categories go last.
+    return list.sort((a, b) => {
+      const ca = (a.category ?? "~").toLowerCase();
+      const cb = (b.category ?? "~").toLowerCase();
+      // Put items without category at the end
+      const aEmpty = a.category == null || a.category.trim() === "";
+      const bEmpty = b.category == null || b.category.trim() === "";
+      if (aEmpty && !bEmpty) return 1;
+      if (!aEmpty && bEmpty) return -1;
+
+      const byCat = ca.localeCompare(cb, "pl");
+      if (byCat !== 0) return byCat;
+      return a.name.localeCompare(b.name, "pl");
     });
   }, [recipes, qText, prodFilter]);
 
@@ -48,7 +65,20 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
           placeholder="Szukaj po nazwie/opisie…"
           className="flex-1 rounded-xl border px-3 py-2 bg-white"
         />
-        <div className="flex-1">
+
+        {/* NEW: toggle to show/hide product filters */}
+        <button
+          type="button"
+          onClick={() => setShowFilters((s) => !s)}
+          className="rounded-xl border px-3 py-2 bg-white hover:bg-gray-50 transition"
+        >
+          {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
+        </button>
+      </div>
+
+      {/* Filters panel (hideable) */}
+      {showFilters && (
+        <div className="max-w-2xl mx-auto">
           <div className="flex flex-wrap gap-2">
             {products.map((p) => (
               <button
@@ -73,10 +103,10 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
             </button>
           )}
         </div>
-      </div>
+      )}
 
       <ul className="space-y-4 max-w-2xl mx-auto">
-        {filtered.map((r) => {
+        {filteredAndSorted.map((r) => {
           const open = openId === r.id;
           return (
             <li key={r.id} className="bg-card rounded-xl shadow mb-4 overflow-hidden">
@@ -132,7 +162,11 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
                     )}
                     {onDelete && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); if (!r.id) return; onDelete?.(r.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!r.id) return;
+                          onDelete?.(r.id);
+                        }}
                         title="Usuń przepis"
                         className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
                       >
@@ -147,7 +181,7 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
           );
         })}
 
-        {filtered.length === 0 && (
+        {filteredAndSorted.length === 0 && (
           <li className="text-center text-sm text-neutral-500 py-8">
             Brak przepisów spełniających kryteria.
           </li>
