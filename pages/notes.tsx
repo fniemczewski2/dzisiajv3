@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Backpack, Luggage, Loader2, PlusCircleIcon, CookingPot } from "lucide-react";
+import { Backpack, Luggage, Loader2, PlusCircleIcon, CookingPot, Plane } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
 import { NoteForm } from "../components/notes/NoteForm";
 import { NoteList } from "../components/notes/NoteList";
@@ -73,6 +73,13 @@ export default function NotesPage() {
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <CookingPot className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/notes/daySchema")}
+                title="Przepisy"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                <Plane className="w-5 h-5" />
               </button>
             </div>
           </h2>
