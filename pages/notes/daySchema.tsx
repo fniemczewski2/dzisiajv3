@@ -23,7 +23,7 @@ export default function DaySchemaPage() {
   const currentTime = format(now, "HH:mm");
   const currentDay = now.getDay(); // 0 = Sunday
   const timeSlots = useMemo(() => generateTimeSlots(), []);
-  const activeSchema = schemas.find((schema) => schema.days.includes(currentDay));
+  const activeSchema = schemas?.find((schema) => schema.days.includes(currentDay)) || null;
 
   const openNew = () => {
     setEditing(undefined);
@@ -64,11 +64,11 @@ export default function DaySchemaPage() {
           )}
         </div>
 
-        {/* {(!session || loading) && (
+        {(!session || loading) && (
           <div className="min-h-screen flex items-center justify-center">
             <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
           </div>
-        )} */}
+        )}
 
         {showForm && (
           <section className="mb-6">
@@ -90,7 +90,7 @@ export default function DaySchemaPage() {
           </h3>
           <div className="relative border-l-2 border-gray-300 pl-4">
             {timeSlots.map((slot) => {
-              const item = activeSchema?.items.find((i) => i.time === slot);
+              const item = activeSchema?.items?.find((i) => i.time === slot);
               const isNow = slot === currentTime;
 
               return (

@@ -37,7 +37,6 @@ export default function RecipesPage() {
     setShowForm(false);
   };
 
-  // ⬇️ Handler usuwania (z potwierdzeniem i odświeżeniem)
   const handleDelete = useCallback(
     async (id: string) => {
       const ok = window.confirm("Na pewno usunąć ten przepis?");
