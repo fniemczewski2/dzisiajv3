@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react"; // ⬅️ DODANE
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Layout from "../../components/Layout";
 import type { Recipe } from "../../types";
 import { PlusCircleIcon } from "lucide-react";

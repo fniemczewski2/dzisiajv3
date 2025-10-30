@@ -8,7 +8,6 @@ import Head from "next/head";
 import {
   DndContext,
   closestCenter,
-  DragOverlay,
   TouchSensor,
   MouseSensor,
   useSensor,
@@ -22,6 +21,7 @@ import { Droppable } from "../../components/eisenhower/Droppable";
 import { DraggableTask } from "../../components/eisenhower/DraggableTask";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
+import { getPolishDate } from "../../hooks/getPolishDate";
 
 const CATEGORIES = [
   "Pilne i ważne",
@@ -58,7 +58,7 @@ export default function EisenhowerPage() {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      const oneMonthAgo = new Date();
+      const oneMonthAgo = getPolishDate();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
       const { data, error } = await supabase
@@ -85,7 +85,7 @@ export default function EisenhowerPage() {
         const deadline = task.deadline_date
           ? new Date(task.deadline_date)
           : null;
-        const isUrgent = deadline && deadline <= new Date();
+        const isUrgent = deadline && deadline <= getPolishDate();
         const isImportant = task.priority <= 2;
 
         const key: Category = isUrgent

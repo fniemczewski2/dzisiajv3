@@ -31,11 +31,9 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
       return matchesText && matchesProd;
     });
 
-    // NEW: sort by category (A→Z), then by name. Missing categories go last.
     return list.sort((a, b) => {
       const ca = (a.category ?? "~").toLowerCase();
       const cb = (b.category ?? "~").toLowerCase();
-      // Put items without category at the end
       const aEmpty = a.category == null || a.category.trim() === "";
       const bEmpty = b.category == null || b.category.trim() === "";
       if (aEmpty && !bEmpty) return 1;
@@ -66,7 +64,6 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
           className="flex-1 rounded-xl border px-3 py-2 bg-white"
         />
 
-        {/* NEW: toggle to show/hide product filters */}
         <button
           type="button"
           onClick={() => setShowFilters((s) => !s)}
@@ -75,8 +72,6 @@ export default function RecipesList({ userEmail, onEdit, onDelete }: Props) {
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
         </button>
       </div>
-
-      {/* Filters panel (hideable) */}
       {showFilters && (
         <div className="max-w-2xl mx-auto">
           <div className="flex flex-wrap gap-2">

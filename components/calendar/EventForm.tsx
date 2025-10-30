@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Save, PlusCircleIcon, Loader2 } from "lucide-react";
+import { Save, PlusCircleIcon, Loader2, Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
+import ICAL from "ical.js"; // npm install ical
 
 interface EventsFormProps {
   userEmail: string;
@@ -91,6 +92,36 @@ export default function EventsForm({
       setPlace("");
       setShare("null");
       setRepeat("none");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const jcalData = ICAL.parse(text);
+    const comp = new ICAL.Component(jcalData);
+    const vevents = comp.getAllSubcomponents("vevent");
+
+    const events = vevents.map((vevent) => {
+      const event = new ICAL.Event(vevent);
+      return {
+        title: event.summary || "Bez tytułu",
+        description: event.description || "",
+        start_time: event.startDate.toJSDate().toISOString(),
+        end_time: event.endDate.toJSDate().toISOString(),
+        place: event.location || "",
+        share: "",
+        repeat: "none",
+        user_name: userEmail,
+      };
+    });
+
+    if (events.length > 0) {
+      await supabase.from("events").insert(events);
+      await onEventsChange();
+      alert(`Zaimportowano ${events.length} wydarzeń z pliku .ics`);
     }
   };
 
@@ -221,6 +252,18 @@ export default function EventsForm({
             </>
           )}
         </button>
+
+        <label className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 cursor-pointer">
+          
+          Importuj .ics
+          <Upload className="w-5 h-5" />
+          <input
+            type="file"
+            accept=".ics"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </label>
         {onCancel && (
           <button
             type="button"

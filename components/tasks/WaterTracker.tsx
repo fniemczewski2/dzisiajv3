@@ -13,7 +13,15 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  .format(new Date())
+  .replace(/\./g, "-") 
+  .replace(/\s/g, ""); 
   const targetDate = date ?? today; // ← domyślnie today
 
   const [water, setWater] = useState(0);

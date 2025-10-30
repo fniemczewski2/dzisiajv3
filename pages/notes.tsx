@@ -67,20 +67,6 @@ export default function NotesPage() {
               >
                 <Luggage className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => router.push("/notes/recipes")}
-                title="Przepisy"
-                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                <CookingPot className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => router.push("/notes/daySchema")}
-                title="Przepisy"
-                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                <Plane className="w-5 h-5" />
-              </button>
             </div>
           </h2>
           

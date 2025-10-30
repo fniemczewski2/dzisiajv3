@@ -1,12 +1,21 @@
 import { useState, useEffect } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import { Reminder } from "../types";
+import { getPolishDate } from "./getPolishDate";
 
 export function useReminders() {
   const supabase = useSupabaseClient();
   const user = useUser();
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  .format(new Date())
+  .replace(/\./g, "-") 
+  .replace(/\s/g, ""); 
 
   useEffect(() => {
     if (!user) return;
@@ -41,7 +50,7 @@ export function useReminders() {
   };
 
   const postponeReminder = async (id: string, powtarzanie: number) => {
-    const postponed = new Date();
+    const postponed = getPolishDate();
     postponed.setDate(postponed.getDate() + 1 - powtarzanie);
     const done = postponed.toISOString().slice(0, 10);
 

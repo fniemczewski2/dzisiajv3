@@ -21,6 +21,7 @@ import { CalendarHeader } from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
+import { getPolishDate } from "../hooks/getPolishDate";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <Loader2 className="animate-spin w-5 h-5" />,
@@ -28,7 +29,7 @@ const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
 });
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(getPolishDate());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);

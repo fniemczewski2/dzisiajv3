@@ -108,11 +108,26 @@ export interface ScheduleItem {
 export interface Schema {
   id?: string; // optional for new schemas before insertion
   user_name: string;
-  schema_name: string;
+  name: string;
   days: number[]; // 0 (Sunday) to 6 (Saturday)
   entries: ScheduleItem[]; // stored as JSONB in Supabase
   created_at?: string; // optional, returned from Supabase
 }
 
+export interface ShoppingElement {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface ShoppingList {
+  id: string;
+  user_email: string;
+  name: string;
+  share: string | null;
+  elements: ShoppingElement[];
+  inserted_at: string;
+  updated_at: string;
+}
 
 export type RecipeInsert = Omit<Recipe, "id" | "created_at">;

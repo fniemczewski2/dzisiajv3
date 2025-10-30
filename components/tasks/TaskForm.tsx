@@ -5,6 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { useSettings } from "../../hooks/useSettings";
+import { getPolishDateString } from "../../hooks/getPolishDate";
 
 interface TaskFormProps {
   userEmail: string;
@@ -22,8 +23,7 @@ export default function TaskForm({
   const { settings } = useSettings(userEmail);
   const supabase = useSupabaseClient();
   const isEdit = !!initialTask;
-  const todayIso = new Date().toISOString().slice(0, 10);
-
+  const todayIso = getPolishDateString();
   const titleRef = useRef<HTMLInputElement>(null);
   const forUserRef = useRef<HTMLSelectElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
@@ -45,7 +45,7 @@ export default function TaskForm({
       dueDateRef.current!.value = initialTask.due_date ?? todayIso;
       deadlineDateRef.current!.value = initialTask.deadline_date ?? todayIso;
     } else {
-      // default values
+
       titleRef.current!.value = "";
       forUserRef.current!.value = userEmail;
       categoryRef.current!.value = "inne";
@@ -123,7 +123,6 @@ export default function TaskForm({
           defaultValue={userEmail}
         >
           <option value={userEmail}>mnie</option>
-          <option value="f.niemczewski2@gmail.com">Franka</option>
           {userOptions.map((email) => (
             <option key={email} value={email}>
               {email}

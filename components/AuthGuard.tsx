@@ -13,8 +13,8 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   // Redirect only once when session is null
   const checkAuth = useCallback(() => {
     if (session === null) {
-      const next = encodeURIComponent(router.asPath);
-      router.replace(`/login?next=${next}`, undefined, { shallow: true });
+       const next = encodeURIComponent(router.asPath);
+       router.replace(`/login?next=${next}`, undefined, { shallow: true });
     }
   }, [session, router]);
 

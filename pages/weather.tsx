@@ -21,6 +21,7 @@ import {
   Sunrise,
   Sunset,
 } from "lucide-react";
+import { getPolishDate } from "../hooks/getPolishDate";
 
 function WeatherIcon({ code }: { code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500" />;
@@ -52,16 +53,27 @@ function evaluateBiomet(forecast: any) {
     return { label: "Brak danych", color: "text-gray-400" };
   }
 
-  let score = 0;
-  if (t >= 18 && t <= 24) score += 1;
-  if (p >= 1010 && p <= 1025) score += 1;
-  if (h >= 40 && h <= 60) score += 1;
-  if (w <= 15) score += 1;
+  let score = 100;
 
-  if (score === 4) return { label: "Korzystny", color: "text-green-600" };
-  if (score >= 2) return { label: "Umiarkowany", color: "text-yellow-600" };
+  if (t < 18) score -= (18 - t) * 2; 
+  if (t > 24) score -= (t - 24) * 2;
+
+  if (w > 10) score -= (w - 10) * 1.5;
+
+  if (h < 40) score -= (40 - h) * 0.5;
+  if (h > 60) score -= (h - 60) * 0.5;
+
+  if (p < 1010) score -= (1010 - p) * 0.8;
+  if (p > 1025) score -= (p - 1025) * 0.8;
+
+  if (score > 100) score = 100;
+  if (score < 0) score = 0;
+
+  if (score >= 75) return { label: "Korzystny", color: "text-green-600" };
+  if (score >= 50) return { label: "Umiarkowany", color: "text-yellow-600" };
   return { label: "Niekorzystny", color: "text-red-600" };
 }
+
 
 export default function WeatherPage() {
   const [loading, setLoading] = useState(true);
@@ -138,7 +150,6 @@ export default function WeatherPage() {
           <p className="text-red-600 text-center">{error}</p>
         ) : forecast && air ? (
           <>
-            {/* Bieżące dane */}
              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
               <ThermometerSnowflake className="w-5 h-5 text-blue-600" />
@@ -281,7 +292,7 @@ export default function WeatherPage() {
             <h3 className="text-lg font-semibold mb-2">Prognoza na kolejne 24h</h3>
             <div className="overflow-x-auto bg-white rounded-xl shadow-md mb-6">
               <table className="min-w-full text-sm table-auto">
-                <thead className="bg-gray-100 text-gray-700 font-semibold">
+                <thead className="bg-white text-gray-700 font-semibold">
                   <tr>
                     <th className="p-2 text-left">Godz</th>
                     <th className="p-2 text-left">Temp.</th>
@@ -292,7 +303,7 @@ export default function WeatherPage() {
                 </thead>
                 <tbody className="text-gray-700">
                   {(() => {
-                    const now = new Date();
+                    const now = getPolishDate();
                     const currentISO = now.toISOString();
                     const start = forecast.hourly.time.findIndex((t: string) => t >= currentISO);
                     return forecast.hourly.time.slice(start, start + 24).map((time: string, i: number) => (
