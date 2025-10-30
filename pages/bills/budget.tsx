@@ -9,6 +9,7 @@ import MonthlyBudgetTable from "../../components/budget/MonthlyTable";
 import SummaryTable from "../../components/budget/SummaryTable";
 import { useBudgetData } from "../../hooks/useBudget";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { getPolishDate } from "../../hooks/getPolishDate";
 
 const MONTH_NAMES = [
   "sty", "lut", "mar", "kwi", "maj", "cze",
@@ -18,7 +19,7 @@ const MONTH_NAMES = [
 export default function BudgetPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const currentYear = new Date().getFullYear();
+  const currentYear = getPolishDate().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);

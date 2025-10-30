@@ -16,7 +16,15 @@ export default function Reminders() {
   const [showForm, setShowForm] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  .format(new Date())
+  .replace(/\./g, "-") 
+  .replace(/\s/g, ""); 
 
   const {
     visibleReminders,

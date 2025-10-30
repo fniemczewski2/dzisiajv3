@@ -5,13 +5,14 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon, Save, Trash2 } from "lucide-react";
+import { Backpack, Brain, Calendar, ChartColumnBig, Coins, CookingPot, Edit2, ListTodo, Loader2, Logs, Luggage, PlusCircleIcon, Save, ShoppingCart, Sun, Timer, Trash2 } from "lucide-react";
 import InstallButton from "../components/InstallButton";
+import { useRouter } from "next/router";
 
 export default function SettingsPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
-
+    const router = useRouter();
   // Local settings state with defaults
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -135,24 +136,136 @@ export default function SettingsPage() {
   return (
     <>
       <Head>
-        <title>Ustawienia - Dzisiaj</title>
+        <title>Menu - Dzisiaj</title>
         <meta name="description" content="Zmień swoje ustawienia aplikacji" />
       </Head>
       <Layout>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Ustawienia</h2>
+          <h2 className="text-2xl font-semibold">Menu</h2>
           <InstallButton/>
         </div>
           {(!session || loading) && (
             <div className="min-h-screen flex items-center justify-center">
               <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
             </div>
-          )}
+          )} 
+          <div className="flex flex-wrap justify-around mb-4 gap-4">
+            <button
+                onClick={() => router.push("/tasks")}
+                title="Zadania"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <ListTodo className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Zadania</span>
+            </button>
+            <button
+                onClick={() => router.push("/tasks/daySchema")}
+                title="Plan dnia"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <Logs className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Plan&nbsp;dnia</span>
+            </button>
+            <button
+              onClick={() => router.push("/tasks/pomodoro")}
+              title="Pomodoro"
+              className="flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Timer className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Pomodoro</span>
+            </button>
+
+            <button
+              onClick={() => router.push("/tasks/eisenhower")}
+              title="Eisenhower Matrix"
+              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Brain className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Eisenhower</span>
+            </button>
+            </div>
+            <div className="flex flex-wrap justify-around mb-4 gap-4">
+            <button
+                onClick={() => router.push("/notes")}
+                title="Notatki"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <Edit2 className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Notatki</span>
+            </button>
+            <button
+                onClick={() => router.push("/notes/backpack")}
+                title="Plecak"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <Backpack className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Plecak</span>
+            </button>
+            <button
+              onClick={() => router.push("/notes/suitcase")}
+              title="Walizka"
+              className="flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Luggage className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Walizka</span>
+            </button>
+            <button
+              onClick={() => router.push("/weather")}
+              title="Pogoda"
+              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Sun className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Pogoda</span>
+            </button>
+            <button
+              onClick={() => router.push("/calendar")}
+              title="Kalendarz"
+              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Kalendarz</span>
+            </button>
+            
+            </div>
+            <div className="flex flex-wrap justify-around mb-4 gap-4">
+            <button
+                onClick={() => router.push("/bills")}
+                title="Finanse"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <Coins className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Finanse</span>
+            </button>
+            <button
+                onClick={() => router.push("/bills/budget")}
+                title="Budżet"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <ChartColumnBig className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Budżet</span>
+            </button>
+            <button
+                onClick={() => router.push("/notes/recipes")}
+                title="Przepisy"
+                className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              >
+              <CookingPot className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Przepisy</span>
+            </button>
+            <button
+              onClick={() => router.push("/notes/shopping")}
+              title="Zakupy"
+              className="flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Zakupy</span>
+            </button>
+          </div>
         <form
           onSubmit={handleSave}
           className="mb-4 bg-card p-6 rounded-xl shadow space-y-3"
         >
-          <h3 className="text-lg font-semibold">Aplikacja</h3>
+          <h3 className="text-lg font-semibold">Ustawienia</h3>
           <div>
             <label
               htmlFor="sort_order"

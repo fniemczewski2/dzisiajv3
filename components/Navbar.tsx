@@ -1,4 +1,4 @@
-import { Calendar, Coins, ListTodo, Pen, Settings } from "lucide-react";
+import { Calendar, Coins, ListTodo, Menu, Pen } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -23,7 +23,7 @@ export default function Navbar() {
         <NavLink href="/notes" Icon={Pen} label="Notatki" />
         <NavLink href="/bills" Icon={Coins} label="Finanse" />
         <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" />
-        <NavLink href="/settings" Icon={Settings} label="Ustawienia" />
+        <NavLink href="/settings" Icon={Menu} label="Menu" />
       </div>
     </nav>
   );

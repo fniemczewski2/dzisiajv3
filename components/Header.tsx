@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 
-
 export default function Header() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState("");
@@ -22,6 +21,7 @@ export default function Header() {
   const [currentTemp, setCurrentTemp] = useState<number | null>(null);
   const [dailyMin, setDailyMin] = useState<number | null>(null);
   const [dailyMax, setDailyMax] = useState<number | null>(null);
+  const [airQuality, setAirQuality] = useState<string | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
   const router = useRouter();
 
@@ -50,27 +50,40 @@ export default function Header() {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
-          const url = new URL("https://api.open-meteo.com/v1/forecast");
-          url.searchParams.set("latitude", coords.latitude.toString());
-          url.searchParams.set("longitude", coords.longitude.toString());
-          url.searchParams.set("current_weather", "true");
-          url.searchParams.set(
+          // Pogoda
+          const weatherUrl = new URL("https://api.open-meteo.com/v1/forecast");
+          weatherUrl.searchParams.set("latitude", coords.latitude.toString());
+          weatherUrl.searchParams.set("longitude", coords.longitude.toString());
+          weatherUrl.searchParams.set("current_weather", "true");
+          weatherUrl.searchParams.set(
             "daily",
             "apparent_temperature_min,apparent_temperature_max"
           );
-          url.searchParams.set("timezone", "auto");
+          weatherUrl.searchParams.set("timezone", "auto");
 
-          const res = await fetch(url.toString());
-          if (!res.ok) {
-            throw new Error("Weather API error");
+          const weatherRes = await fetch(weatherUrl.toString());
+          const weatherJson = await weatherRes.json();
+
+          setCurrentTemp(weatherJson.current_weather.temperature);
+          setWeatherCode(weatherJson.current_weather.weathercode);
+          setDailyMin(Math.min(...weatherJson.daily.apparent_temperature_min));
+          setDailyMax(Math.max(...weatherJson.daily.apparent_temperature_max));
+
+          // Jakość powietrza
+          const airUrl = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
+          airUrl.searchParams.set("latitude", coords.latitude.toString());
+          airUrl.searchParams.set("longitude", coords.longitude.toString());
+          airUrl.searchParams.set("hourly", "pm10,pm2_5");
+          airUrl.searchParams.set("timezone", "auto");
+
+          const airRes = await fetch(airUrl.toString());
+          const airJson = await airRes.json();
+
+          if (airJson.hourly && (airJson.hourly.pm10[0] > 45 || airJson.hourly.pm2_5[0] > 15 )) {
+            setAirQuality((airJson.hourly.pm2_5[0] - 15) > (airJson.hourly.pm10[0] - 45) ? `${airJson.hourly.pm2_5[0]} µg/m³ PM2.5` : `${airJson.hourly.pm10[0]} µg/m³ PM10`)
           }
-
-          const json = await res.json();
-          setCurrentTemp(json.current_weather.temperature);
-          setWeatherCode(json.current_weather.weathercode);
-          setDailyMin(Math.min(...json.daily.apparent_temperature_min));
-          setDailyMax(Math.max(...json.daily.apparent_temperature_max));
         } catch (error) {
+          console.error("Error fetching weather/air data:", error);
         }
       },
       (error) => {
@@ -112,8 +125,8 @@ export default function Header() {
         flex-nowrap
       "
     >
-        
-          <div className="text-gray-600 text-left flex flex-col sm:flex-1">
+
+          <div className="text-gray-600 text-left flex flex-col sm:flex-1 justify-center">
             <div className="text-xl font-semibold">{currentTime}</div>
             <span className="text-gray-500 text-[12px] sm:text-sm">
               {currentDate}
@@ -123,22 +136,35 @@ export default function Header() {
           <h1 className="text-2xl font-bold text-primary sm:block hidden sm:flex-1 text-center">
             Dzisiaj v3
           </h1>
-
+          <div className="flex-1">
             {currentTemp != null &&
               dailyMin != null &&
               dailyMax != null &&
               weatherCode != null && (
                 loading ? <Loader2 className="sm:flex-1 animate-spin w-6 h-6 text-gray-500" /> :
                 <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-gray-700">
-                  <div className="flex items-center text-xl font-semibold justify-end space-x-1">
+                  <div className={`${airQuality ? 'text-lg' : 'text-xl'} flex items-center font-semibold justify-end space-x-1`}>
                     <WeatherIcon code={weatherCode} />
-                    <span className="text-xl text-gray-600">{currentTemp}°C</span>
+                    <span className={`${airQuality ? 'text-lg' : 'text-xl'} text-gray-600`}>{currentTemp}°C</span>
                   </div>
-                  <span className="text-gray-600 text-[12px] sm:text-sm ml-5 text-right">
+                  {airQuality ? (
+                  <>
+                  <span className="text-gray-600 text-[11px] sm:text-sm ml-5 text-right">
                     min {dailyMin}° · max {dailyMax}°
                   </span>
+                  <span className="text-red-500 text-[11px] sm:text-sm ml-5 text-right">
+                    {airQuality}
+                  </span>
+                  </>
+                  ) : (
+                    <span className="text-gray-600 text-[12px] sm:text-sm ml-5 text-right">
+                      min {dailyMin}° · max {dailyMax}°
+                    </span>
+                  )
+                  }
                 </div>
               )}
+              </div>
 
     </header>
   );

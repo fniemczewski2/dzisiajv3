@@ -10,7 +10,7 @@ interface RecipeFormProps {
   userEmail: string;
   onChange: () => void;
   onCancel?: () => void;
-  initial?: Recipe; // jeśli podasz, formularz przechodzi w tryb edycji
+  initial?: Recipe; 
 }
 
 const CATEGORIES: RecipeCategory[] = [
@@ -31,13 +31,11 @@ export default function RecipeForm({
   const supabase = useSupabaseClient();
   const isEdit = !!initial;
 
-  // Pola formularza
   const [name, setName] = useState("");
   const [category, setCategory] = useState<RecipeCategory>("śniadanie");
   const [description, setDescription] = useState("");
   const [picked, setPicked] = useState<string[]>([]); // wybrane produkty (tagi)
 
-  // Podpowiedzi produktów z bazy
   const [allProducts, setAllProducts] = useState<string[]>([]);
   const [prodInput, setProdInput] = useState("");
   const suggestions = useMemo(() => {
@@ -50,10 +48,8 @@ export default function RecipeForm({
       .slice(0, 8);
   }, [prodInput, allProducts, picked]);
 
-  // Stan zapisu/ładowania
   const [loading, setLoading] = useState(false);
 
-  // Załaduj initial i listę produktów
   useEffect(() => {
     if (initial) {
       setName(initial.name ?? "");
@@ -61,7 +57,6 @@ export default function RecipeForm({
       setDescription(initial.description ?? "");
       setPicked(Array.isArray(initial.products) ? initial.products : []);
     } else {
-      // reset przy tworzeniu
       setName("");
       setCategory("śniadanie");
       setDescription("");
@@ -85,7 +80,6 @@ export default function RecipeForm({
     run();
   }, [supabase, userEmail]);
 
-  // Obsługa dodawania produktu z inputa
   const commitProduct = (raw: string) => {
     const v = raw.trim();
     if (!v) return;
@@ -101,7 +95,6 @@ export default function RecipeForm({
       commitProduct(prodInput);
     }
     if (e.key === "Backspace" && !prodInput && picked.length > 0) {
-      // szybkie kasowanie ostatniego taga
       e.preventDefault();
       setPicked((prev) => prev.slice(0, -1));
     }
@@ -111,12 +104,10 @@ export default function RecipeForm({
     setPicked((prev) => prev.filter((x) => x !== p));
   };
 
-  // Walidacja minimalna
   const canSave =
     name.trim().length > 1 &&
     picked.length > 0;
 
-  // Upsert produktów (unikat po user_email+name)
   const upsertProducts = async (names: string[]) => {
     const uniq = Array.from(new Set(names.map((n) => n.trim()))).filter(Boolean);
     if (uniq.length === 0) return;
@@ -129,24 +120,20 @@ export default function RecipeForm({
       );
 
     if (!error) {
-      // lokalnie scal listę, by podpowiedzi zawierały nowo dodane pozycje
       setAllProducts((prev) =>
         Array.from(new Set([...prev, ...uniq])).sort()
       );
     }
   };
 
-  // Zapis
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSave) return;
 
     setLoading(true);
 
-    // 1) dopisz produkty do słownika
     await upsertProducts(picked);
 
-    // 2) insert/update recipe
     const payload = {
       name: name.trim(),
       category,
@@ -217,7 +204,6 @@ export default function RecipeForm({
       <div>
         <label className="block text-sm font-medium mb-1">Produkty</label>
 
-        {/* input + przycisk dodawania */}
         <div className="flex gap-2">
           <input
             value={prodInput}
@@ -235,8 +221,6 @@ export default function RecipeForm({
             <PlusCircleIcon className="w-4 h-4" />
           </button>
         </div>
-
-        {/* podpowiedzi */}
         {suggestions.length > 0 && (
           <div className="mt-1 rounded-md border bg-white divide-y">
             {suggestions.map((s) => (
@@ -251,8 +235,6 @@ export default function RecipeForm({
             ))}
           </div>
         )}
-
-        {/* wybrane tagi */}
         {picked.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {picked.map((p) => (

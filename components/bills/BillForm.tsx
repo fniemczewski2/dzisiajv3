@@ -4,6 +4,7 @@ import React, { useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { Bill } from "../../types";
+import { getPolishDateString } from "../../hooks/getPolishDate";
 
 interface BillFormProps {
   userEmail: string;
@@ -23,7 +24,15 @@ export function BillForm({
 
   const [amount, setAmount] = useState("0");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Warsaw",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date()); 
+  });
   const [includeInBudget, setIncludeInBudget] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -61,7 +70,7 @@ export function BillForm({
       // reset
       setAmount("0");
       setDescription("");
-      setDate(new Date().toISOString().slice(0, 10));
+      setDate(getPolishDateString());
       setIncludeInBudget(false);
     }
   };

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, FormEvent } from "react";
 import { PlusCircle, Trash2, Save, Loader2, PlusCircleIcon } from "lucide-react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useDaySchemas } from "../../hooks/useDaySchemas";
 
 export interface DaySchemaEntry {
   time: string;
@@ -11,7 +12,7 @@ export interface DaySchemaEntry {
 
 export interface DaySchema {
   id?: string;
-  schema_name: string;
+  name: string;
   days: number[]; 
   entries: DaySchemaEntry[];
 }
@@ -31,7 +32,7 @@ export default function DaySchemaForm({
   onSchemaSaved,
   onCancel,
 }: DaySchemaFormProps) {
-  const supabase = useSupabaseClient();
+  const { addSchema, updateSchema } = useDaySchemas();
   const isEdit = !!initialSchema?.id;
 
   const [schemaName, setSchemaName] = useState("");
@@ -41,11 +42,38 @@ export default function DaySchemaForm({
 
   useEffect(() => {
     if (initialSchema) {
-      setSchemaName(initialSchema.schema_name);
+      setSchemaName(initialSchema.name);
       setDays(initialSchema.days);
       setEntries(initialSchema.entries);
     }
   }, [initialSchema]);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!schemaName || days.length === 0 || entries.length === 0) {
+      alert("Uzupełnij nazwę, dni i przynajmniej jeden wpis.");
+      return;
+    }
+
+    setLoading(true);
+
+    const payload = {
+      name: schemaName.trim(),
+      days,
+      entries,
+      user_name: userEmail
+    };
+
+    if (isEdit && initialSchema?.id) {
+      await updateSchema(initialSchema.id, payload);
+    } else {
+      await addSchema(payload);
+    }
+
+    setLoading(false);
+    onSchemaSaved();
+    if (onCancel) onCancel();
+  };
 
   const toggleDay = (day: number) => {
     setDays((prev) =>
@@ -67,32 +95,6 @@ export default function DaySchemaForm({
     setEntries(entries.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!schemaName || days.length === 0 || entries.length === 0) {
-      alert("Uzupełnij nazwę, dni i przynajmniej jeden wpis.");
-      return;
-    }
-
-    setLoading(true);
-
-    const payload = {
-      user_name: userEmail,
-      schema_name: schemaName.trim(),
-      days,
-      entries,
-    };
-
-    if (isEdit && initialSchema?.id) {
-      await supabase.from("day_schemas").update(payload).eq("id", initialSchema.id);
-    } else {
-      await supabase.from("day_schemas").insert(payload);
-    }
-
-    setLoading(false);
-    onSchemaSaved();
-    if (onCancel) onCancel();
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-card p-4 rounded-xl shadow">

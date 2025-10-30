@@ -36,7 +36,7 @@ const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
 ];
 
 interface TaskIconsProps {
-  date?: string; // ← opcjonalna data
+  date?: string; 
 }
 
 export default function TaskIcons({ date }: TaskIconsProps) {
@@ -44,7 +44,15 @@ export default function TaskIcons({ date }: TaskIconsProps) {
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "";
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Intl.DateTimeFormat("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  .format(new Date())
+  .replace(/\./g, "-") 
+  .replace(/\s/g, ""); 
   const targetDate = date ?? today;
 
   const [done, setDone] = useState<Record<HabitKey, boolean>>({
