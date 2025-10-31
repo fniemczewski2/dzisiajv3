@@ -63,11 +63,11 @@ export default function ShoppingPage() {
           )}
         </div>
 
-        {(!session || loading) && (
+        {/* {(!session || loading) && (
           <div className="min-h-[200px] flex items-center justify-center">
             <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
           </div>
-        )}
+        )} */}
         {showForm && (
           <div className="mb-6">
             <ShoppingForm
@@ -81,8 +81,8 @@ export default function ShoppingPage() {
             />
           </div>
         )}
-        <div className="bg-card p-4 rounded-xl shadow">
           <ShoppingListView
+            userEmail={userEmail}
             lists={lists}
             onEdit={openEdit}
             onDelete={(id) => {
@@ -91,7 +91,6 @@ export default function ShoppingPage() {
             }}
             onUpdate={updateList}
           />
-        </div>
       </Layout>
     </>
   );
