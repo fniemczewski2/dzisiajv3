@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { ShoppingList, ShoppingElement } from "../types";
+import { ShoppingList } from "../types";
 
-export function useShoppingLists(userEmail: string) {
+export function useShoppingLists(userEmail?: string) {
+  const effectiveEmail = userEmail || "";
   const supabase = useSupabaseClient();
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ export function useShoppingLists(userEmail: string) {
     const { data, error } = await supabase
       .from("shopping_lists")
       .select("*")
-      .or(`user_email.eq.${userEmail},share.eq.${userEmail}`) 
+      .or(`user_email.eq.${effectiveEmail},share.eq.${effectiveEmail}`)
       .limit(5);
 
     if (!error && data) {
@@ -29,7 +30,7 @@ export function useShoppingLists(userEmail: string) {
     }
     const { data, error } = await supabase
       .from("shopping_lists")
-      .insert([{ name, share, elements: [], user_email: userEmail }])
+      .insert([{ name, share, elements: [], user_email: effectiveEmail }])
       .select()
       .single();
     if (!error && data) setLists([...lists, data as ShoppingList]);

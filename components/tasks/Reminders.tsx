@@ -114,14 +114,14 @@ export default function Reminders() {
                 className="flex items-center text-blue-600 hover:underline"
                 onClick={() => setShowForm(!showForm)}
               >
-                <Plus className="w-4 h-4 mr-1" /> Dodaj
+                Dodaj&nbsp;<Plus className="w-4 h-4 mr-1" />
               </button>
 
               <button
                 onClick={() => setShowAll(!showAll)}
                 className="flex items-center text-blue-600 hover:underline"
               >
-                <List className="w-4 h-4 mr-1" />{showAll ? "Pokaż aktywne" : "Pokaż wszystkie"}
+                {showAll ? "Pokaż aktywne" : "Pokaż wszystkie"}<List className="w-4 h-4 mr-1" />
               </button>
 
             </div>
