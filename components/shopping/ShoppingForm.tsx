@@ -135,7 +135,7 @@ export function ShoppingForm({
             Anuluj
           </button>
         )}
-        {loading && <Loader2 className="animate-spin w-6 h-6 text-gray-500" />}
+        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
       </div>
     </form>
   );

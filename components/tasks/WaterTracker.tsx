@@ -59,7 +59,7 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
   const fillPercent = (water / 2) * 100;
 
   if (!session) {
-    return <Loader2 className="animate-spin w-6 h-6 text-gray-500" />;
+    return <Loader2 className="animate-spin w-5 h-5 text-gray-500" />;
   }
 
   return (

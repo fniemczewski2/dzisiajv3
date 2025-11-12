@@ -6,107 +6,77 @@ import { useRouter } from "next/router";
 
 const categories = [
   {
+    title: "Dokumenty i pieniądze",
+    items: [
+      "Kserokopie dokumentów (dowód, paszport)",
+      "USB z kopiami ważnych dokumentów",
+      "Gotówka (małe nominały)",
+      "Lista kontaktów awaryjnych",
+    ],
+  },
+  {
+    title: "Higiena i zdrowie",
+    items: [
+      "Apteczka pierwszej pomocy",
+      "Leki na stałe (min. 3 dni)",
+      "Maseczki ochronne",
+      "Rękawiczki jednorazowe",
+      "Chusteczki nawilżane",
+      "Papier toaletowy",
+      "Żel antybakteryjny",
+      "Mydło"
+    ],
+  },
+  {
+    title: "Jedzenie i woda",
+    items: [
+      "Woda pitna",
+      "Tabletki do uzdatniania wody / filtr",
+      "Żywność długoterminowa",
+      "Naczynia, sztućce, kubek",
+      "Otwieracz do puszek",
+    ],
+  },
+  {
     title: "Odzież",
     items: [
-      "T-shirty",
-      "Koszule",
-      "Sweter",
-      "Bluza",
-      "Spodnie długie",
-      "Szorty",
+      "Kurtka przeciwdeszczowa",
+      "Ciepła bluza / polar",
       "Bielizna",
       "Skarpetki",
-      "Piżama",
-      "Kurtka",
-      "Strój kąpielowy",
+      "Odzież termoaktywna",
     ],
   },
   {
-    title: "Obuwie",
-    items: ["Buty codzienne", "Sandały", "Klapki", "Buty eleganckie"],
-  },
-  {
-    title: "Bagaże i organizacja",
-    items: ["Główna walizka", "Dodatkowe torby", "Nerka"],
-  },
-  {
-    title: "Spanie",
-    items: ["Koc podróżny", "Poduszka podróżna", "Hamak", "Śpiwór", "Karimata"],
-  },
-  {
-    title: "Kosmetyczka",
+    title: "Sprzęt i narzędzia",
     items: [
-      "Szczoteczka do zębów",
-      "Pasta do zębów",
-      "Szampon / odżywka",
-      "Żel pod prysznic",
-      "Dezodorant",
-      "Krem do twarzy",
-      "Krem z filtrem",
-      "Maszynka do golenia",
-      "Grzebień",
-      "Gumki, spinki",
+      "Latarka i baterie",
+      "Powerbank",
+      "Scyzoryk / multitool",
+      "Zapałki / zapalniczka",
+      "Lina / paracord",
+      "Worki na śmieci",
     ],
   },
   {
-    title: "Dokumenty i finanse",
+    title: "Nocleg",
     items: [
-      "Dowód osobisty",
-      "Paszport",
-      "Karty płatnicze",
-      "Gotówka",
-      "Karta EKUZ",
-      "Bilety / rezerwacje",
-      "Ubezpieczenie",
+      "Koc termiczny (folia NRC)",
+      "Śpiwór",
+      "Karimata",
     ],
   },
   {
-    title: "Elektronika",
+    title: "Komunikacja i informacje",
     items: [
-      "Telefon + ładowarka",
-      "Power bank",
-      "Słuchawki",
-      "Aparat",
-      "Ładowarki i kable",
-      "Generator kodów",
-      "Adapter podróżny",
-      "Grzałka elektryczna ",
+      "Radio na baterie",
+      "Gwizdek alarmowy",
+      "Notatnik i długopis",
+      "Mapa lokalna",
     ],
-  },
-  {
-    title: "Apteczka i higiena",
-    items: [
-      "Leki",
-      "Leki przeciwbólowe, na biegunkę, na gardło",
-      "Plastry, bandaże, środki odkażające",
-      "Chusteczki higieniczne",
-      "Chusteczki mokre",
-      "Płatki kosmetyczne",
-      "Patyczki higieniczne",
-      "Środek przeciw komarom/kleszczom",
-    ],
-  },
-  {
-    title: "Akcesoria i dodatki",
-    items: [
-      "Okulary przeciwsłoneczne",
-      "Kapelusz / czapka",
-      "Pasek",
-      "Parasolka składana",
-      "Biżuteria",
-    ],
-  },
-  {
-    title: "Rozrywka i inne",
-    items: [
-      "Książka",
-      "Notes i długopis",
-      "Gry / karty",
-      "Mapa (offline)",
-      "Filmy / muzyka",
-    ],
-  },
+  }
 ];
+
 
 export default function SafetyPage() {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
@@ -139,7 +109,7 @@ export default function SafetyPage() {
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <h2 className="text-xl font-semibold">Walizka</h2>
+          <h2 className="text-xl font-semibold">Plecak bezpieczeństwa</h2>
         </div>
         <div className="space-y-6  flex flex-row flex-wrap">
           {categories.map((cat) => (

@@ -29,7 +29,7 @@ export default function LoginPage() {
 
   if (session === undefined) {
     return (
-      <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
+      <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
     );
   }
 
