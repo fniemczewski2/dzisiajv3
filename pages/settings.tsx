@@ -230,11 +230,11 @@ export default function SettingsPage() {
             </button>
             <button
               onClick={() => router.push("/reports")}
-              title="Pogoda"
+              title="Sprawozdanie"
               className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
             >
               <ScrollText className="w-5 h-5" />
-              <span className="text-[10px] sm:text-[11px]">Pogoda</span>
+              <span className="text-[10px] sm:text-[11px]">Sprawozdanie</span>
             </button>
             <button
               onClick={() => router.push("/weather")}

@@ -113,9 +113,9 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
           <button
             type="button"
             onClick={() => setAgenda([...agenda, ""])}
-            className="inline-flex items-center text-blue-600 hover:underline mt-2"
+            className="inline-flex items-center text-blue-600 hover:underline mt-1"
           >
-            Dodaj&nbsp;<Plus className="w-4 h-4 mr-1" />
+            Dodaj&nbsp;<Plus className="w-4 h-4" />
           </button>
         </div>
 
@@ -140,7 +140,7 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
               onClick={() => setParticipants([...participants, ""])}
               className="inline-flex items-center text-blue-600 hover:underline mt-1"
             >
-              Dodaj&nbsp;<Plus className="w-4 h-4 mr-1" />
+              Dodaj&nbsp;<Plus className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -149,7 +149,7 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
 
       <div>
         <label className="block text-sm font-medium">Zadania:</label>
-        <div className="space-y-2">
+        <div>
           {tasks.map((t, i) => (
             <div key={i} className="flex flex-wrap gap-2">
               <input
@@ -191,7 +191,7 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
             onClick={() => setTasks([...tasks, { zadanie: "", data: "", osoba: "" }])}
             className="inline-flex items-center text-blue-600 hover:underline mt-1"
           >
-            Dodaj&nbsp;<Plus className="w-4 h-4 mr-1" />
+            Dodaj&nbsp;<Plus className="w-4 h-4" />
           </button>
         </div>
       </div>
