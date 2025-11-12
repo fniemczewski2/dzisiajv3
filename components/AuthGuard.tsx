@@ -13,8 +13,8 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   // Redirect only once when session is null
   const checkAuth = useCallback(() => {
     if (session === null) {
-        const next = encodeURIComponent(router.asPath);
-        router.replace(`/login?next=${next}`, undefined, { shallow: true });
+       const next = encodeURIComponent(router.asPath);
+       router.replace(`/login?next=${next}`, undefined, { shallow: true });
     }
   }, [session, router]);
 
@@ -26,7 +26,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
   if (session === undefined || loading) {
     return (
-      <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
+      <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
     );
   }
 

@@ -1,43 +1,42 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import {
-  Play,
-  Pause,
-  X,
-  Coffee,
-  Target,
-  ChevronLeft,
-  ChevronDown,
-  ChevronUp,
-  Settings,
-} from "lucide-react";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import UniversalTimer, { TimerPhase, TimerControls } from "../../components/Timer";
+import { ChevronLeft, Settings, X } from "lucide-react";
 
 export default function PomodoroPage() {
-  const DEFAULT_FOCUS = 25;
-  const DEFAULT_BREAK = 5;
+  const DEFAULT_FOCUS = 25 * 60;
+  const DEFAULT_BREAK = 5 * 60;
 
-  const [focusMinutes, setFocusMinutes] = useState(DEFAULT_FOCUS);
-  const [breakMinutes, setBreakMinutes] = useState(DEFAULT_BREAK);
-  const [open, setOpen] = useState(false); // <-- hidden by default
+  const [focusSeconds, setFocusSeconds] = useState(DEFAULT_FOCUS);
+  const [breakSeconds, setBreakSeconds] = useState(DEFAULT_BREAK);
+  const [open, setOpen] = useState(false);
 
-  const [secondsLeft, setSecondsLeft] = useState(focusMinutes * 60);
+  const [secondsLeft, setSecondsLeft] = useState(focusSeconds);
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
+  const [round, setRound] = useState(1);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
 
   const toggleOpen = () => setOpen((prev) => !prev);
 
+  const phases: TimerPhase[] = [
+    { label: "Focus", seconds: focusSeconds },
+    { label: "Przerwa", seconds: breakSeconds },
+  ];
+
+  const phaseIndex = isBreak ? 1 : 0;
+
   useEffect(() => {
     if (!running && !isBreak) {
-      setSecondsLeft(focusMinutes * 60);
+      setSecondsLeft(focusSeconds);
     }
-  }, [focusMinutes]);
+  }, [focusSeconds]);
 
   useEffect(() => {
     if (running && !paused) {
@@ -54,24 +53,40 @@ export default function PomodoroPage() {
       setPaused(false);
       const nextIsBreak = !isBreak;
       setIsBreak(nextIsBreak);
-      const nextTime = nextIsBreak ? breakMinutes : focusMinutes;
-      setSecondsLeft(nextTime * 60);
+      setSecondsLeft(nextIsBreak ? breakSeconds : focusSeconds);
+      if (!nextIsBreak) setRound((r) => r + 1);
     }
-  }, [secondsLeft, running, isBreak, focusMinutes, breakMinutes]);
+  }, [secondsLeft, running, isBreak, focusSeconds, breakSeconds]);
 
-  const startSession = () => {
-    setSecondsLeft((isBreak ? breakMinutes : focusMinutes) * 60);
-    setRunning(true);
-    setPaused(false);
-  };
-
-  const togglePause = () => setPaused((prev) => !prev);
-
-  const cancelSession = () => {
-    setRunning(false);
-    setPaused(false);
-    setIsBreak(false);
-    setSecondsLeft(focusMinutes * 60);
+  const controls: TimerControls = {
+    start: () => {
+      setSecondsLeft(isBreak ? breakSeconds : focusSeconds);
+      setRunning(true);
+      setPaused(false);
+    },
+    pause: () => setPaused((prev) => !prev),
+    stop: () => {
+      setRunning(false);
+      setPaused(false);
+      setIsBreak(false);
+      setSecondsLeft(focusSeconds);
+      setRound(1);
+    },
+    next: () => {
+      const nextIsBreak = !isBreak;
+      setIsBreak(nextIsBreak);
+      setSecondsLeft(nextIsBreak ? breakSeconds : focusSeconds);
+      if (!nextIsBreak) setRound((r) => r + 1);
+    },
+    prev: () => {
+      const prevIsBreak = !isBreak;
+      setIsBreak(prevIsBreak);
+      setSecondsLeft(prevIsBreak ? breakSeconds : focusSeconds);
+    },
+    jumpToPhase: (index: number) => {
+      setIsBreak(index === 1);
+      setSecondsLeft(index === 1 ? breakSeconds : focusSeconds);
+    },
   };
 
   const format = (s: number) =>
@@ -100,103 +115,56 @@ export default function PomodoroPage() {
             onClick={handleBack}
             className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <h2 className="text-xl font-semibold">Pomodoro</h2>
         </div>
 
-        <div className="p-2 max-w-md mx-auto bg-white shadow rounded-xl flex flex-col items-center gap-6">
-          <div className="flex flex-col w-full gap-3">
-            <div className="text-center">
-              <h2 className="text-xl font-bold flex items-center justify-center gap-2">
-                {isBreak ? "Przerwa" : "Focus"}
-                {isBreak ? <Coffee className="w-5 h-5" /> : <Target className="w-5 h-5" />}
-              </h2>
-              <div className="text-4xl font-mono mt-2">{format(secondsLeft)}</div>
-            </div>
+        <UniversalTimer
+          secondsLeft={secondsLeft}
+          running={running}
+          paused={paused}
+          phaseIndex={phaseIndex}
+          round={round}
+          phases={phases}
+          controls={controls}
+          formatTime={format}
+        />
 
-            <div className="flex flex-wrap gap-3 justify-center">
-              {!running ? (
-                <button
-                  onClick={startSession}
-                  className="py-1 px-2 text-primary flex flex-col items-center gap-1 hover:text-secondary transition"
-                >
-                  <Play className="w-6 h-6" />
-                  <span className="text-xs">Start</span>
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={togglePause}
-                    className="py-1 px-2 text-green-600 flex flex-col items-center gap-1 hover:bg-gray-100 transition"
-                  >
-                    {paused ? (
-                      <>
-                        <Play className="w-6 h-6" />
-                        <span className="text-xs">Wznów</span>
-                      </>
-                    ) : (
-                      <>
-                        <Pause className="w-6 h-6" />
-                        <span className="text-xs">Pauza</span>
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={cancelSession}
-                    className="py-1 px-2 text-red-500 flex flex-col items-center gap-1 hover:text-red-600 transition"
-                  >
-                    <X className="w-6 h-6" />
-                    <span className="text-xs">Anuluj</span>
-                  </button>
-                </>
-              )}
-              
-            </div>
-            <button
-              onClick={toggleOpen}
-              className="relative bottom-2 left-2 transition"
-              aria-label="Ustawienia"
-            >
-              {open ? (
-                <X className="w-5 h-5 text-gray-600" />
-              ) : (
-                <Settings
-                  className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-
-            
-            {open && (
-              <div
-                className={`transition-all duration-300 overflow-hidden${
-                  open ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-                }`}
-              >
-                  <label className="flex justify-between px-4 py-2 items-center">
-                    Focus (min):
-                    <input
-                      type="number"
-                      value={focusMinutes}
-                      onChange={(e) => setFocusMinutes(Number(e.target.value))}
-                      className="border rounded px-2 py-1 w-20 text-right"
-                      min={1}
-                    />
-                  </label>
-                  <label className="flex justify-between px-4 py-2 items-center">
-                    Break (min):
-                    <input
-                      type="number"
-                      value={breakMinutes}
-                      onChange={(e) => setBreakMinutes(Number(e.target.value))}
-                      className="border rounded px-2 py-1 w-20 text-right"
-                      min={1}
-                    />
-                  </label>
-              </div>
-            )}
-          </div>
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={toggleOpen}
+            className="transition"
+            aria-label="Ustawienia"
+          >
+            {open ? <X className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
+          </button>
         </div>
+
+        {open && (
+          <div className="mt-2 max-w-md mx-auto transition-all duration-300 overflow-hidden">
+            <label className="flex justify-between px-4 py-2 items-center">
+              Focus (min):
+              <input
+                type="number"
+                value={focusSeconds / 60}
+                onChange={(e) => setFocusSeconds(Number(e.target.value) * 60)}
+                className="border rounded px-2 py-1 w-20 text-right"
+                min={1}
+              />
+            </label>
+            <label className="flex justify-between px-4 py-2 items-center">
+              Break (min):
+              <input
+                type="number"
+                value={breakSeconds / 60}
+                onChange={(e) => setBreakSeconds(Number(e.target.value) * 60)}
+                className="border rounded px-2 py-1 w-20 text-right"
+                min={1}
+              />
+            </label>
+          </div>
+        )}
       </Layout>
     </>
   );

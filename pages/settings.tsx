@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Backpack, Brain, Calendar, ChartColumnBig, Coins, CookingPot, Edit2, ListTodo, Loader2, Logs, Luggage, PlusCircleIcon, Save, ShoppingCart, Sun, Timer, Trash2 } from "lucide-react";
+import { Backpack, Brain, Calendar, ChartColumnBig, Coins, CookingPot, Dumbbell, Edit2, ListTodo, Loader2, Logs, Luggage, PlusCircleIcon, Save, ScrollText, ShoppingCart, Siren, Sun, Timer, Trash2 } from "lucide-react";
 import InstallButton from "../components/InstallButton";
 import { useRouter } from "next/router";
 
@@ -210,13 +210,16 @@ export default function SettingsPage() {
               <span className="text-[10px] sm:text-[11px]">Walizka</span>
             </button>
             <button
-              onClick={() => router.push("/weather")}
-              title="Pogoda"
-              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+              onClick={() => router.push("/notes/safety")}
+              title="Plecak ICE"
+              className="flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
             >
-              <Sun className="w-5 h-5" />
-              <span className="text-[10px] sm:text-[11px]">Pogoda</span>
+              <Siren className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Plecak ICE</span>
             </button>
+            </div>
+            <div className="flex flex-wrap justify-around mb-4 gap-4">
+            
             <button
               onClick={() => router.push("/calendar")}
               title="Kalendarz"
@@ -225,7 +228,30 @@ export default function SettingsPage() {
               <Calendar className="w-5 h-5" />
               <span className="text-[10px] sm:text-[11px]">Kalendarz</span>
             </button>
-            
+            <button
+              onClick={() => router.push("/reports")}
+              title="Pogoda"
+              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <ScrollText className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Pogoda</span>
+            </button>
+            <button
+              onClick={() => router.push("/weather")}
+              title="Pogoda"
+              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Sun className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Pogoda</span>
+            </button>
+            <button
+              onClick={() => router.push("/training")}
+              title="Trening"
+              className=" flex-1 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex flex-col items-center transition-colors"
+            >
+              <Dumbbell className="w-5 h-5" />
+              <span className="text-[10px] sm:text-[11px]">Trening</span>
+            </button>
             </div>
             <div className="flex flex-wrap justify-around mb-4 gap-4">
             <button

@@ -8,12 +8,16 @@ import {
 import { Event } from "../types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
+import { getPolishDate } from "./getPolishDate";
 
 export function expandRepeatingEvents(
   events: Event[],
-  start: Date,
-  end: Date
+  start?: Date,
+  end?: Date
 ): Event[] {
+  const rangeStart = start ?? getPolishDate();
+  const rangeEnd = end ?? getPolishDate();
+
   const result: Event[] = [];
 
   for (const event of events) {
@@ -22,13 +26,13 @@ export function expandRepeatingEvents(
     const repeat = event.repeat || "none";
 
     if (repeat === "none") {
-      if (originalEnd >= start && originalStart <= end) {
+      if (originalEnd >= rangeStart && originalStart <= rangeEnd) {
         result.push(event);
       }
     } else {
       let currentStart = new Date(originalStart);
 
-      while (currentStart < start) {
+      while (currentStart < rangeStart) {
         currentStart =
           repeat === "weekly"
             ? addDays(currentStart, 7)
@@ -39,7 +43,7 @@ export function expandRepeatingEvents(
             : addDays(currentStart, 1);
       }
 
-      while (currentStart <= end) {
+      while (currentStart <= rangeEnd) {
         const duration = differenceInCalendarDays(originalEnd, originalStart);
         const instanceStart = new Date(currentStart);
         const instanceEnd = addDays(instanceStart, duration);
@@ -94,9 +98,26 @@ export function useEvents(
     setLoading(false);
   };
 
+  const deleteEvent = async (eventId: string) => {
+    const originalId = eventId.split("_")[0];
+
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", originalId);
+
+    if (!error) {
+      // Optimistically remove from local state
+      setEvents((prev) => prev.filter((e) => !e.id.startsWith(originalId)));
+    } else {
+      console.error("Failed to delete event:", error.message);
+    }
+  };
+
   useEffect(() => {
     if (userEmail) fetchEvents();
   }, [supabase, userEmail, rangeStart, rangeEnd]);
 
-  return { events, loading, refetch: fetchEvents };
+  return { events, loading, refetch: fetchEvents, deleteEvent };
 }
+

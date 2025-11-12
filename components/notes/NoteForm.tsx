@@ -90,7 +90,7 @@ export function NoteForm({
       className="space-y-4 bg-card p-4 rounded-xl shadow max-w-lg"
     >
       <div>
-        <label htmlFor="title">Tytuł:</label>
+        <label className="block text-sm font-medium" htmlFor="title">Tytuł:</label>
         <input
           id="title"
           ref={titleRef}
@@ -102,7 +102,7 @@ export function NoteForm({
       </div>
 
       <div>
-        <label htmlFor="desc">Treść:</label>
+        <label className="block text-sm font-medium" htmlFor="desc">Treść:</label>
         <textarea
           id="desc"
           ref={itemsRef}
@@ -113,7 +113,7 @@ export function NoteForm({
       </div>
 
       <div className="flex gap-2 items-center">
-        <span className="text-sm text-gray-600">Kolor:</span>
+        <span className="block text-sm font-medium">Kolor:</span>
         {tailwindColors.map((color) => (
           <button
             key={color}
@@ -159,7 +159,7 @@ export function NoteForm({
           </button>
         )}
 
-        {loading && <Loader2 className="animate-spin w-6 h-6 text-gray-500" />}
+        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
       </div>
     </form>
   );

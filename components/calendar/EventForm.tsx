@@ -15,7 +15,7 @@ interface EventsFormProps {
 }
 
 export default function EventsForm({
-  userEmail,
+  userEmail = "",
   initialEvent = null,
   onEventsChange,
   onCancel,
@@ -131,7 +131,7 @@ export default function EventsForm({
       className="space-y-4 bg-card p-4 rounded-xl shadow"
     >
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="title" className="block text-sm font-medium">
           Tytuł:
         </label>
         <input
@@ -145,7 +145,7 @@ export default function EventsForm({
       </div>
 
       <div>
-        <label htmlFor="desc" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="desc" className="block text-sm font-medium">
           Opis:
         </label>
         <textarea
@@ -158,7 +158,7 @@ export default function EventsForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="start" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="start" className="block text-sm font-medium">
             Początek:
           </label>
           <input
@@ -171,7 +171,7 @@ export default function EventsForm({
           />
         </div>
         <div>
-          <label htmlFor="end" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="end" className="block text-sm font-medium">
             Koniec:
           </label>
           <input
@@ -187,7 +187,7 @@ export default function EventsForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="place" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="place" className="block text-sm font-medium">
             Miejsce:
           </label>
           <input
@@ -199,7 +199,7 @@ export default function EventsForm({
           />
         </div>
         <div>
-          <label htmlFor="share" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="share" className="block text-sm font-medium">
             Udostępnij (email):
           </label>
           <select
@@ -219,7 +219,7 @@ export default function EventsForm({
       </div>
 
       <div>
-        <label htmlFor="repeat" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="repeat" className="block text-sm font-medium">
           Powtarzaj:
         </label>
         <select
@@ -254,8 +254,7 @@ export default function EventsForm({
         </button>
 
         <label className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 cursor-pointer">
-          
-          Importuj .ics
+          .ics
           <Upload className="w-5 h-5" />
           <input
             type="file"
@@ -273,7 +272,7 @@ export default function EventsForm({
             Anuluj
           </button>
         )}
-        {loading && <Loader2 className="animate-spin w-6 h-6 text-gray-500" />}
+        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
       </div>
     </form>
   );

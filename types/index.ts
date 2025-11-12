@@ -131,3 +131,23 @@ export interface ShoppingList {
 }
 
 export type RecipeInsert = Omit<Recipe, "id" | "created_at">;
+
+export interface ReportTask {
+  zadanie: string;
+  data: string;
+  osoba: string;
+}
+
+export interface Report {
+  id: string;
+  user_email: string;
+  topic: string;
+  date: string;
+  agenda: string[];
+  participants: string[];
+  tasks: ReportTask[];
+  notes: string;
+  inserted_at: string;
+  updated_at: string;
+}
+

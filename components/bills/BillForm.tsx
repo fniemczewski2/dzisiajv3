@@ -81,7 +81,7 @@ export function BillForm({
       className="space-y-2 bg-card p-4 rounded-xl shadow max-w-md"
     >
       <div>
-        <label htmlFor="amount">Kwota:</label>
+        <label className="block text-sm font-medium" htmlFor="amount">Kwota:</label>
         <input
           id="amount"
           type="number"
@@ -95,7 +95,7 @@ export function BillForm({
       </div>
 
       <div>
-        <label htmlFor="description">Opis:</label>
+        <label className="block text-sm font-medium" htmlFor="description">Opis:</label>
         <textarea
           id="description"
           placeholder="Opis"
@@ -106,7 +106,7 @@ export function BillForm({
       </div>
 
       <div>
-        <label htmlFor="date">Data:</label>
+        <label className="block text-sm font-medium" htmlFor="date">Data:</label>
         <input
           id="date"
           type="date"
@@ -125,7 +125,7 @@ export function BillForm({
           onChange={() => setIncludeInBudget(!includeInBudget)}
           className="h-4 w-4"
         />
-        <label htmlFor="includeInBudget" className="select-none">
+        <label className="block text-sm font-medium select-none" htmlFor="includeInBudget">
           Planowany wydatek
         </label>
       </div>
@@ -156,7 +156,7 @@ export function BillForm({
             Anuluj
           </button>
         )}
-        {loading && <Loader2 className="animate-spin w-6 h-6 text-gray-500" />}
+        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
       </div>
     </form>
   );

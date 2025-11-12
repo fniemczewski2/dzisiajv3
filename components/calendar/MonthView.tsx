@@ -13,6 +13,7 @@ import {
   min,
   differenceInCalendarDays,
   format,
+  endOfDay,
 } from "date-fns";
 import CalendarCell from "./NewCalendarCell";
 import { useCalendarData } from "../../hooks/useCalendar";
@@ -66,18 +67,27 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
 
       {weeks.map((week, wIdx) => {
         const weekStart = week[0];
-        const weekEnd = week[6];
+        const weekEnd = endOfDay(week[6]);
 
-        const eventsThisWeek = events
-          .filter((event) => {
-            const start = parseISO(event.start_time);
-            const end = parseISO(event.end_time);
-            return !isBefore(end, weekStart) && !isAfter(start, weekEnd);
-          })
-          .sort((a, b) => a.start_time.localeCompare(b.start_time));
+        const eventsThisWeek = events.filter((event) => {
+          const start = parseISO(event.start_time);
+          const end = parseISO(event.end_time);
+          return !(isBefore(end, weekStart) || isAfter(start, weekEnd));
+        });
 
-        const rowOccupancy: boolean[][] = Array.from({ length: 3 }, () => Array(7).fill(false));
+        const sortedEvents = [...eventsThisWeek].sort((a, b) => {
+          const aStart = parseISO(a.start_time);
+          const aEnd = parseISO(a.end_time);
+          const bStart = parseISO(b.start_time);
+          const bEnd = parseISO(b.end_time);
 
+          const aSpan = differenceInCalendarDays(min([aEnd, weekEnd]), max([aStart, weekStart])) + 1;
+          const bSpan = differenceInCalendarDays(min([bEnd, weekEnd]), max([bStart, weekStart])) + 1;
+
+          return bSpan - aSpan;
+        });
+
+        const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => Array(3).fill(false));
         const limitedEvents: {
           event: Event;
           start: Date;
@@ -86,10 +96,9 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
           span: number;
           row: number;
         }[] = [];
-
         const overflowCounts: number[] = Array(7).fill(0);
 
-        for (const event of eventsThisWeek) {
+        for (const event of sortedEvents) {
           const start = parseISO(event.start_time);
           const end = parseISO(event.end_time);
 
@@ -105,15 +114,16 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
             let canPlace = true;
             for (let i = 0; i < span; i++) {
               const col = colIndex + i;
-              if (col > 6 || rowOccupancy[row][col]) {
+              if (col > 6 || colOccupancy[col][row]) {
                 canPlace = false;
                 break;
               }
             }
+
             if (canPlace) {
               for (let i = 0; i < span; i++) {
                 const col = colIndex + i;
-                if (col <= 6) rowOccupancy[row][col] = true;
+                if (col <= 6) colOccupancy[col][row] = true;
               }
               limitedEvents.push({ event, start: segStart, end: segEnd, col: colIndex, span, row });
               placed = true;
