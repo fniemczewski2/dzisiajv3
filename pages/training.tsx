@@ -68,7 +68,8 @@ export default function TrainingPage() {
             showControls={true}
           />
           <div className="flex flex-wrap justify-between gap-2 p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow">
-            <h2 >Ćwiczenia: </h2>
+            <div className="flex w-full justify-between">
+            <h2>Ćwiczenia: </h2>
             <label className="text-sm">
               <input
                 type="number"
@@ -80,6 +81,8 @@ export default function TrainingPage() {
               />
               sekund
             </label>
+            </div>
+            <div className="flex w-full items-center justify-between">
             <h2>Przerwy: </h2>
             <label className="text-sm">
               <input
@@ -92,7 +95,8 @@ export default function TrainingPage() {
               />
               sekund
             </label>
-            <div className="w-full flex items-center gap-2 justify-between">
+            </div>
+            <div className="w-full flex items-center justify-between">
             <h2>Powtórzenia: </h2>
             <div className="flex items-center gap-1">
             <label className="text-sm">
@@ -120,6 +124,7 @@ export default function TrainingPage() {
             </label>
             </div>
             </div>
+            <div className="w-full flex items-center justify-between">
             <h2>Długa przerwa: </h2>
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -132,6 +137,7 @@ export default function TrainingPage() {
                 />
                 sekund
               </label>
+            </div>
           </div>
         </div>
       </Layout>
