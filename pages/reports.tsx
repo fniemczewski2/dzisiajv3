@@ -10,7 +10,7 @@ import { Report } from "../types";
 
 export default function ReportsPage() {
   const session = useSession();
-  const userEmail = session?.user?.email ?? "f.niemczewski2@gmail.com";
+  const userEmail = session?.user?.email ?? "";
   const { reports, loading, addReport, updateReport, deleteReport, fetchReports } = useReports(userEmail);
 
   const [editing, setEditing] = useState<Report | undefined>(undefined);
