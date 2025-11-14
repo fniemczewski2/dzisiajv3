@@ -1,6 +1,7 @@
 // hooks/useDailyHabits.tsx
 import { useState, useEffect, useCallback } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { getAppDate } from "../lib/dateUtils";
 
 export type HabitKey =
   | "pills"
@@ -47,15 +48,7 @@ export function useDailyHabits(date?: string) {
   const supabase = useSupabaseClient();
   const userEmail = session?.user?.email ?? "f.niemczewski2@gmail.com";
 
-  const today = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(new Date())
-    .replace(/\./g, "-")
-    .replace(/\s/g, "");
+  const today = getAppDate();
 
   const targetDate = date ?? today;
 

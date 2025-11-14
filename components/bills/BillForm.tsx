@@ -25,13 +25,7 @@ export function BillForm({
   const [amount, setAmount] = useState("0");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(() => {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Europe/Warsaw",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    return formatter.format(new Date()); 
+    return initial?.date || getAppDate();
   });
   const [includeInBudget, setIncludeInBudget] = useState(false);
   const [loading, setLoading] = useState(false);

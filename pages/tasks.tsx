@@ -25,7 +25,7 @@ import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
 import Reminders from "../components/tasks/Reminders";
 import { useRouter } from "next/router";
-import { getAppDateTime } from "../lib/dateUtils";
+import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -64,15 +64,7 @@ export default function TasksPage() {
   // Compute today’s stats
   useEffect(() => {
     if (!session) return;
-    const today = new Intl.DateTimeFormat("pl-PL", {
-      timeZone: "Europe/Warsaw",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .format(new Date())
-    .replace(/\./g, "-") 
-    .replace(/\s/g, ""); 
+    const today = getAppDate();
     (async () => {
       const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
         supabase

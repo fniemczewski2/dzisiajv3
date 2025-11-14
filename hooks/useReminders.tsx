@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import { Reminder } from "../types";
-import { getAppDateTime } from "../lib/dateUtils";
+import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 
 export function useReminders() {
   const supabase = useSupabaseClient();
   const user = useUser();
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const today = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-  .format(new Date())
-  .replace(/\./g, "-") 
-  .replace(/\s/g, ""); 
+  const today = getAppDate();
 
   useEffect(() => {
     if (!user) return;
