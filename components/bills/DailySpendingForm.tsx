@@ -4,6 +4,7 @@ import { Coins, Loader2, Save, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
+import { getAppDate } from "../../lib/dateUtils";
 
 interface DailySpendingFormProps {
   userEmail: string;
@@ -14,15 +15,7 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
   userEmail,
   date,
 }) => {
-  const today = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(new Date())
-    .replace(/\./g, "-")
-    .replace(/\s/g, "");
+  const today = getAppDate();
 
   const targetDate = date ?? today;
   const { habits, loading, updateSpending } = useDailyHabits(targetDate);
