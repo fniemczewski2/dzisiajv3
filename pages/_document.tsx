@@ -44,8 +44,8 @@ export default class MyDocument extends Document {
           <link rel="alternate" hrefLang="x-default" href="https://dzisiajv3.vercel.app" />
 
           {/* DNS Prefetch for Performance */}
-          <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-          <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
