@@ -49,3 +49,5 @@ yarn.lock
 *.sublime-project
 
 .next/trace
+public/workbox-4754cb34.js
+public/sw.js
