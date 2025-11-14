@@ -5,7 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { useSettings } from "../../hooks/useSettings";
-import { getPolishDateString } from "../../hooks/getPolishDate";
+import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 
 interface TaskFormProps {
   userEmail: string;
@@ -23,7 +23,7 @@ export default function TaskForm({
   const { settings } = useSettings(userEmail);
   const supabase = useSupabaseClient();
   const isEdit = !!initialTask;
-  const todayIso = getPolishDateString();
+  const todayIso = getAppDate();
   const titleRef = useRef<HTMLInputElement>(null);
   const forUserRef = useRef<HTMLSelectElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);

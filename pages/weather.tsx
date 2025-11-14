@@ -21,7 +21,7 @@ import {
   Sunrise,
   Sunset,
 } from "lucide-react";
-import { getPolishDate } from "../hooks/getPolishDate";
+import { getAppDateTime } from "../lib/dateUtils";
 
 function WeatherIcon({ code }: { code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500" />;
@@ -303,7 +303,7 @@ export default function WeatherPage() {
                 </thead>
                 <tbody className="text-gray-700">
                   {(() => {
-                    const now = getPolishDate();
+                    const now = getAppDateTime();
                     const currentISO = now.toISOString();
                     const start = forecast.hourly.time.findIndex((t: string) => t >= currentISO);
                     return forecast.hourly.time.slice(start, start + 24).map((time: string, i: number) => (

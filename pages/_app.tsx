@@ -5,6 +5,7 @@ import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { getBrowserSupabaseClient } from '../lib/supabaseClient';
 import AuthGuard from '../components/AuthGuard';
 import "../styles/globals.css";
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 type AuthedComponent = AppProps['Component'] & { auth?: boolean };
 
@@ -16,18 +17,20 @@ export default function MyApp({
   const needsAuth = Component?.auth === true;
 
   return (
-    <SessionContextProvider
-      supabaseClient={supabase}
-      initialSession={(pageProps as any)?.initialSession}
-    >
-      {needsAuth ? (
-        <AuthGuard>
+    <ErrorBoundary>
+      <SessionContextProvider
+        supabaseClient={supabase}
+        initialSession={(pageProps as any)?.initialSession}
+      >
+        {needsAuth ? (
+          <AuthGuard>
+            <Component {...pageProps} />
+          </AuthGuard>
+        ) : (
           <Component {...pageProps} />
-        </AuthGuard>
-      ) : (
-        <Component {...pageProps} />
-      )}
-    </SessionContextProvider>
+        )}
+      </SessionContextProvider>
+    </ErrorBoundary>
   );
 }
 

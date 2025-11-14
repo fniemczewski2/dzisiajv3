@@ -1,0 +1,29 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "localStorage",
+        "message": "localStorage is not supported in Claude.ai artifacts. Use React state (useState/useReducer) or window.storage API instead."
+      },
+      {
+        "name": "sessionStorage",
+        "message": "sessionStorage is not supported in Claude.ai artifacts. Use React state instead."
+      }
+    ],
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "window",
+        "property": "localStorage",
+        "message": "localStorage is not supported in Claude.ai artifacts. Use React state instead."
+      },
+      {
+        "object": "window",
+        "property": "sessionStorage",
+        "message": "sessionStorage is not supported in Claude.ai artifacts. Use React state instead."
+      }
+    ]
+  }
+}

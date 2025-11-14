@@ -4,7 +4,7 @@ import React, { useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { Bill } from "../../types";
-import { getPolishDateString } from "../../hooks/getPolishDate";
+import { getAppDateTime } from "../../lib/dateUtils";
 
 interface BillFormProps {
   userEmail: string;
@@ -70,7 +70,7 @@ export function BillForm({
       // reset
       setAmount("0");
       setDescription("");
-      setDate(getPolishDateString());
+      setDate(getAppDateTime());
       setIncludeInBudget(false);
     }
   };

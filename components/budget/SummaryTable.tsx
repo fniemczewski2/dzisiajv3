@@ -1,18 +1,19 @@
+// components/budget/SummaryTable.tsx
 import React from "react";
 
-interface Props {
-  incomes: Record<number, number>;
-  doneExpenses: Record<number, number>;
-  plannedExpenses: Record<number, number>;
-  monthNames: string[];
+interface MonthData {
+  income: number;
+  doneExpense: number;
+  plannedExpense: number;
 }
 
-export default function SummaryTable({
-  incomes,
-  doneExpenses,
-  plannedExpenses,
-  monthNames,
-}: Props) {
+interface Props {
+  data: Record<number, MonthData>;
+  monthNames: string[];
+  loadedMonths: Set<number>;
+}
+
+export default function SummaryTable({ data, monthNames, loadedMonths }: Props) {
   return (
     <>
       <h3 className="font-bold mb-2">Budżet roczny</h3>
@@ -30,9 +31,22 @@ export default function SummaryTable({
           <tbody className="text-gray-700">
             {Array.from({ length: 12 }, (_, i) => {
               const m = i + 1;
-              const income = incomes[m] ?? 0;
-              const done = doneExpenses[m] ?? 0;
-              const planned = plannedExpenses[m] ?? 0;
+              const monthData = data[m];
+
+              if (!loadedMonths.has(m)) {
+                return (
+                  <tr key={m} className={i % 2 === 0 ? "bg-gray-50" : ""}>
+                    <td className="px-2 py-1">{monthNames[m - 1]}</td>
+                    <td colSpan={4} className="text-center text-gray-400 px-2 py-1">
+                      --
+                    </td>
+                  </tr>
+                );
+              }
+
+              const income = monthData?.income ?? 0;
+              const done = monthData?.doneExpense ?? 0;
+              const planned = monthData?.plannedExpense ?? 0;
               const remaining = income - done - planned;
 
               return (
@@ -41,7 +55,7 @@ export default function SummaryTable({
                   <td className="text-right px-2 py-1">{income.toFixed(2)}</td>
                   <td className="text-right px-2 py-1">{done.toFixed(2)}</td>
                   <td className="text-right px-2 py-1">{planned.toFixed(2)}</td>
-                  <td className={"text-right px-2 py-1 font-medium"}>
+                  <td className="text-right px-2 py-1 font-medium">
                     {remaining.toFixed(2)}
                   </td>
                 </tr>

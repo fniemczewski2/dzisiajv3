@@ -3,20 +3,21 @@ import {
   addMonths,
   addYears,
   differenceInCalendarDays,
+  isSameDay,
   parseISO,
 } from "date-fns";
 import { Event } from "../types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
-import { getPolishDate } from "./getPolishDate";
+import { getAppDate } from "../lib/dateUtils";
 
 export function expandRepeatingEvents(
   events: Event[],
   start?: Date,
   end?: Date
 ): Event[] {
-  const rangeStart = start ?? getPolishDate();
-  const rangeEnd = end ?? getPolishDate();
+  const rangeStart = start ?? getAppDate();
+  const rangeEnd = end ?? getAppDate();
 
   const result: Event[] = [];
 
@@ -121,3 +122,9 @@ export function useEvents(
   return { events, loading, refetch: fetchEvents, deleteEvent };
 }
 
+export const getEventsForDay = (events: Event[], day: Date): Event[] => {
+  return events.filter((event) => {
+    const eventDate = parseISO(event.start_time);
+    return isSameDay(eventDate, day);
+  });
+};

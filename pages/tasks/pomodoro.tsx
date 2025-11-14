@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -15,7 +15,7 @@ export default function PomodoroPage() {
   const [breakSeconds, setBreakSeconds] = useState(DEFAULT_BREAK);
   const [open, setOpen] = useState(false);
 
-  const [secondsLeft, setSecondsLeft] = useState(focusSeconds);
+  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_FOCUS);
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
@@ -32,21 +32,35 @@ export default function PomodoroPage() {
 
   const phaseIndex = isBreak ? 1 : 0;
 
+  // Reset timer when focus duration changes (only when stopped and in focus mode)
   useEffect(() => {
     if (!running && !isBreak) {
       setSecondsLeft(focusSeconds);
     }
-  }, [focusSeconds]);
+  }, [focusSeconds, running, isBreak]);
 
+  // Countdown interval
   useEffect(() => {
     if (running && !paused) {
       intervalRef.current = setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
-    return () => clearInterval(intervalRef.current as NodeJS.Timeout);
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [running, paused]);
 
+  // Handle timer completion
   useEffect(() => {
     if (secondsLeft <= 0 && running) {
       setRunning(false);
@@ -60,7 +74,7 @@ export default function PomodoroPage() {
 
   const controls: TimerControls = {
     start: () => {
-      setSecondsLeft(isBreak ? breakSeconds : focusSeconds);
+      setSecondsLeft((s) => s > 0 ? s : (isBreak ? breakSeconds : focusSeconds));
       setRunning(true);
       setPaused(false);
     },
@@ -94,7 +108,7 @@ export default function PomodoroPage() {
       .toString()
       .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     const pathParts = router.pathname.split("/").filter(Boolean);
     if (pathParts.length > 1) {
       const parentPath = "/" + pathParts.slice(0, -1).join("/");
@@ -102,7 +116,7 @@ export default function PomodoroPage() {
     } else {
       router.push("/");
     }
-  };
+  }, [router]);
 
   return (
     <>
@@ -114,6 +128,7 @@ export default function PomodoroPage() {
           <button
             onClick={handleBack}
             className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+            aria-label="Wróć"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
