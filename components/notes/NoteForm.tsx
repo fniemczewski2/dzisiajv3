@@ -5,6 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { PlusCircleIcon, Loader2, Save } from "lucide-react";
 import clsx from "clsx";
 import { Note } from "../../types";
+import LoadingState from "../LoadingState";
 
 interface NoteFormProps {
   userEmail: string;
@@ -159,7 +160,7 @@ export default function NoteForm({
           </button>
         )}
 
-        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
+        {loading && <LoadingState />}
       </div>
     </form>
   );

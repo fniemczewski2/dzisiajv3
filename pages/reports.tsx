@@ -7,6 +7,7 @@ import { useReports } from "../hooks/useReports";
 import ReportForm from "../components/reports/ReportForm";
 import { generateReportPDF } from "../lib/pdfGenerator";
 import { Report } from "../types";
+import LoadingState from "../components/LoadingState";
 
 export default function ReportsPage() {
   const session = useSession();
@@ -71,9 +72,7 @@ export default function ReportsPage() {
         </div>
 
         {(!session || loading) && (
-          <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-          </div>
+            <LoadingState />
         )}
 
         {showForm && (

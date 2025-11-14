@@ -1,5 +1,6 @@
 // components/budget/BudgetControls.tsx
 import { Edit2, Save, X, Loader2 } from "lucide-react";
+import LoadingState from "../LoadingState";
 
 interface Props {
   isEditing: boolean;
@@ -28,7 +29,7 @@ export default function BudgetControls({
             title="zapisz"
           >
             {saving ? (
-              <Loader2 className="animate-spin w-5 h-5" />
+              <LoadingState/>
             ) : (
               <Save className="w-5 h-5" />
             )}

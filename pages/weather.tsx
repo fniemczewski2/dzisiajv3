@@ -22,6 +22,7 @@ import {
   Sunset,
 } from "lucide-react";
 import { getAppDateTime } from "../lib/dateUtils";
+import LoadingState from "../components/LoadingState";
 
 function WeatherIcon({ code }: { code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500" />;
@@ -143,9 +144,7 @@ export default function WeatherPage() {
         <h2 className="text-xl mb-4 font-semibold">Pogoda</h2>
 
         {loading ? (
-          <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-          </div>
+            <LoadingState />
         ) : error ? (
           <p className="text-red-600 text-center">{error}</p>
         ) : forecast && air ? (

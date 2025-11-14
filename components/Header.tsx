@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/router";
+import LoadingState from "./LoadingState";
 
 export default function Header() {
   const [loading, setLoading] = useState(true);
@@ -141,7 +142,7 @@ export default function Header() {
               dailyMin != null &&
               dailyMax != null &&
               weatherCode != null && (
-                loading ? <Loader2 className="sm:flex-1 animate-spin w-6 h-6 text-gray-500" /> :
+                loading ? <LoadingState /> :
                 <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-gray-700">
                   <div className={`${airQuality ? 'text-lg' : 'text-xl'} flex items-center font-semibold justify-end space-x-1`}>
                     <WeatherIcon code={weatherCode} />

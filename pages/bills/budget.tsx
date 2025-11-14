@@ -11,6 +11,7 @@ import SummaryTable from "../../components/budget/SummaryTable";
 import { useBudgetData } from "../../hooks/useBudget";
 import { useSession } from "@supabase/auth-helpers-react";
 import { getAppDateTime } from "../../lib/dateUtils";
+import LoadingState from "../../components/LoadingState";
 
 const MONTH_NAMES = [
   "sty",
@@ -115,9 +116,7 @@ export default function BudgetPage() {
         </div>
 
         {loading || !session ? (
-          <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-          </div>
+          <LoadingState />
         ) : (
           <>
             <BudgetControls
