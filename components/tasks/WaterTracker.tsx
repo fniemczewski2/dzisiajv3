@@ -1,66 +1,30 @@
+// components/tasks/WaterTracker.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Droplet, Loader2 } from "lucide-react";
+import { useDailyHabits } from "../../hooks/useDailyHabits";
 
 interface WaterTrackerProps {
-  date?: string; 
+  date?: string;
 }
 
 export default function WaterTracker({ date }: WaterTrackerProps) {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email ?? "";
+  const { habits, loading, updateWater } = useDailyHabits(date);
 
-  const today = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-  .format(new Date())
-  .replace(/\./g, "-") 
-  .replace(/\s/g, ""); 
-  const targetDate = date ?? today; // ← domyślnie today
+  if (!habits) {
+    return (
+      <div className="bg-card rounded-xl flex items-center justify-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
+        <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
+      </div>
+    );
+  }
 
-  const [water, setWater] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const fetchWater = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("water")
-      .select("*")
-      .eq("date", targetDate)
-      .eq("user_name", userEmail)
-      .maybeSingle();
-
-    if (!error && data) {
-      setWater(parseFloat(data.amount));
-    }
-    setLoading(false);
-  }, [supabase, targetDate, userEmail]);
-
-  useEffect(() => {
-    if (userEmail) fetchWater();
-  }, [userEmail, fetchWater]);
-
-  const handleChange = async (val: number) => {
-    setWater(val);
-    await supabase
-      .from("water")
-      .upsert(
-        { date: targetDate, user_name: userEmail, amount: val },
-        { onConflict: "date,user_name" }
-      );
-  };
-
+  const water = habits.water_amount ?? 0;
   const fillPercent = (water / 2) * 100;
 
-  if (!session) {
-    return <Loader2 className="animate-spin w-5 h-5 text-gray-500" />;
-  }
+  const handleChange = (val: number) => {
+    updateWater(val);
+  };
 
   return (
     <div className="bg-card rounded-xl flex flex-row shadow items-center justify-around px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">

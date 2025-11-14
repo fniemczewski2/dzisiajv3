@@ -25,7 +25,7 @@ import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
 import Reminders from "../components/tasks/Reminders";
 import { useRouter } from "next/router";
-import { getPolishDate } from "../hooks/getPolishDate";
+import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -40,7 +40,7 @@ type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 export default function TasksPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
@@ -64,15 +64,7 @@ export default function TasksPage() {
   // Compute today’s stats
   useEffect(() => {
     if (!session) return;
-    const today = new Intl.DateTimeFormat("pl-PL", {
-      timeZone: "Europe/Warsaw",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .format(new Date())
-    .replace(/\./g, "-") 
-    .replace(/\s/g, ""); 
+    const today = getAppDate();
     (async () => {
       const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
         supabase
@@ -104,7 +96,7 @@ export default function TasksPage() {
 
   // Calculate filter date string
   const getFilterDate = (): string | null => {
-    const now = getPolishDate();
+    const now = getAppDateTime();
     switch (dateFilter) {
       case "yesterday":
         return format(addDays(now, -1), "yyyy-MM-dd");

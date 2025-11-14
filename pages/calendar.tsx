@@ -17,11 +17,11 @@ import {
   startOfDay,
 } from "date-fns";
 import type { Event } from "../types";
-import { CalendarHeader } from "../components/calendar/CalendarHeader";
+import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
-import { getPolishDate } from "../hooks/getPolishDate";
+import { getAppDateTime } from "../lib/dateUtils";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <Loader2 className="animate-spin w-5 h-5" />,
@@ -29,7 +29,7 @@ const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
 });
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(getPolishDate());
+  const [currentDate, setCurrentDate] = useState(getAppDateTime());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);

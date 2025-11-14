@@ -11,7 +11,7 @@ interface BillListProps {
   onMarkDone?: (id: string) => void; // nowa funkcja opcjonalna
 }
 
-export function BillList({ bills, onEdit, onDelete, onMarkDone }: BillListProps) {
+export default function BillList({ bills, onEdit, onDelete, onMarkDone }: BillListProps) {
   return (
     <ul className="space-y-4 max-w-2xl mx-auto">
       {bills.map((b) => (

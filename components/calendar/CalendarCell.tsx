@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { isSameDay } from "date-fns";
 import { ListTodo } from "lucide-react";
 import React from "react";
+import { getAppDate } from "../../lib/dateUtils";
 
 interface Props {
   date: Date;
@@ -13,15 +14,7 @@ interface Props {
 }
 
 const CalendarCell: React.FC<Props> = ({ date, currentMonth, tCount, eCount, isMobile, onClick }) => {
-  const today = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-  .format(new Date())
-  .replace(/\./g, "-") 
-  .replace(/\s/g, ""); 
+  const today = getAppDate();
   const isOutside = date.getMonth() !== currentMonth;
   const isToday = isSameDay(date, today);
 

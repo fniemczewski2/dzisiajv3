@@ -3,7 +3,7 @@
 import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 
-export function Droppable({
+export default function Droppable({
   id,
   title,
   children,

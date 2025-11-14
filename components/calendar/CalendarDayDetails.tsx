@@ -1,3 +1,4 @@
+// components/calendar/CalendarDayDetails.tsx
 import React from "react";
 import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -16,7 +17,7 @@ import { Task } from "../../types";
 import { Event } from "../../types";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import WaterTracker from "../tasks/WaterTracker";
-import { DailySpendingForm } from "../bills/DailySpendingForm";
+import DailySpendingForm from "../bills/DailySpendingForm";
 import TaskIcons from "../tasks/TaskIcons";
 import { useEvents } from "../../hooks/useEvents";
 import ICAL from "ical.js";
@@ -49,9 +50,8 @@ export default function CalendarDayDetails({
   onEventsChange,
 }: Props) {
   const supabase = useSupabaseClient();
-
   const session = useSession();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
   const rangeStart = format(startOfMonth(parseISO(selectedDate)), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(parseISO(selectedDate)), "yyyy-MM-dd");
 
@@ -73,13 +73,11 @@ export default function CalendarDayDetails({
       vcalendar.updatePropertyWithValue("method", "PUBLISH");
 
       const vevent = new ICAL.Component("vevent");
-
       const uid = ev.id ? ev.id.replace(/\s+/g, "_") : `evt-${Date.now()}`;
 
       const dtStart = new Date(ev.start_time);
       const dtEnd = new Date(ev.end_time);
 
-      // użyj ICAL.Time.fromJSDate, ustawiając useUTC = true, żeby zapisać DATE-TIME z Z
       const icalStart = ICAL.Time.fromJSDate(dtStart, true);
       const icalEnd = ICAL.Time.fromJSDate(dtEnd, true);
       const icalStamp = ICAL.Time.fromJSDate(new Date(), true);
@@ -89,27 +87,33 @@ export default function CalendarDayDetails({
       vevent.addPropertyWithValue("dtstart", icalStart);
       vevent.addPropertyWithValue("dtend", icalEnd);
 
-      // wymuś VALUE=DATE-TIME by nie traktowano jako all-day
       const propStart = vevent.getFirstProperty("dtstart");
       const propEnd = vevent.getFirstProperty("dtend");
       if (propStart) propStart.setParameter("VALUE", "DATE-TIME");
       if (propEnd) propEnd.setParameter("VALUE", "DATE-TIME");
 
-      if (ev.title) vevent.addPropertyWithValue("summary", escapeICalText(ev.title));
+      if (ev.title)
+        vevent.addPropertyWithValue("summary", escapeICalText(ev.title));
       if (ev.description)
-        vevent.addPropertyWithValue("description", escapeICalText(ev.description));
-      if (ev.place) vevent.addPropertyWithValue("location", escapeICalText(ev.place));
-      if (ev.user_name) vevent.addPropertyWithValue("organizer", `MAILTO:${ev.user_name}`);
+        vevent.addPropertyWithValue(
+          "description",
+          escapeICalText(ev.description)
+        );
+      if (ev.place)
+        vevent.addPropertyWithValue("location", escapeICalText(ev.place));
+      if (ev.user_name)
+        vevent.addPropertyWithValue("organizer", `MAILTO:${ev.user_name}`);
 
       vcalendar.addSubcomponent(vevent);
 
       const icsString = vcalendar.toString();
-      const blob = new Blob([icsString], { type: "text/calendar;charset=utf-8" });
+      const blob = new Blob([icsString], {
+        type: "text/calendar;charset=utf-8",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
 
-      // filename zawiera id wydarzenia dla jednoznaczności
       const datePart = format(parseISO(ev.start_time), "yyyy-MM-dd");
       a.download = `${datePart}_${uid}.ics`;
       document.body.appendChild(a);
@@ -139,9 +143,10 @@ export default function CalendarDayDetails({
       </span>
 
       <div className="flex flex-auto flex-wrap flex-col justify-center">
+        {/* All three components now use the same hook internally */}
         <TaskIcons date={selectedDate} />
         <WaterTracker date={selectedDate} />
-        <DailySpendingForm userEmail={userEmail} date={selectedDate} />
+        <DailySpendingForm date={selectedDate} />
       </div>
 
       {events.length > 0 && (
@@ -186,9 +191,9 @@ export default function CalendarDayDetails({
                   )}
                 </div>
                 {event.description && (
-                <p className="text-sm text-gray-800 bg-gray-100 rounded p-2">
-                  {event.description}
-                </p>
+                  <p className="text-sm text-gray-800 bg-gray-100 rounded p-2">
+                    {event.description}
+                  </p>
                 )}
                 <div className="flex justify-right mt-2 min-w-[120px] w-full justify-end items-center">
                   {onEdit && (
@@ -198,7 +203,9 @@ export default function CalendarDayDetails({
                       title="Edytuj"
                     >
                       <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                      <span className="text-[10px] sm:text-[11px]">Edytuj</span>
+                      <span className="text-[10px] sm:text-[11px]">
+                        Edytuj
+                      </span>
                     </button>
                   )}
 
@@ -221,7 +228,6 @@ export default function CalendarDayDetails({
                   </button>
                 </div>
               </div>
-              
             </div>
           ))}
         </section>
@@ -259,7 +265,9 @@ export default function CalendarDayDetails({
                     {t.priority}
                   </span>
 
-                  <h3 className="text-lg font-semibold break-words">{t.title}</h3>
+                  <h3 className="text-lg font-semibold break-words">
+                    {t.title}
+                  </h3>
                   {t.status === "done" ? (
                     <Check className="w-5 h-5 text-green-600" />
                   ) : (

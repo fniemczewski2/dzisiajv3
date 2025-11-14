@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, Plus, PlusCircleIcon, Save } from "lucide-react";
 import { ReportTask, Report } from "../../types";
-import { getPolishDateString } from "../../hooks/getPolishDate";
+import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 
 interface ReportFormProps {
   userEmail: string;
@@ -13,7 +13,7 @@ interface ReportFormProps {
   initial?: Report;
 }
 
-export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFormProps) {
+export default function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFormProps) {
   const supabase = useSupabaseClient();
   const isEdit = !!initial;
   const [loading, setLoading] = useState(false);
@@ -29,14 +29,14 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
   useEffect(() => {
     if (initial) {
       topicRef.current!.value = initial.topic || "";
-      dateRef.current!.value = initial.date || getPolishDateString();
+      dateRef.current!.value = initial.date || getAppDate();
       notesRef.current!.value = initial.notes || "";
       setAgenda(initial.agenda?.length ? initial.agenda : [""]);
       setParticipants(initial.participants?.length ? initial.participants : [""]);
       setTasks(initial.tasks?.length ? initial.tasks : [{ zadanie: "", data: "", osoba: "" }]);
     } else {
       topicRef.current!.value = "";
-      dateRef.current!.value = getPolishDateString();
+      dateRef.current!.value = getAppDate();
       notesRef.current!.value = "";
       setAgenda([""]);
       setParticipants([""]);
@@ -51,7 +51,7 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
     const payload = {
       user_email: userEmail,
       topic: topicRef.current?.value.trim() || "",
-      date: dateRef.current?.value || getPolishDateString(),
+      date: dateRef.current?.value || getAppDateTime(),
       agenda: agenda.filter(Boolean),
       participants: participants.filter(Boolean),
       tasks: tasks.map((t) => ({
@@ -73,7 +73,7 @@ export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFor
 
     if (!isEdit) {
       topicRef.current!.value = "";
-      dateRef.current!.value = getPolishDateString();
+      dateRef.current!.value = getAppDate();
       notesRef.current!.value = "";
       setAgenda([""]);
       setParticipants([""]);
