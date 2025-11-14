@@ -19,7 +19,7 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
     );
   }
 
-  const water = habits.water_amount;
+  const water = habits.water_amount ?? 0;
   const fillPercent = (water / 2) * 100;
 
   const handleChange = (val: number) => {
