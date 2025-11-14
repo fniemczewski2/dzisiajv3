@@ -21,7 +21,7 @@ import Droppable from "../../components/eisenhower/Droppable";
 import DraggableTask  from "../../components/eisenhower/DraggableTask";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
-import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
+import { getAppDateTime } from "../../lib/dateUtils";
 
 const CATEGORIES = [
   "Pilne i ważne",
