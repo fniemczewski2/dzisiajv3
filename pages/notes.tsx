@@ -5,8 +5,8 @@ import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Backpack, Luggage, Loader2, PlusCircleIcon, CookingPot, Plane } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
-import { NoteForm } from "../components/notes/NoteForm";
-import { NoteList } from "../components/notes/NoteList";
+import NoteForm from "../components/notes/NoteForm";
+import NoteList from "../components/notes/NoteList";
 import { Note } from "../types";
 import { useRouter } from "next/router";
 

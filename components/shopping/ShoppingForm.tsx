@@ -13,7 +13,7 @@ interface ShoppingFormProps {
   initial?: ShoppingList;
 }
 
-export function ShoppingForm({
+export default function ShoppingForm({
   userEmail,
   onChange,
   onCancel,

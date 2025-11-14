@@ -5,8 +5,8 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, ShoppingCart } from "lucide-react";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { ShoppingList } from "../../types";
-import { ShoppingForm } from "../../components/shopping/ShoppingForm";
-import { ShoppingListView } from "../../components/shopping/ShoppingListView";
+import ShoppingForm from "../../components/shopping/ShoppingForm";
+import ShoppingListView from "../../components/shopping/ShoppingListView";
 
 export default function ShoppingPage() {
   const session = useSession();
@@ -63,11 +63,11 @@ export default function ShoppingPage() {
           )}
         </div>
 
-        {/* {(!session || loading) && (
+        {(!session || loading) && (
           <div className="min-h-[200px] flex items-center justify-center">
             <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
           </div>
-        )} */}
+        )} 
         {showForm && (
           <div className="mb-6">
             <ShoppingForm

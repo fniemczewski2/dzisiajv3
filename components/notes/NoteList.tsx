@@ -10,7 +10,7 @@ interface NoteListProps {
   onDelete: (id: string) => void;
 }
 
-export function NoteList({ notes, onEdit, onDelete }: NoteListProps) {
+export default function NoteList({ notes, onEdit, onDelete }: NoteListProps) {
   return (
     <ul className="flex flex-wrap justify-center">
       {notes.map((n) => (

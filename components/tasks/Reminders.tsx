@@ -10,21 +10,14 @@ import {
   List,
 } from "lucide-react";
 import { useReminders } from "../../hooks/useReminders";
+import { getAppDate } from "../../lib/dateUtils";
 
 export default function Reminders() {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  const today = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-  .format(new Date())
-  .replace(/\./g, "-") 
-  .replace(/\s/g, ""); 
+  const today = getAppDate()
 
   const {
     visibleReminders,

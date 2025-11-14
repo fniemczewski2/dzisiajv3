@@ -11,7 +11,7 @@ interface ShoppingListViewProps {
   onUpdate: (id: string, updates: Partial<ShoppingList>) => void;
 }
 
-export function ShoppingListView({
+export default function ShoppingListView({
   userEmail,
   lists,
   onEdit,

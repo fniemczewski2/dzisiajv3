@@ -8,7 +8,6 @@ import Document, {
 } from 'next/document';
 
 export default class MyDocument extends Document {
-  // (opcjonalnie) zostaw tę metodę — część libów wciąż na niej polega
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
     const initialProps = await Document.getInitialProps(ctx);
     return { ...initialProps };

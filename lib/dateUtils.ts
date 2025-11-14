@@ -16,15 +16,27 @@ export const getMonthDays = (year: number, month: number): Date[] => {
   return days;
 };
 
-export const getEventsForDay = (events: Event[], day: Date): Event[] => {
-  return events.filter((event) => {
-    const eventDate = parseISO(event.start_time);
-    return isSameDay(eventDate, day);
-  });
-};
-
 export const sameDay = (d1: Date, d2: Date): boolean =>
   d1.toDateString() === d2.toDateString();
 
 export const daysBetween = (start: Date, end: Date): number =>
   Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1;
+
+export const getAppDate = () => {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+  }).format(new Date());
+};
+
+export const getAppDateTime = () => {
+  const formatter = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  return new Date(formatter.format(new Date()).replace(" ", "T"));
+};
