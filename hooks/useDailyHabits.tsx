@@ -13,7 +13,7 @@ export type HabitKey =
   | "duolingo";
 
 export interface DailyHabits {
-  date: string;
+  date: Date;
   user_name: string;
   pills: boolean;
   bath: boolean;
@@ -27,8 +27,8 @@ export interface DailyHabits {
   daily_spending: number;
 }
 
-const getDefaultHabits = (date: string, userEmail: string): DailyHabits => ({
-  date,
+const getDefaultHabits = (date: string, userEmail: string ): DailyHabits => ({
+  date: new Date(date),
   user_name: userEmail,
   pills: false,
   bath: false,
@@ -45,7 +45,7 @@ const getDefaultHabits = (date: string, userEmail: string): DailyHabits => ({
 export function useDailyHabits(date?: string) {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email ?? "f.niemczewski2@gmail.com";
 
   const today = new Intl.DateTimeFormat("pl-PL", {
     timeZone: "Europe/Warsaw",
@@ -64,7 +64,7 @@ export function useDailyHabits(date?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchHabits = useCallback(async () => {
-    if (!userEmail) return;
+    //if (!userEmail) return;
 
     setLoading(true);
     setError(null);
