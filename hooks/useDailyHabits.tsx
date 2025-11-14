@@ -38,8 +38,8 @@ const getDefaultHabits = (date: string, userEmail: string): DailyHabits => ({
   housework: false,
   plants: false,
   duolingo: false,
-  water_amount: 0,
-  daily_spending: 0,
+  water_amount: 0, // Default to 0, not null
+  daily_spending: 0, // Default to 0, not null
 });
 
 export function useDailyHabits(date?: string) {
@@ -79,7 +79,16 @@ export function useDailyHabits(date?: string) {
 
       if (error) throw error;
 
-      setHabits(data || getDefaultHabits(targetDate, userEmail));
+      // ✅ FIX: Handle null values from database
+      if (data) {
+        setHabits({
+          ...data,
+          water_amount: data.water_amount ?? 0,
+          daily_spending: data.daily_spending ?? 0,
+        });
+      } else {
+        setHabits(getDefaultHabits(targetDate, userEmail));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
       setHabits(getDefaultHabits(targetDate, userEmail));
@@ -102,19 +111,22 @@ export function useDailyHabits(date?: string) {
       setHabits((prev) => (prev ? { ...prev, [key]: newValue } : prev));
 
       try {
+        // ✅ FIX: Always include water_amount and daily_spending
+        const payload = {
+          date: targetDate,
+          user_name: userEmail,
+          [key]: newValue,
+          water_amount: habits.water_amount ?? 0,
+          daily_spending: habits.daily_spending ?? 0,
+        };
+
         const { error } = await supabase
           .from("daily_habits")
-          .upsert(
-            {
-              date: targetDate,
-              user_name: userEmail,
-              [key]: newValue,
-            },
-            { onConflict: "date,user_name" }
-          );
+          .upsert(payload, { onConflict: "date,user_name" });
 
         if (error) throw error;
       } catch (err) {
+        console.error('Toggle habit error:', err);
         // Rollback on error
         setHabits((prev) => (prev ? { ...prev, [key]: !newValue } : prev));
         setError(err instanceof Error ? err.message : "Failed to update habit");
@@ -127,23 +139,27 @@ export function useDailyHabits(date?: string) {
     async (amount: number) => {
       if (!habits) return;
 
+      // Ensure amount is a valid number
+      const validAmount = isNaN(amount) ? 0 : amount;
+
       // Optimistic update
-      setHabits((prev) => (prev ? { ...prev, water_amount: amount } : prev));
+      setHabits((prev) => (prev ? { ...prev, water_amount: validAmount } : prev));
 
       try {
+        const payload = {
+          date: targetDate,
+          user_name: userEmail,
+          water_amount: validAmount,
+          daily_spending: habits.daily_spending ?? 0,
+        };
+
         const { error } = await supabase
           .from("daily_habits")
-          .upsert(
-            {
-              date: targetDate,
-              user_name: userEmail,
-              water_amount: amount,
-            },
-            { onConflict: "date,user_name" }
-          );
+          .upsert(payload, { onConflict: "date,user_name" });
 
         if (error) throw error;
       } catch (err) {
+        console.error('Update water error:', err);
         // Rollback on error
         setHabits((prev) =>
           prev ? { ...prev, water_amount: habits.water_amount } : prev
@@ -158,23 +174,27 @@ export function useDailyHabits(date?: string) {
     async (amount: number) => {
       if (!habits) return;
 
+      // Ensure amount is a valid number
+      const validAmount = isNaN(amount) ? 0 : amount;
+
       // Optimistic update
-      setHabits((prev) => (prev ? { ...prev, daily_spending: amount } : prev));
+      setHabits((prev) => (prev ? { ...prev, daily_spending: validAmount } : prev));
 
       try {
+        const payload = {
+          date: targetDate,
+          user_name: userEmail,
+          daily_spending: validAmount,
+          water_amount: habits.water_amount ?? 0,
+        };
+
         const { error } = await supabase
           .from("daily_habits")
-          .upsert(
-            {
-              date: targetDate,
-              user_name: userEmail,
-              daily_spending: amount,
-            },
-            { onConflict: "date,user_name" }
-          );
+          .upsert(payload, { onConflict: "date,user_name" });
 
         if (error) throw error;
       } catch (err) {
+        console.error('Update spending error:', err);
         // Rollback on error
         setHabits((prev) =>
           prev ? { ...prev, daily_spending: habits.daily_spending } : prev
