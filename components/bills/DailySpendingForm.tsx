@@ -5,6 +5,7 @@ import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
 import { getAppDate } from "../../lib/dateUtils";
+import LoadingState from "../LoadingState";
 
 interface DailySpendingFormProps {
   date?: string;
@@ -33,9 +34,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
 
   if (loading || !habits) {
     return (
-      <div className="bg-card rounded-xl shadow sm:py-4 sm:my-4 max-w-sm min-w-[300px] flex justify-center items-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-        <Loader2 className="animate-spin w-5 h-5" />
-      </div>
+        <LoadingState />
     );
   }
 

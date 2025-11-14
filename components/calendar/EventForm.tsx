@@ -6,6 +6,7 @@ import { Save, PlusCircleIcon, Loader2, Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import ICAL from "ical.js"; // npm install ical
+import LoadingState from "../LoadingState";
 
 interface EventsFormProps {
   userEmail: string;
@@ -272,7 +273,7 @@ export default function EventForm({
             Anuluj
           </button>
         )}
-        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
+        {loading && <LoadingState />}
       </div>
     </form>
   );

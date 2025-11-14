@@ -9,6 +9,7 @@ import NoteForm from "../components/notes/NoteForm";
 import NoteList from "../components/notes/NoteList";
 import { Note } from "../types";
 import { useRouter } from "next/router";
+import LoadingState from "../components/LoadingState";
 
 export default function NotesPage() {
   const session = useSession();
@@ -81,9 +82,7 @@ export default function NotesPage() {
           )}
         </div>
         {(!session || loading) && (
-          <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-          </div>
+            <LoadingState />
         )}
         {showForm && (
           <div className="mb-6">

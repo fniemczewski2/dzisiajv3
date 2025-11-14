@@ -8,6 +8,7 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Backpack, Brain, Calendar, ChartColumnBig, Coins, CookingPot, Dumbbell, Edit2, ListTodo, Loader2, Logs, Luggage, PlusCircleIcon, Save, ScrollText, ShoppingCart, Siren, Sun, Timer, Trash2 } from "lucide-react";
 import InstallButton from "../components/InstallButton";
 import { useRouter } from "next/router";
+import LoadingState from "../components/LoadingState";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -447,7 +448,7 @@ export default function SettingsPage() {
             {saving ? (
               <>
                 Zapisywanie…&nbsp;&nbsp;
-                <Loader2 className="animate-spin w-5 h-5" />
+                <LoadingState/>
               </>
             ) : (
               <>

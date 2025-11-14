@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon, ChartColumnBig } from "lucide-react";
+import { PlusCircleIcon, ChartColumnBig } from "lucide-react";
 import { useBills } from "../hooks/useBills";
 import BillList from "../components/bills/BillList";
 import BillListGrouped  from "../components/bills/BillListGrouped";
@@ -11,6 +11,7 @@ import { Bill } from "../types";
 import { useRouter } from "next/router";
 import DailySpendingForm  from "../components/bills/DailySpendingForm";
 import BillForm from "../components/bills/BillForm";
+import LoadingState from "../components/LoadingState";
 
 export default function BillsPage() {
   const session = useSession();
@@ -75,9 +76,7 @@ export default function BillsPage() {
           )}
         </div>
         {(!session || loading) && (
-            <div className="min-h-screen flex items-center justify-center">
-              <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-            </div>
+              <LoadingState />
         )}
         {showForm && (
           <div className="mb-6">

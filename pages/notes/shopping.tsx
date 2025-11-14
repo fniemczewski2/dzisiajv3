@@ -7,6 +7,7 @@ import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { ShoppingList } from "../../types";
 import ShoppingForm from "../../components/shopping/ShoppingForm";
 import ShoppingListView from "../../components/shopping/ShoppingListView";
+import LoadingState from "../../components/LoadingState";
 
 export default function ShoppingPage() {
   const session = useSession();
@@ -64,9 +65,7 @@ export default function ShoppingPage() {
         </div>
 
         {(!session || loading) && (
-          <div className="min-h-[200px] flex items-center justify-center">
-            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-          </div>
+            <LoadingState />
         )} 
         {showForm && (
           <div className="mb-6">

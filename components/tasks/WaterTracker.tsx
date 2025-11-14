@@ -3,6 +3,7 @@
 
 import { Droplet, Loader2 } from "lucide-react";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
+import LoadingState from "../LoadingState";
 
 interface WaterTrackerProps {
   date?: string;
@@ -11,11 +12,9 @@ interface WaterTrackerProps {
 export default function WaterTracker({ date }: WaterTrackerProps) {
   const { habits, loading, updateWater } = useDailyHabits(date);
 
-  if (!habits) {
+  if (!habits || loading) {
     return (
-      <div className="bg-card rounded-xl flex items-center justify-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-        <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
-      </div>
+        <LoadingState />
     );
   }
 
