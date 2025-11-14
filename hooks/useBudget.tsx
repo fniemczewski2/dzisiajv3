@@ -41,8 +41,15 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       const userEmail = session.user.email;
       const monthStr = String(month).padStart(2, "0");
+      
+      // ✅ FIX: Calculate correct date range
       const dateStart = `${year}-${monthStr}-01`;
-      const dateEnd = `${year}-${monthStr}-31`;
+      
+      // Calculate next month's first day (for exclusive upper bound)
+      const nextMonth = month === 12 ? 1 : month + 1;
+      const nextYear = month === 12 ? year + 1 : year;
+      const nextMonthStr = String(nextMonth).padStart(2, "0");
+      const dateEnd = `${nextYear}-${nextMonthStr}-01`;
 
       try {
         // Fetch bills for this month only
@@ -51,7 +58,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
           .select("amount,date,include_in_budget,description,done")
           .eq("user_name", userEmail)
           .gte("date", dateStart)
-          .lte("date", dateEnd);
+          .lt("date", dateEnd); // Use lt (less than) instead of lte
 
         // Fetch habits for this month only
         const { data: habits } = await supabase
@@ -59,7 +66,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
           .select("date,daily_spending")
           .eq("user_name", userEmail)
           .gte("date", dateStart)
-          .lte("date", dateEnd);
+          .lt("date", dateEnd); // Use lt (less than) instead of lte
 
         const monthData = getEmptyMonthData();
 
@@ -157,9 +164,8 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       setData((prev) => ({ ...prev, ...newData }));
       
-      // ✅ FIX: Use Array.from instead of spreading Set
       setLoadedMonths((prev) => {
-        const newSet = new Set(Array.from(prev));
+        const newSet = new Set(prev);
         monthsToLoad.forEach(month => newSet.add(month));
         return newSet;
       });
