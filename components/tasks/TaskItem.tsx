@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { Check, Edit2, Trash2 } from "lucide-react";
 import { Task } from "../../types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { getPolishDate, getPolishDateString } from "../../hooks/getPolishDate";
+import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 
 interface Props {
   task: Task;
@@ -54,9 +54,9 @@ export default function TaskItem({
           task.priority === 1
             ? "shadow-red-800 shadow-sm"
             : new Date(task.deadline_date).toISOString().split("T")[0] ===
-              getPolishDateString()
+              getAppDate()
             ? ""
-            : new Date(task.deadline_date) < getPolishDate()
+            : new Date(task.deadline_date) < new Date(getAppDate())
             ? "shadow-red-800 shadow-sm"
             : ""
         }`}
@@ -96,9 +96,9 @@ export default function TaskItem({
                 : task.priority === 1
                 ? "text-red-800"
                 : new Date(task.deadline_date).toISOString().split("T")[0] ===
-                  getPolishDateString()
+                  getAppDate()
                 ? ""
-                : new Date(task.deadline_date) < getPolishDate()
+                : new Date(task.deadline_date) < new Date(getAppDate())
                 ? "text-red-800"
                 : ""
             }

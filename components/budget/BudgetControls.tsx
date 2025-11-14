@@ -1,9 +1,10 @@
+// components/budget/BudgetControls.tsx
 import { Edit2, Save, X, Loader2 } from "lucide-react";
 
 interface Props {
   isEditing: boolean;
   saving: boolean;
-  onSave: () => void;
+  onSave: () => Promise<void>;
   onCancel: () => void;
   onEdit: () => void;
 }
@@ -23,7 +24,7 @@ export default function BudgetControls({
           <button
             onClick={onSave}
             disabled={saving}
-            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200"
+            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200 disabled:opacity-50"
             title="zapisz"
           >
             {saving ? (
@@ -34,7 +35,8 @@ export default function BudgetControls({
           </button>
           <button
             onClick={onCancel}
-            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200"
+            disabled={saving}
+            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
             title="zamknij"
           >
             <X className="w-5 h-5" />

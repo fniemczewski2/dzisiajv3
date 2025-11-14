@@ -1,3 +1,4 @@
+// components/budget/StatsTable.tsx
 import React from "react";
 
 interface Props {
@@ -9,19 +10,17 @@ interface Props {
     hours: number;
   }[];
   isEditing: boolean;
-  rates: Record<number, number>;
   onRateChange: (month: number, value: number) => void;
 }
 
 export default function BudgetStatsTable({
   rows,
   isEditing,
-  rates,
   onRateChange,
 }: Props) {
   return (
-    <div className="mb-4 bg-white rounded-xl shadow">
-      <table className="w-full table rounded-xl text-sm">
+    <div className="mb-4 bg-white rounded-xl shadow overflow-x-auto">
+      <table className="w-full table-auto text-sm">
         <thead className="bg-gray-100 text-gray-700 font-semibold">
           <tr>
             <th className="p-2 text-left">mc</th>
@@ -40,11 +39,11 @@ export default function BudgetStatsTable({
                   <input
                     type="number"
                     step="0.01"
-                    value={rates[month]}
+                    value={rate}
                     onChange={(e) =>
                       onRateChange(month, parseFloat(e.target.value) || 0)
                     }
-                    className="w-16 p-1 rounded"
+                    className="w-16 p-1 rounded border"
                   />
                 ) : (
                   rate.toFixed(2)
@@ -56,6 +55,5 @@ export default function BudgetStatsTable({
         </tbody>
       </table>
     </div>
-
   );
 }

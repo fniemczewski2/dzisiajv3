@@ -25,7 +25,7 @@ import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
 import Reminders from "../components/tasks/Reminders";
 import { useRouter } from "next/router";
-import { getPolishDate } from "../hooks/getPolishDate";
+import { getAppDateTime } from "../lib/dateUtils";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -104,7 +104,7 @@ export default function TasksPage() {
 
   // Calculate filter date string
   const getFilterDate = (): string | null => {
-    const now = getPolishDate();
+    const now = getAppDateTime();
     switch (dateFilter) {
       case "yesterday":
         return format(addDays(now, -1), "yyyy-MM-dd");

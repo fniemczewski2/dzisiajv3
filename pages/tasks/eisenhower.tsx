@@ -21,7 +21,7 @@ import { Droppable } from "../../components/eisenhower/Droppable";
 import { DraggableTask } from "../../components/eisenhower/DraggableTask";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
-import { getPolishDate } from "../../hooks/getPolishDate";
+import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 
 const CATEGORIES = [
   "Pilne i ważne",
@@ -58,7 +58,7 @@ export default function EisenhowerPage() {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      const oneMonthAgo = getPolishDate();
+      const oneMonthAgo = getAppDateTime();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
       const { data, error } = await supabase
@@ -85,7 +85,7 @@ export default function EisenhowerPage() {
         const deadline = task.deadline_date
           ? new Date(task.deadline_date)
           : null;
-        const isUrgent = deadline && deadline <= getPolishDate();
+        const isUrgent = deadline && deadline <= getAppDateTime();
         const isImportant = task.priority <= 2;
 
         const key: Category = isUrgent

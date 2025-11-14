@@ -1,13 +1,13 @@
+// components/bills/DailySpendingForm.tsx
 import React, { useRef, useState, useEffect } from "react";
-import { useDailySpending } from "../../hooks/useDailySpending";
 import { Coins, Loader2, Save, X } from "lucide-react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
+import { useDailyHabits } from "../../hooks/useDailyHabits";
 
 interface DailySpendingFormProps {
   userEmail: string;
-  date?: string; 
+  date?: string;
 }
 
 export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
@@ -20,91 +20,81 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
     month: "2-digit",
     day: "2-digit",
   })
-  .format(new Date())
-  .replace(/\./g, "-") 
-  .replace(/\s/g, ""); 
-  const targetDate = date ?? today; 
+    .format(new Date())
+    .replace(/\./g, "-")
+    .replace(/\s/g, "");
 
-  const { dailySpending, loading, fetchDailySpending } = useDailySpending(
-    userEmail,
-    targetDate
-  );
+  const targetDate = date ?? today;
+  const { habits, loading, updateSpending } = useDailyHabits(targetDate);
 
-  const supabase = useSupabaseClient();
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.value = dailySpending?.toFixed(2) ?? "0";
+    if (inputRef.current && habits) {
+      inputRef.current.value = habits.daily_spending.toFixed(2);
     }
-  }, [dailySpending]);
+  }, [habits]);
 
   const handleSave = async () => {
     const value = parseFloat(inputRef.current?.value || "0");
-    const { error: updateError } = await supabase
-      .from("daily_habits")
-      .upsert({
-        user_name: userEmail,
-        date: targetDate,
-        daily_spending: value,
-      }, { onConflict: 'user_name,date' });
-    if (!updateError) {
-      fetchDailySpending();
-    }
-
+    await updateSpending(value);
     setIsEditing(false);
   };
 
-  if (loading) {
-    return <Loader2 className="animate-spin w-5 h-5" />;
+  if (loading || !habits) {
+    return (
+      <div className="bg-card rounded-xl shadow sm:py-4 sm:my-4 max-w-sm min-w-[300px] flex justify-center items-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
+        <Loader2 className="animate-spin w-5 h-5" />
+      </div>
+    );
   }
 
   return (
     <div className="bg-card rounded-xl shadow sm:py-4 sm:my-4 max-w-sm min-w-[300px] flex justify-between items-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-        <h3 className="mr-1.5 flex">
-          <Coins className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
-          Wydane {targetDate === today ? "dzisiaj" : `(${format(parseISO(targetDate), "d.MM", { locale: pl })})`}:
-        </h3>
-        {isEditing ? (
-          <div className="flex items-center">
-            <input
-              ref={inputRef}
-              type="number"
-              step="0.01"
-              className="w-16 p-1 border rounded"
-              title="Daily Spending"
-            />
-            <button
-              onClick={handleSave}
-              className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200"
-              title="Zapisz"
-              type="submit"
-            >
-              {loading ? (
-                <Loader2 className="animate-spin w-5 h-5" />
-              ) : (
-                <Save className="w-5 h-5" />
-              )}
-            </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200"
-              title="Anuluj"
-              type="button"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        ) : (
-          <div
-            onClick={() => setIsEditing(true)}
-            className="cursor-pointer font-bold hover:underline"
-            title="Kliknij, aby edytować"
+      <h3 className="mr-1.5 flex">
+        <Coins className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+        Wydane{" "}
+        {targetDate === today
+          ? "dzisiaj"
+          : `(${format(parseISO(targetDate), "d.MM", { locale: pl })})`}
+        :
+      </h3>
+      {isEditing ? (
+        <div className="flex items-center">
+          <input
+            ref={inputRef}
+            type="number"
+            step="0.01"
+            className="w-16 p-1 border rounded"
+            title="Daily Spending"
+          />
+          <button
+            onClick={handleSave}
+            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200"
+            title="Zapisz"
+            type="submit"
           >
-            {dailySpending ? dailySpending.toFixed(2) : "0.00"} PLN
-          </div>
-        )}
+            <Save className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setIsEditing(false)}
+            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200"
+            title="Anuluj"
+            type="button"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      ) : (
+        <div
+          onClick={() => setIsEditing(true)}
+          className="cursor-pointer font-bold hover:underline"
+          title="Kliknij, aby edytować"
+        >
+          {habits.daily_spending.toFixed(2)} PLN
+        </div>
+      )}
     </div>
   );
 };

@@ -9,7 +9,7 @@ import { PlusCircleIcon, Loader2, Edit2, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import DaySchemaForm from "../../components/daySchema/daySchemaForm";
 import { Schema, ScheduleItem } from "../../types";
-import { getPolishDate } from "../../hooks/getPolishDate";
+import { getAppDateTime } from "../../lib/dateUtils";
 
 export default function DaySchemaPage() {
   const session = useSession();
@@ -18,7 +18,7 @@ export default function DaySchemaPage() {
   const [editing, setEditing] = useState<Schema | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
 
-  const now = getPolishDate();
+  const now = getAppDateTime();
   const currentTime = format(now, "HH:mm");
   const currentDay = now.getDay(); // 0 = Sunday
 
