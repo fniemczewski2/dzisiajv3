@@ -5,6 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
+import LoadingState from "../LoadingState";
 
 interface ShoppingFormProps {
   userEmail: string;
@@ -135,7 +136,7 @@ export default function ShoppingForm({
             Anuluj
           </button>
         )}
-        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
+        {loading && <LoadingState/>}
       </div>
     </form>
   );

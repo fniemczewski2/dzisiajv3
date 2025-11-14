@@ -67,7 +67,7 @@ export default function TrainingPage() {
             controls={controls}
             showControls={true}
           />
-          <div className="flex flex-wrap justify-between gap-2 p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow">
+          <div className="flex flex-wrap justify-between gap-2 p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 mx-auto hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow">
             <div className="flex w-full justify-between">
             <h2>Ćwiczenia: </h2>
             <label className="text-sm">

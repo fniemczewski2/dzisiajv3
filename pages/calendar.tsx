@@ -22,6 +22,7 @@ import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
 import { getAppDateTime } from "../lib/dateUtils";
+import LoadingState from "../components/LoadingState";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <Loader2 className="animate-spin w-5 h-5" />,
@@ -121,7 +122,7 @@ export default function CalendarPage() {
         )}
 
         {loading ? (
-          <Loader2 className="animate-spin h-6 w-6" />
+          <LoadingState />
         ) : selectedDate ? (
           <CalendarDayDetails
             selectedDate={selectedDateStr!}
