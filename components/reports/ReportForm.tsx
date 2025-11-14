@@ -5,6 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, Plus, PlusCircleIcon, Save } from "lucide-react";
 import { ReportTask, Report } from "../../types";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
+import LoadingState from "../LoadingState";
 
 interface ReportFormProps {
   userEmail: string;
@@ -229,7 +230,7 @@ export default function ReportForm({ userEmail, onChange, onCancel, initial }: R
           </button>
         )}
 
-        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
+        {loading && <LoadingState/>}
       </div>
     </form>
   );

@@ -4,6 +4,7 @@ import React, { useState, useEffect, FormEvent } from "react";
 import { PlusCircle, Trash2, Save, Loader2, PlusCircleIcon } from "lucide-react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
+import LoadingState from "../LoadingState";
 
 export interface DaySchemaEntry {
   time: string;
@@ -191,7 +192,7 @@ export default function DaySchemaForm({
             Anuluj
           </button>
         )}
-        {loading && <Loader2 className="animate-spin w-5 h-5 text-gray-500" />}
+        {loading && <LoadingState/>}
       </div>
     </form>
   );

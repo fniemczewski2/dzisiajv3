@@ -26,6 +26,7 @@ import { Task } from "../types";
 import Reminders from "../components/tasks/Reminders";
 import { useRouter } from "next/router";
 import { getAppDate, getAppDateTime } from "../lib/dateUtils";
+import LoadingState from "../components/LoadingState";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -171,9 +172,7 @@ export default function TasksPage() {
           )}
         </div>
         {(!session || loadingSettings || loadingTasks || !settings) && (
-          <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-          </div>
+            <LoadingState />
         )}
         <div className="flex space-x-2 mb-4">
           {FILTER_OPTIONS.map((opt) => {
