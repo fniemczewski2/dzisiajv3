@@ -21,7 +21,7 @@ function groupByMonth(bills: Bill[]): Record<string, Bill[]> {
   }, {} as Record<string, Bill[]>);
 }
 
-export function BillListGrouped({ bills, onEdit, onDelete, onMarkDone }: BillListProps) {
+export default function BillList({ bills, onEdit, onDelete, onMarkDone }: BillListProps) {
   const grouped = groupByMonth(bills);
 
   return (

@@ -4,13 +4,13 @@ import Layout from "../components/Layout";
 import { useSession } from "@supabase/auth-helpers-react";
 import { PlusCircleIcon, Download, Edit2, Trash2, Loader2 } from "lucide-react";
 import { useReports } from "../hooks/useReports";
-import { ReportForm } from "../components/reports/ReportForm";
+import ReportForm from "../components/reports/ReportForm";
 import { generateReportPDF } from "../lib/pdfGenerator";
 import { Report } from "../types";
 
 export default function ReportsPage() {
   const session = useSession();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
   const { reports, loading, addReport, updateReport, deleteReport, fetchReports } = useReports(userEmail);
 
   const [editing, setEditing] = useState<Report | undefined>(undefined);

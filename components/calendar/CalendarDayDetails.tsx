@@ -17,7 +17,7 @@ import { Task } from "../../types";
 import { Event } from "../../types";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import WaterTracker from "../tasks/WaterTracker";
-import { DailySpendingForm } from "../bills/DailySpendingForm";
+import DailySpendingForm from "../bills/DailySpendingForm";
 import TaskIcons from "../tasks/TaskIcons";
 import { useEvents } from "../../hooks/useEvents";
 import ICAL from "ical.js";
@@ -51,7 +51,7 @@ export default function CalendarDayDetails({
 }: Props) {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
   const rangeStart = format(startOfMonth(parseISO(selectedDate)), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(parseISO(selectedDate)), "yyyy-MM-dd");
 
@@ -146,7 +146,7 @@ export default function CalendarDayDetails({
         {/* All three components now use the same hook internally */}
         <TaskIcons date={selectedDate} />
         <WaterTracker date={selectedDate} />
-        <DailySpendingForm userEmail={userEmail} date={selectedDate} />
+        <DailySpendingForm date={selectedDate} />
       </div>
 
       {events.length > 0 && (

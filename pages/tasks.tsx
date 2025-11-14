@@ -40,7 +40,7 @@ type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 export default function TasksPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);

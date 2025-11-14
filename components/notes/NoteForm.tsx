@@ -21,7 +21,7 @@ const COLOR_MAP: { [key: string]: string } = {
   "red-100": "bg-red-100",
 };
 
-export function NoteForm({
+export default function NoteForm({
   userEmail,
   onChange,
   onCancel,

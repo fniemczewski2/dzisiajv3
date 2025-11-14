@@ -5,8 +5,8 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, ShoppingCart } from "lucide-react";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { ShoppingList } from "../../types";
-import { ShoppingForm } from "../../components/shopping/ShoppingForm";
-import { ShoppingListView } from "../../components/shopping/ShoppingListView";
+import ShoppingForm from "../../components/shopping/ShoppingForm";
+import ShoppingListView from "../../components/shopping/ShoppingListView";
 
 export default function ShoppingPage() {
   const session = useSession();

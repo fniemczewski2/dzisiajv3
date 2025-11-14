@@ -13,7 +13,7 @@ interface ReportFormProps {
   initial?: Report;
 }
 
-export function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFormProps) {
+export default function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFormProps) {
   const supabase = useSupabaseClient();
   const isEdit = !!initial;
   const [loading, setLoading] = useState(false);
