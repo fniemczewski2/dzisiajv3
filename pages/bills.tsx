@@ -5,12 +5,12 @@ import Layout from "../components/Layout";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Loader2, PlusCircleIcon, ChartColumnBig } from "lucide-react";
 import { useBills } from "../hooks/useBills";
-import { BillList } from "../components/bills/BillList";
-import { BillListGrouped } from "../components/bills/BillListGrouped";
+import BillList from "../components/bills/BillList";
+import BillListGrouped  from "../components/bills/BillListGrouped";
 import { Bill } from "../types";
 import { useRouter } from "next/router";
-import { DailySpendingForm } from "../components/bills/DailySpendingForm";
-import { BillForm } from "../components/bills/BillForm";
+import DailySpendingForm  from "../components/bills/DailySpendingForm";
+import BillForm from "../components/bills/BillForm";
 
 export default function BillsPage() {
   const session = useSession();
@@ -92,7 +92,7 @@ export default function BillsPage() {
             />
           </div>
         )}
-            <DailySpendingForm userEmail={userEmail}/>
+            <DailySpendingForm/>
 
         {Object.keys(bills).length > 0 && (
           <>

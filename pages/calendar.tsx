@@ -17,11 +17,11 @@ import {
   startOfDay,
 } from "date-fns";
 import type { Event } from "../types";
-import { CalendarHeader } from "../components/calendar/CalendarHeader";
+import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
-import { getAppDate, getAppDateTime } from "../lib/dateUtils";
+import { getAppDateTime } from "../lib/dateUtils";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <Loader2 className="animate-spin w-5 h-5" />,
