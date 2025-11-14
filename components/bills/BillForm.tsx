@@ -13,7 +13,7 @@ interface BillFormProps {
   initial?: Bill;
 }
 
-export function BillForm({
+export default function BillForm({
   userEmail,
   onChange,
   onCancel,

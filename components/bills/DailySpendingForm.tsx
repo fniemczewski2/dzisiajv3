@@ -7,14 +7,10 @@ import { useDailyHabits } from "../../hooks/useDailyHabits";
 import { getAppDate } from "../../lib/dateUtils";
 
 interface DailySpendingFormProps {
-  userEmail: string;
   date?: string;
 }
 
-export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
-  userEmail,
-  date,
-}) => {
+export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   const today = getAppDate();
 
   const targetDate = date ?? today;

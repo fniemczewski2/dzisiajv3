@@ -5,7 +5,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Task } from "../../types";
 import { parseISO, format } from "date-fns";
 
-export function DraggableTask({ task }: { task: Task }) {
+export default function DraggableTask({ task }: { task: Task }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: task.id });
 

@@ -14,7 +14,7 @@ interface EventsFormProps {
   onCancel?: () => void;
 }
 
-export default function EventsForm({
+export default function EventForm({
   userEmail = "",
   initialEvent = null,
   onEventsChange,

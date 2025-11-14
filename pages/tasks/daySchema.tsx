@@ -4,12 +4,12 @@ import React, { useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { format } from "date-fns";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 import { PlusCircleIcon, Loader2, Edit2, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
-import DaySchemaForm from "../../components/daySchema/daySchemaForm";
 import { Schema, ScheduleItem } from "../../types";
 import { getAppDateTime } from "../../lib/dateUtils";
+import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
 
 export default function DaySchemaPage() {
   const session = useSession();

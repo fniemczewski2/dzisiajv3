@@ -15,7 +15,7 @@ import {
   format,
   endOfDay,
 } from "date-fns";
-import CalendarCell from "./NewCalendarCell";
+import CalendarCell from "./CalendarCell";
 import { useCalendarData } from "../../hooks/useCalendar";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useResponsive } from "../../hooks/useResponsive";
@@ -31,7 +31,7 @@ const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
   const isMobile = useResponsive();
   const session = useSession();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
 
   // Memoize calendar boundaries
   const { monthStart, monthEnd, calendarStart, calendarEnd, rangeStart, rangeEnd } = useMemo(() => {

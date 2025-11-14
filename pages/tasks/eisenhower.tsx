@@ -17,8 +17,8 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Droppable } from "../../components/eisenhower/Droppable";
-import { DraggableTask } from "../../components/eisenhower/DraggableTask";
+import Droppable from "../../components/eisenhower/Droppable";
+import DraggableTask  from "../../components/eisenhower/DraggableTask";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
@@ -36,7 +36,7 @@ type BoardState = Record<Category, Task[]>;
 export default function EisenhowerPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email ?? "";
+  const userEmail = session?.user?.email || "";
   const router = useRouter();
 
   const [tasks, setTasks] = useState<Task[]>([]);
