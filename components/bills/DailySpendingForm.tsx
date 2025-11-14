@@ -32,7 +32,7 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
 
   useEffect(() => {
     if (inputRef.current && habits) {
-      inputRef.current.value = habits.daily_spending.toFixed(2);
+      inputRef.current.value = habits.daily_spending?.toFixed(2) ?? "0";
     }
   }, [habits]);
 
@@ -92,7 +92,7 @@ export const DailySpendingForm: React.FC<DailySpendingFormProps> = ({
           className="cursor-pointer font-bold hover:underline"
           title="Kliknij, aby edytować"
         >
-          {habits.daily_spending.toFixed(2)} PLN
+          {habits.daily_spending ? habits.daily_spending.toFixed(2) : 0} PLN
         </div>
       )}
     </div>
