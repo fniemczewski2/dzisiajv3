@@ -64,7 +64,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
           />
           <button
             onClick={handleSave}
-            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
+            className="ml-2 p-2 bg-primary rounded-lg hover:bg-secondary transition-colors"
             title="Zapisz"
             type="button"
           >
@@ -72,7 +72,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
           </button>
           <button
             onClick={handleCancel}
-            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+            className="ml-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             title="Anuluj"
             type="button"
           >

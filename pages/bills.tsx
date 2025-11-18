@@ -96,6 +96,7 @@ export default function BillsPage() {
             <h3 className="text-lg font-semibold mb-2 mt-6">Wpływy planowane</h3>
             <BillList
               bills={bills}
+              onBillsChange={fetchBills}
             />
           </>
         )}
@@ -104,7 +105,8 @@ export default function BillsPage() {
             <h3 className="text-lg font-semibold mb-2 mt-6">Wydatki planowane</h3>
             <BillListGrouped
               bills={budgetItems}
-            />
+              onBillsChange={fetchBills}
+          />
           </>
         )}
       </Layout>

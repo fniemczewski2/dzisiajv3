@@ -93,6 +93,7 @@ export default function NotesPage() {
 
         <NoteList
           notes={notes}
+          onNotesChange={fetchNotes}
         />
       </Layout>
     </>

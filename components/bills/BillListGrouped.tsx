@@ -8,6 +8,7 @@ import { useBills } from "../../hooks/useBills";
 
 interface BillListProps {
   bills: Bill[];
+  onBillsChange: () => void;
 }
 
 function groupByMonth(bills: Bill[]): Record<string, Bill[]> {
@@ -19,7 +20,7 @@ function groupByMonth(bills: Bill[]): Record<string, Bill[]> {
   }, {} as Record<string, Bill[]>);
 }
 
-export default function BillListGrouped({ bills }: BillListProps) {
+export default function BillListGrouped({ bills, onBillsChange }: BillListProps) {
   const { deleteBill, editBill } = useBills();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedBill, setEditedBill] = useState<Bill | null>(null);
@@ -36,6 +37,7 @@ export default function BillListGrouped({ bills }: BillListProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Czy na pewno chcesz usunąć ten rachunek?")) return;
     await deleteBill(id);
+    onBillsChange();
   };
 
   const handleEdit = (bill: Bill) => {
@@ -53,11 +55,13 @@ export default function BillListGrouped({ bills }: BillListProps) {
       await editBill(editedBill);
       setEditingId(null);
       setEditedBill(null);
+      onBillsChange();
     }
   };
 
   const handleMarkDone = async (bill: Bill) => {
     await editBill({ ...bill, done: true });
+    onBillsChange();
   };
 
   return (
