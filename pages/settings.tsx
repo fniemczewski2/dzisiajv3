@@ -93,7 +93,7 @@ export default function SettingsPage() {
       }
       setLoading(false);
     })();
-  }, [session, supabase]);
+  }, [session, supabase, email]);
 
   const addUser = () => {
     if (settings.users.length < 10) {
@@ -145,9 +145,9 @@ export default function SettingsPage() {
           <h2 className="text-2xl font-semibold">Menu</h2>
           <InstallButton/>
         </div>
-          {/* {(!session || loading) && (
+          {(loading) && (
             <LoadingState/>
-          )}  */}
+          )}
           <div className="flex flex-wrap justify-around mb-4 gap-4">
             <button
                 onClick={() => router.push("/tasks")}

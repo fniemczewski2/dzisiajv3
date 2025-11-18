@@ -6,61 +6,40 @@ import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import LoadingState from "../LoadingState";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface ShoppingFormProps {
-  userEmail: string;
   onChange: () => void;
   onCancel?: () => void;
-  initial?: ShoppingList;
 }
 
 export default function ShoppingForm({
-  userEmail,
   onChange,
   onCancel,
-  initial,
 }: ShoppingFormProps) {
   const { settings } = useSettings();
-  const { addShoppingList, editShoppingList, loading } = useShoppingLists();
-  const isEdit = !!initial;
-
+  const { addShoppingList, loading } = useShoppingLists();
+  const session  = useSession();
+  const userEmail = session?.user.email;
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
-
-  useEffect(() => {
-    if (initial) {
-      setName(initial.name ?? "");
-      setShare(initial.share ?? "");
-    } else {
-      setName("");
-      setShare("");
-    }
-  }, [initial]);
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const payload: ShoppingList = {
-      ...(isEdit && initial ? { id: initial.id } : {}),
       user_email: userEmail,
-      name: name.trim(),
+      name: name.trim() || "",
       share: share.trim() || null,
-      elements: initial?.elements ?? [],
+      elements:  [],
     } as ShoppingList;
 
-    if (isEdit && initial) {
-      await editShoppingList(initial.id, payload);
-    } else {
-      await addShoppingList(payload.name, payload.share);
-    }
+
+    await addShoppingList(payload.name, payload.share);
 
     onChange();
-
-    if (!isEdit) {
-      setName("");
-      setShare("");
-    }
+    setName("");
+    setShare("");
 
     if (onCancel) onCancel();
   };
@@ -112,17 +91,8 @@ export default function ShoppingForm({
           disabled={loading}
           className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isEdit ? (
-            <>
-              Zapisz&nbsp;
-              <Save className="w-5 h-5" />
-            </>
-          ) : (
-            <>
               Dodaj&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
-            </>
-          )}
         </button>
         {onCancel && (
           <button

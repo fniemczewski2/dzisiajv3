@@ -146,13 +146,13 @@ export interface ShoppingElement {
 }
 
 export interface ShoppingList {
-  id: string;
+  id?: string;
   user_email: string;
   name: string;
   share: string | null;
   elements: ShoppingElement[];
-  inserted_at: string;
-  updated_at: string;
+  inserted_at?: string;
+  updated_at?: string;
 }
 
 export type RecipeInsert = Omit<Recipe, "id" | "created_at">;
