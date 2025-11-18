@@ -18,14 +18,14 @@ export default function BudgetControls({
   onEdit,
 }: Props) {
   return (
-    <h3 className="font-bold mb-2 flex justify-between items-center">
+    <h3 className="font-bold w-fit mb-2 flex justify-between items-center">
       Liczba godzin pracy
       {isEditing ? (
         <div>
           <button
             onClick={onSave}
             disabled={saving}
-            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200 disabled:opacity-50"
+            className="ml-2 p-2 bg-primary rounded-lg hover:bg-secondary text-white disabled:opacity-50"
             title="zapisz"
           >
             {saving ? (
@@ -37,7 +37,7 @@ export default function BudgetControls({
           <button
             onClick={onCancel}
             disabled={saving}
-            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+            className="ml-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
             title="zamknij"
           >
             <X className="w-5 h-5" />

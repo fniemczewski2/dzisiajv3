@@ -1,63 +1,76 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { Loader2, PlusCircleIcon } from "lucide-react";
-import { useSession } from "@supabase/auth-helpers-react";
-import React, { useCallback, useState, useEffect } from "react";
+import { PlusCircleIcon } from "lucide-react";
+import React, { useCallback, useState, useMemo } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
 import {
   format,
   startOfMonth,
   endOfMonth,
-  parseISO,
-  isAfter,
-  isBefore,
-  endOfDay,
-  startOfDay,
 } from "date-fns";
 import type { Event } from "../types";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
-import { getAppDateTime } from "../lib/dateUtils";
 import LoadingState from "../components/LoadingState";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
-  loading: () => <Loader2 className="animate-spin w-5 h-5" />,
+  loading: () => <LoadingState />,
   ssr: false,
 });
 
+// Helper to parse event timestamp without timezone conversion
+const parseEventDate = (timestamp: string): Date => {
+  const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace(" ", "T").split(".")[0];
+  const [datePart, timePart] = cleanTimestamp.split("T");
+  const [year, month, day] = datePart.split("-");
+  const [hours, minutes, seconds] = (timePart || "00:00:00").split(":");
+  
+  return new Date(
+    parseInt(year),
+    parseInt(month) - 1,
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes),
+    parseInt(seconds || "0")
+  );
+};
+
+// Check if event spans the selected date
+const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
+  const eventStart = parseEventDate(event.start_time);
+  const eventEnd = parseEventDate(event.end_time);
+  
+  // Normalize times to just dates for comparison
+  const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+  const eventStartDateOnly = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+  const eventEndDateOnly = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+  
+  // Check if selected date falls within the event's date range
+  return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
+};
+
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(getAppDateTime());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { events, loading, refetch } = useEvents(userEmail, rangeStart, rangeEnd);
-  const { settings } = useSettings(userEmail);
+  const { events, loading, deleteEvent, editEvent } = useEvents(rangeStart, rangeEnd);
+  const { settings } = useSettings();
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
-  const { tasks, fetchTasks } = useTasks(
-    userEmail,
-    settings,
+  const { tasks } = useTasks(
     selectedDateStr ?? undefined,
     selectedDateStr ?? undefined
   );
-
-  useEffect(() => {
-    if (selectedDateStr && settings) {
-      fetchTasks();
-    }
-  }, [selectedDateStr, settings, fetchTasks]);
 
   const goToPrevMonth = () => {
     setCurrentDate(
@@ -81,6 +94,27 @@ export default function CalendarPage() {
     setShowForm(true);
   }, []);
 
+  const handleEventsChange = useCallback(() => {
+    setShowForm(false);
+    setEditingEvent(null);
+  }, []);
+
+  const handleCancelForm = useCallback(() => {
+    setShowForm(false);
+    setEditingEvent(null);
+  }, []);
+
+  // Filter events that span the selected day
+  const eventsForDay = useMemo(() => {
+    if (!selectedDate) return [];
+    return events.filter((event) => eventSpansDate(event, selectedDate));
+  }, [events, selectedDate]);
+
+  const tasksForDay = useMemo(() => {
+    if (!selectedDateStr) return [];
+    return tasks.filter((task) => task.due_date === selectedDateStr);
+  }, [tasks, selectedDateStr]);
+
   return (
     <>
       <Head>
@@ -92,7 +126,7 @@ export default function CalendarPage() {
           {!showForm && (
             <button
               onClick={openAdd}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow transition"
             >
               Dodaj&nbsp;&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
@@ -102,14 +136,9 @@ export default function CalendarPage() {
 
         {showForm && (
           <EventForm
-            userEmail={userEmail}
-            initialEvent={editingEvent}
-            onEventsChange={() => {
-              setShowForm(false);
-              setEditingEvent(null);
-              refetch();
-            }}
-            onCancel={() => setShowForm(false)}
+            currentDate={currentDate}
+            onEventsChange={handleEventsChange}
+            onCancel={handleCancelForm}
           />
         )}
 
@@ -123,21 +152,14 @@ export default function CalendarPage() {
 
         {loading ? (
           <LoadingState />
-        ) : selectedDate ? (
+        ) : selectedDateStr ? (
           <CalendarDayDetails
-            selectedDate={selectedDateStr!}
-            events={events.filter((e) => {
-              const start = parseISO(e.start_time);
-              const end = parseISO(e.end_time);
-              return (
-                !isAfter(start, endOfDay(selectedDate)) &&
-                !isBefore(end, startOfDay(selectedDate))
-              );
-            })}
-            tasks={tasks}
+            selectedDate={selectedDateStr}
+            tasks={tasksForDay}
+            events={eventsForDay}
             onBack={() => setSelectedDate(null)}
-            onEdit={openEdit}
-            onEventsChange={refetch}
+            onEditEvent={editEvent}
+            onDeleteEvent={deleteEvent}
           />
         ) : (
           <MonthView

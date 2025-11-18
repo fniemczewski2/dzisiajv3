@@ -1,6 +1,6 @@
 // components/bills/DailySpendingForm.tsx
 import React, { useRef, useState, useEffect } from "react";
-import { Coins, Loader2, Save, X } from "lucide-react";
+import { Coins, Save, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
@@ -13,7 +13,6 @@ interface DailySpendingFormProps {
 
 export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   const today = getAppDate();
-
   const targetDate = date ?? today;
   const { habits, loading, updateSpending } = useDailyHabits(targetDate);
 
@@ -32,15 +31,20 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
     setIsEditing(false);
   };
 
+  const handleCancel = () => {
+    if (inputRef.current && habits) {
+      inputRef.current.value = habits.daily_spending?.toFixed(2) ?? "0";
+    }
+    setIsEditing(false);
+  };
+
   if (loading || !habits) {
-    return (
-        <LoadingState />
-    );
+    return <LoadingState />;
   }
 
   return (
     <div className="bg-card rounded-xl shadow sm:py-4 sm:my-4 max-w-sm min-w-[300px] flex justify-between items-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-      <h3 className="mr-1.5 flex">
+      <h3 className="mr-1.5 flex items-center">
         <Coins className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
         Wydane{" "}
         {targetDate === today
@@ -56,18 +60,19 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
             step="0.01"
             className="w-16 p-1 border rounded"
             title="Daily Spending"
+            autoFocus
           />
           <button
             onClick={handleSave}
-            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200"
+            className="ml-2 p-2 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
             title="Zapisz"
-            type="submit"
+            type="button"
           >
             <Save className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setIsEditing(false)}
-            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200"
+            onClick={handleCancel}
+            className="ml-2 p-2 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
             title="Anuluj"
             type="button"
           >
@@ -80,9 +85,9 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
           className="cursor-pointer font-bold hover:underline"
           title="Kliknij, aby edytować"
         >
-          {habits.daily_spending ? habits.daily_spending.toFixed(2) : 0} PLN
+          {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"} PLN
         </div>
       )}
     </div>
   );
-};
+}

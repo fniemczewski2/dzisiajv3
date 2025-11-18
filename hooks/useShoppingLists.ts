@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { ShoppingList } from "../types";
 
-export function useShoppingLists(userEmail?: string) {
-  const effectiveEmail = userEmail || "";
+export function useShoppingLists() {
+  const session = useSession();
   const supabase = useSupabaseClient();
+  const userEmail = session?.user?.email || "";
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchLists = async () => {
+  const fetchShoppingLists = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("shopping_lists")
       .select("*")
-      .or(`user_email.eq.${effectiveEmail},share.eq.${effectiveEmail}`)
+      .or(`user_email.eq.${userEmail},share.eq.${userEmail}`)
       .limit(5);
 
     if (!error && data) {
@@ -23,20 +24,20 @@ export function useShoppingLists(userEmail?: string) {
   };
 
 
-  const addList = async (name: string, share: string | null) => {
+  const addShoppingList = async (name: string, share: string | null) => {
     if (lists.length >= 5) {
       alert("Możesz mieć maksymalnie 5 list.");
       return;
     }
     const { data, error } = await supabase
       .from("shopping_lists")
-      .insert([{ name, share, elements: [], user_email: effectiveEmail }])
+      .insert([{ name, share, elements: [], user_email: userEmail }])
       .select()
       .single();
     if (!error && data) setLists([...lists, data as ShoppingList]);
   };
 
-  const updateList = async (id: string, updates: Partial<ShoppingList>) => {
+  const editShoppingList = async (id: string, updates: Partial<ShoppingList>) => {
     const { data, error } = await supabase
       .from("shopping_lists")
       .update(updates)
@@ -48,14 +49,14 @@ export function useShoppingLists(userEmail?: string) {
     }
   };
 
-  const deleteList = async (id: string) => {
+  const deleteShoppingList = async (id: string) => {
     await supabase.from("shopping_lists").delete().eq("id", id);
     setLists(lists.filter((l) => l.id !== id));
   };
 
   useEffect(() => {
-    fetchLists();
+    fetchShoppingLists();
   }, [userEmail]);
 
-  return { lists, loading, addList, fetchLists,updateList, deleteList };
+  return { lists, loading, addShoppingList, fetchShoppingLists, editShoppingList, deleteShoppingList };
 }

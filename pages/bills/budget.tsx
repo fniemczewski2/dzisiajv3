@@ -29,7 +29,6 @@ const MONTH_NAMES = [
 ];
 
 export default function BudgetPage() {
-  const session = useSession();
   const currentYear = getAppDateTime().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [isEditing, setIsEditing] = useState(false);
@@ -85,7 +84,8 @@ export default function BudgetPage() {
         <title>Budżet – {year}</title>
       </Head>
       <Layout>
-        <div className="flex justify-start gap-3 items-center mb-4">
+        <div className="flex justify-between gap-3 items-center mb-4">
+          <span className="flex sm:flex-1 flex-nowrap">
           <button
             onClick={handleBack}
             className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
@@ -93,8 +93,9 @@ export default function BudgetPage() {
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <h2 className="text-xl font-semibold">Statystyki</h2>
-          <div className="w-full items-center justify-center flex">
+          <h2 className="text-xl ml-2 font-semibold">Statystyki</h2>
+          </span>
+          <div className="items-center sm:flex-1 justify-center flex">
             <button
               onClick={onPrev}
               className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -112,13 +113,16 @@ export default function BudgetPage() {
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+            
           </div>
+          <div className="sm:flex-1"> </div>
         </div>
-
-        {loading || !session ? (
+        {loading ? (
           <LoadingState />
         ) : (
           <>
+          <div className="flex flex-wrap gap-2 sm:gap-6 w-full justify-center">
+          <div>
             <BudgetControls
               isEditing={isEditing}
               saving={saving}
@@ -132,19 +136,18 @@ export default function BudgetPage() {
               isEditing={isEditing}
               onRateChange={updateRate}
             />
-
+            </div>
             <SummaryTable
               data={data}
               monthNames={MONTH_NAMES}
               loadedMonths={loadedMonths}
             />
-
-            <h3 className="font-bold mb-2">Wydatki bieżące</h3>
             <MonthlyBudgetTable
               data={data}
               monthNames={MONTH_NAMES}
               loadedMonths={loadedMonths}
             />
+            </div>
           </>
         )}
       </Layout>

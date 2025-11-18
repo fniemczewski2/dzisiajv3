@@ -1,34 +1,32 @@
-import { useState, useEffect, useCallback } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useState, useEffect } from "react";
+import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Bill } from "../types";
 import { useSettings } from "./useSettings";
 
-export function useBills(userEmail: string) {
+export function useBills() {
   const supabase = useSupabaseClient();
-  const { settings } = useSettings(userEmail);
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
+  const { settings } = useSettings();
   const [bills, setBills] = useState<Bill[]>([]);
   const [budgetItems, setBudgetItems] = useState<Bill[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const fetchBills = useCallback(async () => {
+  const fetchBills = async () => {
     if (!userEmail || settings == null) return;
     setLoading(true);
 
-    const { data: billsData, error: billsError } = await supabase
+    const { data, error } = await supabase
       .from("bills")
       .select("*")
       .eq("user_name", userEmail)
       .eq("include_in_budget", false)
       .order("date", { ascending: true });
 
-    if (billsError) {
-      setBills([]);
-    } else {
-      setBills(billsData || []);
-    }
+    setBills(data || []);
 
     if (settings.show_budget_items) {
-      const { data: budgetData, error: budgetError } = await supabase
+      const { data } = await supabase
         .from("bills")
         .select("*")
         .eq("user_name", userEmail)
@@ -36,40 +34,63 @@ export function useBills(userEmail: string) {
         .eq("done", false)
         .order("date", { ascending: true });
 
-      if (budgetError) {
-        setBudgetItems([]);
-      } else {
-        setBudgetItems(budgetData || []);
-      }
+      setBudgetItems(data || []);
     }
 
     setLoading(false);
-  }, [supabase, userEmail, settings?.show_budget_items]);
+  };
+
+  const addBill = async (bill: Bill) => {
+    if (!userEmail) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("bills")
+      .insert({ ...bill, user_name: userEmail })
+      .select()
+      .single();
+    setBills((prev) => [...prev, data]);
+    setLoading(false);
+  };
+
+  const editBill = async (bill: Bill) => {
+    if (!userEmail) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("bills")
+      .update({ ...bill, user_name: userEmail })
+      .eq("id", bill.id)
+      .select()
+      .single();
+    
+    // Update state directly instead of refetching
+    if (bill.include_in_budget) {
+      setBudgetItems((prev) => prev.map((b) => (b.id === bill.id ? data : b)));
+    } else {
+      setBills((prev) => prev.map((b) => (b.id === bill.id ? data : b)));
+    }
+    
+    setLoading(false);
+  };
+
+  const deleteBill = async (id: string) => {
+    if (!userEmail) return;
+    setLoading(true);
+    await supabase.from("bills").delete().eq("id", id);
+    await fetchBills();
+    setLoading(false);
+  };
 
   useEffect(() => {
     fetchBills();
-  }, [fetchBills]);
-
-  const markBudgetItemAsDone = async (id: string) => {
-    const { data, error } = await supabase
-      .from("bills")
-      .update({ done: true })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-      return;
-    }
-
-    setBudgetItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  }, [userEmail, settings?.show_budget_items]);
 
   return {
     bills,
     budgetItems,
     loading,
     fetchBills,
-    markBudgetItemAsDone, 
+    addBill,
+    editBill,
+    deleteBill,
   };
 }

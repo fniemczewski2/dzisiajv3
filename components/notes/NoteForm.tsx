@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useRef, useEffect, useState, FormEvent } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { PlusCircleIcon, Loader2, Save } from "lucide-react";
+import { PlusCircleIcon, Save } from "lucide-react";
 import clsx from "clsx";
 import { Note } from "../../types";
+import { useNotes } from "../../hooks/useNotes";
 import LoadingState from "../LoadingState";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface NoteFormProps {
-  userEmail: string;
   onChange: () => void;
   onCancel?: () => void;
-  initial?: Note;
 }
 
 const COLOR_MAP: { [key: string]: string } = {
@@ -23,66 +22,52 @@ const COLOR_MAP: { [key: string]: string } = {
 };
 
 export default function NoteForm({
-  userEmail,
   onChange,
   onCancel,
-  initial,
 }: NoteFormProps) {
-  const supabase = useSupabaseClient();
-  const isEdit = !!initial;
-
+  const { addNote, loading } = useNotes();
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
-  const [bgColor, setBgColor] = useState(initial?.bg_color || "zinc-50");
-  const [loading, setLoading] = useState(false);
+  const [bgColor, setBgColor] = useState("zinc-50");
 
   const tailwindColors = Object.keys(COLOR_MAP);
 
-  useEffect(() => {
-    if (initial) {
-      titleRef.current!.value = initial.title || "";
-      itemsRef.current!.value = (initial.items ?? []).join("\n");
-      setBgColor(initial.bg_color || "zinc-50");
-    } else {
-      titleRef.current!.value = "";
-      itemsRef.current!.value = "";
-      setBgColor("zinc-50");
-    }
-  }, [initial]);
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     const title = titleRef.current?.value.trim() || "";
     const rawItems = itemsRef.current?.value || "";
 
+    const normalizeItem = (line: string) => {
+      let cleaned = line.trim();
+
+      // Autolink URLs
+      const urlRegex = /^(https?:\/\/)?([\w.-]+\.[a-z]{2,})(\/\S*)?$/i;
+      if (urlRegex.test(cleaned)) {
+        if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
+          cleaned = "https://" + cleaned;
+        }
+      }
+
+      return cleaned;
+    };
+
     const items = rawItems
       .split("\n")
-      .map((line) => line.trim())
+      .map((line) => normalizeItem(line))
       .filter(Boolean);
 
-    const payload = {
-      user_name: userEmail,
+    const payload: Note = {
+      user_name: userEmail || "",
       title,
       items,
       bg_color: bgColor,
-    };
-
-    if (isEdit && initial) {
-      await supabase.from("notes").update(payload).eq("id", initial.id);
-    } else {
-      await supabase.from("notes").insert(payload);
-    }
-
-    setLoading(false);
+    } as Note;
+    await addNote(payload);
     onChange();
-
-    if (!isEdit && titleRef.current && itemsRef.current) {
-      titleRef.current.value = "";
-      itemsRef.current.value = "";
-      setBgColor("zinc-50");
-    }
+    if (onCancel) onCancel();
   };
 
   return (
@@ -91,7 +76,9 @@ export default function NoteForm({
       className="space-y-4 bg-card p-4 rounded-xl shadow max-w-lg"
     >
       <div>
-        <label className="block text-sm font-medium" htmlFor="title">Tytuł:</label>
+        <label className="block text-sm font-medium" htmlFor="title">
+          Tytuł:
+        </label>
         <input
           id="title"
           ref={titleRef}
@@ -99,17 +86,21 @@ export default function NoteForm({
           placeholder="Tytuł notatki"
           className="w-full p-2 border rounded"
           required
+          disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="desc">Treść:</label>
+        <label className="block text-sm font-medium" htmlFor="desc">
+          Treść:
+        </label>
         <textarea
           id="desc"
           ref={itemsRef}
           placeholder="Pozycje listy (jeden element na linię)"
           className="w-full p-2 border rounded h-24"
           required
+          disabled={loading}
         />
       </div>
 
@@ -121,8 +112,9 @@ export default function NoteForm({
             type="button"
             onClick={() => setBgColor(color)}
             aria-label={`Wybierz kolor ${color}`}
+            disabled={loading}
             className={clsx(
-              "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2",
+              "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed",
               bgColor === color
                 ? "border-secondary ring-secondary"
                 : "border-transparent hover:border-gray-400",
@@ -135,26 +127,19 @@ export default function NoteForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+          disabled={loading}
+          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isEdit ? (
-            <>
-              Zapisz&nbsp;
-              <Save className="w-5 h-5" />
-            </>
-          ) : (
-            <>
               Dodaj&nbsp;
               <PlusCircleIcon className="w-5 h-5" />
-            </>
-          )}
         </button>
 
         {typeof onCancel === "function" && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+            disabled={loading}
+            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Anuluj
           </button>

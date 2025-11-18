@@ -1,179 +1,272 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
-import { Check, Edit2, Trash2 } from "lucide-react";
+import { Check, Edit2, Trash2, X, Save } from "lucide-react";
 import { Task } from "../../types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
+import { getAppDate } from "../../lib/dateUtils";
+import { useTasks } from "../../hooks/useTasks";
+import { useSession } from "@supabase/auth-helpers-react";
+import { useSettings } from "../../hooks/useSettings";
 
 interface Props {
   task: Task;
-  userEmail: string;
   onTasksChange: () => void;
-  onEdit: (task: Task) => void;
-  onStartTimer: () => void; 
+  onStartTimer: () => void;
 }
 
-export default function TaskItem({
-  task,
-  userEmail,
-  onTasksChange,
-  onEdit,
-  onStartTimer,
-}: Props) {
-  const supabase = useSupabaseClient();
+export default function TaskItem({ task, onStartTimer }: Props) {
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
+  const { settings } = useSettings();
   const isDone = task.status === "done";
+  const { deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTask, setEditedTask] = useState(task);
+  
+  const titleRef = useRef<HTMLInputElement>(null);
 
-  const handleDelete = async () => {
+  useEffect(() => {
+    if (isEditing && titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, [isEditing]);
+
+  const handleDelete = async (id: string) => {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
-    await supabase.from("tasks").delete().eq("id", task.id);
-    onTasksChange();
+    await deleteTask(id);
   };
 
   const handleEdit = () => {
-    onEdit(task);
+    setIsEditing(true);
+    setEditedTask(task);
   };
 
-  const acceptTask = async () => {
-    await supabase
-      .from("tasks")
-      .update({ status: "accepted" })
-      .eq("id", task.id);
-    onTasksChange();
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedTask(task);
   };
 
-  const markDone = async () => {
-    await supabase.from("tasks").update({ status: "done" }).eq("id", task.id);
-    onTasksChange();
+  const handleSaveEdit = async () => {
+    await editTask(editedTask);
+    setIsEditing(false);
   };
+
+  const deadlineDate = new Date(task.deadline_date).toISOString().split("T")[0];
+  const today = getAppDate();
+  const isOverdue = deadlineDate < today;
+  const isHighPriority = task.priority === 1;
+
+  const DeleteButton = () => (
+    <button
+      onClick={() => handleDelete(task.id)}
+      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
+    >
+      <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
+      <span className="text-[9px] sm:text-[11px]">Usuń</span>
+    </button>
+  );
+
+  const EditButton = () => (
+    <button
+      onClick={handleEdit}
+      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
+    >
+      <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
+      <span className="text-[9px] sm:text-[11px]">Edytuj</span>
+    </button>
+  );
+
+  if (isEditing) {
+    return (
+      <li className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg">
+        <div className="space-y-3">
+          {/* Title */}
+          <div>
+            <label className="text-xs font-semibold text-gray-700">Tytuł:</label>
+            <input
+              ref={titleRef}
+              type="text"
+              value={editedTask.title}
+              onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          {/* Priority and Category */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs font-semibold text-gray-700">Priorytet:</label>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={editedTask.priority}
+                onChange={(e) =>
+                  setEditedTask({ ...editedTask, priority: Number(e.target.value) })
+                }
+                className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-700">Kategoria:</label>
+              <select
+                value={editedTask.category}
+                onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })}
+                className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                {[
+                  "edukacja",
+                  "praca",
+                  "osobiste",
+                  "aktywizm",
+                  "przyjaciele",
+                  "zakupy",
+                  "podróże",
+                  "dostawa",
+                  "święta",
+                  "inne",
+                ].map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-700">Data wykonania:</label>
+              <input
+                type="date"
+                value={editedTask.due_date}
+                onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })}
+                className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+          {/* Description */}
+          <div>
+            <label className="text-xs font-semibold text-gray-700">Opis:</label>
+            <textarea
+              value={editedTask.description || ""}
+              onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+              className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              rows={3}
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={handleSaveEdit}
+              className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              <span className="text-sm">Zapisz</span>
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              <span className="text-sm">Anuluj</span>
+            </button>
+          </div>
+        </div>
+      </li>
+    );
+  }
 
   return (
-    <li
+    <div
       key={task.id}
-      className={`p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow flex justify-between items-center 
-        ${
-          task.priority === 1
-            ? "shadow-red-800 shadow-sm"
-            : new Date(task.deadline_date).toISOString().split("T")[0] ===
-              getAppDate()
-            ? ""
-            : new Date(task.deadline_date) < new Date(getAppDate())
-            ? "shadow-red-800 shadow-sm"
-            : ""
-        }`}
+      className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow flex justify-between items-center"
     >
       <div className="flex-1">
-        <div onClick={onStartTimer} className="flex justify-start gap-2 items-center mb-3">
-        <span
-          className={`w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:shadow hover:brightness-110`}
-          style={{
-            backgroundColor:
-              task.priority === 1
-                ? "#fca5a5" // pastel red
-                : task.priority === 2
-                ? "#fdba74" // pastel orange
-                : task.priority === 3
-                ? "#fde68a" // pastel yellow
-                : task.priority === 4
-                ? "#a7f3d0" // pastel teal-green
-                : "#bbf7d0", // pastel green
-            color:
-              task.priority === 3 
-                ? "#A16207"
-                : task.priority >= 3
-                ? "#15803D"
-                : "#B91C1C" // darker red text for high priority
-          }}
-          title={`Priorytet ${task.priority}`}
-        >
-          {task.priority}
-        </span>
+        <div onClick={onStartTimer} className="flex justify-start gap-2 items-center">
+          <span
+            className={`w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm cursor-pointer transition duration-200 hover:shadow hover:brightness-110`}
+            style={{
+              backgroundColor:
+                task.priority === 1
+                  ? "#fca5a5"
+                  : task.priority === 2
+                  ? "#fdba74"
+                  : task.priority === 3
+                  ? "#fde68a"
+                  : task.priority === 4
+                  ? "#a7f3d0"
+                  : "#bbf7d0",
+              color:
+                task.priority === 3
+                  ? "#A16207"
+                  : task.priority >= 3
+                  ? "#15803D"
+                  : "#B91C1C",
+            }}
+            title={`Priorytet ${task.priority}`}
+          >
+            {task.priority}
+          </span>
 
-        <h3
-          className={`text-xl font-bold break-words
+          <h3
+            className={`text-xl font-bold break-words
             ${
               isDone
                 ? "text-gray-500 line-through"
-                : task.priority === 1
-                ? "text-red-800"
-                : new Date(task.deadline_date).toISOString().split("T")[0] ===
-                  getAppDate()
-                ? ""
-                : new Date(task.deadline_date) < new Date(getAppDate())
+                : isHighPriority || isOverdue
                 ? "text-red-800"
                 : ""
             }
           `}
-        >
-          
-          {task.title}
-        </h3>
-      </div>
+          >
+            {task.title}
+          </h3>
+          <br />
+        </div>
+        <hr
+          className={`w-[100%] mt-2 mb-3 ${
+            isHighPriority || isOverdue ? "border-red-800" : "border-gray-300"
+          }`}
+        />
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col">
-            <p className="text-xs sm:text-sm w-full text-gray-700 m-1">
-              {task.due_date
-                ? format(parseISO(task.due_date), "dd.MM.yyyy")
-                : ""}
-              {task.deadline_date && (
+            <p className="text-xs sm:text-sm w-full text-gray-700 m-1 my-auto">
+              {task.due_date ? format(parseISO(task.due_date), "dd.MM.yyyy") : ""}
+              {task.category && (
                 <>
                   &nbsp;|&nbsp;
-                  {format(parseISO(task.deadline_date), "dd.MM.yyyy")}
+                  {task.category}
                 </>
               )}
             </p>
-            <p className="text-sm text-gray-600 ml-1 mb-1">{task.category}</p>
           </div>
 
           <div className="flex justify-end w-full min-w-[140px] gap-1.5">
             {isDone ? (
-              <button
-                onClick={handleDelete}
-                className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
-              >
-                <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="text-[9px] sm:text-[11px]">Usuń</span>
-              </button>
+              <EditButton />
             ) : task.user_name !== userEmail &&
               task.status === "waiting_for_acceptance" ? (
               <>
                 <button
-                  onClick={acceptTask}
+                  onClick={() => acceptTask(task.id)}
                   className="flex flex-col px-1.5 items-center justify-center rounded-lg text-green-600 hover:text-green-800 transition-colors"
                 >
                   <Check className="w-5 h-5 sm:w-6 sm:h-6" />
                   <span className="text-[9px] sm:text-[11px]">Akceptuj</span>
                 </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
-                >
-                  <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="text-[9px] sm:text-[11px]">Usuń</span>
-                </button>
+                <DeleteButton />
               </>
             ) : (
               <>
                 <button
-                  onClick={markDone}
+                  onClick={() => setDoneTask(task.id)}
                   className="flex flex-col px-1.5 items-center justify-center rounded-lg text-green-600 hover:text-green-800 transition-colors"
                 >
                   <Check className="w-5 h-5 sm:w-6 sm:h-6" />
                   <span className="text-[9px] sm:text-[11px]">Zrobione</span>
                 </button>
-                <button
-                  onClick={handleEdit}
-                  className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
-                >
-                  <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="text-[9px] sm:text-[11px]">Edytuj</span>
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
-                >
-                  <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="text-[9px] sm:text-[11px]">Usuń</span>
-                </button>
+                <EditButton />
+                <DeleteButton />
               </>
             )}
           </div>
@@ -191,7 +284,7 @@ export default function TaskItem({
             </span>
             {task.description}
             <span className="text-xs">
-              {task.for_user === userEmail ? (
+              {task.for_user != userEmail ? (
                 (task.status === "accepted" ||
                   task.status === "waiting_for_acceptance") && (
                   <>
@@ -209,6 +302,6 @@ export default function TaskItem({
           </p>
         )}
       </div>
-    </li>
+    </div>
   );
 }

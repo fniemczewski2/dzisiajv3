@@ -4,6 +4,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, ReactNode, useCallback, useState } from "react";
+import LoadingState from "./LoadingState";
 
 export default function AuthGuard({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
   if (session === undefined || loading) {
     return (
-      <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
+      <LoadingState/>
     );
   }
 

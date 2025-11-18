@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, FormEvent } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon, Save } from "lucide-react";
+import { PlusCircleIcon, Save } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
+import { useShoppingLists } from "../../hooks/useShoppingLists";
 import LoadingState from "../LoadingState";
 
 interface ShoppingFormProps {
@@ -20,87 +20,84 @@ export default function ShoppingForm({
   onCancel,
   initial,
 }: ShoppingFormProps) {
-  const { settings } = useSettings(userEmail);
-  const supabase = useSupabaseClient();
+  const { settings } = useSettings();
+  const { addShoppingList, editShoppingList, loading } = useShoppingLists();
   const isEdit = !!initial;
 
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
-  const [loading, setLoading] = useState(false);
   const userOptions = settings?.users ?? [];
 
   useEffect(() => {
     if (initial) {
       setName(initial.name ?? "");
       setShare(initial.share ?? "");
+    } else {
+      setName("");
+      setShare("");
     }
   }, [initial]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
-    const payload = {
+    const payload: ShoppingList = {
+      ...(isEdit && initial ? { id: initial.id } : {}),
       user_email: userEmail,
       name: name.trim(),
       share: share.trim() || null,
       elements: initial?.elements ?? [],
-    };
+    } as ShoppingList;
 
     if (isEdit && initial) {
-      await supabase.from("shopping_lists").update(payload).eq("id", initial.id);
+      await editShoppingList(initial.id, payload);
     } else {
-      await supabase.from("shopping_lists").insert(payload);
+      await addShoppingList(payload.name, payload.share);
     }
 
-    setLoading(false);
     onChange();
 
     if (!isEdit) {
-      // reset
       setName("");
       setShare("");
     }
+
+    if (onCancel) onCancel();
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-2 bg-card p-4 rounded-xl shadow max-w-md"
+      className="space-y-4 bg-card p-4 rounded-xl shadow max-w-md"
     >
       <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="name" className="block text-sm font-medium mb-1">
           Nazwa:
         </label>
         <input
           id="name"
           type="text"
-          placeholder="Nazwa listy"
+          placeholder="Nazwa listy zakupów"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded focus:ring-2 focus:ring-primary"
           required
+          disabled={loading}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="for"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="share" className="block text-sm font-medium mb-1">
           Udostępnij:
         </label>
         <select
-          id="for"
-          value={share || userEmail}
+          id="share"
+          value={share || ""}
           onChange={(e) => setShare(e.target.value)}
-          className="mt-1 w-full p-2 border rounded"
-          required
+          className="w-full p-2 border rounded focus:ring-2 focus:ring-primary"
+          disabled={loading}
         >
-          <option value={userEmail}>tylko dla mnie</option>
+          <option value="">Tylko dla mnie</option>
           {userOptions.map((email) => (
             <option key={email} value={email}>
               {email}
@@ -109,11 +106,11 @@ export default function ShoppingForm({
         </select>
       </div>
 
-
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+          disabled={loading}
+          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isEdit ? (
             <>
@@ -131,12 +128,13 @@ export default function ShoppingForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+            disabled={loading}
+            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Anuluj
           </button>
         )}
-        {loading && <LoadingState/>}
+        {loading && <LoadingState />}
       </div>
     </form>
   );

@@ -10,9 +10,10 @@ import {
   Home,
   Leaf,
   Languages,
-  Loader2,
 } from "lucide-react";
-import { useDailyHabits, type HabitKey } from "../../hooks/useDailyHabits";
+import { useDailyHabits } from "../../hooks/useDailyHabits";
+import LoadingState from "../LoadingState";
+import type { HabitKey } from "../../types";
 
 const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "pills", Icon: Pill },
@@ -34,9 +35,7 @@ export default function TaskIcons({ date }: TaskIconsProps) {
 
   if (!habits) {
     return (
-      <div className="grid grid-cols-8 gap-2 mb-2">
-        <Loader2 className="animate-spin w-5 h-5 text-gray-500" />
-      </div>
+      <LoadingState/>
     );
   }
 
