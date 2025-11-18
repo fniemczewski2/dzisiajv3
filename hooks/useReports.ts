@@ -1,14 +1,19 @@
+// hooks/useReports.ts
 import { useEffect, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Report } from "../types";
 
-export function useReports(userEmail?: string) {
+export function useReports() {
+  const session = useSession();
   const supabase = useSupabaseClient();
+  const userEmail = session?.user?.email || "";
+  
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchReports = async () => {
     if (!userEmail) return;
+    
     setLoading(true);
     const { data, error } = await supabase
       .from("reports")
@@ -29,7 +34,7 @@ export function useReports(userEmail?: string) {
     if (!error && data) setReports((prev) => [data as Report, ...prev]);
   };
 
-  const updateReport = async (id: string, updates: Partial<Report>) => {
+  const editReport = async (id: string, updates: Partial<Report>) => {
     const { data, error } = await supabase
       .from("reports")
       .update(updates)
@@ -51,5 +56,5 @@ export function useReports(userEmail?: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
-  return { reports, loading, fetchReports, addReport, updateReport, deleteReport };
+  return { reports, loading, fetchReports, addReport, editReport, deleteReport };
 }

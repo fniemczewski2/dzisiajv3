@@ -51,6 +51,31 @@ export type Settings = {
   users: string[];
 };
 
+export type HabitKey =
+  | "pills"
+  | "bath"
+  | "workout"
+  | "friends"
+  | "work"
+  | "housework"
+  | "plants"
+  | "duolingo";
+
+export interface DailyHabits {
+  date: Date;
+  user_name: string;
+  pills: boolean;
+  bath: boolean;
+  workout: boolean;
+  friends: boolean;
+  work: boolean;
+  housework: boolean;
+  plants: boolean;
+  duolingo: boolean;
+  water_amount?: number | 0;
+  daily_spending?: number | 0;
+}
+
 export type HabitRow = {
   date: string;
   pills: boolean;
@@ -121,13 +146,13 @@ export interface ShoppingElement {
 }
 
 export interface ShoppingList {
-  id: string;
+  id?: string;
   user_email: string;
   name: string;
   share: string | null;
   elements: ShoppingElement[];
-  inserted_at: string;
-  updated_at: string;
+  inserted_at?: string;
+  updated_at?: string;
 }
 
 export type RecipeInsert = Omit<Recipe, "id" | "created_at">;

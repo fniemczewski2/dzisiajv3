@@ -1,23 +1,26 @@
 "use client";
 
-import React, { useRef, useEffect, useState, FormEvent } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, Plus, PlusCircleIcon, Save } from "lucide-react";
+import React, { useRef, useState, FormEvent } from "react";
+import { Plus, PlusCircleIcon, X } from "lucide-react";
 import { ReportTask, Report } from "../../types";
-import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
+import { useReports } from "../../hooks/useReports";
+import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface ReportFormProps {
-  userEmail: string;
   onChange: () => void;
   onCancel?: () => void;
   initial?: Report;
 }
 
-export default function ReportForm({ userEmail, onChange, onCancel, initial }: ReportFormProps) {
-  const supabase = useSupabaseClient();
-  const isEdit = !!initial;
-  const [loading, setLoading] = useState(false);
+export default function ReportForm({
+  onChange,
+  onCancel,
+}: ReportFormProps) {
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
+  const { addReport, editReport, loading } = useReports();
 
   const topicRef = useRef<HTMLInputElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
@@ -25,212 +28,279 @@ export default function ReportForm({ userEmail, onChange, onCancel, initial }: R
 
   const [agenda, setAgenda] = useState<string[]>([""]);
   const [participants, setParticipants] = useState<string[]>([""]);
-  const [tasks, setTasks] = useState<ReportTask[]>([{ zadanie: "", data: "", osoba: "" }]);
-
-  useEffect(() => {
-    if (initial) {
-      topicRef.current!.value = initial.topic || "";
-      dateRef.current!.value = initial.date || getAppDate();
-      notesRef.current!.value = initial.notes || "";
-      setAgenda(initial.agenda?.length ? initial.agenda : [""]);
-      setParticipants(initial.participants?.length ? initial.participants : [""]);
-      setTasks(initial.tasks?.length ? initial.tasks : [{ zadanie: "", data: "", osoba: "" }]);
-    } else {
-      topicRef.current!.value = "";
-      dateRef.current!.value = getAppDate();
-      notesRef.current!.value = "";
-      setAgenda([""]);
-      setParticipants([""]);
-      setTasks([{ zadanie: "", data: "", osoba: "" }]);
-    }
-  }, [initial]);
+  const [tasks, setTasks] = useState<ReportTask[]>([
+    { zadanie: "", data: "", osoba: "" },
+  ]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    const payload = {
+    const payload: Report = {
       user_email: userEmail,
       topic: topicRef.current?.value.trim() || "",
-      date: dateRef.current?.value || getAppDateTime(),
+      date: dateRef.current?.value || getAppDate(),
       agenda: agenda.filter(Boolean),
       participants: participants.filter(Boolean),
-      tasks: tasks.map((t) => ({
-        zadanie: t.zadanie.trim(),
-        data: t.data,
-        osoba: t.osoba.trim(),
-      })),
+      tasks: tasks
+        .filter((t) => t.zadanie.trim())
+        .map((t) => ({
+          zadanie: t.zadanie.trim(),
+          data: t.data,
+          osoba: t.osoba.trim(),
+        })),
       notes: notesRef.current?.value.trim() || "",
-    };
+    } as Report;
 
-    if (isEdit && initial) {
-      await supabase.from("reports").update(payload).eq("id", initial.id);
-    } else {
-      await supabase.from("reports").insert(payload);
-    }
 
-    setLoading(false);
+    await addReport(payload);
     onChange();
-
-    if (!isEdit) {
       topicRef.current!.value = "";
       dateRef.current!.value = getAppDate();
       notesRef.current!.value = "";
       setAgenda([""]);
       setParticipants([""]);
       setTasks([{ zadanie: "", data: "", osoba: "" }]);
+
+    if (onCancel) onCancel();
+  };
+
+  const removeAgendaItem = (index: number) => {
+    if (agenda.length > 1) {
+      setAgenda(agenda.filter((_, i) => i !== index));
+    }
+  };
+
+  const removeParticipant = (index: number) => {
+    if (participants.length > 1) {
+      setParticipants(participants.filter((_, i) => i !== index));
+    }
+  };
+
+  const removeTask = (index: number) => {
+    if (tasks.length > 1) {
+      setTasks(tasks.filter((_, i) => i !== index));
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-card p-4 rounded-xl shadow max-w-2xl">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 bg-card p-4 rounded-xl shadow max-w-2xl"
+    >
       <div>
-        <label className="block text-sm font-medium">Temat spotkania:</label>
-        <input ref={topicRef} className="w-full border p-2 rounded" required />
+        <label className="block text-sm font-medium mb-1">
+          Temat spotkania:
+        </label>
+        <input
+          ref={topicRef}
+          className="w-full border p-2 rounded focus:ring-2 focus:ring-primary"
+          required
+          disabled={loading}
+          placeholder="Wprowadź temat spotkania"
+        />
       </div>
+
       <div>
-        <label className="block text-sm font-medium">Data:</label>
-        <input ref={dateRef} type="date" className="w-full border p-2 rounded" required />
+        <label className="block text-sm font-medium mb-1">Data:</label>
+        <input
+          ref={dateRef}
+          type="date"
+          className="w-full border p-2 rounded focus:ring-2 focus:ring-primary"
+          required
+          disabled={loading}
+        />
       </div>
-      <div className="grid grid-cols-2 gap-2">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Agenda */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium">Agenda:</label>
-          <div className="flex flex-col mt-1">
+        <div>
+          <label className="block text-sm font-medium mb-1">Agenda:</label>
+          <div className="space-y-2">
             {agenda.map((a, i) => (
-              <input
-                key={i}
-                className="border p-2 rounded"
-                value={a}
-                onChange={(e) => {
-                  const copy = [...agenda];
-                  copy[i] = e.target.value;
-                  setAgenda(copy);
-                }}
-                placeholder={`${i + 1}.`}
-              />
+              <div key={i} className="flex gap-2">
+                <input
+                  className="flex-1 border p-2 rounded focus:ring-2 focus:ring-primary"
+                  value={a}
+                  onChange={(e) => {
+                    const copy = [...agenda];
+                    copy[i] = e.target.value;
+                    setAgenda(copy);
+                  }}
+                  placeholder={`Punkt ${i + 1}`}
+                  disabled={loading}
+                />
+                {agenda.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeAgendaItem(i)}
+                    className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                    title="Usuń"
+                    disabled={loading}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
           <button
             type="button"
             onClick={() => setAgenda([...agenda, ""])}
-            className="inline-flex items-center text-blue-600 hover:underline mt-1"
+            className="inline-flex items-center text-primary hover:text-secondary mt-2 transition-colors"
+            disabled={loading}
           >
-            Dodaj&nbsp;<Plus className="w-4 h-4" />
+            Dodaj&nbsp;
+            <Plus className="w-4 h-4" />
           </button>
         </div>
 
         {/* Uczestnicy */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium">Uczestnicy:</label>
-          <div className="flex flex-col mt-1">
+        <div>
+          <label className="block text-sm font-medium mb-1">Uczestnicy:</label>
+          <div className="space-y-2">
             {participants.map((p, i) => (
-              <input
-                key={i}
-                className="w-full border p-2 rounded"
-                value={p}
-                onChange={(e) => {
-                  const copy = [...participants];
-                  copy[i] = e.target.value;
-                  setParticipants(copy);
-                }}
-              />
+              <div key={i} className="flex gap-2">
+                <input
+                  className="flex-1 border p-2 rounded focus:ring-2 focus:ring-primary"
+                  value={p}
+                  onChange={(e) => {
+                    const copy = [...participants];
+                    copy[i] = e.target.value;
+                    setParticipants(copy);
+                  }}
+                  placeholder={`Uczestnik ${i + 1}`}
+                  disabled={loading}
+                />
+                {participants.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeParticipant(i)}
+                    className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                    title="Usuń"
+                    disabled={loading}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             ))}
-            <button
-              type="button"
-              onClick={() => setParticipants([...participants, ""])}
-              className="inline-flex items-center text-blue-600 hover:underline mt-1"
-            >
-              Dodaj&nbsp;<Plus className="w-4 h-4" />
-            </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setParticipants([...participants, ""])}
+            className="inline-flex items-center text-primary hover:text-secondary mt-2 transition-colors"
+            disabled={loading}
+          >
+            Dodaj&nbsp;
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-
       <div>
-        <label className="block text-sm font-medium">Zadania:</label>
-        <div>
+        <label className="block text-sm font-medium mb-1">Zadania:</label>
+        <div className="space-y-3">
           {tasks.map((t, i) => (
-            <div key={i} className="flex flex-wrap gap-2">
-              <input
-                placeholder="Zadanie"
-                className="flex-1 border p-2 rounded"
-                value={t.zadanie}
-                onChange={(e) => {
-                  const copy = [...tasks];
-                  copy[i].zadanie = e.target.value;
-                  setTasks(copy);
-                }}
-              />
+            <div key={i} className="p-3 border rounded-lg bg-gray-50 space-y-2">
+              <div className="flex gap-2">
+                <input
+                  placeholder="Zadanie"
+                  className="flex-1 border p-2 rounded focus:ring-2 focus:ring-primary bg-white"
+                  value={t.zadanie}
+                  onChange={(e) => {
+                    const copy = [...tasks];
+                    copy[i].zadanie = e.target.value;
+                    setTasks(copy);
+                  }}
+                  disabled={loading}
+                />
+                {tasks.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeTask(i)}
+                    className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                    title="Usuń zadanie"
+                    disabled={loading}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
-              <input
-                type="date"
-                className="border p-2 rounded"
-                value={t.data}
-                onChange={(e) => {
-                  const copy = [...tasks];
-                  copy[i].data = e.target.value;
-                  setTasks(copy);
-                }}
-              />
-              <input
-                placeholder="Osoba"
-                className="flex-1 border p-2 rounded"
-                value={t.osoba}
-                onChange={(e) => {
-                  const copy = [...tasks];
-                  copy[i].osoba = e.target.value;
-                  setTasks(copy);
-                }}
-              />
+                <input
+                  type="date"
+                  className="border p-2 rounded focus:ring-2 focus:ring-primary bg-white"
+                  value={t.data}
+                  onChange={(e) => {
+                    const copy = [...tasks];
+                    copy[i].data = e.target.value;
+                    setTasks(copy);
+                  }}
+                  disabled={loading}
+                />
+                <input
+                  placeholder="Osoba odpowiedzialna"
+                  className="border p-2 rounded focus:ring-2 focus:ring-primary bg-white"
+                  value={t.osoba}
+                  onChange={(e) => {
+                    const copy = [...tasks];
+                    copy[i].osoba = e.target.value;
+                    setTasks(copy);
+                  }}
+                  disabled={loading}
+                />
               </div>
             </div>
           ))}
           <button
             type="button"
-            onClick={() => setTasks([...tasks, { zadanie: "", data: "", osoba: "" }])}
-            className="inline-flex items-center text-blue-600 hover:underline mt-1"
+            onClick={() =>
+              setTasks([...tasks, { zadanie: "", data: "", osoba: "" }])
+            }
+            className="inline-flex items-center text-primary hover:text-secondary transition-colors"
+            disabled={loading}
           >
-            Dodaj&nbsp;<Plus className="w-4 h-4" />
+            Dodaj&nbsp;
+            <Plus className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Notatki:</label>
-        <textarea ref={notesRef} className="w-full border p-2 rounded" rows={6} />
+        <label className="block text-sm font-medium mb-1">Notatki:</label>
+        <textarea
+          ref={notesRef}
+          className="w-full border p-2 rounded focus:ring-2 focus:ring-primary"
+          rows={6}
+          placeholder="Dodatkowe notatki ze spotkania..."
+          disabled={loading}
+        />
       </div>
 
       <div className="flex gap-2 items-center">
         <button
           type="submit"
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex items-center transition"
+          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
-          {isEdit ? (
             <>
-              Zapisz&nbsp;<Save className="w-5 h-5" />
+              Dodaj&nbsp;
+              <PlusCircleIcon className="w-5 h-5" />
             </>
-          ) : (
-            <>
-              Dodaj&nbsp;<PlusCircleIcon className="w-5 h-5" />
-            </>
-          )}
         </button>
 
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             Anuluj
           </button>
         )}
 
-        {loading && <LoadingState/>}
+        {loading && <LoadingState />}
       </div>
     </form>
   );

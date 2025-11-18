@@ -13,7 +13,8 @@ import LoadingState from "../components/LoadingState";
 export default function SettingsPage() {
   const session = useSession();
   const supabase = useSupabaseClient();
-    const router = useRouter();
+  const email = session?.user?.email || "";
+  const router = useRouter();
   // Local settings state with defaults
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -72,7 +73,6 @@ export default function SettingsPage() {
     if (!session) return;
     (async () => {
       setLoading(true);
-      const email = session.user.email;
       const { data, error } = await supabase
         .from("settings")
         .select(
@@ -93,7 +93,7 @@ export default function SettingsPage() {
       }
       setLoading(false);
     })();
-  }, [session, supabase]);
+  }, [session, supabase, email]);
 
   const addUser = () => {
     if (settings.users.length < 10) {
@@ -145,11 +145,9 @@ export default function SettingsPage() {
           <h2 className="text-2xl font-semibold">Menu</h2>
           <InstallButton/>
         </div>
-          {(!session || loading) && (
-            <div className="min-h-screen flex items-center justify-center">
-              <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
-            </div>
-          )} 
+          {(loading) && (
+            <LoadingState/>
+          )}
           <div className="flex flex-wrap justify-around mb-4 gap-4">
             <button
                 onClick={() => router.push("/tasks")}

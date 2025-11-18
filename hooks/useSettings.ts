@@ -1,14 +1,21 @@
+// hooks/useSettings.ts
 import { useState, useEffect } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Settings } from "../types";
 
-export function useSettings(userEmail: string) {
+export function useSettings() {
+  const session = useSession();
   const supabase = useSupabaseClient();
+  const userEmail = session?.user?.email || "";
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userEmail) return;
+    if (!userEmail) {
+      setLoading(false);
+      return;
+    }
+
     (async () => {
       const { data, error } = await supabase
         .from("settings")
@@ -35,7 +42,9 @@ export function useSettings(userEmail: string) {
           .from("settings")
           .insert(defaults);
 
-        setSettings(defaults);
+        if (!insertError) {
+          setSettings(defaults);
+        }
       }
       setLoading(false);
     })();
