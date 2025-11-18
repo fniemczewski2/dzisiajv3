@@ -1,27 +1,25 @@
 "use client";
 
 import React, { useEffect, useState, FormEvent } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { PlusCircleIcon, Save } from "lucide-react";
 import { Bill } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
+import { useBills } from "../../hooks/useBills";
 import LoadingState from "../LoadingState";
 
 interface BillFormProps {
-  userEmail: string;
   onChange: () => void;
   onCancel?: () => void;
   initial?: Bill;
 }
 
 export default function BillForm({
-  userEmail,
   onChange,
   onCancel,
   initial,
 }: BillFormProps) {
-  const supabase = useSupabaseClient();
   const isEdit = !!initial;
+  const { addBill, editBill, loading } = useBills();
 
   const [amount, setAmount] = useState("0");
   const [description, setDescription] = useState("");
@@ -29,7 +27,6 @@ export default function BillForm({
     return initial?.date || getAppDate();
   });
   const [includeInBudget, setIncludeInBudget] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (initial) {
@@ -42,23 +39,22 @@ export default function BillForm({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
-    const payload = {
-      user_name: userEmail,
+    const payload: Bill = {
+      ...(isEdit && initial ? { id: initial.id } : {}),
       amount: parseFloat(amount) || 0,
       description: description.trim() || null,
       date: date,
       include_in_budget: includeInBudget,
-    };
+      done: initial?.done ?? false,
+    } as Bill;
 
     if (isEdit && initial) {
-      await supabase.from("bills").update(payload).eq("id", initial.id);
+      await editBill(payload);
     } else {
-      await supabase.from("bills").insert(payload);
+      await addBill(payload);
     }
 
-    setLoading(false);
     onChange();
 
     if (!isEdit) {
@@ -68,6 +64,8 @@ export default function BillForm({
       setDate(getAppDate());
       setIncludeInBudget(false);
     }
+
+    if (onCancel) onCancel();
   };
 
   return (
@@ -76,7 +74,9 @@ export default function BillForm({
       className="space-y-2 bg-card p-4 rounded-xl shadow max-w-md"
     >
       <div>
-        <label className="block text-sm font-medium" htmlFor="amount">Kwota:</label>
+        <label className="block text-sm font-medium" htmlFor="amount">
+          Kwota:
+        </label>
         <input
           id="amount"
           type="number"
@@ -86,22 +86,28 @@ export default function BillForm({
           onChange={(e) => setAmount(e.target.value)}
           className="w-full p-2 border rounded"
           required
+          disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="description">Opis:</label>
+        <label className="block text-sm font-medium" htmlFor="description">
+          Opis:
+        </label>
         <textarea
           id="description"
           placeholder="Opis"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full p-2 border rounded"
+          disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="date">Data:</label>
+        <label className="block text-sm font-medium" htmlFor="date">
+          Data:
+        </label>
         <input
           id="date"
           type="date"
@@ -109,6 +115,7 @@ export default function BillForm({
           onChange={(e) => setDate(e.target.value)}
           className="w-full p-2 border rounded"
           required
+          disabled={loading}
         />
       </div>
 
@@ -119,8 +126,12 @@ export default function BillForm({
           checked={includeInBudget}
           onChange={() => setIncludeInBudget(!includeInBudget)}
           className="h-4 w-4"
+          disabled={loading}
         />
-        <label className="block text-sm font-medium select-none" htmlFor="includeInBudget">
+        <label
+          className="block text-sm font-medium select-none"
+          htmlFor="includeInBudget"
+        >
           Planowany wydatek
         </label>
       </div>
@@ -128,7 +139,8 @@ export default function BillForm({
       <div className="flex space-x-2 items-center">
         <button
           type="submit"
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
+          disabled={loading}
+          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isEdit ? (
             <>
@@ -146,7 +158,8 @@ export default function BillForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+            disabled={loading}
+            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Anuluj
           </button>

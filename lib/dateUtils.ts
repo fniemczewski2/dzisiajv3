@@ -4,6 +4,23 @@ import { Event } from "../types";
 export const formatDate = (date: Date): string =>
   date.toISOString().split("T")[0];
 
+export const formatTime = (timestamp: string, includeDate = false): string => {
+  const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace("T", " ").slice(0, 19);
+  const [datePart, timePart] = cleanTimestamp.split(" ");
+  const [year, month, day] = datePart.split("-");
+  const [hours, minutes] = timePart.split(":");
+  
+  if (includeDate) {
+    return `${day}.${month} ${hours}:${minutes}`;
+  }
+  return `${hours}:${minutes}`;
+};
+
+export const localDateTimeToISO = (localDateTime: string): string => {
+  // Just append seconds and milliseconds, keep the exact time
+  return `${localDateTime}:00.000Z`;
+};
+
 export const getMonthDays = (year: number, month: number): Date[] => {
   const days: Date[] = [];
   const firstDay = new Date(year, month, 1);

@@ -1,28 +1,58 @@
 "use client";
-import React, { use, useState } from "react";
-import { Edit2, Plus, Trash2 } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Edit2, Plus, Trash2, X, Save } from "lucide-react";
 import { ShoppingList } from "../../types";
+import { useShoppingLists } from "../../hooks/useShoppingLists";
+import { useSettings } from "../../hooks/useSettings";
 
-interface ShoppingListViewProps {
-  userEmail: string;
-  lists: ShoppingList[];
-  onEdit: (l: ShoppingList) => void;
-  onDelete: (id: string) => void;
-  onUpdate: (id: string, updates: Partial<ShoppingList>) => void;
-}
+export default function ShoppingListView() {
+  const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
+  const { settings } = useSettings();
+  const [editingId, setEditingId] = useState<string | undefined>(undefined);
+  const [editedList, setEditedList] = useState<ShoppingList | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
 
-export default function ShoppingListView({
-  userEmail,
-  lists,
-  onEdit,
-  onDelete,
-  onUpdate,
-}: ShoppingListViewProps) {
+  const userOptions = settings?.users ?? [];
+
+  useEffect(() => {
+    if (editingId && nameRef.current) {
+      nameRef.current.focus();
+    }
+  }, [editingId]);
+
+  const handleEdit = (list: ShoppingList) => {
+    setEditingId(list.id);
+    setEditedList({ ...list });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(undefined);
+    setEditedList(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (editedList?.id) {
+      await editShoppingList(editedList.id, {
+        name: editedList.name,
+        share: editedList.share,
+      });
+      setEditingId(undefined);
+      setEditedList(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Czy na pewno chcesz usunąć tę listę zakupów?")) return;
+    await deleteShoppingList(id);
+  };
+
   const toggleElement = (list: ShoppingList, elId: string) => {
     const updated = list.elements.map((el) =>
       el.id === elId ? { ...el, completed: !el.completed } : el
     );
-    onUpdate(list.id, { elements: updated });
+    if (list.id) {
+      editShoppingList(list.id, { elements: updated });
+    } 
   };
 
   const addElement = (list: ShoppingList, text: string) => {
@@ -31,68 +61,207 @@ export default function ShoppingListView({
       ...list.elements,
       { id: crypto.randomUUID(), text: text.trim(), completed: false },
     ];
-    onUpdate(list.id, { elements: updated });
+    if (list.id) {
+      editShoppingList(list.id, { elements: updated });
+    }
+  };
+
+  const removeElement = (list: ShoppingList, elId: string) => {
+    const updated = list.elements.filter((el) => el.id !== elId);
+    
+    if (list.id) {
+      editShoppingList(list.id, { elements: updated });
+    }
   };
 
   return (
     <ul className="flex flex-wrap justify-center">
-      {lists.map((list) => (
-        <li
-          key={list.id}
-          className="py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-between hover:shadow-lg bg-card"
-        >
-        <span className="flex justify-between w-full">
-            <div className="flex flex-col mr-6">
-                <h3 className="font-semibold text-lg mb-1">{list.name}</h3>
-                <p className="text-sm text-gray-500 mb-2 ">
-                    Udostępnione{userEmail === list.share ? `\u00A0przez\u00A0${list.user_email.split("@")[0]}` : `:\u00A0${list.share?.split("@")[0]}`}
-                </p>
-            </div>
-            <div className="flex justify-end space-x-4 mt-3">
+      {lists.map((list) => {
+        const isEditing = editingId === list.id;
+
+        if (isEditing && editedList) {
+          return (
+            <li
+              key={list.id}
+              className="py-4 px-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow-lg flex flex-col bg-gray-50 border-2 border-gray-300"
+            >
+              <div className="space-y-3 mb-3">
+                {/* Name */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700">
+                    Nazwa:
+                  </label>
+                  <input
+                    ref={nameRef}
+                    type="text"
+                    value={editedList.name}
+                    onChange={(e) =>
+                      setEditedList({ ...editedList, name: e.target.value })
+                    }
+                    className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Share */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700">
+                    Udostępnij:
+                  </label>
+                  <select
+                    value={editedList.share || ""}
+                    onChange={(e) =>
+                      setEditedList({ ...editedList, share: e.target.value || null })
+                    }
+                    className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Tylko dla mnie</option>
+                    {userOptions.map((email) => (
+                      <option key={email} value={email}>
+                        {email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    onClick={handleSaveEdit}
+                    className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    
+                    <span className="text-sm">Zapisz</span>
+                    <Save className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    
+                    <span className="text-sm">Anuluj</span>
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Elements (read-only during edit) */}
+              <ul className="list-none space-y-2 mb-3">
+                {list.elements.map((el) => (
+                  <li
+                    key={el.id}
+                    className={`flex items-center justify-between group ${
+                      el.completed ? "line-through text-gray-500" : ""
+                    }`}
+                  >
+                    <div className="flex items-center flex-1">
+                      <input
+                        type="checkbox"
+                        checked={el.completed}
+                        onChange={() => toggleElement(list, el.id)}
+                        className="mr-2 h-5 w-5 cursor-pointer"
+                      />
+                      <span className="flex-1">{el.text}</span>
+                    </div>
+                    <button
+                      onClick={() => removeElement(list, el.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700"
+                      title="Usuń produkt"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+                {list.elements.length === 0 && (
+                  <li className="text-gray-400 text-sm italic">
+                    Brak produktów na liście
+                  </li>
+                )}
+              </ul>
+
+              <AddElementForm onAdd={(text) => addElement(list, text)} />
+            </li>
+          );
+        }
+
+        return (
+          <li
+            key={list.id}
+            className="py-4 px-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col hover:shadow-lg bg-card transition"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1 mr-4">
+                <h3 className="font-semibold text-lg">{list.name}</h3>
+                {list.share && (
+                  <p className="text-sm text-gray-500">
+                    {list.user_email === list.share
+                      ? `Udostępnione przez ${list.user_email.split("@")[0]}`
+                      : `Udostępnione: ${list.share.split("@")[0]}`}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-3">
                 <button
-                onClick={() => onEdit(list)}
-                className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
+                  onClick={() => handleEdit(list)}
+                  className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
+                  title="Edytuj"
                 >
-                <Edit2 className="w-5 h-5" />
-                <span className="text-xs mt-1">Edytuj</span>
+                  <Edit2 className="w-5 h-5" />
+                  <span className="text-xs mt-1">Edytuj</span>
                 </button>
                 <button
-                onClick={() => onDelete(list.id)}
-                className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
+                  onClick={() => handleDelete(list.id || "")}
+                  className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
+                  title="Usuń"
                 >
-                <Trash2 className="w-5 h-5" />
-                <span className="text-xs mt-1">Usuń</span>
+                  <Trash2 className="w-5 h-5" />
+                  <span className="text-xs mt-1">Usuń</span>
                 </button>
+              </div>
             </div>
-        </span>
-          
 
-          <ul className="list-none pl-2 my-2 space-y-1">
-            {list.elements.map((el) => (
-              <li
-                key={el.id}
-                className={`flex items-center ${
-                  el.completed ? "line-through text-gray-500" : ""
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={el.completed}
-                  onChange={() => toggleElement(list, el.id)}
-                  className="mr-2 h-5 w-5 "
-                />
-                {el.text}
-              </li>
-            ))}
-          </ul>
+            <ul className="list-none space-y-2 mb-3">
+              {list.elements.map((el) => (
+                <li
+                  key={el.id}
+                  className={`flex items-center justify-between group ${
+                    el.completed ? "line-through text-gray-500" : ""
+                  }`}
+                >
+                  <div className="flex items-center flex-1">
+                    <input
+                      type="checkbox"
+                      checked={el.completed}
+                      onChange={() => toggleElement(list, el.id)}
+                      className="mr-2 h-5 w-5 cursor-pointer"
+                    />
+                    <span className="flex-1">{el.text}</span>
+                  </div>
+                  <button
+                    onClick={() => removeElement(list, el.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700"
+                    title="Usuń produkt"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </li>
+              ))}
+              {list.elements.length === 0 && (
+                <li className="text-gray-400 text-sm italic">
+                  Brak produktów na liście
+                </li>
+              )}
+            </ul>
 
-          {/* Formularz dodawania nowego elementu */}
-          <AddElementForm onAdd={(text) => addElement(list, text)} />
+            <AddElementForm onAdd={(text) => addElement(list, text)} />
+          </li>
+        );
+      })}
 
-          {/* Akcje listy */}
-          
+      {lists.length === 0 && (
+        <li className="text-center text-gray-500 py-8 w-full">
+          Brak list zakupów
         </li>
-      ))}
+      )}
     </ul>
   );
 }
@@ -109,19 +278,20 @@ function AddElementForm({ onAdd }: { onAdd: (text: string) => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 mt-2">
+    <form onSubmit={handleSubmit} className="flex gap-2 mt-2 pt-2 border-t">
       <input
         type="text"
         placeholder="Nowy produkt"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full border px-2 py-1 rounded"
+        className="flex-1 border px-3 py-2 rounded focus:ring-2 focus:ring-primary"
       />
       <button
-        className="flex items-center text-blue-600 hover:underline"
+        className="flex items-center px-3 py-2 text-primary hover:text-secondary hover:underline transition"
         type="submit"
       >
-        Dodaj&nbsp;<Plus className="text-blue-600 w-4 h-4 mr-1" />
+        Dodaj
+        <Plus className="w-4 h-4 ml-1" />
       </button>
     </form>
   );

@@ -5,16 +5,12 @@ import { Task } from "../../types";
 
 interface Props {
   tasks: Task[];
-  userEmail: string;
   onTasksChange: () => void;
-  onEdit: (task: Task) => void;
 }
 
 export default function TaskList({
   tasks,
-  userEmail,
   onTasksChange,
-  onEdit,
 }: Props) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -34,9 +30,7 @@ export default function TaskList({
           <li key={task.id} className="w-full md:w-[45%] lg:w-[30%]">
             <TaskItem
               task={task}
-              userEmail={userEmail}
               onTasksChange={onTasksChange}
-              onEdit={onEdit}
               onStartTimer={() => setActiveTask(task)} 
             />
           </li>
