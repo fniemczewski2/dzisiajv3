@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "@supabase/auth-helpers-react";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, ReactNode, useCallback, useState } from "react";
 import LoadingState from "./LoadingState";

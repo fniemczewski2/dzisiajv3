@@ -26,6 +26,7 @@ interface Props {
   selectedDate: string;
   tasks: Task[];
   events?: Event[];
+  onEventsChange: () => void;
   onBack: () => void;
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
@@ -76,6 +77,7 @@ export default function CalendarDayDetails({
   selectedDate,
   tasks,
   events = [],
+  onEventsChange,
   onBack,
   onEditEvent,
   onDeleteEvent,
@@ -112,6 +114,7 @@ export default function CalendarDayDetails({
       await onEditEvent(editedEvent);
       setEditingId(null);
       setEditedEvent(null);
+      onEventsChange();
     }
   };
 
@@ -119,6 +122,7 @@ export default function CalendarDayDetails({
     const confirmed = confirm("Czy na pewno chcesz usunąć to wydarzenie?");
     if (!confirmed) return;
     await onDeleteEvent(event.id);
+    onEventsChange();
   };
 
   const generateSingleEventICS = (ev: Event) => {
