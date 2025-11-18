@@ -15,9 +15,9 @@ interface Props {
 
 export default function SummaryTable({ data, monthNames, loadedMonths }: Props) {
   return (
-    <>
+    <div>
       <h3 className="font-bold mb-2">Budżet roczny</h3>
-      <div className="bg-white mb-4 rounded-xl shadow overflow-x-auto">
+      <div className="bg-white w-fit mb-4 rounded-xl shadow overflow-x-auto">
         <table className="w-full table-auto text-sm">
           <thead className="bg-gray-100 text-gray-700 font-semibold">
             <tr>
@@ -64,6 +64,6 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Props) 
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }

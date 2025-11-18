@@ -14,7 +14,7 @@ import LoadingState from "../components/LoadingState";
 export default function NotesPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
-  const { notes, loading, fetchNotes } = useNotes(userEmail);
+  const { notes, loading, fetchNotes } = useNotes();
   const supabase = useSupabaseClient();
   const router = useRouter();
 
@@ -25,11 +25,6 @@ export default function NotesPage() {
     setEditing(undefined);
     setShowForm(true);
   };
-  const openEdit = (n: Note) => {
-    setEditing(n);
-    setShowForm(true);
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm("Czy na pewno chcesz usunąć notatkę?")) return;
     await supabase.from("notes").delete().eq("id", id);
@@ -87,12 +82,10 @@ export default function NotesPage() {
         {showForm && (
           <div className="mb-6">
             <NoteForm
-              userEmail={userEmail}
               onChange={() => {
                 fetchNotes();
                 setShowForm(false);
               }}
-              initial={editing}
               onCancel={() => setShowForm(false)}
             />
           </div>
@@ -100,11 +93,6 @@ export default function NotesPage() {
 
         <NoteList
           notes={notes}
-          onEdit={openEdit}
-          onDelete={(id) => {
-            handleDelete(id);
-            fetchNotes();
-          }}
         />
       </Layout>
     </>

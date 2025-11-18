@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import { PlusCircle, Trash2, Save, Loader2, PlusCircleIcon } from "lucide-react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import LoadingState from "../LoadingState";
 

@@ -8,7 +8,6 @@ import {
   endOfWeek,
   isBefore,
   isAfter,
-  parseISO,
   max,
   min,
   differenceInCalendarDays,
@@ -27,6 +26,23 @@ interface Props {
 }
 
 const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
+
+// Helper to parse event timestamp without timezone conversion
+const parseEventDate = (timestamp: string): Date => {
+  const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace(" ", "T").split(".")[0];
+  const [datePart, timePart] = cleanTimestamp.split("T");
+  const [year, month, day] = datePart.split("-");
+  const [hours, minutes, seconds] = timePart.split(":");
+  
+  return new Date(
+    parseInt(year),
+    parseInt(month) - 1,
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes),
+    parseInt(seconds || "0")
+  );
+};
 
 const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
   const isMobile = useResponsive();
@@ -50,7 +66,7 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
     };
   }, [currentDate]);
 
-  const { tasksCount } = useCalendarData(userEmail, rangeStart, rangeEnd);
+  const { tasksCount } = useCalendarData(rangeStart, rangeEnd);
 
   // Memoize weeks calculation
   const weeks = useMemo(() => {
@@ -69,48 +85,25 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
     return result;
   }, [calendarStart, calendarEnd]);
 
-  // Memoize events by date for quick lookup
-  const eventsByDate = useMemo(() => {
-    const map = new Map<string, Event[]>();
-    
-    events.forEach((event) => {
-      const start = parseISO(event.start_time);
-      const end = parseISO(event.end_time);
-      
-      // Add event to all dates it spans
-      let current = new Date(start);
-      while (current <= end) {
-        const dateKey = format(current, "yyyy-MM-dd");
-        if (!map.has(dateKey)) {
-          map.set(dateKey, []);
-        }
-        map.get(dateKey)!.push(event);
-        current = addDays(current, 1);
-      }
-    });
-
-    return map;
-  }, [events]);
-
   // Memoize week data to avoid recalculating on every render
   const weekData = useMemo(() => {
     return weeks.map((week) => {
       const weekStart = week[0];
       const weekEnd = endOfDay(week[6]);
 
-      // Filter events for this week
+      // Filter events for this week using parseEventDate
       const eventsThisWeek = events.filter((event) => {
-        const start = parseISO(event.start_time);
-        const end = parseISO(event.end_time);
+        const start = parseEventDate(event.start_time);
+        const end = parseEventDate(event.end_time);
         return !(isBefore(end, weekStart) || isAfter(start, weekEnd));
       });
 
       // Sort by span length (longer events first)
       const sortedEvents = [...eventsThisWeek].sort((a, b) => {
-        const aStart = parseISO(a.start_time);
-        const aEnd = parseISO(a.end_time);
-        const bStart = parseISO(b.start_time);
-        const bEnd = parseISO(b.end_time);
+        const aStart = parseEventDate(a.start_time);
+        const aEnd = parseEventDate(a.end_time);
+        const bStart = parseEventDate(b.start_time);
+        const bEnd = parseEventDate(b.end_time);
 
         const aSpan = differenceInCalendarDays(min([aEnd, weekEnd]), max([aStart, weekStart])) + 1;
         const bSpan = differenceInCalendarDays(min([bEnd, weekEnd]), max([bStart, weekStart])) + 1;
@@ -131,8 +124,8 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
       const overflowCounts: number[] = Array(7).fill(0);
 
       for (const event of sortedEvents) {
-        const start = parseISO(event.start_time);
-        const end = parseISO(event.end_time);
+        const start = parseEventDate(event.start_time);
+        const end = parseEventDate(event.end_time);
 
         const segStart = max([start, weekStart]);
         const segEnd = min([end, weekEnd]);

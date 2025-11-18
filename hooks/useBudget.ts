@@ -1,5 +1,5 @@
 // hooks/useBudget.tsx
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 
 interface MonthData {
@@ -15,13 +15,14 @@ interface MonthData {
 type YearData = Record<number, MonthData>;
 
 export function useBudgetData(year: number, monthRange?: [number, number]) {
-  const session = useSession();
   const supabase = useSupabaseClient();
-
-  const [loading, setLoading] = useState(true);
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
   const [data, setData] = useState<YearData>({});
+  const [loading, setLoading] = useState(true);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());
 
+  const keys = [ "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",];
   const startMonth = monthRange?.[0] ?? 1;
   const endMonth = monthRange?.[1] ?? 12;
 
@@ -35,92 +36,67 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     monthlySpending: 0,
   });
 
-  const fetchMonthData = useCallback(
-    async (month: number): Promise<MonthData> => {
-      if (!session?.user?.email) return getEmptyMonthData();
+  const fetchMonthData = async (month: number): Promise<MonthData> => {
+    if (!userEmail) return getEmptyMonthData();
+    
+    const monthStr = String(month).padStart(2, "0");
+    const dateStart = `${year}-${monthStr}-01`;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const nextMonthStr = String(nextMonth).padStart(2, "0");
+    const dateEnd = `${nextYear}-${nextMonthStr}-01`;
 
-      const userEmail = session.user.email;
-      const monthStr = String(month).padStart(2, "0");
-      
-      // ✅ FIX: Calculate correct date range
-      const dateStart = `${year}-${monthStr}-01`;
-      
-      // Calculate next month's first day (for exclusive upper bound)
-      const nextMonth = month === 12 ? 1 : month + 1;
-      const nextYear = month === 12 ? year + 1 : year;
-      const nextMonthStr = String(nextMonth).padStart(2, "0");
-      const dateEnd = `${nextYear}-${nextMonthStr}-01`;
+    try {
+      const { data: bills } = await supabase
+        .from("bills")
+        .select("amount,date,include_in_budget,description,done")
+        .eq("user_name", userEmail)
+        .gte("date", dateStart)
+        .lt("date", dateEnd);
 
-      try {
-        // Fetch bills for this month only
-        const { data: bills } = await supabase
-          .from("bills")
-          .select("amount,date,include_in_budget,description,done")
-          .eq("user_name", userEmail)
-          .gte("date", dateStart)
-          .lt("date", dateEnd); // Use lt (less than) instead of lte
+      const { data: habits } = await supabase
+        .from("daily_habits")
+        .select("date,daily_spending")
+        .eq("user_name", userEmail)
+        .gte("date", dateStart)
+        .lt("date", dateEnd);
 
-        // Fetch habits for this month only
-        const { data: habits } = await supabase
-          .from("daily_habits")
-          .select("date,daily_spending")
-          .eq("user_name", userEmail)
-          .gte("date", dateStart)
-          .lt("date", dateEnd); // Use lt (less than) instead of lte
+      const monthData = getEmptyMonthData();
 
-        const monthData = getEmptyMonthData();
-
-        bills?.forEach(
-          ({ amount, include_in_budget, description, done: isDone }) => {
-            if (include_in_budget) {
-              if (description === "Bieżące") monthData.budget += amount;
-              monthData.sum += amount;
-              if (isDone) monthData.doneExpense += amount;
-              else monthData.plannedExpense += amount;
-            } else {
-              monthData.income += amount;
-            }
+      bills?.forEach(
+        ({ amount, include_in_budget, description, done: isDone }) => {
+          if (include_in_budget) {
+            if (description === "Bieżące") monthData.budget += amount;
+            monthData.sum += amount;
+            if (isDone) monthData.doneExpense += amount;
+            else monthData.plannedExpense += amount;
+          } else {
+            monthData.income += amount;
           }
-        );
+        }
+      );
 
-        habits?.forEach(({ daily_spending }) => {
-          monthData.monthlySpending += daily_spending;
-        });
+      habits?.forEach(({ daily_spending }) => {
+        monthData.monthlySpending += daily_spending;
+      });
 
-        return monthData;
-      } catch (error) {
-        console.error(`Error fetching data for month ${month}:`, error);
-        return getEmptyMonthData();
-      }
-    },
-    [session, supabase, year]
-  );
+      return monthData;
+    } catch (error) {
+      console.error(`Error fetching data for month ${month}:`, error);
+      return getEmptyMonthData();
+    }
+  };
 
-  const fetchRates = useCallback(async () => {
-    if (!session?.user?.email) return {};
+  const fetchRates = async () => {
+    if (!userEmail) return {};
 
     const { data: ratesData } = await supabase
       .from("budgets")
       .select("*")
-      .eq("user_name", session.user.email)
+      .eq("user_name", userEmail)
       .maybeSingle();
 
     if (!ratesData) return {};
-
-    const keys = [
-      "jan",
-      "feb",
-      "mar",
-      "apr",
-      "may",
-      "jun",
-      "jul",
-      "aug",
-      "sep",
-      "oct",
-      "nov",
-      "dec",
-    ];
 
     const rates: Record<number, number> = {};
     for (let i = 1; i <= 12; i++) {
@@ -128,9 +104,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     }
 
     return rates;
-  }, [session, supabase]);
+  };
 
-  const loadData = useCallback(async () => {
+  const loadData = async () => {
+    if (!userEmail) return;
     setLoading(true);
 
     try {
@@ -174,13 +151,9 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     } finally {
       setLoading(false);
     }
-  }, [startMonth, endMonth, fetchMonthData, fetchRates]);
+  };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const updateRate = useCallback((month: number, rate: number) => {
+  const updateRate = (month: number, rate: number) => {
     setData((prev) => {
       const existingData = prev[month] || getEmptyMonthData();
       return {
@@ -191,27 +164,13 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         },
       };
     });
-  }, []);
+  };
 
-  const saveRates = useCallback(async () => {
-    if (!session?.user?.email) return;
+  const saveRates = async () => {
+    if (!userEmail) return;
+    setLoading(true);
 
-    const keys = [
-      "jan",
-      "feb",
-      "mar",
-      "apr",
-      "may",
-      "jun",
-      "jul",
-      "aug",
-      "sep",
-      "oct",
-      "nov",
-      "dec",
-    ];
-
-    const payload: any = { user_name: session.user.email };
+    const payload: any = { user_name: userEmail };
     Object.entries(data).forEach(([monthStr, monthData]) => {
       const m = parseInt(monthStr);
       if (m >= 1 && m <= 12) {
@@ -221,7 +180,12 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     });
 
     await supabase.from("budgets").upsert(payload, { onConflict: "user_name" });
-  }, [session, supabase, data]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [userEmail, year, startMonth, endMonth]);
 
   return {
     data,

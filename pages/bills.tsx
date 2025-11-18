@@ -15,8 +15,7 @@ import LoadingState from "../components/LoadingState";
 
 export default function BillsPage() {
   const session = useSession();
-  const userEmail = session?.user?.email || "";
-  const { bills, budgetItems, loading, fetchBills } = useBills(userEmail);
+  const { bills, budgetItems, loading, fetchBills } = useBills();
   const supabase = useSupabaseClient();
   const router = useRouter();
 
@@ -81,7 +80,6 @@ export default function BillsPage() {
         {showForm && (
           <div className="mb-6">
             <BillForm
-              userEmail={userEmail}
               onChange={() => {
                 fetchBills();
                 setShowForm(false);
@@ -98,11 +96,6 @@ export default function BillsPage() {
             <h3 className="text-lg font-semibold mb-2 mt-6">Wpływy planowane</h3>
             <BillList
               bills={bills}
-              onEdit={openEdit}
-              onDelete={(id) => {
-                handleDelete(id);
-                fetchBills();
-              }}
             />
           </>
         )}
@@ -111,12 +104,6 @@ export default function BillsPage() {
             <h3 className="text-lg font-semibold mb-2 mt-6">Wydatki planowane</h3>
             <BillListGrouped
               bills={budgetItems}
-              onEdit={openEdit}
-              onDelete={handleDelete}
-              onMarkDone={async (id) => {
-                await supabase.from("bills").update({ done: true }).eq("id", id);
-                fetchBills();
-              }}
             />
           </>
         )}

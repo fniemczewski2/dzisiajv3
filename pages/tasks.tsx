@@ -1,8 +1,6 @@
 // pages/tasks.tsx
-import React, { useEffect, useState } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import React, { useState, useMemo } from "react";
 import {
-  Loader2,
   PlusCircleIcon,
   List,
   ChevronLeft,
@@ -11,7 +9,6 @@ import {
   ChevronsRight,
   Timer,
   Brain,
-  Logs,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
@@ -39,60 +36,36 @@ const FILTER_OPTIONS = [
 type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 
 export default function TasksPage() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "";
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [todayDone, setTodayDone] = useState(0);
-  const [todayTotal, setTodayTotal] = useState(0);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
 
-  const { settings, loading: loadingSettings } = useSettings(userEmail);
-  const {
-    tasks,
-    loading: loadingTasks,
-    fetchTasks,
-  } = useTasks(userEmail, settings);
+  const { settings, loading: loadingSettings } = useSettings();
+  const { tasks, loading: loadingTasks, fetchTasks } = useTasks();
 
-  // Fetch tasks list whenever settings change
-  useEffect(() => {
-    if (settings) fetchTasks();
-  }, [settings, fetchTasks]);
-
-  // Compute today’s stats
-  useEffect(() => {
-    if (!session) return;
+  // Calculate today's stats using useMemo
+  const { todayDone, todayTotal } = useMemo(() => {
     const today = getAppDate();
-    (async () => {
-      const [{ count: totalCount }, { count: doneCount }] = await Promise.all([
-        supabase
-          .from("tasks")
-          .select("id", { count: "exact", head: true })
-          .eq("user_name", userEmail)
-          .eq("due_date", today),
-        supabase
-          .from("tasks")
-          .select("id", { count: "exact", head: true })
-          .eq("user_name", userEmail)
-          .eq("due_date", today)
-          .eq("status", "done"),
-      ]);
-      setTodayTotal(totalCount || 0);
-      setTodayDone(doneCount || 0);
-    })();
-  }, [session, supabase, userEmail, tasks]);
-  
+    const todayTasks = tasks.filter((t) => t.due_date === today);
+    const done = todayTasks.filter((t) => t.status === "done").length;
+    return {
+      todayDone: done,
+      todayTotal: todayTasks.length,
+    };
+  }, [tasks]);
+
   const openAdd = () => {
     setEditingTask(null);
     setShowForm(true);
   };
+
   const openEdit = (task: Task) => {
     setEditingTask(task);
     setShowForm(true);
   };
+
   const closeForm = () => setShowForm(false);
 
   // Calculate filter date string
@@ -111,11 +84,10 @@ export default function TasksPage() {
         return null;
     }
   };
-
   const filterDate = getFilterDate();
-  const filteredTasks = filterDate
-    ? tasks.filter((t) => t.due_date === filterDate)
-    : tasks;
+  const filteredTasks = useMemo(() => {
+    return filterDate ? tasks.filter((t) => t.due_date === filterDate) : tasks;
+  }, [tasks, filterDate]);
 
   return (
     <>
@@ -134,7 +106,6 @@ export default function TasksPage() {
       </Head>
 
       <Layout>
-        
         {settings?.show_habits && <TaskIcons />}
         {settings?.show_water_tracker && <WaterTracker />}
         {settings?.show_notifications && <Reminders />}
@@ -142,25 +113,25 @@ export default function TasksPage() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Zadania&nbsp;({todayDone}/{todayTotal})
-          
-          <div className="flex justify-between items-center gap-2">
-            <button
-              onClick={() => router.push("/tasks/pomodoro")}
-              title="Pomodoro"
-              className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              <Timer className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => router.push("/tasks/eisenhower")}
-              title="Eisenhower Matrix"
-              className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              <Brain className="w-5 h-5" />
-            </button>
+
+            <div className="flex justify-between items-center gap-2">
+              <button
+                onClick={() => router.push("/tasks/pomodoro")}
+                title="Pomodoro"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                <Timer className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/tasks/eisenhower")}
+                title="Eisenhower Matrix"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                <Brain className="w-5 h-5" />
+              </button>
             </div>
-            </h2>
-          
+          </h2>
+
           {!showForm && (
             <button
               onClick={openAdd}
@@ -171,9 +142,11 @@ export default function TasksPage() {
             </button>
           )}
         </div>
-        {(!session || loadingSettings || loadingTasks || !settings) && (
-            <LoadingState />
+
+        {( loadingSettings || loadingTasks || !settings) && (
+          <LoadingState />
         )}
+
         <div className="flex space-x-2 mb-4">
           {FILTER_OPTIONS.map((opt) => {
             const Icon = opt.icon;
@@ -197,7 +170,6 @@ export default function TasksPage() {
         {showForm && (
           <div className="mb-6">
             <TaskForm
-              userEmail={userEmail}
               initialTask={editingTask}
               onTasksChange={() => {
                 fetchTasks();
@@ -210,9 +182,7 @@ export default function TasksPage() {
 
         <TaskList
           tasks={filteredTasks}
-          userEmail={userEmail}
           onTasksChange={fetchTasks}
-          onEdit={openEdit}
         />
       </Layout>
     </>
