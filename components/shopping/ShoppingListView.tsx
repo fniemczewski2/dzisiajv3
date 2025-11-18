@@ -8,7 +8,7 @@ import { useSettings } from "../../hooks/useSettings";
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
   const { settings } = useSettings();
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editedList, setEditedList] = useState<ShoppingList | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -26,17 +26,17 @@ export default function ShoppingListView() {
   };
 
   const handleCancelEdit = () => {
-    setEditingId(null);
+    setEditingId(undefined);
     setEditedList(null);
   };
 
   const handleSaveEdit = async () => {
-    if (editedList) {
+    if (editedList?.id) {
       await editShoppingList(editedList.id, {
         name: editedList.name,
         share: editedList.share,
       });
-      setEditingId(null);
+      setEditingId(undefined);
       setEditedList(null);
     }
   };
@@ -50,7 +50,9 @@ export default function ShoppingListView() {
     const updated = list.elements.map((el) =>
       el.id === elId ? { ...el, completed: !el.completed } : el
     );
-    editShoppingList(list.id, { elements: updated });
+    if (list.id) {
+      editShoppingList(list.id, { elements: updated });
+    } 
   };
 
   const addElement = (list: ShoppingList, text: string) => {
@@ -59,12 +61,17 @@ export default function ShoppingListView() {
       ...list.elements,
       { id: crypto.randomUUID(), text: text.trim(), completed: false },
     ];
-    editShoppingList(list.id, { elements: updated });
+    if (list.id) {
+      editShoppingList(list.id, { elements: updated });
+    }
   };
 
   const removeElement = (list: ShoppingList, elId: string) => {
     const updated = list.elements.filter((el) => el.id !== elId);
-    editShoppingList(list.id, { elements: updated });
+    
+    if (list.id) {
+      editShoppingList(list.id, { elements: updated });
+    }
   };
 
   return (
@@ -202,7 +209,7 @@ export default function ShoppingListView() {
                   <span className="text-xs mt-1">Edytuj</span>
                 </button>
                 <button
-                  onClick={() => handleDelete(list.id)}
+                  onClick={() => handleDelete(list.id || "")}
                   className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
                   title="Usuń"
                 >

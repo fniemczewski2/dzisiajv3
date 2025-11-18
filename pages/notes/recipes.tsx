@@ -74,8 +74,6 @@ export default function RecipesPage() {
         {showForm && (
           <section className="mb-6">
             <RecipeForm
-              userEmail={userEmail}
-              initial={editing}
               onCancel={closeForm}
               onChange={() => {
                 refresh();
@@ -87,10 +85,7 @@ export default function RecipesPage() {
 
         <section>
           <RecipesList
-            key={refreshTick}
-            userEmail={userEmail}
-            onEdit={openEdit}        
-            onDelete={handleDelete}  
+            key={refreshTick}       
           />
         </section>
       </Layout>

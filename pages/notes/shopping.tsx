@@ -10,28 +10,12 @@ import ShoppingListView from "../../components/shopping/ShoppingListView";
 import LoadingState from "../../components/LoadingState";
 
 export default function ShoppingPage() {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-  const { lists, loading, fetchLists, updateList, deleteList } =
-    useShoppingLists(userEmail);
-  const supabase = useSupabaseClient();
+  const { loading, fetchShoppingLists } = useShoppingLists();
 
-  const [editing, setEditing] = useState<ShoppingList | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
-    setEditing(undefined);
     setShowForm(true);
-  };
-  const openEdit = (l: ShoppingList) => {
-    setEditing(l);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Czy na pewno chcesz usunąć listę?")) return;
-    await supabase.from("shopping_lists").delete().eq("id", id);
-    fetchLists();
   };
 
   return (
@@ -64,32 +48,21 @@ export default function ShoppingPage() {
           )}
         </div>
 
-        {(!session || loading) && (
+        {(loading) && (
             <LoadingState />
         )} 
         {showForm && (
           <div className="mb-6">
             <ShoppingForm
-              userEmail={userEmail}
               onChange={() => {
-                fetchLists();
+                fetchShoppingLists();
                 setShowForm(false);
               }}
-              initial={editing}
               onCancel={() => setShowForm(false)}
             />
           </div>
         )}
-          <ShoppingListView
-            userEmail={userEmail}
-            lists={lists}
-            onEdit={openEdit}
-            onDelete={(id) => {
-              handleDelete(id);
-              fetchLists();
-            }}
-            onUpdate={updateList}
-          />
+          <ShoppingListView/>
       </Layout>
     </>
   );
