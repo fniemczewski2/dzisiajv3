@@ -7,6 +7,7 @@ import { useNotes } from "../../hooks/useNotes";
 
 interface NoteListProps {
   notes: Note[];
+  onNotesChange: () => void;
 }
 
 const COLOR_MAP: { [key: string]: string } = {
@@ -17,7 +18,7 @@ const COLOR_MAP: { [key: string]: string } = {
   "red-100": "bg-red-100",
 };
 
-export default function NoteList({ notes }: NoteListProps) {
+export default function NoteList({ notes, onNotesChange }: NoteListProps) {
   const { deleteNote, editNote } = useNotes();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<Note | null>(null);
@@ -37,6 +38,7 @@ export default function NoteList({ notes }: NoteListProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("Czy na pewno chcesz usunąć tę notatkę?")) return;
     await deleteNote(id);
+    onNotesChange();
   };
 
   const handleEdit = (note: Note) => {
@@ -84,6 +86,7 @@ export default function NoteList({ notes }: NoteListProps) {
 
     setEditingId(null);
     setEditedNote(null);
+    onNotesChange();
   };
 
   // Render clickable links inside notes
@@ -185,15 +188,15 @@ export default function NoteList({ notes }: NoteListProps) {
                     onClick={handleSaveEdit}
                     className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
                   >
-                    <Save className="w-4 h-4" />
                     <span className="text-sm">Zapisz</span>
+                    <Save className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleCancelEdit}
                     className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                   >
-                    <X className="w-4 h-4" />
                     <span className="text-sm">Anuluj</span>
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>

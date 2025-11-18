@@ -151,6 +151,7 @@ export function useTasks(
       });
     } finally {
       setLoading(false);
+      return tasks;
     }
   };
 

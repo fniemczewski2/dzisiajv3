@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { PlusCircleIcon } from "lucide-react";
-import React, { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
 import {
@@ -62,8 +62,7 @@ export default function CalendarPage() {
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { events, loading, deleteEvent, editEvent } = useEvents(rangeStart, rangeEnd);
-  const { settings } = useSettings();
+  const { events, loading, fetchEvents,deleteEvent, editEvent } = useEvents(rangeStart, rangeEnd);
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
@@ -157,6 +156,7 @@ export default function CalendarPage() {
             selectedDate={selectedDateStr}
             tasks={tasksForDay}
             events={eventsForDay}
+            onEventsChange={fetchEvents}
             onBack={() => setSelectedDate(null)}
             onEditEvent={editEvent}
             onDeleteEvent={deleteEvent}
