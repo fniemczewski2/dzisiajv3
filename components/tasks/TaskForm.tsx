@@ -20,7 +20,7 @@ export default function TaskForm({
   onCancel,
 }: TaskFormProps) {
   const session = useSession();
-  const userEmail = session?.user?.email || ""
+  const userEmail = session?.user?.email || "";
   const { settings } = useSettings();
   const supabase = useSupabaseClient();
   const isEdit = !!initialTask;
@@ -31,7 +31,6 @@ export default function TaskForm({
   const priorityRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dueDateRef = useRef<HTMLInputElement>(null);
-  const deadlineDateRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const userOptions = settings?.users ?? [];
@@ -44,7 +43,6 @@ export default function TaskForm({
       priorityRef.current!.value = String(initialTask.priority);
       descriptionRef.current!.value = initialTask.description ?? "";
       dueDateRef.current!.value = initialTask.due_date ?? todayIso;
-      deadlineDateRef.current!.value = initialTask.deadline_date ?? todayIso;
     } else {
 
       titleRef.current!.value = "";
@@ -53,7 +51,6 @@ export default function TaskForm({
       priorityRef.current!.value = "5";
       descriptionRef.current!.value = "";
       dueDateRef.current!.value = todayIso;
-      deadlineDateRef.current!.value = todayIso;
     }
   }, [initialTask, userEmail, todayIso]);
 
@@ -73,7 +70,6 @@ export default function TaskForm({
       priority: Number(priorityRef.current?.value) || 5,
       description: descriptionRef.current?.value || null,
       due_date: new Date(dueDateRef.current?.value || todayIso),
-      deadline_date: new Date(deadlineDateRef.current?.value || todayIso),
       status: nextStatus,
     };
 
@@ -107,29 +103,6 @@ export default function TaskForm({
           className="mt-1 w-full p-2 border rounded"
           required
         />
-      </div>
-
-      <div>
-        <label
-          htmlFor="for"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Dla:
-        </label>
-        <select
-          id="for"
-          ref={forUserRef}
-          className="mt-1 w-full p-2 border rounded"
-          required
-          defaultValue={userEmail}
-        >
-          <option value={userEmail}>mnie</option>
-          {userOptions.map((email) => (
-            <option key={email} value={email}>
-              {email}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -198,20 +171,27 @@ export default function TaskForm({
           />
         </div>
         <div>
-          <label
-            htmlFor="deadline"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Deadline:
-          </label>
-          <input
-            id="deadline"
-            ref={deadlineDateRef}
-            type="date"
-            className="mt-1 w-full p-2 border rounded"
-            required
-          />
-        </div>
+        <label
+          htmlFor="for"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Dla:
+        </label>
+        <select
+          id="for"
+          ref={forUserRef}
+          className="mt-1 w-full p-2 border rounded"
+          required
+          defaultValue={userEmail}
+        >
+          <option value={userEmail}>mnie</option>
+          {userOptions.map((email) => (
+            <option key={email} value={email}>
+              {email}
+            </option>
+          ))}
+        </select>
+      </div>
       </div>
 
       <div>

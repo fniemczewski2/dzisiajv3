@@ -5,7 +5,6 @@ import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useSettings } from "../../hooks/useSettings";
 
 interface Props {
   task: Task;
@@ -13,13 +12,11 @@ interface Props {
   onStartTimer: () => void;
 }
 
-export default function TaskItem({ task, onStartTimer }: Props) {
+export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const session = useSession();
   const userEmail = session?.user?.email || "";
-  const { settings } = useSettings();
   const isDone = task.status === "done";
-  const { deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
-  
+  const { fetchTasks,deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   
@@ -34,6 +31,8 @@ export default function TaskItem({ task, onStartTimer }: Props) {
   const handleDelete = async (id: string) => {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
     await deleteTask(id);
+    await fetchTasks();
+    onTasksChange();
   };
 
   const handleEdit = () => {
@@ -48,6 +47,8 @@ export default function TaskItem({ task, onStartTimer }: Props) {
 
   const handleSaveEdit = async () => {
     await editTask(editedTask);
+    await fetchTasks();
+    onTasksChange();
     setIsEditing(false);
   };
 
@@ -78,7 +79,7 @@ export default function TaskItem({ task, onStartTimer }: Props) {
 
   if (isEditing) {
     return (
-      <li className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg">
+      <div className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg">
         <div className="space-y-3">
           {/* Title */}
           <div>
@@ -160,22 +161,24 @@ export default function TaskItem({ task, onStartTimer }: Props) {
               onClick={handleSaveEdit}
               className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
             >
-              <Save className="w-4 h-4" />
+              
               <span className="text-sm">Zapisz</span>
-            </button>
+              <Save className="w-4 h-4" />
+           </button>
             <button
               onClick={handleCancelEdit}
               className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
             >
-              <X className="w-4 h-4" />
+              
               <span className="text-sm">Anuluj</span>
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
-      </li>
+      </div>
     );
   }
-
+  
   return (
     <div
       key={task.id}
@@ -248,7 +251,11 @@ export default function TaskItem({ task, onStartTimer }: Props) {
               task.status === "waiting_for_acceptance" ? (
               <>
                 <button
-                  onClick={() => acceptTask(task.id)}
+                  onClick={async () => {
+                    await acceptTask(task.id);
+                    await fetchTasks();
+                    onTasksChange();
+                  }}
                   className="flex flex-col px-1.5 items-center justify-center rounded-lg text-green-600 hover:text-green-800 transition-colors"
                 >
                   <Check className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -259,7 +266,11 @@ export default function TaskItem({ task, onStartTimer }: Props) {
             ) : (
               <>
                 <button
-                  onClick={() => setDoneTask(task.id)}
+                  onClick={async () => {
+                    await setDoneTask(task.id);
+                    await fetchTasks();
+                    onTasksChange();
+                  }}
                   className="flex flex-col px-1.5 items-center justify-center rounded-lg text-green-600 hover:text-green-800 transition-colors"
                 >
                   <Check className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -284,20 +295,20 @@ export default function TaskItem({ task, onStartTimer }: Props) {
             </span>
             {task.description}
             <span className="text-xs">
-              {task.for_user != userEmail ? (
-                (task.status === "accepted" ||
-                  task.status === "waiting_for_acceptance") && (
+              {(task.user_name !== userEmail) && 
+                (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
                   <>
                     <br />
                     Zlecone przez: {task.user_name}
                   </>
-                )
-              ) : (
-                <>
-                  <br />
-                  Zlecone dla: {task.for_user}
-                </>
-              )}
+              } 
+              {(task.for_user !== userEmail) && 
+                (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
+                  <>
+                    <br />
+                    Zlecone dla: {task.for_user}
+                  </>
+              }
             </span>
           </p>
         )}
