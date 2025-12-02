@@ -118,7 +118,7 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
   };
 
   return (
-    <ul className="flex flex-wrap justify-center">
+    <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 mx-auto w-full">
       {notes.map((n) => {
         const isEditing = editingId === n.id;
 
@@ -127,7 +127,7 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
           return (
             <li
               key={n.id}
-              className="bg-gray-50 border-2 border-gray-300 py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow-lg flex flex-col"
+              className="break-inside-avoid bg-gray-50 border-2 border-gray-300 py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow-lg flex flex-col max-h-fit"
             >
               <div className="space-y-3">
                 {/* Title */}
@@ -209,7 +209,7 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
           <li
             key={n.id}
             className={clsx(
-              "py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-between hover:shadow-lg transition",
+              "break-inside-avoid py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-start hover:shadow-lg transition max-h-fit",
               COLOR_MAP[n.bg_color] || "bg-zinc-50"
             )}
           >

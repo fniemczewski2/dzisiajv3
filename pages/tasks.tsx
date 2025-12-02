@@ -10,6 +10,7 @@ import {
   Timer,
   Brain,
   Target,
+  ListTodo,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
@@ -180,17 +181,18 @@ export default function TasksPage() {
           {/* Focus Mode Toggle Button */}
           <button
             onClick={() => setFocusModeEnabled(!focusModeEnabled)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all ${
+            className={`px-3 py-1.5 flex items-center rounded-lg shadow ${
               focusModeEnabled
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-gray-700 border-gray-300"
+                ? "bg-primary text-white border-primary hover:bg-secondary"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
             }`}
             title={focusModeEnabled ? "Wyłącz tryb skupienia" : "Włącz tryb skupienia"}
           >
-            <Target className="w-4 h-4" />
-            <span className="text-sm font-medium hidden sm:inline">
-              {focusModeEnabled ? "Tryb skupienia" : "Wszystkie"}
+            
+            <span className="hidden sm:inline">
+              {focusModeEnabled ? "Focus" : "Wszystkie"}&nbsp;&nbsp;
             </span>
+            {focusModeEnabled ? <Target className="w-5 h-5" /> : <ListTodo className="w-5 h-5" />}
           </button>
         </div>
 
