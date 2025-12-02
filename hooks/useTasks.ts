@@ -70,7 +70,7 @@ export function useTasks(
 ) {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "f.niemczewski2@gmail.com";
+  const userEmail = session?.user?.email || "";
   const { settings } = useSettings();
   
   const [tasks, setTasks] = useState<Task[]>([]);

@@ -1,7 +1,7 @@
 // components/tasks/TaskItem.tsx (UPDATED VERSION)
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO, addDays } from "date-fns";
-import { Check, Edit2, Trash2, X, Save, Calendar, Timer } from "lucide-react";
+import { Check, Edit2, Trash2, X, Save, Calendar, Timer, ChevronsRight } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
@@ -24,6 +24,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const [editedTask, setEditedTask] = useState(task);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const CELEBRATION_MS = 2500;
   
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +38,6 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
     await deleteTask(id);
     await fetchTasks();
-    onTasksChange();
   };
 
   const handleEdit = () => {
@@ -60,8 +60,16 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const handleComplete = async () => {
     await setDoneTask(task.id);
     setShowCelebration(true);
-    await fetchTasks();
-    onTasksChange();
+
+    setTimeout(async () => {
+      setShowCelebration(false); // ← FIX!
+      try {
+        await fetchTasks();
+        onTasksChange();
+      } catch (err) {
+        console.error("Fetch tasks error", err);
+      }
+    }, CELEBRATION_MS);
   };
 
   const handleReschedule = async (days: number) => {
@@ -111,13 +119,13 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     <button
       onClick={() => handleReschedule(1)}
       disabled={isRescheduling}
-      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50"
+      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-yellow-600 hover:text-yellow-800 transition-colors disabled:opacity-50"
       aria-label="Przesuń na jutro"
       title="Przesuń na jutro"
     >
-      <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+      <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" />
       <span className="text-[9px] sm:text-[11px]">
-        {isRescheduling ? '...' : 'Jutro'}
+        {isRescheduling ? '...' : 'Odłóż'}
       </span>
     </button>
   );
@@ -290,7 +298,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
           
           {/* Time Context Badge */}
           <div className="mb-3">
-            <TimeContextBadge dueDate={task.due_date} />
+            <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
           </div>
 
           <div className="grid grid-cols-1 gap-2">
@@ -333,9 +341,10 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
                   >
                     <Check className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-[9px] sm:text-[11px]">Zrobione</span>
+                    
                   </button>
-                  <TimerButton />
                   <RescheduleButton />
+                  <TimerButton />
                   <EditButton />
                   <DeleteButton />
                 </>
@@ -380,8 +389,6 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
         show={showCelebration}
         taskTitle={task.title}
         priority={task.priority}
-        streakCount={0} // You can connect this to your gamification system
-        onClose={() => setShowCelebration(false)}
       />
     </>
   );

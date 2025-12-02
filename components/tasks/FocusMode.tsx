@@ -27,14 +27,11 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
 
   if (focusTasks.length === 0) {
     return (
-      <div className="bg-gradient-to-r from-green-400 to-emerald-500 text-white p-8 rounded-xl shadow-lg text-center">
+      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-8 rounded-xl shadow-lg text-center">
         <Sparkles className="w-16 h-16 mx-auto mb-4 animate-pulse" />
-        <h2 className="text-3xl font-bold mb-2">All Clear! 🎉</h2>
-        <p className="text-lg opacity-90">
-          You've completed all your focus tasks!
-        </p>
-        <p className="text-sm mt-2 opacity-80">
-          Completed today: {completedToday} tasks
+        <h2 className="text-3xl font-bold mb-2">Gotowe!</h2>
+        <p className="text-lg">
+          Wszystkie zadania ukończone. Świetna robota!
         </p>
       </div>
     );
@@ -46,16 +43,11 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
       <div className="bg-gradient-to-r from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
         <div className="flex items-center gap-3 mb-2">
           <Target className="w-8 h-8" />
-          <h2 className="text-2xl font-bold">Focus Mode</h2>
+          <h2 className="text-2xl font-bold">Focus</h2>
         </div>
         <p className="text-sm opacity-90">
-          {focusTasks.length} task{focusTasks.length !== 1 ? 's' : ''} to conquer
+          {focusTasks.length} {focusTasks.length === 1 ? 'zadanie' : focusTasks.length >= 5 ? 'zadań' : 'zadania'} do wykonania
         </p>
-        {completedToday > 0 && (
-          <p className="text-xs mt-2 opacity-80">
-            ✓ {completedToday} completed today
-          </p>
-        )}
       </div>
 
       {/* Focus Tasks */}
@@ -81,10 +73,10 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
       {tasks.filter(t => t.status !== 'done').length > 3 && (
         <div className="text-center pt-2">
           <p className="text-sm text-gray-500 mb-2">
-            +{tasks.filter(t => t.status !== 'done').length - 3} more tasks waiting
+            +{tasks.filter(t => t.status !== 'done').length - 3} więcej
           </p>
-          <p className="text-xs text-gray-400">
-            Complete these first, then we'll show you more!
+          <p className="text-xs text-gray-400 mb-5">
+            Najpierw ukończ te, a potem pokażemy Ci więcej!
           </p>
         </div>
       )}
