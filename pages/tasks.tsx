@@ -1,4 +1,4 @@
-// pages/tasks.tsx
+// pages/tasks.tsx (UPDATED VERSION)
 import React, { useState, useMemo } from "react";
 import {
   PlusCircleIcon,
@@ -9,19 +9,21 @@ import {
   ChevronsRight,
   Timer,
   Brain,
+  Target,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import Layout from "../components/Layout";
 import TaskIcons from "../components/tasks/TaskIcons";
 import WaterTracker from "../components/tasks/WaterTracker";
 import TaskForm from "../components/tasks/TaskForm";
 import TaskList from "../components/tasks/TaskList";
+import FocusMode from "../components/tasks/FocusMode";
 import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
 import { Task } from "../types";
 import Reminders from "../components/tasks/Reminders";
-import { useRouter } from "next/router";
 import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 import LoadingState from "../components/LoadingState";
 
@@ -41,6 +43,7 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [focusModeEnabled, setFocusModeEnabled] = useState(true); // Default to focus mode
 
   const { settings, loading: loadingSettings } = useSettings();
   const { tasks, loading: loadingTasks, fetchTasks } = useTasks();
@@ -68,6 +71,12 @@ export default function TasksPage() {
 
   const closeForm = () => setShowForm(false);
 
+  const handleStartTimer = (task: Task) => {
+    // Store task in sessionStorage to load in pomodoro page
+    sessionStorage.setItem('currentTask', JSON.stringify(task));
+    router.push("/tasks/pomodoro");
+  };
+
   // Calculate filter date string
   const getFilterDate = (): string | null => {
     const now = getAppDateTime();
@@ -84,6 +93,7 @@ export default function TasksPage() {
         return null;
     }
   };
+  
   const filterDate = getFilterDate();
   const filteredTasks = useMemo(() => {
     return filterDate ? tasks.filter((t) => t.due_date === filterDate) : tasks;
@@ -143,28 +153,45 @@ export default function TasksPage() {
           )}
         </div>
 
-        {( loadingSettings || loadingTasks || !settings) && (
-          <LoadingState />
-        )}
+        {(loadingSettings || loadingTasks || !settings) && <LoadingState />}
 
-        <div className="flex space-x-2 mb-4">
-          {FILTER_OPTIONS.map((opt) => {
-            const Icon = opt.icon;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setDateFilter(opt.value)}
-                title={opt.title}
-                className={`p-1.5 rounded-xl border shadow transition-colors flex items-center justify-center ${
-                  dateFilter === opt.value
-                    ? "bg-primary text-white border-primary"
-                    : "bg-gray-100 text-gray-700 border-transparent"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-              </button>
-            );
-          })}
+        {/* Focus Mode Toggle */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex space-x-2">
+            {FILTER_OPTIONS.map((opt) => {
+              const Icon = opt.icon;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setDateFilter(opt.value)}
+                  title={opt.title}
+                  className={`p-1.5 rounded-xl border shadow transition-colors flex items-center justify-center ${
+                    dateFilter === opt.value
+                      ? "bg-primary text-white border-primary"
+                      : "bg-gray-100 text-gray-700 border-transparent"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Focus Mode Toggle Button */}
+          <button
+            onClick={() => setFocusModeEnabled(!focusModeEnabled)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 transition-all ${
+              focusModeEnabled
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-gray-700 border-gray-300"
+            }`}
+            title={focusModeEnabled ? "Wyłącz tryb skupienia" : "Włącz tryb skupienia"}
+          >
+            <Target className="w-4 h-4" />
+            <span className="text-sm font-medium hidden sm:inline">
+              {focusModeEnabled ? "Tryb skupienia" : "Wszystkie"}
+            </span>
+          </button>
         </div>
 
         {showForm && (
@@ -180,10 +207,16 @@ export default function TasksPage() {
           </div>
         )}
 
-        <TaskList
-          tasks={filteredTasks}
-          onTasksChange={fetchTasks}
-        />
+        {/* Conditional Rendering: Focus Mode or Regular List */}
+        {focusModeEnabled && dateFilter === "today" ? (
+          <FocusMode
+            tasks={filteredTasks}
+            onTasksChange={fetchTasks}
+            onStartTimer={handleStartTimer}
+          />
+        ) : (
+          <TaskList tasks={filteredTasks} onTasksChange={fetchTasks} />
+        )}
       </Layout>
     </>
   );
