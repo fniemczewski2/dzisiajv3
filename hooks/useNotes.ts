@@ -26,7 +26,7 @@ export function useNotes() {
     setLoading(true);
     const { data } = await supabase
       .from("notes")
-      .insert({ user_name: userEmail, note })
+      .insert({ ...note, user_name: userEmail })
       .select()
       .single();
     setNotes((prev) => [...prev, data]);

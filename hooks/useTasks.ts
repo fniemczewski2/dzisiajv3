@@ -70,7 +70,7 @@ export function useTasks(
 ) {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || "f.niemczewski2@gmail.com";
   const { settings } = useSettings();
   
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -227,6 +227,25 @@ export function useTasks(
     setLoading(false);
   };
 
+  const rescheduleTask = async (taskId: string, newDate: string) => {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        due_date: newDate,
+        deadline_date: newDate,
+      })
+      .eq("id", taskId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error rescheduling task:", error);
+      throw error;
+    }
+
+    return data;
+  };
+
   useEffect(() => {
     fetchTasks();
   }, [userEmail, settings?.show_completed, settings?.sort_order, dateFrom, dateTo]);
@@ -240,6 +259,7 @@ export function useTasks(
     editTask,
     deleteTask,
     acceptTask,
-    setDoneTask
+    setDoneTask,
+    rescheduleTask
   };
 }
