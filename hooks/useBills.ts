@@ -16,7 +16,7 @@ export function useBills() {
     if (!userEmail || settings == null) return;
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("bills")
       .select("*")
       .eq("user_name", userEmail)

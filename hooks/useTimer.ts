@@ -8,6 +8,71 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   const [running, setRunning] = useState(autoStart);
   const [paused, setPaused] = useState(false);
   const intervalRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    audioRef.current = new Audio('/KBING.mp3');
+    audioRef.current.preload = 'auto';
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Wake Lock to prevent screen from turning off on mobile
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator && running && !paused) {
+          wakeLockRef.current = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.error('Wake Lock error:', err);
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      if (wakeLockRef.current) {
+        await wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      }
+    };
+
+    if (running && !paused) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+
+    // Re-acquire wake lock if page becomes visible again
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && running && !paused) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      releaseWakeLock();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [running, paused]);
+
+  // Play sound when timer hits zero
+  const playSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => {
+        console.error('Error playing sound:', err);
+      });
+    }
+  };
 
   // sync seconds when phase changes and not running
   useEffect(() => {
@@ -32,6 +97,9 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
 
   useEffect(() => {
     if (secondsLeft <= 0 && running) {
+      // Play sound when reaching 0
+      playSound();
+      
       const nextPhase = phaseIndex + 1;
       if (nextPhase < phases.length) {
         setPhaseIndex(nextPhase);
@@ -57,6 +125,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   };
 
   const pause = () => setPaused((p) => !p);
+  
   const stop = () => {
     setRunning(false);
     setPaused(false);
