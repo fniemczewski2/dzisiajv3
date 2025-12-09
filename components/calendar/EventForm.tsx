@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, FormEvent } from "react";
-import { Save, PlusCircleIcon, Upload } from "lucide-react";
+import React, { useState, FormEvent } from "react";
+import { PlusCircleIcon, Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useEvents } from "../../hooks/useEvents";
@@ -28,7 +28,7 @@ export default function EventForm({
   
   const rangeStart = currentDate ? format(startOfMonth(currentDate), "yyyy-MM-dd") :  format(startOfMonth(getAppDateTime()), "yyyy-MM-dd");
   const rangeEnd = currentDate ? format(endOfMonth(currentDate), "yyyy-MM-dd") : format(endOfMonth(getAppDateTime()), "yyyy-MM-dd");
-  const { addEvent, editEvent, loading } = useEvents(rangeStart, rangeEnd);
+  const { addEvent, loading } = useEvents(rangeStart, rangeEnd);
 
   const userOptions = settings?.users ?? [];
 
@@ -58,18 +58,19 @@ export default function EventForm({
       user_name: userEmail,
     } as Event;
 
+    await addEvent(payload);
+
     onEventsChange();
+
+    setTitle("");
+    setDescription("");
+    setStart("");
+    setEnd("");
+    setPlace("");
+    setShare("null");
+    setRepeat("none");
+
     if (onCancel) onCancel();
-
-
-      setTitle("");
-      setDescription("");
-      setStart("");
-      setEnd("");
-      setPlace("");
-      setShare("null");
-      setRepeat("none");
-    
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
