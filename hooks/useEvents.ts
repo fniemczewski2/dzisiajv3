@@ -39,21 +39,37 @@ export function useEvents(
   useEffect(() => { fetchEvents(); }, [userEmail, rangeStart, rangeEnd, supabase]);
 
   const addEvent = async (event: Event) => {
-    if (!userEmail) return;
+    if (!userEmail) {
+      throw new Error("User not authenticated");
+    }
+    
     setLoading(true);
-    await supabase
-      .from("events")
-      .insert({ ...event, user_name: userEmail });
-    // Refetch to get expanded events
-    const { data } = await supabase
-      .from("events")
-      .select("*")
-      .or(`user_name.eq.${userEmail},share.eq.${userEmail}`);
-    const start = new Date(rangeStart);
-    const end = new Date(rangeEnd);
-    const expanded = expandRepeatingEvents(data || [], start, end);
-    setEvents(expanded);
-    setLoading(false);
+    
+    try {
+      // Remove id from event object if it exists (let database generate it)
+      const { id, ...eventWithoutId } = event as any;
+      
+      const { data, error } = await supabase
+        .from("events")
+        .insert({ ...eventWithoutId, user_name: userEmail })
+        .select(); // Add select() to return the inserted data
+      
+      if (error) {
+        console.error("Insert error:", error);
+        throw error;
+      }
+      
+      console.log("Event inserted:", data);
+      
+      // Refetch to get expanded events
+      await fetchEvents();
+      
+    } catch (error) {
+      console.error("Failed to add event:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const editEvent = async (event: Event) => {
