@@ -47,32 +47,41 @@ export default function EventForm({
       return;
     }
 
-    const payload: Event = {
-      title: title.trim(),
-      description: description.trim(),
-      start_time: new Date(start).toISOString(),
-      end_time: new Date(end).toISOString(),
-      place: place.trim(),
-      share: share === "null" ? "" : share,
-      repeat,
-      user_name: userEmail,
-    } as Event;
+    try {
+      const payload: Event = {
+        title: title.trim(),
+        description: description.trim(),
+        start_time: new Date(start).toISOString(),
+        end_time: new Date(end).toISOString(),
+        place: place.trim(),
+        share: share === "null" ? "" : share,
+        repeat,
+        user_name: userEmail,
+      } as Event;
 
-    await addEvent(payload);
+      // Actually add the event to the database
+      await addEvent(payload);
 
-    onEventsChange();
+      // Clear the form fields FIRST
+      setTitle("");
+      setDescription("");
+      setStart("");
+      setEnd("");
+      setPlace("");
+      setShare("null");
+      setRepeat("none");
 
-    setTitle("");
-    setDescription("");
-    setStart("");
-    setEnd("");
-    setPlace("");
-    setShare("null");
-    setRepeat("none");
-
-    if (onCancel) onCancel();
+      // Call onEventsChange to refresh the parent
+      onEventsChange();
+      
+      // Close the form if onCancel is provided
+      if (onCancel) onCancel();
+      
+    } catch (error) {
+      console.error("Error adding event:", error);
+      alert("Błąd podczas dodawania wydarzenia");
+    }
   };
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
