@@ -13,9 +13,9 @@ import {
 import type { Event } from "../types";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
-import { useSettings } from "../hooks/useSettings";
 import { useTasks } from "../hooks/useTasks";
 import LoadingState from "../components/LoadingState";
+import { se } from "date-fns/locale";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <LoadingState />,
@@ -88,11 +88,6 @@ export default function CalendarPage() {
     setShowForm(true);
   }, []);
 
-  const openEdit = useCallback((event: Event) => {
-    setEditingEvent(event);
-    setShowForm(true);
-  }, []);
-
   const handleEventsChange = useCallback(() => {
     setShowForm(false);
     setEditingEvent(null);
@@ -138,6 +133,7 @@ export default function CalendarPage() {
             currentDate={currentDate}
             onEventsChange={handleEventsChange}
             onCancel={handleCancelForm}
+            selectedDate={selectedDate}
           />
         )}
 

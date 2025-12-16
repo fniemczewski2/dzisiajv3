@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Event } from "../types";
-import { expandRepeatingEvents } from "../lib/eventUtils"; // Move the expansion logic to a utils file
+import { expandRepeatingEvents } from "../lib/eventUtils";
 
 export function useEvents(
   rangeStart: string,
@@ -15,28 +15,37 @@ export function useEvents(
   const [loading, setLoading] = useState(false);
 
   const fetchEvents = async () => {
-      if (!userEmail || !rangeStart || !rangeEnd) return;
-      setLoading(true);
+    if (!userEmail || !rangeStart || !rangeEnd) return;
+    setLoading(true);
 
+    try {
       const { data, error } = await supabase
         .from("events")
         .select("*")
         .or(`user_name.eq.${userEmail},share.eq.${userEmail}`);
-      console.log(data)
+      
       if (error) {
         console.error("Failed to fetch events:", error.message);
-        setLoading(false);
         return;
       }
 
-      const start = new Date(rangeStart);
-      const end = new Date(rangeEnd);
+      // Parse dates with time component for proper local timezone handling
+      const start = new Date(rangeStart + "T00:00:00");
+      const end = new Date(rangeEnd + "T23:59:59");
+      
       const expanded = expandRepeatingEvents(data || [], start, end);
       setEvents(expanded);
+    } catch (error) {
+      console.error("Error processing events:", error);
+      setEvents([]);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
-  useEffect(() => { fetchEvents(); }, [userEmail, rangeStart, rangeEnd, supabase]);
+  useEffect(() => { 
+    fetchEvents(); 
+  }, [userEmail, rangeStart, rangeEnd, supabase]);
 
   const addEvent = async (event: Event) => {
     if (!userEmail) {
@@ -52,14 +61,12 @@ export function useEvents(
       const { data, error } = await supabase
         .from("events")
         .insert({ ...eventWithoutId, user_name: userEmail })
-        .select(); // Add select() to return the inserted data
+        .select(); 
       
       if (error) {
         console.error("Insert error:", error);
         throw error;
       }
-      
-      console.log("Event inserted:", data);
       
       // Refetch to get expanded events
       await fetchEvents();
@@ -76,41 +83,59 @@ export function useEvents(
     if (!userEmail) return;
     setLoading(true);
     
-    const originalId = event.id.split("_")[0];
-    await supabase
-      .from("events")
-      .update({ ...event, user_name: userEmail })
-      .eq("id", originalId);
-    
-    // Refetch to get expanded events
-    const { data } = await supabase
-      .from("events")
-      .select("*")
-      .or(`user_name.eq.${userEmail},share.eq.${userEmail}`);
-    const start = new Date(rangeStart);
-    const end = new Date(rangeEnd);
-    const expanded = expandRepeatingEvents(data || [], start, end);
-    setEvents(expanded);
-    setLoading(false);
+    try {
+      // Extract original ID (handle both regular and synthetic IDs)
+      const originalId = event.id.split("_")[0];
+      
+      // Don't include the synthetic id in the update
+      const { id, ...eventData } = event;
+      
+      const { error } = await supabase
+        .from("events")
+        .update({ ...eventData, user_name: userEmail })
+        .eq("id", originalId);
+      
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
+      
+      // Refetch to get expanded events
+      await fetchEvents();
+    } catch (error) {
+      console.error("Failed to edit event:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteEvent = async (id: string) => {
     if (!userEmail) return;
     setLoading(true);
 
-    const originalId = id.split("_")[0];
-    await supabase.from("events").delete().eq("id", originalId);
-    
-    // Refetch to get expanded events
-    const { data } = await supabase
-      .from("events")
-      .select("*")
-      .or(`user_name.eq.${userEmail},share.eq.${userEmail}`);
-    const start = new Date(rangeStart);
-    const end = new Date(rangeEnd);
-    const expanded = expandRepeatingEvents(data || [], start, end);
-    setEvents(expanded);
-    setLoading(false);
+    try {
+      // Extract original ID (handle both regular and synthetic IDs)
+      const originalId = id.split("_")[0];
+      
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", originalId);
+      
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
+      
+      // Refetch to get expanded events
+      await fetchEvents();
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return { events, loading, addEvent, editEvent, deleteEvent, fetchEvents };
