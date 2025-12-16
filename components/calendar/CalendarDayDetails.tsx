@@ -1,6 +1,6 @@
 // components/calendar/CalendarDayDetails.tsx
-import React, { useState, useRef, useEffect } from "react";
-import { format, parseISO, isSameDay } from "date-fns";
+import { useState, useRef, useEffect } from "react";
+import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import {
   Calendar,
@@ -20,7 +20,7 @@ import DailySpendingForm from "../bills/DailySpendingForm";
 import TaskIcons from "../tasks/TaskIcons";
 import { useSettings } from "../../hooks/useSettings";
 import ICAL from "ical.js";
-import { formatTime, localDateTimeToISO } from "../../lib/dateUtils";
+import { formatDate, formatTime, localDateTimeToISO, parseEventDate } from "../../lib/dateUtils";
 
 interface Props {
   selectedDate: string;
@@ -42,35 +42,20 @@ function escapeICalText(s?: string) {
     .replace(/\n/g, "\\n");
 }
 
-// Helper to parse event timestamp without timezone conversion
-const parseEventDate = (timestamp: string): Date => {
-  const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace(" ", "T").split(".")[0];
-  const [datePart, timePart] = cleanTimestamp.split("T");
-  const [year, month, day] = datePart.split("-");
-  const [hours, minutes, seconds] = (timePart || "00:00:00").split(":");
-  
-  return new Date(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day),
-    parseInt(hours),
-    parseInt(minutes),
-    parseInt(seconds || "0")
-  );
-};
-
 // Check if event spans the selected date
-const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
-  const eventStart = parseEventDate(event.start_time);
-  const eventEnd = parseEventDate(event.end_time);
-  
-  // Normalize times to just dates for comparison
-  const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-  const eventStartDateOnly = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
-  const eventEndDateOnly = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
-  
-  // Check if selected date falls within the event's date range
-  return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
+const eventSpansDate = (event: Event, selectedDateStr: string): boolean => {
+
+  const eventStart = event.start_time.split("T")[0];
+  const eventEnd = event.end_time.split("T")[0];
+
+  if (selectedDateStr === eventStart && selectedDateStr === eventEnd) {
+    return true;
+  }
+
+  if (selectedDateStr < eventStart || selectedDateStr > eventEnd) {
+    return false;
+  }
+  return true;
 };
 
 export default function CalendarDayDetails({
@@ -88,10 +73,9 @@ export default function CalendarDayDetails({
   const titleRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
-  const selectedDateObj = parseISO(selectedDate);
 
   // Filter events that span the selected date
-  const eventsForDay = events.filter(event => eventSpansDate(event, selectedDateObj));
+  const eventsForDay = events.filter(event => eventSpansDate(event, selectedDate));
 
   useEffect(() => {
     if (editingId && titleRef.current) {
@@ -381,17 +365,22 @@ export default function CalendarDayDetails({
                 <div className="space-y-1">
                   <div className="flex items-center text-sm text-gray-700">
                     <Clock className="w-4 h-4 mr-1" />
-                    {event.start_time.slice(0, 10) === event.end_time.slice(0, 10) ? (
+                    {formatTime(event.start_time) === formatTime(event.end_time) ? (
                       <>
-                        {formatTime(event.start_time)} –{" "}
-                        {formatTime(event.end_time)}
+                        {formatTime(event.start_time)}
                       </>
-                    ) : (
-                      <>
-                        {formatTime(event.start_time, true)} –{" "}
-                        {formatTime(event.end_time, true)}
-                      </>
-                    )}
+                      ) : (
+                        (event.start_time.slice(0, 10) === event.end_time.slice(0, 10)) ? (
+                          <>
+                            {formatTime(event.start_time)} –{" "}
+                            {formatTime(event.end_time)}
+                          </>
+                        ) : (
+                          <>
+                            {formatTime(event.start_time, true)} –{" "}
+                            {formatTime(event.end_time, true)}
+                          </>
+                        ))}
                   </div>
 
                   {event.place && (

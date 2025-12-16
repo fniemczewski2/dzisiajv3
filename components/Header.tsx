@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 import LoadingState from "./LoadingState";
+import BirthdayIndicator from "./calendar/BirthdayIndicator";
 
 export default function Header() {
   const [loading, setLoading] = useState(true);
@@ -132,6 +133,7 @@ export default function Header() {
             <span className="text-gray-500 text-[12px] sm:text-sm">
               {currentDate}
             </span>
+            <BirthdayIndicator />
           </div>
 
           <h1 className="text-2xl font-bold text-primary sm:block hidden sm:flex-1 text-center">
@@ -153,7 +155,7 @@ export default function Header() {
                   <span className="text-gray-600 text-[11px] sm:text-sm ml-5 text-right">
                     min {dailyMin}° · max {dailyMax}°
                   </span>
-                  <span className="text-red-500 text-[11px] sm:text-sm ml-5 text-right">
+                  <span className="text-red-700 text-[11px] sm:text-sm ml-5 text-right">
                     {airQuality}
                   </span>
                   </>

@@ -1,26 +1,28 @@
 "use client";
 
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { PlusCircleIcon, Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useEvents } from "../../hooks/useEvents";
 import { useSession } from "@supabase/auth-helpers-react";
-import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { format, startOfMonth, endOfMonth, parseISO, set } from "date-fns";
 import ICAL from "ical.js";
 import LoadingState from "../LoadingState";
-import { getAppDateTime } from "../../lib/dateUtils";
+import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
 
 interface EventsFormProps {
   onEventsChange: () => void;
   onCancel?: () => void;
   currentDate: Date | null;
+  selectedDate: Date | null;
 }
 
 export default function EventForm({
   onEventsChange,
   onCancel,
   currentDate = getAppDateTime(),
+  selectedDate,
 }: EventsFormProps) {
   const session = useSession();
   const userEmail = session?.user?.email || "";
@@ -34,11 +36,17 @@ export default function EventForm({
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [allDay, setAllDay] = useState(true);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [place, setPlace] = useState("");
   const [share, setShare] = useState("null");
   const [repeat, setRepeat] = useState<Event["repeat"]>("none");
+
+  useEffect(() => {
+    setStart(selectedDate ? format(selectedDate, allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm") : currentDate ? format(currentDate, allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm") : "");
+    setEnd(selectedDate ? format(selectedDate, allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm") : currentDate ? format(currentDate, allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm") : "");
+  }, [selectedDate, currentDate, allDay]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,8 +59,8 @@ export default function EventForm({
       const payload: Event = {
         title: title.trim(),
         description: description.trim(),
-        start_time: new Date(start).toISOString(),
-        end_time: new Date(end).toISOString(),
+        start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
+        end_time: allDay ? localDateTimeToISO(end + "T23:59") : localDateTimeToISO(end),
         place: place.trim(),
         share: share === "null" ? "" : share,
         repeat,
@@ -97,8 +105,8 @@ export default function EventForm({
         const newEvent: Event = {
           title: event.summary || "Bez tytułu",
           description: event.description || "",
-          start_time: event.startDate.toJSDate().toISOString(),
-          end_time: event.endDate.toJSDate().toISOString(),
+          start_time: localDateTimeToISO(event.startDate.toString()),
+          end_time: localDateTimeToISO(event.endDate.toString()),
           place: event.location || "",
           share: "",
           repeat: "none",
@@ -151,7 +159,19 @@ export default function EventForm({
           disabled={loading}
         />
       </div>
-
+      <div className="flex items-center mt-1">
+          <label htmlFor="allDay" className="text-sm font-medium">
+            Wydarzenie całodniowe:
+          </label>
+          <input
+            id="allDay"
+            type="checkbox"
+            checked={allDay}
+            onChange={(e) => setAllDay(e.target.checked)}
+            className="ml-2 p-2 h-4 w-4 border rounded-lg"
+            disabled={loading}
+          />
+        </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="start" className="block text-sm font-medium">
@@ -159,7 +179,7 @@ export default function EventForm({
           </label>
           <input
             id="start"
-            type="datetime-local"
+            type={allDay ? "date" : "datetime-local"}
             value={start}
             onChange={(e) => setStart(e.target.value)}
             className="mt-1 w-full p-2 border rounded"
@@ -173,7 +193,7 @@ export default function EventForm({
           </label>
           <input
             id="end"
-            type="datetime-local"
+            type={allDay ? "date" : "datetime-local"}
             value={end}
             onChange={(e) => setEnd(e.target.value)}
             className="mt-1 w-full p-2 border rounded"
@@ -182,7 +202,6 @@ export default function EventForm({
           />
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="place" className="block text-sm font-medium">
