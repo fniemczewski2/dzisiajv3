@@ -22,7 +22,6 @@ import Droppable from "../../components/eisenhower/Droppable";
 import DraggableTask  from "../../components/eisenhower/DraggableTask";
 import { ChevronLeft, RefreshCw } from "lucide-react";
 import { useRouter } from "next/router";
-import { getAppDateTime } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
 
 const CATEGORIES = [
@@ -36,9 +35,6 @@ type Category = (typeof CATEGORIES)[number];
 type BoardState = Record<Category, Task[]>;
 
 export default function EisenhowerPage() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "";
   const router = useRouter();
   const { fetchTasks, editTask } = useTasks();
  

@@ -10,6 +10,7 @@ function generateSiteMap() {
     { url: '/tasks/daySchema', priority: '0.8', changefreq: 'daily' },
     { url: '/tasks/pomodoro', priority: '0.8', changefreq: 'weekly' },
     { url: '/tasks/eisenhower', priority: '0.8', changefreq: 'weekly' },
+    { url: '/tasks/kanban', priority: '0.8', changefreq: 'weekly' },
     { url: '/notes', priority: '0.9', changefreq: 'daily' },
     { url: '/notes/shopping', priority: '0.7', changefreq: 'weekly' },
     { url: '/notes/recipes', priority: '0.7', changefreq: 'weekly' },
