@@ -1,7 +1,7 @@
 // components/tasks/TaskItem.tsx (UPDATED VERSION)
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO, addDays } from "date-fns";
-import { Check, Edit2, Trash2, X, Save, Calendar, Timer, ChevronsRight } from "lucide-react";
+import { Check, Edit2, Trash2, X, Save, Timer, ChevronsRight } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
@@ -80,7 +80,6 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     await editTask({
       ...task,
       due_date: newDate,
-      deadline_date: newDate,
     });
     
     await fetchTasks();
@@ -88,9 +87,9 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     setIsRescheduling(false);
   };
 
-  const deadlineDate = new Date(task.deadline_date).toISOString().split("T")[0];
+  const dueDate = new Date(task.due_date).toISOString().split("T")[0];
   const today = getAppDate();
-  const isOverdue = deadlineDate < today;
+  const isOverdue = dueDate < today;
   const isHighPriority = task.priority === 1;
 
   const DeleteButton = () => (
@@ -291,9 +290,15 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
           </div>
           
           <hr
-            className={`w-[100%] mt-2 mb-3 ${
-              isHighPriority || isOverdue ? "border-red-800" : "border-gray-300"
-            }`}
+            className={`w-[100%] mt-2 mb-3 
+              ${
+                isDone
+                  ? "text-gray-500 line-through"
+                  : isHighPriority || isOverdue
+                  ? "text-red-800"
+                  : ""
+              }
+            `}
           />
           
           {/* Time Context Badge */}
@@ -316,7 +321,10 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
 
             <div className="flex justify-end w-full gap-1.5 flex-wrap">
               {isDone ? (
-                <EditButton />
+                <>
+                  <EditButton />
+                  <DeleteButton />
+                </>
               ) : task.user_name !== userEmail &&
                 task.status === "waiting_for_acceptance" ? (
                 <>
