@@ -4,6 +4,7 @@ import { Edit2, Plus, Trash2, X, Save } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
@@ -13,6 +14,8 @@ export default function ShoppingListView() {
   const nameRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
+  const session = useSession();
+  const userEmail = session?.user?.email || "";
 
   useEffect(() => {
     if (editingId && nameRef.current) {
@@ -193,9 +196,8 @@ export default function ShoppingListView() {
                 <h3 className="font-semibold text-lg">{list.name}</h3>
                 {list.share && (
                   <p className="text-sm text-gray-500">
-                    {list.user_email === list.share
-                      ? `Udostępnione przez ${list.user_email.split("@")[0]}`
-                      : `Udostępnione: ${list.share.split("@")[0]}`}
+                    {list.share === userEmail && `Udostępnione przez ${list.user_email.split("@")[0]}`}
+                    {list.user_email === userEmail && `Udostępnione: ${list.share.split("@")[0]}`}
                   </p>
                 )}
               </div>
@@ -238,7 +240,7 @@ export default function ShoppingListView() {
                   </div>
                   <button
                     onClick={() => removeElement(list, el.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700"
+                    className="transition-opacity p-1 text-red-500 hover:text-red-700"
                     title="Usuń produkt"
                   >
                     <X className="w-4 h-4" />

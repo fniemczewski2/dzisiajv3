@@ -1,4 +1,3 @@
-// hooks/useNotes.ts
 import { useState, useEffect } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Note } from "../types";
@@ -17,7 +16,21 @@ export function useNotes() {
       .from("notes")
       .select("*")
       .eq("user_name", userEmail);
-    setNotes(data || []);
+    
+    // Sortowanie: przypięte na górze, zarchiwizowane na dole, reszta po dacie
+    const sorted = (data || []).sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      if (a.archived && !b.archived) return 1;
+      if (!a.archived && b.archived) return -1;
+      
+      // Sortuj po dacie modyfikacji (najnowsze pierwsze)
+      const dateA = new Date(a.updated_at || a.created_at).getTime();
+      const dateB = new Date(b.updated_at || b.created_at).getTime();
+      return dateB - dateA;
+    });
+    
+    setNotes(sorted);
     setLoading(false);
   };
 
@@ -26,10 +39,15 @@ export function useNotes() {
     setLoading(true);
     const { data } = await supabase
       .from("notes")
-      .insert({ ...note, user_name: userEmail })
+      .insert({ 
+        ...note, 
+        user_name: userEmail,
+        pinned: false,
+        archived: false
+      })
       .select()
       .single();
-    setNotes((prev) => [...prev, data]);
+    await fetchNotes();
     setLoading(false);
   };
 
@@ -37,7 +55,7 @@ export function useNotes() {
     if (!userEmail) return;
     setLoading(true);
 
-    const { id, ...clean } = note;  // remove id from update body
+    const { id, ...clean } = note;
 
     const { data, error } = await supabase
       .from("notes")
@@ -45,7 +63,10 @@ export function useNotes() {
         title: clean.title,
         items: clean.items,
         bg_color: clean.bg_color,
-        user_name: clean.user_name
+        user_name: clean.user_name,
+        pinned: clean.pinned,
+        archived: clean.archived,
+        updated_at: new Date().toISOString()
       })
       .eq("id", id)
       .select()
@@ -53,7 +74,47 @@ export function useNotes() {
 
     if (error) console.error(error);
 
-    setNotes((prev) => prev.map((n) => (n.id === id ? data : n)));
+    await fetchNotes();
+    setLoading(false);
+  };
+
+  const togglePin = async (id: string) => {
+    if (!userEmail) return;
+    setLoading(true);
+    
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+
+    await supabase
+      .from("notes")
+      .update({ 
+        pinned: !note.pinned,
+        archived: false, // Odpinamy z archiwum jeśli przypinamy
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    await fetchNotes();
+    setLoading(false);
+  };
+
+  const toggleArchive = async (id: string) => {
+    if (!userEmail) return;
+    setLoading(true);
+    
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+
+    await supabase
+      .from("notes")
+      .update({ 
+        archived: !note.archived,
+        pinned: false, // Odpinamy jeśli archiwizujemy
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    await fetchNotes();
     setLoading(false);
   };
 
@@ -63,11 +124,20 @@ export function useNotes() {
     await supabase.from("notes").delete().eq("id", id);
     await fetchNotes();
     setLoading(false);
-  }
+  };
 
   useEffect(() => {
     fetchNotes();
   }, [userEmail]);
 
-  return { notes, loading, fetchNotes, addNote, editNote, deleteNote };
+  return { 
+    notes, 
+    loading, 
+    fetchNotes, 
+    addNote, 
+    editNote, 
+    deleteNote,
+    togglePin,
+    toggleArchive
+  };
 }

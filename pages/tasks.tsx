@@ -11,6 +11,7 @@ import {
   Brain,
   Target,
   ListTodo,
+  Table2,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
@@ -139,6 +140,13 @@ export default function TasksPage() {
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Brain className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/tasks/kanban")}
+                title="Kanban Board"
+                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                <Table2 className="w-5 h-5" />
               </button>
             </div>
           </h2>

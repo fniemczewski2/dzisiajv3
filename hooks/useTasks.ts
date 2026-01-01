@@ -164,7 +164,6 @@ export function useTasks(
       ...task,
       user_name: userEmail,
       due_date: formatDate(task.due_date),
-      deadline_date: formatDate(task.deadline_date),
     };
     
     await supabase
@@ -184,7 +183,6 @@ export function useTasks(
       ...task,
       user_name: userEmail,
       due_date: formatDate(task.due_date),
-      deadline_date: formatDate(task.deadline_date),
     };
     
     const { data } = await supabase
@@ -232,7 +230,6 @@ export function useTasks(
       .from("tasks")
       .update({
         due_date: newDate,
-        deadline_date: newDate,
       })
       .eq("id", taskId)
       .select()
