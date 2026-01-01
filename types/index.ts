@@ -6,7 +6,6 @@ export type Task = {
   priority: number;
   description: string;
   due_date: string;
-  deadline_date: string;
   status: string;
   user_name: string;
 };
@@ -27,6 +26,9 @@ export type Note = {
   items: string[];
   bg_color: string;
   user_name: string;
+  pinned?: boolean;
+  archived?: boolean;
+  updated_at?: string;
 };
 
 export type Event = {
