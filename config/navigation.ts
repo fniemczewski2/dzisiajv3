@@ -18,6 +18,8 @@ import {
   CookingPot,
   ShoppingCart,
   LucideIcon,
+  MapPin,
+  Target,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -49,6 +51,7 @@ export const NAVIGATION_CONFIG: NavigationButton[][] = [
     { path: "/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
     { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
     { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
+    { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
   ],
   // Finanse i zakupy
   [
@@ -56,5 +59,6 @@ export const NAVIGATION_CONFIG: NavigationButton[][] = [
     { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
     { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
     { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
+    { path: "/places", title: "Miejsca", icon: MapPin, label: "Miejsca" },
   ],
 ];
