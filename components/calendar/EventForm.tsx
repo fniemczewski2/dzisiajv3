@@ -67,10 +67,7 @@ export default function EventForm({
         user_name: userEmail,
       } as Event;
 
-      // Actually add the event to the database
       await addEvent(payload);
-
-      // Clear the form fields FIRST
       setTitle("");
       setDescription("");
       setStart("");
@@ -78,11 +75,8 @@ export default function EventForm({
       setPlace("");
       setShare("null");
       setRepeat("none");
-
-      // Call onEventsChange to refresh the parent
       onEventsChange();
       
-      // Close the form if onCancel is provided
       if (onCancel) onCancel();
       
     } catch (error) {
@@ -123,7 +117,6 @@ export default function EventForm({
       alert("Błąd podczas importowania pliku .ics");
     }
 
-    // Reset the file input
     e.target.value = "";
   };
 

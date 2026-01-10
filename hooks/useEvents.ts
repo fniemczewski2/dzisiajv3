@@ -28,8 +28,6 @@ export function useEvents(
         console.error("Failed to fetch events:", error.message);
         return;
       }
-
-      // Parse dates with time component for proper local timezone handling
       const start = new Date(rangeStart + "T00:00:00");
       const end = new Date(rangeEnd + "T23:59:59");
       
@@ -55,7 +53,6 @@ export function useEvents(
     setLoading(true);
     
     try {
-      // Remove id from event object if it exists (let database generate it)
       const { id, ...eventWithoutId } = event as any;
       
       const { data, error } = await supabase
@@ -67,8 +64,7 @@ export function useEvents(
         console.error("Insert error:", error);
         throw error;
       }
-      
-      // Refetch to get expanded events
+
       await fetchEvents();
       
     } catch (error) {
@@ -84,10 +80,7 @@ export function useEvents(
     setLoading(true);
     
     try {
-      // Extract original ID (handle both regular and synthetic IDs)
       const originalId = event.id.split("_")[0];
-      
-      // Don't include the synthetic id in the update
       const { id, ...eventData } = event;
       
       const { error } = await supabase
@@ -100,7 +93,6 @@ export function useEvents(
         throw error;
       }
       
-      // Refetch to get expanded events
       await fetchEvents();
     } catch (error) {
       console.error("Failed to edit event:", error);
@@ -115,7 +107,6 @@ export function useEvents(
     setLoading(true);
 
     try {
-      // Extract original ID (handle both regular and synthetic IDs)
       const originalId = id.split("_")[0];
       
       const { error } = await supabase
@@ -127,8 +118,7 @@ export function useEvents(
         console.error("Delete error:", error);
         throw error;
       }
-      
-      // Refetch to get expanded events
+
       await fetchEvents();
     } catch (error) {
       console.error("Failed to delete event:", error);

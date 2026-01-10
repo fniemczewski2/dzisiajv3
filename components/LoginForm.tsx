@@ -8,24 +8,20 @@ export default function LoginForm() {
   const supabase = useSupabaseClient();
   const router = useRouter();
 
-  // Memoize nextPath to avoid dependency issues
   const nextPath = useMemo(() => {
     return typeof router.query.next === "string" ? router.query.next : "/tasks";
   }, [router.query.next]);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (session) {
       router.replace(nextPath);
     }
   }, [session, nextPath, router]);
 
-  // Show loading while checking session
   if (session === undefined) {
     return <LoadingState />;
   }
-
-  // If already logged in, show loading (will redirect via useEffect)
+  
   if (session) {
     return <LoadingState />;
   }

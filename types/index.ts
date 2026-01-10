@@ -16,7 +16,7 @@ export type Bill = {
   description: string;
   date: string;
   user_name: string;
-  include_in_budget: boolean;
+  is_income: boolean;
   done: boolean | null;
 };
 
@@ -128,17 +128,17 @@ export interface Product {
 }
 
 export interface ScheduleItem {
-  time: string; // "HH:mm"
+  time: string; 
   label: string;
 }
 
 export interface Schema {
-  id?: string; // optional for new schemas before insertion
+  id?: string;
   user_name: string;
   name: string;
-  days: number[]; // 0 (Sunday) to 6 (Saturday)
-  entries: ScheduleItem[]; // stored as JSONB in Supabase
-  created_at?: string; // optional, returned from Supabase
+  days: number[];
+  entries: ScheduleItem[]; 
+  created_at?: string; 
 }
 
 export interface ShoppingElement {
@@ -176,5 +176,62 @@ export interface Report {
   notes: string;
   inserted_at: string;
   updated_at: string;
+}
+
+export interface OpeningHours {
+  [key: string]: string[];
+}
+
+export interface Place {
+  id: string;
+  user_email: string;
+  name: string;
+  address?: string;
+  lat: number;
+  lng: number;
+  tags: string[];
+  phone_number?: string;
+  website?: string;
+  rating?: number;
+  notes?: string;
+  google_place_id?: string;
+  opening_hours?: OpeningHours;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GoogleMapsFeature {
+  geometry: {
+    coordinates: [number, number];
+    type: string;
+  };
+  properties: {
+    date?: string;
+    google_maps_url?: string;
+    location?: {
+      address?: string;
+      country_code?: string;
+      name?: string;
+    };
+    Comment?: string;
+  };
+  type: string;
+}
+
+export interface GoogleMapsExport {
+  type: string;
+  features: GoogleMapsFeature[];
+}
+
+export type PlaceInsert = Omit<Place, "id" | "created_at" | "updated_at">;
+
+export interface Streak {
+  id: string;
+  user_email: string;
+  name: string;
+  start_date: string;
+  icon?: string;
+  color?: string;
+  created_at?: string;
 }
 

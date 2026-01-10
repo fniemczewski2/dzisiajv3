@@ -10,13 +10,10 @@ interface FocusModeProps {
 }
 
 export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusModeProps) {
-  // Get top 3 priority tasks that aren't done
   const focusTasks = tasks
     .filter(t => t.status !== 'done')
     .sort((a, b) => {
-      // Sort by priority first (lower number = higher priority)
       if (a.priority !== b.priority) return a.priority - b.priority;
-      // Then by due date
       return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
     })
     .slice(0, 3);
@@ -39,7 +36,6 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
 
   return (
     <div className="space-y-4">
-      {/* Header Card */}
       <div className="bg-gradient-to-r from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
         <div className="flex items-center gap-3 mb-2">
           <Target className="w-8 h-8" />
@@ -50,7 +46,6 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
         </p>
       </div>
 
-      {/* Focus Tasks */}
       <div className="space-y-3">
         {focusTasks.map((task, index) => (
           <div key={task.id} className="relative">
@@ -69,7 +64,6 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
         ))}
       </div>
 
-      {/* Show More Button */}
       {tasks.filter(t => t.status !== 'done').length > 3 && (
         <div className="text-center pt-2">
           <p className="text-sm text-gray-500 mb-2">

@@ -46,7 +46,7 @@ const createSortFunction = (sortOrder: string, getPriority: (task: Task) => numb
         return (a.priority ?? Infinity) - (b.priority ?? Infinity);
       };
 
-    default: // alphabetical
+    default: 
       return (a: Task, b: Task) => {
         const aPriority = getPriority(a);
         const bPriority = getPriority(b);
@@ -57,7 +57,6 @@ const createSortFunction = (sortOrder: string, getPriority: (task: Task) => numb
   }
 };
 
-// Helper function to ensure dates are in string format
 const formatDate = (date: string | Date | undefined): string | undefined => {
   if (!date) return undefined;
   if (typeof date === 'string') return date;
@@ -159,7 +158,6 @@ export function useTasks(
     if (!userEmail) return;
     setLoading(true);
     
-    // Ensure dates are strings, not Date objects
     const payload = {
       ...task,
       user_name: userEmail,
@@ -178,7 +176,6 @@ export function useTasks(
   const editTask = async (task: Task) => {
     if (!userEmail) return;
     setLoading(true);
-    // Ensure dates are strings, not Date objects
     const payload = {
       ...task,
       user_name: userEmail,

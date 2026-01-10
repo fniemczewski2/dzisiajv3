@@ -22,7 +22,6 @@ const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   ssr: false,
 });
 
-// Helper to parse event timestamp without timezone conversion
 const parseEventDate = (timestamp: string): Date => {
   const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace(" ", "T").split(".")[0];
   const [datePart, timePart] = cleanTimestamp.split("T");
@@ -39,17 +38,15 @@ const parseEventDate = (timestamp: string): Date => {
   );
 };
 
-// Check if event spans the selected date
+
 const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
   const eventStart = parseEventDate(event.start_time);
   const eventEnd = parseEventDate(event.end_time);
-  
-  // Normalize times to just dates for comparison
+
   const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
   const eventStartDateOnly = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
   const eventEndDateOnly = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
   
-  // Check if selected date falls within the event's date range
   return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
 };
 
@@ -98,7 +95,6 @@ export default function CalendarPage() {
     setEditingEvent(null);
   }, []);
 
-  // Filter events that span the selected day
   const eventsForDay = useMemo(() => {
     if (!selectedDate) return [];
     return events.filter((event) => eventSpansDate(event, selectedDate));

@@ -31,7 +31,7 @@ function WeatherIcon({ code }: { code: number }) {
   if (code <= 48) return <CloudFog className="w-10 h-10 text-gray-500" />;
   if (code <= 67) return <CloudDrizzle className="w-10 h-10 text-blue-400" />;
   if (code <= 77) return <CloudSnow className="w-10 h-10 text-blue-300" />;
-  if (code <= 82) return <CloudRain className="w-10 h-10 text-blue-500" />;
+  if (code <= 82) return <CloudRain className="w-10 h-10 text-primary" />;
   if (code <= 86) return <CloudSnow className="w-10 h-10 text-blue-300" />;
   return <CloudLightning className="w-10 h-10 text-yellow-600" />;
 }

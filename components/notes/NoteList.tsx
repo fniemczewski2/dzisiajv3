@@ -24,7 +24,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showExportMenu, setShowExportMenu] = useState<string | null>(null);
 
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
@@ -37,7 +36,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
     }
   }, [editingId]);
 
-  // Filtrowanie notatek według wyszukiwania
   const filteredNotes = notes.filter((note) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -106,19 +104,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
     onNotesChange();
   };
 
-  // Eksport do TXT
-  const exportToTXT = (note: Note) => {
-    const content = `${note.title}\n\n${note.items.map(item => `• ${item}`).join("\n")}`;
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${note.title.replace(/\s+/g, "_")}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Eksport do PDF (pdfmake)
   const exportToPDF = async (note: Note) => {
     if (typeof window === "undefined") return;
 
@@ -164,7 +149,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
     }
   };
 
-  // Renderowanie linków
   const renderWithLinks = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)|((www\.)?[\w-]+\.[a-z]{2,}[^\s]*)/gi;
 
@@ -183,7 +167,7 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 underline hover:text-blue-800"
+            className="text-primary underline hover:text-secondary"
           >
             {part}
           </a>
@@ -196,7 +180,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
 
   return (
     <div>
-      {/* Wyszukiwarka */}
       <div className="mb-6 max-w-md">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -214,8 +197,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
           </p>
         )}
       </div>
-
-      {/* Lista notatek */}
       <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 mx-auto w-full">
         {filteredNotes.map((n) => {
           const isEditing = editingId === n.id;
@@ -279,7 +260,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
                     ))}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex justify-end gap-2 pt-2">
                     <button
                       onClick={handleSaveEdit}

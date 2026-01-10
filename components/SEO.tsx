@@ -34,7 +34,6 @@ export default function SEO({
   const fullTitle = title.includes('Dzisiaj') ? title : `${title} - Dzisiaj v3`;
   const robotsContent = `${noindex ? 'noindex' : 'index'},${nofollow ? 'nofollow' : 'follow'}`;
 
-  // Default structured data for WebSite
   const defaultStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -59,7 +58,6 @@ export default function SEO({
 
   return (
     <Head>
-      {/* Primary Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="title" content={fullTitle} />
       <meta name="description" content={description} />
@@ -68,7 +66,6 @@ export default function SEO({
       <meta name="robots" content={robotsContent} />
       <link rel="canonical" href={canonical} />
 
-      {/* Open Graph / Facebook */}
       <meta property="og:type" content={ogType} />
       <meta property="og:url" content={canonical} />
       <meta property="og:title" content={fullTitle} />
@@ -79,7 +76,6 @@ export default function SEO({
       <meta property="og:site_name" content="Dzisiaj v3" />
       <meta property="og:locale" content="pl_PL" />
 
-      {/* Article Meta (if applicable) */}
       {ogType === 'article' && publishedTime && (
         <meta property="article:published_time" content={publishedTime} />
       )}
@@ -90,7 +86,6 @@ export default function SEO({
         <meta property="article:author" content={author} />
       )}
 
-      {/* Twitter */}
       <meta name="twitter:card" content={twitterCard} />
       <meta name="twitter:url" content={canonical} />
       <meta name="twitter:title" content={fullTitle} />
@@ -100,13 +95,11 @@ export default function SEO({
       <meta name="twitter:creator" content="@dzisiajapp" />
       <meta name="twitter:site" content="@dzisiajapp" />
 
-      {/* Additional Meta Tags */}
       <meta name="format-detection" content="telephone=no" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       <meta name="apple-mobile-web-app-title" content="Dzisiaj v3" />
 
-      {/* Structured Data (JSON-LD) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -117,7 +110,6 @@ export default function SEO({
   );
 }
 
-// Utility function to create breadcrumb structured data
 export function createBreadcrumbSchema(items: { name: string; url: string }[]) {
   return {
     '@context': 'https://schema.org',
@@ -131,7 +123,6 @@ export function createBreadcrumbSchema(items: { name: string; url: string }[]) {
   };
 }
 
-// Utility function to create article structured data
 export function createArticleSchema({
   title,
   description,
@@ -176,7 +167,7 @@ export function createArticleSchema({
   };
 }
 
-// Utility function to create FAQ structured data
+
 export function createFAQSchema(faqs: { question: string; answer: string }[]) {
   return {
     '@context': 'https://schema.org',

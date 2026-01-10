@@ -11,7 +11,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
-  // Initialize audio
   useEffect(() => {
     audioRef.current = new Audio('/KBING.mp3');
     audioRef.current.preload = 'auto';
@@ -24,7 +23,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, []);
 
-  // Wake Lock to prevent screen from turning off on mobile
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
@@ -49,7 +47,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
       releaseWakeLock();
     }
 
-    // Re-acquire wake lock if page becomes visible again
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && running && !paused) {
         requestWakeLock();
@@ -64,7 +61,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, [running, paused]);
 
-  // Play sound when timer hits zero
   const playSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -74,7 +70,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     }
   };
 
-  // sync seconds when phase changes and not running
   useEffect(() => {
     if (!running) {
       setSecondsLeft(phases[phaseIndex]?.seconds ?? 0);
@@ -97,7 +92,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
 
   useEffect(() => {
     if (secondsLeft <= 0 && running) {
-      // Play sound when reaching 0
       playSound();
       
       const nextPhase = phaseIndex + 1;

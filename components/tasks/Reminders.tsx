@@ -53,7 +53,7 @@ export default function Reminders() {
         <h3 className="font-semibold flex flex-row items-center">
           <BellDot className="w-5 h-5 mr-2" />
           Przypomnienia&nbsp;
-          <span className="text-blue-600">{liczba}</span>
+          <span className="text-primary">{liczba}</span>
         </h3>
         {open ? (
           <ChevronUp className="w-5 h-5" />
@@ -104,7 +104,7 @@ export default function Reminders() {
           {!showForm && (
             <div className="px-3 py-2 text-sm flex justify-between shadow">
               <button
-                className="flex items-center text-blue-600 hover:underline"
+                className="flex items-center text-primary hover:underline"
                 onClick={() => setShowForm(!showForm)}
               >
                 Dodaj&nbsp;<Plus className="w-4 h-4 ml-1" />
@@ -112,7 +112,7 @@ export default function Reminders() {
 
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="flex items-center text-blue-600 hover:underline"
+                className="flex items-center text-primary hover:underline"
               >
                 {showAll ? "Pokaż aktywne\u00A0" : "Pokaż wszystkie\u00A0"}<List className="w-4 h-4 ml-1" />
               </button>

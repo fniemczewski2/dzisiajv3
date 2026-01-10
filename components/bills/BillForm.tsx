@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, FormEvent } from "react";
-import { PlusCircleIcon, Save } from "lucide-react";
+import { Minus, Plus, PlusCircleIcon, Save } from "lucide-react";
 import { Bill } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useBills } from "../../hooks/useBills";
@@ -26,14 +26,14 @@ export default function BillForm({
   const [date, setDate] = useState(() => {
     return initial?.date || getAppDate();
   });
-  const [includeInBudget, setIncludeInBudget] = useState(false);
+  const [isIncome, setIsIncome] = useState(false);
 
   useEffect(() => {
     if (initial) {
       setAmount(String(initial.amount ?? "0"));
       setDescription(initial.description ?? "");
       setDate(initial.date);
-      setIncludeInBudget(initial.include_in_budget);
+      setIsIncome(initial.is_income);
     }
   }, [initial]);
 
@@ -45,7 +45,7 @@ export default function BillForm({
       amount: parseFloat(amount) || 0,
       description: description.trim() || null,
       date: date,
-      include_in_budget: includeInBudget,
+      is_income: isIncome,
       done: initial?.done ?? false,
     } as Bill;
 
@@ -58,11 +58,10 @@ export default function BillForm({
     onChange();
 
     if (!isEdit) {
-      // reset
       setAmount("0");
       setDescription("");
       setDate(getAppDate());
-      setIncludeInBudget(false);
+      setIsIncome(false);
     }
 
     if (onCancel) onCancel();
@@ -74,20 +73,36 @@ export default function BillForm({
       className="space-y-2 bg-card p-4 rounded-xl shadow max-w-md"
     >
       <div>
-        <label className="block text-sm font-medium" htmlFor="amount">
+        <label className="block text-sm font-medium mb-2" htmlFor="amount">
           Kwota:
         </label>
-        <input
-          id="amount"
-          type="number"
-          step="0.01"
-          placeholder="Kwota"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
-          disabled={loading}
-        />
+        <div className="flex items-center gap-2">
+          <button
+            id="includeInBudget"
+            type="button"
+            onClick={() => setIsIncome(!isIncome)}
+            className={`p-2 rounded-lg transition-colors ${
+              isIncome 
+                ? "bg-green-500 text-white hover:bg-green-600" 
+                : "bg-red-500 text-white hover:bg-red-600"
+            }`}
+            disabled={loading}
+            title={isIncome ? "Przychód" : "Wydatek"}
+          >
+            {isIncome ? <Plus className="w-5 h-5" /> : <Minus className="w-5 h-5" />}
+          </button>
+          <input
+            id="amount"
+            type="number"
+            step="0.01"
+            placeholder="Kwota"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="flex-1 p-2 border rounded-lg"
+            required
+            disabled={loading}
+          />
+        </div>
       </div>
 
       <div>
@@ -99,7 +114,7 @@ export default function BillForm({
           placeholder="Opis"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded-lg"
           disabled={loading}
         />
       </div>
@@ -113,27 +128,10 @@ export default function BillForm({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded-lg"
           required
           disabled={loading}
         />
-      </div>
-
-      <div className="flex items-center py-2 space-x-2">
-        <input
-          id="includeInBudget"
-          type="checkbox"
-          checked={includeInBudget}
-          onChange={() => setIncludeInBudget(!includeInBudget)}
-          className="h-4 w-4"
-          disabled={loading}
-        />
-        <label
-          className="block text-sm font-medium select-none"
-          htmlFor="includeInBudget"
-        >
-          Planowany wydatek
-        </label>
       </div>
 
       <div className="flex space-x-2 items-center">

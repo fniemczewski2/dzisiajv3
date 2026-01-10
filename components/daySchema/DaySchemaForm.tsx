@@ -24,7 +24,7 @@ interface DaySchemaFormProps {
   onCancel?: () => void;
 }
 
-const dayLabels = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "Sb"];
+const dayLabels = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 
 export default function DaySchemaForm({
   userEmail,
@@ -118,7 +118,7 @@ export default function DaySchemaForm({
               type="button"
               onClick={() => toggleDay(i)}
               className={`px-2 py-1 rounded border ${
-                days.includes(i) ? "bg-blue-600 text-white" : "bg-gray-100"
+                days.includes(i) ? "bg-primary text-white" : "bg-gray-100"
               }`}
             >
               {label}
@@ -158,7 +158,7 @@ export default function DaySchemaForm({
         <button
           type="button"
           onClick={addEntry}
-          className="flex items-center text-blue-600 hover:underline"
+          className="flex items-center text-primary hover:underline"
         >
           Dodaj
           <PlusCircle className="ml-2 w-4 h-4" />

@@ -59,6 +59,5 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 };
 
 export default function SiteMap() {
-  // This component doesn't render anything
   return null;
 }

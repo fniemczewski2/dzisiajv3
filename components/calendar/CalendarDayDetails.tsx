@@ -42,7 +42,6 @@ function escapeICalText(s?: string) {
     .replace(/\n/g, "\\n");
 }
 
-// Check if event spans the selected date
 const eventSpansDate = (event: Event, selectedDateStr: string): boolean => {
 
   const eventStart = event.start_time.split("T")[0];
@@ -74,7 +73,6 @@ export default function CalendarDayDetails({
 
   const userOptions = settings?.users ?? [];
 
-  // Filter events that span the selected date
   const eventsForDay = events.filter(event => eventSpansDate(event, selectedDate));
 
   useEffect(() => {

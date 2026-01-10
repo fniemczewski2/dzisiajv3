@@ -40,7 +40,6 @@ export type TimerViewProps = {
 };
 
 function defaultFormatTime(rawSeconds: number): string {
-  // ensure a non-negative integer number of seconds
   const total = Math.max(0, Math.floor(Number(rawSeconds) || 0));
 
   const hours = Math.floor(total / 3600);

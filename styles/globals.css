@@ -33,5 +33,5 @@ body {
 }
 
 .link-text {
-  @apply text-blue-500 hover:underline cursor-pointer font-medium;
+  @apply text-primary hover:underline cursor-pointer font-medium;
 }

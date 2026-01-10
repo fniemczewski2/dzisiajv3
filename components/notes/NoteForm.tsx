@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useState, FormEvent } from "react";
-import { PlusCircleIcon, Save } from "lucide-react";
+import React, { useRef, useState, FormEvent } from "react";
+import { PlusCircleIcon } from "lucide-react";
 import clsx from "clsx";
 import { Note } from "../../types";
 import { useNotes } from "../../hooks/useNotes";
@@ -43,7 +43,6 @@ export default function NoteForm({
     const normalizeItem = (line: string) => {
       let cleaned = line.trim();
 
-      // Autolink URLs
       const urlRegex = /^(https?:\/\/)?([\w.-]+\.[a-z]{2,})(\/\S*)?$/i;
       if (urlRegex.test(cleaned)) {
         if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {

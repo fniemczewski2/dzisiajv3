@@ -25,7 +25,6 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
     };
   }
 
-  // Overdue
   if (isPast(dueDate) && !isToday(dueDate) && !isDone) {
     const daysAgo = Math.abs(differenceInDays(now, dueDate));
     return {
@@ -45,7 +44,6 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
       };
   }
 
-  // Tomorrow
   if (isTomorrow(dueDate)) {
     return {
       display: 'Jutro',
@@ -55,7 +53,6 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
     };
   }
   
-  // Within a week
   const daysUntil = differenceInDays(dueDate, now);
   if (daysUntil <= 7 && isFuture(dueDate)) {
     const dayName = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'][dueDate.getDay()];

@@ -193,7 +193,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
                     <button
                       onClick={() => handleEdit(b)}
                       title="Edytuj rachunek"
-                      className="flex flex-col items-center text-blue-600 hover:text-blue-800 transition-colors"
+                      className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
                     >
                       <Edit2 className="w-5 h-5" />
                       <span className="text-xs mt-1">Edytuj</span>

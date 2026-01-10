@@ -17,14 +17,12 @@ export function useNotes() {
       .select("*")
       .eq("user_name", userEmail);
     
-    // Sortowanie: przypięte na górze, zarchiwizowane na dole, reszta po dacie
     const sorted = (data || []).sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
       if (a.archived && !b.archived) return 1;
       if (!a.archived && b.archived) return -1;
-      
-      // Sortuj po dacie modyfikacji (najnowsze pierwsze)
+
       const dateA = new Date(a.updated_at || a.created_at).getTime();
       const dateB = new Date(b.updated_at || b.created_at).getTime();
       return dateB - dateA;
@@ -89,7 +87,7 @@ export function useNotes() {
       .from("notes")
       .update({ 
         pinned: !note.pinned,
-        archived: false, // Odpinamy z archiwum jeśli przypinamy
+        archived: false,
         updated_at: new Date().toISOString()
       })
       .eq("id", id);
@@ -109,7 +107,7 @@ export function useNotes() {
       .from("notes")
       .update({ 
         archived: !note.archived,
-        pinned: false, // Odpinamy jeśli archiwizujemy
+        pinned: false, 
         updated_at: new Date().toISOString()
       })
       .eq("id", id);

@@ -42,7 +42,7 @@ export function useReminders() {
   };
 
   const postponeReminder = async (id: string, powtarzanie: number) => {
-    const today = getAppDateTime(); // Returns a Date object
+    const today = getAppDateTime(); 
     today.setDate(today.getDate() + 1 - powtarzanie);
     const done = today.toISOString().slice(0, 10)
 
@@ -88,7 +88,7 @@ export function useReminders() {
   };
 
   return {
-    allReminders: reminders, // <--- Dodane
+    allReminders: reminders,
     visibleReminders: getVisibleReminders(),
     addReminder,
     completeReminder,

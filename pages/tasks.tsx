@@ -1,4 +1,4 @@
-// pages/tasks.tsx (UPDATED VERSION)
+// pages/tasks.tsx 
 import React, { useState, useMemo } from "react";
 import {
   PlusCircleIcon,
@@ -45,12 +45,11 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
-  const [focusModeEnabled, setFocusModeEnabled] = useState(true); // Default to focus mode
+  const [focusModeEnabled, setFocusModeEnabled] = useState(false); 
 
   const { settings, loading: loadingSettings } = useSettings();
   const { tasks, loading: loadingTasks, fetchTasks } = useTasks();
 
-  // Calculate today's stats using useMemo
   const { todayDone, todayTotal } = useMemo(() => {
     const today = getAppDate();
     const todayTasks = tasks.filter((t) => t.due_date === today);
@@ -74,12 +73,10 @@ export default function TasksPage() {
   const closeForm = () => setShowForm(false);
 
   const handleStartTimer = (task: Task) => {
-    // Store task in sessionStorage to load in pomodoro page
     sessionStorage.setItem('currentTask', JSON.stringify(task));
     router.push("/tasks/pomodoro");
   };
 
-  // Calculate filter date string
   const getFilterDate = (): string | null => {
     const now = getAppDateTime();
     switch (dateFilter) {
@@ -185,8 +182,6 @@ export default function TasksPage() {
               );
             })}
           </div>
-
-          {/* Focus Mode Toggle Button */}
           <button
             onClick={() => setFocusModeEnabled(!focusModeEnabled)}
             className={`px-3 py-1.5 flex items-center rounded-lg shadow ${

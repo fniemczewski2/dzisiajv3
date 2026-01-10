@@ -68,7 +68,6 @@ export function useDailyHabits(date?: string) {
 
     const newValue = !habits[key];
 
-    // Optimistic update
     setHabits((prev) => (prev ? { ...prev, [key]: newValue } : prev));
 
     try {
@@ -87,7 +86,6 @@ export function useDailyHabits(date?: string) {
       if (error) throw error;
     } catch (err) {
       console.error("Toggle habit error:", err);
-      // Rollback on error
       setHabits((prev) => (prev ? { ...prev, [key]: !newValue } : prev));
       setError(err instanceof Error ? err.message : "Failed to update habit");
     }
@@ -98,7 +96,6 @@ export function useDailyHabits(date?: string) {
 
     const validAmount = isNaN(amount) ? 0 : amount;
 
-    // Optimistic update
     setHabits((prev) => (prev ? { ...prev, water_amount: validAmount } : prev));
 
     try {
@@ -116,7 +113,6 @@ export function useDailyHabits(date?: string) {
       if (error) throw error;
     } catch (err) {
       console.error("Update water error:", err);
-      // Rollback on error
       setHabits((prev) =>
         prev ? { ...prev, water_amount: habits.water_amount } : prev
       );
@@ -128,8 +124,6 @@ export function useDailyHabits(date?: string) {
     if (!habits || !userEmail) return;
 
     const validAmount = isNaN(amount) ? 0 : amount;
-
-    // Optimistic update
     setHabits((prev) => (prev ? { ...prev, daily_spending: validAmount } : prev));
 
     try {
@@ -147,7 +141,6 @@ export function useDailyHabits(date?: string) {
       if (error) throw error;
     } catch (err) {
       console.error("Update spending error:", err);
-      // Rollback on error
       setHabits((prev) =>
         prev ? { ...prev, daily_spending: habits.daily_spending } : prev
       );

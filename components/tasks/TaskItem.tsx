@@ -62,7 +62,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     setShowCelebration(true);
 
     setTimeout(async () => {
-      setShowCelebration(false); // ← FIX!
+      setShowCelebration(false); 
       try {
         await fetchTasks();
         onTasksChange();
