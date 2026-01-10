@@ -15,7 +15,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Task } from "../../types";
 import { useTasks } from "../../hooks/useTasks";
 import { getAppDate } from "../../lib/dateUtils";
-import DraggableTask from "../eisenhower/DraggableTask"; // Ten sam co w Eisenhower
+import DraggableTask from "../eisenhower/DraggableTask"; 
 import DroppableKanbanColumn from "../kanban/DroppableKanbanColumn";
 
 interface Props {
@@ -49,27 +49,17 @@ export default function KanbanBoard({ tasks, onTasksChange, onStartTimer }: Prop
     })
   );
 
-  const today = getAppDate();
-
-  // Mapowanie statusów zadań do kolumn Kanban
   const getKanbanStatus = (task: Task): KanbanStatus | null => {
-    // Oblicz datę sprzed miesiąca
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     const taskDueDate = new Date(task.due_date);
     
-    // Jeśli zadanie jest zrobione i starsze niż miesiąc, ukryj je
     if (task.due_date && taskDueDate <= oneMonthAgo && task.status === "done") {
       return null;
     }
     
-    // Zrobione zadania (z ostatniego miesiąca)
     if (task.status === "done") return "done";
-    
-    // W trakcie: wysokie priorytety (1-2) które nie są zrobione
     if (task.priority <= 2 && task.status !== "done") return "in_progress";
-    
-    // Do zrobienia: pozostałe
     return "todo";
   };
 
@@ -112,18 +102,17 @@ export default function KanbanBoard({ tasks, onTasksChange, onStartTimer }: Prop
     if (currentStatus === newColumnId) return;
 
     try {
-      // Aktualizuj status zadania w zależności od kolumny
       if (newColumnId === "done") {
         await setDoneTask(task.id);
       } else if (newColumnId === "in_progress") {
-        // Przenieś do "w trakcie" - ustaw priorytet 2 jeśli jest wyższy
+
         await editTask({
           ...task,
           priority: task.priority <= 2 ? task.priority : 2,
           status: task.status === "done" ? "pending" : task.status,
         });
       } else if (newColumnId === "todo") {
-        // Przenieś do "do zrobienia" - ustaw priorytet 3 jeśli jest niższy
+
         await editTask({
           ...task,
           priority: task.priority > 2 ? task.priority : 3,

@@ -49,7 +49,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     try {
       const { data: bills } = await supabase
         .from("bills")
-        .select("amount,date,include_in_budget,description,done")
+        .select("amount,date,is_income,description,done")
         .eq("user_name", userEmail)
         .gte("date", dateStart)
         .lt("date", dateEnd);
@@ -64,8 +64,8 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const monthData = getEmptyMonthData();
 
       bills?.forEach(
-        ({ amount, include_in_budget, description, done: isDone }) => {
-          if (include_in_budget) {
+        ({ amount, is_income, description, done: isDone }) => {
+          if (is_income) {
             if (description === "Bieżące") monthData.budget += amount;
             monthData.sum += amount;
             if (isDone) monthData.doneExpense += amount;
@@ -111,10 +111,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     setLoading(true);
 
     try {
-      // Fetch rates once
       const rates = await fetchRates();
-
-      // Fetch only requested months
       const monthsToLoad = Array.from(
         { length: endMonth - startMonth + 1 },
         (_, i) => startMonth + i

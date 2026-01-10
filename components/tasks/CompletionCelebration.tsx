@@ -71,8 +71,6 @@ function randomColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// Sound generation function
-// Sound generation function
 function playCompletionSound(priority: number) {
   if (typeof window === 'undefined' || !window.AudioContext) return;
 
@@ -80,7 +78,6 @@ function playCompletionSound(priority: number) {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const now = audioContext.currentTime;
 
-    // Rewarding notes depending on priority (higher priority = brighter chord)
     const notes = priority === 1 
       ? [523.25, 659.25, 783.99] // C major
       : priority === 2
@@ -91,35 +88,30 @@ function playCompletionSound(priority: number) {
     const gainValue = 0.25;
 
     notes.forEach((frequency, index) => {
-      // Create two oscillators for a richer sound
       const osc1 = audioContext.createOscillator();
       const osc2 = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
-      // Slightly detuned for warmth
       osc1.frequency.value = frequency;
       osc2.frequency.value = frequency * 1.01; // +1% detune
       osc1.type = 'sine';
       osc2.type = 'triangle';
 
-      // Connect and shape gain
       osc1.connect(gainNode);
       osc2.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      // Quick attack, smooth decay
       const startTime = now + index * 0.08; // stagger slightly for arpeggio feel
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(gainValue, startTime + 0.02); // attack
       gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // decay
 
-      // Start/stop
       osc1.start(startTime);
       osc2.start(startTime);
       osc1.stop(startTime + duration);
       osc2.stop(startTime + duration);
     });
   } catch (error) {
-    console.log('Audio not supported', error);
+    console.error('Audio not supported', error);
   }
 }

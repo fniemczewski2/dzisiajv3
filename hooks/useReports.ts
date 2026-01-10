@@ -53,7 +53,6 @@ export function useReports() {
 
   useEffect(() => {
     fetchReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
   return { reports, loading, fetchReports, addReport, editReport, deleteReport };

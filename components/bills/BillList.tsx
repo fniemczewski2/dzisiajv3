@@ -122,11 +122,11 @@ export default function BillList({ bills, onBillsChange }: BillListProps) {
                   <input
                     type="checkbox"
                     id={`budget-${b.id}`}
-                    checked={editedBill.include_in_budget}
+                    checked={editedBill.is_income}
                     onChange={(e) =>
                       setEditedBill({
                         ...editedBill,
-                        include_in_budget: e.target.checked,
+                        is_income: e.target.checked,
                       })
                     }
                     className="h-4 w-4"
@@ -169,10 +169,10 @@ export default function BillList({ bills, onBillsChange }: BillListProps) {
             <div className="flex flex-col flex-1 space-y-1 text-sm sm:text-base">
               <span
                 className={`font-semibold text-lg ${
-                  b.include_in_budget ? "text-red-600" : "text-green-600"
+                  b.is_income ? "text-red-600" : "text-green-600"
                 }`}
               >
-                {b.include_in_budget ? "-" : "+"}
+                {b.is_income ? "-" : "+"}
                 {b.amount.toFixed(2)} zł
               </span>
               {b.description && (
@@ -184,7 +184,7 @@ export default function BillList({ bills, onBillsChange }: BillListProps) {
             </div>
 
             <div className="flex flex-row flex-nowrap flex-1 space-x-4 justify-end text-sm">
-              {b.include_in_budget && !b.done && (
+              {b.is_income && !b.done && (
                 <button
                   onClick={() => handleMarkDone(b)}
                   title="Oznacz jako wykonane"
@@ -197,7 +197,7 @@ export default function BillList({ bills, onBillsChange }: BillListProps) {
               <button
                 onClick={() => handleEdit(b)}
                 title="Edytuj rachunek"
-                className="flex flex-col items-center text-blue-600 hover:text-blue-800 transition-colors"
+                className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
               >
                 <Edit2 className="w-5 h-5" />
                 <span className="text-xs mt-1">Edytuj</span>

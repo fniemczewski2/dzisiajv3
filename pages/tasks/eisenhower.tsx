@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import Layout from "../../components/Layout";
 import Head from "next/head";
@@ -89,11 +88,9 @@ export default function EisenhowerPage() {
         "Niepilne i nieważne": [],
       };
 
-      // Sort tasks based ONLY on their priority, not on due_date
       for (const task of filtered) {
         let key: Category;
-        
-        // Map priority directly to category
+
         switch (task.priority) {
           case 1:
             key = "Pilne i ważne";
@@ -144,26 +141,20 @@ export default function EisenhowerPage() {
       return;
     }
 
-    // Get the droppable zone ID - it might be nested in over.data.current.sortable
     let droppedCategory: string;
     
-    // If dropped over a task (sortable item), get its container
     if (over.data?.current?.sortable?.containerId) {
       droppedCategory = over.data.current.sortable.containerId;
     } else {
-      // If dropped directly on droppable zone
       droppedCategory = over.id;
     }
     
-    // Validate that droppedCategory is actually a valid category
     if (!CATEGORIES.includes(droppedCategory as Category)) {
       console.error("Invalid category:", droppedCategory);
       return;
     }
     
     const validCategory = droppedCategory as Category;
-
-    // Map category to priority
     const newPriority =
       validCategory === "Pilne i ważne"
         ? 1
@@ -173,13 +164,11 @@ export default function EisenhowerPage() {
         ? 3
         : 4;
 
-    // Only update priority, don't change description
     const updatedTask = {
       ...task,
       priority: newPriority,
     };
 
-    // Update UI immediately
     setBoard((prev) => {
       const updated: BoardState = {
         "Pilne i ważne": [...prev["Pilne i ważne"]],
@@ -188,24 +177,19 @@ export default function EisenhowerPage() {
         "Niepilne i nieważne": [...prev["Niepilne i nieważne"]],
       };
       
-      // Remove task from all categories
       CATEGORIES.forEach((cat) => {
         updated[cat] = updated[cat].filter((t) => t.id !== task.id);
       });
       
-      // Add updated task to the dropped category
       updated[validCategory].push(updatedTask);
       
       return updated;
     });
 
-    // Update database using editTask from useTasks hook
     try {
       await editTask(updatedTask);
-      // Don't reload - the optimistic update is already correct
     } catch (error) {
       console.error("Failed to update task:", error);
-      // Only reload on error to revert the optimistic update
       await loadTasks();
     }
   };

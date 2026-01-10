@@ -1,3 +1,4 @@
+// hooks/useBills.ts
 import { useState, useEffect } from "react";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Bill } from "../types";
@@ -20,27 +21,27 @@ export function useBills() {
       .from("bills")
       .select("*")
       .eq("user_name", userEmail)
-      .eq("include_in_budget", false)
+      .eq("is_income", false)
       .order("date", { ascending: true });
 
     setBills(data || []);
 
     if (settings.show_budget_items) {
-      const { data } = await supabase
+      const { data: budgetData } = await supabase
         .from("bills")
         .select("*")
         .eq("user_name", userEmail)
-        .eq("include_in_budget", true)
+        .eq("is_income", true)
         .eq("done", false)
         .order("date", { ascending: true });
 
-      setBudgetItems(data || []);
+      setBudgetItems(budgetData || []);
     }
 
     setLoading(false);
   };
 
-  const addBill = async (bill: Bill) => {
+  const addBill = async (bill: Omit<Bill, "id" | "user_name">) => {
     if (!userEmail) return;
     setLoading(true);
     const { data } = await supabase
@@ -48,7 +49,14 @@ export function useBills() {
       .insert({ ...bill, user_name: userEmail })
       .select()
       .single();
-    setBills((prev) => [...prev, data]);
+    
+    if (data) {
+      if (bill.is_income) {
+        setBudgetItems((prev) => [...prev, data]);
+      } else {
+        setBills((prev) => [...prev, data]);
+      }
+    }
     setLoading(false);
   };
 
@@ -62,11 +70,12 @@ export function useBills() {
       .select()
       .single();
     
-    // Update state directly instead of refetching
-    if (bill.include_in_budget) {
-      setBudgetItems((prev) => prev.map((b) => (b.id === bill.id ? data : b)));
-    } else {
-      setBills((prev) => prev.map((b) => (b.id === bill.id ? data : b)));
+    if (data) {
+      if (bill.is_income) {
+        setBudgetItems((prev) => prev.map((b) => (b.id === bill.id ? data : b)));
+      } else {
+        setBills((prev) => prev.map((b) => (b.id === bill.id ? data : b)));
+      }
     }
     
     setLoading(false);
@@ -76,6 +85,17 @@ export function useBills() {
     if (!userEmail) return;
     setLoading(true);
     await supabase.from("bills").delete().eq("id", id);
+    await fetchBills();
+    setLoading(false);
+  };
+
+  const markAsDone = async (id: string) => {
+    if (!userEmail) return;
+    setLoading(true);
+    await supabase
+      .from("bills")
+      .update({ done: true })
+      .eq("id", id);
     await fetchBills();
     setLoading(false);
   };
@@ -92,5 +112,8 @@ export function useBills() {
     addBill,
     editBill,
     deleteBill,
+    markAsDone,
   };
 }
+
+export default useBills;

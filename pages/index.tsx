@@ -15,7 +15,7 @@ export default function Home() {
     }
   }, [session, router]);
 
-  // Enhanced structured data for homepage
+
   const homepageStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",

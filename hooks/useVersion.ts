@@ -24,7 +24,6 @@ export function useVersion(): VersionInfo {
   useEffect(() => {
     async function fetchVersion() {
       try {
-        // Pobierz ostatni commit z GitHub API
         const url = getGitHubApiUrl(`/commits/${GITHUB_CONFIG.BRANCH}`);
         const response = await fetch(url, {
           headers: getGitHubHeaders(),
@@ -39,7 +38,6 @@ export function useVersion(): VersionInfo {
         const commitDate = data.commit.author.date;
         const commitHash = data.sha.substring(0, 7);
 
-        // Wyciągnij numer wersji z commit message
         const version = extractVersion(commitMessage) || "Unknown";
 
         setVersionInfo({
@@ -53,7 +51,7 @@ export function useVersion(): VersionInfo {
       } catch (error) {
         console.error("Error fetching version:", error);
         setVersionInfo({
-          version: "3.2.0", // Fallback version
+          version: "Unknown", 
           commitMessage: "",
           commitDate: new Date().toLocaleDateString("pl-PL"),
           commitHash: "",

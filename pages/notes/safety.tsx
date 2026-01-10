@@ -88,7 +88,7 @@ export default function SafetyPage() {
         const parentPath = "/" + pathParts.slice(0, -1).join("/");
         router.push(parentPath);
       } else {
-        router.push("/"); // fallback: home
+        router.push("/");
       }
     };
   

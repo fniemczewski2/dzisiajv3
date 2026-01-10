@@ -16,7 +16,6 @@ import {
 } from "date-fns";
 import CalendarCell from "./CalendarCell";
 import { useCalendarData } from "../../hooks/useCalendar";
-import { useSession } from "@supabase/auth-helpers-react";
 import { useResponsive } from "../../hooks/useResponsive";
 
 interface Props {
@@ -26,8 +25,6 @@ interface Props {
 }
 
 const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
-
-// Helper to parse event timestamp without timezone conversion
 const parseEventDate = (timestamp: string): Date => {
   const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace(" ", "T").split(".")[0];
   const [datePart, timePart] = cleanTimestamp.split("T");
@@ -46,11 +43,7 @@ const parseEventDate = (timestamp: string): Date => {
 
 const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
   const isMobile = useResponsive();
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-
-  // Memoize calendar boundaries
-  const { monthStart, monthEnd, calendarStart, calendarEnd, rangeStart, rangeEnd } = useMemo(() => {
+  const { calendarStart, calendarEnd, rangeStart, rangeEnd } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -67,8 +60,6 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
   }, [currentDate]);
 
   const { tasksCount } = useCalendarData(rangeStart, rangeEnd);
-
-  // Memoize weeks calculation
   const weeks = useMemo(() => {
     const result: Date[][] = [];
     let current = calendarStart;
@@ -85,20 +76,17 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
     return result;
   }, [calendarStart, calendarEnd]);
 
-  // Memoize week data to avoid recalculating on every render
   const weekData = useMemo(() => {
     return weeks.map((week) => {
       const weekStart = week[0];
       const weekEnd = endOfDay(week[6]);
 
-      // Filter events for this week using parseEventDate
       const eventsThisWeek = events.filter((event) => {
         const start = parseEventDate(event.start_time);
         const end = parseEventDate(event.end_time);
         return !(isBefore(end, weekStart) || isAfter(start, weekEnd));
       });
 
-      // Sort by span length (longer events first)
       const sortedEvents = [...eventsThisWeek].sort((a, b) => {
         const aStart = parseEventDate(a.start_time);
         const aEnd = parseEventDate(a.end_time);
@@ -111,7 +99,6 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
         return bSpan - aSpan;
       });
 
-      // Calculate event placement
       const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => Array(3).fill(false));
       const limitedEvents: {
         event: Event;

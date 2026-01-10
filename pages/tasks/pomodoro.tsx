@@ -32,14 +32,12 @@ export default function PomodoroPage() {
 
   const phaseIndex = isBreak ? 1 : 0;
 
-  // Reset timer when focus duration changes (only when stopped and in focus mode)
   useEffect(() => {
     if (!running && !isBreak) {
       setSecondsLeft(focusSeconds);
     }
   }, [focusSeconds, running, isBreak]);
 
-  // Countdown interval
   useEffect(() => {
     if (running && !paused) {
       intervalRef.current = setInterval(() => {
@@ -60,7 +58,6 @@ export default function PomodoroPage() {
     };
   }, [running, paused]);
 
-  // Handle timer completion
   useEffect(() => {
     if (secondsLeft <= 0 && running) {
       setRunning(false);

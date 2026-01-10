@@ -1,10 +1,7 @@
 // pages/recipes.tsx
 import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useSession } from "@supabase/auth-helpers-react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Layout from "../../components/Layout";
-import type { Recipe } from "../../types";
 import { PlusCircleIcon } from "lucide-react";
 import { useState, useCallback } from "react";
 
@@ -12,45 +9,10 @@ const RecipeForm = dynamic(() => import("../../components/recipes/RecipeForm"), 
 const RecipesList = dynamic(() => import("../../components/recipes/RecipesList"), { ssr: false });
 
 export default function RecipesPage() {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-  const supabase = useSupabaseClient(); 
-
-  const [editing, setEditing] = useState<Recipe | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
 
   const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
-
-  const openNew = () => {
-    setEditing(undefined);
-    setShowForm(true);
-  };
-
-  const openEdit = (r: Recipe) => {
-    setEditing(r);
-    setShowForm(true);
-  };
-
-  const closeForm = () => {
-    setEditing(undefined);
-    setShowForm(false);
-  };
-
-  const handleDelete = useCallback(
-    async (id: string) => {
-      const ok = window.confirm("Na pewno usunąć ten przepis?");
-      if (!ok) return;
-      const { error } = await supabase.from("recipes").delete().eq("id", id);
-      if (error) {
-        console.error(error);
-        alert("Nie udało się usunąć przepisu.");
-        return;
-      }
-      refresh(); // przeładowanie listy
-    },
-    [supabase, refresh]
-  );
 
   return (
     <>
@@ -62,7 +24,7 @@ export default function RecipesPage() {
           <h2 className="text-xl font-semibold">Przepisy</h2>
           {!showForm && (
             <button
-              onClick={openNew}
+              onClick={() => setShowForm(true)}
               className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
             >
               Dodaj&nbsp;&nbsp;
@@ -74,10 +36,10 @@ export default function RecipesPage() {
         {showForm && (
           <section className="mb-6">
             <RecipeForm
-              onCancel={closeForm}
+              onCancel={() => setShowForm(false)}
               onChange={() => {
                 refresh();
-                closeForm();
+                setShowForm(false);
               }}
             />
           </section>
@@ -92,3 +54,4 @@ export default function RecipesPage() {
     </>
   );
 }
+RecipesPage.auth = true;

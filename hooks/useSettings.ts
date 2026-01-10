@@ -21,7 +21,7 @@ export function useSettings() {
   const [saving, setSaving] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
-  // Fetch settings
+
   useEffect(() => {
     if (!session) {
       setLoading(false);
@@ -53,7 +53,6 @@ export function useSettings() {
     })();
   }, [session, supabase, userEmail]);
 
-  // User management functions
   const addUser = () => {
     if (settings.users.length < 10) {
       setSettings((s) => ({ ...s, users: [...s.users, ""] }));
@@ -75,7 +74,6 @@ export function useSettings() {
     });
   };
 
-  // Save settings
   const saveSettings = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!session) return;
@@ -93,8 +91,6 @@ export function useSettings() {
     setSaving(false);
     return { error };
   };
-
-  // Geolocation
   const requestGeolocation = () => {
     if (!navigator.geolocation) {
       setLocationStatus(
@@ -124,7 +120,6 @@ export function useSettings() {
     );
   };
 
-  // Sign out
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };

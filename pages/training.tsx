@@ -8,7 +8,6 @@ import Head from "next/head";
 import { X } from "lucide-react";
 
 export default function TrainingPage() {
-  // default interval config (example Tabata-like)
   const [workMin, setWorkMin] = useState(0);
   const [workSec, setWorkSec] = useState(30);
   const [restSec, setRestSec] = useState(15);

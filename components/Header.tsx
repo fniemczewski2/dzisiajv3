@@ -52,7 +52,6 @@ export default function Header() {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
-          // Pogoda
           const weatherUrl = new URL("https://api.open-meteo.com/v1/forecast");
           weatherUrl.searchParams.set("latitude", coords.latitude.toString());
           weatherUrl.searchParams.set("longitude", coords.longitude.toString());
@@ -71,7 +70,6 @@ export default function Header() {
           setDailyMin(Math.min(...weatherJson.daily.apparent_temperature_min));
           setDailyMax(Math.max(...weatherJson.daily.apparent_temperature_max));
 
-          // Jakość powietrza
           const airUrl = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
           airUrl.searchParams.set("latitude", coords.latitude.toString());
           airUrl.searchParams.set("longitude", coords.longitude.toString());
