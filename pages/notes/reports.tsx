@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
-import Layout from "../components/Layout";
-import { useSession } from "@supabase/auth-helpers-react";
-import { PlusCircleIcon, Download, Edit2, Trash2, Save, X, Plus } from "lucide-react";
-import { useReports } from "../hooks/useReports";
-import ReportForm from "../components/reports/ReportForm";
-import { generateReportPDF } from "../lib/pdfGenerator";
-import { Report, ReportTask } from "../types";
-import LoadingState from "../components/LoadingState";
+import Layout from "../../components/Layout";
+import { Download, Edit2, Trash2, Save, X, Plus } from "lucide-react";
+import { useReports } from "../../hooks/useReports";
+import ReportForm from "../../components/reports/ReportForm";
+import { generateReportPDF } from "../../lib/pdfGenerator";
+import { Report, ReportTask } from "../../types";
+import LoadingState from "../../components/LoadingState";
+import { AddButton } from "../../components/CommonButtons";
 
 export default function ReportsPage() {
   const { reports, loading, editReport, deleteReport } = useReports();
@@ -136,15 +136,7 @@ export default function ReportsPage() {
       <Layout>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Sprawozdania</h2>
-          {!showForm && (
-            <button
-              onClick={openNew}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow transition"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
         {(loading) && <LoadingState />}

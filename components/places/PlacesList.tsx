@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Place } from "../../types";
-import { ChevronDown, Edit2, Globe, MapPin, Phone, Star, Trash2 } from "lucide-react";
+import { ChevronDown, Globe, MapPin, Phone, Star, Edit2, Trash2 } from "lucide-react";
 
 interface PlacesListProps {
   places: Place[];
@@ -141,7 +141,7 @@ export default function PlacesList({
                       .map((day) => (
                         <div key={day} className="text-xs">
                           <span className="font-medium">
-                            {DAY_NAMES[day]}:1
+                            {DAY_NAMES[day]}:
                           </span>{" "}
                           {Array.isArray(place.opening_hours![day]) 
                             ? place.opening_hours![day].join(", ") 
@@ -161,7 +161,7 @@ export default function PlacesList({
                   </div>
                 )}
                 {/* Actions */}
-                <div className="flex gap-2 pt-2 justify-end">
+                <div className="flex gap-2 sm:gap-3 pt-2 justify-end">
                   <a
                     href={
                       place.google_place_id
@@ -178,14 +178,14 @@ export default function PlacesList({
                     <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-[9px] sm:text-[11px]">Mapy</span>
                   </a>
+                  
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onEdit(place);
                     }}
-                    
                     className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
-                    aria-label="Edytuj zadanie"
+                    aria-label="Edytuj"
                   >
                     <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-[9px] sm:text-[11px]">Edytuj</span>
@@ -194,20 +194,16 @@ export default function PlacesList({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (
-                        confirm("Czy na pewno chcesz usunąć to miejsce?")
-                      ) {
+                      if (confirm("Czy na pewno chcesz usunąć to miejsce?")) {
                         onDelete(place.id);
                       }
                     }}
                     className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
-                    aria-label="Usuń zadanie"
+                    aria-label="Usuń"
                   >
                     <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="text-[9px] sm:text-[11px]">Usuń</span>
-                </button>
-
-
+                    <span className="text-[9px] sm:text-[11px]">Usuń</span>
+                  </button>
                 </div>
               </div>
             )}

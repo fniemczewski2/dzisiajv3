@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useRouter } from "next/router";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { PlusCircle, Target } from "lucide-react";
@@ -12,12 +11,13 @@ import StreakForm from "../components/streaks/StreakForm";
 import LoadingState from "../components/LoadingState";
 import { useStreaks } from "../hooks/useStreaks";
 import { Streak } from "../types";
+import { AddButton } from "../components/CommonButtons";
 
 export default function StreaksPage() {
   const session = useSession();
   const userEmail = session?.user?.email || "";
 
-  const { streaks, loading, refetch, deleteStreak, updateStreak } = useStreaks(userEmail);
+  const { streaks, loading, refetch, deleteStreak, updateStreak } = useStreaks();
   const [showForm, setShowForm] = useState(false);
 
   const handleEdit = async (updatedStreak: Streak) => {
@@ -25,7 +25,6 @@ export default function StreaksPage() {
       name: updatedStreak.name,
       start_date: updatedStreak.start_date,
       icon: updatedStreak.icon,
-      color: updatedStreak.color,
     });
   };
 
@@ -57,16 +56,8 @@ export default function StreaksPage() {
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Cele&nbsp;
           </h2>
-        
-        {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircle className="w-5 h-5" />
-            </button>
-          )}
+
+            {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
           </div>
 
         {showForm && (

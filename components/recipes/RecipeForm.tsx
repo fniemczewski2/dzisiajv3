@@ -2,11 +2,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, FormEvent } from "react";
-import { PlusCircleIcon, Save } from "lucide-react";
+import { PlusCircleIcon } from "lucide-react";
 import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
 import LoadingState from "../LoadingState";
 import { useSession } from "@supabase/auth-helpers-react";
+import { AddButton, CancelButton } from "../CommonButtons";
 
 interface RecipeFormProps {
   onChange: () => void;
@@ -217,25 +218,9 @@ export default function RecipeForm({
       </div>
 
       <div className="flex gap-2 items-center">
-        <button
-          type="submit"
-          disabled={!canSave || loading}
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-              Dodaj
-              <PlusCircleIcon className="w-5 h-5" />
-        </button>
+        <AddButton loading={loading} disabled={!canSave} />
 
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Anuluj
-          </button>
-        )}
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
 
         {loading && <LoadingState />}
       </div>

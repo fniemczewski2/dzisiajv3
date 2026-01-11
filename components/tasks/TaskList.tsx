@@ -25,7 +25,7 @@ export default function TaskList({
           }}
         />
       )}
-      <ul className="flex flex-wrap gap-2">
+      <ul className="flex flex-wrap mt-6 gap-6">
         {tasks.map((task) => (
           <li key={task.id} className="w-full md:w-[45%] lg:w-[30%]">
             <TaskItem

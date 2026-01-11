@@ -1,13 +1,21 @@
 // components/tasks/TaskItem.tsx (UPDATED VERSION)
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO, addDays } from "date-fns";
-import { Check, Edit2, Trash2, X, Save, Timer, ChevronsRight } from "lucide-react";
+import { Check, Timer } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
 import { useSession } from "@supabase/auth-helpers-react";
 import TimeContextBadge from "./TimeContextBadge";
 import CompletionCelebration from "./CompletionCelebration";
+import { 
+  EditButton, 
+  DeleteButton, 
+  RescheduleButton, 
+  TimerButton,
+  SaveButton,
+  CancelButton 
+} from "../CommonButtons";
 
 interface Props {
   task: Task;
@@ -34,9 +42,9 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     }
   }, [isEditing]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
-    await deleteTask(id);
+    await deleteTask(task.id);
     await fetchTasks();
   };
 
@@ -92,58 +100,9 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const isOverdue = dueDate < today;
   const isHighPriority = task.priority === 1;
 
-  const DeleteButton = () => (
-    <button
-      onClick={() => handleDelete(task.id)}
-      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
-      aria-label="Usuń zadanie"
-    >
-      <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-      <span className="text-[9px] sm:text-[11px]">Usuń</span>
-    </button>
-  );
-
-  const EditButton = () => (
-    <button
-      onClick={handleEdit}
-      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
-      aria-label="Edytuj zadanie"
-    >
-      <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
-      <span className="text-[9px] sm:text-[11px]">Edytuj</span>
-    </button>
-  );
-
-  const RescheduleButton = () => (
-    <button
-      onClick={() => handleReschedule(1)}
-      disabled={isRescheduling}
-      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-yellow-600 hover:text-yellow-800 transition-colors disabled:opacity-50"
-      aria-label="Przesuń na jutro"
-      title="Przesuń na jutro"
-    >
-      <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" />
-      <span className="text-[9px] sm:text-[11px]">
-        {isRescheduling ? '...' : 'Odłóż'}
-      </span>
-    </button>
-  );
-
-  const TimerButton = () => (
-    <button
-      onClick={onStartTimer}
-      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-purple-600 hover:text-purple-800 transition-colors"
-      aria-label="Uruchom timer"
-      title="Start Pomodoro"
-    >
-      <Timer className="w-5 h-5 sm:w-6 sm:h-6" />
-      <span className="text-[9px] sm:text-[11px]">Timer</span>
-    </button>
-  );
-
   if (isEditing) {
     return (
-      <div className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg">
+      <div className="p-4 max-w-[400px] sm:max-w-[480px] w-full bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg">
         <div className="space-y-3">
           {/* Title */}
           <div>
@@ -221,20 +180,8 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={handleSaveEdit}
-              className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-            >
-              <span className="text-sm">Zapisz</span>
-              <Save className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleCancelEdit}
-              className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              <span className="text-sm">Anuluj</span>
-              <X className="w-4 h-4" />
-            </button>
+            <SaveButton onClick={handleSaveEdit} type="button" />
+            <CancelButton onCancel={handleCancelEdit} />
           </div>
         </div>
       </div>
@@ -322,8 +269,8 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
             <div className="flex justify-end w-full gap-1.5 flex-wrap">
               {isDone ? (
                 <>
-                  <EditButton />
-                  <DeleteButton />
+                  <EditButton onClick={handleEdit} />
+                  <DeleteButton onClick={handleDelete} />
                 </>
               ) : task.user_name !== userEmail &&
                 task.status === "waiting_for_acceptance" ? (
@@ -339,7 +286,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
                     <Check className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-[9px] sm:text-[11px]">Akceptuj</span>
                   </button>
-                  <DeleteButton />
+                  <DeleteButton onClick={handleDelete} />
                 </>
               ) : (
                 <>
@@ -349,12 +296,11 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
                   >
                     <Check className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-[9px] sm:text-[11px]">Zrobione</span>
-                    
                   </button>
-                  <RescheduleButton />
-                  <TimerButton />
-                  <EditButton />
-                  <DeleteButton />
+                  <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
+                  <TimerButton onClick={onStartTimer} />
+                  <EditButton onClick={handleEdit} />
+                  <DeleteButton onClick={handleDelete} />
                 </>
               )}
             </div>

@@ -5,7 +5,7 @@ import { Note } from "../types";
 export function useNotes() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
 

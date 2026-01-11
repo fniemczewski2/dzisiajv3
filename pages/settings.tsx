@@ -5,7 +5,7 @@ import React from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import { useSession } from "@supabase/auth-helpers-react";
-import InstallButton from "../components/InstallButton";
+import InstallButton from "../components/settings/InstallButton";
 import LoadingState from "../components/LoadingState";
 import VersionInfo from "../components/settings/Versioninfo";
 import MenuGrid from "../components/settings/MenuGrid";

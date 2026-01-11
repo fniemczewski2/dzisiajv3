@@ -64,7 +64,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
           />
           <button
             onClick={handleSave}
-            className="ml-2 p-2 bg-primary rounded-lg hover:bg-secondary transition-colors"
+            className="ml-2 p-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
             title="Zapisz"
             type="button"
           >

@@ -35,3 +35,11 @@ body {
 .link-text {
   @apply text-primary hover:underline cursor-pointer font-medium;
 }
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+input[type="time"]::-webkit-inner-spin-button {
+  display: none;
+}

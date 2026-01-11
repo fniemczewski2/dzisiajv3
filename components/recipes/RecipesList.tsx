@@ -1,8 +1,9 @@
 "use client";
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import { Edit2, Trash2, ChevronDown, ChevronUp, Save, X, PlusCircleIcon, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, PlusCircleIcon, Search, Edit2, Trash2 } from "lucide-react";
 import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
+import { SaveButton, CancelButton } from "../CommonButtons";
 
 const CATEGORIES: RecipeCategory[] = [
   "śniadanie",
@@ -307,20 +308,8 @@ export default function RecipesList() {
 
                   {/* Action Buttons */}
                   <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      onClick={handleSaveEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-                    >
-                      <span className="text-sm">Zapisz</span>
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      <span className="text-sm">Anuluj</span>
-                      <X className="w-4 h-4" />
-                    </button>
+                    <SaveButton onClick={handleSaveEdit} type="button" />
+                    <CancelButton onCancel={handleCancelEdit} />
                   </div>
                 </div>
               </li>
@@ -371,17 +360,17 @@ export default function RecipesList() {
                     </div>
                   )}
 
-                  <div className="flex flex-row justify-end gap-4 pt-2 border-t">
+                  <div className="flex flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEdit(r);
                       }}
                       title="Edytuj przepis"
-                      className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
+                      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
                     >
-                      <Edit2 className="w-5 h-5" />
-                      <span className="text-xs mt-1">Edytuj</span>
+                      <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <span className="text-[9px] sm:text-[11px]">Edytuj</span>
                     </button>
                     <button
                       onClick={(e) => {
@@ -390,10 +379,10 @@ export default function RecipesList() {
                         handleDelete(r.id);
                       }}
                       title="Usuń przepis"
-                      className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
+                      className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
                     >
-                      <Trash2 className="w-5 h-5" />
-                      <span className="text-xs mt-1">Usuń</span>
+                      <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <span className="text-[9px] sm:text-[11px]">Usuń</span>
                     </button>
                   </div>
                 </div>

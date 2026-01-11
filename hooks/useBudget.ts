@@ -17,7 +17,7 @@ type YearData = Record<number, MonthData>;
 export function useBudgetData(year: number, monthRange?: [number, number]) {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const [data, setData] = useState<YearData>({});
   const [loading, setLoading] = useState(true);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());
@@ -65,7 +65,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       bills?.forEach(
         ({ amount, is_income, description, done: isDone }) => {
-          if (is_income) {
+          if (!is_income) {
             if (description === "Bieżące") monthData.budget += amount;
             monthData.sum += amount;
             if (isDone) monthData.doneExpense += amount;

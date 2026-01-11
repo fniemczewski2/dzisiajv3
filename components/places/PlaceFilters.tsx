@@ -147,7 +147,7 @@ export default function PlaceFilters({
             onClick={() => setShowTimeFilter(!showTimeFilter)}
             className="text-sm text-primary hover:text-secondary hover:underline"
           >
-            {showTimeFilter ? "kryj" : "pokaż"}
+            {showTimeFilter ? "Ukryj" : "okaż"}
           </button>
         </div>
 

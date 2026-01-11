@@ -2,8 +2,8 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { PlusCircleIcon } from "lucide-react";
 import { useState, useCallback } from "react";
+import { AddButton } from "../../components/CommonButtons";
 
 const RecipeForm = dynamic(() => import("../../components/recipes/RecipeForm"), { ssr: false });
 const RecipesList = dynamic(() => import("../../components/recipes/RecipesList"), { ssr: false });
@@ -22,15 +22,7 @@ export default function RecipesPage() {
       <Layout>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Przepisy</h2>
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
         </div>
 
         {showForm && (

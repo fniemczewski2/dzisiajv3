@@ -5,7 +5,7 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 export function useSettings() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   
   const [settings, setSettings] = useState({
     sort_order: "priority",

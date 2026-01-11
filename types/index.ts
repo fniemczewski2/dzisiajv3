@@ -134,7 +134,7 @@ export interface ScheduleItem {
 
 export interface Schema {
   id?: string;
-  user_name: string;
+  user_name?: string;
   name: string;
   days: number[];
   entries: ScheduleItem[]; 
@@ -231,7 +231,6 @@ export interface Streak {
   name: string;
   start_date: string;
   icon?: string;
-  color?: string;
   created_at?: string;
 }
 

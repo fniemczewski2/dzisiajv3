@@ -16,6 +16,7 @@ import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useTasks } from "../hooks/useTasks";
 import LoadingState from "../components/LoadingState";
 import { se } from "date-fns/locale";
+import { AddButton } from "../components/CommonButtons";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <LoadingState />,
@@ -80,7 +81,7 @@ export default function CalendarPage() {
     );
   };
 
-  const openAdd = useCallback(() => {
+  const openNew = useCallback(() => {
     setEditingEvent(null);
     setShowForm(true);
   }, []);
@@ -113,15 +114,7 @@ export default function CalendarPage() {
       <Layout>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Kalendarz</h2>
-          {!showForm && (
-            <button
-              onClick={openAdd}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow transition"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
         {showForm && (

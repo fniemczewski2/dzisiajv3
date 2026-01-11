@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Place, PlaceInsert, OpeningHours } from "../types";
+import { useSession } from "@supabase/auth-helpers-react";
 
-export function usePlaces(userEmail: string | undefined) {
+export function usePlaces() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const session = useSession();
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   useEffect(() => {
     if (userEmail) {
       fetchPlaces();

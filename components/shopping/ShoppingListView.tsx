@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Edit2, Plus, Trash2, X, Save } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
 import { useSession } from "@supabase/auth-helpers-react";
+import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
 
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
@@ -128,22 +129,8 @@ export default function ShoppingListView() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    onClick={handleSaveEdit}
-                    className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-                  >
-                    
-                    <span className="text-sm">Zapisz</span>
-                    <Save className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    
-                    <span className="text-sm">Anuluj</span>
-                    <X className="w-4 h-4" />
-                  </button>
+                  <SaveButton onClick={handleSaveEdit} type="button" />
+                  <CancelButton onCancel={handleCancelEdit} />
                 </div>
               </div>
 
@@ -201,23 +188,9 @@ export default function ShoppingListView() {
                   </p>
                 )}
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleEdit(list)}
-                  className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
-                  title="Edytuj"
-                >
-                  <Edit2 className="w-5 h-5" />
-                  <span className="text-xs mt-1">Edytuj</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(list.id || "")}
-                  className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
-                  title="Usuń"
-                >
-                  <Trash2 className="w-5 h-5" />
-                  <span className="text-xs mt-1">Usuń</span>
-                </button>
+              <div className="flex gap-2 sm:gap-3">
+                <EditButton onClick={() => handleEdit(list)} />
+                <DeleteButton onClick={() => handleDelete(list.id || "")} />
               </div>
             </div>
 

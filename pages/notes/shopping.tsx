@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Loader2, PlusCircleIcon, ShoppingCart } from "lucide-react";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
-import { ShoppingList } from "../../types";
 import ShoppingForm from "../../components/shopping/ShoppingForm";
 import ShoppingListView from "../../components/shopping/ShoppingListView";
 import LoadingState from "../../components/LoadingState";
+import { AddButton } from "../../components/CommonButtons";
 
 export default function ShoppingPage() {
   const { loading, fetchShoppingLists } = useShoppingLists();
@@ -36,16 +34,7 @@ export default function ShoppingPage() {
           <h2 className="text-xl font-semibold flex items-center gap-2">
             Zakupy
           </h2>
-
-          {!showForm && (
-            <button
-              onClick={openNew}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
         {(loading) && (

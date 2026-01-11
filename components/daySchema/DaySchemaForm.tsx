@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, FormEvent } from "react";
-import { PlusCircle, Trash2, Save, Loader2, PlusCircleIcon } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import LoadingState from "../LoadingState";
+import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
 
 export interface DaySchemaEntry {
   time: string;
@@ -60,8 +61,7 @@ export default function DaySchemaForm({
     const payload = {
       name: schemaName.trim(),
       days,
-      entries,
-      user_name: userEmail
+      entries
     };
 
     if (isEdit && initialSchema?.id) {
@@ -111,13 +111,13 @@ export default function DaySchemaForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Dni tygodnia:</label>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {dayLabels.map((label, i) => (
             <button
               key={i}
               type="button"
               onClick={() => toggleDay(i)}
-              className={`px-2 py-1 rounded border ${
+              className={`px-2 py-1 rounded border text-sm ${
                 days.includes(i) ? "bg-primary text-white" : "bg-gray-100"
               }`}
             >
@@ -130,19 +130,19 @@ export default function DaySchemaForm({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Wpisy:</label>
         {entries.map((entry, i) => (
-          <div key={i} className="flex gap-2 mb-2">
+          <div key={i} className="flex w-full gap-2 mb-2">
             <input
               type="time"
               value={entry.time}
               onChange={(e) => handleEntryChange(i, "time", e.target.value)}
-              className="p-2 border rounded w-[100px]"
+              className="p-2 border rounded"
               required
             />
             <input
               type="text"
               value={entry.label}
               onChange={(e) => handleEntryChange(i, "label", e.target.value)}
-              className="flex-1 p-2 border rounded"
+              className="flex-1 p-2 min-w-[100px] border rounded"
               required
             />
             <button
@@ -166,31 +166,12 @@ export default function DaySchemaForm({
       </div>
 
       <div className="flex gap-3 items-center">
-        <button
-          type="submit"
-          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex items-center gap-2"
-        >
         {isEdit ? (
-            <>
-              Zapisz&nbsp;
-              <Save className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              Dodaj&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </>
-          )}
-        </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
-          >
-            Anuluj
-          </button>
+          <SaveButton loading={loading} />
+        ) : (
+          <AddButton loading={loading} />
         )}
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState/>}
       </div>
     </form>
