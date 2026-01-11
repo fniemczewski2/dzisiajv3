@@ -1,35 +1,36 @@
 import { useState, useEffect } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Reminder } from "../types";
 import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 
 export function useReminders() {
+  const session = useSession();
   const supabase = useSupabaseClient();
-  const user = useUser();
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const today = getAppDate();
 
   useEffect(() => {
-    if (!user) return;
+    if (!userEmail) return;
     fetchReminders();
-  }, [user]);
+  }, [userEmail]);
 
   const fetchReminders = async () => {
     const { data, error } = await supabase
       .from("reminders")
       .select("*")
-      .eq("user_email", user?.email)
+      .eq("user_email", userEmail)
       .order("data_poczatkowa", { ascending: true });
 
     if (!error && data) setReminders(data);
   };
 
   const addReminder = async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
-    if (!user) return;
+    if (!userEmail) return;
     const { data, error } = await supabase
       .from("reminders")
       .insert({
-        user_email: user.email,
+        user_email: userEmail,
         tytul,
         data_poczatkowa,
         powtarzanie,

@@ -1,16 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { useSession } from "@supabase/auth-helpers-react";
-import Layout from "../components/Layout";
-import SEO from "../components/SEO";
-import LoadingState from "../components/LoadingState";
-import { usePlaces } from "../hooks/usePlaces";
-import ImportPlaces from "../components/places/ImportPlaces";
-import PlaceFilters from "../components/places/PlaceFilters";
-import PlacesList from "../components/places/PlacesList";
-import PlacesMap from "../components/places/PlacesMap";
-import PlaceForm from "../components/places/PlaceForm";
-import { Place } from "../types";
-import { List, MapPin } from "lucide-react";
+import Layout from "../../components/Layout";
+import SEO from "../../components/SEO";
+import LoadingState from "../../components/LoadingState";
+import { usePlaces } from "../../hooks/usePlaces";
+import ImportPlaces from "../../components/places/ImportPlaces";
+import PlaceFilters from "../../components/places/PlaceFilters";
+import PlacesList from "../../components/places/PlacesList";
+import PlacesMap from "../../components/places/PlacesMap";
+import PlaceForm from "../../components/places/PlaceForm";
+import { Place } from "../../types";
 
 type ViewMode = "list" | "map";
 
@@ -21,16 +19,13 @@ interface TimeFilter {
 }
 
 export default function PlacesPage() {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-
   const {
     places,
     loading,
     updatePlace,
     deletePlace,
     importFromGoogleMaps
-  } = usePlaces(userEmail);
+  } = usePlaces();
 
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

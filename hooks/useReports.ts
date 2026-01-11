@@ -6,7 +6,7 @@ import { Report } from "../types";
 export function useReports() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export function useReports() {
   const addReport = async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
     const { data, error } = await supabase
       .from("reports")
-      .insert([payload])
+      .insert([{...payload, user_email: userEmail }])
       .select()
       .single();
     if (!error && data) setReports((prev) => [data as Report, ...prev]);

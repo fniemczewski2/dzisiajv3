@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState, FormEvent, useEffect } from "react";
-import { PlusCircleIcon, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useEvents } from "../../hooks/useEvents";
 import { useSession } from "@supabase/auth-helpers-react";
-import { format, startOfMonth, endOfMonth, parseISO, set } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import ICAL from "ical.js";
 import LoadingState from "../LoadingState";
 import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
+import { AddButton, CancelButton } from "../CommonButtons";
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -84,6 +85,7 @@ export default function EventForm({
       alert("Błąd podczas dodawania wydarzenia");
     }
   };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -249,39 +251,21 @@ export default function EventForm({
       </div>
 
       <div className="flex space-x-2 items-center">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-            <>
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </>
-        </button>
+        <AddButton loading={loading} />
 
-          <label className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 cursor-pointer transition disabled:opacity-50">
-            .ics
-            <Upload className="w-5 h-5" />
-            <input
-              type="file"
-              accept=".ics"
-              onChange={handleFileUpload}
-              className="hidden"
-              disabled={loading}
-            />
-          </label>
-        
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
+        <label className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 cursor-pointer transition disabled:opacity-50">
+          .ics
+          <Upload className="w-5 h-5" />
+          <input
+            type="file"
+            accept=".ics"
+            onChange={handleFileUpload}
+            className="hidden"
             disabled={loading}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Anuluj
-          </button>
-        )}
+          />
+        </label>
+        
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

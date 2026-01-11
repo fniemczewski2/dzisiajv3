@@ -21,7 +21,7 @@ const getDefaultHabits = (date: string, userEmail: string): DailyHabits => ({
 export function useDailyHabits(date?: string) {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
 
   const today = getAppDate();
   const targetDate = date ?? today;

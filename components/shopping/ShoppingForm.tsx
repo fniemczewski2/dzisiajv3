@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, FormEvent } from "react";
-import { PlusCircleIcon, Save } from "lucide-react";
+import React, { useState, FormEvent } from "react";
 import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import LoadingState from "../LoadingState";
 import { useSession } from "@supabase/auth-helpers-react";
+import { AddButton, CancelButton } from "../CommonButtons";
 
 interface ShoppingFormProps {
   onChange: () => void;
@@ -24,6 +24,7 @@ export default function ShoppingForm({
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -86,24 +87,8 @@ export default function ShoppingForm({
       </div>
 
       <div className="flex space-x-2 items-center">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-              Dodaj&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-        </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Anuluj
-          </button>
-        )}
+        <AddButton loading={loading} />
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

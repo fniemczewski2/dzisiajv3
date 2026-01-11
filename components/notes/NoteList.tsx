@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
-import { Edit2, Trash2, Save, X, Pin, Archive, Download, Search } from "lucide-react";
+import { Pin, Archive, Download, Search } from "lucide-react";
 import { Note } from "../../types";
 import { useNotes } from "../../hooks/useNotes";
 import { formatTime } from "../../lib/dateUtils";
+import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
 
 interface NoteListProps {
   notes: Note[];
@@ -184,12 +185,12 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Szukaj notatek…"
-          className="flex-1 rounded-xl border pl-10 pr-3 py-2 bg-white"
-        />
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Szukaj notatek…"
+            className="flex-1 rounded-xl border pl-10 pr-3 py-2 bg-white"
+          />
         </div>
         {searchQuery && (
           <p className="text-sm text-gray-600 mt-2">
@@ -261,20 +262,8 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
                   </div>
 
                   <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      onClick={handleSaveEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-                    >
-                      <span className="text-sm">Zapisz</span>
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      <span className="text-sm">Anuluj</span>
-                      <X className="w-4 h-4" />
-                    </button>
+                    <SaveButton onClick={handleSaveEdit} type="button" />
+                    <CancelButton onCancel={handleCancelEdit} />
                   </div>
                 </div>
               </li>
@@ -360,23 +349,9 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
                   </button>
                 </div>
 
-                <button
-                  onClick={() => handleEdit(n)}
-                  className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
-                  title="Edytuj"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  <span className="text-[10px] mt-1">Edytuj</span>
-                </button>
+                <EditButton onClick={() => handleEdit(n)} />
 
-                <button
-                  onClick={() => handleDelete(n.id)}
-                  className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
-                  title="Usuń"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="text-[10px] mt-1">Usuń</span>
-                </button>
+                <DeleteButton onClick={() => handleDelete(n.id)} />
               </div>
             </li>
           );

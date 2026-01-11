@@ -1,27 +1,23 @@
 // pages/notes.tsx
 import React, { useState } from "react";
 import Head from "next/head";
-import Layout from "../components/Layout";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Backpack, Luggage, PlusCircleIcon } from "lucide-react";
-import { useNotes } from "../hooks/useNotes";
-import NoteForm from "../components/notes/NoteForm";
-import NoteList from "../components/notes/NoteList";
-import { Note } from "../types";
+import Layout from "../../components/Layout";
+import { useSession } from "@supabase/auth-helpers-react";
+import { Backpack, Luggage } from "lucide-react";
+import { useNotes } from "../../hooks/useNotes";
+import NoteForm from "../../components/notes/NoteForm";
+import NoteList from "../../components/notes/NoteList";
 import { useRouter } from "next/router";
-import LoadingState from "../components/LoadingState";
+import LoadingState from "../../components/LoadingState";
+import { AddButton } from "../../components/CommonButtons";
 
 export default function NotesPage() {
   const session = useSession();
   const { notes, loading, fetchNotes } = useNotes();
-  const supabase = useSupabaseClient();
   const router = useRouter();
-
-  const [editing, setEditing] = useState<Note | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
-    setEditing(undefined);
     setShowForm(true);
   };
 
@@ -44,14 +40,14 @@ export default function NotesPage() {
             Notatki&nbsp;
             <div className="flex justify-between items-center gap-2">
               <button
-                onClick={() => router.push("/notes/backpack")}
+                onClick={() => router.push("/packing/backpack")}
                 title="Plecak"
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 <Backpack className="w-5 h-5" />
               </button>
               <button
-                onClick={() => router.push("/notes/suitcase")}
+                onClick={() => router.push("/packing/suitcase")}
                 title="Walizka"
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
@@ -60,15 +56,7 @@ export default function NotesPage() {
             </div>
           </h2>
           
-          {!showForm && (
-            <button
-              onClick={openNew}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
         {(!session || loading) && (
             <LoadingState />

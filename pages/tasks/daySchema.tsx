@@ -5,11 +5,13 @@ import Head from "next/head";
 import Layout from "../../components/Layout";
 import { format } from "date-fns";
 import { useSession } from "@supabase/auth-helpers-react";
-import { PlusCircleIcon, Loader2, Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { Schema, ScheduleItem } from "../../types";
 import { getAppDateTime } from "../../lib/dateUtils";
 import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
+import LoadingState from "../../components/LoadingState";
+import { AddButton } from "../../components/CommonButtons";
 
 export default function DaySchemaPage() {
   const session = useSession();
@@ -57,16 +59,10 @@ export default function DaySchemaPage() {
       <Layout>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Plan dnia</h2>
-          {!showForm && (
-            <button
-              onClick={openNew}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
+
+        {loading && (<LoadingState />)}
 
         {showForm && (
           <section className="mb-6">

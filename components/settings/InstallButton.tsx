@@ -1,5 +1,6 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function InstallPromptButton() {
@@ -59,7 +60,8 @@ export default function InstallPromptButton() {
       onClick={handleInstall}
       className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
     >
-      Zainstaluj
+      Zainstaluj&nbsp;
+    <Download className="w-5 h-5" />
     </button>
   );
 }

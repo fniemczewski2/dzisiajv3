@@ -11,10 +11,10 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const checkAuth = useCallback(() => {
-    if (session === null) {
-       const next = encodeURIComponent(router.asPath);
-       router.replace(`/login?next=${next}`, undefined, { shallow: true });
-    }
+    // if (session === null) {
+    //    const next = encodeURIComponent(router.asPath);
+    //    router.replace(`/login?next=${next}`, undefined, { shallow: true });
+    // }
   }, [session, router]);
 
   useEffect(() => {

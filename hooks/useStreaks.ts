@@ -1,10 +1,12 @@
 // hooks/useStreaks.ts
 import { useState, useEffect } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Streak } from "../types";
 
-export function useStreaks(userEmail: string) {
+export function useStreaks() {
   const supabase = useSupabaseClient();
+  const session = useSession();
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL; 
   const [streaks, setStreaks] = useState<Streak[]>([]);
   const [loading, setLoading] = useState(true);
 

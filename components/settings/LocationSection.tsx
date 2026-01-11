@@ -19,9 +19,10 @@ export default function LocationSection({
       </h3>
       <button
         onClick={onRequestLocation}
-        className="px-4 py-2 text-white rounded-lg bg-primary hover:bg-secondary"
+        className="px-4 py-2 flex text-white rounded-lg bg-primary hover:bg-secondary"
       >
-        Poproś o lokalizację
+        Pobierz lokalizację&nbsp;
+        <MapPin className="w-5 h-5" />
       </button>
       {locationStatus && (
         <p className="text-sm text-gray-700 mt-2">{locationStatus}</p>

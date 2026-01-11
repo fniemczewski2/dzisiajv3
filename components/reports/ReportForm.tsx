@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useRef, useState, FormEvent } from "react";
-import { Plus, PlusCircleIcon, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { ReportTask, Report } from "../../types";
 import { useReports } from "../../hooks/useReports";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
-import { useSession } from "@supabase/auth-helpers-react";
+import { AddButton, CancelButton } from "../CommonButtons";
 
 interface ReportFormProps {
   onChange: () => void;
@@ -18,9 +18,7 @@ export default function ReportForm({
   onChange,
   onCancel,
 }: ReportFormProps) {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
-  const { addReport, editReport, loading } = useReports();
+  const { addReport, loading } = useReports();
 
   const topicRef = useRef<HTMLInputElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
@@ -36,7 +34,6 @@ export default function ReportForm({
     e.preventDefault();
 
     const payload: Report = {
-      user_email: userEmail,
       topic: topicRef.current?.value.trim() || "",
       date: dateRef.current?.value || getAppDate(),
       agenda: agenda.filter(Boolean),
@@ -278,28 +275,8 @@ export default function ReportForm({
       </div>
 
       <div className="flex gap-2 items-center">
-        <button
-          type="submit"
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-            <>
-              Dodaj&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </>
-        </button>
-
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            Anuluj
-          </button>
-        )}
-
+        <AddButton loading={loading} />
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Place, OpeningHours } from "../../types";
+import { SaveButton, CancelButton } from "../CommonButtons";
 
 interface PlaceFormProps {
   place: Place | null;
@@ -94,7 +95,7 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
                 <button
                   type="button"
                   onClick={addTag}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary"
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
                 >
                   Dodaj
                 </button>
@@ -116,9 +117,6 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
                   </span>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Przykładowe tagi: kawiarnia, restauracja, klub, kino, teatr, miejsce kultury
-              </p>
             </div>
 
             {/* Rating */}
@@ -206,20 +204,9 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
             </div>
           </div>
 
-          <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Anuluj
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary transition-colors"
-            >
-              Zapisz
-            </button>
+          <div className="mt-2 flex gap-3">
+            <SaveButton type="submit" />
+            <CancelButton onCancel={onCancel} />
           </div>
         </form>
       </div>

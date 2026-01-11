@@ -24,7 +24,7 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
 
   if (focusTasks.length === 0) {
     return (
-      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-8 rounded-xl shadow-lg text-center">
+      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-8 rounded-xl shadow-lg text-center mt-6">
         <Sparkles className="w-16 h-16 mx-auto mb-4 animate-pulse" />
         <h2 className="text-3xl font-bold mb-2">Gotowe!</h2>
         <p className="text-lg">
@@ -35,7 +35,7 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-6">
       <div className="bg-gradient-to-r from-primary to-secondary text-white p-6 rounded-xl shadow-lg">
         <div className="flex items-center gap-3 mb-2">
           <Target className="w-8 h-8" />
@@ -53,7 +53,7 @@ export default function FocusMode({ tasks, onTasksChange, onStartTimer }: FocusM
             <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg z-10 border-4 border-white">
               {index + 1}
             </div>
-            <div className="pl-4">
+            <div className="pl-4 gap-4">
               <TaskItem
                 task={task}
                 onTasksChange={onTasksChange}

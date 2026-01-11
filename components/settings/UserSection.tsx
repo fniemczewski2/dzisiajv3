@@ -1,6 +1,6 @@
 // components/settings/UserSection.tsx
 import React from "react";
-import { CircleUser } from "lucide-react";
+import { CircleUser, LogOut } from "lucide-react";
 
 interface UserSectionProps {
   email: string | undefined;
@@ -19,9 +19,10 @@ export default function UserSection({ email, onSignOut }: UserSectionProps) {
       </p>
       <button
         onClick={onSignOut}
-        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+        className="px-4 py-2 flex items-center bg-red-500 text-white rounded-lg hover:bg-red-600"
       >
-        Wyloguj się
+        Wyloguj się&nbsp;&nbsp;
+        <LogOut className="w-5 h-5" />
       </button>
     </div>
   );

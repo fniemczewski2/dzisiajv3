@@ -3,10 +3,10 @@
 import React, { useRef, useEffect, useState, FormEvent } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
-import { Loader2, PlusCircleIcon, Save } from "lucide-react";
 import { useSettings } from "../../hooks/useSettings";
-import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
+import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
+import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
 
 interface TaskFormProps {
   initialTask?: Task | null;
@@ -44,7 +44,6 @@ export default function TaskForm({
       descriptionRef.current!.value = initialTask.description ?? "";
       dueDateRef.current!.value = initialTask.due_date ?? todayIso;
     } else {
-
       titleRef.current!.value = "";
       forUserRef.current!.value = userEmail;
       categoryRef.current!.value = "inne";
@@ -171,27 +170,27 @@ export default function TaskForm({
           />
         </div>
         <div>
-        <label
-          htmlFor="for"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Dla:
-        </label>
-        <select
-          id="for"
-          ref={forUserRef}
-          className="mt-1 w-full p-2 border rounded"
-          required
-          defaultValue={userEmail}
-        >
-          <option value={userEmail}>mnie</option>
-          {userOptions.map((email) => (
-            <option key={email} value={email}>
-              {email}
-            </option>
-          ))}
-        </select>
-      </div>
+          <label
+            htmlFor="for"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Dla:
+          </label>
+          <select
+            id="for"
+            ref={forUserRef}
+            className="mt-1 w-full p-2 border rounded"
+            required
+            defaultValue={userEmail}
+          >
+            <option value={userEmail}>mnie</option>
+            {userOptions.map((email) => (
+              <option key={email} value={email}>
+                {email}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div>
@@ -209,31 +208,12 @@ export default function TaskForm({
       </div>
 
       <div className="flex space-x-2 items-center">
-        <button
-          type="submit"
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition"
-        >
-          {isEdit ? (
-            <>
-              Zapisz&nbsp;
-              <Save className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              Dodaj&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </>
-          )}
-        </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
-          >
-            Anuluj
-          </button>
+        {isEdit ? (
+          <SaveButton loading={loading} />
+        ) : (
+          <AddButton loading={loading} />
         )}
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

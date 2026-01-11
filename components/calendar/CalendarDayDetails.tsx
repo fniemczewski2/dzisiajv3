@@ -6,13 +6,10 @@ import {
   Calendar,
   Check,
   Clock,
-  Edit2,
   MapPin,
-  Trash2,
   User,
   X,
   Download,
-  Save,
 } from "lucide-react";
 import { Task, Event } from "../../types";
 import WaterTracker from "../tasks/WaterTracker";
@@ -20,7 +17,8 @@ import DailySpendingForm from "../bills/DailySpendingForm";
 import TaskIcons from "../tasks/TaskIcons";
 import { useSettings } from "../../hooks/useSettings";
 import ICAL from "ical.js";
-import { formatDate, formatTime, localDateTimeToISO, parseEventDate } from "../../lib/dateUtils";
+import { formatTime, localDateTimeToISO, parseEventDate } from "../../lib/dateUtils";
+import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
 
 interface Props {
   selectedDate: string;
@@ -43,7 +41,6 @@ function escapeICalText(s?: string) {
 }
 
 const eventSpansDate = (event: Event, selectedDateStr: string): boolean => {
-
   const eventStart = event.start_time.split("T")[0];
   const eventEnd = event.end_time.split("T")[0];
 
@@ -332,20 +329,8 @@ export default function CalendarDayDetails({
                   </div>
 
                   <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      onClick={handleSaveEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-                    >
-                      <span className="text-sm">Zapisz</span>
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      <span className="text-sm">Anuluj</span>
-                      <X className="w-4 h-4" />
-                    </button>
+                    <SaveButton onClick={handleSaveEdit} type="button" />
+                    <CancelButton onCancel={handleCancelEdit} />
                   </div>
                 </div>
               );
@@ -401,33 +386,19 @@ export default function CalendarDayDetails({
                   </p>
                 )}
 
-                <div className="flex justify-end items-end gap-4 pt-2 border-t">
-                  <button
-                    onClick={() => handleEdit(event)}
-                    className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
-                    title="Edytuj"
-                  >
-                    <Edit2 className="w-5 h-5" />
-                    <span className="text-xs mt-1">Edytuj</span>
-                  </button>
+                <div className="flex justify-end items-end gap-2 sm:gap-3 pt-2 border-t">
+                  <EditButton onClick={() => handleEdit(event)} />
 
                   <button
                     onClick={() => generateSingleEventICS(event)}
-                    className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
+                    className="flex flex-col px-1.5 items-center text-primary hover:text-secondary transition-colors"
                     title="Pobierz .ics"
                   >
-                    <Download className="w-5 h-5" />
-                    <span className="text-xs mt-1">Pobierz</span>
+                    <Download className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className="text-[9px] sm:text-[11px] mt-1">Pobierz</span>
                   </button>
 
-                  <button
-                    onClick={() => handleDelete(event)}
-                    className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
-                    title="Usuń"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    <span className="text-xs mt-1">Usuń</span>
-                  </button>
+                  <DeleteButton onClick={() => handleDelete(event)} />
                 </div>
               </div>
             );

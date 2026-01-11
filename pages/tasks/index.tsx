@@ -16,18 +16,19 @@ import {
 import { format, addDays } from "date-fns";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import Layout from "../components/Layout";
-import TaskIcons from "../components/tasks/TaskIcons";
-import WaterTracker from "../components/tasks/WaterTracker";
-import TaskForm from "../components/tasks/TaskForm";
-import TaskList from "../components/tasks/TaskList";
-import FocusMode from "../components/tasks/FocusMode";
-import { useSettings } from "../hooks/useSettings";
-import { useTasks } from "../hooks/useTasks";
-import { Task } from "../types";
-import Reminders from "../components/tasks/Reminders";
-import { getAppDate, getAppDateTime } from "../lib/dateUtils";
-import LoadingState from "../components/LoadingState";
+import Layout from "../../components/Layout";
+import TaskIcons from "../../components/tasks/TaskIcons";
+import WaterTracker from "../../components/tasks/WaterTracker";
+import TaskForm from "../../components/tasks/TaskForm";
+import TaskList from "../../components/tasks/TaskList";
+import FocusMode from "../../components/tasks/FocusMode";
+import { useSettings } from "../../hooks/useSettings";
+import { useTasks } from "../../hooks/useTasks";
+import { Task } from "../../types";
+import Reminders from "../../components/tasks/Reminders";
+import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
+import LoadingState from "../../components/LoadingState";
+import { AddButton } from "../../components/CommonButtons";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -43,7 +44,6 @@ export default function TasksPage() {
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const [focusModeEnabled, setFocusModeEnabled] = useState(false); 
 
@@ -60,13 +60,7 @@ export default function TasksPage() {
     };
   }, [tasks]);
 
-  const openAdd = () => {
-    setEditingTask(null);
-    setShowForm(true);
-  };
-
-  const openEdit = (task: Task) => {
-    setEditingTask(task);
+  const openNew = () => {
     setShowForm(true);
   };
 
@@ -125,13 +119,6 @@ export default function TasksPage() {
 
             <div className="flex justify-between items-center gap-2">
               <button
-                onClick={() => router.push("/tasks/pomodoro")}
-                title="Pomodoro"
-                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                <Timer className="w-5 h-5" />
-              </button>
-              <button
                 onClick={() => router.push("/tasks/eisenhower")}
                 title="Eisenhower Matrix"
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -148,15 +135,7 @@ export default function TasksPage() {
             </div>
           </h2>
 
-          {!showForm && (
-            <button
-              onClick={openAdd}
-              className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            >
-              Dodaj&nbsp;&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </button>
-          )}
+          {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
         {(loadingSettings || loadingTasks || !settings) && <LoadingState />}
@@ -202,7 +181,6 @@ export default function TasksPage() {
         {showForm && (
           <div className="mb-6">
             <TaskForm
-              initialTask={editingTask}
               onTasksChange={() => {
                 fetchTasks();
                 closeForm();
@@ -212,7 +190,6 @@ export default function TasksPage() {
           </div>
         )}
 
-        {/* Conditional Rendering: Focus Mode or Regular List */}
         {focusModeEnabled && dateFilter === "today" ? (
           <FocusMode
             tasks={filteredTasks}
@@ -227,4 +204,4 @@ export default function TasksPage() {
   );
 }
 
-TasksPage.auth = true;
+TasksPage.auth = false;

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useRef, useState, FormEvent } from "react";
-import { PlusCircleIcon } from "lucide-react";
 import clsx from "clsx";
 import { Note } from "../../types";
 import { useNotes } from "../../hooks/useNotes";
 import LoadingState from "../LoadingState";
 import { useSession } from "@supabase/auth-helpers-react";
+import { AddButton, CancelButton } from "../CommonButtons";
 
 interface NoteFormProps {
   onChange: () => void;
@@ -124,24 +124,10 @@ export default function NoteForm({
       </div>
 
       <div className="flex space-x-2 items-center">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-              Dodaj&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-        </button>
+        <AddButton loading={loading} />
 
         {typeof onCancel === "function" && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Anuluj
-          </button>
+          <CancelButton onCancel={onCancel} loading={loading} />
         )}
 
         {loading && <LoadingState />}

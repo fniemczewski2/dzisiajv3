@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, FormEvent } from "react";
-import { Minus, Plus, PlusCircleIcon, Save } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { Bill } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useBills } from "../../hooks/useBills";
 import LoadingState from "../LoadingState";
+import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
 
 interface BillFormProps {
   onChange: () => void;
@@ -135,33 +136,12 @@ export default function BillForm({
       </div>
 
       <div className="flex space-x-2 items-center">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isEdit ? (
-            <>
-              Zapisz&nbsp;
-              <Save className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              Dodaj&nbsp;
-              <PlusCircleIcon className="w-5 h-5" />
-            </>
-          )}
-        </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Anuluj
-          </button>
+        {isEdit ? (
+          <SaveButton loading={loading} />
+        ) : (
+          <AddButton loading={loading} />
         )}
+        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>
