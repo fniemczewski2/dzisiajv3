@@ -27,7 +27,7 @@ export default function NoteForm({
 }: NoteFormProps) {
   const { addNote, loading } = useNotes();
   const session = useSession();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
   const [bgColor, setBgColor] = useState("zinc-50");

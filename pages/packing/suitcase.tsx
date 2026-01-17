@@ -4,6 +4,7 @@ import Layout from "../../components/Layout";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
 import { SUITCASE } from "../../config/packing";
+import SafetyPage from "./safety";
 
 export default function SuitcasePage() {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
@@ -62,3 +63,4 @@ export default function SuitcasePage() {
     </>
   );
 }
+SuitcasePage.auth = true;

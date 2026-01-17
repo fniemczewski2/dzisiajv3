@@ -29,6 +29,7 @@ import Reminders from "../../components/tasks/Reminders";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
+import { useTaskNotifications } from "../../lib/notificationHelpers";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -91,6 +92,8 @@ export default function TasksPage() {
   const filteredTasks = useMemo(() => {
     return filterDate ? tasks.filter((t) => t.due_date === filterDate) : tasks;
   }, [tasks, filterDate]);
+
+  useTaskNotifications(tasks);
 
   return (
     <>

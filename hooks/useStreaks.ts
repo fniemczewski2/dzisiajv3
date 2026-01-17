@@ -28,6 +28,17 @@ export function useStreaks() {
     }
   };
 
+  const addStreak = async (newStreak: Omit<Streak, "id" | "user_email">) => {
+    try {
+      const { error } = await supabase.from("streaks").insert([{...newStreak, user_email: userEmail }]);
+      if (error) throw error;
+      await fetchStreaks();
+    } catch (error) {
+      console.error("Błąd podczas dodawania streaka:", error);
+      alert("Nie udało się dodać");
+    }
+  };
+
   const deleteStreak = async (id: string) => {
     try {
       const { error } = await supabase.from("streaks").delete().eq("id", id);

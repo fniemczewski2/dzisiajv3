@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Place, OpeningHours } from "../../types";
 import { SaveButton, CancelButton } from "../CommonButtons";
+import { PlusCircle } from "lucide-react";
 
 interface PlaceFormProps {
   place: Place | null;
@@ -10,13 +11,13 @@ interface PlaceFormProps {
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_NAMES: { [key: string]: string } = {
-  monday: "Poniedziałek",
-  tuesday: "Wtorek",
-  wednesday: "Środa",
-  thursday: "Czwartek",
-  friday: "Piątek",
-  saturday: "Sobota",
-  sunday: "Niedziela",
+  monday: "Pn:",
+  tuesday: "Wt:",
+  wednesday: "Śr:",
+  thursday: "Cz:",
+  friday: "Pt:",
+  saturday: "Sb:",
+  sunday: "Nd:",
 };
 
 export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
@@ -72,16 +73,11 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold">Edytuj miejsce</h2>
-            <p className="text-gray-600 mt-1">{place.name}</p>
-          </div>
-
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-2">
             {/* Tags */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tagi
+                Tagi:
               </label>
               <div className="flex gap-2 mb-2">
                 <input
@@ -95,9 +91,10 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
                 <button
                   type="button"
                   onClick={addTag}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
+                  className="px-2 py-1 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
+                  aria-label="Dodaj"
                 >
-                  Dodaj
+                  <PlusCircle className="w-4 h-4"/>
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -166,7 +163,7 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
             {/* Opening Hours */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Godziny otwarcia
+                Godziny otwarcia:
               </label>
               <div className="space-y-2">
                 {DAYS.map((day) => (
@@ -202,11 +199,10 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
-          </div>
-
-          <div className="mt-2 flex gap-3">
+            <div className="flex gap-3">
             <SaveButton type="submit" />
             <CancelButton onCancel={onCancel} />
+            </div>
           </div>
         </form>
       </div>

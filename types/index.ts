@@ -234,3 +234,21 @@ export interface Streak {
   created_at?: string;
 }
 
+// types/movie.ts
+export interface Movie {
+  id: string;
+  user_email: string;
+  title: string;
+  genre: string | null;
+  rating: number | null;
+  platform: string | null;
+  description: string | null;
+  watched: boolean;
+  notes: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type MovieInsert = Omit<Movie, "id" | "created_at" | "updated_at">;
+export type MovieUpdate = Partial<MovieInsert> & { id: string };
+

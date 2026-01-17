@@ -147,7 +147,7 @@ export default function PlaceFilters({
             onClick={() => setShowTimeFilter(!showTimeFilter)}
             className="text-sm text-primary hover:text-secondary hover:underline"
           >
-            {showTimeFilter ? "Ukryj" : "okaż"}
+            {showTimeFilter ? "Ukryj" : "Pokaż"}
           </button>
         </div>
 
@@ -155,7 +155,7 @@ export default function PlaceFilters({
           <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
             <div>
               <label className="block text-sm text-gray-600 mb-1">
-                Dzień tygodnia
+                Dzień tygodnia:
               </label>
               <select
                 value={timeFilter?.day ?? 1}
@@ -174,7 +174,7 @@ export default function PlaceFilters({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Od</label>
+                <label className="block text-sm text-gray-600 mb-1">Od:</label>
                 <input
                   type="time"
                   value={timeFilter?.startTime ?? "09:00"}
@@ -185,7 +185,7 @@ export default function PlaceFilters({
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Do</label>
+                <label className="block text-sm text-gray-600 mb-1">Do:</label>
                 <input
                   type="time"
                   value={timeFilter?.endTime ?? "17:00"}
@@ -202,7 +202,7 @@ export default function PlaceFilters({
                 onClick={clearTimeFilter}
                 className="w-full px-3 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg text-sm transition-colors"
               >
-                Wyczyść filtr godzin
+                Wyczyść filtr
               </button>
             )}
           </div>
