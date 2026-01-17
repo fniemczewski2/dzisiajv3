@@ -64,3 +64,4 @@ export default function BackpackPage() {
     </>
   );
 }
+BackpackPage.auth = true;

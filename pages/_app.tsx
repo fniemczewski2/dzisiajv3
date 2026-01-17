@@ -1,6 +1,6 @@
 // pages/_app.tsx
 import type { AppProps } from 'next/app';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { getBrowserSupabaseClient } from '../lib/supabaseClient';
 import AuthGuard from '../components/AuthGuard';
@@ -15,6 +15,19 @@ export default function MyApp({
 }: AppProps & { Component: AuthedComponent }) {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
   const needsAuth = Component?.auth === true;
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch(error => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
 
   return (
     <ErrorBoundary>

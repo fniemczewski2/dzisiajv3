@@ -135,5 +135,6 @@ export const getAppDateTime = () => {
     minute: "2-digit",
     second: "2-digit",
   });
+  console.log(formatter.format(new Date()));
   return new Date(formatter.format(new Date()).replace(" ", "T"));
 };

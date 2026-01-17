@@ -1,7 +1,7 @@
 // components/tasks/TaskItem.tsx (UPDATED VERSION)
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO, addDays } from "date-fns";
-import { Check, Timer } from "lucide-react";
+import { Check } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
@@ -25,7 +25,7 @@ interface Props {
 
 export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const session = useSession();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const isDone = task.status === "done";
   const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask, rescheduleTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);

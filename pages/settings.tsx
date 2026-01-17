@@ -13,6 +13,7 @@ import SettingsForm from "../components/settings/SettingsForm";
 import LocationSection from "../components/settings/LocationSection";
 import UserSection from "../components/settings/UserSection";
 import { useSettings } from "../hooks/useSettings";
+import PushNotificationManager from '../components/PushNotificationManager';
 
 export default function SettingsPage() {
   const session = useSession();
@@ -55,6 +56,8 @@ export default function SettingsPage() {
           onUpdateUser={updateUser}
           onSave={saveSettings}
         />
+
+        <PushNotificationManager />
         
         <LocationSection
           onRequestLocation={requestGeolocation}

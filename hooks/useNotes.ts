@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Note } from "../types";
+import { getAppDateTime } from "../lib/dateUtils";
 
 export function useNotes() {
   const supabase = useSupabaseClient();
@@ -41,7 +42,8 @@ export function useNotes() {
         ...note, 
         user_name: userEmail,
         pinned: false,
-        archived: false
+        archived: false,
+        updated_at: getAppDateTime()
       })
       .select()
       .single();
@@ -64,7 +66,7 @@ export function useNotes() {
         user_name: clean.user_name,
         pinned: clean.pinned,
         archived: clean.archived,
-        updated_at: new Date().toISOString()
+        updated_at: getAppDateTime()
       })
       .eq("id", id)
       .select()
@@ -88,7 +90,7 @@ export function useNotes() {
       .update({ 
         pinned: !note.pinned,
         archived: false,
-        updated_at: new Date().toISOString()
+        updated_at: getAppDateTime()
       })
       .eq("id", id);
 
@@ -108,7 +110,7 @@ export function useNotes() {
       .update({ 
         archived: !note.archived,
         pinned: false, 
-        updated_at: new Date().toISOString()
+        updated_at: getAppDateTime()
       })
       .eq("id", id);
 

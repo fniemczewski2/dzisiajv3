@@ -14,8 +14,6 @@ import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 
 export default function DaySchemaPage() {
-  const session = useSession();
-  const userEmail = session?.user?.email || "";
   const { schemas, loading, refresh, deleteSchema } = useDaySchemas();
   const [editing, setEditing] = useState<Schema | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -67,7 +65,6 @@ export default function DaySchemaPage() {
         {showForm && (
           <section className="mb-6">
             <DaySchemaForm
-              userEmail={userEmail}
               initialSchema={editing}
               onCancel={closeForm}
               onSchemaSaved={() => {
@@ -150,3 +147,4 @@ function CurrentTimeLine({
     </div>
   );
 }
+DaySchemaPage.auth = true;

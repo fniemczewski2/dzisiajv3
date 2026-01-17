@@ -5,7 +5,7 @@ import { ScheduleItem, Schema } from "../types";
 export function useDaySchemas() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || "f.niemczewski2@gmail.com";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const [schemas, setSchemas] = useState<Schema[]>([]);
   const [loading, setLoading] = useState(false);
 

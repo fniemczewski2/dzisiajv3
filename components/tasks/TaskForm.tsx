@@ -20,7 +20,7 @@ export default function TaskForm({
   onCancel,
 }: TaskFormProps) {
   const session = useSession();
-  const userEmail = session?.user?.email || "";
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const { settings } = useSettings();
   const supabase = useSupabaseClient();
   const isEdit = !!initialTask;
@@ -45,7 +45,7 @@ export default function TaskForm({
       dueDateRef.current!.value = initialTask.due_date ?? todayIso;
     } else {
       titleRef.current!.value = "";
-      forUserRef.current!.value = userEmail;
+      forUserRef.current!.value = userEmail || "";
       categoryRef.current!.value = "inne";
       priorityRef.current!.value = "5";
       descriptionRef.current!.value = "";

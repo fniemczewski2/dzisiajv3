@@ -9,6 +9,7 @@ import PlacesList from "../../components/places/PlacesList";
 import PlacesMap from "../../components/places/PlacesMap";
 import PlaceForm from "../../components/places/PlaceForm";
 import { Place } from "../../types";
+import { Upload } from "lucide-react";
 
 type ViewMode = "list" | "map";
 
@@ -27,6 +28,7 @@ export default function PlacesPage() {
     importFromGoogleMaps
   } = usePlaces();
 
+  const [showImport, setShowImport] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter | null>(null);
@@ -71,7 +73,6 @@ export default function PlacesPage() {
           return false;
         }
 
-
         const hoursStr = hours[0];
         const match = hoursStr.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
         if (!match) return false;
@@ -104,10 +105,14 @@ export default function PlacesPage() {
     }
   };
 
-const handleImport = async (jsonData: any, fetchGoogleData: boolean): Promise<number> => {
-  const count = await importFromGoogleMaps(jsonData, fetchGoogleData);
-  return count || 0;
-};
+  const handleImport = async (
+    jsonData: any,
+    fetchGoogleData: boolean,
+    autoTag: boolean
+  ): Promise<number> => {
+    const count = await importFromGoogleMaps(jsonData, fetchGoogleData, autoTag);
+    return count || 0;
+  };
 
   const handleDeletePlace = async (id: string) => {
     try {
@@ -127,53 +132,70 @@ const handleImport = async (jsonData: any, fetchGoogleData: boolean): Promise<nu
   }
 
   return (
-      <Layout>
-        <SEO
-          title="Miejsca"
-          description="Zarządzaj swoimi ulubionymi miejscami z Google Maps"
-        />
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Miejsca</h2>
-            <ImportPlaces onImport={handleImport} />
-          </div>
-
-          <PlaceFilters
-            availableTags={availableTags}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            timeFilter={timeFilter}
-            onTimeFilterChange={setTimeFilter}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            setViewMode={setViewMode}
-            viewMode={viewMode}
-          />
-
-          <div className="mb-4 text-sm text-gray-600">
-            Znaleziono: {filteredPlaces.length} / {places.length} miejsc
-          </div>
-
-          {viewMode === "list" ? (
-            <PlacesList
-              places={filteredPlaces}
-              onEdit={setEditingPlace}
-              onDelete={handleDeletePlace}
-            />
-          ) : (
-            <PlacesMap
-              places={filteredPlaces}
-              onPlaceClick={setEditingPlace}
-            />
-          )}
-
-        {editingPlace && (
-          <PlaceForm
-            place={editingPlace}
-            onSave={handleSavePlace}
-            onCancel={() => setEditingPlace(null)}
-          />
+    <Layout>
+      <SEO
+        title="Miejsca"
+        description="Zarządzaj swoimi ulubionymi miejscami z Google Maps"
+      />
+      
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Miejsca</h2>
+        {!showImport && (
+          <button
+            onClick={() => setShowImport(true)}
+            className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Importuj&nbsp;
+            <Upload className="w-5 h-5" />
+          </button>
         )}
-      </Layout>
+      </div>
+
+      {showImport && (
+        <ImportPlaces 
+          onImport={handleImport}
+          onCollapse={() => setShowImport(false)}
+        />
+      )}
+
+      <PlaceFilters
+        availableTags={availableTags}
+        selectedTags={selectedTags}
+        onTagsChange={setSelectedTags}
+        timeFilter={timeFilter}
+        onTimeFilterChange={setTimeFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        setViewMode={setViewMode}
+        viewMode={viewMode}
+      />
+
+      <div className="mb-4 text-sm text-gray-600">
+        Znaleziono: {filteredPlaces.length} / {places.length} miejsc
+      </div>
+
+      {viewMode === "list" ? (
+        <PlacesList
+          places={filteredPlaces}
+          onEdit={setEditingPlace}
+          onDelete={handleDeletePlace}
+        />
+      ) : (
+        <PlacesMap
+          places={filteredPlaces}
+          onPlaceClick={setEditingPlace}
+        />
+      )}
+
+      {editingPlace && (
+        <PlaceForm
+          place={editingPlace}
+          onSave={handleSavePlace}
+          onCancel={() => setEditingPlace(null)}
+        />
+      )}
+    </Layout>
   );
 }
+
 PlacesPage.auth = true;
