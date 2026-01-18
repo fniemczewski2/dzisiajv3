@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
 import { NOTIFICATION_CONFIG } from '../../../config/notifications';
+import { getAppDateTime, getAppDate } from '../../../lib/dateUtils';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -37,7 +38,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const now = new Date();
+    // Use Poland timezone (Europe/Warsaw)
+    const now = getAppDateTime();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTime = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
@@ -146,18 +148,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function sendDailyDigest(userEmail: string, subscriptions: any[]): Promise<number> {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Use Poland timezone for today's date
+    const today = getAppDate();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
     const { data: tasks } = await supabase
       .from('tasks')
       .select('*')
       .eq('for_user', userEmail)
       .eq('status', 'todo')
-      .gte('due_date', today.toISOString().split('T')[0])
-      .lt('due_date', tomorrow.toISOString().split('T')[0]);
+      .gte('due_date', today)
+      .lt('due_date', tomorrowStr);
 
     if (!tasks || tasks.length === 0) return 0;
 
@@ -193,7 +196,8 @@ async function sendDailyDigest(userEmail: string, subscriptions: any[]): Promise
 
 async function sendHabitReminder(userEmail: string, subscriptions: any[]): Promise<number> {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Use Poland timezone for today's date
+    const today = getAppDate();
 
     const { data: habits } = await supabase
       .from('daily_habits')
@@ -245,7 +249,8 @@ async function sendHabitReminder(userEmail: string, subscriptions: any[]): Promi
 
 async function sendReminders(userEmail: string, subscriptions: any[]): Promise<number> {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Use Poland timezone for today's date
+    const today = getAppDate();
 
     const { data: reminders } = await supabase
       .from('reminders')
@@ -299,7 +304,8 @@ async function sendReminders(userEmail: string, subscriptions: any[]): Promise<n
 
 async function sendTaskReminders(userEmail: string, subscriptions: any[]): Promise<number> {
   try {
-    const now = new Date();
+    // Use Poland timezone for current time
+    const now = getAppDateTime();
     
     const { data: tasks } = await supabase
       .from('tasks')
@@ -360,7 +366,8 @@ async function sendTaskReminders(userEmail: string, subscriptions: any[]): Promi
 
 async function sendCalendarReminders(userEmail: string, subscriptions: any[]): Promise<number> {
   try {
-    const now = new Date();
+    // Use Poland timezone for current time
+    const now = getAppDateTime();
     const futureWindow = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Next 24 hours
 
     const { data: events } = await supabase
