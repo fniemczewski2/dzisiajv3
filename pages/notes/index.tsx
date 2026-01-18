@@ -3,13 +3,14 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Backpack, Luggage } from "lucide-react";
+import { Clapperboard, MapPin } from "lucide-react";
 import { useNotes } from "../../hooks/useNotes";
 import NoteForm from "../../components/notes/NoteForm";
 import NoteList from "../../components/notes/NoteList";
 import { useRouter } from "next/router";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
+import { useQuickAction } from "../../hooks/useQuickAction";
 
 export default function NotesPage() {
   const session = useSession();
@@ -20,6 +21,10 @@ export default function NotesPage() {
   const openNew = () => {
     setShowForm(true);
   };
+
+  useQuickAction({
+    onActionAdd: () => setShowForm(true),
+  });
 
   return (
     <>
@@ -40,18 +45,18 @@ export default function NotesPage() {
             Notatki&nbsp;
             <div className="flex justify-between items-center gap-2">
               <button
-                onClick={() => router.push("/packing/backpack")}
-                title="Plecak"
+                onClick={() => router.push("/notes/movies")}
+                title="Filmy"
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                <Backpack className="w-5 h-5" />
+                <Clapperboard className="w-5 h-5" />
               </button>
               <button
-                onClick={() => router.push("/packing/suitcase")}
-                title="Walizka"
+                onClick={() => router.push("/notes/places")}
+                title="Miejsca"
                 className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                <Luggage className="w-5 h-5" />
+                <MapPin className="w-5 h-5" />
               </button>
             </div>
           </h2>

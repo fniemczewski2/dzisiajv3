@@ -6,12 +6,12 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { ChartColumnBig } from "lucide-react";
 import { useBills } from "../../hooks/useBills";
 import BillListGrouped from "../../components/bills/BillListGrouped";
-import { Bill } from "../../types";
 import { useRouter } from "next/router";
 import DailySpendingForm from "../../components/bills/DailySpendingForm";
 import BillForm from "../../components/bills/BillForm";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
+import { useQuickAction } from "../../hooks/useQuickAction";
 
 export default function BillsPage() {
   const session = useSession();
@@ -22,6 +22,10 @@ export default function BillsPage() {
   const openNew = () => {
     setShowForm(true);
   };
+
+  useQuickAction({
+    onActionAdd: () => setShowForm(true),
+  });
 
   return (
     <>

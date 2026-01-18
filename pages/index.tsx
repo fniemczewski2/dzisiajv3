@@ -3,7 +3,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useEffect } from "react";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import { features } from "../config/features";
+import { FEATURE_GROUPS } from "../config/features";
 
 export default function Home() {
   const session = useSession();
@@ -86,21 +86,26 @@ export default function Home() {
               Wszystko czego potrzebujesz
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature) => {
-                const IconComponent = feature.icon;
-                return (
-                  <article
-                    key={feature.title}
-                    className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="text-4xl mb-4">
-                      <IconComponent />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
-                  </article>
-                );
-              })}
+              {FEATURE_GROUPS.map(group => (
+              <section key={group.category}>
+                <h2 className="mx-4 font-semibold text-2xl">{group.category}</h2>
+                  {group.features.map((feature) => {
+                    const IconComponent = feature.icon;
+                    return (
+                      <article
+                        key={feature.title}
+                        className="bg-white p-6 m-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="text-4xl mb-4">
+                          <IconComponent />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                        <p className="text-gray-600">{feature.description}</p>
+                      </article>
+                    );
+                  })}
+              </section>
+              ))}
             </div>
           </section>
         </main>

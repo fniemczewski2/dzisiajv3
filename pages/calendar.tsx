@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { PlusCircleIcon } from "lucide-react";
 import { useCallback, useState, useMemo } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
@@ -15,8 +14,8 @@ import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { useTasks } from "../hooks/useTasks";
 import LoadingState from "../components/LoadingState";
-import { se } from "date-fns/locale";
 import { AddButton } from "../components/CommonButtons";
+import { useQuickAction } from "../hooks/useQuickAction";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <LoadingState />,
@@ -39,7 +38,6 @@ const parseEventDate = (timestamp: string): Date => {
   );
 };
 
-
 const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
   const eventStart = parseEventDate(event.start_time);
   const eventEnd = parseEventDate(event.end_time);
@@ -55,7 +53,6 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
@@ -82,18 +79,15 @@ export default function CalendarPage() {
   };
 
   const openNew = useCallback(() => {
-    setEditingEvent(null);
     setShowForm(true);
   }, []);
 
   const handleEventsChange = useCallback(() => {
     setShowForm(false);
-    setEditingEvent(null);
   }, []);
 
   const handleCancelForm = useCallback(() => {
     setShowForm(false);
-    setEditingEvent(null);
   }, []);
 
   const eventsForDay = useMemo(() => {
@@ -105,6 +99,10 @@ export default function CalendarPage() {
     if (!selectedDateStr) return [];
     return tasks.filter((task) => task.due_date === selectedDateStr);
   }, [tasks, selectedDateStr]);
+
+  useQuickAction({
+    onActionAdd: () => setShowForm(true),
+  });
 
   return (
     <>

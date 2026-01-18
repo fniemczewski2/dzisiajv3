@@ -60,8 +60,8 @@ export function notifyTaskDue(taskTitle: string, dueDate: Date) {
     if (timeDiff > 0 && timeDiff <= oneHour) {
       new Notification('Dzisiaj - Przypomnienie o zadaniu', {
         body: `Zadanie "${taskTitle}" kończy się za ${Math.round(timeDiff / (60 * 1000))} minut`,
-        icon: '/icon-192x192.png',
-        badge: '/icon-96x96.png',
+        icon: '/icon.png',
+        badge: '/icon.png',
         tag: `task-${taskTitle}`,
         requireInteraction: true,
       });
