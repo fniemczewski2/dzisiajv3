@@ -56,16 +56,18 @@ export default function PlacesPage() {
         const hasTag = selectedTags.some((tag) => place.tags.includes(tag));
         if (!hasTag) return false;
       }
+      
       if (timeFilter && place.opening_hours) {
         const dayNames = [
-          "sunday",
-          "monday",
-          "tuesday",
-          "wednesday",
-          "thursday",
-          "friday",
-          "saturday",
+          "monday",      
+          "tuesday",    
+          "wednesday",   
+          "thursday",    
+          "friday",     
+          "saturday", 
+          "sunday" 
         ];
+        
         const dayName = dayNames[timeFilter.day];
         const hours = place.opening_hours[dayName];
 
@@ -82,12 +84,12 @@ export default function PlacesPage() {
         const requestStart = timeFilter.startTime;
         const requestEnd = timeFilter.endTime;
 
-        const isOpen =
-          requestStart >= openTime &&
-          requestEnd <= closeTime &&
+        const isOpenDuringEntireTime =
+          openTime <= requestStart &&
+          closeTime >= requestEnd &&
           requestStart < requestEnd;
 
-        if (!isOpen) return false;
+        if (!isOpenDuringEntireTime) return false;
       }
 
       return true;

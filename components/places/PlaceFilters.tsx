@@ -4,9 +4,9 @@ import ImportPlaces from "./ImportPlaces";
 import { usePlaces } from "../../hooks/usePlaces";
 
 interface TimeFilter {
-  day: number; // 0 = Sunday, 1 = Monday, etc.
-  startTime: string; // "HH:mm"
-  endTime: string; // "HH:mm"
+  day: number; 
+  startTime: string; 
+  endTime: string; 
 }
 
 interface PlaceFiltersProps {
@@ -21,14 +21,15 @@ interface PlaceFiltersProps {
   viewMode: "list" | "map";
 }
 
+
 const DAYS = [
-  "Poniedziałek",
-  "Wtorek",
-  "Środa",
-  "Czwartek",
-  "Piątek",
-  "Sobota",
-  "Niedziela"
+  "Poniedziałek",  
+  "Wtorek",  
+  "Środa",         
+  "Czwartek",    
+  "Piątek",    
+  "Sobota",      
+  "Niedziela"      
 ];
 
 export default function PlaceFilters({
@@ -56,7 +57,7 @@ export default function PlaceFilters({
     field: keyof TimeFilter,
     value: string | number
   ) => {
-    const newFilter = timeFilter || { day: 1, startTime: "09:00", endTime: "17:00" };
+    const newFilter = timeFilter || { day: 0, startTime: "09:00", endTime: "17:00" };
     onTimeFilterChange({ ...newFilter, [field]: value });
   };
 
@@ -158,7 +159,7 @@ export default function PlaceFilters({
                 Dzień tygodnia:
               </label>
               <select
-                value={timeFilter?.day ?? 1}
+                value={timeFilter?.day ?? 0}
                 onChange={(e) =>
                   handleTimeFilterChange("day", parseInt(e.target.value))
                 }
