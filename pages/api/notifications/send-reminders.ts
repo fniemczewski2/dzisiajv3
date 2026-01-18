@@ -1,5 +1,5 @@
-// pages/api/notifications/send-scheduled.ts
-// Simplified version - uses static config from config/notifications.ts
+// pages/api/notifications/send-reminders.ts
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
@@ -21,13 +21,18 @@ if (vapidPublicKey && vapidPrivateKey) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
+  // Allow both GET and POST for cron-job.org compatibility
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify cron secret
+  // Verify cron secret from header or query parameter
   const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const querySecret = req.query.secret;
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (!cronSecret || (authHeader !== `Bearer ${cronSecret}` && querySecret !== cronSecret)) {
+    console.error('Unauthorized access attempt');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -37,34 +42,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const currentMinute = now.getMinutes();
     const currentTime = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
     
+    console.log(`[${new Date().toISOString()}] Running cron job at ${currentTime}`);
+    
     let totalSent = 0;
 
-    // Get all push subscriptions (no user-specific settings, config is global)
+    // Get all push subscriptions
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
       .select('*');
 
     if (subError) {
       console.error('Error fetching subscriptions:', subError);
-      return res.status(500).json({ error: 'Failed to fetch subscriptions' });
+      return res.status(500).json({ error: 'Failed to fetch subscriptions', details: subError.message });
+    }
+
+    if (!subscriptions || subscriptions.length === 0) {
+      console.log('No subscriptions found');
+      return res.status(200).json({ 
+        message: 'No subscriptions to process',
+        sent: 0,
+        time: currentTime
+      });
     }
 
     // Group subscriptions by user
     const userSubscriptions: { [key: string]: any[] } = {};
-    subscriptions?.forEach(sub => {
+    subscriptions.forEach(sub => {
       if (!userSubscriptions[sub.user_email]) {
         userSubscriptions[sub.user_email] = [];
       }
-      userSubscriptions[sub.user_email].push(sub);
+      userSubscriptions[sub.user_email].push({
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: sub.p256dh,
+          auth: sub.auth
+        }
+      });
     });
+
+    console.log(`Processing notifications for ${Object.keys(userSubscriptions).length} users`);
 
     // Process each user using global config
     for (const userEmail of Object.keys(userSubscriptions)) {
       const userSubs = userSubscriptions[userEmail];
+      
       // Check daily digest
       if (NOTIFICATION_CONFIG.tasks.enabled && 
           NOTIFICATION_CONFIG.tasks.dailyDigest && 
           NOTIFICATION_CONFIG.tasks.digestTime === currentTime) {
+        console.log(`Sending daily digest to ${userEmail}`);
         const sent = await sendDailyDigest(userEmail, userSubs);
         totalSent += sent;
       }
@@ -72,37 +98,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Check habit reminder
       if (NOTIFICATION_CONFIG.habits.enabled && 
           NOTIFICATION_CONFIG.habits.reminderTime === currentTime) {
+        console.log(`Sending habit reminder to ${userEmail}`);
         const sent = await sendHabitReminder(userEmail, userSubs);
         totalSent += sent;
       }
 
-      // Check reminders (every hour at :00)
-      if (NOTIFICATION_CONFIG.reminders.enabled && currentMinute === 0) {
+      // Check reminders (every 15 minutes)
+      if (NOTIFICATION_CONFIG.reminders.enabled && currentMinute % 15 === 0) {
         const sent = await sendReminders(userEmail, userSubs);
+        if (sent > 0) console.log(`Sent ${sent} reminders to ${userEmail}`);
         totalSent += sent;
       }
 
-      // Check tasks (every 15 minutes)
-      if (NOTIFICATION_CONFIG.tasks.enabled && currentMinute % 15 === 0) {
+      // Check tasks (every 5 minutes)
+      if (NOTIFICATION_CONFIG.tasks.enabled && currentMinute % 5 === 0) {
         const sent = await sendTaskReminders(userEmail, userSubs);
+        if (sent > 0) console.log(`Sent ${sent} task reminders to ${userEmail}`);
         totalSent += sent;
       }
 
-      // Check calendar events (every 15 minutes)
-      if (NOTIFICATION_CONFIG.calendar.enabled && currentMinute % 15 === 0) {
+      // Check calendar events (every 5 minutes)
+      if (NOTIFICATION_CONFIG.calendar.enabled && currentMinute % 5 === 0) {
         const sent = await sendCalendarReminders(userEmail, userSubs);
+        if (sent > 0) console.log(`Sent ${sent} calendar reminders to ${userEmail}`);
         totalSent += sent;
       }
     }
 
+    console.log(`[${new Date().toISOString()}] Cron job completed. Total sent: ${totalSent}`);
+
     res.status(200).json({ 
-      message: 'Notifications sent',
+      success: true,
+      message: 'Notifications processed',
       sent: totalSent,
-      time: currentTime
+      time: currentTime,
+      users: Object.keys(userSubscriptions).length
     });
   } catch (error) {
-    console.error('Error in send-scheduled:', error);
+    console.error('Error in send-reminders:', error);
     res.status(500).json({ 
+      success: false,
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
@@ -113,6 +148,8 @@ async function sendDailyDigest(userEmail: string, subscriptions: any[]): Promise
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
     const { data: tasks } = await supabase
       .from('tasks')
@@ -120,7 +157,7 @@ async function sendDailyDigest(userEmail: string, subscriptions: any[]): Promise
       .eq('for_user', userEmail)
       .eq('status', 'todo')
       .gte('due_date', today.toISOString().split('T')[0])
-      .lt('due_date', new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+      .lt('due_date', tomorrow.toISOString().split('T')[0]);
 
     if (!tasks || tasks.length === 0) return 0;
 
@@ -138,6 +175,13 @@ async function sendDailyDigest(userEmail: string, subscriptions: any[]): Promise
         sent++;
       } catch (error) {
         console.error('Error sending to subscription:', error);
+        // Remove invalid subscriptions
+        if (error && typeof error === 'object' && 'statusCode' in error && (error.statusCode === 410 || error.statusCode === 404)) {
+          await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('endpoint', sub.endpoint);
+        }
       }
     }
     return sent;
@@ -184,6 +228,12 @@ async function sendHabitReminder(userEmail: string, subscriptions: any[]): Promi
         sent++;
       } catch (error) {
         console.error('Error sending to subscription:', error);
+        if (error && typeof error === 'object' && 'statusCode' in error && (error.statusCode === 410 || error.statusCode === 404)) {
+          await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('endpoint', sub.endpoint);
+        }
       }
     }
     return sent;
@@ -230,6 +280,12 @@ async function sendReminders(userEmail: string, subscriptions: any[]): Promise<n
             sent++;
           } catch (error) {
             console.error('Error sending to subscription:', error);
+            if (error && typeof error === 'object' && 'statusCode' in error && (error.statusCode === 410 || error.statusCode === 404)) {
+              await supabase
+                .from('push_subscriptions')
+                .delete()
+                .eq('endpoint', sub.endpoint);
+            }
           }
         }
       }
@@ -255,13 +311,19 @@ async function sendTaskReminders(userEmail: string, subscriptions: any[]): Promi
     if (!tasks) return 0;
 
     let sent = 0;
+    const sentTaskIds = new Set<string>(); // Prevent duplicate notifications
+
     for (const task of tasks) {
       const dueDate = new Date(task.due_date);
       const timeDiff = dueDate.getTime() - now.getTime();
       const minutesDiff = Math.floor(timeDiff / (60 * 1000));
 
+      // Only send if task hasn't been notified in this cycle
+      if (sentTaskIds.has(task.id)) continue;
+
       for (const reminderMin of NOTIFICATION_CONFIG.tasks.reminderMinutes) {
-        if (Math.abs(minutesDiff - reminderMin) < 5) {
+        // Check if current time is within 5 minutes of reminder time
+        if (Math.abs(minutesDiff - reminderMin) <= 5) {
           const payload = JSON.stringify({
             title: `Zadanie: ${task.title}`,
             body: `Za ${reminderMin} minut kończy się termin`,
@@ -275,8 +337,17 @@ async function sendTaskReminders(userEmail: string, subscriptions: any[]): Promi
               sent++;
             } catch (error) {
               console.error('Error sending to subscription:', error);
+              if (error && typeof error === 'object' && 'statusCode' in error && (error.statusCode === 410 || error.statusCode === 404)) {
+                await supabase
+                  .from('push_subscriptions')
+                  .delete()
+                  .eq('endpoint', sub.endpoint);
+              }
             }
           }
+          
+          sentTaskIds.add(task.id);
+          break; // Only send one reminder per task per check
         }
       }
     }
@@ -290,24 +361,31 @@ async function sendTaskReminders(userEmail: string, subscriptions: any[]): Promi
 async function sendCalendarReminders(userEmail: string, subscriptions: any[]): Promise<number> {
   try {
     const now = new Date();
+    const futureWindow = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Next 24 hours
 
     const { data: events } = await supabase
       .from('events')
       .select('*')
       .eq('user_name', userEmail)
       .gte('start_time', now.toISOString())
-      .lt('start_time', new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString());
+      .lt('start_time', futureWindow.toISOString());
 
     if (!events) return 0;
 
     let sent = 0;
+    const sentEventIds = new Set<string>(); // Prevent duplicate notifications
+
     for (const event of events) {
       const eventTime = new Date(event.start_time);
       const timeDiff = eventTime.getTime() - now.getTime();
       const minutesDiff = Math.floor(timeDiff / (60 * 1000));
 
+      // Only send if event hasn't been notified in this cycle
+      if (sentEventIds.has(event.id)) continue;
+
       for (const reminderMin of NOTIFICATION_CONFIG.calendar.reminderMinutes) {
-        if (Math.abs(minutesDiff - reminderMin) < 5) {
+        // Check if current time is within 5 minutes of reminder time
+        if (Math.abs(minutesDiff - reminderMin) <= 5) {
           const payload = JSON.stringify({
             title: `Wydarzenie: ${event.title}`,
             body: `Za ${reminderMin} minut${event.place ? ` w ${event.place}` : ''}`,
@@ -321,8 +399,17 @@ async function sendCalendarReminders(userEmail: string, subscriptions: any[]): P
               sent++;
             } catch (error) {
               console.error('Error sending to subscription:', error);
+              if (error && typeof error === 'object' && 'statusCode' in error && (error.statusCode === 410 || error.statusCode === 404)) {
+                await supabase
+                  .from('push_subscriptions')
+                  .delete()
+                  .eq('endpoint', sub.endpoint);
+              }
             }
           }
+          
+          sentEventIds.add(event.id);
+          break; // Only send one reminder per event per check
         }
       }
     }
