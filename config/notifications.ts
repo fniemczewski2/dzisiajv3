@@ -1,4 +1,4 @@
-// config/notificationDefaults.ts
+// config/notifications.ts
 export interface NotificationConfig {
   tasks: {
     enabled: boolean;
