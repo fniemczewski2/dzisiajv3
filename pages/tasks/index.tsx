@@ -1,13 +1,11 @@
 // pages/tasks.tsx 
 import React, { useState, useMemo } from "react";
 import {
-  PlusCircleIcon,
   List,
   ChevronLeft,
   Calendar,
   ChevronRight,
   ChevronsRight,
-  Timer,
   Brain,
   Target,
   ListTodo,
@@ -30,6 +28,7 @@ import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 import { useTaskNotifications } from "../../lib/notificationHelpers";
+import { useQuickAction } from "../../hooks/useQuickAction";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -94,6 +93,10 @@ export default function TasksPage() {
   }, [tasks, filterDate]);
 
   useTaskNotifications(tasks);
+
+  useQuickAction({
+    onActionAdd: () => setShowForm(true),
+  });
 
   return (
     <>

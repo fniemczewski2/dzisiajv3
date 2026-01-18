@@ -164,24 +164,20 @@ export function usePushNotifications() {
     }
   };
 
-  // Wyślij testowe powiadomienie
+  // Wyślij testowe powiadomienie (lokalne)
   const sendTestNotification = async () => {
     if (!state.isSupported || state.permission !== 'granted') {
       await requestPermission();
+      return;
     }
 
     try {
-      // Wyślij żądanie do serwera aby wysłał push notification
-      const response = await fetch('/api/notifications/send-test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Wyślij bezpośrednie lokalne powiadomienie
+      new Notification('Dzisiaj - Test', {
+        body: 'Powiadomienia działają poprawnie! 🎉',
+        icon: '/icon-192x192.png',
+        badge: '/icon-96x96.png',
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to send test notification');
-      }
       
       console.log('Test notification sent successfully');
     } catch (error) {

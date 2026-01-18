@@ -103,7 +103,7 @@ export function useSettings() {
       (position) => {
         const { latitude, longitude } = position.coords;
         setLocationStatus(
-          `Lokalizacja uzyskana: ${latitude.toFixed(3)}, ${longitude.toFixed(3)}`
+          `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`
         );
       },
       (error) => {
