@@ -27,7 +27,6 @@ import Reminders from "../../components/tasks/Reminders";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
-import { useTaskNotifications } from "../../lib/notificationHelpers";
 import { useQuickAction } from "../../hooks/useQuickAction";
 
 const FILTER_OPTIONS = [
@@ -91,8 +90,6 @@ export default function TasksPage() {
   const filteredTasks = useMemo(() => {
     return filterDate ? tasks.filter((t) => t.due_date === filterDate) : tasks;
   }, [tasks, filterDate]);
-
-  useTaskNotifications(tasks);
 
   useQuickAction({
     onActionAdd: () => setShowForm(true),
