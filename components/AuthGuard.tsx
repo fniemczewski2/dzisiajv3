@@ -11,7 +11,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const checkAuth = useCallback(() => {
-    if (session === null) {
+    if (process.env.NODE_ENV!="development" && session === null) {
        const next = encodeURIComponent(router.asPath);
        router.replace(`/login?next=${next}`, undefined, { shallow: true });
     }
