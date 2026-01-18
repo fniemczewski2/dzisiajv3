@@ -1,6 +1,4 @@
 // hooks/usePushNotifications.ts
-// Cross-platform push notifications (Android, Desktop, iOS)
-
 import { useState, useEffect } from 'react';
 
 export interface PushNotificationState {
@@ -11,8 +9,10 @@ export interface PushNotificationState {
   error: string | null;
   platform: 'ios' | 'android' | 'desktop' | 'unknown';
   isStandalone: boolean;
+  isLoading: boolean;
 }
 
+// Detect platform
 function detectPlatform(): 'ios' | 'android' | 'desktop' | 'unknown' {
   if (typeof window === 'undefined') return 'unknown';
   
@@ -21,8 +21,8 @@ function detectPlatform(): 'ios' | 'android' | 'desktop' | 'unknown' {
   if (/iphone|ipad|ipod/.test(ua)) {
     return 'ios';
   }
-  
-  if (/windows|macintosh|linux/.test(ua)) {
+
+  if (/windows|macintosh|linux/.test(ua) && !/android/.test(ua)) {
     return 'desktop';
   }
   
@@ -37,12 +37,10 @@ function detectPlatform(): 'ios' | 'android' | 'desktop' | 'unknown' {
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;
   
-  // iOS
   if ('standalone' in navigator) {
     return (navigator as any).standalone === true;
   }
   
-  // Android/Desktop
   if (window.matchMedia('(display-mode: standalone)').matches) {
     return true;
   }
@@ -59,18 +57,23 @@ export function usePushNotifications() {
     error: null,
     platform: 'unknown',
     isStandalone: false,
+    isLoading: false,
   });
 
-  // Initialize - detect platform and check support
+  // Initialize
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
     const platform = detectPlatform();
     const standalone = isStandalone();
-    
-    // Check notification support
     const hasNotifications = 'Notification' in window;
-    const hasPushManager = 'PushManager' in window && 'serviceWorker' in navigator;
+    
+    console.log('Push Notifications Init:', {
+      platform,
+      standalone,
+      hasNotifications,
+      permission: hasNotifications ? Notification.permission : null,
+    });
     
     setState(prev => ({
       ...prev,
@@ -80,141 +83,148 @@ export function usePushNotifications() {
       permission: hasNotifications ? Notification.permission : null,
     }));
     
-    // iOS: Check if already subscribed (stored locally)
+    // Check existing subscription (Android/Desktop)
+    if (platform !== 'ios' && 'serviceWorker' in navigator) {
+      checkExistingSubscription();
+    }
+    
+    // Check iOS local storage
     if (platform === 'ios') {
-      const iosSubscribed = localStorage.getItem('ios-notifications-enabled') === 'true';
-      setState(prev => ({ ...prev, isSubscribed: iosSubscribed }));
+      const iosEnabled = localStorage.getItem('ios-notifications-enabled') === 'true';
+      setState(prev => ({ ...prev, isSubscribed: iosEnabled }));
     }
   }, []);
 
+  // Check if already subscribed (Android/Desktop)
+  const checkExistingSubscription = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      
+      if (subscription) {
+        console.log('Existing subscription found');
+        setState(prev => ({
+          ...prev,
+          subscription,
+          isSubscribed: true,
+        }));
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
   // Request permission
   const requestPermission = async (): Promise<NotificationPermission> => {
+    console.log('Requesting notification permission...');
+    
     try {
       const permission = await Notification.requestPermission();
-      setState(prev => ({ ...prev, permission }));
+      console.log('Permission result:', permission);
+      
+      setState(prev => ({ ...prev, permission, error: null }));
       return permission;
     } catch (error) {
       console.error('Error requesting permission:', error);
       setState(prev => ({
         ...prev,
-        error: 'Nie udało się uzyskać uprawnień do powiadomień',
+        error: 'Nie udało się uzyskać uprawnień',
       }));
       return 'denied';
     }
   };
 
-  // Register Service Worker (tylko dla Android/Desktop)
-  const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
-    // iOS nie potrzebuje SW dla lokalnych powiadomień
-    if (state.platform === 'ios') {
-      return null;
-    }
-    
-    if (!('serviceWorker' in navigator)) {
-      return null;
-    }
-    
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-      });
-      console.log('Service Worker registered:', registration);
-      await navigator.serviceWorker.ready;
-      return registration;
-    } catch (error) {
-      console.error('Service Worker registration failed:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Nie udało się zarejestrować Service Workera',
-      }));
-      return null;
-    }
-  };
-
-  // Subscribe - różne metody dla różnych platform
+  // Subscribe
   const subscribe = async (): Promise<PushSubscription | null> => {
+    console.log('Subscribe called, platform:', state.platform);
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
     try {
-      // Sprawdź uprawnienia
+      // Check permission first
       let permission = state.permission;
       if (permission !== 'granted') {
+        console.log('Permission not granted, requesting...');
         permission = await requestPermission();
         if (permission !== 'granted') {
-          setState(prev => ({
-            ...prev,
-            error: 'Uprawnienia do powiadomień zostały odrzucone',
-          }));
-          return null;
+          throw new Error('Uprawnienia zostały odrzucone');
         }
       }
 
-      // iOS: Tylko lokalne powiadomienia
+      // iOS: Local notifications only
       if (state.platform === 'ios') {
-        // Zapisz stan w localStorage
+        console.log('iOS: Enabling local notifications');
         localStorage.setItem('ios-notifications-enabled', 'true');
-        
-        // Zapisz email użytkownika dla backendu (do wysyłania SMS/Email jako fallback)
-        const userEmail = await getUserEmail(); // Implementuj to
-        if (userEmail) {
-          await fetch('/api/notifications/subscribe-ios', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              email: userEmail,
-              platform: 'ios',
-              standalone: state.isStandalone,
-            }),
-          });
-        }
         
         setState(prev => ({
           ...prev,
           isSubscribed: true,
-          error: null,
+          isLoading: false,
         }));
         
-        // Pokaż info użytkownikowi
-        console.log('iOS: Notifications enabled (local only)');
+        console.log('iOS notifications enabled');
         return null;
       }
 
-      // Android/Desktop: Web Push z VAPID
-      const registration = await registerServiceWorker();
-      if (!registration) return null;
+      // Android/Desktop: Web Push
+      console.log('Android/Desktop: Registering for Web Push');
+      
+      if (!('serviceWorker' in navigator)) {
+        throw new Error('Service Worker not supported');
+      }
 
+      // Wait for service worker to be ready
+      console.log('Waiting for Service Worker...');
+      const registration = await navigator.serviceWorker.ready;
+      console.log('Service Worker ready:', registration);
+
+      // Check for existing subscription
       let subscription = await registration.pushManager.getSubscription();
+      console.log('Existing subscription:', subscription);
       
       if (!subscription) {
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
         if (!vapidPublicKey) {
-          throw new Error('VAPID public key not found');
+          throw new Error('VAPID public key not configured');
         }
         
+        console.log('Creating new subscription...');
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: vapidPublicKey,
         });
+        console.log('New subscription created:', subscription);
         
-        // Zapisz subskrypcję do serwera
-        await fetch('/api/notifications/subscribe', {
+        // Save to server
+        console.log('Saving subscription to server...');
+        const response = await fetch('/api/notifications/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(subscription),
         });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to save subscription');
+        }
+        
+        console.log('Subscription saved to server');
       }
 
       setState(prev => ({
         ...prev,
         subscription,
         isSubscribed: true,
-        error: null,
+        isLoading: false,
       }));
 
+      console.log('Push notifications enabled');
       return subscription;
     } catch (error) {
-      console.error('Error subscribing:', error);
+      console.error('Subscribe error:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Nie udało się zasubskrybować',
+        isLoading: false,
       }));
       return null;
     }
@@ -222,21 +232,19 @@ export function usePushNotifications() {
 
   // Unsubscribe
   const unsubscribe = async (): Promise<boolean> => {
+    console.log('Unsubscribe called');
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
     try {
       // iOS
       if (state.platform === 'ios') {
         localStorage.removeItem('ios-notifications-enabled');
-        
-        await fetch('/api/notifications/unsubscribe-ios', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        
         setState(prev => ({
           ...prev,
           isSubscribed: false,
-          error: null,
+          isLoading: false,
         }));
+        console.log('iOS notifications disabled');
         return true;
       }
 
@@ -254,16 +262,21 @@ export function usePushNotifications() {
           ...prev,
           subscription: null,
           isSubscribed: false,
-          error: null,
+          isLoading: false,
         }));
+        
+        console.log('Push notifications disabled');
         return true;
       }
+      
+      setState(prev => ({ ...prev, isLoading: false }));
       return false;
     } catch (error) {
-      console.error('Error unsubscribing:', error);
+      console.error('Unsubscribe error:', error);
       setState(prev => ({
         ...prev,
         error: 'Nie udało się odsubskrybować',
+        isLoading: false,
       }));
       return false;
     }
@@ -271,15 +284,24 @@ export function usePushNotifications() {
 
   // Send test notification
   const sendTestNotification = async () => {
-    if (!state.isSupported || state.permission !== 'granted') {
+    console.log('Test notification called');
+    
+    if (!state.isSupported) {
+      console.error('Notifications not supported');
+      return;
+    }
+    
+    if (state.permission !== 'granted') {
+      console.log('Permission not granted, requesting...');
       await requestPermission();
       return;
     }
 
     try {
-      // Lokalne powiadomienie (działa na iOS i wszędzie)
+      // Local notification (works everywhere)
+      console.log('Sending local notification...');
       new Notification('Dzisiaj - Test', {
-        body: 'Powiadomienia działają poprawnie! 🎉',
+        body: 'Powiadomienia działają poprawnie!',
         icon: '/icon.png',
         badge: '/icon.png',
         tag: 'test',
@@ -287,7 +309,7 @@ export function usePushNotifications() {
       
       console.log('Test notification sent');
     } catch (error) {
-      console.error('Error sending test notification:', error);
+      console.error('Test notification error:', error);
       setState(prev => ({
         ...prev,
         error: 'Nie udało się wysłać testowego powiadomienia',
@@ -295,18 +317,29 @@ export function usePushNotifications() {
     }
   };
 
-  // Schedule local notification (iOS i wszędzie)
   const scheduleNotification = (title: string, body: string, delay: number) => {
+    if (state.permission !== 'granted') {
+      console.warn('Cannot schedule notification: permission not granted');
+      return;
+    }
+
+    console.log(`Scheduling notification in ${delay}ms:`, title);
+    
     setTimeout(() => {
-      if (state.permission === 'granted') {
+      try {
         new Notification(title, {
           body,
           icon: '/icon.png',
           badge: '/icon.png',
+          tag: `scheduled-${Date.now()}`,
         });
+        console.log('Scheduled notification sent:', title);
+      } catch (error) {
+        console.error('Error sending scheduled notification:', error);
       }
     }, delay);
   };
+
 
   return {
     ...state,
@@ -315,18 +348,5 @@ export function usePushNotifications() {
     unsubscribe,
     sendTestNotification,
     scheduleNotification,
-    registerServiceWorker,
   };
-}
-
-// Helper: Get user email from session
-async function getUserEmail(): Promise<string | null> {
-  try {
-    // Dostosuj do swojego systemu auth
-    const response = await fetch('/api/auth/me');
-    const data = await response.json();
-    return data.email || null;
-  } catch {
-    return null;
-  }
 }
