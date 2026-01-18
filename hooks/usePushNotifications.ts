@@ -1,6 +1,18 @@
 // hooks/usePushNotifications.ts
 import { useState, useEffect } from 'react';
 
+// Helper do konwersji klucza VAPID
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export interface PushNotificationState {
   isSupported: boolean;
   permission: NotificationPermission | null;
@@ -10,42 +22,6 @@ export interface PushNotificationState {
   platform: 'ios' | 'android' | 'desktop' | 'unknown';
   isStandalone: boolean;
   isLoading: boolean;
-}
-
-// Detect platform
-function detectPlatform(): 'ios' | 'android' | 'desktop' | 'unknown' {
-  if (typeof window === 'undefined') return 'unknown';
-  
-  const ua = navigator.userAgent.toLowerCase();
-  
-  if (/iphone|ipad|ipod/.test(ua)) {
-    return 'ios';
-  }
-
-  if (/windows|macintosh|linux/.test(ua) && !/android/.test(ua)) {
-    return 'desktop';
-  }
-  
-  if (/android/.test(ua)) {
-    return 'android';
-  }
-  
-  return 'unknown';
-}
-
-// Check if app is installed as PWA
-function isStandalone(): boolean {
-  if (typeof window === 'undefined') return false;
-  
-  if ('standalone' in navigator) {
-    return (navigator as any).standalone === true;
-  }
-  
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    return true;
-  }
-  
-  return false;
 }
 
 export function usePushNotifications() {
@@ -60,293 +36,155 @@ export function usePushNotifications() {
     isLoading: false,
   });
 
-  // Initialize
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
-    const platform = detectPlatform();
-    const standalone = isStandalone();
-    const hasNotifications = 'Notification' in window;
-    
-    console.log('Push Notifications Init:', {
-      platform,
-      standalone,
-      hasNotifications,
-      permission: hasNotifications ? Notification.permission : null,
-    });
-    
+
+    // Detekcja platformy
+    const ua = navigator.userAgent.toLowerCase();
+    let platform: PushNotificationState['platform'] = 'unknown';
+    if (/iphone|ipad|ipod/.test(ua)) platform = 'ios';
+    else if (/android/.test(ua)) platform = 'android';
+    else if (/windows|macintosh|linux/.test(ua)) platform = 'desktop';
+
+    const isStandalone = 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (navigator as any).standalone === true;
+
+    const hasServiceWorker = 'serviceWorker' in navigator;
+    const hasPushManager = 'PushManager' in window;
+    const isSupported = hasServiceWorker && hasPushManager;
+
     setState(prev => ({
       ...prev,
       platform,
-      isStandalone: standalone,
-      isSupported: hasNotifications,
-      permission: hasNotifications ? Notification.permission : null,
+      isStandalone,
+      isSupported,
+      permission: isSupported ? Notification.permission : 'denied',
     }));
-    
-    // Check existing subscription (Android/Desktop)
-    if (platform !== 'ios' && 'serviceWorker' in navigator) {
+
+    if (isSupported) {
       checkExistingSubscription();
-    }
-    
-    // Check iOS local storage
-    if (platform === 'ios') {
-      const iosEnabled = localStorage.getItem('ios-notifications-enabled') === 'true';
-      setState(prev => ({ ...prev, isSubscribed: iosEnabled }));
     }
   }, []);
 
-  // Check if already subscribed (Android/Desktop)
   const checkExistingSubscription = async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       
       if (subscription) {
-        console.log('Existing subscription found');
-        setState(prev => ({
-          ...prev,
-          subscription,
-          isSubscribed: true,
-        }));
+        setState(prev => ({ ...prev, subscription, isSubscribed: true }));
       }
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      console.error('Błąd subskrypcji:', error);
     }
   };
 
-  // Request permission
-  const requestPermission = async (): Promise<NotificationPermission> => {
-    console.log('Requesting notification permission...');
-    
+  // NAPRAWA 1: Wrapper na funkcję uprawnień, aby pasował do onClick
+  const requestPermission = async () => {
     try {
       const permission = await Notification.requestPermission();
-      console.log('Permission result:', permission);
-      
-      setState(prev => ({ ...prev, permission, error: null }));
+      setState(prev => ({ ...prev, permission }));
       return permission;
     } catch (error) {
-      console.error('Error requesting permission:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Nie udało się uzyskać uprawnień',
-      }));
+      console.error('Błąd uprawnień:', error);
       return 'denied';
     }
   };
 
-  // Subscribe
-  const subscribe = async (): Promise<PushSubscription | null> => {
-    console.log('Subscribe called, platform:', state.platform);
+  const subscribe = async (): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
-      // Check permission first
-      let permission = state.permission;
-      if (permission !== 'granted') {
-        console.log('Permission not granted, requesting...');
-        permission = await requestPermission();
-        if (permission !== 'granted') {
-          throw new Error('Uprawnienia zostały odrzucone');
-        }
+      if (state.platform === 'ios' && !state.isStandalone) {
+        throw new Error('Na iPhone wymagane dodanie do ekranu głównego (PWA).');
       }
 
-      // iOS: Local notifications only
-      if (state.platform === 'ios') {
-        console.log('iOS: Enabling local notifications');
-        localStorage.setItem('ios-notifications-enabled', 'true');
-        
-        setState(prev => ({
-          ...prev,
-          isSubscribed: true,
-          isLoading: false,
-        }));
-        
-        console.log('iOS notifications enabled');
-        return null;
+      if (Notification.permission !== 'granted') {
+        const perm = await requestPermission();
+        if (perm !== 'granted') throw new Error('Brak uprawnień.');
       }
 
-      // Android/Desktop: Web Push
-      console.log('Android/Desktop: Registering for Web Push');
-      
-      if (!('serviceWorker' in navigator)) {
-        throw new Error('Service Worker not supported');
-      }
-
-      // Wait for service worker to be ready
-      console.log('Waiting for Service Worker...');
       const registration = await navigator.serviceWorker.ready;
-      console.log('Service Worker ready:', registration);
-
-      // Check for existing subscription
-      let subscription = await registration.pushManager.getSubscription();
-      console.log('Existing subscription:', subscription);
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       
-      if (!subscription) {
-        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) {
-          throw new Error('VAPID public key not configured');
-        }
-        
-        console.log('Creating new subscription...');
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: vapidPublicKey,
-        });
-        console.log('New subscription created:', subscription);
-        
-        // Save to server
-        console.log('Saving subscription to server...');
-        const response = await fetch('/api/notifications/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(subscription),
-        });
+      if (!vapidPublicKey) throw new Error('Brak klucza VAPID.');
 
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to save subscription');
-        }
-        
-        console.log('Subscription saved to server');
-      }
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+      });
 
-      setState(prev => ({
-        ...prev,
-        subscription,
-        isSubscribed: true,
-        isLoading: false,
-      }));
+      // Zapisz na serwerze
+      await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+      });
 
-      console.log('Push notifications enabled');
-      return subscription;
+      setState(prev => ({ ...prev, subscription, isSubscribed: true, isLoading: false }));
+
     } catch (error) {
-      console.error('Subscribe error:', error);
       setState(prev => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'Nie udało się zasubskrybować',
-        isLoading: false,
+        error: error instanceof Error ? error.message : 'Błąd subskrypcji',
+        isLoading: false
       }));
-      return null;
     }
   };
 
-  // Unsubscribe
-  const unsubscribe = async (): Promise<boolean> => {
-    console.log('Unsubscribe called');
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+  const unsubscribe = async (): Promise<void> => {
+    setState(prev => ({ ...prev, isLoading: true }));
     try {
-      // iOS
-      if (state.platform === 'ios') {
-        localStorage.removeItem('ios-notifications-enabled');
-        setState(prev => ({
-          ...prev,
-          isSubscribed: false,
-          isLoading: false,
-        }));
-        console.log('iOS notifications disabled');
-        return true;
-      }
-
-      // Android/Desktop
       if (state.subscription) {
         await fetch('/api/notifications/unsubscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint: state.subscription.endpoint }),
         });
-        
         await state.subscription.unsubscribe();
-        
-        setState(prev => ({
-          ...prev,
-          subscription: null,
-          isSubscribed: false,
-          isLoading: false,
-        }));
-        
-        console.log('Push notifications disabled');
-        return true;
       }
-      
-      setState(prev => ({ ...prev, isLoading: false }));
-      return false;
+      setState(prev => ({ ...prev, subscription: null, isSubscribed: false, isLoading: false }));
     } catch (error) {
-      console.error('Unsubscribe error:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Nie udało się odsubskrybować',
-        isLoading: false,
-      }));
-      return false;
+      setState(prev => ({ ...prev, error: 'Błąd odsubskrybowania', isLoading: false }));
     }
   };
 
-  // Send test notification
   const sendTestNotification = async () => {
-    console.log('Test notification called');
-    
-    if (!state.isSupported) {
-      console.error('Notifications not supported');
-      return;
-    }
-    
-    if (state.permission !== 'granted') {
-      console.log('Permission not granted, requesting...');
-      await requestPermission();
-      return;
-    }
-
-    try {
-      // Local notification (works everywhere)
-      console.log('Sending local notification...');
-      new Notification('Dzisiaj - Test', {
-        body: 'Powiadomienia działają poprawnie!',
-        icon: '/icon.png',
-        badge: '/icon.png',
-        tag: 'test',
+    if (state.permission === 'granted') {
+      const registration = await navigator.serviceWorker.ready;
+      // Używamy registration.showNotification zamiast new Notification dla lepszego wsparcia mobilnego
+      registration.showNotification("Test PWA", {
+        body: "To jest testowe powiadomienie.",
+        icon: "/icon-192x192.png",
       });
-      
-      console.log('Test notification sent');
-    } catch (error) {
-      console.error('Test notification error:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Nie udało się wysłać testowego powiadomienia',
-      }));
     }
   };
 
+  // NAPRAWA 2: Przywrócenie scheduleNotification
   const scheduleNotification = (title: string, body: string, delay: number) => {
-    if (state.permission !== 'granted') {
-      console.warn('Cannot schedule notification: permission not granted');
-      return;
-    }
+    if (state.permission !== 'granted') return;
 
-    console.log(`Scheduling notification in ${delay}ms:`, title);
-    
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        new Notification(title, {
+        const registration = await navigator.serviceWorker.ready;
+        registration.showNotification(title, {
           body,
-          icon: '/icon.png',
-          badge: '/icon.png',
-          tag: `scheduled-${Date.now()}`,
+          icon: '/icon-192x192.png',
+          tag: `scheduled-${Date.now()}`
         });
-        console.log('Scheduled notification sent:', title);
       } catch (error) {
-        console.error('Error sending scheduled notification:', error);
+        console.error('Błąd wysyłania zaplanowanego powiadomienia:', error);
       }
     }, delay);
   };
 
-
   return {
     ...state,
-    requestPermission,
+    requestPermission, // Teraz to jest nasza funkcja wrapper, a nie native API
     subscribe,
     unsubscribe,
     sendTestNotification,
-    scheduleNotification,
+    scheduleNotification, // Dodane z powrotem do return
   };
 }
