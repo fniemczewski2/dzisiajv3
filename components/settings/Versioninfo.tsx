@@ -16,17 +16,17 @@ export default function VersionInfo() {
             </div>
           ) : (
             <>
-              <div className="text-sm text-gray-600 bg-gray-100 p-4 rounded-lg">
-                <div className="flex justify-between">
-                  <span className="font-mono">Ver:</span>
-                  <span className="font-mono font-bold text-primary">
+              <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">Ver:</span>
+                  <span className="px-2 py-1 font-mono rounded text-sm text-primary">
                     {version}
                   </span>
                 </div>
                 
-                <div className="flex justify-between">
-                  <span className="font-mono">Data:</span>
-                  <span className="font-mono">{commitDate}</span>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">Data:</span>
+                  <span className="px-2 py-1 font-mono rounded text-sm text-gray-700">{commitDate}</span>
                 </div>
               </div>
             </>

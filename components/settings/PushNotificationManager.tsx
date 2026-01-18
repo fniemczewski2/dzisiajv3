@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, BellOff, CheckCircle, XCircle } from 'lucide-react';
+import { Bell, BellOff, CheckCircle, XCircle, AlertCircle, Smartphone, Info } from 'lucide-react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 
 export default function PushNotificationManager() {
@@ -7,6 +7,8 @@ export default function PushNotificationManager() {
     permission,
     isSubscribed,
     error,
+    platform,
+    isStandalone,
     requestPermission,
     subscribe,
     unsubscribe,
@@ -14,7 +16,7 @@ export default function PushNotificationManager() {
   } = usePushNotifications();
 
   const [showDetails, setShowDetails] = useState(false);
-  
+
   const handleToggleNotifications = async () => {
     if (isSubscribed) {
       await unsubscribe();
@@ -47,6 +49,19 @@ export default function PushNotificationManager() {
 
       {showDetails && (
         <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-2">
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium">Platforma:</span>
+            <span className="px-2 py-1 rounded bg-gray-100 text-gray-800">
+                {platform === 'ios' ? 'iOS' : platform === 'android' ? 'Android' : 'Desktop'}
+            </span>
+            {isStandalone && 
+              <span className="px-2 py-1 rounded bg-gray-100 text-gray-800">
+                  Standalone
+              </span>
+            }
+          </div>
+
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium">Status uprawnień:</span>
             <span className={`px-2 py-1 rounded ${
@@ -54,7 +69,7 @@ export default function PushNotificationManager() {
                 ? 'bg-green-100 text-green-800'
                 : permission === 'denied'
                 ? 'bg-red-100 text-red-800'
-                : 'bg-yellow-100 text-yellow-800'
+                : 'bg-gray-100 text-gray-800'
             }`}>
               {permission === 'granted' ? 'Przyznane' : 
                permission === 'denied' ? 'Odrzucone' : 'Nieznane'}
@@ -71,6 +86,7 @@ export default function PushNotificationManager() {
               {isSubscribed ? 'Aktywna' : 'Nieaktywna'}
             </span>
           </div>
+
         </div>
       )}
 
