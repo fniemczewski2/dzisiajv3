@@ -95,7 +95,7 @@ export default function PushNotificationManager() {
           <button
             onClick={requestPermission}
             disabled
-            className="flex items-center gap-2 px-4 py-2 bg-primary cursor-not-allowed text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg transition-colors"
           >
             Przyznaj uprawnienia
             <Bell className="w-4 h-4" />
