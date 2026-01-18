@@ -1,5 +1,6 @@
 const withPWA = require("next-pwa")({
   dest: "public",
+  importScripts: ['/custom-sw.js'],
   buildExcludes: [/./], 
   register: true,
   skipWaiting: true,
