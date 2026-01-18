@@ -24,6 +24,15 @@ export interface PushNotificationState {
   isLoading: boolean;
 }
 
+export interface NotificationOptions {
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  url?: string;
+  vibrate?: number[];
+  requireInteraction?: boolean;
+}
+
 export function usePushNotifications() {
   const [state, setState] = useState<PushNotificationState>({
     isSupported: false,
@@ -80,7 +89,6 @@ export function usePushNotifications() {
     }
   };
 
-  // NAPRAWA 1: Wrapper na funkcję uprawnień, aby pasował do onClick
   const requestPermission = async () => {
     try {
       const permission = await Notification.requestPermission();
@@ -161,8 +169,13 @@ export function usePushNotifications() {
     }
   };
 
-  // NAPRAWA 2: Przywrócenie scheduleNotification
-  const scheduleNotification = (title: string, body: string, delay: number) => {
+  // Enhanced scheduleNotification with more options
+  const scheduleNotification = (
+    title: string, 
+    body: string, 
+    delay: number, 
+    options?: NotificationOptions
+  ) => {
     if (state.permission !== 'granted') return;
 
     setTimeout(async () => {
@@ -170,8 +183,14 @@ export function usePushNotifications() {
         const registration = await navigator.serviceWorker.ready;
         registration.showNotification(title, {
           body,
-          icon: '/icon-192x192.png',
-          tag: `scheduled-${Date.now()}`
+          icon: options?.icon || '/icon-192x192.png',
+          badge: options?.badge || '/icon-192x192.png',
+          tag: options?.tag || `scheduled-${Date.now()}`,
+          data: {
+            url: options?.url || '/',
+            dateOfArrival: Date.now(),
+          },
+          requireInteraction: options?.requireInteraction || false,
         });
       } catch (error) {
         console.error('Błąd wysyłania zaplanowanego powiadomienia:', error);
@@ -179,12 +198,39 @@ export function usePushNotifications() {
     }, delay);
   };
 
+  // Send immediate notification
+  const sendNotification = async (
+    title: string,
+    body: string,
+    options?: NotificationOptions
+  ) => {
+    if (state.permission !== 'granted') return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(title, {
+        body,
+        icon: options?.icon || '/icon-192x192.png',
+        badge: options?.badge || '/icon-192x192.png',
+        tag: options?.tag,
+        data: {
+          url: options?.url || '/',
+          dateOfArrival: Date.now(),
+        },
+        requireInteraction: options?.requireInteraction || false,
+      });
+    } catch (error) {
+      console.error('Błąd wysyłania powiadomienia:', error);
+    }
+  };
+
   return {
     ...state,
-    requestPermission, // Teraz to jest nasza funkcja wrapper, a nie native API
+    requestPermission,
     subscribe,
     unsubscribe,
     sendTestNotification,
-    scheduleNotification, // Dodane z powrotem do return
+    scheduleNotification, // Enhanced with options
+    sendNotification, // Immediate notification method
   };
 }
