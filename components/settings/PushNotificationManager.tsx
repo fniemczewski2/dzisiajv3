@@ -71,10 +71,7 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
   };
 
   const handleTestNotification = async () => {
-
-
     try {
-      
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -92,8 +89,8 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
         },
         body: JSON.stringify({
           userEmail,
-          title: 'Test Notification',
-          message: 'This is a test notification from Dzisiajv3!',
+          title: 'Dzisiajv3 | Test',
+          message: 'Powiadomienie testowe Dzisiajv3!',
           url: '/',
         }),
       });
@@ -106,11 +103,10 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
 
       const data = await response.json();
       
-      alert(`Test notification sent!\nSent to ${data.sent || 0} device(s) out of ${data.total || 0}.`);
+      alert(`Powiadomienie wysłano  (${data.sent || 0} / ${data.total || 0})`);
     } catch (error) {
-      console.error('Error sending test notification:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert('Failed to send test notification:\n' + errorMessage);
+      alert('Wystąpił błąd:\n' + errorMessage);
     }
   };
 

@@ -8,25 +8,34 @@ export default function LoveButton() {
   const [sent, setSent] = useState(false);
 
   const sendLove = async () => {
+
+    setLoading(true);
     try {
-      setLoading(true);
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase configuration missing');
+      }
+
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-love`;
+
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
         }
-      );
+      });
 
-      setSent(true);
-      setTimeout(() => setSent(false), 3000);
-    } catch (err) {
-      console.error("Error sending love:", err);
+      setSent(true)
+      setTimeout(() => setSent(false), 60000);
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
