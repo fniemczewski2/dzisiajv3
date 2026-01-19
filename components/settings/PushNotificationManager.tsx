@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Bell, BellOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 
-export default function PushNotificationManager({ userEmail }: { userEmail: string }) {
+export default function PushNotificationManager({ userEmail }: { userEmail: string | undefined }) {
   const {
     isSubscribed,
     loading,
