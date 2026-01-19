@@ -46,6 +46,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
     await deleteTask(task.id);
     await fetchTasks();
+    onTasksChange();
   };
 
   const handleEdit = () => {
