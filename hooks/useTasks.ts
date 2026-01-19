@@ -1,7 +1,7 @@
 // hooks/useTasks.ts
 import { useState, useEffect, useMemo } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Task, Settings } from "../types";
+import { Task } from "../types";
 import { useSettings } from "./useSettings";
 
 interface TaskError {
@@ -154,7 +154,7 @@ export function useTasks(
     }
   };
 
-  const addTask = async (task: Task) => {
+  const addTask = async (task: Partial<Task>) => {
     if (!userEmail) return;
     setLoading(true);
     

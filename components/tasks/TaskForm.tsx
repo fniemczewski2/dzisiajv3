@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, FormEvent } from "react";
+import React, { useRef, useEffect, FormEvent } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
@@ -16,7 +16,6 @@ interface TaskFormProps {
 }
 
 export default function TaskForm({
-  initialTask = null,
   onTasksChange,
   onCancel,
 }: TaskFormProps) {
@@ -24,7 +23,6 @@ export default function TaskForm({
   const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const { settings } = useSettings();
   const { addTask, editTask, loading } = useTasks();
-  const isEdit = !!initialTask;
   const todayIso = getAppDate();
   const titleRef = useRef<HTMLInputElement>(null);
   const forUserRef = useRef<HTMLSelectElement>(null);
@@ -35,24 +33,6 @@ export default function TaskForm({
 
   const userOptions = settings?.users ?? [];
 
-  useEffect(() => {
-    if (initialTask) {
-      titleRef.current!.value = initialTask.title;
-      forUserRef.current!.value = initialTask.for_user;
-      categoryRef.current!.value = initialTask.category;
-      priorityRef.current!.value = String(initialTask.priority);
-      descriptionRef.current!.value = initialTask.description ?? "";
-      dueDateRef.current!.value = initialTask.due_date ?? todayIso;
-    } else {
-      titleRef.current!.value = "";
-      forUserRef.current!.value = userEmail || "";
-      categoryRef.current!.value = "inne";
-      priorityRef.current!.value = "5";
-      descriptionRef.current!.value = "";
-      dueDateRef.current!.value = todayIso;
-    }
-  }, [initialTask, userEmail, todayIso]);
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -60,11 +40,10 @@ export default function TaskForm({
     const nextStatus =
       forUser !== userEmail ? "waiting_for_acceptance" : "pending";
 
-    const taskData: Task = {
-      id: isEdit && initialTask ? initialTask.id : "", // For edit, keep existing id; for new, empty string will be ignored by hook
+    const taskData: Partial<Task> = {
       title: titleRef.current?.value || "",
       user_name: userEmail || "",
-      for_user: forUser || "",
+      for_user: forUser || "mnie",
       category: categoryRef.current?.value || "inne",
       priority: Number(priorityRef.current?.value) || 5,
       description: descriptionRef.current?.value || "",
@@ -72,12 +51,7 @@ export default function TaskForm({
       status: nextStatus,
     };
 
-    if (isEdit && initialTask) {
-      await editTask(taskData);
-    } else {
-      await addTask(taskData);
-    }
-
+    await addTask(taskData);
     onTasksChange();
     if (onCancel) onCancel();
   };
@@ -115,6 +89,7 @@ export default function TaskForm({
             id="category"
             ref={categoryRef}
             className="mt-1 w-full p-2 border rounded"
+            defaultValue={"inne"}
           >
             {[
               "edukacja",
@@ -147,7 +122,8 @@ export default function TaskForm({
             ref={priorityRef}
             type="number"
             min={1}
-            max={10}
+            max={5}
+            defaultValue={5}
             className="mt-1 w-full p-2 border rounded"
           />
         </div>
@@ -164,6 +140,7 @@ export default function TaskForm({
           <input
             id="due"
             ref={dueDateRef}
+            defaultValue={todayIso}
             type="date"
             className="mt-1 w-full p-2 border rounded"
             required
@@ -208,11 +185,7 @@ export default function TaskForm({
       </div>
 
       <div className="flex space-x-2 items-center">
-        {isEdit ? (
-          <SaveButton loading={loading} />
-        ) : (
-          <AddButton loading={loading} />
-        )}
+        <AddButton loading={loading} />
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
