@@ -30,83 +30,107 @@ export function usePushNotifications(userEmail: string | undefined) {
     setIsSubscribed(!!subscription)
   }
 
-  async function subscribeToPush() {
+  // hooks/usePushNotifications.ts
+    async function subscribeToPush() {
     if (!userEmail) {
-      alert('Please log in first')
-      return
+        alert('Please log in first')
+        return
     }
 
     setLoading(true)
 
     try {
-      // Request notification permission
-      const permission = await Notification.requestPermission()
-      
-      if (permission !== 'granted') {
+        const permission = await Notification.requestPermission()
+        
+        if (permission !== 'granted') {
         alert('Please enable notifications in your browser settings')
         setLoading(false)
         return
-      }
+        }
 
-      // Get service worker registration
-      const registration = await navigator.serviceWorker.ready
+        const registration = await navigator.serviceWorker.ready
 
-      // Subscribe to push notifications
-      const subscription = await registration.pushManager.subscribe({
+        const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
         )
-      })
-
-      // Save subscription to Supabase
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          user_email: userEmail,
-          subscription: subscription.toJSON(),
-          user_agent: navigator.userAgent
-        }, {
-          onConflict: 'user_email'
         })
 
-      if (error) throw error
+        const subscriptionJSON = subscription.toJSON()
+        const endpoint = subscriptionJSON.endpoint
 
-      setIsSubscribed(true)
-      alert('Push notifications enabled!')
+        // Check if THIS SPECIFIC DEVICE is already registered
+        const { data: existing } = await supabase
+        .from('push_subscriptions')
+        .select('id')
+        .eq('user_email', userEmail)
+        .eq('subscription->endpoint', endpoint)
+        .single()
+
+        if (existing) {
+        // Update this device's subscription
+        const { error } = await supabase
+            .from('push_subscriptions')
+            .update({
+            subscription: subscriptionJSON,
+            user_agent: navigator.userAgent,
+            last_used: new Date().toISOString()
+            })
+            .eq('id', existing.id)
+
+        if (error) throw error
+        } else {
+        // Insert new device subscription
+        const { error } = await supabase
+            .from('push_subscriptions')
+            .insert({
+            user_email: userEmail,
+            subscription: subscriptionJSON,
+            user_agent: navigator.userAgent
+            })
+
+        if (error) throw error
+        }
+
+        setIsSubscribed(true)
+        alert('Push notifications enabled!')
     } catch (error) {
-      console.error('Error subscribing to push:', error)
-      alert('Failed to enable push notifications')
+        console.error('Error subscribing to push:', error)
     } finally {
-      setLoading(false)
+        setLoading(false)
     }
-  }
+    }
 
-  async function unsubscribeFromPush() {
+    async function unsubscribeFromPush() {
     setLoading(true)
 
     try {
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
+        const registration = await navigator.serviceWorker.ready
+        const subscription = await registration.pushManager.getSubscription()
 
-      if (subscription) {
+        if (subscription) {
+        const endpoint = subscription.toJSON().endpoint
         await subscription.unsubscribe()
-      }
 
-      // Remove from Supabase
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .eq('user_email', userEmail)
+        // Remove only THIS device's subscription
+        const { error } = await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('user_email', userEmail)
+            .eq('subscription->endpoint', endpoint)
 
-      setIsSubscribed(false)
-      alert('Push notifications disabled')
+        if (error) throw error
+        }
+
+        setIsSubscribed(false)
+        alert('Push notifications disabled')
     } catch (error) {
-      console.error('Error unsubscribing:', error)
+        console.error('Error unsubscribing:', error)
     } finally {
-      setLoading(false)
+        setLoading(false)
     }
-  }
+    }
 
   return {
     isSubscribed,

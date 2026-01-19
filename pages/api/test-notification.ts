@@ -1,13 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextApiRequest, NextApiResponse } from 'next'
 
-export async function POST(req: NextRequest) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
   try {
-    const { userEmail, title, message, url } = await req.json()
+    const { userEmail, title, message, url } = req.body
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-    // Call your Supabase Edge Function
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase configuration')
+    }
+
+    // Call Supabase Edge Function to send push
     const response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
       method: 'POST',
       headers: {
@@ -24,16 +35,18 @@ export async function POST(req: NextRequest) {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to send notification')
+      const errorText = await response.text()
+      console.error('Edge function error:', errorText)
+      throw new Error(`Failed to send notification: ${response.status}`)
     }
 
     const data = await response.json()
-    return NextResponse.json({ success: true, data })
+
+    return res.status(200).json({ success: true, data })
   } catch (error) {
     console.error('Error sending test notification:', error)
-    return NextResponse.json(
-      { error: 'Failed to send test notification' },
-      { status: 500 }
-    )
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to send test notification'
+    })
   }
 }
