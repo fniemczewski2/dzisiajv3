@@ -18,6 +18,8 @@ export function usePushNotifications(userEmail: string | undefined) {
       navigator.serviceWorker.register('/custom-sw.js').then(() => {
         console.log('Service Worker registered')
         checkSubscription()
+      }).catch(err => {
+        console.error('Service Worker registration failed:', err)
       })
     }
   }, [])
@@ -25,112 +27,154 @@ export function usePushNotifications(userEmail: string | undefined) {
   async function checkSubscription() {
     if (!('serviceWorker' in navigator) || !userEmail) return
 
-    const registration = await navigator.serviceWorker.ready
-    const subscription = await registration.pushManager.getSubscription()
-    setIsSubscribed(!!subscription)
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      setIsSubscribed(!!subscription)
+    } catch (error) {
+      console.error('Error checking subscription:', error)
+    }
   }
 
-  // hooks/usePushNotifications.ts
-    async function subscribeToPush() {
+  async function subscribeToPush() {
     if (!userEmail) {
-        alert('Please log in first')
-        return
+      alert('Please log in first')
+      return
     }
 
     setLoading(true)
 
     try {
-        const permission = await Notification.requestPermission()
-        
-        if (permission !== 'granted') {
+      const permission = await Notification.requestPermission()
+      
+      if (permission !== 'granted') {
         alert('Please enable notifications in your browser settings')
         setLoading(false)
         return
-        }
+      }
 
-        const registration = await navigator.serviceWorker.ready
+      const registration = await navigator.serviceWorker.ready
 
-        const subscription = await registration.pushManager.subscribe({
+      const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
         )
-        })
+      })
 
-        const subscriptionJSON = subscription.toJSON()
-        const endpoint = subscriptionJSON.endpoint
+      const subscriptionJSON = subscription.toJSON()
+      const endpoint = subscriptionJSON.endpoint
 
-        // Check if THIS SPECIFIC DEVICE is already registered
-        const { data: existing } = await supabase
+      console.log('Subscription endpoint:', endpoint)
+
+      // FIXED: Get all subscriptions for this user and check endpoint manually
+      const { data: allSubs, error: fetchError } = await supabase
         .from('push_subscriptions')
-        .select('id')
+        .select('*')
         .eq('user_email', userEmail)
-        .eq('subscription->endpoint', endpoint)
-        .single()
 
-        if (existing) {
+      if (fetchError) {
+        console.error('Error fetching subscriptions:', fetchError)
+        throw fetchError
+      }
+
+      console.log('All subscriptions:', allSubs)
+
+      // Find existing subscription by comparing endpoints
+      const existing = allSubs?.find(sub => {
+        const subData = typeof sub.subscription === 'string' 
+          ? JSON.parse(sub.subscription) 
+          : sub.subscription
+        return subData.endpoint === endpoint
+      })
+
+      console.log('Existing subscription:', existing)
+
+      if (existing) {
         // Update this device's subscription
         const { error } = await supabase
-            .from('push_subscriptions')
-            .update({
+          .from('push_subscriptions')
+          .update({
             subscription: subscriptionJSON,
             user_agent: navigator.userAgent,
             last_used: new Date().toISOString()
-            })
-            .eq('id', existing.id)
+          })
+          .eq('id', existing.id)
 
         if (error) throw error
-        } else {
+        console.log('Subscription updated')
+      } else {
         // Insert new device subscription
         const { error } = await supabase
-            .from('push_subscriptions')
-            .insert({
+          .from('push_subscriptions')
+          .insert({
             user_email: userEmail,
             subscription: subscriptionJSON,
             user_agent: navigator.userAgent
-            })
+          })
 
         if (error) throw error
-        }
+        console.log('New subscription inserted')
+      }
 
-        setIsSubscribed(true)
-        alert('Push notifications enabled!')
+      setIsSubscribed(true)
+      alert('Push notifications enabled!')
     } catch (error) {
-        console.error('Error subscribing to push:', error)
+      console.error('Error subscribing to push:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert('Failed to enable push notifications: ' + errorMessage)
     } finally {
-        setLoading(false)
+      setLoading(false)
     }
-    }
+  }
 
-    async function unsubscribeFromPush() {
+  async function unsubscribeFromPush() {
     setLoading(true)
 
     try {
-        const registration = await navigator.serviceWorker.ready
-        const subscription = await registration.pushManager.getSubscription()
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
 
-        if (subscription) {
+      if (subscription) {
         const endpoint = subscription.toJSON().endpoint
         await subscription.unsubscribe()
 
-        // Remove only THIS device's subscription
-        const { error } = await supabase
+        console.log('Unsubscribing endpoint:', endpoint)
+
+        // Get all subscriptions and find the one to delete
+        const { data: allSubs } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .eq('user_email', userEmail)
+
+        const toDelete = allSubs?.find(sub => {
+          const subData = typeof sub.subscription === 'string' 
+            ? JSON.parse(sub.subscription) 
+            : sub.subscription
+          return subData.endpoint === endpoint
+        })
+
+        if (toDelete) {
+          const { error } = await supabase
             .from('push_subscriptions')
             .delete()
-            .eq('user_email', userEmail)
-            .eq('subscription->endpoint', endpoint)
+            .eq('id', toDelete.id)
 
-        if (error) throw error
+          if (error) throw error
+          console.log('Subscription deleted')
         }
+      }
 
-        setIsSubscribed(false)
-        alert('Push notifications disabled')
+      setIsSubscribed(false)
+      alert('Push notifications disabled')
     } catch (error) {
-        console.error('Error unsubscribing:', error)
+      console.error('Error unsubscribing:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert('Failed to disable push notifications: ' + errorMessage)
     } finally {
-        setLoading(false)
+      setLoading(false)
     }
-    }
+  }
 
   return {
     isSubscribed,
