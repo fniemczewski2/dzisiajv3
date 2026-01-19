@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useRef, useEffect, useState, FormEvent } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
+import { useTasks } from "../../hooks/useTasks";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
 import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
@@ -22,7 +23,7 @@ export default function TaskForm({
   const session = useSession();
   const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const { settings } = useSettings();
-  const supabase = useSupabaseClient();
+  const { addTask, editTask, loading } = useTasks();
   const isEdit = !!initialTask;
   const todayIso = getAppDate();
   const titleRef = useRef<HTMLInputElement>(null);
@@ -32,7 +33,6 @@ export default function TaskForm({
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dueDateRef = useRef<HTMLInputElement>(null);
 
-  const [loading, setLoading] = useState(false);
   const userOptions = settings?.users ?? [];
 
   useEffect(() => {
@@ -55,31 +55,30 @@ export default function TaskForm({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     const forUser = forUserRef.current?.value || userEmail;
     const nextStatus =
       forUser !== userEmail ? "waiting_for_acceptance" : "pending";
 
-    const payload = {
+    const taskData: Task = {
+      id: isEdit && initialTask ? initialTask.id : "", // For edit, keep existing id; for new, empty string will be ignored by hook
       title: titleRef.current?.value || "",
-      user_name: userEmail,
-      for_user: forUser,
+      user_name: userEmail || "",
+      for_user: forUser || "",
       category: categoryRef.current?.value || "inne",
       priority: Number(priorityRef.current?.value) || 5,
-      description: descriptionRef.current?.value || null,
-      due_date: new Date(dueDateRef.current?.value || todayIso),
+      description: descriptionRef.current?.value || "",
+      due_date: dueDateRef.current?.value || todayIso,
       status: nextStatus,
     };
 
     if (isEdit && initialTask) {
-      await supabase.from("tasks").update(payload).eq("id", initialTask.id);
+      await editTask(taskData);
     } else {
-      await supabase.from("tasks").insert(payload);
+      await addTask(taskData);
     }
 
-    await onTasksChange();
-    setLoading(false);
+    onTasksChange();
     if (onCancel) onCancel();
   };
 
@@ -127,6 +126,7 @@ export default function TaskForm({
               "podróże",
               "dostawa",
               "święta",
+              "przypomnienia",
               "inne",
             ].map((cat) => (
               <option key={cat} value={cat}>

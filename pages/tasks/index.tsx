@@ -104,6 +104,10 @@ export default function TasksPage() {
     onActionAdd: () => setShowForm(true),
   });
 
+  const handleTasksChange = async () => {
+    await fetchTasks();
+  };
+
   return (
     <>
       <Head>
@@ -123,7 +127,7 @@ export default function TasksPage() {
       <Layout>
         {settings?.show_habits && <TaskIcons />}
         {settings?.show_water_tracker && <WaterTracker />}
-        {settings?.show_notifications && <Reminders />}
+        {settings?.show_notifications && <Reminders onTasksChange={handleTasksChange} />}
 
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
@@ -150,8 +154,6 @@ export default function TasksPage() {
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
-        {(loadingSettings || loadingTasks || !settings) && <LoadingState />}
-
         {/* Focus Mode Toggle */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex space-x-2">
@@ -173,6 +175,7 @@ export default function TasksPage() {
               );
             })}
           </div>
+
           <button
             onClick={() => setFocusModeEnabled(!focusModeEnabled)}
             className={`px-3 py-1.5 flex items-center rounded-lg shadow ${
@@ -189,6 +192,8 @@ export default function TasksPage() {
             {focusModeEnabled ? <Target className="w-5 h-5" /> : <ListTodo className="w-5 h-5" />}
           </button>
         </div>
+
+        {(loadingSettings || loadingTasks || !settings) && <LoadingState />}
 
         {showForm && (
           <div className="mb-6">
