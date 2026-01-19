@@ -1,7 +1,8 @@
 import { List, MapPin, Search } from "lucide-react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ImportPlaces from "./ImportPlaces";
 import { usePlaces } from "../../hooks/usePlaces";
+import SearchBar from "../SearchBar";
 
 interface TimeFilter {
   day: number; 
@@ -66,20 +67,29 @@ export default function PlaceFilters({
     setShowTimeFilter(false);
   };
 
+  const { places } = usePlaces(); 
+  const suggestions = useMemo(() => {
+    if (!places) return [];
+    return places
+      .flatMap((p) => [p.name, p.address])
+      .filter((s): s is string => typeof s === "string")
+      .slice(0, 20);
+  }, [places]);
+
+
   return (
     <>
       <div className="w-full flex flex-nowrap items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
+         <SearchBar
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={onSearchChange}
             placeholder="Nazwa lub adres..."
-            className="w-full py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent flex-1 rounded-xl pl-10 pr-3 bg-white"
+            suggestions={suggestions}
+            onSuggestionClick={onSearchChange}
+            className="flex-1"
+            storageKey="places-search"
           />
-        </div>
-          {viewMode === "map" ? (
+         {viewMode === "map" ? (
               <button
                 onClick={() => setViewMode("list")}
                 className={"px-3 py-1.5 rounded-lg transition-colors bg-primary hover:bg-secondary border-transparent text-white flex items-center mt-0"}

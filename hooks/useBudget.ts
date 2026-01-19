@@ -17,7 +17,7 @@ type YearData = Record<number, MonthData>;
 export function useBudgetData(year: number, monthRange?: [number, number]) {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const [data, setData] = useState<YearData>({});
   const [loading, setLoading] = useState(true);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());

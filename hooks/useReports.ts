@@ -6,7 +6,7 @@ import { Report } from "../types";
 export function useReports() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);

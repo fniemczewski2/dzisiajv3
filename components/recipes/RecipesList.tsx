@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, PlusCircleIcon, Search, Edit2, Trash2 } from "l
 import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
 import { SaveButton, CancelButton } from "../CommonButtons";
+import SearchBar from "../SearchBar";
 
 const CATEGORIES: RecipeCategory[] = [
   "śniadanie",
@@ -130,17 +131,27 @@ export default function RecipesList() {
     }
   };
 
+  const recipeSuggestions = useMemo(() => {
+    return recipes
+      .map((r) => r.name)
+      .filter(Boolean)
+      .slice(0, 20);
+  }, [recipes]);
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-3 md:items-center max-w-2xl mx-auto">
-        <div className="relative flex-1 w-full">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          value={qText}
-          onChange={(e) => setQText(e.target.value)}
-          placeholder="Szukaj przepisów…"
-          className="flex-1 rounded-xl border pl-10 pr-3 py-2 bg-white w-full"
-        />
+        <div className="flex-1 w-full">
+          <SearchBar
+            value={qText}
+            onChange={setQText}
+            placeholder="Szukaj przepisów…"
+            suggestions={recipeSuggestions}
+            onSuggestionClick={setQText}
+            storageKey="recipes-search"
+            className="w-full"
+          />
         </div>
 
         <button

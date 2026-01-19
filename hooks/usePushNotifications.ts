@@ -16,7 +16,6 @@ export function usePushNotifications(userEmail: string | undefined) {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/custom-sw.js').then(() => {
-        console.log('Service Worker registered')
         checkSubscription()
       }).catch(err => {
         console.error('Service Worker registration failed:', err)
@@ -65,8 +64,6 @@ export function usePushNotifications(userEmail: string | undefined) {
       const subscriptionJSON = subscription.toJSON()
       const endpoint = subscriptionJSON.endpoint
 
-      console.log('Subscription endpoint:', endpoint)
-
       // FIXED: Get all subscriptions for this user and check endpoint manually
       const { data: allSubs, error: fetchError } = await supabase
         .from('push_subscriptions')
@@ -78,8 +75,6 @@ export function usePushNotifications(userEmail: string | undefined) {
         throw fetchError
       }
 
-      console.log('All subscriptions:', allSubs)
-
       // Find existing subscription by comparing endpoints
       const existing = allSubs?.find(sub => {
         const subData = typeof sub.subscription === 'string' 
@@ -87,8 +82,6 @@ export function usePushNotifications(userEmail: string | undefined) {
           : sub.subscription
         return subData.endpoint === endpoint
       })
-
-      console.log('Existing subscription:', existing)
 
       if (existing) {
         // Update this device's subscription
@@ -102,7 +95,6 @@ export function usePushNotifications(userEmail: string | undefined) {
           .eq('id', existing.id)
 
         if (error) throw error
-        console.log('Subscription updated')
       } else {
         // Insert new device subscription
         const { error } = await supabase
@@ -114,7 +106,6 @@ export function usePushNotifications(userEmail: string | undefined) {
           })
 
         if (error) throw error
-        console.log('New subscription inserted')
       }
 
       setIsSubscribed(true)
@@ -139,8 +130,6 @@ export function usePushNotifications(userEmail: string | undefined) {
         const endpoint = subscription.toJSON().endpoint
         await subscription.unsubscribe()
 
-        console.log('Unsubscribing endpoint:', endpoint)
-
         // Get all subscriptions and find the one to delete
         const { data: allSubs } = await supabase
           .from('push_subscriptions')
@@ -161,7 +150,6 @@ export function usePushNotifications(userEmail: string | undefined) {
             .eq('id', toDelete.id)
 
           if (error) throw error
-          console.log('Subscription deleted')
         }
       }
 

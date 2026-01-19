@@ -1,8 +1,6 @@
 // pages/movies.tsx
-import React, { useState } from "react";
+import React from "react";
 import Head from "next/head";
-import { useSession } from "@supabase/auth-helpers-react";
-import { Loader2 } from "lucide-react";
 import Layout from "../../components/Layout";
 import MovieWatchlist from "../../components/movies/MovieList";
 import LoadingState from "../../components/LoadingState";

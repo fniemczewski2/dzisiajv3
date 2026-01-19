@@ -6,7 +6,7 @@ import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 export function useReminders() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const today = getAppDate();
 

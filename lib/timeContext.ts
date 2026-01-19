@@ -1,6 +1,5 @@
 // lib/timeContext.ts
-import { formatDistanceToNow, differenceInDays, differenceInHours, differenceInMinutes, isPast, isFuture, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
-import { pl } from 'date-fns/locale';
+import { differenceInDays, isPast, isFuture, isToday, parseISO } from 'date-fns';
 import { Calendar, Check, ChevronRight, ChevronsRight, Clock, Siren } from 'lucide-react';
 import type { LucideIcon } from "lucide-react";
 
@@ -43,21 +42,12 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
         shouldPulse: true,
       };
   }
-
-  if (isTomorrow(dueDate)) {
-    return {
-      display: 'Jutro',
-      color: 'text-yellow-700 bg-yellow-50 border-yellow-200',
-      icon: ChevronRight,
-      shouldPulse: false,
-    };
-  }
   
-  const daysUntil = differenceInDays(dueDate, now);
+  const daysUntil = differenceInDays(dueDate, now) + 1;
   if (daysUntil <= 7 && isFuture(dueDate)) {
     const dayName = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'][dueDate.getDay()];
     return {
-      display: `${dayName} (${daysUntil} dni)`,
+      display: `${daysUntil === 1 ? "Jutro" : dayName + " (" + daysUntil + " dni)" }`,
       color: 'text-green-600 bg-green-50 border-green-200',
       icon: ChevronsRight,
       shouldPulse: false,

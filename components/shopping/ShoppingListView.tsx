@@ -16,7 +16,7 @@ export default function ShoppingListView() {
 
   const userOptions = settings?.users ?? [];
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
 
   useEffect(() => {
     if (editingId && nameRef.current) {
