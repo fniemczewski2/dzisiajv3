@@ -90,26 +90,56 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
       return;
     }
 
+    if (!userEmail) {
+      alert('User email is missing');
+      return;
+    }
+
     try {
-      const response = await fetch('/api/test-notification', {
+      console.log('=== Sending Test Notification ===');
+      console.log('User email:', userEmail);
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase configuration missing');
+      }
+
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-push`;
+      console.log('Calling:', edgeFunctionUrl);
+
+      const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           userEmail,
           title: 'Test Notification',
-          message: 'This is a test notification from DzisiajV3!',
-          url: '/'
-        })
+          message: 'This is a test notification from Dzisiajv3!',
+          url: '/',
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to send test notification');
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to send: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Success response:', data);
       
-      alert('Test notification sent! Check your device.');
+      alert(`Test notification sent!\nSent to ${data.sent || 0} device(s) out of ${data.total || 0}.`);
     } catch (error) {
       console.error('Error sending test notification:', error);
-      alert('Failed to send test notification');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('Failed to send test notification:\n' + errorMessage);
     }
   };
 
