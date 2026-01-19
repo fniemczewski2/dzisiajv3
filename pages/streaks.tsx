@@ -15,7 +15,7 @@ import { AddButton } from "../components/CommonButtons";
 
 export default function StreaksPage() {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.USER_EMAIL;
 
   const { streaks, loading, refetch, deleteStreak, updateStreak } = useStreaks();
   const [showForm, setShowForm] = useState(false);

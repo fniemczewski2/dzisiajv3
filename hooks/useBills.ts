@@ -7,7 +7,7 @@ import { useSettings } from "./useSettings";
 export function useBills() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.USER_EMAIL;
   const { settings } = useSettings();
   const [incomeItems, setIncomeItems] = useState<Bill[]>([]);
   const [expenseItems, setExpenseItems] = useState<Bill[]>([]);

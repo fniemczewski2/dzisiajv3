@@ -1,310 +1,132 @@
 // hooks/usePushNotifications.ts
-import { useState, useEffect } from 'react';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
+'use client'
 
-// Helper do konwersji klucza VAPID
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
-export interface PushNotificationState {
-  isSupported: boolean;
-  permission: NotificationPermission | null;
-  subscription: PushSubscription | null;
-  isSubscribed: boolean;
-  error: string | null;
-  platform: 'ios' | 'android' | 'desktop' | 'unknown';
-  isStandalone: boolean;
-  isLoading: boolean;
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-export interface NotificationOptions {
-  icon?: string;
-  badge?: string;
-  tag?: string;
-  url?: string;
-  vibrate?: number[];
-  requireInteraction?: boolean;
-}
-
-export function usePushNotifications() {
-  // Use the session from context - this is the key!
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  
-  const [state, setState] = useState<PushNotificationState>({
-    isSupported: false,
-    permission: null,
-    subscription: null,
-    isSubscribed: false,
-    error: null,
-    platform: 'unknown',
-    isStandalone: false,
-    isLoading: false,
-  });
+export function usePushNotifications(userEmail: string | null) {
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Detekcja platformy
-    const ua = navigator.userAgent.toLowerCase();
-    let platform: PushNotificationState['platform'] = 'unknown';
-    if (/iphone|ipad|ipod/.test(ua)) platform = 'ios';
-    else if (/android/.test(ua)) platform = 'android';
-    else if (/windows|macintosh|linux/.test(ua)) platform = 'desktop';
-
-    const isStandalone = 
-      window.matchMedia('(display-mode: standalone)').matches || 
-      (navigator as any).standalone === true;
-
-    const hasServiceWorker = 'serviceWorker' in navigator;
-    const hasPushManager = 'PushManager' in window;
-    const isSupported = hasServiceWorker && hasPushManager;
-
-    setState(prev => ({
-      ...prev,
-      platform,
-      isStandalone,
-      isSupported,
-      permission: isSupported ? Notification.permission : 'denied',
-    }));
-
-    if (isSupported) {
-      checkExistingSubscription();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/custom-sw.js').then(() => {
+        console.log('Service Worker registered')
+        checkSubscription()
+      })
     }
-  }, []);
+  }, [])
 
-  const checkExistingSubscription = async () => {
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      
-      if (subscription) {
-        console.log('Existing subscription found:', subscription.endpoint);
-        setState(prev => ({ ...prev, subscription, isSubscribed: true }));
-      } else {
-        console.log('No existing subscription');
-      }
-    } catch (error) {
-      console.error('Błąd sprawdzania subskrypcji:', error);
+  async function checkSubscription() {
+    if (!('serviceWorker' in navigator) || !userEmail) return
+
+    const registration = await navigator.serviceWorker.ready
+    const subscription = await registration.pushManager.getSubscription()
+    setIsSubscribed(!!subscription)
+  }
+
+  async function subscribeToPush() {
+    if (!userEmail) {
+      alert('Please log in first')
+      return
     }
-  };
 
-  const requestPermission = async () => {
-    try {
-      console.log('Requesting notification permission...');
-      const permission = await Notification.requestPermission();
-      console.log('Permission result:', permission);
-      setState(prev => ({ ...prev, permission }));
-      return permission;
-    } catch (error) {
-      console.error('Błąd uprawnień:', error);
-      return 'denied';
-    }
-  };
-
-  const subscribe = async (): Promise<void> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setLoading(true)
 
     try {
-      console.log('Starting subscription process...');
-      console.log('Session:', session ? 'Available' : 'Not available');
-      console.log('User email:', session?.user?.email);
+      // Request notification permission
+      const permission = await Notification.requestPermission()
       
-      if (!session?.user?.email) {
-        throw new Error('Musisz być zalogowany, aby włączyć powiadomienia');
-      }
-      
-      if (state.platform === 'ios' && !state.isStandalone) {
-        throw new Error('Na iPhone wymagane dodanie do ekranu głównego (PWA).');
+      if (permission !== 'granted') {
+        alert('Please enable notifications in your browser settings')
+        setLoading(false)
+        return
       }
 
-      if (Notification.permission !== 'granted') {
-        console.log('Requesting permission...');
-        const perm = await requestPermission();
-        if (perm !== 'granted') throw new Error('Brak uprawnień.');
-      }
+      // Get service worker registration
+      const registration = await navigator.serviceWorker.ready
 
-      console.log('Getting service worker registration...');
-      const registration = await navigator.serviceWorker.ready;
-      console.log('Service worker ready');
-      
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      
-      if (!vapidPublicKey) {
-        console.error('VAPID key not found in environment');
-        throw new Error('Brak klucza VAPID.');
-      }
-
-      console.log('VAPID key found:', vapidPublicKey.substring(0, 10) + '...');
-      console.log('Subscribing to push manager...');
-      
+      // Subscribe to push notifications
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-      });
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+        )
+      })
 
-      console.log('Push subscription created:', subscription.endpoint);
+      // Save subscription to Supabase
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_email: userEmail,
+          subscription: subscription.toJSON(),
+          user_agent: navigator.userAgent
+        }, {
+          onConflict: 'user_email'
+        })
 
-      // Zapisz na serwerze - Supabase auth automatically sends cookies
-      console.log('Saving subscription to server...');
-      const response = await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important: send cookies
-        body: JSON.stringify(subscription),
-      });
+      if (error) throw error
 
-      console.log('Server response status:', response.status);
-      const data = await response.json();
-      console.log('Server response data:', data);
-      
-      if (!response.ok) {
-        console.error('Server error:', data);
-        throw new Error(data.error || `Server error: ${response.status}`);
-      }
-
-      console.log('Subscription saved successfully!');
-      setState(prev => ({ ...prev, subscription, isSubscribed: true, isLoading: false }));
-
+      setIsSubscribed(true)
+      alert('Push notifications enabled!')
     } catch (error) {
-      console.error('Subscribe error:', error);
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Błąd subskrypcji',
-        isLoading: false
-      }));
+      console.error('Error subscribing to push:', error)
+      alert('Failed to enable push notifications')
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
-  const unsubscribe = async (): Promise<void> => {
-    setState(prev => ({ ...prev, isLoading: true }));
-    try {
-      console.log('Unsubscribing...');
-      
-      if (state.subscription) {
-        console.log('Sending unsubscribe request to server...');
-        const response = await fetch('/api/notifications/unsubscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ endpoint: state.subscription.endpoint }),
-        });
-        
-        if (response.ok) {
-          console.log('Server unsubscribe successful');
-        } else {
-          console.warn('Server unsubscribe failed:', await response.text());
-        }
-        
-        console.log('Unsubscribing from push manager...');
-        await state.subscription.unsubscribe();
-        console.log('Unsubscribed successfully');
-      }
-      
-      setState(prev => ({ ...prev, subscription: null, isSubscribed: false, isLoading: false }));
-    } catch (error) {
-      console.error('Unsubscribe error:', error);
-      setState(prev => ({ ...prev, error: 'Błąd odsubskrybowania', isLoading: false }));
-    }
-  };
-
-  const sendTestNotification = async () => {
-    console.log('Sending test notification via server...');
-    
-    try {
-      const response = await fetch('/api/notifications/send-test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-      console.log('Test notification response:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send test notification');
-      }
-
-      console.log('Test notification sent successfully!');
-    } catch (error) {
-      console.error('Test notification error:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Błąd wysyłania testowego powiadomienia' 
-      }));
-    }
-  };
-
-  const scheduleNotification = (
-    title: string, 
-    body: string, 
-    delay: number, 
-    options?: NotificationOptions
-  ) => {
-    if (state.permission !== 'granted') return;
-
-    setTimeout(async () => {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        registration.showNotification(title, {
-          body,
-          icon: options?.icon || '/icon.png',
-          badge: options?.badge || '/icon.png',
-          tag: options?.tag || `scheduled-${Date.now()}`,
-          data: {
-            url: options?.url || '/',
-            dateOfArrival: Date.now(),
-          },
-          requireInteraction: options?.requireInteraction || false,
-        });
-      } catch (error) {
-        console.error('Błąd wysyłania zaplanowanego powiadomienia:', error);
-      }
-    }, delay);
-  };
-
-  const sendNotification = async (
-    title: string,
-    body: string,
-    options?: NotificationOptions
-  ) => {
-    if (state.permission !== 'granted') return;
+  async function unsubscribeFromPush() {
+    setLoading(true)
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(title, {
-        body,
-        icon: options?.icon || '/icon.png',
-        badge: options?.badge || '/icon.png',
-        tag: options?.tag,
-        data: {
-          url: options?.url || '/',
-          dateOfArrival: Date.now(),
-        },
-        requireInteraction: options?.requireInteraction || false,
-      });
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+
+      if (subscription) {
+        await subscription.unsubscribe()
+      }
+
+      // Remove from Supabase
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_email', userEmail)
+
+      setIsSubscribed(false)
+      alert('Push notifications disabled')
     } catch (error) {
-      console.error('Błąd wysyłania powiadomienia:', error);
+      console.error('Error unsubscribing:', error)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return {
-    ...state,
-    requestPermission,
-    subscribe,
-    unsubscribe,
-    sendTestNotification,
-    scheduleNotification,
-    sendNotification,
-  };
+    isSubscribed,
+    loading,
+    subscribeToPush,
+    unsubscribeFromPush
+  }
+}
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/')
+
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
 }

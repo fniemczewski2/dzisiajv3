@@ -26,7 +26,7 @@ export default function EventForm({
   selectedDate,
 }: EventsFormProps) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.USER_EMAIL;
   const { settings } = useSettings();
   
   const rangeStart = currentDate ? format(startOfMonth(currentDate), "yyyy-MM-dd") :  format(startOfMonth(getAppDateTime()), "yyyy-MM-dd");

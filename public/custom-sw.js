@@ -1,36 +1,40 @@
-// public/sw.js
-
-self.addEventListener('push', function (event) {
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body,
-      icon: data.icon || '/icon.png',
-      badge: '/icon.png',
-      vibrate: [100, 50, 100],
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: '2',
-        url: data.url || '/', // Link do otwarcia
-      },
-    };
-    event.waitUntil(self.registration.showNotification(data.title, options));
-  }
-});
-
-self.addEventListener('notificationclick', function (event) {
-  console.log('Notification click received.');
-  event.notification.close();
+// public/custom-sw.js
+self.addEventListener('push', function(event) {
+  const data = event.data.json()
   
-  // Otwórz URL po kliknięciu
+  const options = {
+    body: data.message,
+    icon: '/icon-192.png',
+    badge: '/badge-72.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: data.id,
+      url: data.url || '/'
+    },
+    actions: [
+      {
+        action: 'explore',
+        title: 'View',
+      },
+      {
+        action: 'close',
+        title: 'Close',
+      },
+    ]
+  }
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-       const url = event.notification.data.url;
-       for (let i = 0; i < clientList.length; i++) {
-         const client = clientList[i];
-         if (client.url === url && 'focus' in client) return client.focus();
-       }
-       if (clients.openWindow) return clients.openWindow(url);
-    })
-  );
-});
+    self.registration.showNotification(data.title, options)
+  )
+})
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close()
+
+  if (event.action === 'explore') {
+    event.waitUntil(
+      clients.openWindow(event.notification.data.url)
+    )
+  }
+})
