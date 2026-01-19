@@ -82,16 +82,21 @@ export function usePushNotifications() {
       const subscription = await registration.pushManager.getSubscription();
       
       if (subscription) {
+        console.log('Existing subscription found:', subscription.endpoint);
         setState(prev => ({ ...prev, subscription, isSubscribed: true }));
+      } else {
+        console.log('No existing subscription');
       }
     } catch (error) {
-      console.error('Błąd subskrypcji:', error);
+      console.error('Błąd sprawdzania subskrypcji:', error);
     }
   };
 
   const requestPermission = async () => {
     try {
+      console.log('Requesting notification permission...');
       const permission = await Notification.requestPermission();
+      console.log('Permission result:', permission);
       setState(prev => ({ ...prev, permission }));
       return permission;
     } catch (error) {
@@ -104,68 +109,126 @@ export function usePushNotifications() {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
+      console.log('Starting subscription process...');
+      console.log('Platform:', state.platform, 'Standalone:', state.isStandalone);
+      
       if (state.platform === 'ios' && !state.isStandalone) {
         throw new Error('Na iPhone wymagane dodanie do ekranu głównego (PWA).');
       }
 
       if (Notification.permission !== 'granted') {
+        console.log('Requesting permission...');
         const perm = await requestPermission();
         if (perm !== 'granted') throw new Error('Brak uprawnień.');
       }
 
+      console.log('Getting service worker registration...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('Service worker ready');
+      
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       
-      if (!vapidPublicKey) throw new Error('Brak klucza VAPID.');
+      if (!vapidPublicKey) {
+        console.error('VAPID key not found in environment');
+        console.error('Available env vars:', Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC')));
+        throw new Error('Brak klucza VAPID.');
+      }
 
+      console.log('VAPID key found:', vapidPublicKey.substring(0, 10) + '...');
+      console.log('Subscribing to push manager...');
+      
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
 
+      console.log('Push subscription created:', subscription.endpoint);
+
       // Zapisz na serwerze
-      await fetch('/api/notifications/subscribe', {
+      console.log('Saving subscription to server...');
+      const response = await fetch('/api/notifications/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription),
       });
 
+      console.log('Server response status:', response.status);
+      const data = await response.json();
+      console.log('Server response data:', data);
+      
+      if (!response.ok) {
+        console.error('Server error:', data);
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
+      console.log('Subscription saved successfully!');
       setState(prev => ({ ...prev, subscription, isSubscribed: true, isLoading: false }));
 
     } catch (error) {
+      console.error('Subscribe error:', error);
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Błąd subskrypcji',
         isLoading: false
       }));
+      // Don't throw - let the component handle the error via state
     }
   };
 
   const unsubscribe = async (): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
+      console.log('Unsubscribing...');
+      
       if (state.subscription) {
-        await fetch('/api/notifications/unsubscribe', {
+        console.log('Sending unsubscribe request to server...');
+        const response = await fetch('/api/notifications/unsubscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint: state.subscription.endpoint }),
         });
+        
+        if (response.ok) {
+          console.log('Server unsubscribe successful');
+        } else {
+          console.warn('Server unsubscribe failed:', await response.text());
+        }
+        
+        console.log('Unsubscribing from push manager...');
         await state.subscription.unsubscribe();
+        console.log('Unsubscribed successfully');
       }
+      
       setState(prev => ({ ...prev, subscription: null, isSubscribed: false, isLoading: false }));
     } catch (error) {
+      console.error('Unsubscribe error:', error);
       setState(prev => ({ ...prev, error: 'Błąd odsubskrybowania', isLoading: false }));
     }
   };
 
   const sendTestNotification = async () => {
-    if (state.permission === 'granted') {
-      const registration = await navigator.serviceWorker.ready;
-      // Używamy registration.showNotification zamiast new Notification dla lepszego wsparcia mobilnego
-      registration.showNotification("Test PWA", {
-        body: "To jest testowe powiadomienie.",
-        icon: "/icon-192x192.png",
+    console.log('Sending test notification via server...');
+    
+    try {
+      const response = await fetch('/api/notifications/send-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
+
+      const data = await response.json();
+      console.log('Test notification response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send test notification');
+      }
+
+      console.log('Test notification sent successfully!');
+    } catch (error) {
+      console.error('Test notification error:', error);
+      setState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Błąd wysyłania testowego powiadomienia' 
+      }));
     }
   };
 
@@ -230,7 +293,7 @@ export function usePushNotifications() {
     subscribe,
     unsubscribe,
     sendTestNotification,
-    scheduleNotification, // Enhanced with options
-    sendNotification, // Immediate notification method
+    scheduleNotification,
+    sendNotification,
   };
 }
