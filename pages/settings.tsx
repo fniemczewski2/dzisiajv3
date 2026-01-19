@@ -57,7 +57,7 @@ export default function SettingsPage() {
           onSave={saveSettings}
         />
 
-        <PushNotificationManager />
+        <PushNotificationManager userEmail={session?.user?.email}/>
         
         <LocationSection
           onRequestLocation={requestGeolocation}

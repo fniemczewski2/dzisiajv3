@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export function usePushNotifications(userEmail: string | null) {
+export function usePushNotifications(userEmail: string | undefined) {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
 
