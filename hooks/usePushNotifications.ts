@@ -1,5 +1,6 @@
 // hooks/usePushNotifications.ts
 import { useState, useEffect } from 'react';
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 
 // Helper do konwersji klucza VAPID
 function urlBase64ToUint8Array(base64String: string) {
@@ -34,6 +35,10 @@ export interface NotificationOptions {
 }
 
 export function usePushNotifications() {
+  // Use the session from context - this is the key!
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  
   const [state, setState] = useState<PushNotificationState>({
     isSupported: false,
     permission: null,
@@ -110,7 +115,12 @@ export function usePushNotifications() {
 
     try {
       console.log('Starting subscription process...');
-      console.log('Platform:', state.platform, 'Standalone:', state.isStandalone);
+      console.log('Session:', session ? 'Available' : 'Not available');
+      console.log('User email:', session?.user?.email);
+      
+      if (!session?.user?.email) {
+        throw new Error('Musisz być zalogowany, aby włączyć powiadomienia');
+      }
       
       if (state.platform === 'ios' && !state.isStandalone) {
         throw new Error('Na iPhone wymagane dodanie do ekranu głównego (PWA).');
@@ -130,7 +140,6 @@ export function usePushNotifications() {
       
       if (!vapidPublicKey) {
         console.error('VAPID key not found in environment');
-        console.error('Available env vars:', Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC')));
         throw new Error('Brak klucza VAPID.');
       }
 
@@ -144,11 +153,14 @@ export function usePushNotifications() {
 
       console.log('Push subscription created:', subscription.endpoint);
 
-      // Zapisz na serwerze
+      // Zapisz na serwerze - Supabase auth automatically sends cookies
       console.log('Saving subscription to server...');
       const response = await fetch('/api/notifications/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important: send cookies
         body: JSON.stringify(subscription),
       });
 
@@ -171,7 +183,6 @@ export function usePushNotifications() {
         error: error instanceof Error ? error.message : 'Błąd subskrypcji',
         isLoading: false
       }));
-      // Don't throw - let the component handle the error via state
     }
   };
 
@@ -185,6 +196,7 @@ export function usePushNotifications() {
         const response = await fetch('/api/notifications/unsubscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ endpoint: state.subscription.endpoint }),
         });
         
@@ -213,6 +225,7 @@ export function usePushNotifications() {
       const response = await fetch('/api/notifications/send-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -232,7 +245,6 @@ export function usePushNotifications() {
     }
   };
 
-  // Enhanced scheduleNotification with more options
   const scheduleNotification = (
     title: string, 
     body: string, 
@@ -246,8 +258,8 @@ export function usePushNotifications() {
         const registration = await navigator.serviceWorker.ready;
         registration.showNotification(title, {
           body,
-          icon: options?.icon || '/icon-192x192.png',
-          badge: options?.badge || '/icon-192x192.png',
+          icon: options?.icon || '/icon.png',
+          badge: options?.badge || '/icon.png',
           tag: options?.tag || `scheduled-${Date.now()}`,
           data: {
             url: options?.url || '/',
@@ -261,7 +273,6 @@ export function usePushNotifications() {
     }, delay);
   };
 
-  // Send immediate notification
   const sendNotification = async (
     title: string,
     body: string,
@@ -273,8 +284,8 @@ export function usePushNotifications() {
       const registration = await navigator.serviceWorker.ready;
       await registration.showNotification(title, {
         body,
-        icon: options?.icon || '/icon-192x192.png',
-        badge: options?.badge || '/icon-192x192.png',
+        icon: options?.icon || '/icon.png',
+        badge: options?.badge || '/icon.png',
         tag: options?.tag,
         data: {
           url: options?.url || '/',
