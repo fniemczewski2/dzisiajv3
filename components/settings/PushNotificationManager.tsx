@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Bell, BellOff, CheckCircle, XCircle, AlertCircle, Smartphone, Info } from 'lucide-react';
+import { Bell, BellOff, CheckCircle } from 'lucide-react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 
 export default function PushNotificationManager() {
   const {
     permission,
     isSubscribed,
-    error,
     platform,
     isStandalone,
+    isSupported,
+    isLoading,
     requestPermission,
     subscribe,
     unsubscribe,
@@ -18,6 +19,9 @@ export default function PushNotificationManager() {
   const [showDetails, setShowDetails] = useState(false);
 
   const handleToggleNotifications = async () => {
+    console.log('=== Toggle Notifications Clicked ===');
+    console.log('Current state:', { isSubscribed, permission, isSupported });
+    
     if (isSubscribed) {
       await unsubscribe();
     } else {
@@ -28,8 +32,10 @@ export default function PushNotificationManager() {
   return (
     <div className="bg-card rounded-xl shadow p-6 mb-4">
       <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
           <Bell className="w-5 h-5 mr-2 text-gray-600 flex-shrink-0" />
-            <h3 className="text-xl w-full font-semibold">Powiadomienia Push</h3>
+          <h3 className="text-xl font-semibold">Powiadomienia Push</h3>
+        </div>
         <button
           onClick={() => setShowDetails(!showDetails)}
           className="text-sm text-primary hover:underline"
@@ -38,26 +44,16 @@ export default function PushNotificationManager() {
         </button>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <div className="flex items-start gap-2">
-            <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        </div>
-      )}
-
       {showDetails && (
         <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-2">
-
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium">Platforma:</span>
             <span className="px-2 py-1 rounded bg-gray-100 text-gray-800">
-                {platform === 'ios' ? 'iOS' : platform === 'android' ? 'Android' : 'Desktop'}
+              {platform === 'ios' ? 'iOS' : platform === 'android' ? 'Android' : 'Desktop'}
             </span>
             {isStandalone && 
-              <span className="px-2 py-1 rounded bg-gray-100 text-gray-800">
-                  Standalone
+              <span className="px-2 py-1 rounded bg-green-100 text-green-800">
+                Standalone
               </span>
             }
           </div>
@@ -72,7 +68,8 @@ export default function PushNotificationManager() {
                 : 'bg-gray-100 text-gray-800'
             }`}>
               {permission === 'granted' ? 'Przyznane' : 
-               permission === 'denied' ? 'Odrzucone' : 'Nieznane'}
+               permission === 'denied' ? 'Odrzucone' : 
+               permission === 'default' ? 'Nie ustawione' : 'Nieznane'}
             </span>
           </div>
           
@@ -86,7 +83,6 @@ export default function PushNotificationManager() {
               {isSubscribed ? 'Aktywna' : 'Nieaktywna'}
             </span>
           </div>
-
         </div>
       )}
 
@@ -94,9 +90,10 @@ export default function PushNotificationManager() {
         {permission !== 'granted' && (
           <button
             onClick={requestPermission}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg transition-colors"
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors disabled:opacity-50"
           >
-            Przyznaj uprawnienia
+            {isLoading ? 'Ładowanie...' : 'Przyznaj uprawnienia'}
             <Bell className="w-4 h-4" />
           </button>
         )}
@@ -104,20 +101,23 @@ export default function PushNotificationManager() {
         {permission === 'granted' && (
           <button
             onClick={handleToggleNotifications}
-            className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+            disabled={isLoading}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
               isSubscribed
                 ? 'bg-red-500 hover:bg-red-600 text-white'
                 : 'bg-primary hover:bg-secondary text-white'
             }`}
           >
-            {isSubscribed ? (
+            {isLoading ? (
+              'Ładowanie...'
+            ) : isSubscribed ? (
               <>
-                Wyłącz powiadomienia&nbsp;
+                Wyłącz powiadomienia
                 <BellOff className="w-5 h-5" />
               </>
             ) : (
               <>
-                Włącz powiadomienia&nbsp;
+                Włącz powiadomienia
                 <Bell className="w-5 h-5" />
               </>
             )}
@@ -127,9 +127,10 @@ export default function PushNotificationManager() {
         {isSubscribed && (
           <button
             onClick={sendTestNotification}
-            className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50"
           >
-            Testuj&nbsp;
+            Testuj
             <CheckCircle className="w-5 h-5" />
           </button>
         )}
