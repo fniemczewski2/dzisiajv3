@@ -5,7 +5,7 @@ import { ShoppingList } from "../types";
 export function useShoppingLists() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.USER_EMAIL;
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
 

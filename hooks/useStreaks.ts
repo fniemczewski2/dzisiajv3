@@ -6,7 +6,7 @@ import { Streak } from "../types";
 export function useStreaks() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL; 
+  const userEmail = session?.user?.email || process.env.USER_EMAIL; 
   const [streaks, setStreaks] = useState<Streak[]>([]);
   const [loading, setLoading] = useState(true);
 

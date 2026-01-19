@@ -26,7 +26,7 @@ type UseRecipes = {
 export function useRecipes(): UseRecipes {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.USER_EMAIL;
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [products, setProducts] = useState<string[]>([]);

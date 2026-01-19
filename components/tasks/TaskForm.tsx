@@ -20,7 +20,7 @@ export default function TaskForm({
   onCancel,
 }: TaskFormProps) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.USER_EMAIL;
   const { settings } = useSettings();
   const supabase = useSupabaseClient();
   const isEdit = !!initialTask;
