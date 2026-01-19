@@ -2,40 +2,50 @@
 
 import { Heart } from "lucide-react";
 import { useState } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function LoveButton() {
+  const supabase = createClientComponentClient();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
   const sendLove = async () => {
-
     setLoading(true);
+
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Supabase configuration missing');
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("Brak sesji użytkownika");
       }
 
-      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-love`;
-
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/send-love`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
-      setSent(true)
+      if (!response.ok) {
+        const err = await response.json();
+        console.error("Edge function error:", err);
+      }
+
+      setSent(true);
       setTimeout(() => setSent(false), 60000);
-      
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
+    } catch (error) {
+      console.error("Error sending love:", error);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
