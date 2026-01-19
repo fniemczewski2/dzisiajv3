@@ -29,6 +29,7 @@ export default function LoveButton() {
           headers: {
             "Authorization": `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
+            body: JSON.stringify({})
           },
         }
       );
