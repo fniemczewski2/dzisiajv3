@@ -167,7 +167,7 @@ async function sendDailyDigest(userEmail: string, subscriptions: any[]): Promise
     const payload = JSON.stringify({
       title: 'Dzisiaj - Twoje zadania',
       body: `Masz ${tasks.length} zadań na dziś`,
-      icon: '/icon-192x192.png',
+      icon: '/icon.png',
       url: '/tasks',
     });
 
@@ -221,7 +221,7 @@ async function sendHabitReminder(userEmail: string, subscriptions: any[]): Promi
     const payload = JSON.stringify({
       title: 'Dzisiaj - Nawyki',
       body: `Pamiętaj o ${undoneHabits.length} nawykach`,
-      icon: '/icon-192x192.png',
+      icon: '/icon.png',
       url: '/tasks',
     });
 
@@ -275,7 +275,7 @@ async function sendReminders(userEmail: string, subscriptions: any[]): Promise<n
         const payload = JSON.stringify({
           title: `Przypomnienie: ${reminder.tytul}`,
           body: `Powtarza się co ${reminder.powtarzanie} dni`,
-          icon: '/icon-192x192.png',
+          icon: '/icon.png',
           url: '/tasks',
         });
 
@@ -333,7 +333,7 @@ async function sendTaskReminders(userEmail: string, subscriptions: any[]): Promi
           const payload = JSON.stringify({
             title: `Zadanie: ${task.title}`,
             body: `Za ${reminderMin} minut kończy się termin`,
-            icon: '/icon-192x192.png',
+            icon: '/icon.png',
             url: '/tasks',
           });
 
@@ -396,7 +396,7 @@ async function sendCalendarReminders(userEmail: string, subscriptions: any[]): P
           const payload = JSON.stringify({
             title: `Wydarzenie: ${event.title}`,
             body: `Za ${reminderMin} minut${event.place ? ` w ${event.place}` : ''}`,
-            icon: '/icon-192x192.png',
+            icon: '/icon.png',
             url: '/calendar',
           });
 

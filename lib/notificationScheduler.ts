@@ -266,8 +266,8 @@ export async function sendImmediateNotification(
       const registration = await navigator.serviceWorker.ready;
       await registration.showNotification(title, {
         body,
-        icon: options?.icon || '/icon-192x192.png',
-        badge: options?.badge || '/icon-192x192.png',
+        icon: options?.icon || '/icon.png',
+        badge: options?.badge || '/icon.png',
         tag: options?.tag,
         data: {
           url: options?.url || '/',
