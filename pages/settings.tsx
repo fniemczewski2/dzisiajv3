@@ -14,6 +14,7 @@ import LocationSection from "../components/settings/LocationSection";
 import UserSection from "../components/settings/UserSection";
 import { useSettings } from "../hooks/useSettings";
 import PushNotificationManager from '../components/settings/PushNotificationManager';
+import LoveButton from "../components/settings/LoveButton";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -39,7 +40,10 @@ export default function SettingsPage() {
       </Head>
       <Layout>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Menu</h2>
+          <h2 className="text-2xl font-semibold">
+            Menu&nbsp;&nbsp;
+            <LoveButton/>
+          </h2>
           <InstallButton />
         </div>
         

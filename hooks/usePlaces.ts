@@ -3,12 +3,14 @@ import { supabase } from "../lib/supabaseClient";
 import { Place, PlaceInsert, OpeningHours } from "../types";
 import { useSession } from "@supabase/auth-helpers-react";
 import { generatePlaceTags } from "../lib/placeTagging";
+import { set } from "date-fns";
 
 export function usePlaces() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("Ładowanie...");
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   
   useEffect(() => {
     if (userEmail) {
@@ -286,7 +288,7 @@ export function usePlaces() {
           // Place exists - UPDATE it
           const updates: Partial<Place> = {
             ...baseData,
-            tags: tags.length > 0 ? tags : existingPlace.tags, // Keep old tags if new generation failed
+            tags: tags.length > 0 ? tags : existingPlace.tags, 
             updated_at: new Date().toISOString(),
           };
 
@@ -295,7 +297,7 @@ export function usePlaces() {
             updates,
           });
 
-          console.log(`Updating existing place: ${placeName}`);
+          setMessage("Aktualizowanie" + {placeName});
         } else {
           // Place doesn't exist - INSERT it
           const newPlace: PlaceInsert = {
@@ -306,7 +308,7 @@ export function usePlaces() {
           };
 
           placesToInsert.push(newPlace);
-          console.log(`Adding new place: ${placeName}`);
+          setMessage("Dodawanie:" + {placeName});
         }
       }
 
@@ -326,7 +328,7 @@ export function usePlaces() {
         }
 
         insertedCount = insertedData?.length || 0;
-        console.log(`Inserted ${insertedCount} new places`);
+        setMessage("Dodano: " + {insertedCount} + " miejsc");
       }
 
       // Update existing places
@@ -343,13 +345,13 @@ export function usePlaces() {
             updatedCount++;
           }
         }
-        console.log(`Updated ${updatedCount} existing places`);
+        setMessage(
+          "Dodano: " + {insertedCount} + " miejsc" +
+          "\nZaaktualizowano: " + {insertedCount} + " miejsc"
+        );
       }
-
       // Refresh the places list
       await fetchPlaces();
-
-      // Return total count of processed places
       return insertedCount + updatedCount;
     } catch (error) {
       console.error("Error in importFromGoogleMaps:", error);
@@ -360,6 +362,7 @@ export function usePlaces() {
   return {
     places,
     loading,
+    message,
     addPlace,
     updatePlace,
     deletePlace,

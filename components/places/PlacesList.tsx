@@ -165,9 +165,9 @@ export default function PlacesList({
                   <a
                     href={
                       place.google_place_id
-                        ? `https://www.google.com/maps/place/?q=place_id:${place.google_place_id}`
-                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            `${place.name}${place.address ? ', ' + place.address : ''}`
+                        ? `https://maps.google.com/?q=place_id:${place.google_place_id}`
+                        : `https://maps.google.com/?q=${encodeURIComponent(
+                            `${place.name}${place.address ? ", " + place.address : ""}`
                           )}`
                     }
                     target="_blank"
@@ -178,7 +178,6 @@ export default function PlacesList({
                     <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-[9px] sm:text-[11px]">Mapy</span>
                   </a>
-                  
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

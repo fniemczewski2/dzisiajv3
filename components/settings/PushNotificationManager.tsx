@@ -59,19 +59,6 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
   };
 
   const handleToggleNotifications = async () => {
-    console.log('=== Toggle Notifications Clicked ===');
-    console.log('Current state:', { isSubscribed, permission, isSupported });
-    
-    if (!isSupported) {
-      alert('Push notifications are not supported in your browser');
-      return;
-    }
-
-    if (permission !== 'granted') {
-      alert('Please grant notification permission first');
-      return;
-    }
-
     try {
       if (isSubscribed) {
         await unsubscribeFromPush();
@@ -80,25 +67,13 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
       }
     } catch (error) {
       console.error('Error toggling notifications:', error);
-      alert('Failed to toggle notifications');
     }
   };
 
   const handleTestNotification = async () => {
-    if (!isSubscribed) {
-      alert('Please enable notifications first');
-      return;
-    }
 
-    if (!userEmail) {
-      alert('User email is missing');
-      return;
-    }
 
     try {
-      console.log('=== Sending Test Notification ===');
-      console.log('User email:', userEmail);
-      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
       
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -108,7 +83,6 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
       }
 
       const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-push`;
-      console.log('Calling:', edgeFunctionUrl);
 
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
@@ -124,8 +98,6 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
         }),
       });
 
-      console.log('Response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response:', errorText);
@@ -133,7 +105,6 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
       }
 
       const data = await response.json();
-      console.log('Success response:', data);
       
       alert(`Test notification sent!\nSent to ${data.sent || 0} device(s) out of ${data.total || 0}.`);
     } catch (error) {

@@ -88,7 +88,16 @@ export default function TasksPage() {
   
   const filterDate = getFilterDate();
   const filteredTasks = useMemo(() => {
-    return filterDate ? tasks.filter((t) => t.due_date === filterDate) : tasks;
+    const allowedStatuses = ["pending", "waiting_for_acceptance"];
+    if (!filterDate) return tasks;
+    if (filterDate == "today") {
+      return tasks.filter(
+        (t) => t.due_date <= filterDate && allowedStatuses.includes(t.status)
+      );
+    }
+    else {
+       return tasks.filter((t) => t.due_date === filterDate);
+    }
   }, [tasks, filterDate]);
 
   useQuickAction({

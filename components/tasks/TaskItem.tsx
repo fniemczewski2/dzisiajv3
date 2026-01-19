@@ -25,7 +25,7 @@ interface Props {
 
 export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const isDone = task.status === "done";
   const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask, rescheduleTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);

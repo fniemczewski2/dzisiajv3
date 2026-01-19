@@ -9,7 +9,7 @@ export function useEvents(
   rangeEnd: string
 ) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.USER_EMAIL;
+  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const supabase = useSupabaseClient();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
