@@ -7,6 +7,7 @@ export type Task = {
   description: string;
   due_date: string;
   status: string;
+  scheduled_time?: string | null;
   user_name: string;
 };
 

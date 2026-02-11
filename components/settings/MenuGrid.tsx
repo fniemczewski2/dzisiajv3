@@ -24,7 +24,7 @@ export default function MenuGrid() {
                 className="bg-primary hover:bg-secondary text-white relative p-2 rounded-lg border transition-all flex flex-col items-center gap-1"
               >
                 <IconComponent className="w-6 h-6 mb-1" />
-                <span className="text-[10px]">{action.label}</span>
+                <span className="text-[10px] sm:text-sm">{action.label}</span>
               </button>
             );
           })}
@@ -44,7 +44,7 @@ export default function MenuGrid() {
                   {category.name}
                 </h3>
 
-                <div className="grid grid-cols-4 gap-2">
+                <div className="flex flex-nowrap gap-2">
                   {category.items.map((button) => {
                     const IconComponent = button.icon;
                     const isActive = router.pathname === button.path;
@@ -55,14 +55,14 @@ export default function MenuGrid() {
                         onClick={() => router.push(button.path)}
                         title={button.title}
                         className="
-                          relative p-2 rounded-lg border transition-all
-                          flex flex-col items-center gap-1
+                          relative p-1.5 sm:p-2 rounded-lg border transition-all
+                          flex flex-col items-center gap-1 flex-1
                         "
                       >
                         <IconComponent className={`w-6 h-6 ${
                           isActive ? 'text-primary' : 'text-gray-700'
                         }`} />
-                        <span className={`text-[10px] sm:text-xs text-center leading-tight ${
+                        <span className={`text-[10px] sm:text-sm text-center leading-tight ${
                           isActive ? 'font-semibold text-primary' : 'text-gray-700'
                         }`}>
                           {button.label}

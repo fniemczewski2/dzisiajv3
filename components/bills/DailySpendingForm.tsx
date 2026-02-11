@@ -43,17 +43,17 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   }
 
   return (
-    <div className="bg-card rounded-xl shadow sm:py-4 sm:my-4 max-w-sm min-w-[300px] flex justify-between items-center px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-      <h3 className="mr-1.5 flex items-center">
+    <div className="bg-card rounded-xl shadow mb-4 overflow-hiddenbg-card sm:my-4 flex justify-between items-center px-3 py-2 sm:p-4 transition">
+      <h3 className="mr-1.5 flex font-semibold items-center">
         <Coins className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
-        Wydane{" "}
+        Wydano{" "}
         {targetDate === today
           ? "dzisiaj"
           : `(${format(parseISO(targetDate), "d.MM", { locale: pl })})`}
-        :
+        
       </h3>
       {isEditing ? (
-        <div className="flex items-center">
+        <div className="flex items-center max-h-[24px]">
           <input
             ref={inputRef}
             type="number"
@@ -64,19 +64,19 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
           />
           <button
             onClick={handleSave}
-            className="ml-2 p-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
+            className="ml-2 p-1.5 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
             title="Zapisz"
             type="button"
           >
-            <Save className="w-5 h-5" />
+            <Save className="w-4 h-4" />
           </button>
           <button
             onClick={handleCancel}
-            className="ml-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="ml-2 p-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             title="Anuluj"
             type="button"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       ) : (

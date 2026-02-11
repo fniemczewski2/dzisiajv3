@@ -1,7 +1,7 @@
-// components/tasks/TaskItem.tsx (UPDATED VERSION)
+// components/tasks/TaskItem.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO, addDays } from "date-fns";
-import { Check } from "lucide-react";
+import { Check, Minus, Plus } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
@@ -16,11 +16,12 @@ import {
   SaveButton,
   CancelButton 
 } from "../CommonButtons";
+import { on } from "events";
 
 interface Props {
   task: Task;
   onTasksChange: () => void;
-  onStartTimer: () => void;
+  onStartTimer?: () => void;
 }
 
 export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
@@ -96,6 +97,15 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     setIsRescheduling(false);
   };
 
+  // Priority Handlers for Edit Mode
+  const increasePriority = () => {
+    setEditedTask(prev => ({ ...prev, priority: Math.max(1, prev.priority - 1) }));
+  };
+
+  const decreasePriority = () => {
+    setEditedTask(prev => ({ ...prev, priority: Math.min(5, prev.priority + 1) }));
+  };
+
   const dueDate = new Date(task.due_date).toISOString().split("T")[0];
   const today = getAppDate();
   const isOverdue = dueDate < today;
@@ -121,23 +131,35 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs font-semibold text-gray-700">Priorytet:</label>
-              <input
-                type="number"
-                min={1}
-                max={10}
-                value={editedTask.priority}
-                onChange={(e) =>
-                  setEditedTask({ ...editedTask, priority: Number(e.target.value) })
-                }
-                className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
-              />
+              <div className="flex items-center gap-1 mt-1">
+                <button
+                    type="button"
+                    onClick={decreasePriority}
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                    title="Zmniejsz priorytet"
+                >
+                    <Minus size={16} />
+                </button>
+                <div className="flex-1 text-center font-bold text-sm bg-white border border-gray-300 rounded-lg py-2">
+                    {editedTask.priority}
+                </div>
+                <button
+                    type="button"
+                    onClick={increasePriority}
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                    title="Zwiększ priorytet"
+                >
+                    <Plus size={16} />
+                </button>
+              </div>
             </div>
+            
             <div>
               <label className="text-xs font-semibold text-gray-700">Kategoria:</label>
               <select
                 value={editedTask.category}
                 onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })}
-                className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary h-[42px]"
               >
                 {[
                   "edukacja",
@@ -299,7 +321,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
                     <span className="text-[9px] sm:text-[11px]">Zrobione</span>
                   </button>
                   <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
-                  <TimerButton onClick={onStartTimer} />
+                  {onStartTimer && <TimerButton onClick={onStartTimer} />}
                   <EditButton onClick={handleEdit} />
                   <DeleteButton onClick={handleDelete} />
                 </>

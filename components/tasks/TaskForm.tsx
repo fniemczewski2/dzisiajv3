@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useRef, useEffect, FormEvent } from "react";
+import React, { useRef, useState, FormEvent } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useTasks } from "../../hooks/useTasks";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
-import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton } from "../CommonButtons";
+import { Minus, Plus } from "lucide-react";
 
 interface TaskFormProps {
   initialTask?: Task | null;
@@ -22,14 +23,17 @@ export default function TaskForm({
   const session = useSession();
   const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const { settings } = useSettings();
-  const { addTask, editTask, loading } = useTasks();
+  const { addTask, loading } = useTasks();
   const todayIso = getAppDate();
+  
   const titleRef = useRef<HTMLInputElement>(null);
   const forUserRef = useRef<HTMLSelectElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
-  const priorityRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dueDateRef = useRef<HTMLInputElement>(null);
+
+  // State for priority (default 3)
+  const [priority, setPriority] = useState(3);
 
   const userOptions = settings?.users ?? [];
 
@@ -45,7 +49,7 @@ export default function TaskForm({
       user_name: userEmail || "",
       for_user: forUser || "mnie",
       category: categoryRef.current?.value || "inne",
-      priority: Number(priorityRef.current?.value) || 5,
+      priority: priority,
       description: descriptionRef.current?.value || "",
       due_date: dueDateRef.current?.value || todayIso,
       status: nextStatus,
@@ -54,6 +58,16 @@ export default function TaskForm({
     await addTask(taskData);
     onTasksChange();
     if (onCancel) onCancel();
+  };
+
+  // Increase priority = Lower Number (e.g. 2 is higher priority than 3)
+  const increasePriority = () => {
+    setPriority((prev) => Math.max(1, prev - 1));
+  };
+
+  // Decrease priority = Higher Number (e.g. 4 is lower priority than 3)
+  const decreasePriority = () => {
+    setPriority((prev) => Math.min(5, prev + 1));
   };
 
   return (
@@ -110,6 +124,8 @@ export default function TaskForm({
             ))}
           </select>
         </div>
+        
+        {/* Priority Controls */}
         <div>
           <label
             htmlFor="priority"
@@ -117,15 +133,27 @@ export default function TaskForm({
           >
             Priorytet:
           </label>
-          <input
-            id="priority"
-            ref={priorityRef}
-            type="number"
-            min={1}
-            max={5}
-            defaultValue={5}
-            className="mt-1 w-full p-2 border rounded"
-          />
+          <div className="flex items-center gap-2 mt-1">
+            <button
+                type="button"
+                onClick={decreasePriority}
+                className="p-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-700 transition-colors"
+                title="Zmniejsz priorytet"
+            >
+                <Minus size={20} />
+            </button>
+            <div className="flex-1 text-center font-bold text-lg bg-white border rounded py-1.5">
+                {priority}
+            </div>
+            <button
+                type="button"
+                onClick={increasePriority}
+                className="p-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-700 transition-colors"
+                title="Zwiększ priorytet"
+            >
+                <Plus size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
