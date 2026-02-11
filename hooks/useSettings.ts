@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 
 export function useSettings() {
-  const session = useSession();
   const supabase = useSupabaseClient();
+  const session = useSession();
   const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   
   const [settings, setSettings] = useState({
@@ -23,10 +23,10 @@ export function useSettings() {
 
 
   useEffect(() => {
-    if (!session) {
-      setLoading(false);
-      return;
-    }
+    // if (!session) {
+    //   setLoading(false);
+    //   return;
+    // }
 
     (async () => {
       setLoading(true);

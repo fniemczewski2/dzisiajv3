@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useSession } from "@supabase/auth-helpers-react";
-import { ChartColumnBig } from "lucide-react";
+import { Calculator, ChartColumnBig } from "lucide-react";
 import { useBills } from "../../hooks/useBills";
 import BillListGrouped from "../../components/bills/BillListGrouped";
 import { useRouter } from "next/router";
@@ -52,6 +52,13 @@ export default function BillsPage() {
               className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
             >
               <ChartColumnBig className="w-5 h-5" />
+            </button>
+                        <button
+              onClick={() => router.push("/bills/calculator")}
+              title="Kalkulator"
+              className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              <Calculator className="w-5 h-5" />
             </button>
           </h2>
 

@@ -15,15 +15,11 @@ import { format, addDays } from "date-fns";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
-import TaskIcons from "../../components/tasks/TaskIcons";
-import WaterTracker from "../../components/tasks/WaterTracker";
 import TaskForm from "../../components/tasks/TaskForm";
 import TaskList from "../../components/tasks/TaskList";
 import FocusMode from "../../components/tasks/FocusMode";
-import { useSettings } from "../../hooks/useSettings";
 import { useTasks } from "../../hooks/useTasks";
 import { Task } from "../../types";
-import Reminders from "../../components/tasks/Reminders";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
@@ -45,8 +41,6 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const [focusModeEnabled, setFocusModeEnabled] = useState(false); 
-
-  const { settings, loading: loadingSettings } = useSettings();
   const { tasks, loading: loadingTasks, fetchTasks } = useTasks();
 
   const { todayDone, todayTotal } = useMemo(() => {
@@ -104,10 +98,6 @@ export default function TasksPage() {
     onActionAdd: () => setShowForm(true),
   });
 
-  const handleTasksChange = async () => {
-    await fetchTasks();
-  };
-
   return (
     <>
       <Head>
@@ -125,10 +115,6 @@ export default function TasksPage() {
       </Head>
 
       <Layout>
-        {settings?.show_habits && <TaskIcons />}
-        {settings?.show_water_tracker && <WaterTracker />}
-        {settings?.show_notifications && <Reminders onTasksChange={handleTasksChange} />}
-
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Zadania&nbsp;({todayDone}/{todayTotal})
@@ -193,7 +179,7 @@ export default function TasksPage() {
           </button>
         </div>
 
-        {(loadingSettings || loadingTasks || !settings) && <LoadingState />}
+        {(loadingTasks ) && <LoadingState />}
 
         {showForm && (
           <div className="mb-6">

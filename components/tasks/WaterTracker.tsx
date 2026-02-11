@@ -26,8 +26,8 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
   };
 
   return (
-    <div className="bg-card rounded-xl flex flex-row shadow items-center justify-around px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-      <Droplet className="w-5 h-5 sm:w-6 sm:h-6" />
+    <div className="bg-card rounded-xl flex flex-row shadow items-center justify-between px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
+      <Droplet className="w-5 h-5 sm:w-6 sm:h-6 mr-1" />
       <div className="relative w-[58%] sm:w-[75%] h-3 mx-2 bg-secondary/10 rounded">
         <div
           className="absolute left-0 top-0 h-3 rounded-full bg-primary transition-all duration-200"
@@ -49,8 +49,8 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
           className="absolute inset-0 rounded-full w-full h-full opacity-0 cursor-pointer"
         />
       </div>
-      <span className="font-medium text-gray-700 ml-2">
-        {water.toFixed(1)}L / 2.0L
+      <span className="font-bold text-gray-700 ml-2">
+        {water.toFixed(1)}L&nbsp;/&nbsp;2.0L
       </span>
     </div>
   );

@@ -21,6 +21,8 @@ import {
   MapPin,
   Target,
   Clapperboard,
+  Calculator,
+  LayoutDashboard,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -43,6 +45,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
     name: "Zadania i Produktywność",
     items: [
+      {path: "/dashboard", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
       { path: "/tasks/eisenhower", title: "Eisenhower", icon: Brain, label: "Eisenhower" },
@@ -63,6 +66,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     items: [
       { path: "/bills", title: "Finanse", icon: Coins, label: "Finanse" },
       { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
+      { path: "/bills/calculator", title: "Kalkulator", icon: Calculator, label: "Kalkulator" },
       { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
       { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
     ],
@@ -86,41 +90,6 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   },
 ];
 
-// Płaska lista nawigacji dla kompatybilności wstecznej
-export const NAVIGATION_CONFIG: NavigationButton[][] = [
-  // Zadania
-  [
-    { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
-    { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia" },
-    { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
-    { path: "/tasks/eisenhower", title: "Eisenhower Matrix", icon: Brain, label: "Eisenhower" },
-    { path: "/tasks/kanban", title: "Kanban", icon: Table2, label: "Kanban" },
-  ],
-  // Notatki
-  [
-    { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
-    { path: "/packing/backpack", title: "Plecak", icon: Backpack, label: "Plecak" },
-    { path: "/packing/suitcase", title: "Walizka", icon: Luggage, label: "Walizka" },
-    { path: "/packing/safety", title: "Plecak ICE", icon: Siren, label: "Plecak\u00a0ICE" },
-  ],
-  // Kalendarz i narzędzia
-  [
-    { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
-    { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
-    { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
-    { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
-    { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
-  ],
-  // Finanse i zakupy
-  [
-    { path: "/bills", title: "Finanse", icon: Coins, label: "Finanse" },
-    { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
-    { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
-    { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
-    { path: "/notes/places", title: "Miejsca", icon: MapPin, label: "Miejsca" },
-    { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
-  ],
-];
 
 // Szybkie akcje - najczęściej używane funkcje
 export const QUICK_ACTIONS: NavigationButton[] = [

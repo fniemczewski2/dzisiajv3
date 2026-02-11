@@ -17,7 +17,7 @@ export function useDaySchemas() {
       .select("*")
       .eq("user_name", userEmail);
     
-    // Parse both days and entries from JSON strings
+    // Parse both days and entries from JSON strings if they come back as strings
     const parsedSchemas = data?.map(schema => ({
       ...schema,
       days: typeof schema.days === 'string' ? JSON.parse(schema.days) : schema.days,
@@ -56,11 +56,19 @@ export function useDaySchemas() {
 
   const updateSchema = async (id: string, payload: Omit<Schema, "id">) => {
     setLoading(true);
-    await supabase.from("day_schemas").update({
+    
+    const { error } = await supabase.from("day_schemas").update({
       name: payload.name,
-      days: JSON.stringify(payload.days),
-      entries: JSON.stringify(payload.entries),
+      // FIX: Removed JSON.stringify to send raw arrays/objects like in addSchema
+      days: payload.days,
+      entries: payload.entries,
     }).eq("id", id);
+
+    if (error) {
+        console.error("Update error:", error);
+        alert(`Error updating schema: ${error.message}`);
+    }
+
     await fetchSchemas();
     setLoading(false);
   };

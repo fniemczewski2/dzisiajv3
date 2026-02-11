@@ -1,4 +1,4 @@
-import { Calendar, Coins, ListTodo, Menu, Pen } from "lucide-react";
+import { Calendar, Coins, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -8,20 +8,21 @@ export default function Navbar() {
     inset-x-4
     px-4
     bg-white/70 
-    backdrop-blur-md S
+    backdrop-blur-md 
     p-2
     flex justify-around 
     shadow-lg
     rounded-xl
+    z-50
   "
     >
       <div
         className="m-0 p-0 grid grid-cols-5 gap-4
         sm:grid-cols-5 sm:gap-0 max-w-[1600px] w-full"
       >
+        <NavLink href="/dashboard" Icon={LayoutDashboard} label="Dzisiaj" />
         <NavLink href="/tasks" Icon={ListTodo} label="Zadania" />
         <NavLink href="/notes" Icon={Pen} label="Notatki" />
-        <NavLink href="/bills" Icon={Coins} label="Finanse" />
         <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" />
         <NavLink href="/settings" Icon={Menu} label="Menu" />
       </div>

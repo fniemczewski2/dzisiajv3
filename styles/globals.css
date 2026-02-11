@@ -25,7 +25,7 @@ body {
 }
 
 .input-field {
-  @apply w-full px-3 py-2 rounded-md bg-transparent border-2 border-slate-200 focus:outline-none focus:border-blue-500 transition-colors;
+  @apply w-full px-3 py-2 rounded-md bg-transparent border-2 border-slate-200 focus:outline-none transition-colors;
 }
 
 .auth-button {
@@ -42,4 +42,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 input[type="time"]::-webkit-inner-spin-button {
   display: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  @apply outline-none;
 }

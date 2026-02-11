@@ -2,14 +2,13 @@
 import React, { useState, useMemo } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/router";
 import BudgetStatsTable from "../../components/budget/StatsTable";
 import BudgetControls from "../../components/budget/BudgetControls";
 import MonthlyBudgetTable from "../../components/budget/MonthlyTable";
 import SummaryTable from "../../components/budget/SummaryTable";
 import { useBudgetData } from "../../hooks/useBudget";
-import { useSession } from "@supabase/auth-helpers-react";
 import { getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 
