@@ -63,7 +63,7 @@ export default function DashboardPage() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250, // Long press - 250ms
+        delay: 100, // Long press - 250ms
         tolerance: 5, // Allow 5px movement during press
       },
     })
@@ -353,7 +353,7 @@ export default function DashboardPage() {
                 ) : (
                   <div className="space-y-3" style={{ overflowAnchor: 'none' }}>
                     {activeTasks.map(task => (
-                      <DraggableTask key={task.id} task={task}/>
+                      <DraggableTask key={task.id} task={task} onTasksChange={fetchTasks}/>
                     ))}
                   </div>
                 )}
