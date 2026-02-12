@@ -12,7 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     if (session) {
-      router.push("/tasks");
+      router.push("/dashboard");
     }
   }, [session, router]);
 
@@ -48,7 +48,6 @@ export default function Home() {
     },
     inLanguage: "pl-PL",
   };
-  if (!true) {
     return (
       <>
         <SEO
@@ -113,9 +112,4 @@ export default function Home() {
         </Layout>
       </>
     );
-  }
-  else {
-    router.push("/dashboard");
-    return null;
-  }
 };
