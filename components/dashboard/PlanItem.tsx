@@ -1,7 +1,6 @@
-// components/dashboard/PlanItem.tsx
 import React from "react";
 import { Check, X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText } from "lucide-react";
-import { NextRouter } from "next/router";
+import Link from "next/link"; // Changed from next/router
 import { DraggableScheduledTask } from "./DraggableScheduledTask";
 
 interface PlanItemData {
@@ -14,7 +13,7 @@ interface PlanItemData {
 
 interface PlanItemProps {
   item: PlanItemData;
-  router: NextRouter;
+  // router prop removed
   onMarkAsDone: (taskId: string) => void;
   onRemoveFromSchedule: (taskId: string) => void;
   onDeleteEvent: (eventId: string) => void;
@@ -41,12 +40,17 @@ const getQuickLink = (title: string): { path: string; icon: React.ReactNode; lab
 
 export const PlanItem: React.FC<PlanItemProps> = ({ 
   item, 
-  router, 
+  // router prop removed
   onMarkAsDone, 
   onRemoveFromSchedule, 
   onDeleteEvent 
 }) => {
   const quickLink = getQuickLink(item.title);
+
+  // Common button classes
+  const actionBtnClass = "p-1 hover:bg-green-100 text-green-600 rounded transition-opacity";
+  const deleteBtnClass = "p-1 hover:bg-red-100 text-red-500 rounded transition-opacity";
+  const linkClass = "p-1 text-gray-600 hover:text-primary transition-colors";
 
   if (item.type === 'task') {
     return (
@@ -56,29 +60,31 @@ export const PlanItem: React.FC<PlanItemProps> = ({
             <p className="font-semibold">{item.title}</p>
             <p className="text-[10px] opacity-70 uppercase">Zadanie</p>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
             <button 
+              type="button"
               onClick={() => onMarkAsDone(item.id)} 
-              className="p-1 hover:bg-green-100 text-green-600 rounded transition-opacity"
+              className={actionBtnClass}
               title="Zrobione"
             >
               <Check size={14} />
             </button>
             <button 
+              type="button"
               onClick={() => onRemoveFromSchedule(item.id)} 
-              className="p-1 hover:bg-red-100 text-red-500 rounded transition-opacity"
+              className={deleteBtnClass}
               title="Usuń z planu"
             >
               <X size={14} />
             </button>
             {quickLink && (
-              <button
-                onClick={() => router.push(quickLink.path)}
+              <Link
+                href={quickLink.path}
                 title={quickLink.label}
-                className="p-1 text-gray-600"
+                className={linkClass}
               >
                 {quickLink.icon}
-              </button>
+              </Link>
             )}
           </div>
         </div>
@@ -95,31 +101,33 @@ export const PlanItem: React.FC<PlanItemProps> = ({
           {item.type === 'event' && 'Wydarzenie'}
         </p>
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-1 items-center">
         {quickLink && (
-          <button
-            onClick={() => router.push(quickLink.path)}
+          <Link
+            href={quickLink.path}
             title={quickLink.label}
-            className="p-1"
+            className={linkClass}
           >
             {quickLink.icon}
-          </button>
+          </Link>
         )}
         {item.type === 'event' && (
           <>
             <button 
+              type="button"
               onClick={() => onDeleteEvent(item.id)} 
-              className="p-1 hover:bg-red-100 text-red-500 rounded transition-opacity"
+              className={deleteBtnClass}
+              title="Usuń"
             >
               <X size={14} />
             </button>
-            <button
-              onClick={() => router.push("/calendar")}
+            <Link
+              href="/calendar"
               title="Kalendarz"
-              className="p-1 text-gray-600"
+              className={linkClass}
             >
               <Calendar size={14} />
-            </button>
+            </Link>
           </>
         )}
       </div>

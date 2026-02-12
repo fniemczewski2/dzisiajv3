@@ -1,12 +1,10 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/router";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { useTasks } from "../hooks/useTasks";
 import { useEvents } from "../hooks/useEvents";
 import { useDaySchemas } from "../hooks/useDaySchemas";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import TaskItem from "../components/tasks/TaskItem";
 import TaskIcons from "../components/tasks/TaskIcons";
 import { ListTodo, Calendar } from "lucide-react";
 import { Task } from "../types";
@@ -40,7 +38,6 @@ import { PlanItem } from "../components/dashboard/PlanItem";
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00 - 23:00
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const session = useSession();
   const supabase = useSupabaseClient();
@@ -331,7 +328,6 @@ export default function DashboardPage() {
                           <PlanItem
                             key={`${item.id}-${idx}`}
                             item={item}
-                            router={router}
                             onMarkAsDone={handleMarkAsDone}
                             onRemoveFromSchedule={handleRemoveFromSchedule}
                             onDeleteEvent={deleteEvent}
