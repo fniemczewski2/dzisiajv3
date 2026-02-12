@@ -253,3 +253,12 @@ export interface Movie {
 export type MovieInsert = Omit<Movie, "id" | "created_at" | "updated_at">;
 export type MovieUpdate = Partial<MovieInsert> & { id: string };
 
+export interface Departure {
+  id: string;
+  line: string;
+  destination: string;
+  time: string; 
+  type: 'tram' | 'bus' | 'train';
+}
+
+

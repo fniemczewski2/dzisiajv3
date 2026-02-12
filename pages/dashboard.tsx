@@ -33,6 +33,7 @@ import { StaticTaskItem } from "../components/dashboard/StaticTaskItem";
 import DraggableTask from "../components/eisenhower/DraggableTask";
 import { DroppableHourSlot } from "../components/dashboard/DroppableHourSlot";
 import { PlanItem } from "../components/dashboard/PlanItem";
+import TransportWidget from "../components/TransportWidget";
 
 // --- CONSTANTS ---
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00 - 23:00
@@ -307,11 +308,12 @@ export default function DashboardPage() {
           {settings?.show_habits && <TaskIcons />}
           {settings?.show_water_tracker && <WaterTracker />}
           <DailySpendingForm/>
+          <TransportWidget />
           {settings?.show_notifications && <Reminders onTasksChange={fetchTasks} />}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <section className="lg:col-span-2">
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <h2 className="text-xl font-semibold my-4 flex items-center gap-2">
                 <Calendar className="text-gray-700" /> Twój Plan Dnia
               </h2>
               
@@ -342,7 +344,7 @@ export default function DashboardPage() {
 
             <div className="space-y-8">
               <section >
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold my-4 flex items-center gap-2">
                   <ListTodo /> Zadania na dziś
                 </h2>
                 <p className="text-xs text-gray-500 mb-4">
