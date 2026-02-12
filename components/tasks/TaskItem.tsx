@@ -16,7 +16,6 @@ import {
   SaveButton,
   CancelButton 
 } from "../CommonButtons";
-import { on } from "events";
 
 interface Props {
   task: Task;
@@ -28,7 +27,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const session = useSession();
   const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
   const isDone = task.status === "done";
-  const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask, rescheduleTask } = useTasks();
+  const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -217,7 +216,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
         key={task.id}
         className="p-4 max-w-[400px] sm:max-w-[480px] w-full my-1 sm:mx-2 hover:shadow-lg hover:bg-gray-100 bg-card rounded-xl shadow flex justify-between items-center transition-all"
       >
-        <div className="flex-1">
+        <div className="flex-1 space-y-4">
           <div onClick={onStartTimer} className="flex justify-start gap-2 items-center cursor-pointer">
             <span
               className={`w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm transition duration-200 hover:shadow hover:brightness-110`}
@@ -272,23 +271,45 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
           />
           
           {/* Time Context Badge */}
-          <div className="mb-3">
+          <div className="flex flex-nowrap gap-2 mb-3">
             <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
+            {task.category && (
+              <span className="px-3 py-1.5 bg-gray-100 text-gray-700 flex items-center rounded-md uppercase font-medium text-xs">
+                {task.category}
+              </span>
+            )}
           </div>
-
-          <div className="grid grid-cols-1 gap-2">
-            <div className="flex flex-col">
-              <p className="text-xs sm:text-sm w-full text-gray-700 m-1 my-auto">
-                {task.due_date ? format(parseISO(task.due_date), "dd.MM.yyyy") : ""}
-                {task.category && (
+          {(task.description ||
+            task.status === "accepted" ||
+            task.status === "waiting_for_acceptance") && (
+            <p className="my-2 rounded-lg text-sm bg-gray-100 py-1 px-2">
+              <span className="text-xs font-bold">
+                {task.priority === 1 && (
                   <>
-                    &nbsp;|&nbsp;
-                    {task.category}
+                    PILNE! <br />
                   </>
                 )}
-              </p>
-            </div>
-
+              </span>
+              {task.description}
+              <span className="text-xs">
+                {(task.user_name !== userEmail) && 
+                  (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
+                    <>
+                      <br />
+                      Zlecone przez: {task.user_name}
+                    </>
+                } 
+                {(task.for_user !== userEmail) && 
+                  (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
+                    <>
+                      <br />
+                      Zlecone dla: {task.for_user}
+                    </>
+                }
+              </span>
+            </p>
+          )}
+          <div className="grid grid-cols-1 gap-2">
             <div className="flex justify-end w-full gap-1.5 flex-wrap">
               {isDone ? (
                 <>
@@ -328,36 +349,6 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
               )}
             </div>
           </div>
-          {(task.description ||
-            task.status === "accepted" ||
-            task.status === "waiting_for_acceptance") && (
-            <p className="mt-2 rounded-lg text-sm bg-gray-100 py-1 px-2">
-              <span className="text-xs font-bold">
-                {task.priority === 1 && (
-                  <>
-                    PILNE! <br />
-                  </>
-                )}
-              </span>
-              {task.description}
-              <span className="text-xs">
-                {(task.user_name !== userEmail) && 
-                  (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
-                    <>
-                      <br />
-                      Zlecone przez: {task.user_name}
-                    </>
-                } 
-                {(task.for_user !== userEmail) && 
-                  (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
-                    <>
-                      <br />
-                      Zlecone dla: {task.for_user}
-                    </>
-                }
-              </span>
-            </p>
-          )}
         </div>
       </div>
 

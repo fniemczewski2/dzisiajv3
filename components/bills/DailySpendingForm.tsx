@@ -43,7 +43,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   }
 
   return (
-    <div className="bg-card rounded-xl shadow mb-4 overflow-hiddenbg-card sm:my-4 flex justify-between items-center px-3 py-2 sm:p-4 transition">
+    <div className="bg-card rounded-xl shadow overflow-hiddenbg-card sm:my-4 flex justify-between items-center px-3 py-2 sm:p-4 transition">
       <h3 className="mr-1.5 flex font-semibold items-center">
         <Coins className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
         Wydano{" "}

@@ -27,7 +27,7 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
   if (isPast(dueDate) && !isToday(dueDate) && !isDone) {
     const daysAgo = Math.abs(differenceInDays(now, dueDate));
     return {
-      display: daysAgo === 1 ? 'Zaległe od wczoraj' : `Zaległe ${daysAgo} dni`,
+      display: daysAgo === 1 ? 'Od\u00A0wczoraj' : `Zaległe\u00A0${daysAgo}\u00A0dni`,
       color: 'text-red-600 bg-red-50 border-red-200',
       icon: Siren,
       shouldPulse: true,
