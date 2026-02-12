@@ -23,10 +23,10 @@ export function useSettings() {
 
 
   useEffect(() => {
-    // if (!session) {
-    //   setLoading(false);
-    //   return;
-    // }
+    if (!session) {
+      setLoading(false);
+      return;
+    }
 
     (async () => {
       setLoading(true);
@@ -91,10 +91,10 @@ export function useSettings() {
     setSaving(false);
     return { error };
   };
-  const requestGeolocation = () => {
+  const requestGeolocation = (onSuccess?: (coords: {lat: number, lng: number}) => void) => {
     if (!navigator.geolocation) {
       setLocationStatus(
-        "Geolokalizacja nie jest obsługiwana przez tę przeglądarkę."
+        "Geolokalizacja nie jest obsługiwana."
       );
       return;
     }
@@ -102,10 +102,10 @@ export function useSettings() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setLocationStatus(
-          `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`
-        );
+        setLocationStatus(`${latitude.toFixed(3)}, ${longitude.toFixed(3)}`);
+        if (onSuccess) onSuccess({ lat: latitude, lng: longitude }); // Dodaj callback
       },
+      
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
           setLocationStatus("Odmowa dostępu do lokalizacji.");

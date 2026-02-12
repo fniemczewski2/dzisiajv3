@@ -84,7 +84,7 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
       {...attributes}
       {...listeners}
       className={`p-4 bg-white rounded-xl shadow-sm border border-gray-200
-        select-none cursor-grab active:cursor-grabbing 
+        select-none cursor-grab active:cursor-grabbing space-y-3
         hover:shadow-md hover:border-gray-300 transition-all duration-200
         ${isDragging ? "opacity-30 scale-95 shadow-xl" : ""}`}
     >
@@ -109,7 +109,7 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
       </div>
 
       {/* Bottom section: Category + Due Date */}
-      <div className="flex items-center gap-3 text-xs text-gray-500 ml-8">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 ml-8">
         <TimeContextBadge dueDate={task.due_date} isDone={task.status === 'done' || task.status === 'completed'} small={true}/>
         {task.category && (
             <span className="px-2 py-1 bg-gray-100 rounded-md uppercase font-medium">
@@ -123,7 +123,7 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
           {task.description}
         </p>
       )}
-      <div className="flex justify-end w-full gap-1.5 flex-wrap">
+      <div className="flex justify-end w-full gap-1.5 flex-wrap pt-2">
         <button
           onClick={handleComplete}
           className="flex flex-col px-1.5 items-center justify-center rounded-lg text-green-600 hover:text-green-800 transition-colors"

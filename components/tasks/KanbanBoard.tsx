@@ -14,7 +14,6 @@ import {
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Task } from "../../types";
 import { useTasks } from "../../hooks/useTasks";
-import { getAppDate } from "../../lib/dateUtils";
 import DraggableTask from "../eisenhower/DraggableTask"; 
 import DroppableKanbanColumn from "../kanban/DroppableKanbanColumn";
 
@@ -147,7 +146,7 @@ export default function KanbanBoard({ tasks, onTasksChange, onStartTimer }: Prop
             >
               <ul className="space-y-2 list-none">
                 {groupedTasks[column.id].map((task) => (
-                  <DraggableTask key={task.id} task={task} />
+                  <DraggableTask key={task.id} task={task} onTasksChange={onTasksChange} />
                 ))}
               </ul>
             </SortableContext>
@@ -162,7 +161,7 @@ export default function KanbanBoard({ tasks, onTasksChange, onStartTimer }: Prop
       </div>
 
       <DragOverlay>
-        {activeTask ? <DraggableTask task={activeTask} /> : null}
+        {activeTask ? <DraggableTask task={activeTask} onTasksChange={onTasksChange}/> : null}
       </DragOverlay>
     </DndContext>
   );

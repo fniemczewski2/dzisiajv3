@@ -12,13 +12,15 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
+  DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import Droppable from "../../components/eisenhower/Droppable";
-import DraggableTask  from "../../components/eisenhower/DraggableTask";
+import DraggableTask from "../../components/eisenhower/DraggableTask";
 import { ChevronLeft, RefreshCw } from "lucide-react";
 import { useRouter } from "next/router";
 import { useTasks } from "../../hooks/useTasks";
@@ -30,18 +32,18 @@ const CATEGORIES = [
   "Niepilne i nieważne",
 ] as const;
 
+interface Props {
+  onStartTimer?: (task: Task) => void;
+}
+
 type Category = (typeof CATEGORIES)[number];
 type BoardState = Record<Category, Task[]>;
 
-export default function EisenhowerPage() {
+export default function EisenhowerPage({ onStartTimer }: Props) {
   const router = useRouter();
-  const { fetchTasks, editTask } = useTasks();
- 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [board, setBoard] = useState<BoardState>(() => {
-    const entries: [Category, Task[]][] = CATEGORIES.map((cat) => [cat, []]);
-    return Object.fromEntries(entries) as BoardState;
-  });
+  
+  const { tasks, fetchTasks, editTask } = useTasks();
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -59,102 +61,69 @@ export default function EisenhowerPage() {
     })
   );
 
-  const loadTasks = async () => {
-    setIsRefreshing(true);
-    
-    try {
-      const fetchedTasks = await fetchTasks();
-      
-      if (!fetchedTasks || fetchedTasks.length === 0) {
-        setBoard({
-          "Pilne i ważne": [],
-          "Niepilne, ale ważne": [],
-          "Pilne, ale nieważne": [],
-          "Niepilne i nieważne": [],
-        });
-        setTasks([]);
-        setIsRefreshing(false);
-        return;
-      }
 
-      const filtered = fetchedTasks.filter((task: Task) =>
-        ["pending", "accepted"].includes(task.status)
-      );
-
-      const sorted: BoardState = {
-        "Pilne i ważne": [],
-        "Niepilne, ale ważne": [],
-        "Pilne, ale nieważne": [],
-        "Niepilne i nieważne": [],
-      };
-
-      for (const task of filtered) {
-        let key: Category;
-
-        switch (task.priority) {
-          case 1:
-            key = "Pilne i ważne";
-            break;
-          case 2:
-            key = "Niepilne, ale ważne";
-            break;
-          case 3:
-            key = "Pilne, ale nieważne";
-            break;
-          case 4:
-          default:
-            key = "Niepilne i nieważne";
-            break;
-        }
-
-        sorted[key].push(task);
-      }
-
-      setBoard(sorted);
-      setTasks(filtered);
-    } catch (error) {
-      console.error("Error loading tasks:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
+  // --- AUTOMATIC FETCH ON PAGE LOAD ---
   useEffect(() => {
-    loadTasks();
+    fetchTasks();
   }, []);
 
-  const handleDragStart = (event: any) => {
+  // Derive board state from tasks
+  const board: BoardState = {
+    "Pilne i ważne": [],
+    "Niepilne, ale ważne": [],
+    "Pilne, ale nieważne": [],
+    "Niepilne i nieważne": [],
+  };
+
+  tasks
+    .filter((task) => ["pending", "accepted"].includes(task.status) && task.status !== "done")
+    .forEach((task) => {
+      let key: Category;
+      switch (task.priority) {
+        case 1:
+          key = "Pilne i ważne";
+          break;
+        case 2:
+          key = "Niepilne, ale ważne";
+          break;
+        case 3:
+          key = "Pilne, ale nieważne";
+          break;
+        case 4:
+        default:
+          key = "Niepilne i nieważne";
+          break;
+      }
+      if (board[key]) {
+        board[key].push(task);
+      }
+    });
+
+  const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find((t) => t.id === event.active.id);
     if (task) setActiveTask(task);
   };
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
 
     if (!over) return;
 
     const task = tasks.find((t) => t.id === active.id);
-    
-    if (!task) {
-      console.error("Task not found:", active.id);
-      return;
-    }
+    if (!task) return;
 
     let droppedCategory: string;
-    
     if (over.data?.current?.sortable?.containerId) {
       droppedCategory = over.data.current.sortable.containerId;
     } else {
-      droppedCategory = over.id;
+      droppedCategory = over.id as string;
     }
-    
-    if (!CATEGORIES.includes(droppedCategory as Category)) {
-      console.error("Invalid category:", droppedCategory);
-      return;
-    }
-    
+
+    if (!CATEGORIES.includes(droppedCategory as Category)) return;
+
     const validCategory = droppedCategory as Category;
+    
     const newPriority =
       validCategory === "Pilne i ważne"
         ? 1
@@ -164,33 +133,18 @@ export default function EisenhowerPage() {
         ? 3
         : 4;
 
-    const updatedTask = {
-      ...task,
-      priority: newPriority,
-    };
+    if (task.priority === newPriority) return;
 
-    setBoard((prev) => {
-      const updated: BoardState = {
-        "Pilne i ważne": [...prev["Pilne i ważne"]],
-        "Niepilne, ale ważne": [...prev["Niepilne, ale ważne"]],
-        "Pilne, ale nieważne": [...prev["Pilne, ale nieważne"]],
-        "Niepilne i nieważne": [...prev["Niepilne i nieważne"]],
-      };
-      
-      CATEGORIES.forEach((cat) => {
-        updated[cat] = updated[cat].filter((t) => t.id !== task.id);
-      });
-      
-      updated[validCategory].push(updatedTask);
-      
-      return updated;
-    });
 
     try {
-      await editTask(updatedTask);
+      await editTask({
+        ...task,
+        priority: newPriority,
+      });
+      await fetchTasks();
     } catch (error) {
       console.error("Failed to update task:", error);
-      await loadTasks();
+      await fetchTasks();
     }
   };
 
@@ -204,12 +158,8 @@ export default function EisenhowerPage() {
       const parentPath = "/" + pathParts.slice(0, -1).join("/");
       router.push(parentPath);
     } else {
-      router.push("/"); 
+      router.push("/");
     }
-  };
-
-  const handleRefresh = async () => {
-    await loadTasks();
   };
 
   return (
@@ -230,12 +180,12 @@ export default function EisenhowerPage() {
               <h2 className="text-xl font-semibold">Tablica Eisenhowera</h2>
             </div>
             <button
-              onClick={handleRefresh}
+              onClick={fetchTasks}
               disabled={isRefreshing}
               className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow transition-colors disabled:opacity-50"
               title="Odśwież zadania"
             >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
             </button>
           </div>
 
@@ -254,7 +204,11 @@ export default function EisenhowerPage() {
                     strategy={verticalListSortingStrategy}
                   >
                     {board[cat].map((task) => (
-                      <DraggableTask key={task.id} task={task} />
+                      <DraggableTask
+                        key={task.id}
+                        task={task}
+                        onTasksChange={fetchTasks}
+                      />
                     ))}
                   </SortableContext>
                 </Droppable>
@@ -279,11 +233,11 @@ export default function EisenhowerPage() {
                             ? "#a7f3d0"
                             : "#bbf7d0",
                         color:
-                          activeTask.priority === 3 
+                          activeTask.priority === 3
                             ? "#A16207"
                             : activeTask.priority >= 3
                             ? "#15803D"
-                            : "#B91C1C"
+                            : "#B91C1C",
                       }}
                     >
                       {activeTask.priority}
