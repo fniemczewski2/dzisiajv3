@@ -13,9 +13,10 @@ import { useTasks } from "../../hooks/useTasks";
 
 interface DraggableTaskProps {
   task: Task;
+  onTasksChange: () => void;
 }
 
-export default function DraggableTask({ task }: DraggableTaskProps) {
+export default function DraggableTask({ task, onTasksChange }: DraggableTaskProps) {
   const {
     attributes,
     listeners,
@@ -44,6 +45,7 @@ export default function DraggableTask({ task }: DraggableTaskProps) {
       if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
       await deleteTask(task.id);
       await fetchTasks();
+      onTasksChange();
     };
   
     const handleComplete = async () => {
@@ -58,6 +60,7 @@ export default function DraggableTask({ task }: DraggableTaskProps) {
           console.error("Fetch tasks error", err);
         }
       }, CELEBRATION_MS);
+      onTasksChange();
     };
   
     const handleReschedule = async (days: number) => {
@@ -71,6 +74,7 @@ export default function DraggableTask({ task }: DraggableTaskProps) {
       });
       
       await fetchTasks();
+      onTasksChange();
       setIsRescheduling(false);
     };
 
