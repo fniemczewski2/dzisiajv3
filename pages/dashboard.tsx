@@ -64,8 +64,8 @@ export default function DashboardPage() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100, // Long press - 250ms
-        tolerance: 5, // Allow 5px movement during press
+        delay: 200, 
+        tolerance: 5, 
       },
     })
   );
@@ -364,7 +364,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <DragOverlay dropAnimation={{
+        <DragOverlay 
+        style={{ touchAction: 'none' }}
+        dropAnimation={{
           sideEffects: defaultDropAnimationSideEffects({
             styles: { active: { opacity: '0.5' } },
           }),

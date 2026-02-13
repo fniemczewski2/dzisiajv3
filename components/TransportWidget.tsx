@@ -165,8 +165,8 @@ const fetchData = useCallback(
   if (loading) return <LoadingState />;
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden transition-all duration-300">
-      <div onClick={() => setOpen(!open)} className="bg-card rounded-t-xl shadow overflow-hiddenbg-card sm:my-4 flex justify-between items-center px-3 py-2 sm:p-4 transition cursor-pointer">
+    <div className="bg-card rounded-xl shadow overflow-hidden transition-all duration-300">
+      <div onClick={() => setOpen(!open)} className="bg-card rounded-t-xl shadow overflow-hiddenbg-card flex justify-between items-center px-3 py-2 sm:p-4 transition cursor-pointer">
         <h3 className="mr-1.5 flex font-semibold items-center">
           <Bus className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
           Transport Poznań
