@@ -87,25 +87,30 @@ export function useSettings() {
     const { error } = await supabase
       .from("settings")
       .upsert(payload, { onConflict: "user_name" });
-      
-    setSaving(false);
-    return { error };
-  };
-  const requestGeolocation = (onSuccess?: (coords: {lat: number, lng: number}) => void) => {
-    if (!navigator.geolocation) {
-      setLocationStatus(
-        "Geolokalizacja nie jest obsługiwana."
-      );
-      return;
-    }
+      setSaving(false);
+      return { error };
+    };
+    
+    type GeoCoords = { lat: number; lng: number };
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocationStatus(`${latitude.toFixed(3)}, ${longitude.toFixed(3)}`);
-        if (onSuccess) onSuccess({ lat: latitude, lng: longitude }); // Dodaj callback
-      },
-      
+    const requestGeolocation = (onSuccess?: (coords: GeoCoords) => void) => {
+      if (!navigator.geolocation) {
+        setLocationStatus("Geolokalizacja nie jest obsługiwana.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationStatus(`${latitude.toFixed(3)}, ${longitude.toFixed(3)}`);
+          
+          // Now onSuccess is safely checked as an optional argument
+          if (onSuccess) {
+            onSuccess({ lat: latitude, lng: longitude });
+          }
+        },
+
+
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
           setLocationStatus("Odmowa dostępu do lokalizacji.");
