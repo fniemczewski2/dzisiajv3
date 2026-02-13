@@ -80,6 +80,7 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      style={{ touchAction: 'none' }}
       className={`p-4 bg-white rounded-xl shadow-sm border border-gray-200
         select-none cursor-grab active:cursor-grabbing space-y-3
         hover:shadow-md hover:border-gray-300 
