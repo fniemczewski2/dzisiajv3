@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Task } from "../../types";
 import { parseISO, format, addDays } from "date-fns";
-import { Clock, Calendar as CalendarIcon, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { DeleteButton, RescheduleButton } from "../CommonButtons";
 import { useTasks } from "../../hooks/useTasks";
@@ -38,9 +38,8 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
   const colors = priorityColors[task.priority as 1 | 2 | 3 | 4 | 5] || priorityColors[3];
 
     const [isRescheduling, setIsRescheduling] = useState(false);
-    const [showCelebration, setShowCelebration] = useState(false);
+    
     const { fetchTasks, deleteTask, setDoneTask, editTask } = useTasks();
-    const CELEBRATION_MS = 2500;
     const handleDelete = async () => {
       if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
       await deleteTask(task.id);
@@ -50,16 +49,14 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
   
     const handleComplete = async () => {
       await setDoneTask(task.id);
-      setShowCelebration(true);
   
       setTimeout(async () => {
-        setShowCelebration(false); 
         try {
           await fetchTasks();
         } catch (err) {
           console.error("Fetch tasks error", err);
         }
-      }, CELEBRATION_MS);
+      }, 1000);
       onTasksChange();
     };
   
@@ -85,8 +82,8 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
       {...listeners}
       className={`p-4 bg-white rounded-xl shadow-sm border border-gray-200
         select-none cursor-grab active:cursor-grabbing space-y-3
-        hover:shadow-md hover:border-gray-300 transition-all duration-200
-        ${isDragging ? "opacity-30 scale-95 shadow-xl" : ""}`}
+        hover:shadow-md hover:border-gray-300 
+        ${isDragging ? "opacity-30" : ""}`}
     >
       {/* Top section: Priority badge + Title */}
       <div className="flex items-start gap-3 mb-2">

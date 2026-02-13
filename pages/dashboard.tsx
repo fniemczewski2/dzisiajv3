@@ -353,7 +353,7 @@ export default function DashboardPage() {
                 {tasksLoading ? (
                   <p className="text-gray-500 text-sm">Ładowanie...</p>
                 ) : (
-                  <div className="space-y-3" style={{ overflowAnchor: 'none' }}>
+                  <div className="space-y-3">
                     {activeTasks.map(task => (
                       <DraggableTask key={task.id} task={task} onTasksChange={fetchTasks}/>
                     ))}
