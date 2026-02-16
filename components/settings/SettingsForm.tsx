@@ -138,7 +138,7 @@ export default function SettingsForm({
           htmlFor="show_notifications"
           className="ml-2 text-sm text-gray-700"
         >
-          Pokaż przypomnienia
+          Pokaż zadania cykliczne
         </label>
       </div>
 

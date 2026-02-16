@@ -23,6 +23,7 @@ import {
   Clapperboard,
   Calculator,
   LayoutDashboard,
+  BusFront,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -75,7 +76,8 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     items: [
       { path: "/packing/backpack", title: "Plecak", icon: Backpack, label: "Plecak" },
       { path: "/packing/suitcase", title: "Walizka", icon: Luggage, label: "Walizka" },
-      { path: "/packing/safety", title: "Plecak ICE", icon: Siren, label: "Plecak\u00a0ICE" },
+      { path: "/packing/safety", title: "Plecak bezpieczeństwa", icon: Siren, label: "Safety" },
+      {path: "/transport", title: "Transport", icon: BusFront, label: "Transport" },
       { path: "/notes/places", title: "Miejsca", icon: MapPin, label: "Miejsca" },
     ],
   },

@@ -105,7 +105,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
       >
         <h3 className="font-semibold flex flex-row items-center">
           <BellDot className="w-5 h-5 mr-2" />
-          Przypomnienia&nbsp;
+          Cykliczne&nbsp;
           <span className="text-primary">{liczba}</span>
         </h3>
         {open ? (

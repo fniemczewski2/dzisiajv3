@@ -24,6 +24,7 @@ import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
+import Reminders from "../../components/tasks/Reminders";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -139,6 +140,7 @@ export default function TasksPage() {
 
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
+        <Reminders onTasksChange={fetchTasks} />
 
         {/* Focus Mode Toggle */}
         <div className="flex items-center justify-between mb-4">

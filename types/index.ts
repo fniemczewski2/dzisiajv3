@@ -52,6 +52,7 @@ export type Settings = {
   show_budget_items: boolean;
   show_notifications: boolean;
   users: string[];
+  favorite_stops:{ name: string; zone_id: string }[];
 };
 
 export type HabitKey =
