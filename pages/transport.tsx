@@ -1,192 +1,164 @@
-import { useEffect, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
+import SearchBar from "../components/SearchBar";
+import StopItem from "../components/transport/StopItem";
+import { useTransport } from "../hooks/useTransport";
+import { useSettings } from "../hooks/useSettings";
+import Head from "next/head";
 
-interface Stop {
-  id: string;
+type FavoriteStop = {
   name: string;
-  distance_meters: number;
-}
-
-interface Departure {
-  line: string;
-  direction: string;
-  minutes: number;
-}
+  zone_id: string;
+};
 
 export default function TransportPage() {
-  const supabase = useSupabaseClient();
+  const {
+    stops: nearbyStops,
+    departures,
+    loadingStops,
+    fetchMultipleStops,
+    searchStops,
+  } = useTransport(true);
 
-  const [stops, setStops] = useState<Stop[]>([]);
-  const [departures, setDepartures] = useState<
-    Record<string, Departure[]>
-  >({});
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    settings,
+    addFavoriteStop,
+    removeFavoriteStop,
+  } = useSettings();
 
-  /* ===============================
-     POBIERANIE NAJBLIŻSZYCH PRZYSTANKÓW
-  =============================== */
+  const favoriteStops: FavoriteStop[] =
+    (settings.favorite_stops as FavoriteStop[]) || [];
 
-  const loadStops = async () => {
-    if (!navigator.geolocation) {
-      setError("Geolokalizacja nie jest wspierana.");
-      setLoading(false);
-      return;
-    }
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const { data, error } = await supabase.rpc(
-            "get_nearby_ztm_stops",
-            {
-              user_lat: coords.latitude,
-              user_lng: coords.longitude,
-            }
-          );
+  const zoneToCity = (zoneId: string) =>
+    zoneId === "S" ? "Szczecin" : "Poznań";
 
-          if (error) throw error;
+  const cityToZone = (city: string) =>
+    city === "Szczecin" ? "S" : "P";
 
-          setStops(data || []);
-          await loadDepartures(data || []);
-        } catch (err) {
-          console.error(err);
-          setError("Błąd pobierania przystanków.");
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => {
-        setError("Brak dostępu do lokalizacji.");
-        setLoading(false);
-      }
-    );
-  };
-
-  /* ===============================
-     POBIERANIE ODJAZDÓW
-  =============================== */
-
-  const loadDepartures = async (stopsList: Stop[]) => {
-    const results: Record<string, Departure[]> = {};
-
-    await Promise.all(
-      stopsList.map(async (stop) => {
-        try {
-          const res = await fetch(`/api/ztm?stop_id=${stop.id}&debug=true`);
-          if (!res.ok) return;
-
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            results[stop.id] = data;
-          }
-        } catch (err) {
-          console.error("Stop error:", err);
-        }
-      })
-    );
-
-    setDepartures(results);
-  };
-
-  /* ===============================
-     RĘCZNA AKTUALIZACJA GTFS
-  =============================== */
-
-  const handleManualSync = async () => {
-    setSyncing(true);
-
-    try {
-      const res = await fetch("/api/gtfs-sync", {
-        method: "POST"
-      });
-
-      if (!res.ok) throw new Error("Sync failed");
-
-      alert("Aktualizacja zakończona sukcesem.");
-    } catch (err) {
-      alert("Błąd aktualizacji.");
-        console.error("MANUAL SYNC ERROR:", err);
-    } finally {
-      setSyncing(false);
-    }
-  };
+  // 🔎 SEARCH
   useEffect(() => {
-    loadStops();
-  }, []);
+    const loadSuggestions = async () => {
+      if (!searchQuery) {
+        setSuggestions([]);
+        return;
+      }
+
+      const results = await searchStops(searchQuery);
+
+      const formatted: string[] = results.map(
+        (stop) => `${stop.name} (${zoneToCity(stop.zone_id)})`
+      );
+
+      setSuggestions(formatted);
+    };
+
+    const debounce = setTimeout(loadSuggestions, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery, searchStops]);
+
     useEffect(() => {
-        if (!stops.length) return;
+    if (!favoriteStops.length) return;
 
-        const interval = setInterval(() => {
-            loadDepartures(stops);
-        }, 30000);
+    fetchMultipleStops(favoriteStops);
+    }, [favoriteStops, fetchMultipleStops]);
 
-        return () => clearInterval(interval);
-    }, [stops]);
-
-
-  if (loading) return <p className="p-6">Ładowanie...</p>;
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
+    <>
+    <Head>
+      <title>Transport – Dzisiajv3</title>
+    </Head>
     <Layout>
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Najbliższe odjazdy</h1>
-
-        <button
-          onClick={handleManualSync}
-          disabled={syncing}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
-        >
-          {syncing ? "Aktualizuję..." : "Ręczna aktualizacja"}
-        </button>
+      <div className="flex items-center mb-4">
+        <h2 className="text-2xl font-semibold">Transport</h2>
       </div>
 
-      {stops.map((stop) => (
-        <div
-          key={stop.id}
-          className="mb-6 border rounded-lg p-4 shadow-sm"
-        >
-          <div className="flex justify-between mb-2">
-            <h2 className="font-semibold">{stop.name}</h2>
-            <span className="text-sm text-gray-500">
-              {Math.round(stop.distance_meters)} m
-            </span>
+      <div className="space-y-6">
+
+        {/* 🔍 SEARCH */}
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Wyszukaj przystanek..."
+          suggestions={suggestions}
+          onSuggestionClick={(value: string) => {
+            const match = value.match(/^(.*)\s\((.*)\)$/);
+            if (!match) return;
+
+            const name = match[1];
+            const city = match[2];
+
+            const zone_id = cityToZone(city);
+
+            addFavoriteStop(name, zone_id);
+
+            setSearchQuery("");
+            setSuggestions([]);
+          }}
+        />
+
+        {/* ⭐ FAVORITES */}
+        <section>
+          <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
+
+          <div className="bg-card rounded-xl shadow overflow-hidden">
+            {favoriteStops.length === 0 && (
+              <p className="p-4 text-sm text-muted-foreground">
+                Nie dodałeś jeszcze żadnych przystanków.
+              </p>
+            )}
+
+            {favoriteStops.map((stop) => {
+              const key = `${stop.name}_${stop.zone_id}`;
+
+              return (
+                <StopItem
+                  key={key}
+                  stopName={stop.name}
+                  zone_id={stop.zone_id}
+                  departures={departures[key] || []}
+                  isLoading={loadingStops[key]}
+                  onRemove={() =>
+                    removeFavoriteStop(stop.name, stop.zone_id)
+                  }
+                  many={true}
+                />
+              );
+            })}
           </div>
+        </section>
 
-          {departures[stop.id]?.length ? (
-            departures[stop.id].map((dep, idx) => (
-              <div
-                key={idx}
-                className="flex justify-between text-sm py-1"
-              >
-                <div className="flex gap-2">
-                  <span className="bg-black text-white px-2 rounded text-xs">
-                    {dep.line}
-                  </span>
-                  <span className="text-gray-600 truncate max-w-[180px]">
-                    {dep.direction}
-                  </span>
-                </div>
+        {/* 📍 NEARBY */}
+        <section>
+          <h3 className="text-lg font-semibold mb-3">Najbliżej</h3>
 
-                <span className="font-semibold">
-                  {dep.minutes === 0
-                    ? "<<<"
-                    : `${dep.minutes} min`}
-                </span>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-gray-400 italic">
-              Brak planowanych odjazdów
-            </p>
-          )}
-        </div>
-      ))}
-    </div>
+          <div className="bg-card rounded-xl shadow overflow-hidden">
+            {nearbyStops.slice(0, 3).map((stop) => {
+              const key = `${stop.name}_${stop.zone_id}`;
+
+              return (
+                <StopItem
+                  key={key}
+                  stopName={stop.name}
+                  zone_id={stop.zone_id}
+                  distance={stop.distance_meters}
+                  departures={departures[key] || []}
+                  isLoading={loadingStops[key]}
+                  onAddFavorite={() =>
+                    addFavoriteStop(stop.name, stop.zone_id)
+                  }
+                  many={true}
+                />
+              );
+            })}
+          </div>
+        </section>
+
+      </div>
     </Layout>
+    </>
   );
 }
