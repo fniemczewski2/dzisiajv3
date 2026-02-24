@@ -159,28 +159,24 @@ export default function TransportPage() {
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
               {/* 1. Stan: Pobieranie lokalizacji */}
               {loadingNearby && nearbyGroups.length === 0 && (
-                <p className="p-6 text-center text-sm text-muted-foreground animate-pulse">
-                  Szukanie przystanków w Twojej okolicy...
+                <p className="p-4 text-sm text-muted-foreground animate-pulse">
+                  Szukanie przystanków...
                 </p>
               )}
 
               {/* 2. Stan: Błąd geolokalizacji lub brak zgody */}
               {locationError && (
-                <div className="p-6 text-center space-y-3">
-                  <p className="text-sm text-orange-500 font-medium">{locationError}</p>
-                  <button
-                    onClick={initLocationAndFetch}
-                    className="text-xs bg-primary text-primary-foreground px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity"
-                  >
-                    Udostępnij lokalizację
-                  </button>
+                <div className="p-4 space-y-3">
+                  <p className="p-4 text-sm text-muted-foreground">
+                    Błąd lokalizacji.
+                  </p>
                 </div>
               )}
 
               {/* 3. Stan: Mamy GPS, ale brak przystanków w promieniu 2-5km */}
               {!loadingNearby && !locationError && nearbyGroups.length === 0 && (
-                <p className="p-6 text-center text-sm text-muted-foreground">
-                  Brak przystanków w promieniu 2 km od Twojej pozycji.
+                <p className="p-4 text-sm text-muted-foreground">
+                  Brak przystanków w okolicy (2km).
                 </p>
               )}
 
