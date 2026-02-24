@@ -40,7 +40,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
             {distance !== undefined ? `${Math.round(distance)}m` : zone_id === "S" ? "Szczecin" : "Poznań"}
           </div>
 
-          {onAddFavorite && (
+          {onAddFavorite && zone_id !== undefined && zone_id !== "" && (
             <button onClick={onAddFavorite} className="p-1 hover:bg-gray-100 rounded-md text-primary transition-colors">
               <Star className="w-4 h-4" />
             </button>
