@@ -63,7 +63,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
           displayDepartures.map((dep, idx) => (
             <div key={`${dep.line}-${dep.minutes}-${idx}`} className="flex items-center justify-between group">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 text-primary font-bold px-2 py-1 rounded-md text-xs min-w-[38px] justify-center border shadow-sm">
+                <span className="flex items-center gap-1 uppercase text-primary font-bold px-2 py-1 rounded-md min-w-[38px] justify-center border shadow-sm">
                   {dep.line}
                 </span>
                 <span className="text-xs font-semibold truncate max-w-[150px] uppercase tracking-tight text-foreground/80">
