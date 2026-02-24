@@ -1,248 +1,156 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
-export interface Stop {
-  id: number;
-  name: string;
-  symbol: string;
-  zone_id: string;
-  distance_meters?: number;
-}
-
-type FavoriteStop = {
-  name: string;
-  zone_id: string;
-};
-
 export interface Departure {
-  trip_id: string;
   line: string;
   direction: string;
   minutes: number;
-  delay: number;
+  time: string;
   is_realtime: boolean;
+  delay: number;
+}
+
+export interface StopGroup {
+  stop_name: string;
+  zone_id: string;
+  distance?: number;
+  departures: Departure[];
+}
+
+export interface SearchResult {
+  name: string;
+  zone_id: string;
 }
 
 export function useTransport(autoRefresh = false) {
   const supabase = useSupabaseClient();
-
-  const [loading, setLoading] = useState(true);
-  const [stops, setStops] = useState<Stop[]>([]);
-  const [departures, setDepartures] = useState<Record<string, Departure[]>>({});
-  const [loadingStops, setLoadingStops] = useState<Record<string, boolean>>({});
+  
+  const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
+  const [favoritesGroups, setFavoritesGroups] = useState<StopGroup[]>([]);
+  const [loadingNearby, setLoadingNearby] = useState(true);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
-
- const searchStops = useCallback(
-  async (query: string): Promise<FavoriteStop[]> => {
-    if (!query) return [];
-
-    const { data, error } = await supabase
-      .from("stops")
-      .select("stop_name, zone_id")
-      .ilike("stop_name", `%${query}%`)
-      .limit(10);
-
-    if (error) {
-      console.error(error);
+  // Domyślne koordynaty (np. centrum Warszawy) - użyte tylko jeśli użytkownik odmówi dostępu do GPS
+  // const lastCoords = useRef({ lat: 52.2297700, lng: 21.0117800 }); //Warszawa
+  const lastCoords = useRef({ lat: 52.4070893, lng: 16.9116794 }); // Poznań
+  // const lastCoords = useRef({ lat: 53.4268845, lng: 14.5361154 }); // Szczecin
+  // const lastCoords = useRef({ lat: 51.1084492, lng: 17.0405395 }); // Wrocław
+  // const lastCoords = useRef({ lat: 52.40728358351517, lng: 16.867937988382558 }); // Poznań Ognik
+  const searchStops = useCallback(async (query: string): Promise<SearchResult[]> => {
+    if (query.length < 3) return [];
+    try {
+      const { data, error } = await supabase.functions.invoke("get-transitland-times", {
+        // DODANO: Wysyłamy lat i lon, aby serwer wiedział, że jesteśmy w Szczecinie!
+        body: { search: query, lat: lastCoords.current.lat, lon: lastCoords.current.lng },
+      });
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      
+      if (error || !parsedData?.success) return [];
+      return parsedData.success;
+    } catch (err) {
+      console.error("Błąd wyszukiwania:", err);
       return [];
     }
+  }, [supabase]);
 
-    const stops =
-      data?.map((s) => ({
-        name: s.stop_name,
-        zone_id: s.zone_id,
-      })) || [];
+  const fetchFavorites = useCallback(async (names: string[]) => {
+    if (!names || names.length === 0) {
+      setFavoritesGroups([]);
+      return;
+    }
+    setLoadingFavorites(true);
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke("get-transitland-times", {
+        // DODANO: Wysyłamy lat i lon dla Ulubionych!
+        body: { stopNames: names, lat: lastCoords.current.lat, lon: lastCoords.current.lng },
+      });
+      
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
 
-    // usuń duplikaty (name + zone_id)
-    return stops.filter(
-      (stop, index, self) =>
-        index ===
-        self.findIndex(
-          (s) =>
-            s.name === stop.name &&
-            s.zone_id === stop.zone_id
-        )
-    );
-  },
-  [supabase]
-);
-
-
-
-  const getStopsByName = useCallback(
-    async (name: string): Promise<Stop[]> => {
-      const { data, error } = await supabase
-        .from("stops")
-        .select("stop_id, stop_name, stop_code, zone_id")
-        .eq("stop_name", name);
-
-      if (error) {
-        console.error(error);
-        return [];
+      if (!invokeError && parsedData?.success) {
+        setFavoritesGroups(parsedData.success);
       }
+    } catch (err: any) {
+      console.error("Błąd ładowania ulubionych:", err);
+    } finally {
+      setLoadingFavorites(false);
+    }
+  }, [supabase]);
 
-      return (
-        data?.map((s) => ({
-          id: s.stop_id,
-          name: s.stop_name,
-          symbol: s.stop_code,
-          zone_id: s.zone_id,
-        })) || []
-      );
-    },
-    [supabase]
-  );
+  const fetchNearbyData = useCallback(async (lat: number, lon: number) => {
+    setLoadingNearby(true);
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke("get-transitland-times", {
+        body: { lat, lon },
+      });
+      if (invokeError) throw new Error("Błąd sieciowy.");
+      
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
 
-
-    const fetchTimes = useCallback(
-    async (
-        stop: Pick<Stop, "name" | "zone_id">
-    ): Promise<Departure[]> => {
-        try {
-        const functionName =
-            stop.zone_id === "S" ? "get-szczecin-times" : "get-peka-times";
-
-        const body = { stopName: stop.name };
-
-        const { data, error } = await supabase.functions.invoke(functionName, {
-            body,
-        });
-
-        if (error || !data?.success) return [];
-
-        return data.success
-            .map((t: any) => ({
-            trip_id: `${t.line}-${t.direction}-${t.minutes}-${Math.random()}`,
-            line: t.line,
-            direction: t.direction,
-            minutes: t.minutes,
-            delay: t.delay ?? 0,
-            is_realtime: t.is_realtime ?? true,
-            }))
-            .filter((d: Departure) => d.minutes >= 0)
-            .sort((a: Departure, b: Departure) => a.minutes - b.minutes);
-        } catch (err) {
-        console.error("Transport API error:", err);
-        return [];
-        }
-    },
-    [supabase] 
-    );
-
-
-  const fetchNearbyStops = useCallback(
-    async (lat: number, lng: number) => {
-      try {
-        const { data, error } = await supabase.rpc(
-          "get_nearby_ztm_stops",
-          { user_lat: lat, user_lng: lng }
-        );
-
-        if (error) throw error;
-
-        const uniqueStops =
-          data?.reduce((acc: Stop[], current: any) => {
-            if (!acc.find((item) => item.name === current.name)) {
-              acc.push({
-                id: current.id,
-                name: current.name,
-                symbol: current.symbol,
-                zone_id: current.zone_id,
-                distance_meters: current.distance_meters,
-              });
-            }
-            return acc;
-          }, []) || [];
-
-        setStops(uniqueStops);
-        
-        // fetch departures
-        for (const stop of uniqueStops) {
-        const key = `${stop.name}_${stop.zone_id}`;
-        setLoadingStops((prev) => ({ ...prev, [key]: true }));
-
-        try {
-            const times = await fetchTimes(stop);
-            setDepartures((prev) => ({ ...prev, [key]: times }));
-        } catch (err) {
-            console.error(`Times error for ${key}`, err);
-        } finally {
-            setLoadingStops((prev) => ({ ...prev, [key]: false }));
-        }
-        }
-      } catch {
-        setError("Problem z bazą przystanków.");
-      } finally {
-        setLoading(false);
+      if (parsedData?.error) throw new Error(parsedData.error);
+      
+      if (parsedData?.success) {
+        setNearbyGroups(parsedData.success);
+        setError(null);
       }
-    },
-    [supabase, fetchTimes]
-  );
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Problem z pobieraniem odjazdów w pobliżu.");
+    } finally {
+      setLoadingNearby(false);
+    }
+  }, [supabase]);
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
+  const initLocationAndFetch = useCallback(() => {
+    fetchNearbyData(lastCoords.current.lat, lastCoords.current.lng);
+    if (!navigator.geolocation) {
+      console.warn("Geolokalizacja nie jest wspierana przez Twoją przeglądarkę.");
+      fetchNearbyData(lastCoords.current.lat, lastCoords.current.lng);
+      return;
+    }
+
+    setLoadingNearby(true); // Ustawiamy loader na czas szukania sygnału GPS
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,   
+      (position) => {
+        // Zapisujemy prawdziwą lokalizację do referencji
+        lastCoords.current = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
         };
-
-        lastCoords.current = coords;
-        fetchNearbyStops(coords.lat, coords.lng);
+        // Pobieramy dane dla nowych koordynatów
+        fetchNearbyData(lastCoords.current.lat, lastCoords.current.lng);
       },
-      () => setError("Brak uprawnień do lokalizacji")
+      (err) => {
+        console.warn("Brak zgody na GPS lub błąd pobierania. Używam lokalizacji domyślnej.", err);
+        // Fallback w razie odmowy
+        fetchNearbyData(lastCoords.current.lat, lastCoords.current.lng);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
+  }, [fetchNearbyData]);
+
+  useEffect(() => {
+    // Zamiast od razu pobierać dane, najpierw pytamy o GPS
+    initLocationAndFetch();
 
     if (autoRefresh) {
       const interval = setInterval(() => {
-        if (lastCoords.current) {
-          fetchNearbyStops(
-            lastCoords.current.lat,
-            lastCoords.current.lng
-          );
-        }
+        // Tło korzysta ze stale aktualizowanego lastCoords (bez ponownego pytania o zgody GPS)
+        fetchNearbyData(lastCoords.current.lat, lastCoords.current.lng);
       }, 30000);
-
       return () => clearInterval(interval);
     }
-  }, [fetchNearbyStops, autoRefresh]);
-
-  const fetchMultipleStops = useCallback(
-  async (stopsList: { name: string; zone_id: string }[]) => {
-    for (const stop of stopsList) {
-      const key = `${stop.name}_${stop.zone_id}`;
-
-      setLoadingStops((prev) => ({ ...prev, [key]: true }));
-
-      try {
-        const times = await fetchTimes(stop);
-
-        setDepartures((prev) => ({
-          ...prev,
-          [key]: times,
-        }));
-      } finally {
-        setLoadingStops((prev) => ({ ...prev, [key]: false }));
-      }
-    }
-  },
-  [fetchTimes]
-);
-
+  }, [initLocationAndFetch, autoRefresh]);
 
   return {
-    stops,
-    departures,
-    loadingStops,
-    loading,
+    nearbyGroups,
+    favoritesGroups,
+    loadingNearby,
+    loadingFavorites,
     error,
-    fetchTimes,
     searchStops,
-    getStopsByName,
-    fetchMultipleStops
+    fetchFavorites,
   };
 }

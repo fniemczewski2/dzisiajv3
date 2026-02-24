@@ -6,73 +6,47 @@ interface StopItemProps {
   stopName: string;
   distance?: number;
   departures: Departure[];
-  zone_id: string;
   isLoading: boolean;
   onRemove?: () => void;
   onAddFavorite?: () => void;
   many?: boolean;
+  zone_id?: string; 
 }
 
 const getStatusColor = (dep: Departure) => {
-  if (!dep.is_realtime) return "text-muted-foreground";
-  return "text-blue-500 font-semibold";
+  return dep.is_realtime ? "text-blue-500 font-semibold" : "text-muted-foreground";
 };
 
-const formatDepartureTime = (minutes: number) => {
-  const date = new Date();
-  date.setMinutes(date.getMinutes() + minutes);
-  return date.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
-};
+export default function StopItem({ stopName, distance, departures, isLoading, onRemove, onAddFavorite, many, zone_id }: StopItemProps) {
 
-export default function StopItem({ stopName, distance, departures, zone_id, isLoading, onRemove, onAddFavorite, many }: StopItemProps) {
-
-    const filteredDepartures = React.useMemo(() => {
-    if (!many) {
-        return departures.slice(0, 5);
-    }
-
-
-    const within30 = departures.filter(dep => dep.minutes <= 30);
-    const unique: Departure[] = [];
-
-    within30.forEach(dep => {
-        const exists = unique.find(
-        u => u.line === dep.line && u.direction === dep.direction
-        );
-        if (!exists) {
-        unique.push(dep);
-        }
-    });
-
-    return unique;
-    }, [departures, many]);
+  // Zabezpieczenie na poziomie UI: ucinamy długie tablice, by widget nie zajmował całego ekranu
+  const displayDepartures = React.useMemo(() => {
+    if (!departures) return [];
+    
+    // Ustawiamy limit: 10 dla widoku rozszerzonego (many=true), 5 dla skróconego
+    const limit = many ? 10 : 5;
+    return departures.slice(0, limit);
+  }, [departures, many]);
 
   return (
-    <div className={`p-4 bg-card border-b border-border last:border-0`}>
+    <div className="p-4 bg-card border-b border-border last:border-0">
       <div className="flex justify-between items-start mb-3">
-          <h4 className="font-semibold text-sm flex items-center">{stopName}</h4>
+        <h4 className="font-semibold text-sm flex items-center">{stopName}</h4>
         <div className="flex items-center gap-2">
-          {distance !== undefined ? (
-            <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
-              <MapPin className="w-3 h-3" />
-              {Math.round(distance)}m
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
-              <MapPin className="w-3 h-3" />
-              {zone_id === "S" ? "Szczecin" : "Poznań"}
-            </div>
-            )}
+          
+          <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
+            <MapPin className="w-3 h-3" />
+            {/* Bezpieczne zaokrąglanie ułamków, np. 76.2739... -> 76m */}
+            {distance !== undefined ? `${Math.round(distance)}m` : zone_id === "S" ? "Szczecin" : "Poznań"}
+          </div>
+
           {onAddFavorite && (
-            <button
-                onClick={onAddFavorite}
-                className="p-1 hover:bg-gray-100 rounded-md text-primary hover:text-secondary transition-colors"
-            >
-                <Star className="w-4 h-4" />
+            <button onClick={onAddFavorite} className="p-1 hover:bg-gray-100 rounded-md text-primary transition-colors">
+              <Star className="w-4 h-4" />
             </button>
           )}
           {onRemove && (
-            <button onClick={onRemove} className="p-1 hover:bg-gray-100 rounded-md text-red-500 hover:text-red-700 transition-colors">
+            <button onClick={onRemove} className="p-1 hover:bg-gray-100 rounded-md text-red-500 transition-colors">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -84,36 +58,34 @@ export default function StopItem({ stopName, distance, departures, zone_id, isLo
           <div className="space-y-3 py-2 animate-pulse">
             <div className="h-9 bg-gray-200 rounded-lg w-full" />
             <div className="h-9 bg-gray-200 rounded-lg w-3/4" />
-            <div className="h-9 bg-gray-200 rounded-lg w-4/5" />
           </div>
-        ) : departures.length > 0 ? (
-          
-          filteredDepartures.map((dep) => (
-            <div key={dep.trip_id} className="flex items-center justify-between group animate-in fade-in duration-500">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1 text-primary font-bold px-2 py-1 rounded-full text-sm min-w-[34px] justify-center border shadow-sm">
+        ) : displayDepartures.length > 0 ? (
+          displayDepartures.map((dep, idx) => (
+            <div key={`${dep.line}-${dep.minutes}-${idx}`} className="flex items-center justify-between group">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1 text-primary font-bold px-2 py-1 rounded-md text-xs min-w-[38px] justify-center border shadow-sm">
                   {dep.line}
                 </span>
-                <span className="text-xs font-semibold truncate max-w-[130px] uppercase tracking-tight text-foreground/80">
+                <span className="text-xs font-semibold truncate max-w-[150px] uppercase tracking-tight text-foreground/80">
                   {dep.direction}
                 </span>
               </div>
               <div className="text-right">
                 <div className={`text-xs font-bold tabular-nums ${getStatusColor(dep)}`}>
                   {dep.minutes <= 0 ? (
-                    <span className="text-blue-600 animate-pulse">TERAZ</span>
+                    <span className="text-blue-600 font-black animate-pulse">TERAZ</span>
                   ) : (
                     `${dep.minutes} min`
                   )}
                 </div>
                 <div className="text-[9px] text-muted-foreground leading-none mt-0.5">
-                  {formatDepartureTime(dep.minutes)}
+                  {dep.time}
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="flex items-center justify-center h-[20px] text-[10px] text-muted-foreground italic rounded-lg">
+          <div className="flex items-center justify-center py-4 text-[10px] text-muted-foreground italic">
             Brak odjazdów w najbliższym czasie
           </div>
         )}

@@ -2,10 +2,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Check, Minus, Plus, X } from "lucide-react";
+import { Check, Minus, Plus, Share, X } from "lucide-react";
 import { Bill } from "../../types";
 import { useBills } from "../../hooks/useBills";
-import { DeleteButton, EditButton, SaveButton, CancelButton } from "../CommonButtons";
+import { DeleteButton, EditButton, SaveButton, CancelButton, ShareButton } from "../CommonButtons";
 
 interface BillListProps {
   bills: Bill[];
@@ -63,6 +63,19 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
   const handleMarkDone = async (bill: Bill) => {
     await editBill({ ...bill, done: true });
     onBillsChange();
+  };
+
+  const handleShare = (bill: Bill) => {
+    const shareData = {
+      title: "Rachunek",
+      text: `Hej, oddaj mi proszę ${bill.amount.toFixed(2)} zł")}`,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(console.error);
+    } else {
+      alert("Udostępnianie nie jest wspierane w tej przeglądarce.");
+    }
   };
 
   return (
@@ -201,6 +214,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
                         <span className="text-[9px] sm:text-[11px] mt-1">Zrobione</span>
                       </button>
                     )}
+                    <ShareButton onClick={() => handleShare(b)} />
                     <EditButton onClick={() => handleEdit(b)} />
                     <DeleteButton onClick={() => handleDelete(b.id)} />
                   </div>

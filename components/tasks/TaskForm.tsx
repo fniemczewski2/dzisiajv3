@@ -92,6 +92,30 @@ export default function TaskForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-gray-700">Priorytet:</label>
+              <div className="flex items-center gap-1 mt-1">
+                <button
+                    type="button"
+                    onClick={decreasePriority}
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                    title="Zmniejsz priorytet"
+                >
+                    <Minus size={16} />
+                </button>
+                <div className="flex-1 text-center font-bold text-sm bg-white border border-gray-300 rounded-lg py-2">
+                    {priority}
+                </div>
+                <button
+                    type="button"
+                    onClick={increasePriority}
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                    title="Zwiększ priorytet"
+                >
+                    <Plus size={16} />
+                </button>
+              </div>
+            </div>
         <div>
           <label
             htmlFor="category"
@@ -123,38 +147,7 @@ export default function TaskForm({
               </option>
             ))}
           </select>
-        </div>
-        
-        {/* Priority Controls */}
-        <div>
-          <label
-            htmlFor="priority"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Priorytet:
-          </label>
-          <div className="flex items-center gap-2 mt-1">
-            <button
-                type="button"
-                onClick={decreasePriority}
-                className="p-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-700 transition-colors"
-                title="Zmniejsz priorytet"
-            >
-                <Minus size={20} />
-            </button>
-            <div className="flex-1 text-center font-bold text-lg bg-white border rounded py-1.5">
-                {priority}
-            </div>
-            <button
-                type="button"
-                onClick={increasePriority}
-                className="p-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-700 transition-colors"
-                title="Zwiększ priorytet"
-            >
-                <Plus size={20} />
-            </button>
-          </div>
-        </div>
+        </div>       
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -212,10 +205,10 @@ export default function TaskForm({
         />
       </div>
 
-      <div className="flex space-x-2 items-center">
+      <div className="flex justify-end gap-2 pt-2">
+        {loading && <LoadingState />}
         <AddButton loading={loading} />
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
       </div>
     </form>
   );
