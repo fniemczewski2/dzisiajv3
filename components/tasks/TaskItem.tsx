@@ -279,34 +279,23 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
               </span>
             )}
           </div>
-          {(task.description ||
-            task.status === "accepted" ||
-            task.status === "waiting_for_acceptance") && (
-            <p className="my-2 rounded-lg text-sm bg-gray-100 py-1 px-2">
-              <span className="text-xs font-bold">
-                {task.priority === 1 && (
-                  <>
-                    PILNE! <br />
-                  </>
-                )}
-              </span>
-              {task.description}
-              <span className="text-xs">
+          {(task.description || task.user_name !== userEmail || task.for_user !== userEmail) && (
+            <p className="flex flex-col gap-2 my-2 rounded-lg text-sm bg-gray-100 p-2">
+              {task.description && (
+                <span>{task.description}</span>
+              )}
                 {(task.user_name !== userEmail) && 
                   (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
-                    <>
-                      <br />
+                    <span className="text-xs">
                       Zlecone przez: {task.user_name}
-                    </>
+                    </span>
                 } 
                 {(task.for_user !== userEmail) && 
                   (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
-                    <>
-                      <br />
+                    <span className="text-xs">
                       Zlecone dla: {task.for_user}
-                    </>
+                    </span>
                 }
-              </span>
             </p>
           )}
           <div className="grid grid-cols-1 gap-2">

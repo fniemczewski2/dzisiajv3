@@ -128,6 +128,17 @@ export default function DashboardPage() {
     return activeTasks.filter(t => t.scheduled_time);
   }, [activeTasks]);
 
+  // NEW: Memoized all-day events to display before the schedule
+  const allDayEvents = useMemo(() => {
+    return events.map(event => ({
+      id: event.id,
+      title: event.title,
+      type: 'event' as const,
+      color: 'bg-blue-50 text-blue-700 border-blue-100',
+      data: event
+    }));
+  }, [events]);
+
   // Memoized plan by hour
   const planByHour = useMemo(() => {
     const map: Record<string, Array<{ 
@@ -312,6 +323,10 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <section className="lg:col-span-2">
+              
+              {/* NEW SECTION: All-day events before the main schedule */}
+
+
               <h2 className="text-xl font-semibold my-4 flex items-center gap-2">
                 <Calendar className="text-gray-700" /> Twój Plan Dnia
               </h2>
@@ -340,7 +355,25 @@ export default function DashboardPage() {
                 </div>
               </div>
             </section>
-
+            
+            {allDayEvents.length > 0 && (
+                <div className="space-y-8">
+                  <h3 className="text-xl font-semibold my-4 flex items-center gap-2">
+                    <Calendar /> Wydarzenia na dziś
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {allDayEvents.map((item) => (
+                      <PlanItem
+                        key={item.id}
+                        item={item}
+                        onMarkAsDone={handleMarkAsDone}
+                        onRemoveFromSchedule={handleRemoveFromSchedule}
+                        onDeleteEvent={deleteEvent}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             <div className="space-y-8">
               <section >
                 <h2 className="text-xl font-semibold my-4 flex items-center gap-2">

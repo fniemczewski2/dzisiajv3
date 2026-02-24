@@ -6,7 +6,8 @@ import {
   Edit2, 
   ChevronsRight, 
   Timer,
-  Save 
+  Save, 
+  Share
 } from "lucide-react";
 
 interface ButtonProps {
@@ -101,5 +102,18 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
   >
     <Timer className="w-5 h-5 sm:w-6 sm:h-6" />
     <span className="text-[9px] sm:text-[11px]">Timer</span>
+  </button>
+);
+
+export const ShareButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-purple-600 hover:text-purple-800 transition-colors"
+    aria-label="Udostępnij"
+    title="Udostępnij"
+  >
+    <Share className="w-5 h-5 sm:w-6 sm:h-6" />
+    <span className="text-[9px] sm:text-[11px]">Wyślij</span>
   </button>
 );
