@@ -85,10 +85,12 @@ export function useTasks(
     return createSortFunction(settings.sort_order, getPriority);
   }, [settings?.sort_order]);
 
-  const fetchTasks = async () => {
+  // POPRAWKA: fetchTasks teraz zwraca pobrane dane bezpośrednio (Promise<Task[]>),
+  // zamiast polegać na asynchronicznym stanie 'tasks' wewnątrz bloku finally.
+  const fetchTasks = async (): Promise<Task[]> => {
     if (!settings || !userEmail) {
       setError({ message: "Ustawienia lub użytkownik nie są dostępne" });
-      return;
+      return [];
     }
     
     setLoading(true);
@@ -115,22 +117,10 @@ export function useTasks(
       const { data, error: queryError } = await query;
       
       if (queryError) {
-        console.error("Error fetching tasks:", queryError);
-        setError({ 
-          message: "Nie udało się pobrać zadań. Spróbuj ponownie.", 
-          code: queryError.code 
-        });
-        setLoading(false);
-        return;
+        throw queryError;
       }
 
-      if (!data) {
-        setTasks([]);
-        setLoading(false);
-        return;
-      }
-
-      const sortedData = [...data];
+      const sortedData = data ? [...data] : [];
       
       if (sortFunction) {
         sortedData.sort(sortFunction);
@@ -143,101 +133,156 @@ export function useTasks(
       });
 
       setTasks(sortedData);
-    } catch (err) {
-      console.error("Unexpected error in fetchTasks:", err);
-      setError({ 
-        message: "Wystąpił nieoczekiwany błąd. Spróbuj odświeżyć stronę." 
-      });
+      return sortedData; // Zwracamy świeże dane
+    } catch (err: any) {
+      console.error("Error fetching tasks:", err);
+      const taskError = { 
+        message: "Nie udało się pobrać zadań. Spróbuj ponownie.", 
+        code: err.code 
+      };
+      setError(taskError);
+      return [];
     } finally {
       setLoading(false);
-      return tasks;
     }
   };
 
+  // POPRAWKA: Dodano bloki try-catch i sprawdzanie błędów z Supabase dla wszystkich mutacji.
   const addTask = async (task: Partial<Task>) => {
     if (!userEmail) return;
     setLoading(true);
+    setError(null);
     
-    const payload = {
-      ...task,
-      user_name: userEmail,
-      due_date: formatDate(task.due_date),
-    };
-    
-    await supabase
-      .from("tasks")
-      .insert(payload)
-      .select()
-      .single();
-    await fetchTasks();
-    setLoading(false);
+    try {
+      const payload = {
+        ...task,
+        user_name: userEmail,
+        due_date: formatDate(task.due_date),
+      };
+      
+      const { error: insertError } = await supabase
+        .from("tasks")
+        .insert(payload);
+
+      if (insertError) throw insertError;
+
+      await fetchTasks();
+    } catch (err: any) {
+      console.error("Error adding task:", err);
+      setError({ message: "Błąd podczas dodawania zadania.", code: err.code });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const editTask = async (task: Task) => {
     if (!userEmail) return;
     setLoading(true);
-    const payload = {
-      ...task,
-      user_name: userEmail,
-      due_date: formatDate(task.due_date),
-    };
-    
-    const { data } = await supabase
-      .from("tasks")
-      .update(payload)
-      .eq("id", task.id)
-      .select()
-      .single();
-    await fetchTasks();
-    setLoading(false);
+    setError(null);
+
+    try {
+      const payload = {
+        ...task,
+        user_name: userEmail,
+        due_date: formatDate(task.due_date),
+      };
+      
+      const { error: updateError } = await supabase
+        .from("tasks")
+        .update(payload)
+        .eq("id", task.id);
+
+      if (updateError) throw updateError;
+
+      await fetchTasks();
+    } catch (err: any) {
+      console.error("Error editing task:", err);
+      setError({ message: "Błąd podczas edycji zadania.", code: err.code });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteTask = async (id: string) => {
     if (!userEmail) return;
     setLoading(true);
-    await supabase.from("tasks").delete().eq("id", id);
-    await fetchTasks();
-    setLoading(false);
+    setError(null);
+
+    try {
+      const { error: deleteError } = await supabase
+        .from("tasks")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) throw deleteError;
+
+      await fetchTasks();
+    } catch (err: any) {
+      console.error("Error deleting task:", err);
+      setError({ message: "Nie udało się usunąć zadania.", code: err.code });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const acceptTask = async (id: string) => {
     if (!userEmail) return;
     setLoading(true);
-    await supabase
-      .from("tasks")
-      .update({ status: "accepted" })
-      .eq("id", id);
-    await fetchTasks();
-    setLoading(false);
+    setError(null);
+
+    try {
+      const { error: updateError } = await supabase
+        .from("tasks")
+        .update({ status: "accepted" })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+      await fetchTasks();
+    } catch (err: any) {
+      setError({ message: "Błąd akceptacji zadania.", code: err.code });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const setDoneTask = async (id: string) => {
     if (!userEmail) return;
     setLoading(true);
-    await supabase
-      .from("tasks")
-      .update({ status: "done" })
-      .eq("id", id);
-    await fetchTasks();
-    setLoading(false);
+    setError(null);
+
+    try {
+      const { error: updateError } = await supabase
+        .from("tasks")
+        .update({ status: "done" })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+      await fetchTasks();
+    } catch (err: any) {
+      setError({ message: "Błąd oznaczania zadania jako wykonane.", code: err.code });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const rescheduleTask = async (taskId: string, newDate: string) => {
-    const { data, error } = await supabase
-      .from("tasks")
-      .update({
-        due_date: newDate,
-      })
-      .eq("id", taskId)
-      .select()
-      .single();
+    setError(null);
+    try {
+      const { data, error: updateError } = await supabase
+        .from("tasks")
+        .update({ due_date: newDate })
+        .eq("id", taskId)
+        .select()
+        .single();
 
-    if (error) {
-      console.error("Error rescheduling task:", error);
-      throw error;
+      if (updateError) throw updateError;
+      await fetchTasks();
+      return data;
+    } catch (err: any) {
+      console.error("Error rescheduling task:", err);
+      setError({ message: "Błąd zmiany terminu zadania.", code: err.code });
+      throw err;
     }
-
-    return data;
   };
 
   useEffect(() => {
