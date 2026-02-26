@@ -18,7 +18,7 @@ const InputField = ({
   readOnly = false,
 }: {
   label: string;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   defaultValue?: number;
   icon?: React.ReactNode;
   suffix?: string;
