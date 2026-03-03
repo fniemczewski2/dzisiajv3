@@ -45,7 +45,7 @@ export default function StreakForm({
 }: StreakFormProps) {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
 
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(getAppDate());
@@ -63,7 +63,7 @@ export default function StreakForm({
     setLoading(true);
 
     const payload = {
-      user_email: userEmail,
+      user_id: userId,
       name: name.trim(),
       start_date: startDate,
       icon,

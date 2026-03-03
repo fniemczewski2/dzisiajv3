@@ -7,7 +7,7 @@ interface UseMoviesReturn {
   movies: Movie[];
   loading: boolean;
   error: string | null;
-  addMovie: (movie: Omit<MovieInsert, "user_email">) => Promise<Movie | null>;
+  addMovie: (movie: Omit<MovieInsert, "user_id">) => Promise<Movie | null>;
   updateMovie: (id: string, updates: Partial<Movie>) => Promise<boolean>;
   deleteMovie: (id: string) => Promise<boolean>;
   toggleWatched: (id: string) => Promise<boolean>;
@@ -18,7 +18,7 @@ interface UseMoviesReturn {
 export function useMovies(): UseMoviesReturn {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ export function useMovies(): UseMoviesReturn {
 
   // Pobierz filmy z bazy danych
   const fetchMovies = useCallback(async () => {
-    if (!userEmail) {
+    if (!userId) {
       setMovies([]);
       setLoading(false);
       return;
@@ -39,7 +39,7 @@ export function useMovies(): UseMoviesReturn {
       const { data, error } = await supabase
         .from("movies")
         .select("*")
-        .eq("user_email", userEmail)
+        .eq("user_id", userId)
         .order("rating", { ascending: false, nullsFirst: false });
 
       if (error) throw error;
@@ -51,7 +51,7 @@ export function useMovies(): UseMoviesReturn {
     } finally {
       setLoading(false);
     }
-  }, [supabase, userEmail]);
+  }, [supabase, userId]);
 
   // Automatyczne ładowanie przy montowaniu komponentu
   useEffect(() => {
@@ -60,15 +60,15 @@ export function useMovies(): UseMoviesReturn {
 
   // Dodaj nowy film
   const addMovie = useCallback(
-    async (movie: Omit<MovieInsert, "user_email">) => {
-      if (!userEmail) return null;
+    async (movie: Omit<MovieInsert, "user_id">) => {
+      if (!userId) return null;
 
       try {
         const { data, error } = await supabase
           .from("movies")
           .insert({
             ...movie,
-            user_email: userEmail,
+            user_id: userId,
           })
           .select()
           .single();
@@ -82,7 +82,7 @@ export function useMovies(): UseMoviesReturn {
         return null;
       }
     },
-    [supabase, userEmail]
+    [supabase, userId]
   );
 
   // Aktualizuj film
@@ -92,8 +92,7 @@ export function useMovies(): UseMoviesReturn {
         const { error } = await supabase
           .from("movies")
           .update(updates)
-          .eq("id", id)
-          .eq("user_email", userEmail);
+          .eq("id", id);
 
         if (error) throw error;
 
@@ -108,7 +107,7 @@ export function useMovies(): UseMoviesReturn {
         return false;
       }
     },
-    [supabase, userEmail]
+    [supabase, userId]
   );
 
   // Usuń film
@@ -119,7 +118,7 @@ export function useMovies(): UseMoviesReturn {
           .from("movies")
           .delete()
           .eq("id", id)
-          .eq("user_email", userEmail);
+
 
         if (error) throw error;
 
@@ -130,7 +129,7 @@ export function useMovies(): UseMoviesReturn {
         return false;
       }
     },
-    [supabase, userEmail]
+    [supabase, userId]
   );
 
   // Przełącz status obejrzenia

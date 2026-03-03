@@ -1,14 +1,14 @@
 export type Task = {
   id: string;
   title: string;
-  for_user: string;
+  for_user_id: string;
   category: string;
   priority: number;
   description: string;
   due_date: string;
   status: string;
   scheduled_time?: string | null;
-  user_name: string;
+  user_id: string;
 };
 
 export type Bill = {
@@ -16,7 +16,7 @@ export type Bill = {
   amount: number;
   description: string;
   date: string;
-  user_name: string;
+  user_id: string;
   is_income: boolean;
   done: boolean | null;
 };
@@ -26,7 +26,7 @@ export type Note = {
   title: string;
   items: string[];
   bg_color: string;
-  user_name: string;
+  user_id: string;
   pinned?: boolean;
   archived?: boolean;
   updated_at?: string;
@@ -39,8 +39,8 @@ export type Event = {
   start_time: string;
   end_time: string;
   place?: string;
-  user_name: string;
-  share?: string;
+  user_id: string;
+  shared_with_id?: string;
   repeat: "none" | "weekly" | "monthly" | "yearly";
 };
 
@@ -67,7 +67,7 @@ export type HabitKey =
 
 export interface DailyHabits {
   date: Date;
-  user_name: string;
+  user_id: string;
   pills: boolean;
   bath: boolean;
   workout: boolean;
@@ -94,7 +94,7 @@ export type HabitRow = {
 
 export type Reminder = {
   id: string;
-  user_email: string;
+  user_id: string;
   tytul: string;
   data_poczatkowa: string;
   powtarzanie: number;
@@ -118,14 +118,14 @@ export interface Recipe {
   category: RecipeCategory;
   products: string[];
   description: string;
-  user_email: string;
+  user_id: string;
   created_at?: string;
 }
 
 export interface Product {
   id: string;
   name: string;
-  user_email: string;
+  user_id: string;
   created_at?: string;
 }
 
@@ -136,7 +136,7 @@ export interface ScheduleItem {
 
 export interface Schema {
   id?: string;
-  user_name?: string;
+  user_id?: string;
   name: string;
   days: number[];
   entries: ScheduleItem[]; 
@@ -151,9 +151,9 @@ export interface ShoppingElement {
 
 export interface ShoppingList {
   id?: string;
-  user_email: string;
+  user_id: string;
   name: string;
-  share: string | null;
+  shared_with_id: string | null;
   elements: ShoppingElement[];
   inserted_at?: string;
   updated_at?: string;
@@ -169,7 +169,7 @@ export interface ReportTask {
 
 export interface Report {
   id: string;
-  user_email: string;
+  user_id: string;
   topic: string;
   date: string;
   agenda: string[];
@@ -186,7 +186,7 @@ export interface OpeningHours {
 
 export interface Place {
   id: string;
-  user_email: string;
+  user_id: string;
   name: string;
   address?: string;
   lat: number;
@@ -229,7 +229,7 @@ export type PlaceInsert = Omit<Place, "id" | "created_at" | "updated_at">;
 
 export interface Streak {
   id: string;
-  user_email: string;
+  user_id: string;
   name: string;
   start_date: string;
   icon?: string;
@@ -239,7 +239,7 @@ export interface Streak {
 // types/movie.ts
 export interface Movie {
   id: string;
-  user_email: string;
+  user_id: string;
   title: string;
   genre: string | null;
   rating: number | null;

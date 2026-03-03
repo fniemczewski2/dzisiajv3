@@ -10,22 +10,22 @@ export function usePlaces() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Ładowanie...");
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   
   useEffect(() => {
-    if (userEmail) {
+    if (userId) {
       fetchPlaces();
     }
-  }, [userEmail]);
+  }, [userId]);
 
   const fetchPlaces = async () => {
-    if (!userEmail) return;
+    if (!userIdeturn;
     
     setLoading(true);
     const { data, error } = await supabase
       .from("places")
       .select("*")
-      .eq("user_email", userEmail)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -37,7 +37,7 @@ export function usePlaces() {
   };
 
   const addPlace = async (place: PlaceInsert) => {
-    if (!userEmail) return;
+    if (!userId) return;
 
     const { data, error } = await supabase
       .from("places")
@@ -164,7 +164,7 @@ export function usePlaces() {
     lat: number,
     lng: number
   ): Promise<Place | null> => {
-    if (!userEmail) return null;
+    if (!userId) return null;
 
     // Strategy 1: Find by exact coordinates (within 0.0001 degrees ~ 11 meters)
     const coordThreshold = 0.0001;
@@ -172,7 +172,7 @@ export function usePlaces() {
     const { data: coordMatches, error: coordError } = await supabase
       .from("places")
       .select("*")
-      .eq("user_email", userEmail)
+      .eq("user_id", userId)
       .gte("lat", lat - coordThreshold)
       .lte("lat", lat + coordThreshold)
       .gte("lng", lng - coordThreshold)
@@ -196,7 +196,7 @@ export function usePlaces() {
     const { data: nameMatches, error: nameError } = await supabase
       .from("places")
       .select("*")
-      .eq("user_email", userEmail)
+      .eq("user_id", userId)
       .ilike("name", name); // Case-insensitive match
 
     if (nameError) {
@@ -212,7 +212,7 @@ export function usePlaces() {
     fetchGoogleData = true,
     autoTag = true
   ) => {
-    if (!userEmail) return 0;
+    if (!userId) return 0;
 
     try {
       const features = jsonData.features || [];
@@ -301,7 +301,7 @@ export function usePlaces() {
         } else {
           // Place doesn't exist - INSERT it
           const newPlace: PlaceInsert = {
-            user_email: userEmail,
+            user_id: userId,
             ...baseData,
             tags,
             notes: undefined,

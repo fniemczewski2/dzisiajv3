@@ -141,8 +141,8 @@ export default function CalendarDayDetails({
         );
       if (ev.place)
         vevent.addPropertyWithValue("location", escapeICalText(ev.place));
-      if (ev.user_name)
-        vevent.addPropertyWithValue("organizer", `MAILTO:${ev.user_name}`);
+      if (ev.user_id)
+        vevent.addPropertyWithValue("organizer", `MAILTO:${ev.user_id}`);
 
       vcalendar.addSubcomponent(vevent);
 
@@ -292,9 +292,9 @@ export default function CalendarDayDetails({
                         Udostępnij:
                       </label>
                       <select
-                        value={editedEvent.share || ""}
+                        value={editedEvent.shared_with_id || ""}
                         onChange={(e) =>
-                          setEditedEvent({ ...editedEvent, share: e.target.value })
+                          setEditedEvent({ ...editedEvent, shared_with_id: e.target.value })
                         }
                         className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       >
@@ -372,10 +372,10 @@ export default function CalendarDayDetails({
                       {event.place}
                     </div>
                   )}
-                  {event.share && (
+                  {event.shared_with_id && (
                     <div className="flex items-center text-sm text-gray-600">
                       <User className="w-4 h-4 mr-1" />
-                      {event.share}
+                      {event.shared_with_id}
                     </div>
                   )}
                 </div>

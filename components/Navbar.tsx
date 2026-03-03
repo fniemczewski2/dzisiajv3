@@ -20,7 +20,7 @@ export default function Navbar() {
         className="m-0 p-0 grid grid-cols-5 gap-4
         sm:grid-cols-5 sm:gap-0 max-w-[1600px] w-full"
       >
-        <NavLink href="/dashboard" Icon={LayoutDashboard} label="Dzisiaj" />
+        <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" />
         <NavLink href="/tasks" Icon={ListTodo} label="Zadania" />
         <NavLink href="/notes" Icon={Pen} label="Notatki" />
         <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" />

@@ -5,7 +5,7 @@ import { ShoppingList } from "../types";
 export function useShoppingLists() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +14,7 @@ export function useShoppingLists() {
     const { data, error } = await supabase
       .from("shopping_lists")
       .select("*")
-      .or(`user_email.eq.${userEmail},share.eq.${userEmail}`)
+      .or(`user_id.eq.${userId},share.eq.${userId}`)
       .limit(5);
 
     if (!error && data) {
@@ -31,7 +31,7 @@ export function useShoppingLists() {
     }
     const { data, error } = await supabase
       .from("shopping_lists")
-      .insert([{ name, share, elements: [], user_email: userEmail }])
+      .insert([{ name, share, elements: [], user_id: userId }])
       .select()
       .single();
     if (!error && data) setLists([...lists, data as ShoppingList]);
@@ -56,7 +56,7 @@ export function useShoppingLists() {
 
   useEffect(() => {
     fetchShoppingLists();
-  }, [userEmail]);
+  }, [userId]);
 
   return { lists, loading, addShoppingList, fetchShoppingLists, editShoppingList, deleteShoppingList };
 }

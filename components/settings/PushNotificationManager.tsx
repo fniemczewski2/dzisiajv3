@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { Bell, BellOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 
-export default function PushNotificationManager({ userEmail }: { userEmail: string | undefined }) {
+export default function PushNotificationManager({ userId }: { userId: string | undefined }) {
   const {
     isSubscribed,
     loading,
     subscribeToPush,
     unsubscribeFromPush
-  } = usePushNotifications(userEmail);
+  } = usePushNotifications(userId);
 
   const [showDetails, setShowDetails] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>(
@@ -88,7 +88,7 @@ export default function PushNotificationManager({ userEmail }: { userEmail: stri
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userEmail,
+          userId,
           title: 'Dzisiajv3 | Test',
           message: 'Powiadomienie testowe Dzisiajv3!',
           url: '/',

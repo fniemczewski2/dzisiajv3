@@ -17,7 +17,7 @@ type YearData = Record<number, MonthData>;
 export function useBudgetData(year: number, monthRange?: [number, number]) {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const [data, setData] = useState<YearData>({});
   const [loading, setLoading] = useState(true);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());
@@ -37,7 +37,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   });
 
   const fetchMonthData = async (month: number): Promise<MonthData> => {
-    if (!userEmail) return getEmptyMonthData();
+    if (!userId) return getEmptyMonthData();
     
     const monthStr = String(month).padStart(2, "0");
     const dateStart = `${year}-${monthStr}-01`;
@@ -50,14 +50,14 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const { data: bills } = await supabase
         .from("bills")
         .select("amount,date,is_income,description,done")
-        .eq("user_name", userEmail)
+        .eq("user_id", userId)
         .gte("date", dateStart)
         .lt("date", dateEnd);
 
       const { data: habits } = await supabase
         .from("daily_habits")
         .select("date,daily_spending")
-        .eq("user_name", userEmail)
+        .eq("user_id", userId)
         .gte("date", dateStart)
         .lt("date", dateEnd);
 
@@ -88,12 +88,12 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const fetchRates = async () => {
-    if (!userEmail) return {};
+    if (!userId) return {};
 
     const { data: ratesData } = await supabase
       .from("budgets")
       .select("*")
-      .eq("user_name", userEmail)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (!ratesData) return {};
@@ -107,7 +107,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const loadData = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
 
     try {
@@ -164,10 +164,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const saveRates = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
 
-    const payload: any = { user_name: userEmail };
+    const payload: any = { user_id: userId };
     Object.entries(data).forEach(([monthStr, monthData]) => {
       const m = parseInt(monthStr);
       if (m >= 1 && m <= 12) {
@@ -176,13 +176,13 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       }
     });
 
-    await supabase.from("budgets").upsert(payload, { onConflict: "user_name" });
+    await supabase.from("budgets").upsert(payload, { onConflict: "user_id" });
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
-  }, [userEmail, year, startMonth, endMonth]);
+  }, [userId, year, startMonth, endMonth]);
 
   return {
     data,

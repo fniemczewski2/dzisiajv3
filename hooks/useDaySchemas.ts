@@ -5,17 +5,17 @@ import { ScheduleItem, Schema } from "../types";
 export function useDaySchemas() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const [schemas, setSchemas] = useState<Schema[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchSchemas = useCallback(async () => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("day_schemas")
       .select("*")
-      .eq("user_name", userEmail);
+      .eq("user_id", userId);
     
     // Parse both days and entries from JSON strings if they come back as strings
     const parsedSchemas = data?.map(schema => ({
@@ -26,16 +26,16 @@ export function useDaySchemas() {
     
     setSchemas(parsedSchemas);
     setLoading(false);
-  }, [userEmail, supabase]);
+  }, [userId, supabase]);
 
   const addSchema = async (schema: Schema) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     
     const { data, error } = await supabase
       .from("day_schemas")
       .insert({ 
-        user_name: userEmail, 
+        user_id: userId, 
         name: schema.name,
         days: schema.days,  
         entries: schema.entries  
@@ -74,7 +74,7 @@ export function useDaySchemas() {
   };
 
   const deleteSchema = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     await supabase.from("day_schemas").delete().eq("id", id);
     await fetchSchemas();

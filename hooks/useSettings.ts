@@ -33,7 +33,7 @@ const safeParseArray = (data: any) => {
 export function useSettings() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
 
   const [settings, setSettings] = useState<SettingsType>({
     sort_order: "priority",
@@ -51,7 +51,7 @@ export function useSettings() {
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userEmail) {
+    if (!userId) {
       setLoading(false);
       return;
     }
@@ -61,7 +61,7 @@ export function useSettings() {
       const { data, error } = await supabase
         .from("settings")
         .select("sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_notifications,users,favorite_stops")
-        .eq("user_name", userEmail)
+        .eq("user_id", userId)
         .maybeSingle();
         
       if (!error && data) {
@@ -81,18 +81,18 @@ export function useSettings() {
     };
 
     loadSettings();
-  }, [session, supabase, userEmail]);
+  }, [session, supabase, userId]);
 
   const saveSettings = useCallback(async () => {
-    if (!userEmail) return { error: "No user" };
+    if (!userId) return { error: "No user" };
 
     setSaving(true);
-    const payload = { user_name: userEmail, ...settings };
-    const { error } = await supabase.from("settings").upsert(payload, { onConflict: "user_name" });
+    const payload = { user_id: userId, ...settings };
+    const { error } = await supabase.from("settings").upsert(payload, { onConflict: "user_id" });
     setSaving(false);
 
     return { error };
-  }, [session, supabase, settings, userEmail]);
+  }, [session, supabase, settings, userId]);
 
 
   // ------------------------
@@ -111,9 +111,9 @@ export function useSettings() {
     setSettings(prev => ({ ...prev, favorite_stops: updated }));
 
     await supabase.from("settings").upsert({
-      user_name: userEmail,
+      user_id: userId,
       favorite_stops: updated,
-    }, { onConflict: "user_name" });
+    }, { onConflict: "user_id" });
   };
 
   const removeFavoriteStop = async (name: string) => {
@@ -121,9 +121,9 @@ export function useSettings() {
     setSettings(prev => ({ ...prev, favorite_stops: updated }));
 
     await supabase.from("settings").upsert({
-      user_name: userEmail,
+      user_id: userId,
       favorite_stops: updated,
-    }, { onConflict: "user_name" });
+    }, { onConflict: "user_id" });
   };
 
   const addUser = () => {
