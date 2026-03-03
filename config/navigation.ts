@@ -46,7 +46,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
     name: "Zadania i Produktywność",
     items: [
-      {path: "/dashboard", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
+      {path: "/", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
       { path: "/tasks/eisenhower", title: "Eisenhower", icon: Brain, label: "Eisenhower" },

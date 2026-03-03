@@ -54,7 +54,6 @@ export default class MyDocument extends Document {
           <meta name="referrer" content="origin-when-cross-origin" />
         </Head>
         <body className="bg-gray-50 text-gray-800 justify-center p-4 min-h-screen antialiased">
-          {/* Skip to main content for accessibility */}
           <Main />
           <NextScript />
         </body>
