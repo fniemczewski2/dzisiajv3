@@ -43,7 +43,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (session) {
+    if (!session) {
       router.push("/start");
     }
   }, [session, router]);
