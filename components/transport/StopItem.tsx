@@ -19,11 +19,8 @@ const getStatusColor = (dep: Departure) => {
 
 export default function StopItem({ stopName, distance, departures, isLoading, onRemove, onAddFavorite, many, zone_id }: StopItemProps) {
 
-  // Zabezpieczenie na poziomie UI: ucinamy długie tablice, by widget nie zajmował całego ekranu
   const displayDepartures = React.useMemo(() => {
     if (!departures) return [];
-    
-    // Ustawiamy limit: 10 dla widoku rozszerzonego (many=true), 5 dla skróconego
     const limit = many ? 10 : 5;
     return departures.slice(0, limit);
   }, [departures, many]);
@@ -36,7 +33,6 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
           
           <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
             <MapPin className="w-3 h-3" />
-            {/* Bezpieczne zaokrąglanie ułamków, np. 76.2739... -> 76m */}
             {distance !== undefined ? `${Math.round(distance)}m` : zone_id === "S" ? "Szczecin" : "Poznań"}
           </div>
 

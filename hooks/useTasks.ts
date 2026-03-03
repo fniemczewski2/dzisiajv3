@@ -69,7 +69,7 @@ export function useTasks(
 ) {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const { settings } = useSettings();
   
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -88,7 +88,7 @@ export function useTasks(
   // POPRAWKA: fetchTasks teraz zwraca pobrane dane bezpośrednio (Promise<Task[]>),
   // zamiast polegać na asynchronicznym stanie 'tasks' wewnątrz bloku finally.
   const fetchTasks = async (): Promise<Task[]> => {
-    if (!settings || !userEmail) {
+    if (!settings || !userId) {
       setError({ message: "Ustawienia lub użytkownik nie są dostępne" });
       return [];
     }
@@ -100,7 +100,7 @@ export function useTasks(
       let query = supabase
         .from("tasks")
         .select("*")
-        .or(`user_name.eq.${userEmail},for_user.eq.${userEmail}`);
+        .or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
 
       if (dateFrom) {
         query = query.gte("due_date", dateFrom);
@@ -149,14 +149,14 @@ export function useTasks(
 
   // POPRAWKA: Dodano bloki try-catch i sprawdzanie błędów z Supabase dla wszystkich mutacji.
   const addTask = async (task: Partial<Task>) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     setError(null);
     
     try {
       const payload = {
         ...task,
-        user_name: userEmail,
+        user_id: userId,
         due_date: formatDate(task.due_date),
       };
       
@@ -176,14 +176,14 @@ export function useTasks(
   };
 
   const editTask = async (task: Task) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     setError(null);
 
     try {
       const payload = {
         ...task,
-        user_name: userEmail,
+        user_id: userId,
         due_date: formatDate(task.due_date),
       };
       
@@ -204,7 +204,7 @@ export function useTasks(
   };
 
   const deleteTask = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     setError(null);
 
@@ -226,7 +226,7 @@ export function useTasks(
   };
 
   const acceptTask = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     setError(null);
 
@@ -246,7 +246,7 @@ export function useTasks(
   };
 
   const setDoneTask = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     setError(null);
 
@@ -287,7 +287,7 @@ export function useTasks(
 
   useEffect(() => {
     fetchTasks();
-  }, [userEmail, settings?.show_completed, settings?.sort_order, dateFrom, dateTo]);
+  }, [userId, settings?.show_completed, settings?.sort_order, dateFrom, dateTo]);
 
   return { 
     tasks, 

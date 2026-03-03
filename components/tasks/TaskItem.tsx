@@ -25,7 +25,7 @@ interface Props {
 
 export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const isDone = task.status === "done";
   const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
@@ -279,21 +279,21 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
               </span>
             )}
           </div>
-          {(task.description || task.user_name !== userEmail || task.for_user !== userEmail) && (
+          {(task.description || task.user_id !== userId || task.for_user_id !== userId) && (
             <p className="flex flex-col gap-2 my-2 rounded-lg text-sm bg-gray-100 p-2">
               {task.description && (
                 <span>{task.description}</span>
               )}
-                {(task.user_name !== userEmail) && 
+                {(task.user_id !== userId) && 
                   (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
                     <span className="text-xs">
-                      Zlecone przez: {task.user_name}
+                      Zlecone przez: {task.user_id}
                     </span>
                 } 
-                {(task.for_user !== userEmail) && 
+                {(task.for_user_id !== userId) && 
                   (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
                     <span className="text-xs">
-                      Zlecone dla: {task.for_user}
+                      Zlecone dla: {task.for_user_id}
                     </span>
                 }
             </p>
@@ -305,7 +305,7 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
                   <EditButton onClick={handleEdit} />
                   <DeleteButton onClick={handleDelete} />
                 </>
-              ) : task.user_name !== userEmail &&
+              ) : task.user_id !== userId &&
                 task.status === "waiting_for_acceptance" ? (
                 <>
                   <button

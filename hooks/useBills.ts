@@ -7,20 +7,20 @@ import { useSettings } from "./useSettings";
 export function useBills() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const { settings } = useSettings();
   const [incomeItems, setIncomeItems] = useState<Bill[]>([]);
   const [expenseItems, setExpenseItems] = useState<Bill[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchBills = async () => {
-    if (!userEmail || settings == null) return;
+    if (!userId || settings == null) return;
     setLoading(true);
 
     const { data } = await supabase
       .from("bills")
       .select("*")
-      .eq("user_name", userEmail)
+      .eq("user_id", userId)
       .eq("is_income", true)
       .eq("done", false)
       .order("date", { ascending: true });
@@ -31,7 +31,7 @@ export function useBills() {
       const { data: budgetData } = await supabase
         .from("bills")
         .select("*")
-        .eq("user_name", userEmail)
+        .eq("user_id", userId)
         .eq("is_income", false)
         .eq("done", false)
         .order("date", { ascending: true });
@@ -42,12 +42,12 @@ export function useBills() {
     setLoading(false);
   };
 
-  const addBill = async (bill: Omit<Bill, "id" | "user_name">) => {
-    if (!userEmail) return;
+  const addBill = async (bill: Omit<Bill, "id" | "user_id">) => {
+    if (!userId) return;
     setLoading(true);
     const { data } = await supabase
       .from("bills")
-      .insert({ ...bill, user_name: userEmail })
+      .insert({ ...bill, user_id: userId })
       .select()
       .single();
     
@@ -62,11 +62,11 @@ export function useBills() {
   };
 
   const editBill = async (bill: Bill) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     const { data } = await supabase
       .from("bills")
-      .update({ ...bill, user_name: userEmail })
+      .update({ ...bill, user_id: userId })
       .eq("id", bill.id)
       .select()
       .single();
@@ -83,7 +83,7 @@ export function useBills() {
   };
 
   const deleteBill = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     await supabase.from("bills").delete().eq("id", id);
     await fetchBills();
@@ -91,7 +91,7 @@ export function useBills() {
   };
 
   const markAsDone = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     await supabase
       .from("bills")
@@ -103,7 +103,7 @@ export function useBills() {
 
   useEffect(() => {
     fetchBills();
-  }, [userEmail, settings?.show_budget_items]);
+  }, [userId, settings?.show_budget_items]);
 
   return {
     incomeItems,

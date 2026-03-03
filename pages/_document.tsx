@@ -52,20 +52,9 @@ export default class MyDocument extends Document {
           {/* Security Headers */}
           <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
           <meta name="referrer" content="origin-when-cross-origin" />
-
-          {/* Verification Tags (Add your verification codes when you have them) */}
-          {/* <meta name="google-site-verification" content="your-verification-code" /> */}
-          {/* <meta name="facebook-domain-verification" content="your-verification-code" /> */}
         </Head>
         <body className="bg-gray-50 text-gray-800 justify-center p-4 min-h-screen antialiased">
           {/* Skip to main content for accessibility */}
-          <a 
-            href="#main-content" 
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Przejdź do głównej treści
-          </a>
-          
           <Main />
           <NextScript />
         </body>

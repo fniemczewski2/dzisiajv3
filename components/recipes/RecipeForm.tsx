@@ -29,7 +29,7 @@ export default function RecipeForm({
 }: RecipeFormProps) {
   const { addRecipe, loading, products: allProducts } = useRecipes();
   const session  = useSession();
-  const userEmail = session?.user.email;
+  const userId = session?.user?.id;
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<RecipeCategory>("śniadanie");
@@ -80,7 +80,7 @@ export default function RecipeForm({
       category,
       products: picked.map((p) => p.trim()),
       description: description.trim(),
-      user_email: userEmail,
+      user_id: userId,
     } as Recipe;
 
     await addRecipe({

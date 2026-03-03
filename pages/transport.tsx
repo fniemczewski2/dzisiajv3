@@ -22,7 +22,6 @@ export default function TransportPage() {
     loadingNearby,
     loadingFavorites,
     locationError, // Pobieramy błąd lokalizacji z hooka
-    initLocationAndFetch, // Funkcja do ręcznego odświeżenia GPS
     fetchFavorites,
   } = useTransport(true);
 
@@ -121,7 +120,6 @@ export default function TransportPage() {
             }}
           />
 
-          {/* ⭐ ULUBIONE */}
           <section>
             <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
@@ -152,8 +150,6 @@ export default function TransportPage() {
               )}
             </div>
           </section>
-
-          {/* 📍 NAJBLIŻEJ (Zintegrowane z błędami GPS) */}
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">

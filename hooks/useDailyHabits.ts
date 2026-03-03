@@ -3,9 +3,9 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { getAppDate } from "../lib/dateUtils";
 import { DailyHabits, HabitKey } from "../types";
 
-const getDefaultHabits = (date: string, userEmail: string): DailyHabits => ({
+const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
   date: new Date(date),
-  user_name: userEmail,
+  user_id: userId,
   pills: false,
   bath: false,
   workout: false,
@@ -21,7 +21,7 @@ const getDefaultHabits = (date: string, userEmail: string): DailyHabits => ({
 export function useDailyHabits(date?: string) {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
 
   const today = getAppDate();
   const targetDate = date ?? today;
@@ -31,7 +31,7 @@ export function useDailyHabits(date?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchHabits = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
 
     setLoading(true);
     setError(null);
@@ -41,7 +41,7 @@ export function useDailyHabits(date?: string) {
         .from("daily_habits")
         .select("*")
         .eq("date", targetDate)
-        .eq("user_name", userEmail)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (error) throw error;
@@ -53,18 +53,18 @@ export function useDailyHabits(date?: string) {
           daily_spending: data.daily_spending ?? 0,
         });
       } else {
-        setHabits(getDefaultHabits(targetDate, userEmail));
+        setHabits(getDefaultHabits(targetDate, userId));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
-      setHabits(getDefaultHabits(targetDate, userEmail));
+      setHabits(getDefaultHabits(targetDate, userId));
     } finally {
       setLoading(false);
     }
   };
 
   const toggleHabit = async (key: HabitKey) => {
-    if (!habits || !userEmail) return;
+    if (!habits || !userId) return;
 
     const newValue = !habits[key];
 
@@ -73,7 +73,7 @@ export function useDailyHabits(date?: string) {
     try {
       const payload = {
         date: targetDate,
-        user_name: userEmail,
+        user_id: userId,
         [key]: newValue,
         water_amount: habits.water_amount ?? 0,
         daily_spending: habits.daily_spending ?? 0,
@@ -81,7 +81,7 @@ export function useDailyHabits(date?: string) {
 
       const { error } = await supabase
         .from("daily_habits")
-        .upsert(payload, { onConflict: "date,user_name" });
+        .upsert(payload, { onConflict: "date,user_id" });
 
       if (error) throw error;
     } catch (err) {
@@ -92,7 +92,7 @@ export function useDailyHabits(date?: string) {
   };
 
   const updateWater = async (amount: number) => {
-    if (!habits || !userEmail) return;
+    if (!habits || !userId) return;
 
     const validAmount = isNaN(amount) ? 0 : amount;
 
@@ -101,14 +101,14 @@ export function useDailyHabits(date?: string) {
     try {
       const payload = {
         date: targetDate,
-        user_name: userEmail,
+        user_id: userId,
         water_amount: validAmount,
         daily_spending: habits.daily_spending ?? 0,
       };
 
       const { error } = await supabase
         .from("daily_habits")
-        .upsert(payload, { onConflict: "date,user_name" });
+        .upsert(payload, { onConflict: "date,user_id" });
 
       if (error) throw error;
     } catch (err) {
@@ -121,7 +121,7 @@ export function useDailyHabits(date?: string) {
   };
 
   const updateSpending = async (amount: number) => {
-    if (!habits || !userEmail) return;
+    if (!habits || !userId) return;
 
     const validAmount = isNaN(amount) ? 0 : amount;
     setHabits((prev) => (prev ? { ...prev, daily_spending: validAmount } : prev));
@@ -129,14 +129,14 @@ export function useDailyHabits(date?: string) {
     try {
       const payload = {
         date: targetDate,
-        user_name: userEmail,
+        user_id: userId,
         daily_spending: validAmount,
         water_amount: habits.water_amount ?? 0,
       };
 
       const { error } = await supabase
         .from("daily_habits")
-        .upsert(payload, { onConflict: "date,user_name" });
+        .upsert(payload, { onConflict: "date,user_id" });
 
       if (error) throw error;
     } catch (err) {
@@ -152,7 +152,7 @@ export function useDailyHabits(date?: string) {
 
   useEffect(() => {
     fetchHabits();
-  }, [userEmail, targetDate]);
+  }, [userId, targetDate]);
 
   return {
     habits,

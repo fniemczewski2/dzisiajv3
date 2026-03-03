@@ -26,7 +26,7 @@ type UseRecipes = {
 export function useRecipes(): UseRecipes {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [products, setProducts] = useState<string[]>([]);
@@ -37,7 +37,7 @@ export function useRecipes(): UseRecipes {
     const { data, error } = await supabase
       .from("recipes")
       .select("*")
-      .eq("user_email", email)
+      .eq("user_id", email)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -48,7 +48,7 @@ export function useRecipes(): UseRecipes {
     const { data, error } = await supabase
       .from("products")
       .select("name")
-      .eq("user_email", email)
+      .eq("user_id", email)
       .order("name", { ascending: true });
 
     if (error) throw error;
@@ -58,14 +58,14 @@ export function useRecipes(): UseRecipes {
   };
 
   const refresh = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
 
     setLoading(true);
     setError(undefined);
     try {
       const [r, p] = await Promise.all([
-        fetchRecipes(userEmail),
-        fetchProducts(userEmail),
+        fetchRecipes(userId),
+        fetchProducts(userId),
       ]);
       setRecipes(r);
       setProducts(p);
@@ -77,14 +77,14 @@ export function useRecipes(): UseRecipes {
   };
 
   const addRecipe = async (r: NewRecipe): Promise<Recipe | null> => {
-    if (!userEmail) return null;
+    if (!userId) return null;
 
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("recipes")
         .insert({
-          user_email: userEmail,
+          user_id: userId,
           name: r.name,
           category: r.category,
           products: r.products,
@@ -107,7 +107,7 @@ export function useRecipes(): UseRecipes {
   };
 
   const editRecipe = async (recipe: Recipe): Promise<Recipe | null> => {
-    if (!userEmail) return null;
+    if (!userId) return null;
 
     setLoading(true);
     try {
@@ -139,7 +139,7 @@ export function useRecipes(): UseRecipes {
   };
 
   const deleteRecipe = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
 
     setLoading(true);
     try {
@@ -162,7 +162,7 @@ export function useRecipes(): UseRecipes {
 
   useEffect(() => {
     refresh();
-  }, [userEmail]);
+  }, [userId]);
 
   return {
     recipes,

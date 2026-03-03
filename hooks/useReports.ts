@@ -6,19 +6,19 @@ import { Report } from "../types";
 export function useReports() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchReports = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
     
     setLoading(true);
     const { data, error } = await supabase
       .from("reports")
       .select("*")
-      .eq("user_email", userEmail)
+      .eq("user_id", userId)
       .order("date", { ascending: false });
 
     if (!error && data) setReports(data as Report[]);
@@ -28,7 +28,7 @@ export function useReports() {
   const addReport = async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
     const { data, error } = await supabase
       .from("reports")
-      .insert([{...payload, user_email: userEmail }])
+      .insert([{...payload, user_id: userId }])
       .select()
       .single();
     if (!error && data) setReports((prev) => [data as Report, ...prev]);
@@ -53,7 +53,7 @@ export function useReports() {
 
   useEffect(() => {
     fetchReports();
-  }, [userEmail]);
+  }, [userId]);
 
   return { reports, loading, fetchReports, addReport, editReport, deleteReport };
 }

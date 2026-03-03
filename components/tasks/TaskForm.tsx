@@ -21,7 +21,7 @@ export default function TaskForm({
   onCancel,
 }: TaskFormProps) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id ||process.env.NEXT_PUBLIC_USER_ID;
   const { settings } = useSettings();
   const { addTask, loading } = useTasks();
   const todayIso = getAppDate();
@@ -40,14 +40,14 @@ export default function TaskForm({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const forUser = forUserRef.current?.value || userEmail;
+    const forUserId = forUserRef.current?.value || userId;
     const nextStatus =
-      forUser !== userEmail ? "waiting_for_acceptance" : "pending";
+      forUserId !== userId ? "waiting_for_acceptance" : "pending";
 
     const taskData: Partial<Task> = {
       title: titleRef.current?.value || "",
-      user_name: userEmail || "",
-      for_user: forUser || "mnie",
+      user_id: userId || "",
+      for_user_id: forUserId || "mnie",
       category: categoryRef.current?.value || "inne",
       priority: priority,
       description: descriptionRef.current?.value || "",
@@ -179,9 +179,9 @@ export default function TaskForm({
             ref={forUserRef}
             className="mt-1 w-full p-2 border rounded"
             required
-            defaultValue={userEmail}
+            defaultValue={userId}
           >
-            <option value={userEmail}>mnie</option>
+            <option value={userId}>mnie</option>
             {userOptions.map((email) => (
               <option key={email} value={email}>
                 {email}

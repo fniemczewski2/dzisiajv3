@@ -6,7 +6,7 @@ import { Streak } from "../types";
 export function useStreaks() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL; 
+  const userId = session?.user?.id; 
   const [streaks, setStreaks] = useState<Streak[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +16,7 @@ export function useStreaks() {
       const { data, error } = await supabase
         .from("streaks")
         .select("*")
-        .eq("user_email", userEmail)
+        .eq("user_id", userId)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
@@ -28,9 +28,9 @@ export function useStreaks() {
     }
   };
 
-  const addStreak = async (newStreak: Omit<Streak, "id" | "user_email">) => {
+  const addStreak = async (newStreak: Omit<Streak, "id" | "user_id">) => {
     try {
-      const { error } = await supabase.from("streaks").insert([{...newStreak, user_email: userEmail }]);
+      const { error } = await supabase.from("streaks").insert([{...newStreak, user_id: userId }]);
       if (error) throw error;
       await fetchStreaks();
     } catch (error) {
@@ -71,10 +71,10 @@ export function useStreaks() {
   };
 
   useEffect(() => {
-    if (userEmail) {
+    if (userId) {
       fetchStreaks();
     }
-  }, [userEmail]);
+  }, [userId]);
 
   return {
     streaks,

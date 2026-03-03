@@ -9,20 +9,20 @@ export function useEvents(
   rangeEnd: string
 ) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const supabase = useSupabaseClient();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchEvents = async () => {
-    if (!userEmail || !rangeStart || !rangeEnd) return;
+    if (!userId || !rangeStart || !rangeEnd) return;
     setLoading(true);
 
     try {
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .or(`user_name.eq.${userEmail},share.eq.${userEmail}`);
+        .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`);
       
       if (error) {
         console.error("Failed to fetch events:", error.message);
@@ -43,10 +43,10 @@ export function useEvents(
 
   useEffect(() => { 
     fetchEvents(); 
-  }, [userEmail, rangeStart, rangeEnd, supabase]);
+  }, [userId, rangeStart, rangeEnd, supabase]);
 
   const addEvent = async (event: Event) => {
-    if (!userEmail) {
+    if (!userId) {
       throw new Error("User not authenticated");
     }
     
@@ -57,7 +57,7 @@ export function useEvents(
       
       const { data, error } = await supabase
         .from("events")
-        .insert({ ...eventWithoutId, user_name: userEmail })
+        .insert({ ...eventWithoutId, user_id: userId })
         .select(); 
       
       if (error) {
@@ -76,7 +76,7 @@ export function useEvents(
   };
 
   const editEvent = async (event: Event) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     
     try {
@@ -85,7 +85,7 @@ export function useEvents(
       
       const { error } = await supabase
         .from("events")
-        .update({ ...eventData, user_name: userEmail })
+        .update({ ...eventData, user_id: userId })
         .eq("id", originalId);
       
       if (error) {
@@ -103,7 +103,7 @@ export function useEvents(
   };
 
   const deleteEvent = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
 
     try {

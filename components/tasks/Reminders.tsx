@@ -22,7 +22,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
   const [showAll, setShowAll] = useState(false);
 
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id ||process.env.NEXT_PUBLIC_USER_ID;
   const today = getAppDate();
 
   const {
@@ -53,7 +53,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
   };
 
    const handleAddTask = async (reminder: any) => {
-    if (!userEmail) return;
+    if (!userId) return;
 
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
@@ -81,14 +81,15 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
     }
 
     const newTask = {
+      id: '',
       title: reminder.tytul,
-      for_user: userEmail,
+      for_user_id: userId,
       category: "przypomnienia",
       priority: 1,
       description: `Utworzone z przypomnienia (co ${reminder.powtarzanie} dni)`,
       due_date: nextDate.toISOString().split('T')[0],
       status: "pending",
-      user_name: userEmail,
+      user_id: userId,
     } as Task;
 
     await addTask(newTask);

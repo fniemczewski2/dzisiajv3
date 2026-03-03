@@ -20,7 +20,7 @@ export default function ShoppingForm({
   const { settings } = useSettings();
   const { addShoppingList, loading } = useShoppingLists();
   const session  = useSession();
-  const userEmail = session?.user.email;
+  const userId = session?.user.email;
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
@@ -29,14 +29,14 @@ export default function ShoppingForm({
     e.preventDefault();
 
     const payload: ShoppingList = {
-      user_email: userEmail,
+      user_id: userId,
       name: name.trim() || "",
-      share: share.trim() || null,
+      shared_with_id: share.trim() || null,
       elements:  [],
     } as ShoppingList;
 
 
-    await addShoppingList(payload.name, payload.share);
+    await addShoppingList(payload.name, payload.shared_with_id);
 
     onChange();
     setName("");

@@ -7,12 +7,12 @@ export function useCalendarData(
 ) {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const [tasksCount, setTasksCount] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
 
     const { data } = await supabase
@@ -20,7 +20,7 @@ export function useCalendarData(
       .select("due_date")
       .gte("due_date", rangeStart)
       .lte("due_date", rangeEnd)
-      .or(`user_name.eq.${userEmail},for_user.eq.${userEmail}`);
+      .or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
 
     const tMap: Record<string, number> = {};
     data?.forEach(({ due_date }) => {
@@ -33,7 +33,7 @@ export function useCalendarData(
 
   useEffect(() => {
     fetchData();
-  }, [userEmail, rangeStart, rangeEnd]);
+  }, [userId, rangeStart, rangeEnd]);
 
   return { tasksCount, loading, fetchData };
 }

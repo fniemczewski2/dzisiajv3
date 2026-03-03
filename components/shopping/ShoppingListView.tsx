@@ -16,7 +16,7 @@ export default function ShoppingListView() {
 
   const userOptions = settings?.users ?? [];
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
 
   useEffect(() => {
     if (editingId && nameRef.current) {
@@ -38,7 +38,7 @@ export default function ShoppingListView() {
     if (editedList?.id) {
       await editShoppingList(editedList.id, {
         name: editedList.name,
-        share: editedList.share,
+        shared_with_id: editedList.shared_with_id,
       });
       setEditingId(undefined);
       setEditedList(null);
@@ -112,9 +112,9 @@ export default function ShoppingListView() {
                     Udostępnij:
                   </label>
                   <select
-                    value={editedList.share || ""}
+                    value={editedList.shared_with_id || ""}
                     onChange={(e) =>
-                      setEditedList({ ...editedList, share: e.target.value || null })
+                      setEditedList({ ...editedList, shared_with_id: e.target.value || null })
                     }
                     className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   >
@@ -181,10 +181,10 @@ export default function ShoppingListView() {
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1 mr-4">
                 <h3 className="font-semibold text-lg">{list.name}</h3>
-                {list.share && (
+                {list.shared_with_id && (
                   <p className="text-sm text-gray-500">
-                    {list.share === userEmail && `Udostępnione przez ${list.user_email.split("@")[0]}`}
-                    {list.user_email === userEmail && `Udostępnione: ${list.share.split("@")[0]}`}
+                    {list.shared_with_id === userId && `Udostępnione przez ${list.user_id.split("@")[0]}`}
+                    {list.user_id === userId && `Udostępnione: ${list.shared_with_id.split("@")[0]}`}
                   </p>
                 )}
               </div>

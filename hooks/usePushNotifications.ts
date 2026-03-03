@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export function usePushNotifications(userEmail: string | undefined) {
+export function usePushNotifications(userId: string | undefined) {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -24,7 +24,7 @@ export function usePushNotifications(userEmail: string | undefined) {
   }, [])
 
   async function checkSubscription() {
-    if (!('serviceWorker' in navigator) || !userEmail) return
+    if (!('serviceWorker' in navigator) || !userId) return
 
     try {
       const registration = await navigator.serviceWorker.ready
@@ -36,7 +36,7 @@ export function usePushNotifications(userEmail: string | undefined) {
   }
 
   async function subscribeToPush() {
-    if (!userEmail) {
+    if (!userId) {
       alert('Please log in first')
       return
     }
@@ -68,7 +68,7 @@ export function usePushNotifications(userEmail: string | undefined) {
       const { data: allSubs, error: fetchError } = await supabase
         .from('push_subscriptions')
         .select('*')
-        .eq('user_email', userEmail)
+        .eq('user_id', userId)
 
       if (fetchError) {
         console.error('Error fetching subscriptions:', fetchError)
@@ -100,7 +100,7 @@ export function usePushNotifications(userEmail: string | undefined) {
         const { error } = await supabase
           .from('push_subscriptions')
           .insert({
-            user_email: userEmail,
+            user_id: userId,
             subscription: subscriptionJSON,
             user_agent: navigator.userAgent
           })
@@ -134,7 +134,7 @@ export function usePushNotifications(userEmail: string | undefined) {
         const { data: allSubs } = await supabase
           .from('push_subscriptions')
           .select('*')
-          .eq('user_email', userEmail)
+          .eq('user_id', userId)
 
         const toDelete = allSubs?.find(sub => {
           const subData = typeof sub.subscription === 'string' 

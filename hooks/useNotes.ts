@@ -6,17 +6,17 @@ import { getAppDateTime } from "../lib/dateUtils";
 export function useNotes() {
   const supabase = useSupabaseClient();
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchNotes = async () => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("notes")
       .select("*")
-      .eq("user_name", userEmail);
+      .eq("user_id", userId);
     
     const sorted = (data || []).sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
@@ -34,13 +34,13 @@ export function useNotes() {
   };
 
   const addNote = async (note: Note) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     const { data } = await supabase
       .from("notes")
       .insert({ 
         ...note, 
-        user_name: userEmail,
+        user_id: userId,
         pinned: false,
         archived: false,
         updated_at: getAppDateTime()
@@ -52,7 +52,7 @@ export function useNotes() {
   };
 
   const editNote = async (note: Note) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
 
     const { id, ...clean } = note;
@@ -63,7 +63,7 @@ export function useNotes() {
         title: clean.title,
         items: clean.items,
         bg_color: clean.bg_color,
-        user_name: clean.user_name,
+        user_id: clean.user_id,
         pinned: clean.pinned,
         archived: clean.archived,
         updated_at: getAppDateTime()
@@ -79,7 +79,7 @@ export function useNotes() {
   };
 
   const togglePin = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     
     const note = notes.find(n => n.id === id);
@@ -99,7 +99,7 @@ export function useNotes() {
   };
 
   const toggleArchive = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     
     const note = notes.find(n => n.id === id);
@@ -119,7 +119,7 @@ export function useNotes() {
   };
 
   const deleteNote = async (id: string) => {
-    if (!userEmail) return;
+    if (!userId) return;
     setLoading(true);
     await supabase.from("notes").delete().eq("id", id);
     await fetchNotes();
@@ -128,7 +128,7 @@ export function useNotes() {
 
   useEffect(() => {
     fetchNotes();
-  }, [userEmail]);
+  }, [userId]);
 
   return { 
     notes, 

@@ -9,7 +9,7 @@ export default function LoginForm() {
   const router = useRouter();
 
   const nextPath = useMemo(() => {
-    return typeof router.query.next === "string" ? router.query.next : "/tasks";
+    return typeof router.query.next === "string" ? router.query.next : "/dashboard";
   }, [router.query.next]);
 
   useEffect(() => {

@@ -6,31 +6,31 @@ import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 export function useReminders() {
   const session = useSession();
   const supabase = useSupabaseClient();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const today = getAppDate();
 
   useEffect(() => {
-    if (!userEmail) return;
+    if (!userId) return;
     fetchReminders();
-  }, [userEmail]);
+  }, [userId]);
 
   const fetchReminders = async () => {
     const { data, error } = await supabase
       .from("reminders")
       .select("*")
-      .eq("user_email", userEmail)
+      .eq("user_id", userId)
       .order("data_poczatkowa", { ascending: true });
 
     if (!error && data) setReminders(data);
   };
 
   const addReminder = async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
-    if (!userEmail) return;
+    if (!userId) return;
     const { data, error } = await supabase
       .from("reminders")
       .insert({
-        user_email: userEmail,
+        user_id: userId,
         tytul,
         data_poczatkowa,
         powtarzanie,

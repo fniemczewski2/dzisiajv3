@@ -32,12 +32,9 @@ export function useTransport(autoRefresh = false) {
   const [error, setError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   
-  // Zmiana: Inicjalizujemy jako null, aby mieć pewność, czy kiedykolwiek dostaliśmy GPS
   const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
 
-  // 1️⃣ Pobieranie danych dla konkretnej lokalizacji
   const fetchNearbyData = useCallback(async () => {
-    // 🛑 KLUCZOWE: Zatrzymujemy zapytanie, jeśli nie mamy jeszcze zapisanych współrzędnych
     if (!lastCoords.current) {
       console.log("Oczekuję na sygnał GPS, wstrzymuję pobieranie przystanków.");
       setLoadingNearby(false);
@@ -56,8 +53,6 @@ export function useTransport(autoRefresh = false) {
       if (invokeError) throw new Error("Błąd sieciowy podczas łączenia z funkcją.");
 
       const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-
-      // Obsługa błędu braku lokalizacji zwróconego przez Edge Function
       if (parsedData?.error === "LOCATION_REQUIRED") {
         setLocationError("Lokalizacja jest wymagana, aby pokazać przystanki w pobliżu.");
         setNearbyGroups([]);
@@ -74,7 +69,6 @@ export function useTransport(autoRefresh = false) {
     }
   }, [supabase]);
 
-  // 2️⃣ Inicjalizacja lokalizacji (GPS)
   const initLocationAndFetch = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError("Twoja przeglądarka nie obsługuje geolokalizacji.");
@@ -86,17 +80,14 @@ export function useTransport(autoRefresh = false) {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        // Ustawiamy potwierdzone współrzędne
         lastCoords.current = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        // I dopiero w tym momencie wywołujemy pobieranie danych
         fetchNearbyData();
       },
       (err) => {
         setLoadingNearby(false);
-        // Czyścimy współrzędne, by nie polegać na ewentualnym cache'u przy błędzie
         lastCoords.current = null;
         if (err.code === 1) {
           setLocationError("Brak zgody na lokalizację. Przystanki w pobliżu nie zostaną wyświetlone.");
@@ -104,12 +95,10 @@ export function useTransport(autoRefresh = false) {
           setLocationError("Nie udało się pobrać Twojej lokalizacji GPS.");
         }
       },
-      // maximumAge: 0 wymusza na przeglądarce pominięcie cache'u i użycie aktualnego GPS
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, [fetchNearbyData]);
 
-  // 3️⃣ Pobieranie ulubionych
   const fetchFavorites = useCallback(async (names: string[]) => {
     if (!names || names.length === 0) {
       setFavoritesGroups([]);
@@ -120,7 +109,6 @@ export function useTransport(autoRefresh = false) {
       const { data, error: invokeError } = await supabase.functions.invoke("get-transitland-times", {
         body: { 
           stopNames: names, 
-          // Przekazujemy lat/lon tylko jeśli istnieją, by pomóc funkcji Edge (opcjonalne)
           lat: lastCoords?.current?.lat, 
           lon: lastCoords?.current?.lng 
         },
@@ -138,7 +126,6 @@ export function useTransport(autoRefresh = false) {
     }
   }, [supabase]);
 
-  // 4️⃣ Wyszukiwarka przystanków
   const searchStops = useCallback(async (query: string): Promise<SearchResult[]> => {
     if (query.length < 3) return [];
     try {
@@ -159,13 +146,11 @@ export function useTransport(autoRefresh = false) {
     }
   }, [supabase]);
 
-  // Lifecycle
   useEffect(() => {
     initLocationAndFetch();
 
     if (autoRefresh) {
       const interval = setInterval(() => {
-        // Odświeżamy z interwału TYLKO, jeśli GPS zdążył już zapisać nasze dane
         if (lastCoords.current) {
           fetchNearbyData();
         }

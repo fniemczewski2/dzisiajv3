@@ -26,7 +26,7 @@ export default function EventForm({
   selectedDate,
 }: EventsFormProps) {
   const session = useSession();
-  const userEmail = session?.user?.email || process.env.NEXT_PUBLIC_USER_EMAIL;
+  const userId = session?.user?.id;
   const { settings } = useSettings();
   
   const rangeStart = currentDate ? format(startOfMonth(currentDate), "yyyy-MM-dd") :  format(startOfMonth(getAppDateTime()), "yyyy-MM-dd");
@@ -58,6 +58,7 @@ export default function EventForm({
 
     try {
       const payload: Event = {
+        id: '',
         title: title.trim(),
         description: description.trim(),
         start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
@@ -65,7 +66,7 @@ export default function EventForm({
         place: place.trim(),
         share: share === "null" ? "" : share,
         repeat,
-        user_name: userEmail,
+        user_id: userId,
       } as Event;
 
       await addEvent(payload);
@@ -99,6 +100,7 @@ export default function EventForm({
       for (const vevent of vevents) {
         const event = new ICAL.Event(vevent);
         const newEvent: Event = {
+          id: '',
           title: event.summary || "Bez tytułu",
           description: event.description || "",
           start_time: localDateTimeToISO(event.startDate.toString()),
@@ -106,7 +108,7 @@ export default function EventForm({
           place: event.location || "",
           share: "",
           repeat: "none",
-          user_name: userEmail,
+          user_id: userId,
         } as Event;
 
         await addEvent(newEvent);
