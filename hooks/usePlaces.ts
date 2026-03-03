@@ -19,7 +19,7 @@ export function usePlaces() {
   }, [userId]);
 
   const fetchPlaces = async () => {
-    if (!userIdeturn;
+    if (!userId) return;
     
     setLoading(true);
     const { data, error } = await supabase
