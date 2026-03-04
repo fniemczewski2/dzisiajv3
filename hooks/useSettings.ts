@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useAuth } from "../providers/AuthProvider";
 
 type SettingsType = {
   sort_order: string;
@@ -14,7 +14,6 @@ type SettingsType = {
 
 type GeoCoords = { lat: number; lng: number };
 
-// Helper do bezpiecznego parsowania tablic z bazy danych
 const safeParseArray = (data: any) => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -31,9 +30,9 @@ const safeParseArray = (data: any) => {
 };
 
 export function useSettings() {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+
+  const { user, supabase} = useAuth();
+  const userId = user?.id;
 
   const [settings, setSettings] = useState<SettingsType>({
     sort_order: "priority",
@@ -72,7 +71,6 @@ export function useSettings() {
           show_water_tracker: data.show_water_tracker ?? true,
           show_budget_items: data.show_budget_items ?? true,
           show_notifications: data.show_notifications ?? true,
-          // Używamy helpera, żeby upewnić się, że zawsze mamy tablicę
           users: safeParseArray(data.users),
           favorite_stops: safeParseArray(data.favorite_stops),
         });
@@ -81,7 +79,7 @@ export function useSettings() {
     };
 
     loadSettings();
-  }, [session, supabase, userId]);
+  }, [supabase, userId]);
 
   const saveSettings = useCallback(async () => {
     if (!userId) return { error: "No user" };
@@ -92,12 +90,7 @@ export function useSettings() {
     setSaving(false);
 
     return { error };
-  }, [session, supabase, settings, userId]);
-
-
-  // ------------------------
-  // FAVORITE STOPS (ZMODYFIKOWANE)
-  // ------------------------
+  }, [supabase, settings, userId]);
   
   const addFavoriteStop = async (name: string, zone_id: string = "AUTO") => {
     if (settings.favorite_stops.some(s => s.name === name)) return;

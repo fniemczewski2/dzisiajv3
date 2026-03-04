@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { 
   Flame, 
   Trophy, 
@@ -19,6 +18,7 @@ import { Streak } from "../../types";
 import LoadingState from "../LoadingState";
 import { getAppDate } from "../../lib/dateUtils";
 import { AddButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface StreakFormProps {
   onChange: () => void;
@@ -43,9 +43,9 @@ export default function StreakForm({
   onChange,
   onCancel,
 }: StreakFormProps) {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
 
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(getAppDate());

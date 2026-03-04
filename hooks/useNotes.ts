@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Note } from "../types";
 import { getAppDateTime } from "../lib/dateUtils";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useNotes() {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ export function useNotes() {
       .select("*")
       .eq("user_id", userId);
     
-    const sorted = (data || []).sort((a, b) => {
+    const sorted = (data as any[] || []).sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
       if (a.archived && !b.archived) return 1;

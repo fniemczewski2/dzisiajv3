@@ -1,6 +1,6 @@
 // hooks/useBudget.tsx
 import { useState, useEffect } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useAuth } from "../providers/AuthProvider";
 
 interface MonthData {
   sum: number;
@@ -15,9 +15,9 @@ interface MonthData {
 type YearData = Record<number, MonthData>;
 
 export function useBudgetData(year: number, monthRange?: [number, number]) {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
   const [data, setData] = useState<YearData>({});
   const [loading, setLoading] = useState(true);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());
@@ -63,7 +63,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       const monthData = getEmptyMonthData();
 
-      bills?.forEach(
+      (bills as any[])?.forEach(
         ({ amount, is_income, description, done: isDone }) => {
           if (!is_income) {
             if (description === "Bieżące") monthData.budget += amount;
@@ -76,7 +76,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         }
       );
 
-      habits?.forEach(({ daily_spending }) => {
+      (habits as any[])?.forEach(({ daily_spending }) => {
         monthData.monthlySpending += daily_spending;
       });
 

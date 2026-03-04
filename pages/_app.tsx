@@ -1,8 +1,6 @@
 // pages/_app.tsx
 import type { AppProps } from 'next/app';
-import { useMemo } from 'react';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { getBrowserSupabaseClient } from '../lib/supabaseClient';
+import { AuthProvider } from '../providers/AuthProvider'; 
 import AuthGuard from '../components/AuthGuard';
 import "../styles/globals.css";
 import ErrorBoundary from '../components/ErrorBoundary';
@@ -13,15 +11,12 @@ export default function MyApp({
   Component,
   pageProps,
 }: AppProps & { Component: AuthedComponent }) {
-  const supabase = useMemo(() => getBrowserSupabaseClient(), []);
+  
   const needsAuth = Component?.auth === true;
 
   return (
     <ErrorBoundary>
-      <SessionContextProvider
-        supabaseClient={supabase}
-        initialSession={(pageProps as any)?.initialSession}
-      >
+      <AuthProvider>
         {needsAuth ? (
           <AuthGuard>
             <Component {...pageProps} />
@@ -29,8 +24,7 @@ export default function MyApp({
         ) : (
           <Component {...pageProps} />
         )}
-      </SessionContextProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
-

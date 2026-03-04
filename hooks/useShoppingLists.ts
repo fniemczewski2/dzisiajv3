@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { ShoppingList } from "../types";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useShoppingLists() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const { user, supabase } = useAuth(); 
+  const userId = user?.id;
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
 

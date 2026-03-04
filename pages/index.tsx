@@ -4,7 +4,6 @@ import SEO from "../components/SEO";
 import { useTasks } from "../hooks/useTasks";
 import { useEvents } from "../hooks/useEvents";
 import { useDaySchemas } from "../hooks/useDaySchemas";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import TaskIcons from "../components/tasks/TaskIcons";
 import { ListTodo, Calendar } from "lucide-react";
 import { Task } from "../types";
@@ -34,24 +33,23 @@ import { DroppableHourSlot } from "../components/dashboard/DroppableHourSlot";
 import { PlanItem } from "../components/dashboard/PlanItem";
 import TransportWidget from "../components/transport/TransportWidget";
 import { useRouter } from "next/router";
+import { useAuth } from "../providers/AuthProvider";
 
 // --- CONSTANTS ---
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00 - 23:00
 
 export default function DashboardPage() {
-  const session = useSession();
+  const { user, loadingUser, supabase } = useAuth();
+  const userId = user?.id;
   const router = useRouter();
 
   useEffect(() => {
-    if (!session) {
+    if (!user && !loadingUser) {
       router.push("/start");
     }
-  }, [session, router]);
+  }, [user, loadingUser, router]);
 
   const [isMounted, setIsMounted] = useState(false);
-
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
   
   const todayDate = new Date();
   const todayString = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;

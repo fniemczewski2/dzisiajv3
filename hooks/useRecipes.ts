@@ -1,8 +1,8 @@
 // hooks/useRecipes.ts
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import type { Recipe, RecipeCategory, Product, RecipeInsert } from "../types";
+import type { Recipe, RecipeCategory } from "../types";
+import { useAuth } from "../providers/AuthProvider";
 
 type NewRecipe = {
   name: string;
@@ -24,9 +24,8 @@ type UseRecipes = {
 };
 
 export function useRecipes(): UseRecipes {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [products, setProducts] = useState<string[]>([]);

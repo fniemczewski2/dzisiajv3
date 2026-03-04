@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Place, PlaceInsert, OpeningHours } from "../types";
-import { useSession } from "@supabase/auth-helpers-react";
 import { generatePlaceTags } from "../lib/placeTagging";
-import { set } from "date-fns";
+import { useAuth } from "../providers/AuthProvider";
 
 export function usePlaces() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Ładowanie...");
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user } = useAuth();
+  const userId = user?.id;
   
   useEffect(() => {
     if (userId) {

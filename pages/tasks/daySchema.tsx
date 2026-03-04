@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { format } from "date-fns";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Edit2, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { Schema, ScheduleItem } from "../../types";

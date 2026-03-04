@@ -2,20 +2,20 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "@supabase/auth-helpers-react";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { PlusCircle, Target } from "lucide-react";
+import { Target } from "lucide-react";
 import StreakCard from "../components/streaks/StreakCard";
 import StreakForm from "../components/streaks/StreakForm";
 import LoadingState from "../components/LoadingState";
 import { useStreaks } from "../hooks/useStreaks";
 import { Streak } from "../types";
 import { AddButton } from "../components/CommonButtons";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function StreaksPage() {
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user} = useAuth();
+  const userId = user?.id;
 
   const { streaks, loading, refetch, deleteStreak, updateStreak } = useStreaks();
   const [showForm, setShowForm] = useState(false);
@@ -66,9 +66,7 @@ export default function StreaksPage() {
               onCancel={() => setShowForm(false)}
             />
         )}
-        {(!session || loading) && (
-            <LoadingState />
-        )}
+        {(loading) && (<LoadingState />)}
         {streaks ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {streaks.map((streak) => (

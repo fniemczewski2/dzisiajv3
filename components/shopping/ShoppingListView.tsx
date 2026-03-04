@@ -4,8 +4,8 @@ import { Plus, Trash2, X } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
-import { useSession } from "@supabase/auth-helpers-react";
 import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
@@ -15,8 +15,8 @@ export default function ShoppingListView() {
   const nameRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
-  const session = useSession();
-  const userId = session?.user?.id;
+const { user } = useAuth();
+const userId = user?.id;
 
   useEffect(() => {
     if (editingId && nameRef.current) {

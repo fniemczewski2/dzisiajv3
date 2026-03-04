@@ -1,13 +1,13 @@
 // hooks/useBills.ts
 import { useState, useEffect } from "react";
-import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Bill } from "../types";
 import { useSettings } from "./useSettings";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useBills() {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
   const { settings } = useSettings();
   const [incomeItems, setIncomeItems] = useState<Bill[]>([]);
   const [expenseItems, setExpenseItems] = useState<Bill[]>([]);

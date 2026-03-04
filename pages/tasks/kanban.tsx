@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
 import KanbanBoard from "../../components/tasks/KanbanBoard";
 import { useTasks } from "../../hooks/useTasks";
-import { useSession } from "@supabase/auth-helpers-react";
 import { ChevronLeft } from "lucide-react";
 import LoadingState from "../../components/LoadingState";
 import { Task } from "../../types";

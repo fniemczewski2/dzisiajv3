@@ -1,16 +1,16 @@
 // hooks/useEvents.ts
 import { useState, useEffect } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+
 import { Event } from "../types";
 import { expandRepeatingEvents } from "../lib/eventUtils";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useEvents(
   rangeStart: string,
   rangeEnd: string
 ) {
-  const session = useSession();
-  const userId = session?.user?.id;
-  const supabase = useSupabaseClient();
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
 

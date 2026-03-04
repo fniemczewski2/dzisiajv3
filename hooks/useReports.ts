@@ -1,12 +1,11 @@
 // hooks/useReports.ts
 import { useEffect, useState } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Report } from "../types";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useReports() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const {user, supabase } = useAuth();
+  const userId = user?.id;
   
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);

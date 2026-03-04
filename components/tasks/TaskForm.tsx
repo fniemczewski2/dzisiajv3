@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState, FormEvent } from "react";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useTasks } from "../../hooks/useTasks";
@@ -9,6 +8,7 @@ import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
 import { AddButton, CancelButton } from "../CommonButtons";
 import { Minus, Plus } from "lucide-react";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface TaskFormProps {
   initialTask?: Task | null;
@@ -20,8 +20,8 @@ export default function TaskForm({
   onTasksChange,
   onCancel,
 }: TaskFormProps) {
-  const session = useSession();
-  const userId = session?.user?.id ||process.env.NEXT_PUBLIC_USER_ID;
+  const { user } = useAuth();
+  const userId = user?.id;
   const { settings } = useSettings();
   const { addTask, loading } = useTasks();
   const todayIso = getAppDate();
