@@ -2,24 +2,29 @@
 
 import { Heart } from "lucide-react";
 import { useState } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useAuth } from "../../providers/AuthProvider";
 
 export default function LoveButton() {
-  const supabase = useSupabaseClient();
-  const session = useSession();
+  const { user, supabase } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
   const sendLove = async () => {
-    if (!session?.access_token) {
-      console.error("Brak sesji użytkownika");
+    if (!user) {
+      console.error("Brak zalogowanego użytkownika");
       return;
     }
 
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error("Nie można pobrać tokena dostępu");
+      }
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
       const response = await fetch(
@@ -30,12 +35,14 @@ export default function LoveButton() {
             "Authorization": `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({})
+          body: JSON.stringify({}),
         }
       );
 
       if (!response.ok) {
-        console.error("Edge function error:", await response.json());
+        const errorData = await response.json();
+        console.error("Edge function error:", errorData);
+        return;
       }
 
       setSent(true);
@@ -51,16 +58,17 @@ export default function LoveButton() {
   return (
     <button
       onClick={sendLove}
-      disabled={loading}
-      className={`p-2 text-white rounded-lg transition-colors ${
-        loading
-          ? "bg-pink-500"
-          : "bg-pink-100 hover:bg-pink-300 active:bg-pink-800"
+      disabled={loading || sent} // Blokujemy też po wysłaniu
+      className={`p-2 rounded-lg transition-colors ${
+        sent || loading
+          ? "bg-pink-500 text-white"
+          : "bg-pink-100 hover:bg-pink-200 text-pink-500"
       }`}
     >
-      {sent
-        ? <Heart className="w-4 h-4" fill="#fff"/>
-        : <Heart className="w-4 h-4"/>}
+      <Heart 
+        className={`w-4 h-4 ${sent ? "animate-pulse" : ""}`} 
+        fill={sent ? "#fff" : "none"} 
+      />
     </button>
   );
 }

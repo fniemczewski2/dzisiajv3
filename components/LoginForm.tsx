@@ -1,11 +1,9 @@
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
-import LoadingState from "./LoadingState";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function LoginForm() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
+  const { user, supabase } = useAuth();
   const router = useRouter();
 
   const nextPath = useMemo(() => {
@@ -13,18 +11,10 @@ export default function LoginForm() {
   }, [router.query.next]);
 
   useEffect(() => {
-    if (session) {
+    if (user) {
       router.replace(nextPath);
     }
-  }, [session, nextPath, router]);
-
-  if (session === undefined) {
-    return <LoadingState />;
-  }
-  
-  if (session) {
-    return <LoadingState />;
-  }
+  }, [user, nextPath, router]);
 
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({

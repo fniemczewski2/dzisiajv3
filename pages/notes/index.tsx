@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Clapperboard, MapPin } from "lucide-react";
 import { useNotes } from "../../hooks/useNotes";
 import NoteForm from "../../components/notes/NoteForm";
@@ -13,7 +12,6 @@ import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 
 export default function NotesPage() {
-  const session = useSession();
   const { notes, loading, fetchNotes } = useNotes();
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
@@ -63,9 +61,7 @@ export default function NotesPage() {
           
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        {(!session || loading) && (
-            <LoadingState />
-        )}
+        {(loading) && (<LoadingState />)}
         {showForm && (
           <div className="mb-6">
             <NoteForm

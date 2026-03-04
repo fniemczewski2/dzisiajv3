@@ -1,7 +1,7 @@
 // hooks/useMovies.ts
 import { useState, useEffect, useCallback } from "react";
-import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import type { Movie, MovieInsert, MovieUpdate } from "../types";
+import { useAuth } from "../providers/AuthProvider";
 
 interface UseMoviesReturn {
   movies: Movie[];
@@ -16,9 +16,8 @@ interface UseMoviesReturn {
 }
 
 export function useMovies(): UseMoviesReturn {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user, supabase} = useAuth();
+  const userId = user?.id;
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);

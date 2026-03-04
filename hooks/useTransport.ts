@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useAuth } from "../providers/AuthProvider";
 
 export interface Departure {
   line: string;
@@ -23,7 +23,7 @@ export interface SearchResult {
 }
 
 export function useTransport(autoRefresh = false) {
-  const supabase = useSupabaseClient();
+  const {supabase} = useAuth();
 
   const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
   const [favoritesGroups, setFavoritesGroups] = useState<StopGroup[]>([]);

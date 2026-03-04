@@ -4,7 +4,6 @@
 import React from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { useSession } from "@supabase/auth-helpers-react";
 import InstallButton from "../components/settings/InstallButton";
 import LoadingState from "../components/LoadingState";
 import VersionInfo from "../components/settings/Versioninfo";
@@ -15,9 +14,10 @@ import UserSection from "../components/settings/UserSection";
 import { useSettings } from "../hooks/useSettings";
 import PushNotificationManager from '../components/settings/PushNotificationManager';
 import LoveButton from "../components/settings/LoveButton";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function SettingsPage() {
-  const session = useSession();
+  const {user} = useAuth();
   const {
     settings,
     setSettings,
@@ -61,7 +61,7 @@ export default function SettingsPage() {
           onSave={saveSettings}
         />
 
-        <PushNotificationManager userId={session?.user?.email}/>
+        <PushNotificationManager userId={user?.id}/>
         
         <LocationSection
           onRequestLocation={requestGeolocation}
@@ -69,7 +69,7 @@ export default function SettingsPage() {
         />
         
         <UserSection
-          email={session?.user?.email}
+          email={user?.email}
           onSignOut={handleSignOut}
         />
         

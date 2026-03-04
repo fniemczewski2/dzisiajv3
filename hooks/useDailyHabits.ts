@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { getAppDate } from "../lib/dateUtils";
 import { DailyHabits, HabitKey } from "../types";
+import { useAuth } from "../providers/AuthProvider";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
   date: new Date(date),
@@ -19,9 +19,8 @@ const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
 });
 
 export function useDailyHabits(date?: string) {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
 
   const today = getAppDate();
   const targetDate = date ?? today;

@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Calculator, ChartColumnBig } from "lucide-react";
 import { useBills } from "../../hooks/useBills";
 import BillListGrouped from "../../components/bills/BillListGrouped";
@@ -14,7 +13,6 @@ import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 
 export default function BillsPage() {
-  const session = useSession();
   const { incomeItems, expenseItems, loading, fetchBills } = useBills();
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
@@ -64,7 +62,7 @@ export default function BillsPage() {
 
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        {(!session || loading) && <LoadingState />}
+        {(loading) && <LoadingState />}
         {showForm && (
           <div className="mb-6">
             <BillForm

@@ -1,32 +1,27 @@
-"use client";
-
-import { useSession } from "@supabase/auth-helpers-react";
-import { useRouter } from "next/router";
-import { useEffect, ReactNode, useCallback, useState } from "react";
+// components/AuthGuard.tsx
+import { useRouter } from "next/router"; 
+import { useEffect, ReactNode } from "react";
+import { useAuth } from "../providers/AuthProvider";
 import LoadingState from "./LoadingState";
 
 export default function AuthGuard({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const session = useSession();
+  const { user, loadingUser, supabase } = useAuth();
   const router = useRouter();
 
-  const checkAuth = useCallback(() => {
-    if (process.env.NODE_ENV!="development" && session === null) {
-       const next = encodeURIComponent(router.asPath);
-       router.replace(`/login?next=${next}`, undefined, { shallow: true });
-    }
-  }, [session, router]);
-
   useEffect(() => {
-    setLoading(true);
-    checkAuth();
-    setLoading(false);
-  }, [checkAuth]);
+    if (!loadingUser && !user) {
+      if (process.env.NODE_ENV !== "development") {
+        const next = encodeURIComponent(router.asPath);
+        router.replace(`/login?next=${next}`);
+      }
+    }
+  }, [user, loadingUser, router]);
 
-  if (session === undefined || loading) {
-    return (
-      <LoadingState/>
-    );
+  if (loadingUser) return <LoadingState />;
+
+  // Na dev pozwalamy wejść nawet bez usera, jeśli taką masz logikę
+  if (!user && process.env.NODE_ENV !== "development") {
+    return <LoadingState />;
   }
 
   return <>{children}</>;

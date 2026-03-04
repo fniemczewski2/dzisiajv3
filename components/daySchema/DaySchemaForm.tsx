@@ -5,7 +5,6 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import LoadingState from "../LoadingState";
 import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
-import { useSession } from "@supabase/auth-helpers-react";
 
 export interface DaySchemaEntry {
   time: string;

@@ -1,8 +1,8 @@
 // hooks/useTasks.ts
 import { useState, useEffect, useMemo } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Task } from "../types";
 import { useSettings } from "./useSettings";
+import { useAuth } from "../providers/AuthProvider";
 
 interface TaskError {
   message: string;
@@ -67,9 +67,8 @@ export function useTasks(
   dateFrom?: string,
   dateTo?: string
 ) {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const { user, supabase} = useAuth();
+  const userId = user?.id;
   const { settings } = useSettings();
   
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -85,8 +84,6 @@ export function useTasks(
     return createSortFunction(settings.sort_order, getPriority);
   }, [settings?.sort_order]);
 
-  // POPRAWKA: fetchTasks teraz zwraca pobrane dane bezpośrednio (Promise<Task[]>),
-  // zamiast polegać na asynchronicznym stanie 'tasks' wewnątrz bloku finally.
   const fetchTasks = async (): Promise<Task[]> => {
     if (!settings || !userId) {
       setError({ message: "Ustawienia lub użytkownik nie są dostępne" });

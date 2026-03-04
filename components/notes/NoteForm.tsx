@@ -5,8 +5,8 @@ import clsx from "clsx";
 import { Note } from "../../types";
 import { useNotes } from "../../hooks/useNotes";
 import LoadingState from "../LoadingState";
-import { useSession } from "@supabase/auth-helpers-react";
 import { AddButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface NoteFormProps {
   onChange: () => void;
@@ -26,8 +26,8 @@ export default function NoteForm({
   onCancel,
 }: NoteFormProps) {
   const { addNote, loading } = useNotes();
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user } = useAuth();
+  const userId = user?.id;
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
   const [bgColor, setBgColor] = useState("zinc-50");

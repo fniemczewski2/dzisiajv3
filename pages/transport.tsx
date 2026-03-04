@@ -5,7 +5,7 @@ import SearchBar from "../components/SearchBar";
 import StopItem from "../components/transport/StopItem";
 import { useTransport } from "../hooks/useTransport";
 import { useSettings } from "../hooks/useSettings";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useAuth } from "../providers/AuthProvider";
 
 // Rozszerzony typ dla lokalnych wyników wyszukiwania
 interface LocalSearchResult {
@@ -15,7 +15,7 @@ interface LocalSearchResult {
 }
 
 export default function TransportPage() {
-  const supabase = useSupabaseClient();
+  const { supabase } = useAuth();
   const {
     nearbyGroups,
     favoritesGroups,
@@ -67,7 +67,7 @@ export default function TransportPage() {
 
       const uniqueStops = new Map<string, LocalSearchResult>();
 
-      data.forEach((stop) => {
+      (data as any[]).forEach((stop) => {
         if (!uniqueStops.has(stop.stop_name)) {
           const isSzczecin = stop.zone_id === "S";
           const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id}`;

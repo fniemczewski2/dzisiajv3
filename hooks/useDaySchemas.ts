@@ -1,24 +1,23 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { ScheduleItem, Schema } from "../types";
+import { Schema } from "../types";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useDaySchemas() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
   const [schemas, setSchemas] = useState<Schema[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchSchemas = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("day_schemas")
+    const { data } = await supabase
+      .from("day_schemas") 
       .select("*")
       .eq("user_id", userId);
     
     // Parse both days and entries from JSON strings if they come back as strings
-    const parsedSchemas = data?.map(schema => ({
+    const parsedSchemas = (data as any[])?.map(schema=> ({
       ...schema,
       days: typeof schema.days === 'string' ? JSON.parse(schema.days) : schema.days,
       entries: typeof schema.entries === 'string' ? JSON.parse(schema.entries) : schema.entries

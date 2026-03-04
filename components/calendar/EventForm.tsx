@@ -5,12 +5,12 @@ import { Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useEvents } from "../../hooks/useEvents";
-import { useSession } from "@supabase/auth-helpers-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import ICAL from "ical.js";
 import LoadingState from "../LoadingState";
 import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
 import { AddButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -25,8 +25,8 @@ export default function EventForm({
   currentDate = getAppDateTime(),
   selectedDate,
 }: EventsFormProps) {
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user } = useAuth();
+  const userId = user?.id;
   const { settings } = useSettings();
   
   const rangeStart = currentDate ? format(startOfMonth(currentDate), "yyyy-MM-dd") :  format(startOfMonth(getAppDateTime()), "yyyy-MM-dd");

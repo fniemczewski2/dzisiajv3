@@ -13,16 +13,16 @@ import {
 import { useReminders } from "../../hooks/useReminders";
 import { useTasks } from "../../hooks/useTasks";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Task } from "../../types";
+import { useAuth } from "../../providers/AuthProvider";
 
 export default function Reminders({ onTasksChange }: { onTasksChange?: () => void }) {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  const session = useSession();
-  const userId = session?.user?.id ||process.env.NEXT_PUBLIC_USER_ID;
+  const { user } = useAuth();
+  const userId = user?.id;
   const today = getAppDate();
 
   const {

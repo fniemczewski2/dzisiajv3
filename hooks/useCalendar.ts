@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useCalendarData(
   rangeStart: string,
   rangeEnd: string
 ) {
-  const supabase = useSupabaseClient();
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
   const [tasksCount, setTasksCount] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +14,7 @@ export function useCalendarData(
     if (!userId) return;
     setLoading(true);
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("tasks")
       .select("due_date")
       .gte("due_date", rangeStart)
@@ -23,7 +22,8 @@ export function useCalendarData(
       .or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
 
     const tMap: Record<string, number> = {};
-    data?.forEach(({ due_date }) => {
+
+    (data as { due_date: string }[] | null)?.forEach(({ due_date }) => {
       tMap[due_date] = (tMap[due_date] || 0) + 1;
     });
     

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Task } from "../../types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Play, Pause, StopCircle, XCircle, X, Save } from "lucide-react";
+import { Play, Pause, X, Save } from "lucide-react";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface Props {
   task: Task;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function TaskTimer({ task, onComplete }: Props) {
-  const supabase = useSupabaseClient();
+  const { supabase }= useAuth();
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);

@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Reminder } from "../types";
 import { getAppDate, getAppDateTime } from "../lib/dateUtils";
+import { useAuth } from "../providers/AuthProvider";
 
 export function useReminders() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const userId = session?.user?.id;
+  const { user, supabase } = useAuth(); 
+  const userId = user?.id;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const today = getAppDate();
 

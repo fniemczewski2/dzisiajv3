@@ -5,8 +5,8 @@ import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import LoadingState from "../LoadingState";
-import { useSession } from "@supabase/auth-helpers-react";
 import { AddButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface ShoppingFormProps {
   onChange: () => void;
@@ -19,8 +19,8 @@ export default function ShoppingForm({
 }: ShoppingFormProps) {
   const { settings } = useSettings();
   const { addShoppingList, loading } = useShoppingLists();
-  const session  = useSession();
-  const userId = session?.user.email;
+  const { user } = useAuth();
+  const userId = user?.id;
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];

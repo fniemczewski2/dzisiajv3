@@ -11,12 +11,8 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
   const { onActionAdd, removeQueryAfterTrigger = true } = options;
 
   useEffect(() => {
-    // Sprawdź czy URL zawiera ?action=add
     if (router.query.action === 'add' && onActionAdd) {
-      // Wywołaj callback (np. setShowForm(true))
       onActionAdd();
-      
-      // Opcjonalnie: usuń query param z URL (czyści adres)
       if (removeQueryAfterTrigger) {
         const { action, ...rest } = router.query;
         router.replace(

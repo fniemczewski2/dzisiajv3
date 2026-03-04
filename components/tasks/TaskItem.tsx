@@ -5,7 +5,6 @@ import { Check, Minus, Plus } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
-import { useSession } from "@supabase/auth-helpers-react";
 import TimeContextBadge from "./TimeContextBadge";
 import CompletionCelebration from "./CompletionCelebration";
 import { 
@@ -16,6 +15,7 @@ import {
   SaveButton,
   CancelButton 
 } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface Props {
   task: Task;
@@ -24,8 +24,8 @@ interface Props {
 }
 
 export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
-  const session = useSession();
-  const userId = session?.user?.id;
+  const { user } = useAuth();
+  const userId = user?.id;
   const isDone = task.status === "done";
   const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);

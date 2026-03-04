@@ -6,8 +6,8 @@ import { PlusCircleIcon } from "lucide-react";
 import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
 import LoadingState from "../LoadingState";
-import { useSession } from "@supabase/auth-helpers-react";
 import { AddButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface RecipeFormProps {
   onChange: () => void;
@@ -28,8 +28,8 @@ export default function RecipeForm({
   onCancel,
 }: RecipeFormProps) {
   const { addRecipe, loading, products: allProducts } = useRecipes();
-  const session  = useSession();
-  const userId = session?.user?.id;
+  const { user } = useAuth();
+  const userId = user?.id;
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<RecipeCategory>("śniadanie");
