@@ -13,7 +13,7 @@ export function useShoppingLists() {
     const { data, error } = await supabase
       .from("shopping_lists")
       .select("*")
-      .or(`user_id.eq.${userId},share.eq.${userId}`)
+      .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
       .limit(5);
 
     if (!error && data) {

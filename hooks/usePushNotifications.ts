@@ -2,14 +2,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { useAuth } from '../providers/AuthProvider';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 export function usePushNotifications(userId: string | undefined) {
+  const {user, supabase } = useAuth();
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -76,7 +73,7 @@ export function usePushNotifications(userId: string | undefined) {
       }
 
       // Find existing subscription by comparing endpoints
-      const existing = allSubs?.find(sub => {
+      const existing = (allSubs as any[])?.find(sub => {
         const subData = typeof sub.subscription === 'string' 
           ? JSON.parse(sub.subscription) 
           : sub.subscription
@@ -136,7 +133,7 @@ export function usePushNotifications(userId: string | undefined) {
           .select('*')
           .eq('user_id', userId)
 
-        const toDelete = allSubs?.find(sub => {
+        const toDelete = (allSubs as any[])?.find(sub => {
           const subData = typeof sub.subscription === 'string' 
             ? JSON.parse(sub.subscription) 
             : sub.subscription
