@@ -17,7 +17,7 @@ import LoveButton from "../components/settings/LoveButton";
 import { useAuth } from "../providers/AuthProvider";
 
 export default function SettingsPage() {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const {
     settings,
     setSettings,

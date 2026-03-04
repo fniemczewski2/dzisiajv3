@@ -146,7 +146,9 @@ export function useSettings() {
       (position) => {
         const { latitude, longitude } = position.coords;
         setLocationStatus(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        if (onSuccess) onSuccess({ lat: latitude, lng: longitude });
+        if (typeof onSuccess === 'function') {
+          onSuccess({ lat: latitude, lng: longitude });
+        }
       },
       (error) => {
         switch (error.code) {
