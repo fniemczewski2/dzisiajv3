@@ -1,4 +1,3 @@
-// hooks/useTasks.ts
 import { useState, useEffect, useMemo } from "react";
 import { Task } from "../types";
 import { useSettings } from "./useSettings";
@@ -74,6 +73,7 @@ export function useTasks(
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<TaskError | null>(null);
+  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
 
   const getPriority = (task: Task): number => {
     return task.status === "waiting for acceptance" ? 0 : 1;
@@ -99,29 +99,56 @@ export function useTasks(
         .select("*")
         .or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
 
-      if (dateFrom) {
-        query = query.gte("due_date", dateFrom);
-      }
-
-      if (dateTo) {
-        query = query.lte("due_date", dateTo);
-      }
-
-      if (!settings.show_completed) {
-        query = query.neq("status", "done");
-      }
+      if (dateFrom) query = query.gte("due_date", dateFrom);
+      if (dateTo) query = query.lte("due_date", dateTo);
+      if (!settings.show_completed) query = query.neq("status", "done");
 
       const { data, error: queryError } = await query;
-      
-      if (queryError) {
-        throw queryError;
+      if (queryError) throw queryError;
+
+      const fetchedTasks = data || [];
+
+      // 1. Wyciągnięcie brakujących ID
+      const neededIds = Array.from(new Set(
+        fetchedTasks
+          .map((t: Task) => t.user_id === userId ? t.for_user_id : t.user_id)
+          .filter((id: string) => Boolean(id) && id !== userId && !userEmails[id as string])
+      ));
+
+      let currentEmails = { ...userEmails };
+
+      // 2. Pobieranie nowych maili jednym strzałem
+      if (neededIds.length > 0) {
+        const { data: emailData, error: rpcError } = await supabase
+          .rpc('get_emails_by_ids', { user_ids: neededIds });
+
+        if (!rpcError && emailData) {
+          const newEmails = (emailData as {id: string, email: string}[]).reduce((acc, curr) => {
+            acc[curr.id] = curr.email;
+            return acc;
+          }, {} as Record<string, string>);
+          
+          currentEmails = { ...currentEmails, ...newEmails };
+          setUserEmails(currentEmails); // Zapis na przyszłość
+        }
       }
 
-      const sortedData = data ? [...data] : [];
-      
-      if (sortFunction) {
-        sortedData.sort(sortFunction);
-      }
+      // 3. Przypisywanie informacji (korzystamy z currentEmails)
+      const tasksWithDisplayInfo = fetchedTasks.map((task: Task) => {
+        const isOwner = task.user_id === userId;
+        const targetId = isOwner ? task.for_user_id : task.user_id;
+        const email = targetId ? (currentEmails[targetId] || "...") : "";
+
+        return {
+          ...task,
+          display_share_info: isOwner
+            ? (task.for_user_id !== userId ? `Udostępniono: ${email}` : null)
+            : `Od: ${email}`
+        };
+      });
+
+      const sortedData = [...tasksWithDisplayInfo];
+      if (sortFunction) sortedData.sort(sortFunction);
 
       sortedData.sort((a, b) => {
         const isADone = a.status === "done" ? 1 : 0;
@@ -130,37 +157,44 @@ export function useTasks(
       });
 
       setTasks(sortedData);
-      return sortedData; // Zwracamy świeże dane
+      return sortedData;
     } catch (err: any) {
       console.error("Error fetching tasks:", err);
-      const taskError = { 
-        message: "Nie udało się pobrać zadań. Spróbuj ponownie.", 
-        code: err.code 
-      };
-      setError(taskError);
+      setError({ message: "Nie udało się pobrać zadań.", code: err.code });
       return [];
     } finally {
       setLoading(false);
     }
   };
 
-  // POPRAWKA: Dodano bloki try-catch i sprawdzanie błędów z Supabase dla wszystkich mutacji.
-  const addTask = async (task: Partial<Task>) => {
+  const addTask = async (task: Partial<Task> & { shared_with_email?: string }) => {
     if (!userId) return;
     setLoading(true);
-    setError(null);
+
+    // Wyłuskujemy bezpieczne dane
+    const { shared_with_email, display_share_info, ...taskData } = task as any;
+    let finalForUserId: string = taskData.for_user_id || userId;
     
     try {
-      const payload = {
-        ...task,
-        user_id: userId,
-        due_date: formatDate(task.due_date),
-      };
-      
-      const { error: insertError } = await supabase
-        .from("tasks")
-        .insert(payload);
+      if (shared_with_email && shared_with_email.includes('@')) {
+        const { data: foundId, error: rpcError } = await supabase
+          .rpc('get_user_id_by_email', { email_address: shared_with_email.trim().toLowerCase() });
 
+        if (!rpcError && foundId) {
+          finalForUserId = foundId;
+        } else {
+          console.warn("Nie znaleziono użytkownika, przypisuję do nadawcy.");
+        }
+      }
+
+      const payload = {
+        ...taskData,
+        user_id: userId,        
+        for_user_id: finalForUserId, 
+        due_date: formatDate(taskData.due_date),
+      };
+
+      const { error: insertError } = await supabase.from("tasks").insert(payload);
       if (insertError) throw insertError;
 
       await fetchTasks();
@@ -172,16 +206,31 @@ export function useTasks(
     }
   };
 
-  const editTask = async (task: Task) => {
+  const editTask = async (task: Task & { shared_with_email?: string }) => {
     if (!userId) return;
     setLoading(true);
     setError(null);
 
     try {
+      const { shared_with_email, display_share_info, ...taskData } = task as any;
+      let finalForUserId = taskData.for_user_id;
+
+      // Pozwala na cofnięcie zadania do siebie
+      if (shared_with_email !== undefined) {
+        if (shared_with_email.includes('@')) {
+          const { data: foundId } = await supabase
+            .rpc('get_user_id_by_email', { email_address: shared_with_email.trim().toLowerCase() });
+          if(foundId) finalForUserId = foundId;
+        } else {
+          finalForUserId = userId; // Przypisz z powrotem twórcy, gdy e-mail zostanie wyczyszczony (np. "mnie")
+        }
+      }
+
       const payload = {
-        ...task,
+        ...taskData,
         user_id: userId,
-        due_date: formatDate(task.due_date),
+        for_user_id: finalForUserId,
+        due_date: formatDate(taskData.due_date),
       };
       
       const { error: updateError } = await supabase

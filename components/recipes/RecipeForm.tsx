@@ -1,7 +1,7 @@
 // components/recipes/RecipeForm.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState, FormEvent } from "react";
+import React, { useEffect, useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon } from "lucide-react";
 import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
@@ -71,7 +71,7 @@ export default function RecipeForm({
 
   const canSave = name.trim().length > 1 && picked.length > 0;
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSave) return;
 

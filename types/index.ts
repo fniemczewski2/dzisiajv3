@@ -2,6 +2,7 @@ export type Task = {
   id: string;
   title: string;
   for_user_id: string;
+  display_share_info?: string;
   category: string;
   priority: number;
   description: string;
@@ -41,6 +42,8 @@ export type Event = {
   place?: string;
   user_id: string;
   shared_with_id?: string;
+  shared_with_email?: string;
+  display_share_info?: string;
   repeat: "none" | "weekly" | "monthly" | "yearly";
 };
 
@@ -154,6 +157,8 @@ export interface ShoppingList {
   user_id: string;
   name: string;
   shared_with_id: string | null;
+  shared_with_email?: string;
+  display_share_info?: string;
   elements: ShoppingElement[];
   inserted_at?: string;
   updated_at?: string;

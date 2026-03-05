@@ -279,24 +279,18 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
               </span>
             )}
           </div>
-          {(task.description || task.user_id !== userId || task.for_user_id !== userId) && (
-            <p className="flex flex-col gap-2 my-2 rounded-lg text-sm bg-gray-100 p-2">
+          {(task.description || task.display_share_info) && (
+            <div className="flex flex-col gap-2 my-2 rounded-lg text-sm bg-gray-100 p-3">
               {task.description && (
-                <span>{task.description}</span>
+                <span className="text-gray-800">{task.description}</span>
               )}
-                {(task.user_id !== userId) && 
-                  (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
-                    <span className="text-xs">
-                      Zlecone przez: {task.user_id}
-                    </span>
-                } 
-                {(task.for_user_id !== userId) && 
-                  (task.status === "accepted" || task.status === "waiting_for_acceptance") &&
-                    <span className="text-xs">
-                      Zlecone dla: {task.for_user_id}
-                    </span>
-                }
-            </p>
+              {task.display_share_info && 
+                (task.status === "accepted" || task.status === "waiting_for_acceptance" || task.status === "pending") && (
+                <span className="text-xs font-medium text-primary bg-primary/10 w-fit px-2 py-1 rounded">
+                  {task.display_share_info}
+                </span>
+              )}
+            </div>
           )}
           <div className="grid grid-cols-1 gap-2">
             <div className="flex justify-end w-full gap-1.5 flex-wrap">
