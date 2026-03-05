@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, User, X } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
@@ -181,12 +181,14 @@ export default function ShoppingListView() {
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1 mr-4">
                 <h3 className="font-semibold text-lg">{list.name}</h3>
-                {list.shared_with_id && (
-                  <p className="text-sm text-gray-500">
-                    {list.shared_with_id === userId && `Udostępnione przez ${list.user_id.split("@")[0]}`}
-                    {list.user_id === userId && `Udostępnione: ${list.shared_with_id.split("@")[0]}`}
-                  </p>
-                )}
+                  {list.display_share_info && (
+                    <div className="flex items-center text-sm text-gray-700">
+                      <User className="w-3.5 h-3.5 mr-1" />
+                      <span className="truncate">
+                        {list.display_share_info}
+                      </span>
+                    </div>
+                  )}
               </div>
               <div className="flex gap-2 sm:gap-3">
                 <EditButton onClick={() => handleEdit(list)} />
