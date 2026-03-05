@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, FormEvent } from "react";
+import React, { useEffect, useState, SyntheticEvent } from "react";
 import { Minus, Plus } from "lucide-react";
 import { Bill } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
@@ -38,7 +38,7 @@ export default function BillForm({
     }
   }, [initial]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const payload: Bill = {

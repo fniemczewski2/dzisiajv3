@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, FormEvent } from "react";
 import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import LoadingState from "../LoadingState";
 import { AddButton, CancelButton } from "../CommonButtons";
 import { useAuth } from "../../providers/AuthProvider";
+import { SyntheticEvent, useState } from "react";
 
 interface ShoppingFormProps {
   onChange: () => void;
@@ -25,18 +25,10 @@ export default function ShoppingForm({
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const payload: ShoppingList = {
-      user_id: userId,
-      name: name.trim() || "",
-      shared_with_id: share.trim() || null,
-      elements:  [],
-    } as ShoppingList;
-
-
-    await addShoppingList(payload.name, payload.shared_with_id);
+    await addShoppingList(name.trim(), share.trim() || null);
 
     onChange();
     setName("");
@@ -44,6 +36,7 @@ export default function ShoppingForm({
 
     if (onCancel) onCancel();
   };
+
 
   return (
     <form

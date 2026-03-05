@@ -18,7 +18,7 @@ interface SettingsFormProps {
   onAddUser: () => void;
   onRemoveUser: (idx: number) => void;
   onUpdateUser: (idx: number, value: string) => void;
-  onSave: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSave: (e: React.SyntheticEvent<HTMLFormElement>) => void;
 }
 
 export default function SettingsForm({

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, FormEvent } from "react";
+import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useTasks } from "../../hooks/useTasks";
@@ -32,28 +32,31 @@ export default function TaskForm({
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dueDateRef = useRef<HTMLInputElement>(null);
 
-  // State for priority (default 3)
   const [priority, setPriority] = useState(3);
 
   const userOptions = settings?.users ?? [];
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
 
-    const forUserId = forUserRef.current?.value || userId;
-    const nextStatus =
-      forUserId !== userId ? "waiting_for_acceptance" : "pending";
+    const selectedValue = forUserRef.current?.value || userId;
+    const isEmail = selectedValue?.includes("@");
 
-    const taskData: Partial<Task> = {
+    const taskData: any = {
       title: titleRef.current?.value || "",
-      user_id: userId || "",
-      for_user_id: forUserId || "mnie",
       category: categoryRef.current?.value || "inne",
       priority: priority,
       description: descriptionRef.current?.value || "",
       due_date: dueDateRef.current?.value || todayIso,
-      status: nextStatus,
     };
+
+    if (isEmail) {
+      taskData.shared_with_email = selectedValue;
+      taskData.status = "waiting_for_acceptance";
+    } else {
+      taskData.for_user_id = userId;
+      taskData.status = "pending";
+    }
 
     await addTask(taskData);
     onTasksChange();
@@ -168,29 +171,25 @@ export default function TaskForm({
           />
         </div>
         <div>
-          <label
-            htmlFor="for"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Dla:
-          </label>
-          <select
-            id="for"
-            ref={forUserRef}
-            className="mt-1 w-full p-2 border rounded"
-            required
-            defaultValue={userId}
-          >
-            <option value={userId}>mnie</option>
-            {userOptions.map((email) => (
-              <option key={email} value={email}>
-                {email}
-              </option>
-            ))}
-          </select>
-        </div>
+        <label htmlFor="for" className="block text-sm font-medium text-gray-700">
+          Dla:
+        </label>
+        <select
+          id="for"
+          ref={forUserRef}
+          className="mt-1 w-full p-2 border rounded"
+          required
+          defaultValue={userId}
+        >
+          <option value={userId}>mnie</option>
+          {userOptions.map((email) => (
+            <option key={email} value={email}>
+              {email}
+            </option>
+          ))}
+        </select>
       </div>
-
+      </div>
       <div>
         <label
           htmlFor="desc"

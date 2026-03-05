@@ -42,7 +42,7 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
     setTags(tags.filter((t) => t !== tag));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
     const updates: Partial<Place> = {

@@ -15,8 +15,8 @@ export default function ShoppingListView() {
   const nameRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
-const { user } = useAuth();
-const userId = user?.id;
+  const { user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
     if (editingId && nameRef.current) {
@@ -244,7 +244,7 @@ const userId = user?.id;
 function AddElementForm({ onAdd }: { onAdd: (text: string) => void }) {
   const [text, setText] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (text.trim()) {
       onAdd(text);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, useEffect, SyntheticEvent } from "react";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import LoadingState from "../LoadingState";
@@ -47,7 +47,7 @@ export default function DaySchemaForm({
     }
   }, [initialSchema]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     if (!schemaName || days.length === 0 || entries.length === 0) {
       alert("Uzupełnij nazwę, dni i przynajmniej jeden wpis.");

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, SyntheticEvent, useEffect } from "react";
 import { Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
@@ -49,7 +49,7 @@ export default function EventForm({
     setEnd(selectedDate ? format(selectedDate, allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm") : currentDate ? format(currentDate, allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm") : "");
   }, [selectedDate, currentDate, allDay]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!title || !start || !end) {
       alert("Tytuł, początek i koniec wydarzenia są wymagane.");
@@ -57,19 +57,20 @@ export default function EventForm({
     }
 
     try {
-      const payload: Event = {
-        id: '',
+      const payload: any = {
         title: title.trim(),
         description: description.trim(),
         start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
         end_time: allDay ? localDateTimeToISO(end + "T23:59") : localDateTimeToISO(end),
         place: place.trim(),
-        share: share === "null" ? "" : share,
+        shared_with_email: share === "null" ? "" : share, 
         repeat,
         user_id: userId,
-      } as Event;
+      };
 
       await addEvent(payload);
+      
+      // Resetowanie formularza
       setTitle("");
       setDescription("");
       setStart("");
@@ -215,7 +216,7 @@ export default function EventForm({
         </div>
         <div>
           <label htmlFor="share" className="block text-sm font-medium">
-            Udostępnij (email):
+            Udostępnij:
           </label>
           <select
             id="share"

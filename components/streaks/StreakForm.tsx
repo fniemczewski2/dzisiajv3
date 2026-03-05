@@ -1,7 +1,7 @@
 // components/streaks/StreakForm.tsx
 "use client";
 
-import React, { useState, FormEvent } from "react";
+import React, { useState, SyntheticEvent } from "react";
 import { 
   Flame, 
   Trophy, 
@@ -52,7 +52,7 @@ export default function StreakForm({
   const [icon, setIcon] = useState("flame");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     
     if (!name.trim()) {

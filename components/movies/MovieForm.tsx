@@ -78,7 +78,7 @@ export default function MovieAddForm({
   const [showOptions, setShowOptions] = useState(false);
   const [streamingProviders, setStreamingProviders] = useState<StreamingProvider[]>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 

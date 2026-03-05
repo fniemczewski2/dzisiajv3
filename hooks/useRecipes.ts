@@ -32,22 +32,24 @@ export function useRecipes(): UseRecipes {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
 
-  const fetchRecipes = async (email: string) => {
+  const fetchRecipes = async () => {
+    const { user } = useAuth();
+    const userId = user?.id;
     const { data, error } = await supabase
       .from("recipes")
       .select("*")
-      .eq("user_id", email)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
     return (data || []) as Recipe[];
   };
 
-  const fetchProducts = async (email: string) => {
+  const fetchProducts = async () => {
     const { data, error } = await supabase
       .from("products")
       .select("name")
-      .eq("user_id", email)
+      .eq("user_id", userId)
       .order("name", { ascending: true });
 
     if (error) throw error;
@@ -63,8 +65,8 @@ export function useRecipes(): UseRecipes {
     setError(undefined);
     try {
       const [r, p] = await Promise.all([
-        fetchRecipes(userId),
-        fetchProducts(userId),
+        fetchRecipes(),
+        fetchProducts(),
       ]);
       setRecipes(r);
       setProducts(p);

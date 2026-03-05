@@ -68,7 +68,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
   const handleShare = (bill: Bill) => {
     const shareData = {
       title: "Rachunek",
-      text: `Hej, oddaj mi proszę ${bill.amount.toFixed(2)} zł")}`,
+      text: `Hej, oddaj mi proszę ${bill.amount.toFixed(2)} zł"${bill.description ? ` za ${bill.description}` : ""}.`,
     };
 
     if (navigator.share) {
@@ -187,7 +187,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
               return (
                 <li
                   key={b.id}
-                  className="bg-card rounded-xl shadow-md p-4 flex flex-row items-center transition hover:shadow-lg hover:bg-gray-100"
+                  className="bg-card rounded-xl shadow-md p-4 flex flex-col items-center transition hover:shadow-lg hover:bg-gray-100"
                 >
                   <div className="flex flex-col flex-1 space-y-1 text-sm sm:text-base">
                     <span className={`font-semibold text-lg ${b.is_income ? "text-green-600" : "text-red-600"}`}>

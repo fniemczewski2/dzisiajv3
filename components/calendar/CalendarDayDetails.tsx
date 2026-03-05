@@ -1,4 +1,3 @@
-// components/calendar/CalendarDayDetails.tsx
 import { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -19,6 +18,7 @@ import { useSettings } from "../../hooks/useSettings";
 import ICAL from "ical.js";
 import { formatTime, localDateTimeToISO, parseEventDate } from "../../lib/dateUtils";
 import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface Props {
   selectedDate: string;
@@ -195,6 +195,13 @@ export default function CalendarDayDetails({
             const isEditing = editingId === event.id;
 
             if (isEditing && editedEvent) {
+              
+              // 💡 WYCIĄGANIE BIEŻĄCEGO MAILA DO FORMULARZA
+              // Jeśli edytujemy, staramy się odzyskać czysty e-mail z display_share_info
+              const currentShareEmail = editedEvent.shared_with_email !== undefined 
+                ? editedEvent.shared_with_email 
+                : (editedEvent.display_share_info ? editedEvent.display_share_info.split(": ")[1] : "");
+
               return (
                 <div
                   key={event.id}
@@ -291,10 +298,11 @@ export default function CalendarDayDetails({
                       <label className="text-xs font-semibold text-gray-700">
                         Udostępnij:
                       </label>
+                      {/* 💡 POPRAWKA: Zmiana shared_with_id na shared_with_email */}
                       <select
-                        value={editedEvent.shared_with_id || ""}
+                        value={currentShareEmail}
                         onChange={(e) =>
-                          setEditedEvent({ ...editedEvent, shared_with_id: e.target.value })
+                          setEditedEvent({ ...editedEvent, shared_with_email: e.target.value })
                         }
                         className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       >
@@ -372,10 +380,14 @@ export default function CalendarDayDetails({
                       {event.place}
                     </div>
                   )}
-                  {event.shared_with_id && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <User className="w-4 h-4 mr-1" />
-                      {event.shared_with_id}
+
+                  {/* 💡 POPRAWKA: Używamy display_share_info zamiast shared_with_id */}
+                  {event.display_share_info && (
+                    <div className="flex items-center text-xs font-medium text-primary bg-primary/10 w-fit px-2 py-1 rounded mt-1">
+                      <User className="w-3.5 h-3.5 mr-1" />
+                      <span className="truncate">
+                        {event.display_share_info}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -411,7 +423,7 @@ export default function CalendarDayDetails({
         {tasks.length ? (
           <ul className="space-y-2">
             {tasks.map((t) => (
-              <li key={t.id} className="flex items-center">
+              <li key={t.id} className="flex flex-col mb-2">
                 <div className="flex flex-nowrap gap-2 items-center mb-1">
                   <span
                     className="w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm transition duration-200"
@@ -438,7 +450,7 @@ export default function CalendarDayDetails({
                     {t.priority}
                   </span>
 
-                  <h3 className="text-lg font-semibold break-words">
+                  <h3 className="text-lg font-semibold break-words flex-1">
                     {t.title}
                   </h3>
                   {t.status === "done" ? (
@@ -447,6 +459,13 @@ export default function CalendarDayDetails({
                     <X className="w-5 h-5 text-red-500" />
                   )}
                 </div>
+                
+                {/* 💡 DODATEK: Oznaczamy też zadania w podglądzie dnia, jeśli są udostępnione */}
+                {t.display_share_info && (
+                   <span className="text-[10px] text-gray-500 font-normal ml-8 bg-gray-100 px-2 py-0.5 rounded w-fit">
+                     {t.display_share_info}
+                   </span>
+                )}
               </li>
             ))}
           </ul>

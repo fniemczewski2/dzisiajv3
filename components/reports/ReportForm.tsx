@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, FormEvent } from "react";
+import React, { useRef, useState, SyntheticEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { ReportTask, Report } from "../../types";
 import { useReports } from "../../hooks/useReports";
@@ -30,7 +30,7 @@ export default function ReportForm({
     { zadanie: "", data: "", osoba: "" },
   ]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
 
     const payload: Report = {

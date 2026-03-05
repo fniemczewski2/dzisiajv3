@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, FormEvent } from "react";
+import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
 import { Note } from "../../types";
 import { useNotes } from "../../hooks/useNotes";
@@ -34,7 +34,7 @@ export default function NoteForm({
 
   const tailwindColors = Object.keys(COLOR_MAP);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
 
     const title = titleRef.current?.value.trim() || "";
