@@ -196,8 +196,6 @@ export default function CalendarDayDetails({
 
             if (isEditing && editedEvent) {
               
-              // 💡 WYCIĄGANIE BIEŻĄCEGO MAILA DO FORMULARZA
-              // Jeśli edytujemy, staramy się odzyskać czysty e-mail z display_share_info
               const currentShareEmail = editedEvent.shared_with_email !== undefined 
                 ? editedEvent.shared_with_email 
                 : (editedEvent.display_share_info ? editedEvent.display_share_info.split(": ")[1] : "");
@@ -298,7 +296,7 @@ export default function CalendarDayDetails({
                       <label className="text-xs font-semibold text-gray-700">
                         Udostępnij:
                       </label>
-                      {/* 💡 POPRAWKA: Zmiana shared_with_id na shared_with_email */}
+                    
                       <select
                         value={currentShareEmail}
                         onChange={(e) =>
@@ -375,15 +373,14 @@ export default function CalendarDayDetails({
                   </div>
 
                   {event.place && (
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-gray-700">
                       <MapPin className="w-4 h-4 mr-1" />
                       {event.place}
                     </div>
                   )}
 
-                  {/* 💡 POPRAWKA: Używamy display_share_info zamiast shared_with_id */}
                   {event.display_share_info && (
-                    <div className="flex items-center text-xs font-medium text-primary bg-primary/10 w-fit px-2 py-1 rounded mt-1">
+                    <div className="flex items-center text-sm text-gray-700">
                       <User className="w-3.5 h-3.5 mr-1" />
                       <span className="truncate">
                         {event.display_share_info}
@@ -459,13 +456,6 @@ export default function CalendarDayDetails({
                     <X className="w-5 h-5 text-red-500" />
                   )}
                 </div>
-                
-                {/* 💡 DODATEK: Oznaczamy też zadania w podglądzie dnia, jeśli są udostępnione */}
-                {t.display_share_info && (
-                   <span className="text-[10px] text-gray-500 font-normal ml-8 bg-gray-100 px-2 py-0.5 rounded w-fit">
-                     {t.display_share_info}
-                   </span>
-                )}
               </li>
             ))}
           </ul>

@@ -280,13 +280,13 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
             )}
           </div>
           {(task.description || task.display_share_info) && (
-            <div className="flex flex-col gap-2 my-2 rounded-lg text-sm bg-gray-100 p-3">
+            <div className="flex flex-col gap-2 my-2 rounded-lg bg-gray-100 p-3">
               {task.description && (
-                <span className="text-gray-800">{task.description}</span>
+                <span className="text-smtext-gray-800">{task.description}</span>
               )}
               {task.display_share_info && 
                 (task.status === "accepted" || task.status === "waiting_for_acceptance" || task.status === "pending") && (
-                <span className="text-xs font-medium text-primary bg-primary/10 w-fit px-2 py-1 rounded">
+                <span className="text-sm text-gray-800 truncate">
                   {task.display_share_info}
                 </span>
               )}
