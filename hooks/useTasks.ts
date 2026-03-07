@@ -115,6 +115,7 @@ export function useTasks(
           .filter((id: string) => Boolean(id) && id !== userId && !userEmails[id as string])
       ));
 
+      // 💡 OMINIĘCIE STALE STATE: Kopia maili na której pracujemy podczas tego wywołania
       let currentEmails = { ...userEmails };
 
       // 2. Pobieranie nowych maili jednym strzałem
