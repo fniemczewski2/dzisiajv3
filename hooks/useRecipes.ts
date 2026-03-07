@@ -33,8 +33,6 @@ export function useRecipes(): UseRecipes {
   const [error, setError] = useState<string>();
 
   const fetchRecipes = async () => {
-    const { user } = useAuth();
-    const userId = user?.id;
     const { data, error } = await supabase
       .from("recipes")
       .select("*")
