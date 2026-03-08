@@ -1,30 +1,18 @@
 import { Calendar, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 export default function Navbar() {
+  const router = useRouter();
+
   return (
-    <nav
-      className="
-    fixed bottom-4
-    inset-x-4
-    px-4
-    bg-card 
-    backdrop-blur-md 
-    p-2
-    flex justify-around 
-    shadow-lg
-    rounded-xl
-    z-50
-  "
-    >
-      <div
-        className="m-0 p-0 grid grid-cols-5 gap-4
-        sm:grid-cols-5 sm:gap-0 max-w-[1600px] w-full"
-      >
-        <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" />
-        <NavLink href="/tasks" Icon={ListTodo} label="Zadania" />
-        <NavLink href="/notes" Icon={Pen} label="Notatki" />
-        <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" />
-        <NavLink href="/settings" Icon={Menu} label="Menu" />
+    <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg bg-card backdrop-blur-xl border border-gray-200 dark:border-gray-800 p-2 shadow-2xl rounded-2xl z-50 transition-colors">
+      <div className="flex justify-between items-center gap-1 sm:gap-2">
+        <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
+        <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
+        <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
+        <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
+        <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
       </div>
     </nav>
   );
@@ -34,18 +22,30 @@ function NavLink({
   href,
   Icon,
   label,
+  currentPath,
 }: {
   href: string;
   Icon: any;
   label: string;
+  currentPath: string;
 }) {
+  // Oznacz element jako aktywny, jeśli ścieżka dokładnie pasuje 
+  // lub jeśli jest to strona podrzędna (np. /tasks/pomodoro podświetla /tasks)
+  const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
+
   return (
-    <a
+    <Link 
       href={href}
-      className="flex flex-col items-center text-textSecondary hover:textPrimary transition-colors"
+      className={`flex flex-col items-center justify-center flex-1 py-2 sm:py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${
+        isActive 
+          ? "bg-primary/10 text-primary" 
+          : "text-textMuted hover:text-text hover:bg-surface"
+      }`}
     >
-      <Icon className="w-6 h-6" />
-      <span className="text-xs">{label}</span>
-    </a>
+      <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform ${isActive ? "scale-110" : ""}`} />
+      <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${isActive ? "font-black" : "font-bold"}`}>
+        {label}
+      </span>
+    </Link>
   );
 }
