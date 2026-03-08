@@ -189,7 +189,7 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={event.id + start.toISOString()}
-                className="bg-primary  text-text text-[10px] sm:text-xs tracking-wider rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
+                className="bg-primary text-white text-[10px] sm:text-xs tracking-wider rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
                 style={{
                   gridColumnStart: col + 1,
                   gridColumnEnd: `span ${span}`,

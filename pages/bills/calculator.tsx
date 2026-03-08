@@ -1,9 +1,11 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../../components/Layout";
 import SEO from "../../components/SEO";
-import { Banknote, Users, Plus, Minus, Wallet, Percent, ChevronLeft, ArrowRightLeft, RefreshCw } from "lucide-react";
+import { Plus, Minus, Wallet, ChevronLeft, ArrowRightLeft } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEuroRate } from "../../hooks/useEuroRate"; // Import the hook
+import { useEuroRate } from "../../hooks/useEuroRate";
 import LoadingState from "../../components/LoadingState";
 
 const InputField = ({
@@ -27,22 +29,14 @@ const InputField = ({
   className?: string;
   readOnly?: boolean;
 }) => {
-  let styles = {
-    box: "bg-card border-gray-200 text-gray-500",
-    focus: "none",
-    icon: icon || <Plus size={18} />
-  };
-
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-sm font-medium text-textSecondary">
+    <div className={`flex flex-col gap-1.5 ${className}`}>
+      <label className="text-xs font-bold uppercase tracking-wider text-textSecondary pl-1">
         {label}
       </label>
-      <div className="relative flex items-center">
-        <div 
-          className={`p-2 rounded-l-lg border-y border-l flex items-center justify-center w-10 h-[41.6px] ${styles.box}`}
-        >
-          {styles.icon}
+      <div className="relative flex items-stretch">
+        <div className="bg-surface border border-gray-200 dark:border-gray-700 border-r-0 rounded-l-xl flex items-center justify-center w-11 text-textMuted shrink-0">
+          {icon || <Plus size={16} />}
         </div>
         <input
           ref={inputRef}
@@ -53,9 +47,11 @@ const InputField = ({
           placeholder="0"
           onChange={onChange}
           readOnly={readOnly}
-          className={`w-full p-2 border-y border-r rounded-r-lg outline-none ${readOnly ? 'bg-card cursor-not-allowed' : ''}`}
+          className={`w-full py-2.5 px-3 border border-gray-200 dark:border-gray-700 rounded-r-xl outline-none font-medium text-text bg-card focus:ring-2 focus:ring-primary focus:border-primary transition-all ${
+            readOnly ? 'bg-surface cursor-not-allowed opacity-70' : ''
+          }`}
         />
-        <span className="absolute right-3 text-sm text-textSecondary pointer-events-none">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-textMuted pointer-events-none">
           {suffix}
         </span>
       </div>
@@ -64,7 +60,6 @@ const InputField = ({
 };
 
 export default function BillCalculator() {
-  // 1. Refs for expenses
   const baseRentRef = useRef<HTMLInputElement>(null);
   const communityRef = useRef<HTMLInputElement>(null);
   const waterRef = useRef<HTMLInputElement>(null);
@@ -72,24 +67,19 @@ export default function BillCalculator() {
   const gasRef = useRef<HTMLInputElement>(null);
   const overpaymentRef = useRef<HTMLInputElement>(null);
 
-  // 2. Refs for incomes & deductions
-  
   const exchangeRateRef = useRef<HTMLInputElement>(null);
   const { rate: fetchedEuroRate, loading: rateLoading } = useEuroRate();
 
-  // Person 1
   const income1Ref = useRef<HTMLInputElement>(null);
   const pit1Ref = useRef<HTMLInputElement>(null);
   const zus1Ref = useRef<HTMLInputElement>(null);
   const [currency1, setCurrency1] = useState<"PLN" | "EUR">("EUR");
   
-  // Person 2
   const income2Ref = useRef<HTMLInputElement>(null);
   const pit2Ref = useRef<HTMLInputElement>(null);
   const zus2Ref = useRef<HTMLInputElement>(null);
   const [currency2, setCurrency2] = useState<"PLN" | "EUR">("PLN");
 
-  // 3. Results State
   const [results, setResults] = useState({
     total: 0,
     share1: 0,
@@ -102,9 +92,7 @@ export default function BillCalculator() {
     grossPln2: 0,
   });
 
-  // 4. Calculation Logic
   const calculate = () => {
-    // Expenses
     const baseRent = Number(baseRentRef.current?.value) || 0;
     const community = Number(communityRef.current?.value) || 0;
     const water = Number(waterRef.current?.value) || 0;
@@ -112,33 +100,25 @@ export default function BillCalculator() {
     const gas = Number(gasRef.current?.value) || 0;
     const overpayment = Number(overpaymentRef.current?.value) || 0;
     
-    // Rate
     const rate = Number(exchangeRateRef.current?.value) || 0;
 
-    // --- Person 1 Income ---
     const inc1Raw = Number(income1Ref.current?.value) || 0;
     const grossPln1 = inc1Raw * (currency1 === "EUR" ? rate : 1);
-
     const pit1Percent = Number(pit1Ref.current?.value) || 0;
     const zus1 = Number(zus1Ref.current?.value) || 0;
-    
     const pitVal1 = grossPln1 * (pit1Percent / 100);
     const net1 = Math.max(0, grossPln1 - pitVal1 - zus1);
 
-    // --- Person 2 Income ---
     const inc2Raw = Number(income2Ref.current?.value) || 0;
     const grossPln2 = inc2Raw * (currency2 === "EUR" ? rate : 1);
-
     const pit2Percent = Number(pit2Ref.current?.value) || 0;
     const zus2 = Number(zus2Ref.current?.value) || 0;
-
     const pitVal2 = grossPln2 * (pit2Percent / 100);
     const net2 = Math.max(0, grossPln2 - pitVal2 - zus2);
 
-    // --- Total Cost & Split ---
     const totalCost = baseRent + community + water + electricity + gas - overpayment;
     const halfCost = totalCost / 2;
-    const fixedShare = halfCost / 2; // (C/4)
+    const fixedShare = halfCost / 2; 
     const totalIncome = net1 + net2;
 
     let s1 = totalCost / 2;
@@ -192,63 +172,57 @@ export default function BillCalculator() {
 
   return (
     <Layout>
-      <SEO title="Kalkulator Podziału - Dzisiaj v3" />
+      <SEO title="Kalkulator Podziału - Dzisiaj" />
 
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex sm:flex-1 flex-nowrap gap-3 items-center mb-4">
+        
+        {/* Pasek Nagłówkowy */}
+        <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center relative">
           <button
             onClick={handleBack}
-            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
-            aria-label="Wróć"
+            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
+            title="Powrót"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-xl ml-2 font-semibold">Kalkulator</h2>
+
+          <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
+            Kalkulator Podziału
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Inputs */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Expenses Section */}
-            <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
-                Opłaty
+            {/* Opłaty */}
+            <section className="bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
+                Miesięczne Opłaty
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <InputField label="Wynajem" inputRef={baseRentRef} defaultValue={2000} onChange={calculate} />
                 <InputField label="Czynsz" inputRef={communityRef} defaultValue={585} onChange={calculate} />
                 <InputField label="Woda" inputRef={waterRef} onChange={calculate} />
                 <InputField label="Prąd" inputRef={electricityRef} onChange={calculate} />
                 <InputField label="Gaz" inputRef={gasRef} onChange={calculate} />
-                <InputField
-                  label="Nadpłata"
-                  inputRef={overpaymentRef}
-                  icon={<Minus size={16} />}
-                  onChange={calculate}
-                />
+                <InputField label="Nadpłata" inputRef={overpaymentRef} icon={<Minus size={16} />} onChange={calculate} />
               </div>
               
-              <div className="mt-4 pt-4 flex justify-between items-center text-sm text-textSecondary border-t">
-                  <span>Suma:</span>
-                  <span className="text-lg font-bold text-gray-900">{results.total.toFixed(2)} zł</span>
+              <div className="mt-5 pt-4 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+                  <span className="text-sm font-bold uppercase tracking-wider text-textSecondary">Suma:</span>
+                  <span className="text-2xl font-black text-primary">{results.total.toFixed(2)} zł</span>
               </div>
             </section>
 
-            {/* Incomes Section */}
-            <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-4 border-b pb-2">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-                  Dochody
-                </h2>
-              </div>
+            {/* Dochody */}
+            <section className="bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+                Dochody i Podatki
+              </h2>
 
-              {/* Shared Exchange Rate Input */}
-              <div className={`my-4 transition-all duration-300 ${showExchangeRate ? 'opacity-100' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-                <div className="p-4 rounded-lg relative">
-                  {rateLoading && (
-                    <LoadingState />
-                  )}
+              <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showExchangeRate ? 'max-h-40 opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
+                <div className="bg-surface p-4 rounded-xl border border-gray-200 dark:border-gray-700 relative">
+                  {rateLoading && <LoadingState />}
                   <InputField 
                     label="Kurs EUR/PLN"
                     inputRef={exchangeRateRef} 
@@ -257,49 +231,47 @@ export default function BillCalculator() {
                     onChange={calculate} 
                   />
                   {fetchedEuroRate && (
-                      <p className="text-xs text-blue-500 mt-1 ml-1">
-                          Pobrano kurs: {fetchedEuroRate} zł
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500 mt-2 ml-1">
+                          Aktualny kurs z NBP: {fetchedEuroRate} zł
                       </p>
                   )}
                 </div>
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* Person 1 Column */}
-                <div className="space-y-2 p-3 rounded-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-textSecondary flex items-center gap-2">
-                        Osoba 1
-                    </h3>
+                
+                {/* Osoba 1 */}
+                <div className="space-y-4 p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                    <h3 className="font-bold text-text">Osoba 1</h3>
                     <select 
                         value={currency1}
                         onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
-                        className="text-sm border border-gray-300 rounded-md p-1 bg-white focus:outline-none"
+                        className="text-xs font-bold bg-card border border-gray-300 dark:border-gray-600 text-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="PLN">PLN</option>
                         <option value="EUR">EUR</option>
                     </select>
                   </div>
-                  <div>
-                  <InputField 
-                    label={`Przychód Brutto`}
-                    inputRef={income1Ref} 
-                    icon={<Wallet size={16}/>} 
-                    suffix={getCurrencySymbol(currency1)}
-                    onChange={calculate} 
-                  />
 
-                  {currency1 !== "PLN" && (
-                    <div className="text-right text-xs text-textSecondary mt-1">
-                       {results.grossPln1.toFixed(2)} zł
-                    </div>
-                  )}
-                  </div>
-                  
-                  {/* PIT 1 */}
                   <div>
                     <InputField 
-                      label="PIT (%)" 
+                      label="Przychód Brutto"
+                      inputRef={income1Ref} 
+                      icon={<Wallet size={16}/>} 
+                      suffix={getCurrencySymbol(currency1)}
+                      onChange={calculate} 
+                    />
+                    {currency1 !== "PLN" && (
+                      <div className="text-right text-[10px] font-bold uppercase tracking-wider text-textMuted mt-1">
+                          w przeliczeniu: {results.grossPln1.toFixed(2)} zł
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <InputField 
+                      label="Zaliczka PIT" 
                       inputRef={pit1Ref} 
                       defaultValue={12} 
                       suffix="%"
@@ -307,54 +279,51 @@ export default function BillCalculator() {
                       onChange={calculate}
                       icon={<Minus size={16} />}
                     />
-                    <div className="text-right text-xs text-red-600 mt-1">
+                    <div className="text-right text-[10px] font-bold uppercase tracking-wider text-red-500 mt-1">
                       - {results.pitValue1.toFixed(2)} zł
                     </div>
                   </div>
 
-                  <InputField label="ZUS" inputRef={zus1Ref} defaultValue={498} icon={<Minus size={16} />} onChange={calculate} />
+                  <InputField label="Składka ZUS" inputRef={zus1Ref} defaultValue={498} icon={<Minus size={16} />} onChange={calculate} />
                   
-                  <div className="text-right text-sm text-textSecondary mt-2 pt-2 border-t border-gray-200">
-                    Netto: <strong>{results.netIncome1.toFixed(2)} zł</strong>
+                  <div className="text-right mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-textSecondary">Dochód Netto:</span>
+                    <span className="text-lg font-black text-green-600 dark:text-green-500">{results.netIncome1.toFixed(2)} zł</span>
                   </div>
                 </div>
 
-                {/* Person 2 Column */}
-                <div className="space-y-2 p-3 rounded-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-textSecondary flex items-center gap-2">
-                        Osoba 2
-                    </h3>
+                {/* Osoba 2 */}
+                <div className="space-y-4 p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                    <h3 className="font-bold text-text">Osoba 2</h3>
                     <select 
                         value={currency2}
                         onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
-                        className="text-sm border border-gray-300 rounded-md p-1 bg-white focus:outline-none"
+                        className="text-xs font-bold bg-card border border-gray-300 dark:border-gray-600 text-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="PLN">PLN</option>
                         <option value="EUR">EUR</option>
                     </select>
                   </div>
-                  <div>
-                  <InputField 
-                    label={`Przychód Brutto`}
-                    inputRef={income2Ref} 
-                    icon={<Wallet size={16}/>} 
-                    suffix={getCurrencySymbol(currency2)}
-                    onChange={calculate} 
-                  />
 
-
-                  {currency2 !== "PLN" && (
-                    <div className="text-right text-xs text-textSecondary mt-1">
-                       {results.grossPln2.toFixed(2)} zł
-                    </div>
-                  )}
-                  </div>
-                  
-                  {/* PIT 2 */}
                   <div>
                     <InputField 
-                      label="PIT" 
+                      label="Przychód Brutto"
+                      inputRef={income2Ref} 
+                      icon={<Wallet size={16}/>} 
+                      suffix={getCurrencySymbol(currency2)}
+                      onChange={calculate} 
+                    />
+                    {currency2 !== "PLN" && (
+                      <div className="text-right text-[10px] font-bold uppercase tracking-wider text-textMuted mt-1">
+                          w przeliczeniu: {results.grossPln2.toFixed(2)} zł
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <InputField 
+                      label="Zaliczka PIT" 
                       inputRef={pit2Ref} 
                       defaultValue={0} 
                       icon={<Minus size={16} />}
@@ -362,57 +331,56 @@ export default function BillCalculator() {
                       step={1}
                       onChange={calculate}
                     />
-                     <div className="text-right text-xs text-red-600 mt-1">
+                    <div className="text-right text-[10px] font-bold uppercase tracking-wider text-red-500 mt-1">
                       - {results.pitValue2.toFixed(2)} zł
                     </div>
                   </div>
 
-                  <InputField label="ZUS" inputRef={zus2Ref} defaultValue={0} icon={<Minus size={16} />} onChange={calculate} />
+                  <InputField label="Składka ZUS" inputRef={zus2Ref} defaultValue={0} icon={<Minus size={16} />} onChange={calculate} />
                   
-                  <div className="text-right text-sm text-textSecondary mt-2 pt-2 border-t border-gray-200">
-                    Netto: <strong>{results.netIncome2.toFixed(2)} zł</strong>
+                  <div className="text-right mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-textSecondary">Dochód Netto:</span>
+                    <span className="text-lg font-black text-green-600 dark:text-green-500">{results.netIncome2.toFixed(2)} zł</span>
                   </div>
                 </div>
+
               </div>
             </section>
           </div>
 
-          {/* Right Column: Results */}
+          {/* Podsumowanie */}
           <div className="lg:col-span-1">
-            <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-6 text-center">Wynik Podziału</h2>
+            <section className="bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 sticky top-6">
+              <h2 className="text-lg font-bold text-text mb-6 text-center border-b border-gray-100 dark:border-gray-800 pb-3">Podsumowanie</h2>
               
-              <div className="space-y-6">
-                {/* Person 1 */}
-                <div className="p-4 rounded-xl border">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-textSecondary">Osoba 1</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-textSecondary">Osoba 1</span>
+                    <span className="text-[10px] font-black bg-primary/10 text-primary px-2.5 py-1 rounded-md border border-primary/20">
                       {(results.share1 / results.total * 100 || 0).toFixed(0)}%
                     </span>
                   </div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {results.share1.toFixed(2)} <span className="text-base font-normal text-gray-500">zł</span>
+                  <div className="text-2xl font-black text-text">
+                    {results.share1.toFixed(2)} <span className="text-base font-bold text-textMuted">zł</span>
                   </div>
                 </div>
 
-                {/* Person 2 */}
-                <div className="p-4 rounded-xl border">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-textSecondary">Osoba 2</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                <div className="p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-textSecondary">Osoba 2</span>
+                    <span className="text-[10px] font-black bg-primary/10 text-primary px-2.5 py-1 rounded-md border border-primary/20">
                       {(results.share2 / results.total * 100 || 0).toFixed(0)}%
                     </span>
                   </div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {results.share2.toFixed(2)} <span className="text-base font-normal text-gray-500">zł</span>
+                  <div className="text-2xl font-black text-text">
+                    {results.share2.toFixed(2)} <span className="text-base font-bold text-textMuted">zł</span>
                   </div>
                 </div>
                 
-                {/* Total Check */}
-                <div className="border-t pt-4 text-center">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Razem do zapłaty</p>
-                    <p className="text-xl font-bold text-textSecondary">{(results.share1 + results.share2).toFixed(2)} zł</p>
+                <div className="pt-5 mt-2 border-t border-gray-200 dark:border-gray-800 text-center">
+                    <p className="text-[11px] font-bold text-textMuted uppercase tracking-widest mb-1">Razem do zapłaty</p>
+                    <p className="text-3xl font-black text-primary drop-shadow-sm">{(results.share1 + results.share2).toFixed(2)} zł</p>
                 </div>
               </div>
             </section>

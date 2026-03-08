@@ -119,23 +119,25 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="form-label">Priorytet:</label>
-              <div className="flex items-stretch gap-1">
+              <div className="flex items-stretch gap-1.5 mt-1">
                 <button
                   type="button"
                   onClick={decreasePriority}
-                  className="px-3 bg-surface hover:bg-surfaceHover text-textSecondary border border-gray-300 dark:border-gray-600 rounded-lg transition-colors flex items-center justify-center"
+                  className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
+                  title="Zmniejsz priorytet (wyższa liczba)"
                 >
-                  <Plus size={16} />
+                  <Minus size={18} />
                 </button>
-                <div className="flex-1 flex items-center justify-center font-bold text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg text-text">
+                <div className="flex-1 flex items-center justify-center text-lg bg-card border border-gray-200 dark:border-gray-700 rounded-xl text-text shadow-inner">
                   {editedTask.priority}
                 </div>
                 <button
                   type="button"
                   onClick={increasePriority}
-                  className="px-3 bg-surface hover:bg-surfaceHover text-textSecondary border border-gray-300 dark:border-gray-600 rounded-lg transition-colors flex items-center justify-center"
+                  className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
+                  title="Zwiększ priorytet (niższa liczba)"
                 >
-                  <Minus size={16} />
+                  <Plus size={18} />
                 </button>
               </div>
             </div>

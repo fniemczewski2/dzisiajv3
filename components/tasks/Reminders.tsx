@@ -71,7 +71,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
   };
 
   return (
-    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-4 overflow-hidden transition-colors">
+    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm my-4 overflow-hidden transition-colors">
       <div
         className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface transition-colors"
         onClick={() => setOpen(!open)}
@@ -79,7 +79,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
         <h3 className="font-semibold flex items-center text-text">
           <RefreshCw className="w-5 h-5 mr-2 text-primary" />
           Zadania cykliczne
-          <span className="ml-2 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-bold">
+          <span className="ml-2 text-primary font-bold">
             {liczba}
           </span>
         </h3>

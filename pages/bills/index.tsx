@@ -1,4 +1,3 @@
-// pages/bills.tsx
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
@@ -41,30 +40,37 @@ export default function BillsPage() {
         />
       </Head>
       <Layout>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
-            Finanse
-            <button
-              onClick={() => router.push("/bills/budget")}
-              title="Budżet"
-              className="p-2 ml-2 bg-card rounded-lg hover:bg-gray-200"
-            >
-              <ChartColumnBig className="w-5 h-5" />
-            </button>
-                        <button
-              onClick={() => router.push("/bills/calculator")}
-              title="Kalkulator"
-              className="p-2 ml-2 bg-card rounded-lg hover:bg-gray-200"
-            >
-              <Calculator className="w-5 h-5" />
-            </button>
-          </h2>
+        {/* NAGŁÓWEK */}
+        <div className="flex justify-between items-center mb-6 gap-2">
+          <div className="flex flex-row items-center gap-2 sm:gap-4">
+            <h2 className="text-2xl font-bold text-text">
+              Finanse
+            </h2>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={() => router.push("/bills/budget")}
+                title="Budżet"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+              >
+                <ChartColumnBig className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/bills/calculator")}
+                title="Kalkulator Podziału"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+              >
+                <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
+          </div>
 
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        {(loading) && <LoadingState />}
+
+        {loading && <LoadingState />}
+
         {showForm && (
-          <div className="mb-6">
+          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
             <BillForm
               onChange={() => {
                 fetchBills();
@@ -74,19 +80,21 @@ export default function BillsPage() {
             />
           </div>
         )}
+
         <DailySpendingForm />
 
         {Object.keys(incomeItems).length > 0 && (
           <>
-            <h3 className="text-lg font-semibold mb-2 mt-6">
+            <h3 className="text-xl font-bold text-text mb-4 mt-8 pb-2 border-b border-gray-100 dark:border-gray-800">
               Wpływy
             </h3>
             <BillListGrouped bills={incomeItems} onBillsChange={fetchBills} />
           </>
         )}
+        
         {expenseItems.length > 0 && (
           <>
-            <h3 className="text-lg font-semibold mb-2 mt-6">
+            <h3 className="text-xl font-bold text-text mb-4 mt-8 pb-2 border-b border-gray-100 dark:border-gray-800">
               Wydatki
             </h3>
             <BillListGrouped bills={expenseItems} onBillsChange={fetchBills} />

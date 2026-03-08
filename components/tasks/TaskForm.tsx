@@ -76,60 +76,56 @@ export default function TaskForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 bg-card p-4 rounded-xl shadow"
+      className="space-y-4 bg-card border border-gray-200 dark:border-gray-800 p-5 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 mb-6"
     >
       <div>
-        <label
-          htmlFor="title"
-          className="block text-sm font-medium text-textSecondary"
-        >
-          Tytuł:
+        <label htmlFor="title" className="form-label">
+          Tytuł zadania:
         </label>
         <input
           id="title"
           ref={titleRef}
           type="text"
-          className="mt-1 w-full p-2 border rounded"
+          className="input-field font-medium"
+          placeholder="Co masz do zrobienia?"
           required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-semibold text-textSecondary">Priorytet:</label>
-              <div className="flex items-center gap-1 mt-1">
-                <button
-                    type="button"
-                    onClick={decreasePriority}
-                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-card text-textSecondary transition-colors"
-                    title="Zmniejsz priorytet"
-                >
-                    <Minus size={16} />
-                </button>
-                <div className="flex-1 text-center font-bold text-sm bg-white border border-gray-300 rounded-lg py-2">
-                    {priority}
-                </div>
-                <button
-                    type="button"
-                    onClick={increasePriority}
-                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-card text-textSecondary transition-colors"
-                    title="Zwiększ priorytet"
-                >
-                    <Plus size={16} />
-                </button>
-              </div>
-            </div>
         <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-textSecondary"
-          >
+          <label className="form-label">Priorytet:</label>
+          <div className="flex items-stretch gap-1.5 mt-1">
+            <button
+              type="button"
+              onClick={decreasePriority}
+              className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
+              title="Zmniejsz priorytet (wyższa liczba)"
+            >
+              <Minus size={18} />
+            </button>
+            <div className="flex-1 flex items-center justify-center text-lg bg-card border border-gray-200 dark:border-gray-700 rounded-xl text-text shadow-inner">
+              {priority}
+            </div>
+            <button
+              type="button"
+              onClick={increasePriority}
+              className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
+              title="Zwiększ priorytet (niższa liczba)"
+            >
+              <Plus size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="category" className="form-label">
             Kategoria:
           </label>
           <select
             id="category"
             ref={categoryRef}
-            className="mt-1 w-full p-2 border rounded"
+            className="input-field h-[46px] sm:h-[48px]"
             defaultValue={"inne"}
           >
             {[
@@ -155,10 +151,7 @@ export default function TaskForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label
-            htmlFor="due"
-            className="block text-sm font-medium text-textSecondary"
-          >
+          <label htmlFor="due" className="form-label">
             Data wykonania:
           </label>
           <input
@@ -166,46 +159,46 @@ export default function TaskForm({
             ref={dueDateRef}
             defaultValue={todayIso}
             type="date"
-            className="mt-1 w-full p-2 border rounded"
+            className="input-field h-[46px] sm:h-[48px]"
             required
           />
         </div>
         <div>
-        <label htmlFor="for" className="block text-sm font-medium text-textSecondary">
-          Dla:
-        </label>
-        <select
-          id="for"
-          ref={forUserRef}
-          className="mt-1 w-full p-2 border rounded"
-          required
-          defaultValue={userId}
-        >
-          <option value={userId}>mnie</option>
-          {userOptions.map((email) => (
-            <option key={email} value={email}>
-              {email}
-            </option>
-          ))}
-        </select>
+          <label htmlFor="for" className="form-label">
+            Zadanie dla:
+          </label>
+          <select
+            id="for"
+            ref={forUserRef}
+            className="input-field h-[46px] sm:h-[48px]"
+            required
+            defaultValue={userId}
+          >
+            <option value={userId}>Mnie</option>
+            {userOptions.map((email) => (
+              <option key={email} value={email}>
+                {email}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-      </div>
+
       <div>
-        <label
-          htmlFor="desc"
-          className="block text-sm font-medium text-textSecondary"
-        >
-          Opis:
+        <label htmlFor="desc" className="form-label">
+          Opis (opcjonalny):
         </label>
         <textarea
           id="desc"
           ref={descriptionRef}
-          className="mt-1 w-full p-2 border rounded"
+          className="input-field"
+          rows={3}
+          placeholder="Dodatkowe informacje..."
         />
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
-        {loading && <LoadingState />}
+      <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+        {loading && <div className="mr-2"><LoadingState /></div>}
         <AddButton loading={loading} />
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
       </div>
