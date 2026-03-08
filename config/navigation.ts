@@ -3,8 +3,6 @@ import {
   ListTodo,
   Logs,
   Timer,
-  Brain,
-  Table2,
   Edit2,
   Backpack,
   Luggage,
@@ -31,14 +29,14 @@ export interface NavigationButton {
   title: string;
   icon: LucideIcon;
   label: string;
-  badge?: string; // Opcjonalna odznaka (np. "Nowe", "Beta")
-  external?: boolean; // Czy link prowadzi na zewnątrz
+  badge?: string; 
+  external?: boolean; 
 }
 
 export interface NavigationCategory {
   name: string;
   items: NavigationButton[];
-  color?: string; // Kolor kategorii dla lepszej wizualizacji
+  color?: string; 
 }
 
 // Główna nawigacja pogrupowana w kategorie
@@ -49,8 +47,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       {path: "/", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
-      { path: "/tasks/eisenhower", title: "Eisenhower", icon: Brain, label: "Eisenhower" },
-      { path: "/tasks/kanban", title: "Kanban", icon: Table2, label: "Kanban" },
+     
     ],
   },
   {

@@ -1,18 +1,9 @@
-// components/streaks/StreakForm.tsx
 "use client";
 
 import React, { useState, SyntheticEvent } from "react";
 import { 
-  Flame, 
-  Trophy, 
-  Target, 
-  Heart, 
-  Cigarette,
-  Beer,
-  UtensilsCrossed,
-  Dumbbell,
-  PiggyBank,
-  BriefcaseMedical
+  Flame, Trophy, Target, Heart, Cigarette, Beer,
+  UtensilsCrossed, Dumbbell, PiggyBank, BriefcaseMedical
 } from "lucide-react";
 import { Streak } from "../../types";
 import LoadingState from "../LoadingState";
@@ -27,16 +18,11 @@ interface StreakFormProps {
 }
 
 const ICONS = [
-  { name: "flame", icon: Flame },
-  { name: "trophy", icon: Trophy },
-  { name: "target", icon: Target},
-  { name: "heart", icon: Heart },
-  { name: "cigarette", icon: Cigarette },
-  { name: "beer", icon: Beer },
-  { name: "utensils", icon: UtensilsCrossed},
-  { name: "dumbbell", icon: Dumbbell },
-  { name: "piggybank", icon: PiggyBank },
-  { name: "medical", icon: BriefcaseMedical }, 
+  { name: "flame", icon: Flame }, { name: "trophy", icon: Trophy },
+  { name: "target", icon: Target}, { name: "heart", icon: Heart },
+  { name: "cigarette", icon: Cigarette }, { name: "beer", icon: Beer },
+  { name: "utensils", icon: UtensilsCrossed}, { name: "dumbbell", icon: Dumbbell },
+  { name: "piggybank", icon: PiggyBank }, { name: "medical", icon: BriefcaseMedical }, 
 ];
 
 export default function StreakForm({
@@ -56,7 +42,7 @@ export default function StreakForm({
     e.preventDefault();
     
     if (!name.trim()) {
-      alert("Podaj nazwę celu!");
+      alert("Podaj nazwę nawyku!");
       return;
     }
 
@@ -88,63 +74,70 @@ export default function StreakForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 bg-card p-6 rounded-xl shadow-lg max-w-2xl mx-auto"
+      className="bg-card border border-gray-200 dark:border-gray-800 p-5 sm:p-6 rounded-2xl shadow-sm mb-8 animate-in fade-in slide-in-from-top-4"
     >
-      <div>
-        <label className="block text-sm font-medium mb-2" htmlFor="streak-name">
-          Nazwa:
-        </label>
-        <input
-          id="streak-name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="np. Nie piję alkoholu"
-          className="w-full p-2 border rounded"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-2" htmlFor="start-date">
-          Data rozpoczęcia:
-        </label>
-        <input
-          id="start-date"
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          max={new Date().toISOString().split("T")[0]}
-          className="w-full p-2 border rounded"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-2">Ikona:</label>
-        <div className="grid grid-cols-10 gap-2">
-          {ICONS.map((item) => {
-            const IconComponent = item.icon;
-            return (
-              <button
-                key={item.name}
-                type="button"
-                onClick={() => setIcon(item.name)}
-                className={`p-2 rounded-full border-none transition-all flex flex-col items-center gap-2 ${
-                  icon === item.name
-                    ? "border-primary bg-blue-50 ring-2 ring-primary"
-                    : "border-gray-200 hover:border-gray-400"
-                }`}
-              >
-                <IconComponent className="w-4 h-4" />
-              </button>
-            );
-          })}
+      <h3 className="text-xl font-bold text-text mb-6">Dodaj nowy nawyk</h3>
+      
+      <div className="space-y-5">
+        <div>
+          <label className="form-label" htmlFor="streak-name">
+            Nazwa nawyku:
+          </label>
+          <input
+            id="streak-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="np. 0 dni bez słodyczy, Biegam rano"
+            className="input-field font-medium"
+            required
+          />
         </div>
-      </div>
+        
+        <div>
+          <label className="form-label" htmlFor="start-date">
+            Data rozpoczęcia:
+          </label>
+          <input
+            id="start-date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            max={new Date().toISOString().split("T")[0]}
+            className="input-field"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="form-label mb-2">Ikona:</label>
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+            {ICONS.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <button
+                  key={item.name}
+                  type="button"
+                  onClick={() => setIcon(item.name)}
+                  title={`Wybierz ikonę: ${item.name}`}
+                  className={`p-2.5 rounded-xl transition-all flex flex-col items-center justify-center ${
+                    icon === item.name
+                      ? "bg-primary text-white shadow-sm scale-110"
+                      : "bg-transparent text-textSecondary hover:bg-card hover:text-text"
+                  }`}
+                >
+                  <IconComponent className="w-5 h-5" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-      <div className="flex space-x-2 items-center mt-2">
-        <AddButton loading={loading} />
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
+        <div className="flex space-x-3 items-center pt-4 border-t border-gray-100 dark:border-gray-800">
+          <AddButton loading={loading} />
+          {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+          {loading && <LoadingState />}
+        </div>
       </div>
     </form>
   );

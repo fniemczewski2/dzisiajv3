@@ -1,8 +1,7 @@
-// components/recipes/RecipeForm.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState, SyntheticEvent } from "react";
-import { PlusCircleIcon } from "lucide-react";
+import { PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
 import LoadingState from "../LoadingState";
@@ -15,18 +14,10 @@ interface RecipeFormProps {
 }
 
 const CATEGORIES: RecipeCategory[] = [
-  "śniadanie",
-  "zupa",
-  "danie główne",
-  "przystawka",
-  "sałatka",
-  "deser",
+  "śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser",
 ];
 
-export default function RecipeForm({
-  onChange,
-  onCancel,
-}: RecipeFormProps) {
+export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
   const { addRecipe, loading, products: allProducts } = useRecipes();
   const { user } = useAuth();
   const userId = user?.id;
@@ -40,17 +31,13 @@ export default function RecipeForm({
   const suggestions = useMemo(() => {
     const q = prodInput.trim().toLowerCase();
     if (!q) return [];
-    return allProducts
-      .filter((p) => p.toLowerCase().includes(q) && !picked.includes(p))
-      .slice(0, 8);
+    return allProducts.filter((p) => p.toLowerCase().includes(q) && !picked.includes(p)).slice(0, 8);
   }, [prodInput, allProducts, picked]);
 
   const commitProduct = (raw: string) => {
     const v = raw.trim();
     if (!v) return;
-    if (!picked.includes(v)) {
-      setPicked((prev) => [...prev, v]);
-    }
+    if (!picked.includes(v)) setPicked((prev) => [...prev, v]);
     setProdInput("");
   };
 
@@ -65,136 +52,104 @@ export default function RecipeForm({
     }
   };
 
-  const removeProduct = (p: string) => {
-    setPicked((prev) => prev.filter((x) => x !== p));
-  };
-
+  const removeProduct = (p: string) => setPicked((prev) => prev.filter((x) => x !== p));
   const canSave = name.trim().length > 1 && picked.length > 0;
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSave) return;
-
-    const payload: Recipe = {
+    await addRecipe({
       name: name.trim(),
       category,
       products: picked.map((p) => p.trim()),
       description: description.trim(),
-      user_id: userId,
-    } as Recipe;
-
-    await addRecipe({
-        name: payload.name,
-        category: payload.category,
-        products: payload.products,
-        description: payload.description,
-      });
+    } as any);
     
     onChange();
-      setName("");
-      setCategory("śniadanie");
-      setDescription("");
-      setPicked([]);
-      setProdInput("");
-
+    setName(""); setCategory("śniadanie"); setDescription(""); setPicked([]); setProdInput("");
     if (onCancel) onCancel();
-  
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-3 bg-card p-4 rounded-xl shadow max-w-2xl"
-    >
+    <form onSubmit={handleSubmit} className="form-card max-w-2xl">
       <div>
-        <label htmlFor="rf-name" className="block text-sm font-medium mb-1">
-          Nazwa
-        </label>
+        <label htmlFor="rf-name" className="form-label">Nazwa przepisu:</label>
         <input
           id="rf-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Naleśniki z twarogiem"
+          className="input-field"
+          placeholder="np. Naleśniki z twarogiem"
           required
           disabled={loading}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="rf-category"
-          className="block text-sm font-medium mb-1"
-        >
-          Kategoria
-        </label>
+        <label htmlFor="rf-category" className="form-label">Kategoria:</label>
         <select
           id="rf-category"
           value={category}
           onChange={(e) => setCategory(e.target.value as RecipeCategory)}
-          className="w-full p-2 border rounded"
+          className="input-field"
           disabled={loading}
         >
           {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Produkty</label>
-
+        <label className="form-label">Składniki:</label>
         <div className="flex gap-2">
           <input
             value={prodInput}
             onChange={(e) => setProdInput(e.target.value)}
             onKeyDown={onProdKeyDown}
-            placeholder="np. mąka, jajka, mleko…"
-            className="flex-1 p-2 border rounded"
+            placeholder="np. mąka, jajka, mleko (zatwierdź Enterem)"
+            className="input-field"
             disabled={loading}
           />
           <button
             type="button"
             onClick={() => commitProduct(prodInput)}
-            className="px-3 py-2 border rounded flex items-center gap-2 hover:bg-gray-50 transition disabled:opacity-50"
+            className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2 transition-colors disabled:opacity-50"
             disabled={loading}
           >
-            Dodaj
-            <PlusCircleIcon className="w-4 h-4" />
+            Dodaj <PlusCircleIcon className="w-4 h-4" />
           </button>
         </div>
+        
+        {/* Dropdown podpowiedzi */}
         {suggestions.length > 0 && (
-          <div className="mt-1 rounded-md border bg-white divide-y shadow-lg">
+          <div className="mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden">
             {suggestions.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => commitProduct(s)}
-                className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                className="w-full text-left px-4 py-2 hover:bg-surface text-text text-sm transition-colors"
               >
                 {s}
               </button>
             ))}
           </div>
         )}
+        
+        {/* Wybrane tagi */}
         {picked.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {picked.map((p) => (
-              <span
-                key={p}
-                className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm"
-              >
+              <span key={p} className="inline-flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-sm text-textSecondary">
                 {p}
                 <button
                   type="button"
                   onClick={() => removeProduct(p)}
-                  className="text-gray-500 hover:text-gray-900"
-                  aria-label={`Usuń ${p}`}
+                  className="text-textMuted hover:text-red-500 transition-colors"
                   disabled={loading}
                 >
-                  ×
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             ))}
@@ -203,25 +158,21 @@ export default function RecipeForm({
       </div>
 
       <div>
-        <label htmlFor="rf-desc" className="block text-sm font-medium mb-1">
-          Opis
-        </label>
+        <label htmlFor="rf-desc" className="form-label">Sposób przygotowania / Opis:</label>
         <textarea
           id="rf-desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="input-field"
           rows={4}
           placeholder="Krótki opis lub kroki przygotowania…"
           disabled={loading}
         />
       </div>
 
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-3 items-center pt-2">
         <AddButton loading={loading} disabled={!canSave} />
-
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
-
         {loading && <LoadingState />}
       </div>
     </form>

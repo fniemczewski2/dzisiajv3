@@ -75,20 +75,6 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         path: "/tasks/pomodoro",
       },
       {
-        title: "Eisenhower",
-        description: "Priorytetyzuj zadania z\u00A0macierzą Eisenhowera (pilne/ważne).",
-        icon: Brain,
-        category: "Produktywność",
-        path: "/tasks/eisenhower",
-      },
-      {
-        title: "Kanban",
-        description: "Zarządzaj zadaniami metodą Kanban z\u00A0kolumnami statusów.",
-        icon: Table2,
-        category: "Produktywność",
-        path: "/tasks/kanban",
-      },
-      {
         title: "Harmonogram Dnia",
         description: "Zadbaj o\u00A0regularność, stwórz własny plan dnia.",
         icon: Logs,

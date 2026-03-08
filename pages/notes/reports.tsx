@@ -1,13 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { Download, Edit2, Trash2, Save, X, Plus } from "lucide-react";
+import { Save, X, Plus } from "lucide-react";
 import { useReports } from "../../hooks/useReports";
 import ReportForm from "../../components/reports/ReportForm";
 import { generateReportPDF } from "../../lib/pdfGenerator";
 import { Report, ReportTask } from "../../types";
 import LoadingState from "../../components/LoadingState";
-import { AddButton } from "../../components/CommonButtons";
+import { 
+  AddButton, 
+  EditButton, 
+  DeleteButton, 
+  SaveButton, 
+  CancelButton, 
+  PdfButton 
+} from "../../components/CommonButtons";
 
 export default function ReportsPage() {
   const { reports, loading, editReport, deleteReport } = useReports();
@@ -23,9 +30,7 @@ export default function ReportsPage() {
     }
   }, [editingId]);
 
-  const openNew = () => {
-    setShowForm(true);
-  };
+  const openNew = () => setShowForm(true);
 
   const handleEdit = (report: Report) => {
     setEditingId(report.id);
@@ -56,18 +61,12 @@ export default function ReportsPage() {
 
   const addAgendaItem = () => {
     if (!editedReport) return;
-    setEditedReport({
-      ...editedReport,
-      agenda: [...(editedReport.agenda || []), ""],
-    });
+    setEditedReport({ ...editedReport, agenda: [...(editedReport.agenda || []), ""] });
   };
 
   const removeAgendaItem = (index: number) => {
     if (!editedReport) return;
-    setEditedReport({
-      ...editedReport,
-      agenda: editedReport.agenda?.filter((_, i) => i !== index) || [],
-    });
+    setEditedReport({ ...editedReport, agenda: editedReport.agenda?.filter((_, i) => i !== index) || [] });
   };
 
   const updateAgendaItem = (index: number, value: string) => {
@@ -79,18 +78,12 @@ export default function ReportsPage() {
 
   const addParticipant = () => {
     if (!editedReport) return;
-    setEditedReport({
-      ...editedReport,
-      participants: [...(editedReport.participants || []), ""],
-    });
+    setEditedReport({ ...editedReport, participants: [...(editedReport.participants || []), ""] });
   };
 
   const removeParticipant = (index: number) => {
     if (!editedReport) return;
-    setEditedReport({
-      ...editedReport,
-      participants: editedReport.participants?.filter((_, i) => i !== index) || [],
-    });
+    setEditedReport({ ...editedReport, participants: editedReport.participants?.filter((_, i) => i !== index) || [] });
   };
 
   const updateParticipant = (index: number, value: string) => {
@@ -102,18 +95,12 @@ export default function ReportsPage() {
 
   const addTask = () => {
     if (!editedReport) return;
-    setEditedReport({
-      ...editedReport,
-      tasks: [...(editedReport.tasks || []), { zadanie: "", data: "", osoba: "" }],
-    });
+    setEditedReport({ ...editedReport, tasks: [...(editedReport.tasks || []), { zadanie: "", data: "", osoba: "" }] });
   };
 
   const removeTask = (index: number) => {
     if (!editedReport) return;
-    setEditedReport({
-      ...editedReport,
-      tasks: editedReport.tasks?.filter((_, i) => i !== index) || [],
-    });
+    setEditedReport({ ...editedReport, tasks: editedReport.tasks?.filter((_, i) => i !== index) || [] });
   };
 
   const updateTask = (index: number, field: keyof ReportTask, value: string) => {
@@ -129,17 +116,15 @@ export default function ReportsPage() {
         <title>Sprawozdania – Dzisiaj</title>
         <meta name="description" content="Twórz i zarządzaj sprawozdaniami." />
         <link rel="canonical" href="https://dzisiajv3.vercel.app/reports" />
-        <meta property="og:title" content="Sprawozdania – Dzisiaj" />
-        <meta property="og:description" content="Twórz i zarządzaj sprawozdaniami." />
       </Head>
 
       <Layout>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Sprawozdania</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-text">Sprawozdania</h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
-        {(loading) && <LoadingState />}
+        {loading && <LoadingState />}
 
         {showForm && (
           <div className="mb-6">
@@ -150,7 +135,7 @@ export default function ReportsPage() {
           </div>
         )}
 
-        <ul className="space-y-4">
+        <ul className="space-y-4 lg:columns-2 gap-4 block">
           {reports.map((r) => {
             const isEditing = editingId === r.id;
 
@@ -158,63 +143,54 @@ export default function ReportsPage() {
               return (
                 <li
                   key={r.id}
-                  className="p-4 bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg space-y-3"
+                  className="p-5 break-inside-avoid bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg space-y-4 animate-in fade-in mb-4"
                 >
                   {/* Topic */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Temat spotkania:
-                    </label>
+                    <label className="form-label">Temat spotkania:</label>
                     <input
                       ref={topicRef}
                       type="text"
                       value={editedReport.topic || ""}
-                      onChange={(e) =>
-                        setEditedReport({ ...editedReport, topic: e.target.value })
-                      }
-                      className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                      onChange={(e) => setEditedReport({ ...editedReport, topic: e.target.value })}
+                      className="input-field font-medium"
                     />
                   </div>
 
                   {/* Date */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Data:
-                    </label>
+                    <label className="form-label">Data:</label>
                     <input
                       type="date"
                       value={editedReport.date || ""}
-                      onChange={(e) =>
-                        setEditedReport({ ...editedReport, date: e.target.value })
-                      }
-                      className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                      onChange={(e) => setEditedReport({ ...editedReport, date: e.target.value })}
+                      className="input-field"
                     />
                   </div>
 
                   {/* Agenda and Participants */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Agenda */}
                     <div>
-                      <label className="text-xs font-semibold text-gray-700">
-                        Agenda:
-                      </label>
+                      <label className="form-label">Agenda:</label>
                       <div className="space-y-2 mt-1">
                         {editedReport.agenda?.map((item, i) => (
-                          <div key={i} className="flex gap-2">
+                          <div key={i} className="flex gap-2 items-center">
                             <input
                               type="text"
                               value={item}
                               onChange={(e) => updateAgendaItem(i, e.target.value)}
-                              className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                              className="input-field py-1.5"
                               placeholder={`Punkt ${i + 1}`}
                             />
                             {(editedReport.agenda?.length || 0) > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeAgendaItem(i)}
-                                className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                                className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
+                                title="Usuń punkt"
                               >
-                                <X className="w-5 h-5" />
+                                <X className="w-4 h-4" />
                               </button>
                             )}
                           </div>
@@ -222,37 +198,34 @@ export default function ReportsPage() {
                         <button
                           type="button"
                           onClick={addAgendaItem}
-                          className="text-primary hover:text-secondary flex items-center gap-1 text-sm transition-colors"
+                          className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary flex items-center gap-1 transition-colors mt-2"
                         >
-                          
-                          Dodaj
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-4 h-4" /> Dodaj punkt
                         </button>
                       </div>
                     </div>
 
                     {/* Participants */}
                     <div>
-                      <label className="text-xs font-semibold text-gray-700">
-                        Uczestnicy:
-                      </label>
+                      <label className="form-label">Uczestnicy:</label>
                       <div className="space-y-2 mt-1">
                         {editedReport.participants?.map((item, i) => (
-                          <div key={i} className="flex gap-2">
+                          <div key={i} className="flex gap-2 items-center">
                             <input
                               type="text"
                               value={item}
                               onChange={(e) => updateParticipant(i, e.target.value)}
-                              className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                              className="input-field py-1.5"
                               placeholder={`Uczestnik ${i + 1}`}
                             />
                             {(editedReport.participants?.length || 0) > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeParticipant(i)}
-                                className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                                className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
+                                title="Usuń uczestnika"
                               >
-                                <X className="w-5 h-5" />
+                                <X className="w-4 h-4" />
                               </button>
                             )}
                           </div>
@@ -260,11 +233,9 @@ export default function ReportsPage() {
                         <button
                           type="button"
                           onClick={addParticipant}
-                          className="text-primary hover:text-secondary flex items-center gap-1 text-sm transition-colors"
+                          className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary flex items-center gap-1 transition-colors mt-2"
                         >
-                          
-                          Dodaj
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-4 h-4" /> Dodaj uczestnika
                         </button>
                       </div>
                     </div>
@@ -272,25 +243,23 @@ export default function ReportsPage() {
 
                   {/* Tasks */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Zadania:
-                    </label>
+                    <label className="form-label">Zadania:</label>
                     <div className="space-y-3 mt-1">
                       {editedReport.tasks?.map((task, i) => (
-                        <div key={i} className="p-3 border rounded-lg bg-gray-50 space-y-2">
+                        <div key={i} className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-surface space-y-2">
                           <div className="flex gap-2">
                             <input
                               type="text"
                               value={task.zadanie}
                               onChange={(e) => updateTask(i, "zadanie", e.target.value)}
                               placeholder="Zadanie"
-                              className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary bg-white"
+                              className="input-field py-1.5 bg-card"
                             />
                             {(editedReport.tasks?.length || 0) > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeTask(i)}
-                                className="mr-2 text-red-500 hover:text-red-700 transition-colors"
+                                className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -301,14 +270,14 @@ export default function ReportsPage() {
                               type="date"
                               value={task.data}
                               onChange={(e) => updateTask(i, "data", e.target.value)}
-                              className="p-2 border rounded-lg focus:ring-2 focus:ring-primary bg-white"
+                              className="input-field py-1.5 bg-card"
                             />
                             <input
                               type="text"
                               value={task.osoba}
                               onChange={(e) => updateTask(i, "osoba", e.target.value)}
-                              placeholder="Osoba odpowiedzialna"
-                              className="p-2 border rounded-lg focus:ring-2 focus:ring-primary bg-white"
+                              placeholder="Osoba odp."
+                              className="input-field py-1.5 bg-card"
                             />
                           </div>
                         </div>
@@ -316,48 +285,28 @@ export default function ReportsPage() {
                       <button
                         type="button"
                         onClick={addTask}
-                        className="text-primary hover:text-secondary flex items-center gap-1 text-sm transition-colors"
+                        className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary flex items-center gap-1 transition-colors mt-2"
                       >
-                        
-                        Dodaj
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4" /> Dodaj zadanie
                       </button>
                     </div>
                   </div>
 
                   {/* Notes */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Notatki:
-                    </label>
+                    <label className="form-label">Notatki:</label>
                     <textarea
                       value={editedReport.notes || ""}
-                      onChange={(e) =>
-                        setEditedReport({ ...editedReport, notes: e.target.value })
-                      }
-                      className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                      onChange={(e) => setEditedReport({ ...editedReport, notes: e.target.value })}
+                      className="input-field"
                       rows={4}
                     />
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      onClick={handleSaveEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-                    >
-                      
-                      <span className="text-sm">Zapisz</span>
-                      <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="flex items-center gap-1 px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      
-                      <span className="text-sm">Anuluj</span>
-                      <X className="w-4 h-4" />
-                    </button>
+                  <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                    <SaveButton onClick={handleSaveEdit} type="button" />
+                    <CancelButton onCancel={handleCancelEdit} />
                   </div>
                 </li>
               );
@@ -366,61 +315,45 @@ export default function ReportsPage() {
             return (
               <li
                 key={r.id}
-                className="p-4 bg-card rounded-lg shadow hover:shadow-lg transition"
+                className="p-5 mb-4 break-inside-avoid bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="font-semibold text-lg">{r.topic || "Brak tytułu"}</div>
-                    <div className="text-sm text-gray-500">{r.date}</div>
+                <div className="flex-1">
+                  <div className="mb-3 border-b border-gray-100 dark:border-gray-800 pb-3">
+                    <h3 className="font-bold text-lg text-text leading-tight">{r.topic || "Brak tytułu"}</h3>
+                    <p className="text-xs font-semibold text-textMuted uppercase tracking-wider mt-1">{r.date}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleGenerate(r)}
-                      className="flex flex-col items-center text-green-600 hover:text-green-800 transition-colors"
-                      title="Pobierz PDF"
-                    >
-                      <Download className="w-5 h-5" />
-                      <span className="text-xs mt-1">Pobierz</span>
-                    </button>
-                    <button
-                      onClick={() => handleEdit(r)}
-                      className="flex flex-col items-center text-primary hover:text-secondary transition-colors"
-                      title="Edytuj"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                      <span className="text-xs mt-1">Edytuj</span>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="flex flex-col items-center text-red-500 hover:text-red-600 transition-colors"
-                      title="Usuń"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                      <span className="text-xs mt-1">Usuń</span>
-                    </button>
-                  </div>
+
+                  {r.participants && r.participants.length > 0 && (
+                    <div className="text-sm text-textSecondary mb-3">
+                      <span className="font-bold text-textMuted uppercase tracking-wider text-[10px] mr-2">Uczestnicy:</span>
+                      <span className="font-medium">{r.participants.join(", ")}</span>
+                    </div>
+                  )}
+
+                  {r.tasks && r.tasks.length > 0 && (
+                    <div className="mt-2 bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 mb-2">
+                      <span className="font-bold text-textMuted uppercase tracking-wider text-[10px] block mb-1.5">Zadania:</span>
+                      <ul className="list-none space-y-1 text-sm text-textSecondary">
+                        {r.tasks.map((task, i) => (
+                          <li key={i} className="flex gap-2">
+                            <span className="text-primary">•</span>
+                            <span>
+                              <span className="font-medium text-text">{task.zadanie}</span>
+                              {task.osoba && ` — ${task.osoba}`}
+                              {task.data && <span className="text-textMuted text-xs ml-1">({task.data})</span>}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
-                {r.participants && r.participants.length > 0 && (
-                  <div className="mt-2 text-sm text-gray-600">
-                    <span className="font-medium">Uczestnicy: </span>
-                    {r.participants.join(", ")}
-                  </div>
-                )}
-
-                {r.tasks && r.tasks.length > 0 && (
-                  <div className="mt-2">
-                    <span className="font-medium text-sm">Zadania:</span>
-                    <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
-                      {r.tasks.map((task, i) => (
-                        <li key={i}>
-                          {task.zadanie} {task.osoba && `- ${task.osoba}`}{" "}
-                          {task.data && `(${task.data})`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-4 mt-auto border-t border-gray-100 dark:border-gray-800">
+                  <PdfButton onClick={() => handleGenerate(r)} />
+                  <EditButton onClick={() => handleEdit(r)} />
+                  <DeleteButton onClick={() => handleDelete(r.id)} />
+                </div>
               </li>
             );
           })}

@@ -1,4 +1,3 @@
-// components/Notes/NoteList.tsx
 "use client";
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
@@ -14,12 +13,13 @@ interface NoteListProps {
   onNotesChange: () => void;
 }
 
+// Aktualizacja: Złożone klasy wspierające Tryb Jasny i Ciemny
 const COLOR_MAP: { [key: string]: string } = {
-  "zinc-50": "bg-zinc-50",
-  "yellow-100": "bg-yellow-100",
-  "green-100": "bg-green-100",
-  "cyan-100": "bg-cyan-100",
-  "red-100": "bg-red-100",
+  "zinc-50": "bg-zinc-50 dark:bg-card border-gray-200 dark:border-gray-700",
+  "yellow-100": "bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/30",
+  "green-100": "bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-700/30",
+  "cyan-100": "bg-cyan-100 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700/30",
+  "red-100": "bg-red-100 dark:bg-red-900/20 border-red-200 dark:border-red-700/30",
 };
 
 export default function NoteList({ notes, onNotesChange }: NoteListProps) {
@@ -28,19 +28,10 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
   const [editedNote, setEditedNote] = useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sort notes: pinned → regular → archived (each group sorted by updated_at)
   const sortedNotes = useMemo(() => sortNotes(notes), [notes]);
-
-  // Filter notes by search query
-  const filteredNotes = useMemo(
-    () => filterNotes(sortedNotes, searchQuery),
-    [sortedNotes, searchQuery]
-  );
-
-  // Get suggestions for autocomplete (all unique titles)
+  const filteredNotes = useMemo(() => filterNotes(sortedNotes, searchQuery), [sortedNotes, searchQuery]);
   const suggestions = useMemo(() => getNoteTitles(notes), [notes]);
 
-  // Calculate results label
   const resultsLabel = useMemo(() => {
     const count = filteredNotes.length;
     if (count === 0) return "Nie znaleziono notatek";
@@ -49,7 +40,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
     return `Znaleziono: ${count} notatek`;
   }, [filteredNotes.length]);
 
-  // Handlers
   const handleDelete = async (id: string) => {
     if (!confirm("Czy na pewno chcesz usunąć tę notatkę?")) return;
     await deleteNote(id);
@@ -89,11 +79,10 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
 
   return (
     <div>
-      {/* Search Bar */}
       <SearchBar
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder="Szukaj notatek…"
+        placeholder="Szukaj w notatkach…"
         suggestions={suggestions}
         resultsCount={searchQuery ? filteredNotes.length : undefined}
         resultsLabel={searchQuery ? resultsLabel : undefined}
@@ -101,7 +90,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
         className="mb-6 max-w-md"
       />
 
-      {/* Notes Grid */}
       <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 mx-auto w-full">
         {filteredNotes.map((note) => {
           const isEditing = editingId === note.id;
@@ -134,11 +122,12 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
         })}
       </ul>
 
-      {/* Empty state */}
       {filteredNotes.length === 0 && searchQuery && (
-        <div className="text-center py-12 text-gray-500">
-          <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>Nie znaleziono notatek pasujących do "{searchQuery}"</p>
+        <div className="text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl mt-4">
+          <Search className="w-12 h-12 mx-auto mb-4 text-textMuted opacity-50" />
+          <p className="text-textSecondary font-medium">
+            Nie znaleziono notatek pasujących do "{searchQuery}"
+          </p>
         </div>
       )}
     </div>

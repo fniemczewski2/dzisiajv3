@@ -6,7 +6,6 @@ import { useAuth } from "../../providers/AuthProvider";
 
 export default function LoveButton() {
   const { user, supabase } = useAuth();
-
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -58,15 +57,16 @@ export default function LoveButton() {
   return (
     <button
       onClick={sendLove}
-      disabled={loading || sent} // Blokujemy też po wysłaniu
-      className={`p-2 rounded-lg transition-colors ${
+      disabled={loading || sent}
+      className={`p-2.5 rounded-xl transition-colors border shadow-sm ${
         sent || loading
-          ? "bg-pink-500 text-white"
-          : "bg-pink-100 hover:bg-pink-200 text-pink-500"
+          ? "bg-pink-500 border-pink-500 text-white shadow-pink-500/20"
+          : "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-900/50 hover:bg-pink-100 dark:hover:bg-pink-900/40 text-pink-500 dark:text-pink-400"
       }`}
+      title="Wyślij serduszko twórcy <3"
     >
       <Heart 
-        className={`w-4 h-4 ${sent ? "animate-pulse" : ""}`} 
+        className={`w-5 h-5 ${sent ? "animate-pulse" : ""}`} 
         fill={sent ? "#fff" : "none"} 
       />
     </button>

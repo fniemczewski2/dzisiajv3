@@ -1,9 +1,7 @@
-// components/Movies/MovieWatchlist.tsx
 "use client";
 import React, { useState, useMemo } from "react";
 import { Loader2, Search } from "lucide-react";
 import { useMovies } from "../../hooks/useMovies";
-import type { Movie } from "../../types";
 import { AddButton } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
@@ -25,7 +23,6 @@ export default function MovieWatchlist() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
-  // Sort movies: unwatched by rating (desc) → watched by rating (desc)
   const sortedMovies = useMemo(() => {
     const unwatched = movies
       .filter((m) => !m.watched)
@@ -46,10 +43,8 @@ export default function MovieWatchlist() {
     return [...unwatched, ...watched];
   }, [movies]);
 
-  // Filter movies by search query
   const filteredMovies = useMemo(() => {
     if (!searchQuery.trim()) return sortedMovies;
-
     const query = searchQuery.toLowerCase();
     return sortedMovies.filter((movie) =>
       movie.title.toLowerCase().includes(query) ||
@@ -58,13 +53,11 @@ export default function MovieWatchlist() {
     );
   }, [sortedMovies, searchQuery]);
 
-  // Get suggestions for autocomplete (unique titles)
   const suggestions = useMemo(() => {
     const titles = movies.map((m) => m.title);
     return Array.from(new Set(titles)).sort();
   }, [movies]);
 
-  // Calculate results label
   const resultsLabel = useMemo(() => {
     const count = filteredMovies.length;
     if (count === 1) return "Znaleziono: 1 film";
@@ -72,7 +65,6 @@ export default function MovieWatchlist() {
     return `Znaleziono: ${count} filmów`;
   }, [filteredMovies.length]);
 
-  // Handlers
   const handleAddMovie = async (movieData: NewMovieData) => {
     const result = await addMovie({
       ...movieData,
@@ -103,7 +95,7 @@ export default function MovieWatchlist() {
 
   if (loading && movies.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -111,53 +103,50 @@ export default function MovieWatchlist() {
 
   return (
     <>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Filmy</h2>
+      <div className="flex justify-between items-center mb-6 mt-2">
+        <h2 className="text-2xl font-bold text-text">Twoje Filmy</h2>
         {!showAddForm && (
           <AddButton onClick={() => setShowAddForm(true)} type="button" />
         )}
       </div>
 
-      {/* Error message */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 font-medium">
           {error}
         </div>
       )}
 
-      {/* Add form */}
       {showAddForm && (
-        <MovieAddForm
-          onSubmit={handleAddMovie}
-          onCancel={() => setShowAddForm(false)}
-          loading={loading}
-        />
+        <div className="mb-8">
+          <MovieAddForm
+            onSubmit={handleAddMovie}
+            onCancel={() => setShowAddForm(false)}
+            loading={loading}
+          />
+        </div>
       )}
 
-      {/* Search Bar */}
       <SearchBar
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder="Szukaj filmów po tytule, gatunku lub platformie..."
+        placeholder="Szukaj po tytule, gatunku lub platformie..."
         suggestions={suggestions}
         resultsCount={searchQuery ? filteredMovies.length : undefined}
         resultsLabel={searchQuery ? resultsLabel : undefined}
         storageKey="movies-search"
-        className="mb-6"
+        className="mb-8"
       />
 
-      {/* Movies list */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredMovies.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
             {searchQuery ? (
               <>
-                <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Nie znaleziono filmów pasujących do "{searchQuery}"</p>
+                <Search className="w-12 h-12 mx-auto mb-4 text-textMuted opacity-50" />
+                <p className="text-textSecondary font-medium">Nie znaleziono filmów pasujących do "{searchQuery}"</p>
               </>
             ) : (
-              <p>Brak filmów na liście. Dodaj pierwszy!</p>
+              <p className="text-textSecondary font-medium">Brak filmów na liście. Dodaj swój pierwszy film!</p>
             )}
           </div>
         ) : (

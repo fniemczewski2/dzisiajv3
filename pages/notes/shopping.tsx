@@ -9,7 +9,6 @@ import { AddButton } from "../../components/CommonButtons";
 
 export default function ShoppingPage() {
   const { loading, fetchShoppingLists } = useShoppingLists();
-
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
@@ -23,23 +22,19 @@ export default function ShoppingPage() {
         <meta name="description" content="Twórz i zarządzaj listami zakupów." />
         <link rel="canonical" href="https://dzisiajv3.vercel.app/shopping" />
         <meta property="og:title" content="Zakupy – Dzisiaj" />
-        <meta
-          property="og:description"
-          content="Twórz i zarządzaj listami zakupów."
-        />
+        <meta property="og:description" content="Twórz i zarządzaj listami zakupów." />
       </Head>
 
       <Layout>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            Zakupy
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-text">
+            Listy zakupów
           </h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
-        {(loading) && (
-            <LoadingState />
-        )} 
+        {loading && <LoadingState />} 
+        
         {showForm && (
           <div className="mb-6">
             <ShoppingForm
@@ -51,7 +46,8 @@ export default function ShoppingPage() {
             />
           </div>
         )}
-          <ShoppingListView/>
+        
+        <ShoppingListView />
       </Layout>
     </>
   );

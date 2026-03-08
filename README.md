@@ -18,8 +18,6 @@ Dzisiaj v3 (meaning "Today v3" in Polish) is a feature-rich Progressive Web App 
 ### 📋 Productivity & Tasks
 - **Task Management** - Organize tasks with priorities, categories, dates, and filters
 - **Pomodoro Timer** - Boost productivity with the Pomodoro technique
-- **Eisenhower Matrix** - Prioritize tasks using urgent/important quadrants
-- **Kanban Board** - Manage tasks with drag-and-drop status columns
 - **Day Schema** - Create and follow daily routines and schedules
 - **Focus Mode** - Distraction-free task completion with timers
 - **Task Reminders** - Set recurring reminders for important tasks
@@ -76,7 +74,7 @@ Dzisiaj v3 (meaning "Today v3" in Polish) is a feature-rich Progressive Web App 
 - **PostgreSQL** - Relational database (via Supabase)
 
 ### Key Libraries
-- **@dnd-kit** - Drag-and-drop functionality for Kanban and Eisenhower
+- **@dnd-kit** - Drag-and-drop functionality for Dashboard
 - **FullCalendar** - Calendar component
 - **Leaflet** - Interactive maps for places
 - **date-fns** - Date manipulation
@@ -119,16 +117,6 @@ The application uses Supabase/PostgreSQL with the following main tables:
 - Visual and audio notifications
 - Session tracking
 - Task integration
-
-### Eisenhower Matrix
-- Drag-and-drop task organization
-- Four quadrants: Urgent-Important, Important-Not Urgent, Urgent-Not Important, Neither
-- Visual prioritization
-
-### Kanban Board
-- Customizable columns (To Do, In Progress, Done, etc.)
-- Drag-and-drop task movement
-- Status tracking
 
 ### Calendar
 - Event creation with start/end times

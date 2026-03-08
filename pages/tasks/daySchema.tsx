@@ -4,13 +4,12 @@ import React, { useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { format } from "date-fns";
-import { Edit2, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { Schema, ScheduleItem } from "../../types";
 import { getAppDateTime } from "../../lib/dateUtils";
 import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
 import LoadingState from "../../components/LoadingState";
-import { AddButton } from "../../components/CommonButtons";
+import { AddButton, EditButton, DeleteButton } from "../../components/CommonButtons";
 
 export default function DaySchemaPage() {
   const { schemas, loading, refresh, deleteSchema } = useDaySchemas();
@@ -54,12 +53,12 @@ export default function DaySchemaPage() {
       </Head>
 
       <Layout>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Plan dnia</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-text">Plan dnia</h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
-        {loading && (<LoadingState />)}
+        {loading && <LoadingState />}
 
         {showForm && (
           <section className="mb-6">
@@ -74,55 +73,50 @@ export default function DaySchemaPage() {
           </section>
         )}
 
-        <ul className="mb-4 flex sm:flex-row flex-wrap flex-col gap-2">
+        <ul className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {schemas.map((schema) => (
             <li
                 key={schema.id}
-                className="flex flex-1 justify-between items-center bg-gray-50 px-3 py-2 rounded-xl border"
+                className="flex justify-between items-center bg-card p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
             >
-                <span>{schema.name}</span>
-                <div className="flex gap-2 flex-row">
-                <button
-                onClick={() => openEdit(schema)}
-                className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
-                >
-                
-                <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="text-[9px] sm:text-[11px]">Edytuj</span>
-                </button>
-                <button
-                    onClick={async () => {
+                <span className="font-bold text-text ml-1">{schema.name}</span>
+                <div className="flex gap-1.5 shrink-0">
+                  <EditButton onClick={() => openEdit(schema)} />
+                  <DeleteButton onClick={async () => {
                         if (confirm(`Na pewno usunąć schemat "${schema.name}"?`)) {
-                      await deleteSchema(schema.id || "");
+                          await deleteSchema(schema.id || "");
                         }
-                    }}
-                    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-600 hover:text-red-800 transition-colors"
-                    >
-                    <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span className="text-[9px] sm:text-[11px]">Usuń</span>
-                </button>
+                    }} 
+                  />
                 </div>
             </li>
             ))}
+            {schemas.length === 0 && !loading && (
+              <li className="col-span-full text-center py-8 text-textMuted font-medium bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
+                Brak zapisanych schematów. Dodaj swój pierwszy!
+              </li>
+            )}
         </ul>
 
-
-
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-2">
-            {activeSchema ? `Schemat: ${activeSchema.name}` : "Brak przypisanego schematu na dziś"}
+        <div className="mb-6 bg-card border border-gray-200 dark:border-gray-800 p-5 rounded-2xl shadow-sm">
+          <h3 className="text-lg font-bold text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">
+            {activeSchema ? `Aktywny: ${activeSchema.name}` : "Brak przypisanego schematu na dziś"}
           </h3>
 
-          <div className="relative border-l-2 border-gray-300 pl-4">
-            <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />
+          {sortedEntries.length > 0 ? (
+            <div className="relative border-l-2 border-gray-200 dark:border-gray-700 pl-4 py-2">
+              <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />
 
-            {sortedEntries.map((entry) => (
-              <div key={entry.time} className="relative mb-2 flex items-center space-x-4">
-                <span className="text-sm w-16 text-gray-500">{entry.time}</span>
-                <span className="text-base text-gray-800">{entry.label}</span>
-              </div>
-            ))}
-          </div>
+              {sortedEntries.map((entry) => (
+                <div key={entry.time} className="relative mb-3 flex items-center space-x-4">
+                  <span className="text-sm font-bold text-textMuted w-12 shrink-0">{entry.time}</span>
+                  <span className="text-base font-medium text-text">{entry.label}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+             <p className="text-textMuted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
+          )}
         </div>
       </Layout>
     </>
@@ -136,13 +130,14 @@ function CurrentTimeLine({
   entries: ScheduleItem[];
   currentTime: string;
 }) {
-  const slotHeight = 32; // px
+  const slotHeight = 36; // px (dostosowane do nowego mb-3)
   const index = entries.findIndex((entry) => entry.time >= currentTime);
   const offset = index >= 0 ? index * slotHeight : entries.length * slotHeight;
 
   return (
-    <div className="absolute left-0 w-full z-10" style={{ top: offset }}>
-      <div className="absolute -left-4 h-0.5 w-[calc(100%+1rem)] bg-red-500" />
+    <div className="absolute left-0 w-full z-10 transition-all duration-500 ease-in-out" style={{ top: offset + 8 }}>
+      <div className="absolute -left-4 h-0.5 w-[calc(100%+1rem)] bg-red-500 dark:bg-red-400 opacity-80" />
+      <div className="absolute -left-[21px] -top-1.5 w-3 h-3 bg-red-500 dark:bg-red-400 rounded-full shadow-sm" />
     </div>
   );
 }

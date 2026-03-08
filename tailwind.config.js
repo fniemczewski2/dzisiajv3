@@ -1,4 +1,7 @@
+const { text } = require("stream/consumers");
+
 module.exports = {
+  darkMode: 'class', 
   content: [
     "./pages/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
@@ -13,11 +16,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#2563EB", // intensywny niebieski
-        secondary: "#1E3A8A", // ciemny granat
-        accent: "#F59E0B",
-        background: "#F3F4F6",
-        card: "#FFFFFF",
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        accent: "var(--color-accent)",
+        background: "var(--color-background)",
+        card: "var(--color-card)",
+        text: "var(--color-text)",
+        textSecondary: "var(--color-text-secondary)",
+        textMuted: "var(--color-text-muted)",
+        surface: "var(--color-surface)",
+        surfaceHover: "var(--color-surface-hover)",
       },
       keyframes: {
         fadeIn: {

@@ -14,29 +14,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Tworzymy klienta raz
+  // Tworzymy klienta domyślnie używając tylko bezpiecznego anon_key
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
   useEffect(() => {
-    // 1. Pobierz użytkownika na starcie
+    let isMounted = true;
+
     const initAuth = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      setLoadingUser(false);
+      // 1. Sprawdzamy, czy użytkownik ma już aktywną sesję (np. z ciasteczek)
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // 2. Opcja 2: Jeśli tryb DEV i brak sesji -> Automatycznie logujemy testowe konto
+      if (process.env.NODE_ENV === "development" && !session) {
+        console.log("⚠️ Tryb DEV: Automatyczne logowanie kontem testowym...");
+        
+        const email = process.env.NEXT_PUBLIC_USER_EMAIL;
+        const password = process.env.NEXT_PUBLIC_USER_PASSWORD;
+
+        if (email && password) {
+          const { data: signInData, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (error) {
+            console.error("Błąd automatycznego logowania DEV:", error.message);
+          } else if (isMounted) {
+            setUser(signInData.user);
+          }
+        } else {
+          console.warn("Brak NEXT_PUBLIC_USER_EMAIL lub NEXT_PUBLIC_USER_PASSWORD w .env");
+        }
+      } else if (isMounted) {
+        // 3. Tryb produkcji (lub jeśli już jest sesja w DEV) - przypisujemy usera
+        setUser(session?.user ?? null);
+      }
+
+      if (isMounted) {
+        setLoadingUser(false);
+      }
     };
 
     initAuth();
 
-    // 2. Słuchaj zmian (logowanie/wylogowanie) w czasie rzeczywistym
+    // 4. Nasłuchiwanie na zmiany sesji (np. gdy użytkownik kliknie "Wyloguj")
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoadingUser(false);
+      if (isMounted) {
+        setUser(session?.user ?? null);
+        setLoadingUser(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   return (

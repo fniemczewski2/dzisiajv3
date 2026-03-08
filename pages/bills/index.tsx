@@ -47,14 +47,14 @@ export default function BillsPage() {
             <button
               onClick={() => router.push("/bills/budget")}
               title="Budżet"
-              className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="p-2 ml-2 bg-card rounded-lg hover:bg-gray-200"
             >
               <ChartColumnBig className="w-5 h-5" />
             </button>
                         <button
               onClick={() => router.push("/bills/calculator")}
               title="Kalkulator"
-              className="p-2 ml-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="p-2 ml-2 bg-card rounded-lg hover:bg-gray-200"
             >
               <Calculator className="w-5 h-5" />
             </button>

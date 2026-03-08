@@ -28,14 +28,14 @@ const InputField = ({
   readOnly?: boolean;
 }) => {
   let styles = {
-    box: "bg-gray-50 border-gray-200 text-gray-500",
+    box: "bg-card border-gray-200 text-gray-500",
     focus: "none",
     icon: icon || <Plus size={18} />
   };
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-sm font-medium text-gray-700">
+      <label className="text-sm font-medium text-textSecondary">
         {label}
       </label>
       <div className="relative flex items-center">
@@ -53,9 +53,9 @@ const InputField = ({
           placeholder="0"
           onChange={onChange}
           readOnly={readOnly}
-          className={`w-full p-2 border-y border-r rounded-r-lg outline-none ${readOnly ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+          className={`w-full p-2 border-y border-r rounded-r-lg outline-none ${readOnly ? 'bg-card cursor-not-allowed' : ''}`}
         />
-        <span className="absolute right-3 text-sm text-gray-600 pointer-events-none">
+        <span className="absolute right-3 text-sm text-textSecondary pointer-events-none">
           {suffix}
         </span>
       </div>
@@ -229,7 +229,7 @@ export default function BillCalculator() {
                 />
               </div>
               
-              <div className="mt-4 pt-4 flex justify-between items-center text-sm text-gray-600 border-t">
+              <div className="mt-4 pt-4 flex justify-between items-center text-sm text-textSecondary border-t">
                   <span>Suma:</span>
                   <span className="text-lg font-bold text-gray-900">{results.total.toFixed(2)} zł</span>
               </div>
@@ -268,7 +268,7 @@ export default function BillCalculator() {
                 {/* Person 1 Column */}
                 <div className="space-y-2 p-3 rounded-lg border border-gray-100">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+                    <h3 className="font-semibold text-textSecondary flex items-center gap-2">
                         Osoba 1
                     </h3>
                     <select 
@@ -290,7 +290,7 @@ export default function BillCalculator() {
                   />
 
                   {currency1 !== "PLN" && (
-                    <div className="text-right text-xs text-gray-600 mt-1">
+                    <div className="text-right text-xs text-textSecondary mt-1">
                        {results.grossPln1.toFixed(2)} zł
                     </div>
                   )}
@@ -314,7 +314,7 @@ export default function BillCalculator() {
 
                   <InputField label="ZUS" inputRef={zus1Ref} defaultValue={498} icon={<Minus size={16} />} onChange={calculate} />
                   
-                  <div className="text-right text-sm text-gray-600 mt-2 pt-2 border-t border-gray-200">
+                  <div className="text-right text-sm text-textSecondary mt-2 pt-2 border-t border-gray-200">
                     Netto: <strong>{results.netIncome1.toFixed(2)} zł</strong>
                   </div>
                 </div>
@@ -322,7 +322,7 @@ export default function BillCalculator() {
                 {/* Person 2 Column */}
                 <div className="space-y-2 p-3 rounded-lg border border-gray-100">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+                    <h3 className="font-semibold text-textSecondary flex items-center gap-2">
                         Osoba 2
                     </h3>
                     <select 
@@ -345,7 +345,7 @@ export default function BillCalculator() {
 
 
                   {currency2 !== "PLN" && (
-                    <div className="text-right text-xs text-gray-600 mt-1">
+                    <div className="text-right text-xs text-textSecondary mt-1">
                        {results.grossPln2.toFixed(2)} zł
                     </div>
                   )}
@@ -369,7 +369,7 @@ export default function BillCalculator() {
 
                   <InputField label="ZUS" inputRef={zus2Ref} defaultValue={0} icon={<Minus size={16} />} onChange={calculate} />
                   
-                  <div className="text-right text-sm text-gray-600 mt-2 pt-2 border-t border-gray-200">
+                  <div className="text-right text-sm text-textSecondary mt-2 pt-2 border-t border-gray-200">
                     Netto: <strong>{results.netIncome2.toFixed(2)} zł</strong>
                   </div>
                 </div>
@@ -386,7 +386,7 @@ export default function BillCalculator() {
                 {/* Person 1 */}
                 <div className="p-4 rounded-xl border">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-600">Osoba 1</span>
+                    <span className="text-sm font-medium text-textSecondary">Osoba 1</span>
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                       {(results.share1 / results.total * 100 || 0).toFixed(0)}%
                     </span>
@@ -399,7 +399,7 @@ export default function BillCalculator() {
                 {/* Person 2 */}
                 <div className="p-4 rounded-xl border">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-600">Osoba 2</span>
+                    <span className="text-sm font-medium text-textSecondary">Osoba 2</span>
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                       {(results.share2 / results.total * 100 || 0).toFixed(0)}%
                     </span>
@@ -412,7 +412,7 @@ export default function BillCalculator() {
                 {/* Total Check */}
                 <div className="border-t pt-4 text-center">
                     <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Razem do zapłaty</p>
-                    <p className="text-xl font-bold text-gray-700">{(results.share1 + results.share2).toFixed(2)} zł</p>
+                    <p className="text-xl font-bold text-textSecondary">{(results.share1 + results.share2).toFixed(2)} zł</p>
                 </div>
               </div>
             </section>

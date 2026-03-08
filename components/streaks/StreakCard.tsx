@@ -1,20 +1,10 @@
-// components/streaks/StreakCard.tsx
 "use client";
 
 import React, { useState } from "react";
 import { differenceInDays, parseISO } from "date-fns";
 import { 
-  Flame, 
-  Trophy, 
-  Target, 
-  Heart, 
-  Cigarette,
-  Beer,
-  UtensilsCrossed,
-  Dumbbell,
-  Edit2,
-  Trash2,
-  PiggyBank,
+  Flame, Trophy, Target, Heart, Cigarette, Beer,
+  UtensilsCrossed, Dumbbell, Edit2, Trash2, PiggyBank,
   BriefcaseMedical,
 } from "lucide-react";
 import { Streak } from "../../types";
@@ -27,29 +17,17 @@ interface StreakCardProps {
 }
 
 const ICON_MAP: { [key: string]: React.ComponentType<any> } = {
-  flame: Flame,
-  trophy: Trophy,
-  target: Target,
-  heart: Heart,
-  cigarette: Cigarette,
-  beer: Beer,
-  utensils: UtensilsCrossed,
-  dumbbell: Dumbbell,
-  piggybank: PiggyBank,
-  medical: BriefcaseMedical,
+  flame: Flame, trophy: Trophy, target: Target, heart: Heart,
+  cigarette: Cigarette, beer: Beer, utensils: UtensilsCrossed,
+  dumbbell: Dumbbell, piggybank: PiggyBank, medical: BriefcaseMedical,
 };
 
 const ICONS = [
-  { name: "flame", icon: Flame },
-  { name: "trophy", icon: Trophy },
-  { name: "target", icon: Target},
-  { name: "heart", icon: Heart },
-  { name: "cigarette", icon: Cigarette },
-  { name: "beer", icon: Beer },
-  { name: "utensils", icon: UtensilsCrossed},
-  { name: "dumbbell", icon: Dumbbell },
-  { name: "piggybank", icon: PiggyBank },
-  { name: "medical", icon: BriefcaseMedical }, 
+  { name: "flame", icon: Flame }, { name: "trophy", icon: Trophy },
+  { name: "target", icon: Target}, { name: "heart", icon: Heart },
+  { name: "cigarette", icon: Cigarette }, { name: "beer", icon: Beer },
+  { name: "utensils", icon: UtensilsCrossed}, { name: "dumbbell", icon: Dumbbell },
+  { name: "piggybank", icon: PiggyBank }, { name: "medical", icon: BriefcaseMedical }, 
 ];
 
 export default function StreakCard({ streak, onEdit, onDelete }: StreakCardProps) {
@@ -106,146 +84,144 @@ export default function StreakCard({ streak, onEdit, onDelete }: StreakCardProps
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-lg p-4 transition-all hover:shadow-xl`}>
+    <div className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 transition-all hover:shadow-md flex flex-col h-full">
       {/* Header z ikoną i nazwą */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-start gap-3 flex-1 relative">
+          
           {/* Ikona - klikalna w trybie edycji */}
           <div 
-            className={`text-primary bg-white rounded-full p-2 ${isEditing && 'cursor-pointer'} relative`}
+            className={`flex-shrink-0 text-primary bg-primary/10 rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-primary/20 hover:scale-105' : ''} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
+            title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
           >
-            <Icon className="w-6 h-6" />
-            
-            {/* Icon Picker */}
-            {showIconPicker && (
-              <div className="absolute top-full left-0 mt-2 bg-white rounded shadow p-1 z-10 w-[200px] grid grid-cols-5 gap-2">
-                {ICONS.map((item) => {
-                  const IconComponent = item.icon;
-                  return (
-                    <button
-                      key={item.name}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditedIcon(item.name);
-                        setShowIconPicker(false);
-                      }}
-                      className={`p-2 rounded-lg transition flex justify-center items-center ${
-                        editedIcon === item.name
-                          ? 'bg-primary text-white'
-                          : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <Icon className="w-7 h-7 sm:w-8 sm:h-8" />
           </div>
 
-          <div className="flex-1">
+          {/* Icon Picker (Pokazuje się pod ikoną) */}
+          {showIconPicker && (
+            <div className="absolute top-[3.5rem] left-0 mt-2 bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-2 z-50 w-[220px] grid grid-cols-5 gap-2">
+              {ICONS.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditedIcon(item.name);
+                      setShowIconPicker(false);
+                    }}
+                    className={`p-2 rounded-lg transition-colors flex justify-center items-center ${
+                      editedIcon === item.name
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'hover:bg-surface text-textSecondary hover:text-text'
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0 pt-1">
             {isEditing ? (
               <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="streak-name">
-                  Nazwa:
-                </label>
-                <input
-                  id="streak-name"
-                  type="text"
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  placeholder="np. Nie piję alkoholu"
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="start-date">
-                  Data rozpoczęcia:
-                </label>
-                <input
-                  id="start-date"
-                  type="date"
-                  value={editedDate}
-                  onChange={(e) => setEditedDate(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <SaveButton onClick={handleSave} type="button" />
-                <CancelButton onCancel={handleCancel} />
-              </div> 
+                <div>
+                  <label className="form-label" htmlFor="streak-name">
+                    Nazwa nawyku:
+                  </label>
+                  <input
+                    id="streak-name"
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    placeholder="np. Biegam rano"
+                    className="input-field py-1.5"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="form-label" htmlFor="start-date">
+                    Data rozpoczęcia:
+                  </label>
+                  <input
+                    id="start-date"
+                    type="date"
+                    value={editedDate}
+                    onChange={(e) => setEditedDate(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    className="input-field py-1.5"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <SaveButton onClick={handleSave} type="button" />
+                  <CancelButton onCancel={handleCancel} />
+                </div> 
               </div>
             ) : (
               <>
-                <h3 className="font-semibold text-lg text-gray-800">{streak.name}</h3>
-                <p className="text-xs text-gray-500">
-                  od {parseISO(streak.start_date).toLocaleDateString("pl-PL")}
+                <h3 className="font-bold text-lg text-text leading-tight break-words">{streak.name}</h3>
+                <p className="text-xs font-semibold text-textMuted mt-1 uppercase tracking-widest">
+                  Od: {parseISO(streak.start_date).toLocaleDateString("pl-PL")}
                 </p>
               </>
             )}
           </div>
         </div>
-        
-        {/* Przyciski akcji */}
-        <div className="flex gap-2 items-baseline justify-end">
-          {!isEditing && (
-            <>
-                <EditButton
-                  onClick={handleEdit}
-                />
-
-                <DeleteButton
-                  onClick={() => onDelete(streak.id)}
-                />
-            </>
-          )}
-        </div>
       </div>
 
-      {!isEditing && (
-      <div className="text-center py-2">
-        <div className={`text-4xl font-bold text-primary mb-2`}>
-          {days}
-        </div>
-        <div className="text-gray-600 font-medium">
-          {days === 0 ? "dni" : days === 1 ? "dzień" : "dni"}
-        </div>
-      </div>
-      )}
-
-      {/* Milestone message */}
-      {milestone && !isEditing && (
-        <div className="mt-2 text-center">
-          <div className={`inline-block text-primary bg-white px-4 py-2 rounded-full text-sm font-medium`}>
-            {milestone}
+      {/* Zawsze na dole */}
+      <div className="mt-auto">
+        {!isEditing && (
+          <div className="text-center py-4 bg-surface rounded-xl border border-gray-100 dark:border-gray-800/50 mb-3">
+            <div className="text-5xl font-black text-primary tracking-tighter drop-shadow-sm">
+              {days}
+            </div>
+            <div className="text-[11px] font-bold uppercase tracking-widest text-textSecondary mt-1">
+              {days === 0 ? "dni" : days === 1 ? "dzień" : "dni"} z rzędu
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {!isEditing && (
-      <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-        <div className="bg-gray-100 rounded-lg p-1">
-          <div className="text-xs text-gray-500">Tygodnie</div>
-          <div className={`font-bold text-primary`}>{Math.floor(days / 7)}</div>
-        </div>
-        <div className="bg-gray-100 rounded-lg p-1">
-          <div className="text-xs text-gray-500">Miesiące</div>
-          <div className={`font-bold text-primary`}>{Math.floor(days / 30)}</div>
-        </div>
-        <div className="bg-gray-100 rounded-lg p-1">
-          <div className="text-xs text-gray-500">Lata</div>
-          <div className={`font-bold text-primary`}>
-            {days >= 365 ? Math.floor(days / 365) : "0"}
+        {/* Milestone message */}
+        {milestone && !isEditing && (
+          <div className="mb-3 text-center">
+            <div className="inline-block text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+              {milestone}
+            </div>
           </div>
-        </div>
+        )}
+
+        {!isEditing && (
+          <div className="grid grid-cols-3 gap-2 text-center mb-3">
+            <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
+              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Tygodnie</div>
+              <div className="font-bold text-text">{Math.floor(days / 7)}</div>
+            </div>
+            <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
+              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Miesiące</div>
+              <div className="font-bold text-text">{Math.floor(days / 30)}</div>
+            </div>
+            <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
+              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Lata</div>
+              <div className="font-bold text-text">
+                {days >= 365 ? Math.floor(days / 365) : "0"}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Przyciski Akcji */}
+        {!isEditing && (
+          <div className="flex gap-1.5 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <EditButton onClick={handleEdit} />
+            <DeleteButton onClick={() => onDelete(streak.id)} />
+          </div>
+        )}
       </div>
-      )}
     </div>
   );
 }

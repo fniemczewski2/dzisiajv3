@@ -1,7 +1,6 @@
-// components/tasks/WaterTracker.tsx
 "use client";
 
-import { Droplet, Loader2 } from "lucide-react";
+import { Droplet } from "lucide-react";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
 import LoadingState from "../LoadingState";
 
@@ -12,46 +11,42 @@ interface WaterTrackerProps {
 export default function WaterTracker({ date }: WaterTrackerProps) {
   const { habits, loading, updateWater } = useDailyHabits(date);
 
-  if (!habits || loading) {
-    return (
-        <LoadingState />
-    );
-  }
+  if (!habits || loading) return <LoadingState />;
 
   const water = habits.water_amount ?? 0;
   const fillPercent = (water / 2) * 100;
 
-  const handleChange = (val: number) => {
-    updateWater(val);
-  };
-
   return (
-    <div className="bg-card rounded-xl flex flex-row shadow items-center justify-between px-3 py-2 sm:p-4 mb-2 h-[40px] sm:h-[56px]">
-      <Droplet className="w-5 h-5 sm:w-6 sm:h-6 mr-1" />
-      <div className="relative w-[58%] sm:w-[75%] h-3 mx-2 bg-secondary/10 rounded">
+    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between px-4 py-3 mb-4 shadow-sm transition-colors">
+      <div className="text-primary mr-3">
+        <Droplet className="w-5 h-5 sm:w-6 sm:h-6" />
+      </div>
+      
+      <div className="relative flex-1 mx-4 h-3 bg-surface rounded-full border border-gray-100 dark:border-gray-700/50 shadow-inner">
         <div
-          className="absolute left-0 top-0 h-3 rounded-full bg-primary transition-all duration-200"
-          style={{ width: `${fillPercent}%` }}
+          className="absolute left-0 top-0 h-full rounded-full bg-primary transition-all duration-300 ease-out"
+          style={{ width: `${Math.min(100, fillPercent)}%` }}
         />
         <div
-          className="absolute top-1/2 w-6 h-6 rounded-full bg-primary border-2 border-white transform -translate-x-1/2 -translate-y-1/2 transition-all duration-200"
-          style={{ left: `${fillPercent}%` }}
+          className="absolute top-1/2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white border-4 border-primary transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-out shadow"
+          style={{ left: `${Math.min(100, fillPercent)}%` }}
         />
         <input
-          title="water"
+          title="Poziom nawodnienia"
           type="range"
           min="0"
           max="2.0"
           step="0.1"
           value={water}
           disabled={loading}
-          onChange={(e) => handleChange(parseFloat(e.target.value))}
-          className="absolute inset-0 rounded-full w-full h-full opacity-0 cursor-pointer"
+          onChange={(e) => updateWater(parseFloat(e.target.value))}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
       </div>
-      <span className="font-bold text-gray-700 ml-2">
-        {water.toFixed(1)}L&nbsp;/&nbsp;2.0L
-      </span>
+      
+      <div className="font-bold text-textSecondary w-[65px] text-right text-sm sm:text-base tabular-nums">
+        {water.toFixed(1)} <span className="text-xs sm:text-sm font-medium text-textSubtle">/ 2.0L</span>
+      </div>
     </div>
   );
 }

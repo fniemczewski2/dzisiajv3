@@ -81,7 +81,7 @@ export default function TaskForm({
       <div>
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-textSecondary"
         >
           Tytuł:
         </label>
@@ -96,12 +96,12 @@ export default function TaskForm({
 
       <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-gray-700">Priorytet:</label>
+              <label className="text-xs font-semibold text-textSecondary">Priorytet:</label>
               <div className="flex items-center gap-1 mt-1">
                 <button
                     type="button"
                     onClick={decreasePriority}
-                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-card text-textSecondary transition-colors"
                     title="Zmniejsz priorytet"
                 >
                     <Minus size={16} />
@@ -112,7 +112,7 @@ export default function TaskForm({
                 <button
                     type="button"
                     onClick={increasePriority}
-                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                    className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-card text-textSecondary transition-colors"
                     title="Zwiększ priorytet"
                 >
                     <Plus size={16} />
@@ -122,7 +122,7 @@ export default function TaskForm({
         <div>
           <label
             htmlFor="category"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-textSecondary"
           >
             Kategoria:
           </label>
@@ -157,7 +157,7 @@ export default function TaskForm({
         <div>
           <label
             htmlFor="due"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-textSecondary"
           >
             Data wykonania:
           </label>
@@ -171,7 +171,7 @@ export default function TaskForm({
           />
         </div>
         <div>
-        <label htmlFor="for" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="for" className="block text-sm font-medium text-textSecondary">
           Dla:
         </label>
         <select
@@ -193,7 +193,7 @@ export default function TaskForm({
       <div>
         <label
           htmlFor="desc"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-textSecondary"
         >
           Opis:
         </label>

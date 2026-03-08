@@ -1,4 +1,3 @@
-// components/buttons/CommonButtons.tsx
 import React from "react";
 import { 
   PlusCircleIcon, 
@@ -7,7 +6,12 @@ import {
   ChevronsRight, 
   Timer,
   Save, 
-  Share
+  Share,
+  Check,
+  Archive,
+  Pin,
+  Eye,
+  Download
 } from "lucide-react";
 
 interface ButtonProps {
@@ -17,26 +21,26 @@ interface ButtonProps {
   type?: "button" | "submit" | "reset";
 }
 
-export const AddButton = ({ onClick, loading, type = "submit" }: ButtonProps & { onClick?: () => void }) => (
+export const AddButton = ({ onClick, loading, disabled, type = "submit" }: ButtonProps) => (
   <button
     type={type}
     onClick={onClick}
-    disabled={loading}
-    className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+    disabled={loading || disabled}
+    className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    Dodaj&nbsp;
+    Dodaj
     <PlusCircleIcon className="w-5 h-5" />
   </button>
 );
 
-export const SaveButton = ({ onClick, loading, type = "submit" }: ButtonProps & { onClick?: () => void }) => (
+export const SaveButton = ({ onClick, loading, disabled, type = "submit" }: ButtonProps) => (
   <button
     type={type}
     onClick={onClick}
-    disabled={loading}
-    className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+    disabled={loading || disabled}
+    className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
   >
-    Zapisz&nbsp;
+    Zapisz
     <Save className="w-5 h-5" />
   </button>
 );
@@ -46,21 +50,23 @@ export const CancelButton = ({ onCancel, loading }: { onCancel: () => void; load
     type="button"
     onClick={onCancel}
     disabled={loading}
-    className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+    className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
   >
     Anuluj
   </button>
 );
 
+// MAŁE PRZYCISKI AKCJI (Używają flex-1 by idealnie rozłożyć się na 320px)
+
 export const DeleteButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-red-500 hover:text-red-600 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 transition-colors"
     aria-label="Usuń"
   >
-    <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
-    <span className="text-[9px] sm:text-[11px]">Usuń</span>
+    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Usuń</span>
   </button>
 );
 
@@ -68,11 +74,11 @@ export const EditButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-primary hover:text-secondary transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
     aria-label="Edytuj"
   >
-    <Edit2 className="w-5 h-5 sm:w-6 sm:h-6" />
-    <span className="text-[9px] sm:text-[11px]">Edytuj</span>
+    <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Edytuj</span>
   </button>
 );
 
@@ -81,12 +87,12 @@ export const RescheduleButton = ({ onClick, loading }: { onClick: () => void; lo
     onClick={onClick}
     type="button"
     disabled={loading}
-    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-yellow-600 hover:text-yellow-800 transition-colors disabled:opacity-50"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-textMuted hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors disabled:opacity-50"
     aria-label="Przesuń na jutro"
     title="Przesuń na jutro"
   >
-    <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" />
-    <span className="text-[9px] sm:text-[11px]">
+    <ChevronsRight className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
       {loading ? '...' : 'Odłóż'}
     </span>
   </button>
@@ -96,12 +102,12 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-purple-600 hover:text-purple-800 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
     aria-label="Uruchom timer"
-    title="Start Pomodoro"
+    title="Start Focus Mode"
   >
-    <Timer className="w-5 h-5 sm:w-6 sm:h-6" />
-    <span className="text-[9px] sm:text-[11px]">Timer</span>
+    <Timer className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Timer</span>
   </button>
 );
 
@@ -109,11 +115,76 @@ export const ShareButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex flex-col px-1.5 items-center justify-center rounded-lg text-purple-600 hover:text-purple-800 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
     aria-label="Udostępnij"
     title="Udostępnij"
   >
-    <Share className="w-5 h-5 sm:w-6 sm:h-6" />
-    <span className="text-[9px] sm:text-[11px]">Wyślij</span>
+    <Share className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyślij</span>
+  </button>
+);
+
+export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+    title={isPinned ? "Odepnij" : "Przypnij"}
+  >
+    <Pin className={`w-4 h-4 sm:w-5 sm:h-5 mb-1 ${isPinned ? "fill-primary" : ""}`} />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+      {isPinned ? "Odepnij" : "Przypnij"}
+    </span>
+  </button>
+);
+
+export const ArchiveButton = ({ onClick, isArchived }: { onClick: () => void; isArchived: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+    title={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
+  >
+    <Archive className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+      {isArchived ? "Pokaż" : "Ukryj"}
+    </span>
+  </button>
+);
+
+export const WatchButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
+    title="Obejrzane"
+  >
+    <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Obejrzane</span>
+  </button>
+);
+
+export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-primary/10 text-textMuted hover:text-primary transition-colors"
+    title="Do obejrzenia"
+  >
+    <Eye className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Obejrzyj</span>
+  </button>
+);
+
+export const PdfButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+    aria-label="Generuj PDF"
+    title="Generuj PDF"
+  >
+    <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">PDF</span>
   </button>
 );

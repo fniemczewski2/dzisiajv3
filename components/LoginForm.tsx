@@ -31,7 +31,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-card p-4">
       <div className="bg-card p-6 rounded-xl shadow text-center max-w-md w-full">
             <h1 className="text-3xl font-bold mb-4">Dzisiaj</h1>
             <p className="mb-6">Zaloguj się, aby skorzystać z&nbsp;aplikacji</p>

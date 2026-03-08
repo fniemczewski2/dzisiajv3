@@ -1,4 +1,3 @@
-// components/SearchBar/SearchBar.tsx
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Clock, X } from "lucide-react";
@@ -120,7 +119,7 @@ export default function SearchBar({
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-textMuted" />
         <input
           ref={inputRef}
           type="text"
@@ -129,12 +128,12 @@ export default function SearchBar({
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full rounded-xl border pl-10 pr-10 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+          className="w-full rounded-xl pl-11 pr-10 py-2.5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all"
         />
         {value && (
           <button
             onClick={handleClear}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-textMuted hover:text-text transition-colors"
             aria-label="Wyczyść wyszukiwanie"
           >
             <X className="w-4 h-4" />
@@ -144,7 +143,7 @@ export default function SearchBar({
 
       {/* Results count */}
       {value && resultsCount !== undefined && (
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="text-sm font-medium text-textSecondary mt-2.5 pl-1">
           {resultsLabel || `Znaleziono: ${resultsCount}`}
         </p>
       )}
@@ -153,18 +152,18 @@ export default function SearchBar({
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-50 w-full mt-2 bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-64 overflow-y-auto custom-scrollbar"
         >
           {/* Recent searches */}
           {!value && recentSearches.length > 0 && (
             <div className="p-2">
-              <div className="flex items-center justify-between px-2 py-1 mb-1">
-                <span className="text-xs font-semibold text-gray-500 uppercase">
+              <div className="flex items-center justify-between px-3 py-2 mb-1">
+                <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
                   Ostatnie wyszukiwania
                 </span>
                 <button
                   onClick={clearRecent}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="text-[11px] font-semibold text-textMuted hover:text-text transition-colors"
                 >
                   Wyczyść
                 </button>
@@ -173,10 +172,10 @@ export default function SearchBar({
                 <button
                   key={index}
                   onClick={() => handleSuggestionClick(search)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
                 >
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-700">{search}</span>
+                  <Clock className="w-4 h-4 text-textMuted group-hover:text-primary transition-colors" />
+                  <span className="text-text font-medium">{search}</span>
                 </button>
               ))}
             </div>
@@ -185,8 +184,8 @@ export default function SearchBar({
           {/* Filtered suggestions */}
           {value && filteredSuggestions.length > 0 && (
             <div className="p-2">
-              <div className="px-2 py-1 mb-1">
-                <span className="text-xs font-semibold text-gray-500 uppercase">
+              <div className="px-3 py-2 mb-1">
+                <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
                   Sugestie
                 </span>
               </div>
@@ -194,10 +193,10 @@ export default function SearchBar({
                 <button
                   key={index}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
                 >
-                  <Search className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-700">{suggestion}</span>
+                  <Search className="w-4 h-4 text-textMuted group-hover:text-primary transition-colors" />
+                  <span className="text-text font-medium">{suggestion}</span>
                 </button>
               ))}
             </div>

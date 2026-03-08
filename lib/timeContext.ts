@@ -1,6 +1,5 @@
-// lib/timeContext.ts
 import { differenceInDays, isPast, isFuture, isToday, parseISO } from 'date-fns';
-import { Calendar, Check, ChevronRight, ChevronsRight, Clock, Siren } from 'lucide-react';
+import { Calendar, Check, ChevronsRight, Clock, Siren } from 'lucide-react';
 import type { LucideIcon } from "lucide-react";
 
 export interface TimeContext {
@@ -13,51 +12,55 @@ export interface TimeContext {
 export function getTimeContext(dueDateString: string, isDone: boolean = false): TimeContext {
   const dueDate = parseISO(dueDateString);
   const now = new Date();
-  
 
+  // 1. STATUS: ZROBIONE
   if (isDone) {
     return {
       display: "Wykonane",
-      color: 'text-gray-600 bg-gray-50 border-gray-200',
+      color: 'text-textMuted bg-surface',
       icon: Check,
       shouldPulse: false,
     };
   }
 
+  // 2. STATUS: ZALEGŁE
   if (isPast(dueDate) && !isToday(dueDate) && !isDone) {
     const daysAgo = Math.abs(differenceInDays(now, dueDate));
     return {
       display: daysAgo === 1 ? 'Od\u00A0wczoraj' : `Zaległe\u00A0${daysAgo}\u00A0dni`,
-      color: 'text-red-600 bg-red-50 border-red-200',
+      color: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
       icon: Siren,
       shouldPulse: true,
     };
   }
   
+  // 3. STATUS: DZISIAJ
   if (isToday(dueDate)) {
       return {
         display: `Dzisiaj`,
-        color: 'text-primary bg-blue-50 border-blue-200',
+        color: 'text-primary bg-surface',
         icon: Clock,
         shouldPulse: true,
       };
   }
   
+  // 4. STATUS: NADCHODZĄCE (do 7 dni)
   const daysUntil = differenceInDays(dueDate, now) + 1;
   if (daysUntil <= 7 && isFuture(dueDate)) {
     const dayName = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'][dueDate.getDay()];
     return {
       display: `${daysUntil === 1 ? "Jutro" : dayName + " (" + daysUntil + " dni)" }`,
-      color: 'text-green-600 bg-green-50 border-green-200',
+      color: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/20',
       icon: ChevronsRight,
       shouldPulse: false,
     };
   }
   
-    return {
-      display: `Za ${daysUntil} dni`,
-      color: 'text-gray-600 bg-gray-50 border-gray-200',
-      icon: Calendar,
-      shouldPulse: false,
-    };
-  }
+  // 5. STATUS: DALEKA PRZYSZŁOŚĆ (powyżej 7 dni)
+  return {
+    display: `Za ${daysUntil} dni`,
+    color: 'text-textSecondary bg-surface',
+    icon: Calendar,
+    shouldPulse: false,
+  };
+}

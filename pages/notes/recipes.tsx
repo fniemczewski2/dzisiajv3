@@ -1,4 +1,3 @@
-// pages/recipes.tsx
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../../components/Layout";
@@ -17,11 +16,11 @@ export default function RecipesPage() {
   return (
     <>
       <Head>
-        <title>Przepisy</title>
+        <title>Przepisy – Dzisiaj</title>
       </Head>
       <Layout>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Przepisy</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-text">Przepisy</h2>
           {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
         </div>
 
@@ -38,12 +37,11 @@ export default function RecipesPage() {
         )}
 
         <section>
-          <RecipesList
-            key={refreshTick}       
-          />
+          <RecipesList key={refreshTick} />
         </section>
       </Layout>
     </>
   );
 }
+
 RecipesPage.auth = true;

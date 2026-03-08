@@ -10,7 +10,7 @@ export default function LoginPage() {
       <Head>
         <title>Logowanie - Dzisiaj</title>
       </Head>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-card p-4">
         <LoginForm />
       </div>
     </>

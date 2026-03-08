@@ -52,7 +52,7 @@ export default function TaskTimer({ task, onComplete }: Props) {
     `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
   return (
-    <div className="p-4 bg-white shadow rounded-xl flex flex-col items-center gap-3">
+    <div className="p-4 bg- shadow rounded-xl flex flex-col items-center gap-3">
       <h4 className="font-semibold text-center">{task.title}</h4>
       <div className="text-3xl font-mono">{format(seconds)}</div>
 
@@ -72,7 +72,7 @@ export default function TaskTimer({ task, onComplete }: Props) {
           <>
             <button
               onClick={togglePause}
-              className="py-1 px-2 text-green-600 flex flex-col items-center gap-1 hover:bg-gray-100 transition"
+              className="py-1 px-2 text-green-600 flex flex-col items-center gap-1 hover:bg-card transition"
             >
               {paused ? (
                 <>

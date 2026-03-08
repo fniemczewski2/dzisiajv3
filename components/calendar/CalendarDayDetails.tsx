@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import {
-  Calendar,
-  Check,
-  Clock,
-  MapPin,
-  User,
-  X,
-  Download,
-} from "lucide-react";
+import { Calendar, Check, Clock, MapPin, User, X, Download } from "lucide-react";
 import { Task, Event } from "../../types";
 import WaterTracker from "../tasks/WaterTracker";
 import DailySpendingForm from "../bills/DailySpendingForm";
@@ -169,21 +161,22 @@ export default function CalendarDayDetails({
 
   return (
     <div className="py-4 mb-5 space-y-6">
-      <span className="bg-card p-4 shadow rounded-xl flex items-center justify-center w-full relative">
+      {/* Pasek Nagłówkowy */}
+      <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center relative">
         <button
           onClick={onBack}
-          className="absolute left-4 w-9 h-9 bg-primary hover:bg-secondary flex items-center justify-center text-white rounded-md transition"
-          title="Wróć"
+          className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
+          title="Powrót do kalendarza"
         >
           <Calendar className="w-5 h-5" />
         </button>
 
-        <h3 className="font-semibold mx-auto text-center">
+        <h3 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
           {format(parseISO(selectedDate), "d MMMM yyyy", { locale: pl })}
         </h3>
-      </span>
+      </div>
 
-      <div className="flex flex-auto flex-wrap flex-col justify-center">
+      <div className="flex flex-auto flex-wrap flex-col justify-center space-y-4">
         <TaskIcons date={selectedDate} />
         <WaterTracker date={selectedDate} />
         <DailySpendingForm date={selectedDate} />
@@ -195,7 +188,6 @@ export default function CalendarDayDetails({
             const isEditing = editingId === event.id;
 
             if (isEditing && editedEvent) {
-              
               const currentShareEmail = editedEvent.shared_with_email !== undefined 
                 ? editedEvent.shared_with_email 
                 : (editedEvent.display_share_info ? editedEvent.display_share_info.split(": ")[1] : "");
@@ -203,130 +195,83 @@ export default function CalendarDayDetails({
               return (
                 <div
                   key={event.id}
-                  className="p-4 w-full max-w-md bg-gray-50 border-2 border-gray-300 rounded-xl shadow-lg space-y-3"
+                  className="p-5 w-full max-w-md bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg space-y-4"
                 >
-                  {/* Title */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Tytuł:
-                    </label>
+                    <label className="form-label">Tytuł wydarzenia:</label>
                     <input
                       ref={titleRef}
                       type="text"
                       value={editedEvent.title}
-                      onChange={(e) =>
-                        setEditedEvent({ ...editedEvent, title: e.target.value })
-                      }
-                      className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                      onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })}
+                      className="input-field font-medium"
                     />
                   </div>
 
-                  {/* Description */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Opis:
-                    </label>
+                    <label className="form-label">Opis (opcjonalny):</label>
                     <textarea
                       value={editedEvent.description || ""}
-                      onChange={(e) =>
-                        setEditedEvent({
-                          ...editedEvent,
-                          description: e.target.value,
-                        })
-                      }
-                      className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                      onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })}
+                      className="input-field"
                       rows={3}
                     />
                   </div>
 
-                  {/* Start and End Time */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-semibold text-gray-700">
-                        Początek:
-                      </label>
+                      <label className="form-label">Rozpoczęcie:</label>
                       <input
                         type="datetime-local"
                         value={editedEvent.start_time.slice(0, 16)}
-                        onChange={(e) =>
-                          setEditedEvent({
-                            ...editedEvent,
-                            start_time: localDateTimeToISO(e.target.value),
-                          })
-                        }
-                        className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                        onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })}
+                        className="input-field"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-700">
-                        Koniec:
-                      </label>
+                      <label className="form-label">Zakończenie:</label>
                       <input
                         type="datetime-local"
                         value={editedEvent.end_time.slice(0, 16)}
-                        onChange={(e) =>
-                          setEditedEvent({
-                            ...editedEvent,
-                            end_time: localDateTimeToISO(e.target.value),
-                          })
-                        }
-                        className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                        onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })}
+                        className="input-field"
                       />
                     </div>
                   </div>
 
-                  {/* Place */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-700">
-                      Miejsce:
-                    </label>
+                    <label className="form-label">Miejsce:</label>
                     <input
                       type="text"
                       value={editedEvent.place || ""}
-                      onChange={(e) =>
-                        setEditedEvent({ ...editedEvent, place: e.target.value })
-                      }
-                      className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                      onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })}
+                      className="input-field"
+                      placeholder="Gdzie się odbędzie?"
                     />
                   </div>
 
-                  {/* Share and Repeat */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-semibold text-gray-700">
-                        Udostępnij:
-                      </label>
-                    
+                      <label className="form-label">Udostępnij dla:</label>
                       <select
                         value={currentShareEmail}
-                        onChange={(e) =>
-                          setEditedEvent({ ...editedEvent, shared_with_email: e.target.value })
-                        }
-                        className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                        onChange={(e) => setEditedEvent({ ...editedEvent, shared_with_email: e.target.value })}
+                        className="input-field py-1.5"
                       >
-                        <option value="">Nie udostępniaj</option>
+                        <option value="">Tylko dla mnie</option>
                         {userOptions.map((email) => (
-                          <option key={email} value={email}>
-                            {email}
-                          </option>
+                          <option key={email} value={email}>{email}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-700">
-                        Powtarzaj:
-                      </label>
+                      <label className="form-label">Powtarzaj:</label>
                       <select
                         value={editedEvent.repeat || "none"}
-                        onChange={(e) =>
-                          setEditedEvent({
-                            ...editedEvent,
-                            repeat: e.target.value as Event["repeat"],
-                          })
-                        }
-                        className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                        onChange={(e) => setEditedEvent({ ...editedEvent, repeat: e.target.value as Event["repeat"] })}
+                        className="input-field py-1.5"
                       >
-                        <option value="none">Nie</option>
+                        <option value="none">Brak (jednorazowe)</option>
                         <option value="weekly">Co tydzień</option>
                         <option value="monthly">Co miesiąc</option>
                         <option value="yearly">Co rok</option>
@@ -334,7 +279,7 @@ export default function CalendarDayDetails({
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
                     <SaveButton onClick={handleSaveEdit} type="button" />
                     <CancelButton onCancel={handleCancelEdit} />
                   </div>
@@ -345,68 +290,56 @@ export default function CalendarDayDetails({
             return (
               <div
                 key={event.id}
-                className="p-4 w-full max-w-md bg-card rounded-xl shadow space-y-2 hover:shadow-lg transition"
+                className="p-5 w-full max-w-md bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md hover:border-primary/50 transition-all flex flex-col"
               >
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg flex-1">{event.title}</h3>
+                <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                  <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
                 </div>
 
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-gray-700">
-                    <Clock className="w-4 h-4 mr-1" />
+                <div className="space-y-2.5 mb-4">
+                  <div className="flex items-center text-sm font-medium text-textSecondary">
+                    <Clock className="w-4 h-4 mr-2 text-primary" />
                     {formatTime(event.start_time) === formatTime(event.end_time) ? (
-                      <>
-                        {formatTime(event.start_time)}
-                      </>
+                      <>{formatTime(event.start_time)}</>
                       ) : (
                         (event.start_time.slice(0, 10) === event.end_time.slice(0, 10)) ? (
-                          <>
-                            {formatTime(event.start_time)} –{" "}
-                            {formatTime(event.end_time)}
-                          </>
+                          <>{formatTime(event.start_time)} – {formatTime(event.end_time)}</>
                         ) : (
-                          <>
-                            {formatTime(event.start_time, true)} –{" "}
-                            {formatTime(event.end_time, true)}
-                          </>
+                          <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
                         ))}
                   </div>
 
                   {event.place && (
-                    <div className="flex items-center text-sm text-gray-700">
-                      <MapPin className="w-4 h-4 mr-1" />
+                    <div className="flex items-center text-sm font-medium text-textSecondary">
+                      <MapPin className="w-4 h-4 mr-2 text-green-500" />
                       {event.place}
                     </div>
                   )}
 
                   {event.display_share_info && (
-                    <div className="flex items-center text-sm text-gray-700">
-                      <User className="w-3.5 h-3.5 mr-1" />
-                      <span className="truncate">
-                        {event.display_share_info}
-                      </span>
+                    <div className="flex items-center text-sm font-medium text-textSecondary">
+                      <User className="w-4 h-4 mr-2 text-blue-500" />
+                      <span className="truncate">{event.display_share_info}</span>
                     </div>
                   )}
                 </div>
 
                 {event.description && (
-                  <p className="text-sm text-gray-800 bg-gray-100 rounded p-2">
+                  <p className="text-sm text-textSecondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 whitespace-pre-wrap">
                     {event.description}
                   </p>
                 )}
 
-                <div className="flex justify-end items-end gap-2 sm:gap-3 pt-2 border-t">
-                  <EditButton onClick={() => handleEdit(event)} />
-
+                <div className="flex justify-between w-full gap-1 sm:gap-1.5 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                   <button
                     onClick={() => generateSingleEventICS(event)}
-                    className="flex flex-col px-1.5 items-center text-primary hover:text-secondary transition-colors"
-                    title="Pobierz .ics"
+                    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-primary/10 text-textMuted hover:text-primary transition-colors"
+                    title="Pobierz zdarzenie do kalendarza Google/Apple"
                   >
-                    <Download className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span className="text-[9px] sm:text-[11px] mt-1">Pobierz</span>
+                    <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+                    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Pobierz .ICS</span>
                   </button>
-
+                  <EditButton onClick={() => handleEdit(event)} />
                   <DeleteButton onClick={() => handleDelete(event)} />
                 </div>
               </div>
@@ -415,52 +348,38 @@ export default function CalendarDayDetails({
         </section>
       )}
 
-      <section className="bg-card p-4 shadow rounded-xl space-y-4">
-        <h4 className="font-medium mb-1">Zadania</h4>
+      <section className="bg-card border border-gray-200 dark:border-gray-800 p-5 shadow-sm rounded-2xl">
+        <h4 className="font-bold text-lg text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">Zadania na ten dzień</h4>
         {tasks.length ? (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {tasks.map((t) => (
-              <li key={t.id} className="flex flex-col mb-2">
-                <div className="flex flex-nowrap gap-2 items-center mb-1">
+              <li key={t.id} className="flex flex-col">
+                <div className="flex flex-nowrap gap-3 items-center p-2 rounded-lg hover:bg-surface transition-colors group">
                   <span
-                    className="w-6 h-6 text-sm font-bold rounded-md flex items-center justify-center shadow-sm transition duration-200"
+                    className="w-7 h-7 text-xs font-bold rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
                     style={{
-                      backgroundColor:
-                        t.priority === 1
-                          ? "#fca5a5"
-                          : t.priority === 2
-                          ? "#fdba74"
-                          : t.priority === 3
-                          ? "#fde68a"
-                          : t.priority === 4
-                          ? "#a7f3d0"
-                          : "#bbf7d0",
-                      color:
-                        t.priority === 3
-                          ? "#A16207"
-                          : t.priority >= 3
-                          ? "#15803D"
-                          : "#B91C1C",
+                      backgroundColor: t.priority === 1 ? "#fca5a5" : t.priority === 2 ? "#fdba74" : t.priority === 3 ? "#fde68a" : t.priority === 4 ? "#a7f3d0" : "#bbf7d0",
+                      color: t.priority === 3 ? "#A16207" : t.priority >= 3 ? "#15803D" : "#B91C1C",
                     }}
-                    title={`Priorytet ${t.priority}`}
                   >
                     {t.priority}
                   </span>
 
-                  <h3 className="text-lg font-semibold break-words flex-1">
+                  <h3 className={`text-base font-semibold break-words flex-1 leading-tight ${t.status === "done" ? "line-through text-textMuted" : "text-text"}`}>
                     {t.title}
                   </h3>
+                  
                   {t.status === "done" ? (
-                    <Check className="w-5 h-5 text-green-600" />
+                    <Check className="w-5 h-5 text-green-500" />
                   ) : (
-                    <X className="w-5 h-5 text-red-500" />
+                    <X className="w-5 h-5 text-textMuted group-hover:text-red-500 transition-colors" />
                   )}
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500 text-sm">Brak zadań</p>
+          <p className="text-textMuted text-sm font-medium py-4 text-center">Brak zaplanowanych zadań.</p>
         )}
       </section>
     </div>

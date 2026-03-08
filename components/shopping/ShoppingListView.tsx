@@ -79,7 +79,7 @@ export default function ShoppingListView() {
   };
 
   return (
-    <ul className="flex flex-wrap justify-center">
+    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {lists.map((list) => {
         const isEditing = editingId === list.id;
 
@@ -87,13 +87,13 @@ export default function ShoppingListView() {
           return (
             <li
               key={list.id}
-              className="py-4 px-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow-lg flex flex-col bg-gray-50 border-2 border-gray-300"
+              className="p-5 break-inside-avoid bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg space-y-4 animate-in fade-in"
             >
-              <div className="space-y-3 mb-3">
+              <div className="space-y-4">
                 {/* Name */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700">
-                    Nazwa:
+                  <label className="form-label">
+                    Nazwa listy:
                   </label>
                   <input
                     ref={nameRef}
@@ -102,21 +102,21 @@ export default function ShoppingListView() {
                     onChange={(e) =>
                       setEditedList({ ...editedList, name: e.target.value })
                     }
-                    className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                    className="input-field font-medium"
                   />
                 </div>
 
                 {/* Share */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700">
-                    Udostępnij:
+                  <label className="form-label">
+                    Udostępnij dla:
                   </label>
                   <select
                     value={editedList.shared_with_id || ""}
                     onChange={(e) =>
                       setEditedList({ ...editedList, shared_with_id: e.target.value || null })
                     }
-                    className="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                    className="input-field"
                   >
                     <option value="">Tylko dla mnie</option>
                     {userOptions.map((email) => (
@@ -128,47 +128,33 @@ export default function ShoppingListView() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="flex justify-end gap-2 pt-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                   <SaveButton onClick={handleSaveEdit} type="button" />
                   <CancelButton onCancel={handleCancelEdit} />
                 </div>
               </div>
 
               {/* Elements (read-only during edit) */}
-              <ul className="list-none space-y-2 mb-3">
+              <ul className="list-none space-y-2.5 opacity-60 pointer-events-none grayscale-[0.5]">
                 {list.elements.map((el) => (
                   <li
                     key={el.id}
-                    className={`flex items-center justify-between group ${
-                      el.completed ? "line-through text-gray-500" : ""
+                    className={`flex items-center justify-between ${
+                      el.completed ? "line-through text-textMuted" : "text-text"
                     }`}
                   >
-                    <div className="flex items-center flex-1">
+                    <div className="flex items-center flex-1 gap-3">
                       <input
                         type="checkbox"
                         checked={el.completed}
-                        onChange={() => toggleElement(list, el.id)}
-                        className="mr-2 h-5 w-5 cursor-pointer"
+                        readOnly
+                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-not-allowed bg-card"
                       />
-                      <span className="flex-1">{el.text}</span>
+                      <span className="flex-1 font-medium">{el.text}</span>
                     </div>
-                    <button
-                      onClick={() => removeElement(list, el.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700"
-                      title="Usuń produkt"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
                   </li>
                 ))}
-                {list.elements.length === 0 && (
-                  <li className="text-gray-400 text-sm italic">
-                    Brak produktów na liście
-                  </li>
-                )}
               </ul>
-
-              <AddElementForm onAdd={(text) => addElement(list, text)} />
             </li>
           );
         }
@@ -176,67 +162,69 @@ export default function ShoppingListView() {
         return (
           <li
             key={list.id}
-            className="py-4 px-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col hover:shadow-lg bg-card transition"
+            className="p-5 break-inside-avoid bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
           >
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex-1 mr-4">
-                <h3 className="font-semibold text-lg">{list.name}</h3>
-                  {list.display_share_info && (
-                    <div className="flex items-center text-sm text-gray-700">
-                      <User className="w-3.5 h-3.5 mr-1" />
-                      <span className="truncate">
-                        {list.display_share_info}
-                      </span>
-                    </div>
-                  )}
+            <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div className="flex-1 mr-4 min-w-0">
+                <h3 className="font-bold text-lg text-text leading-tight truncate">{list.name}</h3>
+                {list.display_share_info && (
+                  <div className="flex items-center text-sm font-medium text-textSecondary mt-2">
+                    <User className="w-4 h-4 mr-1.5 text-blue-500" />
+                    <span className="truncate">
+                      {list.display_share_info}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-2 sm:gap-3">
+              <div className="flex gap-1.5 shrink-0">
                 <EditButton onClick={() => handleEdit(list)} />
                 <DeleteButton onClick={() => handleDelete(list.id || "")} />
               </div>
             </div>
 
-            <ul className="list-none space-y-2 mb-3">
+            <ul className="list-none mb-4 flex-1">
               {list.elements.map((el) => (
                 <li
                   key={el.id}
-                  className={`flex items-center justify-between group ${
-                    el.completed ? "line-through text-gray-500" : ""
+                  className={`flex items-center justify-between group/item p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface/50 ${
+                    el.completed ? "line-through text-textMuted" : "text-text"
                   }`}
                 >
-                  <div className="flex items-center flex-1">
+                  <div className="flex items-center flex-1 gap-3 min-w-0">
                     <input
                       type="checkbox"
                       checked={el.completed}
                       onChange={() => toggleElement(list, el.id)}
-                      className="mr-2 h-5 w-5 cursor-pointer"
+                      className="h-5 w-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary accent-primary cursor-pointer bg-card transition-colors"
                     />
-                    <span className="flex-1">{el.text}</span>
+                    <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
                   <button
                     onClick={() => removeElement(list, el.id)}
-                    className="transition-opacity p-1 text-red-500 hover:text-red-700"
+                    className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0"
                     title="Usuń produkt"
                   >
-                    <X className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </li>
               ))}
               {list.elements.length === 0 && (
-                <li className="text-gray-400 text-sm italic">
+                <li className="text-textMuted text-sm font-medium py-2 text-center bg-surface rounded-lg">
                   Brak produktów na liście
                 </li>
               )}
             </ul>
 
-            <AddElementForm onAdd={(text) => addElement(list, text)} />
+            <div className="mt-auto">
+              <AddElementForm onAdd={(text) => addElement(list, text)} />
+            </div>
           </li>
         );
       })}
 
       {lists.length === 0 && (
-        <li className="text-center text-gray-500 py-8 w-full">
-          Brak list zakupów
+        <li className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
+          <p className="text-textSecondary font-medium">Brak list zakupów. Dodaj nową listę!</p>
         </li>
       )}
     </ul>
@@ -255,20 +243,20 @@ function AddElementForm({ onAdd }: { onAdd: (text: string) => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 mt-2 pt-2 border-t">
+    <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
       <input
         type="text"
-        placeholder="Nowy produkt"
+        placeholder="Nowy produkt..."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="flex-1 border px-3 py-2 rounded focus:ring-2 focus:ring-primary"
+        className="input-field py-2"
       />
       <button
-        className="flex items-center px-3 py-2 text-primary hover:text-secondary hover:underline transition"
+        className="flex items-center justify-center px-4 bg-primary text-white font-bold rounded-xl hover:bg-secondary transition-colors shrink-0"
         type="submit"
+        title="Dodaj produkt"
       >
-        Dodaj
-        <Plus className="w-4 h-4 ml-1" />
+        <Plus className="w-5 h-5" />
       </button>
     </form>
   );

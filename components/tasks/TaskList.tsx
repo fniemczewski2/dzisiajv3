@@ -14,6 +14,14 @@ export default function TaskList({
 }: Props) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
+  if (tasks.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-textMuted">Brak zadań.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {activeTask && (
@@ -25,9 +33,9 @@ export default function TaskList({
           }}
         />
       )}
-      <ul className="flex flex-wrap mt-6 gap-6">
+      <ul className="flex flex-wrap mt-6 gap-4 sm:gap-6">
         {tasks.map((task) => (
-          <li key={task.id} className="w-full md:w-[45%] lg:w-[30%]">
+          <li key={task.id} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
             <TaskItem
               task={task}
               onTasksChange={onTasksChange}

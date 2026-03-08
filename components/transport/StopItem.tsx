@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { MapPin, Star, X } from "lucide-react";
 import { Departure } from "../../hooks/useTransport";
@@ -14,7 +16,9 @@ interface StopItemProps {
 }
 
 const getStatusColor = (dep: Departure) => {
-  return dep.is_realtime ? "text-blue-500 font-semibold" : "text-muted-foreground";
+  return dep.is_realtime 
+    ? "text-blue-600 dark:text-blue-400 font-bold" 
+    : "text-textSecondary font-semibold";
 };
 
 export default function StopItem({ stopName, distance, departures, isLoading, onRemove, onAddFavorite, many, zone_id }: StopItemProps) {
@@ -26,62 +30,72 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
   }, [departures, many]);
 
   return (
-    <div className="p-4 bg-card border-b border-border last:border-0">
-      <div className="flex justify-between items-start mb-3">
-        <h4 className="font-semibold text-sm flex items-center">{stopName}</h4>
-        <div className="flex items-center gap-2">
+    <div className="p-4 bg-transparent transition-colors hover:bg-surface/50">
+      {/* Nagłówek przystanku */}
+      <div className="flex justify-between items-start mb-4">
+        <h4 className="font-bold text-[15px] text-text flex items-center leading-tight">
+          {stopName}
+        </h4>
+        <div className="flex items-center gap-1.5 shrink-0 pl-2">
           
-          <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
+          <div className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-textSecondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md">
             <MapPin className="w-3 h-3" />
             {distance !== undefined ? `${Math.round(distance)}m` : zone_id === "S" ? "Szczecin" : "Poznań"}
           </div>
 
           {onAddFavorite && zone_id !== undefined && zone_id !== "" && (
-            <button onClick={onAddFavorite} className="p-1 hover:bg-gray-100 rounded-md text-primary transition-colors">
-              <Star className="w-4 h-4" />
+            <button onClick={onAddFavorite} className="p-1.5 bg-surface hover:bg-yellow-500/10 border border-gray-200 dark:border-gray-700 rounded-md text-yellow-500 transition-colors" title="Dodaj do ulubionych">
+              <Star className="w-3.5 h-3.5" />
             </button>
           )}
           {onRemove && (
-            <button onClick={onRemove} className="p-1 hover:bg-gray-100 rounded-md text-red-500 transition-colors">
-              <X className="w-4 h-4" />
+            <button onClick={onRemove} className="p-1.5 bg-surface hover:bg-red-500/10 border border-gray-200 dark:border-gray-700 rounded-md text-red-500 transition-colors" title="Usuń z ulubionych">
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="space-y-2 animate-in fade-in duration-500">
+      {/* Lista odjazdów */}
+      <div className="space-y-2.5 animate-in fade-in duration-500">
         {isLoading && !departures.length ? (
           <div className="space-y-3 py-2 animate-pulse">
-            <div className="h-9 bg-gray-200 rounded-lg w-full" />
-            <div className="h-9 bg-gray-200 rounded-lg w-3/4" />
+            <div className="h-10 bg-surface rounded-lg w-full" />
+            <div className="h-10 bg-surface rounded-lg w-3/4" />
           </div>
         ) : displayDepartures.length > 0 ? (
           displayDepartures.map((dep, idx) => (
             <div key={`${dep.line}-${dep.minutes}-${idx}`} className="flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 uppercase text-primary font-bold px-2 py-1 rounded-md min-w-[38px] justify-center border shadow-sm">
+              
+              <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
+                {/* Numer linii */}
+                <span className="flex items-center gap-1 font-black text-sm bg-primary text-white px-2.5 py-1.5 rounded-lg min-w-[42px] justify-center shadow-sm shrink-0">
                   {dep.line}
                 </span>
-                <span className="text-xs font-semibold truncate max-w-[150px] uppercase tracking-tight text-foreground/80">
+                {/* Kierunek */}
+                <span className="text-sm font-bold truncate uppercase tracking-tight text-textSecondary group-hover:text-text transition-colors">
                   {dep.direction}
                 </span>
               </div>
-              <div className="text-right">
-                <div className={`text-xs font-bold tabular-nums ${getStatusColor(dep)}`}>
+
+              {/* Czas do odjazdu */}
+              <div className="text-right shrink-0">
+                <div className={`text-sm tabular-nums tracking-tight ${getStatusColor(dep)}`}>
                   {dep.minutes <= 0 ? (
-                    <span className="text-blue-600 font-black animate-pulse">TERAZ</span>
+                    <span className="text-green-600 dark:text-green-500 font-black animate-pulse">TERAZ</span>
                   ) : (
                     `${dep.minutes} min`
                   )}
                 </div>
-                <div className="text-[9px] text-muted-foreground leading-none mt-0.5">
+                <div className="text-[10px] font-medium text-textMuted leading-none mt-1">
                   {dep.time}
                 </div>
               </div>
+
             </div>
           ))
         ) : (
-          <div className="flex items-center justify-center py-4 text-[10px] text-muted-foreground italic">
+          <div className="flex items-center justify-center py-4 text-xs font-medium text-textMuted">
             Brak odjazdów w najbliższym czasie
           </div>
         )}

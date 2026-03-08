@@ -28,32 +28,38 @@ const CalendarCell: React.FC<Props> = ({
   return (
     <div
       className={clsx(
-        "bg-card flex flex-col justify-between shadow hover:bg-gray-100 p-1 sm:min-h-[106px] min-h-[86px] rounded-md m-0.25 cursor-pointer overflow-hidden",
-        isOutside ? "bg-gray-50 text-gray-400" : "bg-white"
+        "flex flex-col justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200",
+        isOutside 
+          ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface" 
+          : "bg-card border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:border-primary/50",
+        isToday && "ring-2 ring-primary ring-offset-2 dark:ring-offset-card"
       )}
       onClick={onClick}
     >
-      <div className="flex flex-nowrap justify-between items-center">
+      <div className="flex flex-nowrap justify-between items-center w-full">
         <div
           className={clsx(
-            "text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full",
-            isToday && "bg-primary text-white"
+            "text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors",
+            isToday ? "bg-primary text-white" : "text-text",
+            isOutside && !isToday && "text-textMuted"
           )}
         >
           {date.getDate()}
         </div>
 
-        {tCount && !isMobile && (
-          <div className="flex items-center gap-1 px-1 text-xs text-gray-600">
-            <ListTodo size={14} />
-            {tCount}
-          </div>
-        )}
-        {eCount && (
-          <div className="flex items-center gap-1 px-1 text-xs text-gray-600">
-            +{eCount}
-          </div>
-        )}
+        <div className="flex gap-1">
+          {tCount && !isMobile && (
+            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
+              <ListTodo size={12} />
+              {tCount}
+            </div>
+          )}
+          {eCount && (
+            <div className="flex items-center justify-center px-1.5 py-0.5 bg-primary/10 text-primary rounded-md text-[10px] font-bold">
+              +{eCount}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

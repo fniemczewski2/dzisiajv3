@@ -206,18 +206,13 @@ export default function MovieAddForm({
     }
   };
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="mb-6 p-6 bg-white border border-gray-200 rounded-xl shadow-sm"
-    >
+return (
+    <form onSubmit={handleSubmit} className="form-card mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Tytuł z przyciskiem fetch */}
+        
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tytuł:
-          </label>
-          <div className="flex gap-2">
+          <label className="form-label">Tytuł:</label>
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               required
@@ -227,72 +222,47 @@ export default function MovieAddForm({
                 setShowOptions(false);
                 setStreamingProviders([]);
               }}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className="input-field flex-1"
               placeholder="Np. Moonlight"
             />
-            
-          </div>
-        </div>
-        <button
+            <button
               type="button"
               onClick={fetchTMDBData}
               disabled={fetchingTMDB || !formData.title.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {fetchingTMDB ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Szukam...
-                </>
+                <><Loader2 className="w-4 h-4 animate-spin" /> Szukam...</>
               ) : (
-                <span className="flex w-full justify-center items-center gap-2">
-                  Szukaj w TMDB
-                  <Search className="w-4 h-4" />
-                </span>
+                <><Search className="w-4 h-4" /> Szukaj w TMDB</>
               )}
-        </button>       
+            </button> 
+          </div>
+        </div>
 
-        {/* Movie options dropdown */}
+        {/* Wyniki wyszukiwania - ostylowane dla Dark Mode */}
         {showOptions && movieOptions.length > 0 && (
-          <div className="md:col-span-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <p className="text-sm font-semibold text-gray-700 mb-2">
-              Wybierz z wyników ({movieOptions.length}):
-            </p>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="md:col-span-2 bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+            <p className="form-label">Wybierz z wyników ({movieOptions.length}):</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
               {movieOptions.map((movie) => (
                 <button
                   key={movie.id}
                   type="button"
                   onClick={() => selectMovie(movie)}
-                  className="w-full text-left p-3 bg-white hover:bg-blue-50 rounded-lg transition-colors border border-gray-200 hover:border-blue-300"
+                  className="w-full text-left p-3 bg-card hover:bg-surfaceHover rounded-lg transition-colors border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <div className="flex gap-3">
                     {movie.poster_path && (
-                      <img
-                        src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
-                        alt={movie.title}
-                        className="w-12 h-18 object-cover rounded"
-                      />
+                      <img src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`} alt={movie.title} className="w-12 h-18 object-cover rounded shadow-sm" />
                     )}
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-text">
                         {movie.title}
-                        {movie.release_date && (
-                          <span className="text-gray-500 font-normal">
-                            {" "}({movie.release_date.split("-")[0]})
-                          </span>
-                        )}
+                        {movie.release_date && <span className="text-textMuted font-normal"> ({movie.release_date.split("-")[0]})</span>}
                       </p>
-                      {movie.vote_average > 0 && (
-                        <p className="text-sm text-yellow-600">
-                          ⭐ {movie.vote_average.toFixed(1)}/10
-                        </p>
-                      )}
-                      {movie.overview && (
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                          {movie.overview}
-                        </p>
-                      )}
+                      {movie.vote_average > 0 && <p className="text-sm text-accent">⭐ {movie.vote_average.toFixed(1)}/10</p>}
+                      {movie.overview && <p className="text-xs text-textSecondary mt-1 line-clamp-2">{movie.overview}</p>}
                     </div>
                   </div>
                 </button>
@@ -300,87 +270,63 @@ export default function MovieAddForm({
             </div>
             <button
               type="button"
-              onClick={() => {
-                setShowOptions(false);
-                setMovieOptions([]);
-              }}
-              className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+              onClick={() => { setShowOptions(false); setMovieOptions([]); }}
+              className="mt-3 text-sm font-medium text-textMuted hover:text-text transition-colors"
             >
               Zamknij wyniki
             </button>
           </div>
         )}
 
-        {/* Gatunek */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Gatunek:
-          </label>
+          <label className="form-label">Gatunek:</label>
           <input
             type="text"
             value={formData.genre}
-            onChange={(e) =>
-              setFormData({ ...formData, genre: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+            className="input-field"
             placeholder="Np. Dramat, Romans"
           />
         </div>
 
-        {/* Ocena */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ocena (0-10):
-          </label>
+          <label className="form-label">Ocena (0-10):</label>
           <input
             type="number"
             step="0.1"
             min="0"
             max="10"
             value={formData.rating}
-            onChange={(e) =>
-              setFormData({ ...formData, rating: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+            className="input-field"
             placeholder="7.5"
           />
         </div>
 
-        {/* Dostępność */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Dostępność:
-          </label>
+          <label className="form-label">Dostępność:</label>
           <input
             type="text"
             value={formData.platform}
-            onChange={(e) =>
-              setFormData({ ...formData, platform: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+            className="input-field"
             placeholder="Np. Netflix, HBO Max (wypełni się automatycznie)"
           />
         </div>
 
-        {/* Opis */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Opis:
-          </label>
+          <label className="form-label">Opis:</label>
           <textarea
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="input-field"
             rows={3}
             placeholder="Krótki opis filmu..."
           />
         </div>
       </div>
 
-      {/* Przyciski */}
-      <div className="flex gap-2 mt-4">
+      <div className="flex gap-2 pt-2">
         <AddButton loading={loading} type="submit" />
         <CancelButton onCancel={onCancel} loading={loading} />
       </div>
