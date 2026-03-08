@@ -93,30 +93,31 @@ export default function DaySchemaForm({
     setEntries(entries.filter((_, i) => i !== index));
   };
 
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-card p-4 rounded-xl shadow">
+    <form onSubmit={handleSubmit} className="form-card max-w-lg">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Nazwa schematu:</label>
+        <label className="form-label">Nazwa schematu:</label>
         <input
           type="text"
           value={schemaName}
           onChange={(e) => setSchemaName(e.target.value)}
-          className="mt-1 w-full p-2 border rounded"
+          className="input-field"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Dni tygodnia:</label>
-        <div className="flex gap-1.5">
+        <label className="form-label">Dni tygodnia:</label>
+        <div className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
             <button
               key={i}
               type="button"
               onClick={() => toggleDay(i)}
-              className={`px-2 py-1 rounded border text-sm ${
-                days.includes(i) ? "bg-primary text-white" : "bg-gray-100"
+              className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                days.includes(i) 
+                  ? "bg-primary border-primary text-white" 
+                  : "bg-surface border-gray-200 dark:border-gray-700 text-textSecondary hover:bg-surfaceHover"
               }`}
             >
               {label}
@@ -126,49 +127,49 @@ export default function DaySchemaForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Wpisy:</label>
-        {entries.map((entry, i) => (
-          <div key={i} className="flex w-full gap-2 mb-2">
-            <input
-              type="time"
-              value={entry.time}
-              onChange={(e) => handleEntryChange(i, "time", e.target.value)}
-              className="p-2 border rounded"
-              required
-            />
-            <input
-              type="text"
-              value={entry.label}
-              onChange={(e) => handleEntryChange(i, "label", e.target.value)}
-              className="flex-1 p-2 min-w-[100px] border rounded"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => removeEntry(i)}
-              className="text-red-500 hover:text-red-700"
-              title="Usuń wpis"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          </div>
-        ))}
+        <label className="form-label">Wpisy:</label>
+        <div className="space-y-2">
+          {entries.map((entry, i) => (
+            <div key={i} className="flex w-full gap-2 items-center">
+              <input
+                type="time"
+                value={entry.time}
+                onChange={(e) => handleEntryChange(i, "time", e.target.value)}
+                className="input-field w-32"
+                required
+              />
+              <input
+                type="text"
+                value={entry.label}
+                placeholder="Etykieta"
+                onChange={(e) => handleEntryChange(i, "label", e.target.value)}
+                className="input-field flex-1"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => removeEntry(i)}
+                className="p-2 text-textMuted hover:text-red-500 transition-colors"
+                title="Usuń wpis"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          ))}
+        </div>
+        
         <button
           type="button"
           onClick={addEntry}
-          className="flex items-center text-primary hover:underline"
+          className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-3"
         >
-          Dodaj
-          <PlusCircle className="ml-2 w-4 h-4" />
+          <PlusCircle className="mr-1.5 w-4 h-4" />
+          Dodaj nowy wpis
         </button>
       </div>
 
-      <div className="flex gap-3 items-center">
-        {isEdit ? (
-          <SaveButton loading={loading} />
-        ) : (
-          <AddButton loading={loading} />
-        )}
+      <div className="flex gap-3 items-center pt-2">
+        {isEdit ? <SaveButton loading={loading} /> : <AddButton loading={loading} />}
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState/>}
       </div>

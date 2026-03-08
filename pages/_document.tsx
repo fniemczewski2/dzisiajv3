@@ -53,7 +53,7 @@ export default class MyDocument extends Document {
           <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
           <meta name="referrer" content="origin-when-cross-origin" />
         </Head>
-        <body className="bg-gray-50 text-gray-800 justify-center p-4 min-h-screen antialiased">
+        <body className="bg-background text-text transition-colors duration-300 p-4">
           <Main />
           <NextScript />
         </body>

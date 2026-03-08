@@ -4,6 +4,7 @@ import { AuthProvider } from '../providers/AuthProvider';
 import AuthGuard from '../components/AuthGuard';
 import "../styles/globals.css";
 import ErrorBoundary from '../components/ErrorBoundary';
+import { ThemeProvider } from 'next-themes';
 
 type AuthedComponent = AppProps['Component'] & { auth?: boolean };
 
@@ -15,16 +16,18 @@ export default function MyApp({
   const needsAuth = Component?.auth === true;
 
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        {needsAuth ? (
-          <AuthGuard>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ErrorBoundary>
+        <AuthProvider>
+          {needsAuth ? (
+            <AuthGuard>
+              <Component {...pageProps} />
+            </AuthGuard>
+          ) : (
             <Component {...pageProps} />
-          </AuthGuard>
-        ) : (
-          <Component {...pageProps} />
-        )}
-      </AuthProvider>
-    </ErrorBoundary>
+          )}
+        </AuthProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }

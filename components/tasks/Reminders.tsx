@@ -1,14 +1,8 @@
 import { useState } from "react";
 import {
-  BellDot,
-  ChevronDown,
-  ChevronUp,
-  Plus,
-  Check,
-  Trash2,
-  ChevronsRight,
-  List,
-  ListPlus,
+  BellDot, ChevronDown, ChevronUp, Plus, Check,
+  Trash2, ChevronsRight, List, ListPlus,
+  RefreshCw,
 } from "lucide-react";
 import { useReminders } from "../../hooks/useReminders";
 import { useTasks } from "../../hooks/useTasks";
@@ -25,144 +19,103 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
   const userId = user?.id;
   const today = getAppDate();
 
-  const {
-    visibleReminders,
-    allReminders,
-    addReminder,
-    completeReminder,
-    postponeReminder,
-    deleteReminder,
-  } = useReminders();
-
+  const { visibleReminders, allReminders, addReminder, completeReminder, postponeReminder, deleteReminder } = useReminders();
   const { addTask } = useTasks();
 
   const remindersToShow = showAll ? allReminders : visibleReminders;
   const liczba = remindersToShow.length;
 
-  const [form, setForm] = useState({
-    tytul: "",
-    data_poczatkowa: today,
-    powtarzanie: 1,
-  });
+  const [form, setForm] = useState({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
 
   const handleAdd = () => {
     if (!form.tytul || !form.data_poczatkowa) return;
     addReminder(form.tytul, form.data_poczatkowa, form.powtarzanie);
-    setForm({ tytul: "", data_poczatkowa: "", powtarzanie: 1 });
+    setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
     setShowForm(false);
   };
 
-   const handleAddTask = async (reminder: any) => {
+  const handleAddTask = async (reminder: any) => {
     if (!userId) return;
-
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
     
-    // Calculate the next occurrence date based on reminder's data_poczatkowa and done field
     const startDate = new Date(reminder.data_poczatkowa);
     startDate.setHours(0, 0, 0, 0);
     const doneDate = reminder.done ? new Date(reminder.done) : null;
-    if (doneDate) {
-      doneDate.setHours(0, 0, 0, 0);
-    }
+    if (doneDate) doneDate.setHours(0, 0, 0, 0);
     
     let nextDate: Date;
     if (doneDate) {
-      // If reminder was completed, calculate next occurrence from done date
       nextDate = new Date(doneDate);
       nextDate.setDate(nextDate.getDate() + reminder.powtarzanie);
     } else {
-      // If not completed yet, use start date as due date
       nextDate = new Date(startDate);
     }
 
-    if (nextDate <= todayDate) {
-      nextDate = getAppDateTime();
-    }
+    if (nextDate <= todayDate) nextDate = getAppDateTime();
 
     const newTask = {
       id: '',
       title: reminder.tytul,
       for_user_id: userId,
-      category: "przypomnienia",
+      category: "cykliczne",
       priority: 1,
-      description: `Utworzone z przypomnienia (co ${reminder.powtarzanie} dni)`,
+      description: `Cykliczne (co ${reminder.powtarzanie} dni)`,
       due_date: nextDate.toISOString().split('T')[0],
       status: "pending",
       user_id: userId,
     } as Task;
 
     await addTask(newTask);
-    if (onTasksChange) {
-      onTasksChange();
-    }
+    if (onTasksChange) onTasksChange();
   };
 
   return (
-    <div className="bg-card rounded-xl shadow mb-4 overflow-hidden">
+    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-4 overflow-hidden transition-colors">
       <div
-        className="flex flex-row shadow items-center justify-between px-3 py-2 sm:p-4 cursor-pointer"
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface transition-colors"
         onClick={() => setOpen(!open)}
       >
-        <h3 className="font-semibold flex flex-row items-center">
-          <BellDot className="w-5 h-5 mr-2" />
-          Cykliczne&nbsp;
-          <span className="text-primary">{liczba}</span>
+        <h3 className="font-semibold flex items-center text-text">
+          <RefreshCw className="w-5 h-5 mr-2 text-primary" />
+          Zadania cykliczne
+          <span className="ml-2 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-bold">
+            {liczba}
+          </span>
         </h3>
-        {open ? (
-          <ChevronUp className="w-5 h-5" />
-        ) : (
-          <ChevronDown className="w-5 h-5" />
-        )}
+        <div className="text-textMuted">
+          {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </div>
       </div>
 
       {open && (
-        <>
+        <div className="border-t border-gray-100 dark:border-gray-800 bg-surface/30">
           
-          <div className="px-3 py-3 text-sm shadow space-y-2">
+          <div className="px-4 py-3 text-sm">
             {liczba === 0 ? (
-              <p className="text-muted-foreground">Brak przypomnień</p>
+              <p className="text-textMuted text-center py-2">Brak zadań cyklicznych</p>
             ) : (
-              <ul className="space-y-4">
+              <ul className="space-y-3">
                 {remindersToShow.map((r) => (
-                  <li
-                    key={r.id}
-                    className="flex justify-between items-start gap-2"
-                  >
+                  <li key={r.id} className="flex justify-between items-center gap-3 bg-card p-3 rounded-lg border border-gray-100 dark:border-gray-700/60 shadow-sm">
                     <div className="flex-1">
-                      <div className="font-medium">{r.tytul}</div>
-                      <div className="text-[10px] h-[14px] text-gray-500">
-                        co {r.powtarzanie} dni
+                      <div className="font-medium text-text">{r.tytul}</div>
+                      <div className="text-xs font-medium text-primary mt-0.5">
+                        Powtarza się co {r.powtarzanie} {r.powtarzanie === 1 ? 'dzień' : 'dni'}
                       </div>
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button 
-                        onClick={() => handleAddTask(r)} 
-                        title="Dodaj zadanie"
-                        className="hover:scale-110 transition-transform"
-                      >
-                        <ListPlus className="w-5 h-5 text-blue-600 hover:text-blue-800" />
+                    <div className="flex gap-1">
+                      <button onClick={() => handleAddTask(r)} title="Dodaj jako zadanie" className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                        <ListPlus className="w-4 h-4" />
                       </button>
-                      <button 
-                        onClick={() => completeReminder(r.id)} 
-                        title="Zakończ"
-                        className="hover:scale-110 transition-transform"
-                      >
-                        <Check className="w-5 h-5 text-green-600 hover:text-green-800" />
+                      <button onClick={() => completeReminder(r.id)} title="Zakończ zadanie" className="p-2 text-green-600 hover:bg-green-600/10 rounded-lg transition-colors">
+                        <Check className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => postponeReminder(r.id, r.powtarzanie)}
-                        title="Odłóż"
-                        className="hover:scale-110 transition-transform"
-                      >
-                        <ChevronsRight className="w-5 h-5 text-yellow-500 hover:text-yellow-600" />
+                      <button onClick={() => postponeReminder(r.id, r.powtarzanie)} title="Odłóż na później" className="p-2 text-yellow-600 hover:bg-yellow-600/10 rounded-lg transition-colors">
+                        <ChevronsRight className="w-4 h-4" />
                       </button>
-                      <button 
-                        onClick={() => deleteReminder(r.id)} 
-                        title="Usuń"
-                        className="hover:scale-110 transition-transform"
-                      >
-                        <Trash2 className="w-5 h-5 text-red-600 hover:text-red-800" />
+                      <button onClick={() => deleteReminder(r.id)} title="Usuń całkowicie" className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </li>
@@ -172,82 +125,64 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
           </div>
 
           {!showForm && (
-            <div className="px-3 py-2 text-sm flex justify-between shadow">
-              <button
-                className="flex items-center text-primary hover:underline"
-                onClick={() => setShowForm(!showForm)}
-              >
-                Dodaj&nbsp;<Plus className="w-4 h-4" />
+            <div className="px-4 py-3 flex justify-between bg-card border-t border-gray-100 dark:border-gray-800">
+              <button className="text-sm font-medium flex items-center text-primary hover:text-secondary transition-colors" onClick={() => setShowForm(true)}>
+                <Plus className="w-4 h-4 mr-1" /> Dodaj
               </button>
-
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="flex items-center text-primary hover:underline"
-              >
-                {showAll ? "Pokaż aktywne\u00A0" : "Pokaż wszystkie\u00A0"}<List className="w-4 h-4" />
+              <button onClick={() => setShowAll(!showAll)} className="text-sm font-medium flex items-center text-textMuted hover:text-text transition-colors">
+                <List className="w-4 h-4 mr-1.5" /> {showAll ? "Pokaż tylko aktywne" : "Pokaż wszystkie"}
               </button>
-
             </div>
           )}
 
           {showForm && (
-            <div className="px-4 py-4 text-sm shadow space-y-3">
+            <div className="p-4 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
               <div>
-                <label className="block text-sm mb-1">Tytuł:</label>
+                <label className="form-label">Tytuł zadania:</label>
                 <input
                   type="text"
-                  placeholder="Nazwa przypomnienia"
-                  className="w-full border px-2 py-1 rounded"
+                  placeholder="np. Wymień filtry do wody"
+                  className="input-field"
                   value={form.tytul}
                   onChange={(e) => setForm({ ...form, tytul: e.target.value })}
                 />
               </div>
-              <div className="flex flex-row flex-nowrap justify-between gap-x-3">
+              <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-sm mb-1">Data rozpoczęcia:</label>
+                  <label className="form-label">Data rozpoczęcia:</label>
                   <input
                     type="date"
-                    className="w-full border px-2 py-1 rounded"
+                    className="input-field"
                     value={form.data_poczatkowa}
-                    onChange={(e) =>
-                      setForm({ ...form, data_poczatkowa: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, data_poczatkowa: e.target.value })}
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm mb-1">Powtarzanie co (dni):</label>
+                  <label className="form-label">Powtarzanie co (dni):</label>
                   <input
                     type="number"
                     min={1}
                     max={365}
-                    className="w-full border px-2 py-1 rounded"
+                    className="input-field"
                     value={form.powtarzanie}
-                    onChange={(e) =>
-                      setForm({ ...form, powtarzanie: Number(e.target.value) })
-                    }
+                    onChange={(e) => setForm({ ...form, powtarzanie: Number(e.target.value) })}
                   />
                 </div>
               </div>
-              <div className="flex justify-start gap-x-3 pt-2">
-                <button
-                  className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded flex flex-nowrap items-center transition"
-                  onClick={handleAdd}
-                >
+              <div className="flex gap-2 pt-2">
+                <button className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg font-medium transition-colors" onClick={handleAdd}>
                   Zapisz
                 </button>
-                <button
-                  className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                  onClick={() => {
-                    setForm({ tytul: "", data_poczatkowa: "", powtarzanie: 1 });
-                    setShowForm(false);
-                  }}
-                >
+                <button className="px-4 py-2 bg-surface text-textSecondary hover:bg-surfaceHover rounded-lg font-medium transition-colors" onClick={() => {
+                  setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
+                  setShowForm(false);
+                }}>
                   Anuluj
                 </button>
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

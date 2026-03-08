@@ -1,11 +1,10 @@
-// components/Notes/NoteCard.tsx
 "use client";
 import React from "react";
 import clsx from "clsx";
 import { Pin, Archive, Download } from "lucide-react";
 import { Note } from "../../types";
 import { formatTime } from "../../lib/dateUtils";
-import { DeleteButton, EditButton } from "../CommonButtons";
+import { ArchiveButton, DeleteButton, EditButton, PinButton } from "../CommonButtons";
 
 interface NoteCardProps {
   note: Note;
@@ -36,12 +35,7 @@ export default function NoteCard({
         let href = part;
         let displayText = part;
 
-        // Add https:// if missing
-        if (!href.startsWith("http")) {
-          href = "https://" + href;
-        }
-
-        // Remove https:// and www. from display text
+        if (!href.startsWith("http")) href = "https://" + href;
         displayText = displayText.replace(/^https?:\/\//, "").replace(/^www\./, "");
 
         return (
@@ -50,7 +44,7 @@ export default function NoteCard({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline hover:text-secondary"
+            className="text-primary hover:text-secondary underline font-medium transition-colors"
           >
             {displayText}
           </a>
@@ -64,90 +58,48 @@ export default function NoteCard({
   return (
     <li
       className={clsx(
-        "break-inside-avoid py-2 px-4 sm:py-4 my-2 sm:m-4 max-w-sm min-w-[300px] rounded-xl shadow flex flex-col justify-start hover:shadow-lg transition max-h-fit relative",
-        colorMap[note.bg_color] || "bg-zinc-50",
-        note.archived && "opacity-60"
+        "break-inside-avoid py-4 px-5 my-2 sm:m-3 max-w-sm min-w-[300px] rounded-2xl shadow-sm flex flex-col justify-start border transition-all duration-200 hover:shadow-md max-h-fit relative group",
+        colorMap[note.bg_color] || "bg-card border-gray-200 dark:border-gray-700",
+        note.archived && "opacity-60 grayscale-[0.3]"
       )}
     >
-      {/* Pin or Archive indicator */}
+      {/* Wskaźniki Przypięcia/Archiwum */}
       {note.pinned && !note.archived && (
-        <div className="absolute top-2 right-2">
-          <Pin className="w-5 h-5 sm:w-6 sm:h-6 text-primary fill-primary" />
+        <div className="absolute -top-2 -right-2 bg-card p-1.5 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
+          <Pin className="w-4 h-4 text-primary fill-primary" />
         </div>
       )}
 
       {note.archived && (
-        <div className="absolute top-2 right-2">
-          <Archive className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
+        <div className="absolute -top-2 -right-2 bg-card p-1.5 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
+          <Archive className="w-4 h-4 text-textMuted" />
         </div>
       )}
 
-      {/* Title */}
-      <h3 className="font-semibold text-lg mb-2 pr-6">{note.title}</h3>
+      {/* Tytuł */}
+      <div className="flex justify-between items-end border-b border-black/5 dark:border-white/5">
+      <h3 className="font-bold text-lg text-text mb-3 pr-4 leading-tight">{note.title}</h3>
+      <p className="flex-1 text-[10px] text-textMuted font-medium text-right whitespace-nowrap">
+        {note.updated_at && formatTime(note.updated_at, true)}
+      </p>
+      </div>
 
-      {/* Items list */}
+      {/* Treść (Lista) */}
       {!note.archived && (
-        <ul className="list-disc pl-5 mb-4 space-y-1">
+        <ul className="list-disc pl-5 my-2 space-y-1.5">
           {note.items.map((item, i) => (
-            <li key={i} className="text-gray-800">
+            <li key={i} className="text-sm text-textSecondary leading-relaxed marker:text-textMuted">
               {renderWithLinks(item)}
             </li>
           ))}
         </ul>
       )}
 
-      {/* Footer with timestamp and actions */}
-      <div className="relative flex justify-end space-x-2 flex-wrap gap-y-2 mt-4">
-        <p className="text-xs text-gray-500 absolute bottom-0 left-0">
-          {note.updated_at && formatTime(note.updated_at, true)}
-        </p>
-
-         {/* Pin/Unpin button */}
-        <button
-            onClick={() => onTogglePin(note.id)}
-            className={clsx(
-            "flex flex-col items-center transition-colors",
-            note.pinned ? "text-primary" : "text-gray-500 hover:text-primary"
-            )}
-            title={note.pinned ? "Odepnij" : "Przypnij"}
-        >
-            <Pin className={clsx("w-5 h-5 sm:w-6 sm:h-6", note.pinned && "fill-primary")} />
-            <span className="text-[9px] sm:text-[11px]">
-            {note.pinned ? "Odepnij" : "Przypnij"}
-            </span>
-        </button>
-
-        {/* Archive/Restore button */}
-        <button
-            onClick={() => onToggleArchive(note.id)}
-            className={clsx(
-            "flex flex-col items-center transition-colors",
-            note.archived
-                ? "text-gray-700"
-                : "text-gray-500 hover:text-gray-700"
-            )}
-            title={note.archived ? "Przywróć" : "Archiwizuj"}
-        >
-            <Archive className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-[9px] sm:text-[11px]">
-            {note.archived ? "Przywróć" : "Archiwum"}
-            </span>
-        </button>
-
-        {/* Export to PDF button */}
-        <button
-            onClick={() => onExportPDF(note)}
-            className="flex flex-col items-center text-gray-500 hover:text-gray-700 transition-colors"
-            title="Eksportuj"
-        >
-            <Download className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-[9px] sm:text-[11px]">PDF</span>
-        </button>
-
-        {/* Edit button */}
+      {/* Stopka i Akcje */}
+      <div className="relative flex justify-end gap-1.5 flex-wrap mt-auto pt-3 border-t border-black/5 dark:border-white/5">
+        <PinButton onClick={() => onTogglePin(note.id)} isPinned={!!note.pinned} />
+        <ArchiveButton onClick={() => onToggleArchive(note.id)} isArchived={!!note.archived} />
         <EditButton onClick={() => onEdit(note)} />
-
-        {/* Delete button */}
         <DeleteButton onClick={() => onDelete(note.id)} />
       </div>
     </li>

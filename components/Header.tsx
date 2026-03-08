@@ -103,15 +103,15 @@ export default function Header() {
   }, []);
 
   function WeatherIcon({ code }: { code: number }) {
-    if (code <= 1) return <Sun className="w-6 h-6 text-gray-600" />;
-    if (code === 2) return <CloudSun className="w-6 h-6 text-gray-600" />;
-    if (code <= 3) return <Cloud className="w-6 h-6 text-gray-600" />;
-    if (code <= 48) return <CloudFog className="w-6 h-6 text-gray-600" />;
-    if (code <= 67) return <CloudDrizzle className="w-6 h-6 text-gray-600" />;
-    if (code <= 77) return <CloudSnow className="w-6 h-6 text-gray-600" />;
-    if (code <= 82) return <CloudRain className="w-6 h-6 text-gray-600" />;
-    if (code <= 86) return <CloudSnow className="w-6 h-6 text-gray-600" />;
-    return <CloudLightning className="w-6 h-6 text-gray-600" />;
+    if (code <= 1) return <Sun className="w-6 h-6 text-textSecondary" />;
+    if (code === 2) return <CloudSun className="w-6 h-6 text-textSecondary" />;
+    if (code <= 3) return <Cloud className="w-6 h-6 text-textSecondary" />;
+    if (code <= 48) return <CloudFog className="w-6 h-6 text-textSecondary" />;
+    if (code <= 67) return <CloudDrizzle className="w-6 h-6 text-textSecondary" />;
+    if (code <= 77) return <CloudSnow className="w-6 h-6 text-textSecondary" />;
+    if (code <= 82) return <CloudRain className="w-6 h-6 text-textSecondary" />;
+    if (code <= 86) return <CloudSnow className="w-6 h-6 text-textSecondary" />;
+    return <CloudLightning className="w-6 h-6 text-textSecondary" />;
   }
 
   return (
@@ -122,13 +122,10 @@ export default function Header() {
         justify-center
         w-full
         flex-row
-        flex-nowrap
-      "
-    >
-
-          <div className="text-gray-600 text-left flex flex-col sm:flex-1 justify-center">
+        flex-nowrap">
+          <div className="text-text text-left flex flex-col sm:flex-1 justify-center">
             <div className="text-xl font-semibold">{currentTime}</div>
-            <span className="text-gray-500 text-[12px] sm:text-sm">
+            <span className="text-textSecondary text-[12px] sm:text-sm">
               {currentDate}
             </span>
             <BirthdayIndicator />
@@ -143,14 +140,14 @@ export default function Header() {
               dailyMax != null &&
               weatherCode != null && (
                 loading ? <LoadingState /> :
-                <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-gray-700">
+                <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-textSecondary">
                   <div className={`${airQuality ? 'text-lg' : 'text-xl'} flex items-center font-semibold justify-end space-x-1`}>
                     <WeatherIcon code={weatherCode} />
-                    <span className={`${airQuality ? 'text-lg' : 'text-xl'} text-gray-600`}>{currentTemp}°C</span>
+                    <span className={`${airQuality ? 'text-lg' : 'text-xl'} text-textSecondary`}>{currentTemp}°C</span>
                   </div>
                   {airQuality ? (
                   <>
-                  <span className="text-gray-600 text-[11px] sm:text-sm ml-5 text-right">
+                  <span className="text-textSecondary text-[11px] sm:text-sm ml-5 text-right">
                     min {dailyMin}° · max {dailyMax}°
                   </span>
                   <span className="text-red-700 text-[11px] sm:text-sm ml-5 text-right">
@@ -158,7 +155,7 @@ export default function Header() {
                   </span>
                   </>
                   ) : (
-                    <span className="text-gray-600 text-[12px] sm:text-sm ml-5 text-right">
+                    <span className="text-textSecondary text-[12px] sm:text-sm ml-5 text-right">
                       min {dailyMin}° · max {dailyMax}°
                     </span>
                   )

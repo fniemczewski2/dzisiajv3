@@ -152,7 +152,7 @@ export default function TransportPage() {
           </section>
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
-            <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+            <div className="bg-card rounded-xl shadow-sm overflow-hidden">
               {/* 1. Stan: Pobieranie lokalizacji */}
               {loadingNearby && nearbyGroups.length === 0 && (
                 <p className="p-4 text-sm text-muted-foreground animate-pulse">

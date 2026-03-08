@@ -1,4 +1,3 @@
-// components/calendar/BirthdayIndicator.tsx
 import { useMemo } from "react";
 import { useEvents } from "../../hooks/useEvents";
 import { format } from "date-fns";
@@ -9,11 +8,9 @@ interface Props {
   date?: string; // Format: "YYYY-MM-DD"
 }
 
-// Keywords to search for (case-insensitive)
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
 export default function BirthdayIndicator({ date }: Props) {
-  // Fetch events for the month containing this date
   const dateObj = useMemo(() => new Date(date? date + "T00:00:00" : getAppDate() + "T00:00:00"), [date]);
   
   const monthStart = useMemo(() => 
@@ -28,13 +25,10 @@ export default function BirthdayIndicator({ date }: Props) {
   
   const { events, loading } = useEvents(monthStart, monthEnd);
 
-  // Filter and memoize special events
   const specialEvents = useMemo(() => {
     return events.filter((event) => {
-      // Check if event spans the selected date
       if (!eventSpansDate(event, dateObj)) return false;
 
-      // Check if title or description contains any special keyword
       const searchText = `${event.title} ${event.description}`.toLowerCase();
       return SPECIAL_KEYWORDS.some(keyword => searchText.includes(keyword));
     });
@@ -47,10 +41,11 @@ export default function BirthdayIndicator({ date }: Props) {
       {specialEvents.map((event) => (
         <span
           key={event.id}
-          className="text-red-700 text-[11px] sm:text-sm text-right flex items-center no-wrap justify-start"
+          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-[11px] text-right flex items-center justify-start uppercase tracking-wider bg-red-50 dark:bg-red-900/20 px-1 py-0.5 rounded border border-red-100 dark:border-red-900/50"
           title={event.description || event.title}
         >
-        <Cake className="w-3 h-3 mr-1"/> {event.title}
+          <Cake className="w-3 h-3 mr-1 shrink-0" /> 
+          <span className="truncate">{event.title}</span>
         </span>
       ))}
     </div>

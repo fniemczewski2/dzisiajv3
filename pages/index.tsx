@@ -28,7 +28,7 @@ import DailySpendingForm from "../components/bills/DailySpendingForm";
 
 // Import separated components
 import { StaticTaskItem } from "../components/dashboard/StaticTaskItem";
-import DraggableTask from "../components/eisenhower/DraggableTask";
+import DraggableTask from "../components/dashboard/DraggableTask";
 import { DroppableHourSlot } from "../components/dashboard/DroppableHourSlot";
 import { PlanItem } from "../components/dashboard/PlanItem";
 import TransportWidget from "../components/transport/TransportWidget";
@@ -205,7 +205,7 @@ export default function DashboardPage() {
             id: `schema-${idx}`,
             title: entry.label,
             type: 'schema',
-            color: 'bg-gray-100 text-gray-600 border-gray-200'
+            color: 'bg-card text-textSecondary border-gray-200'
           });
         }
       });
@@ -376,11 +376,11 @@ export default function DashboardPage() {
 
 
               <h2 className="text-xl font-semibold my-4 flex items-center gap-2">
-                <Calendar className="text-gray-700" /> Twój Plan Dnia
+                <Calendar className="text-textSecondary" /> Twój Plan Dnia
               </h2>
               
               <div className="relative">
-                <div className="absolute left-[1.65rem] top-4 bottom-4 w-0.5 bg-gray-100 z-0"></div>
+                <div className="absolute left-[1.65rem] top-4 bottom-4 w-0.5 bg-card z-0"></div>
                 <div className="space-y-0 relative z-10">
                   {HOURS.map((h) => {
                     const timeKey = `${String(h).padStart(2, '0')}:00`;

@@ -70,66 +70,57 @@ export default function NoteForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 bg-card p-4 rounded-xl shadow max-w-lg"
-    >
+    <form onSubmit={handleSubmit} className="form-card max-w-lg">
       <div>
-        <label className="block text-sm font-medium" htmlFor="title">
-          Tytuł:
-        </label>
+        <label className="form-label" htmlFor="title">Tytuł:</label>
         <input
           id="title"
           ref={titleRef}
           type="text"
           placeholder="Tytuł notatki"
-          className="w-full p-2 border rounded"
+          className="input-field font-semibold"
           required
           disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="desc">
-          Treść:
-        </label>
+        <label className="form-label" htmlFor="desc">Treść:</label>
         <textarea
           id="desc"
           ref={itemsRef}
           placeholder="Pozycje listy (jeden element na linię)"
-          className="w-full p-2 border rounded h-24"
+          className="input-field min-h-[120px]"
           required
           disabled={loading}
         />
       </div>
 
-      <div className="flex gap-2 items-center">
-        <span className="block text-sm font-medium">Kolor:</span>
-        {tailwindColors.map((color) => (
-          <button
-            key={color}
-            type="button"
-            onClick={() => setBgColor(color)}
-            aria-label={`Wybierz kolor ${color}`}
-            disabled={loading}
-            className={clsx(
-              "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed",
-              bgColor === color
-                ? "border-secondary ring-secondary"
-                : "border-transparent hover:border-gray-400",
-              COLOR_MAP[color]
-            )}
-          />
-        ))}
+      <div className="flex gap-3 items-center py-1">
+        <span className="form-label mb-0">Kolor:</span>
+        <div className="flex gap-2">
+          {tailwindColors.map((color) => (
+            <button
+              key={color}
+              type="button"
+              onClick={() => setBgColor(color)}
+              aria-label={`Wybierz kolor ${color}`}
+              disabled={loading}
+              className={clsx(
+                "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm",
+                bgColor === color
+                  ? "border-primary ring-2 ring-primary ring-offset-2 dark:ring-offset-card"
+                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
+                COLOR_MAP[color]
+              )}
+            /> 
+          ))}
+        </div>
       </div>
 
-      <div className="flex space-x-2 items-center">
+      <div className="flex space-x-2 items-center pt-2">
         <AddButton loading={loading} />
-
-        {typeof onCancel === "function" && (
-          <CancelButton onCancel={onCancel} loading={loading} />
-        )}
-
+        {typeof onCancel === "function" && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

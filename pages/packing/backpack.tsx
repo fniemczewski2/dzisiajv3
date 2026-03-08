@@ -43,7 +43,7 @@ export default function BackpackPage() {
                   <li
                     key={item}
                     className={`flex items-center ${
-                      checked[item] ? "line-through text-gray-600" : ""
+                      checked[item] ? "line-through text-textSecondary" : ""
                     }`}
                   >
                     <input

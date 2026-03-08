@@ -42,18 +42,18 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-card">
           <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Coś poszło nie tak
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-textSecondary mb-4">
               Przepraszamy, wystąpił nieoczekiwany błąd.
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details
-                className="text-left mb-4 p-3 bg-gray-100 rounded text-xs cursor-pointer"
+                className="text-left mb-4 p-3 bg-card rounded text-xs cursor-pointer"
                 open={this.state.showDetails}
               >
                 <summary
@@ -71,7 +71,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   Szczegóły błędu
                 </summary>
                 {this.state.showDetails && (
-                  <pre className="whitespace-pre-wrap overflow-auto mt-2 text-gray-700">
+                  <pre className="whitespace-pre-wrap overflow-auto mt-2 text-textMuted">
                     {this.state.error.toString()}
                     {'\n\n'}
                     {this.state.error.stack}

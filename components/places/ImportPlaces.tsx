@@ -1,14 +1,9 @@
-// components/Places/ImportPlaces.tsx
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import React, { useState } from "react";
 import { CancelButton } from "../CommonButtons";
 
 interface ImportPlacesProps {
-  onImport: (
-    jsonData: any,
-    fetchGoogleData: boolean,
-    autoTag: boolean
-  ) => Promise<number>;
+  onImport: (jsonData: any, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;
   onCollapse: () => void;
 }
 
@@ -37,7 +32,6 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
         throw new Error("Nieprawidłowy format pliku JSON");
       }
 
-      // Show progress
       setImportStatus({
         type: "info",
         message: `Importowanie ${jsonData.features.length} miejsc...`,
@@ -47,14 +41,11 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
 
       setImportStatus({
         type: "success",
-        message: `Pomyślnie zaimportowano ${count} miejsc${
-          fetchGoogleData ? " z danymi Google" : ""
-        }${autoTagEnabled ? " z automatycznymi tagami" : ""}`,
+        message: `Pomyślnie zaimportowano ${count} miejsc.`,
       });
 
       e.target.value = "";
     } catch (error: any) {
-      console.error("Import error:", error);
       setImportStatus({
         type: "error",
         message: error.message || "Błąd podczas importu",
@@ -65,149 +56,131 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
   };
 
   return (
-    <div className="space-y-4 mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-      {/* Header with collapse button */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-md font-semibold text-gray-900">
-          Import pliku
-        </h3>
+    <div className="mb-6 p-4 sm:p-6 bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4">
+      <h3 className="text-lg font-bold text-text mb-4">Importuj z Google Maps</h3>
 
-      </div>
+      <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-xl mb-5 overflow-hidden">
+        <button
+          onClick={() => setShowInstructions(!showInstructions)}
+          className="w-full flex items-center justify-between p-4 hover:bg-surfaceHover transition-colors"
+        >
+          <div className="flex items-center gap-3 text-text">
+            <Info className="w-5 h-5 text-primary" />
+            <span className="font-bold">Skąd wziąć plik JSON?</span>
+          </div>
+          <div className="text-textMuted">
+            {showInstructions ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </div>
+        </button>
 
-      <div className="p-4 shadow-sm bg-white border-2 border-gray-200 rounded-lg">
-      <button
-        onClick={() => setShowInstructions(!showInstructions)}
-        className="w-full flex items-center justify-between transition"
-      >
-        <div className="flex items-center gap-3">
-          <Info className="w-5 h-5" />
-          <span className="font-semibold font-sm w-full">
-            Skąd wziąć plik JSON?
-          </span>
-        </div>
-        {showInstructions ? (
-          <ChevronUp className="w-5 h-5" />
-        ) : (
-          <ChevronDown className="w-5 h-5" />
+        {showInstructions && (
+          <div className="p-4 pt-0 border-t border-gray-100 dark:border-gray-800 bg-surface/50">
+            <ol className="space-y-3 text-sm text-textSecondary mt-3 font-medium">
+              <li className="flex gap-2 items-start">
+                <span className="font-bold text-primary">1.</span>
+                <span>
+                  Wejdź na stronę{' '}
+                  <a href="https://takeout.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                    Google Takeout <ExternalLink className="w-3 h-3" />
+                  </a>
+                </span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="font-bold text-primary">2.</span>
+                <span>Odznacz wszystko i wybierz tylko <strong>Mapy (Twoje miejsca)</strong></span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="font-bold text-primary">3.</span>
+                <span>Kliknij <strong>Następny krok</strong>, a potem <strong>Utwórz eksport</strong></span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="font-bold text-primary">4.</span>
+                <span>Pobierz paczkę ZIP z maila i wypakuj z niej plik JSON</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="font-bold text-primary">5.</span>
+                <span>Prześlij wypakowany plik w formularzu poniżej</span>
+              </li>
+            </ol>
+          </div>
         )}
-      </button>
-
-      {/* Instructions content */}
-      {showInstructions && (
-          <ol className="mt-4 space-y-3 text-sm text-gray-700">
-            <li className="flex gap-3">
-                <p className="font-medium flex items-center">1. Wejdź na&nbsp;
-                <a
-                  href="https://takeout.google.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:text-secondary underline flex items-center gap-1"
-                >
-                  Google Takeout
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-                </p>
-            </li>
-
-            <li className="flex gap-3">
-                <p className="font-medium flex items-center">2. Wybierz tylko&nbsp;<p className="italic">Mapy (Twoje miejsca)</p></p>
-            </li>
-
-            <li className="flex gap-3">
-                <p className="font-medium flex items-center">3. Kliknij&nbsp;<p className="italic">Następny krok</p>&nbsp;i&nbsp;<p className="italic">Utwórz eksport</p></p>
-            </li>
-
-            <li className="flex gap-3">
-                <p className="font-medium flex items-center">4. Pobierz archiwum z maila i wypakuj</p>
-            </li>
-
-            <li className="flex gap-3">
-                <p className="font-medium">5. Prześlij plik</p>
-            </li>
-          </ol>
-      )}
       </div>
 
-      {/* Options checkboxes */}
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-gray-700">Opcje importu:</p>
+      <div className="space-y-3 mb-6">
+        <p className="text-xs font-bold text-textMuted uppercase tracking-wider">Opcje skanowania:</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <label className="flex items-center gap-3 p-4 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 transition-all">
+          <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
+            fetchGoogleData ? "border-primary bg-primary/5" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+          }`}>
             <input
               type="checkbox"
               checked={fetchGoogleData}
               onChange={(e) => setFetchGoogleData(e.target.checked)}
-              className="w-5 h-5 text-primary focus:ring-primary rounded"
+              className="w-5 h-5 text-primary rounded accent-primary bg-card"
               disabled={isImporting}
             />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium text-gray-900">
+            <div>
+              <div className="flex items-center gap-2 font-bold text-text text-sm">
                 <MapPin className="w-4 h-4 text-primary" />
-                Dane z Google Places
+                Dociągnij dane (Google Places)
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Pobierz telefon, stronę, godziny otwarcia
-              </p>
+              <p className="text-xs text-textMuted mt-0.5">Pobiera telefon, WWW i godziny otwarcia.</p>
             </div>
           </label>
 
-          <label className="flex items-center gap-3 p-4 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 transition-all">
+          <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
+            autoTagEnabled ? "border-primary bg-primary/5" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+          }`}>
             <input
               type="checkbox"
               checked={autoTagEnabled}
               onChange={(e) => setAutoTagEnabled(e.target.checked)}
-              className="w-5 h-5 text-primary focus:ring-primary rounded"
+              className="w-5 h-5 text-primary rounded accent-primary bg-card"
               disabled={isImporting}
             />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium text-gray-900">
+            <div>
+              <div className="flex items-center gap-2 font-bold text-text text-sm">
                 <Tag className="w-4 h-4 text-primary" />
-                Automatyczne tagi
+                Sztuczna Inteligencja
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Rozpoznaj typ miejsca, ceny, atmosferę 
-              </p>
+              <p className="text-xs text-textMuted mt-0.5">Generuje tagi określające styl miejsca (kawiarnia, park itp.)</p>
             </div>
           </label>
         </div>
       </div>
 
-      {/* File upload button */}
-      <div className="flex gap-3">
-        <label
-          htmlFor="file-upload"
-          className={`px-3 py-1 flex rounded-lg flex-nowrap items-center transition disabled:opacity-50 ${
-            isImporting
-              ? "bg-gray-300 cursor-not-allowed text-gray-600"
-              : "bg-primary hover:bg-secondary text-white "
-          }`}
-        >
+      {importStatus.type && (
+        <div className={`p-4 mb-5 rounded-xl text-sm font-bold flex items-center justify-center ${
+          importStatus.type === "success" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+          importStatus.type === "error" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
+          "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+        }`}>
+          {importStatus.message}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-3">
+        <label className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm ${
+          isImporting ? "bg-surface text-textMuted cursor-not-allowed border border-gray-200 dark:border-gray-700" : "bg-primary hover:bg-secondary text-white cursor-pointer"
+        }`}>
           {isImporting ? (
             <>
-              Importowanie...&nbsp;
-              <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+              Przetwarzanie... <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
             </>
           ) : (
-            <>
-              
-              Prześlij&nbsp;
-              <Upload className="w-5 h-5" />
-
-            </>
+            <>Wgraj plik JSON <Upload className="w-5 h-5" /></>
           )}
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleFileUpload}
+            disabled={isImporting}
+            className="hidden"
+          />
         </label>
-        <input
-          id="file-upload"
-          type="file"
-          accept=".json"
-          onChange={handleFileUpload}
-          disabled={isImporting}
-          className="hidden"
-        />
-        <CancelButton
-          onCancel={onCollapse}     
-        />
+        
+        <CancelButton onCancel={onCollapse} />
       </div>
     </div>
   );

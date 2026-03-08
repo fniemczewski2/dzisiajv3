@@ -7,7 +7,6 @@ export default function InstallPromptButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -20,11 +19,9 @@ export default function InstallPromptButton() {
 
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
-    const standalone =
-      "standalone" in navigator && (navigator as any).standalone;
+    const standalone = "standalone" in navigator && (navigator as any).standalone;
 
     setIsIOS(ios);
-    setIsStandalone(standalone);
 
     if (ios && !standalone) {
       setShowInstallButton(true);
@@ -53,15 +50,15 @@ export default function InstallPromptButton() {
     }
   };
 
-  if (!showInstallButton) return null;
+  if (showInstallButton) return null;
 
   return (
     <button
       onClick={handleInstall}
-      className="px-3 py-1.5 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+      className="px-4 py-2 flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white font-bold rounded-xl shadow-sm hover:shadow transition-all w-fit sm:w-auto"
     >
-      Zainstaluj&nbsp;
-    <Download className="w-5 h-5" />
+      <span>Zainstaluj</span>
+      <Download className="w-5 h-5" />
     </button>
   );
 }

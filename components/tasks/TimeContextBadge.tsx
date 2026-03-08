@@ -1,4 +1,3 @@
-// components/tasks/TimeContextBadge.tsx
 import { getTimeContext } from '../../lib/timeContext';
 
 interface TimeContextBadgeProps {
@@ -18,10 +17,11 @@ export default function TimeContextBadge({
 }: TimeContextBadgeProps) {
   const context = getTimeContext(dueDate, isDone);
   const Icon = context.icon;
+  
   return (
     <div
       className={`
-        inline-flex items-center gap-1.5 rounded-lg font-medium
+        inline-flex items-center justify-center gap-1.5 rounded-md font-medium shadow-sm transition-colors
         ${context.color}
         ${context.shouldPulse ? 'animate-pulse' : ''}
         ${small ? 'text-xs px-2 py-1 h-[24px]' : 'text-sm px-3 py-1.5'}
@@ -29,13 +29,13 @@ export default function TimeContextBadge({
       `}
     >
       {showIcon && (
-        <span className="text-base" role="img" aria-label="status">
-          <Icon className={`${small ? 'w-3 h-3' : 'w-5 h-5'}`}/>
+        <span className="text-base flex items-center justify-center" role="img" aria-label="status">
+          <Icon className={`${small ? 'w-3 h-3' : 'w-4 h-4'}`}/>
         </span>
       )}
       <span>{context.display}</span>
       {context.shouldPulse && (
-        <span className="relative flex h-2 w-2">
+        <span className="relative flex h-2 w-2 ml-1">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
         </span>

@@ -1,5 +1,4 @@
-// components/budget/BudgetControls.tsx
-import { Edit2, Save, X, Loader2 } from "lucide-react";
+import { Edit2, Save, X } from "lucide-react";
 import LoadingState from "../LoadingState";
 
 interface Props {
@@ -18,38 +17,35 @@ export default function BudgetControls({
   onEdit,
 }: Props) {
   return (
-    <h3 className="font-bold w-fit mb-2 flex justify-between items-center">
-      Liczba godzin pracy
+    <h3 className="font-bold mb-2 text-text flex justify-between items-center gap-4">
+      <span>Liczba godzin pracy</span>
+      
       {isEditing ? (
-        <div>
+        <div className="flex items-center gap-2">
           <button
             onClick={onSave}
             disabled={saving}
-            className="ml-2 p-2 bg-primary rounded-lg hover:bg-secondary text-white disabled:opacity-50"
-            title="zapisz"
+            className="p-2 bg-primary rounded-lg hover:bg-secondary text-white transition-colors disabled:opacity-50 flex items-center justify-center"
+            title="Zapisz"
           >
-            {saving ? (
-              <LoadingState/>
-            ) : (
-              <Save className="w-5 h-5" />
-            )}
+            {saving ? <LoadingState /> : <Save className="w-4 h-4" />}
           </button>
           <button
             onClick={onCancel}
             disabled={saving}
-            className="ml-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-            title="zamknij"
+            className="p-2 bg-surface text-textSecondary hover:bg-surfaceHover rounded-lg transition-colors disabled:opacity-50"
+            title="Anuluj"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       ) : (
         <button
           onClick={onEdit}
-          className="ml-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-          title="edytuj"
+          className="p-2 bg-surface text-textSecondary hover:text-primary hover:bg-surfaceHover rounded-lg transition-colors"
+          title="Edytuj stawki"
         >
-          <Edit2 className="w-5 h-5" />
+          <Edit2 className="w-4 h-4" />
         </button>
       )}
     </h3>

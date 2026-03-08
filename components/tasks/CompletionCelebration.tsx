@@ -1,4 +1,3 @@
-// components/tasks/CompletionCelebration.tsx
 import { useEffect, useState } from 'react';
 import { Award } from 'lucide-react';
 
@@ -36,13 +35,12 @@ export default function CompletionCelebration({ show, taskTitle, priority }: Com
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
-      
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
       {/* CONFETTI */}
       {confetti.map((p) => (
         <div
           key={p.id}
-          className="absolute top-0 w-3 h-3 animate-confetti"
+          className="absolute top-0 w-3 h-3 animate-confetti rounded-sm"
           style={{
             left: `${p.left}%`,
             animationDelay: `${p.delay}s`,
@@ -52,14 +50,13 @@ export default function CompletionCelebration({ show, taskTitle, priority }: Com
       ))}
 
       {/* CARD */}
-      <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-scaleIn">
+      <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-scaleIn border border-green-400/30">
         <div className="text-center text-white">
           <div className="mb-4 flex justify-center">
-            <Award className="w-20 h-20 animate-bounce" />
+            <Award className="w-20 h-20 animate-bounce drop-shadow-md" />
           </div>
-
           <h2 className="text-3xl font-bold mb-2 animate-pulse">Dobra robota!</h2>
-          <p className="text-lg opacity-90">{taskTitle}</p>
+          <p className="text-lg opacity-90 font-medium">{taskTitle}</p>
         </div>
       </div>
     </div>
@@ -73,7 +70,6 @@ function randomColor() {
 
 function playCompletionSound(priority: number) {
   if (typeof window === 'undefined' || !window.AudioContext) return;
-
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const now = audioContext.currentTime;
@@ -84,7 +80,7 @@ function playCompletionSound(priority: number) {
       ? [440, 554.37, 659.25]    // A major
       : [392, 493.88, 587.33];   // G major
 
-    const duration = 0.6; // longer for a pleasing decay
+    const duration = 0.6; 
     const gainValue = 0.25;
 
     notes.forEach((frequency, index) => {
@@ -93,7 +89,7 @@ function playCompletionSound(priority: number) {
       const gainNode = audioContext.createGain();
 
       osc1.frequency.value = frequency;
-      osc2.frequency.value = frequency * 1.01; // +1% detune
+      osc2.frequency.value = frequency * 1.01; 
       osc1.type = 'sine';
       osc2.type = 'triangle';
 
@@ -101,10 +97,10 @@ function playCompletionSound(priority: number) {
       osc2.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      const startTime = now + index * 0.08; // stagger slightly for arpeggio feel
+      const startTime = now + index * 0.08; 
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(gainValue, startTime + 0.02); // attack
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // decay
+      gainNode.gain.linearRampToValueAtTime(gainValue, startTime + 0.02); 
+      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
       osc1.start(startTime);
       osc2.start(startTime);

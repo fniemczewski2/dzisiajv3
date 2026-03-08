@@ -1,15 +1,8 @@
-// components/tasks/TaskIcons.tsx
 "use client";
 
 import {
-  Pill,
-  Bath,
-  Dumbbell,
-  Users,
-  Briefcase,
-  Home,
-  Leaf,
-  Languages,
+  Pill, Bath, Dumbbell, Users,
+  Briefcase, Home, Leaf, Languages,
 } from "lucide-react";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
 import LoadingState from "../LoadingState";
@@ -33,29 +26,32 @@ interface TaskIconsProps {
 export default function TaskIcons({ date }: TaskIconsProps) {
   const { habits, loading, toggleHabit } = useDailyHabits(date);
 
-  if (!habits) {
-    return (
-      <LoadingState/>
-    );
-  }
+  if (!habits) return <LoadingState />;
 
   return (
-    <div className="grid grid-cols-8 gap-2 mb-2">
-      {items.map(({ key, Icon }) => (
-        <button
-          key={key}
-          title={key}
-          disabled={loading}
-          onClick={() => toggleHabit(key)}
-          className={`
-            p-1.5 bg-card rounded-xl shadow sm:p-3 border text-center
-            ${habits[key] ? "bg-green-200" : ""}
-            ${loading ? "opacity-50 cursor-not-allowed" : ""}
-          `}
-        >
-          <Icon className="w-4 h-4 sm:w-6 sm:h-6 mx-auto" />
-        </button>
-      ))}
+    <div className="grid grid-cols-8 gap-1 sm:gap-2 mb-4">
+      {items.map(({ key, Icon }) => {
+        const isActive = habits[key];
+        
+        return (
+          <button
+            key={key}
+            title={key}
+            disabled={loading}
+            onClick={() => toggleHabit(key)}
+            className={`
+              p-2 sm:p-3 rounded-xl border transition-colors flex justify-center items-center
+              ${isActive 
+                ? "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 shadow-sm" 
+                : "bg-card border-gray-200 dark:border-gray-700 text-textSecondary hover:bg-surface hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"
+              }
+              ${loading ? "opacity-50 cursor-not-allowed" : ""}
+            `}
+          >
+            <Icon className="w-4 h-4 sm:w-6 sm:h-6" />
+          </button>
+        );
+      })}
     </div>
   );
 }

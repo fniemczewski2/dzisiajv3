@@ -59,28 +59,19 @@ export default function PlacesPage() {
       
       if (timeFilter && place.opening_hours) {
         const dayNames = [
-          "monday",      
-          "tuesday",    
-          "wednesday",   
-          "thursday",    
-          "friday",     
-          "saturday", 
-          "sunday" 
+          "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" 
         ];
         
         const dayName = dayNames[timeFilter.day];
         const hours = place.opening_hours[dayName];
 
-        if (!hours || !Array.isArray(hours) || hours.length === 0) {
-          return false;
-        }
+        if (!hours || !Array.isArray(hours) || hours.length === 0) return false;
 
         const hoursStr = hours[0];
         const match = hoursStr.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
         if (!match) return false;
 
         const [, openTime, closeTime] = match;
-
         const requestStart = timeFilter.startTime;
         const requestEnd = timeFilter.endTime;
 
@@ -140,14 +131,14 @@ export default function PlacesPage() {
         description="Zarządzaj swoimi ulubionymi miejscami z Google Maps"
       />
       
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Miejsca</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-text">Miejsca</h2>
         {!showImport && (
           <button
             onClick={() => setShowImport(true)}
-            className="px-3 py-1 bg-primary hover:bg-secondary text-white rounded-lg flex flex-nowrap items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-xl flex items-center gap-2 transition-colors shadow-sm"
           >
-            Importuj&nbsp;
+            Importuj 
             <Upload className="w-5 h-5" />
           </button>
         )}
@@ -172,8 +163,8 @@ export default function PlacesPage() {
         viewMode={viewMode}
       />
 
-      <div className="mb-4 text-sm text-gray-600">
-        Znaleziono: {filteredPlaces.length} / {places.length} miejsc
+      <div className="mb-4 text-xs font-semibold uppercase tracking-wider text-textMuted">
+        Wyświetlam: {filteredPlaces.length} z {places.length}
       </div>
 
       {viewMode === "list" ? (

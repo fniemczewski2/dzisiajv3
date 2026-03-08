@@ -53,10 +53,10 @@ export default function Home() {
           <main id="main-content" className="max-w-4xl mx-auto">
             {/* Hero Section */}
             <section className="text-center sm:py-12 px-4 line-">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 leading-snug">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-text leading-snug">
                 Organizuj swój&nbsp;dzień z&nbsp;<span className="text-primary leading-snug">Dzisiaj&nbsp;v3</span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              <p className="text-xl text-textMuted mb-8 max-w-2xl mx-auto">
                 Kompleksowa aplikacja do&nbsp;zarządzania czasem, zadaniami i&nbsp;produktywnością.
                 Wszystko czego potrzebujesz w&nbsp;jednym miejscu.
               </p>
@@ -84,13 +84,13 @@ export default function Home() {
                       return (
                         <article
                           key={feature.title}
-                          className="bg-white p-6 m-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                          className="bg-card p-6 m-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
                         >
                           <div className="text-4xl mb-4">
                             <IconComponent />
                           </div>
                           <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                          <p className="text-gray-600">{feature.description}</p>
+                          <p className="text-textMuted">{feature.description}</p>
                         </article>
                       );
                     })}

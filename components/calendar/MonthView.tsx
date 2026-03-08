@@ -156,10 +156,10 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
   }, [weeks, events]);
 
   return (
-    <div className="space-y-1">
-      <div className="grid grid-cols-7 text-center font-medium">
+    <div className="space-y-1 sm:space-y-2">
+      <div className="grid grid-cols-7 text-center font-bold text-xs sm:text-sm text-textMuted uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
         {weekdayNamesPL.map((d) => (
-          <div key={d} className="py-2">
+          <div key={d} className="py-1">
             {d}
           </div>
         ))}
@@ -167,7 +167,7 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
 
       {weekData.map(({ week, limitedEvents, overflowCounts }, wIdx) => (
         <div key={wIdx} className="relative">
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {week.map((day, dayIdx) => {
               const dateStr = format(day, "yyyy-MM-dd");
               return (
@@ -184,11 +184,12 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
             })}
           </div>
 
-          <div className="absolute top-[32px] left-0 right-0 h-[54px] sm:h-[60px] grid grid-cols-7 grid-rows-3 gap-1 pointer-events-none">
+          {/* Dymki wydarzeń przeciągające się przez kilka komórek */}
+          <div className="absolute top-[32px] sm:top-[38px] left-0 right-0 h-[54px] sm:h-[60px] grid grid-cols-7 grid-rows-3 gap-1 sm:gap-2 pointer-events-none">
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={event.id + start.toISOString()}
-                className="bg-blue-200 text-[11px] sm:text-xs rounded-sm truncate h-[16px] sm:h-[18px] opacity-75 px-1"
+                className="bg-primary  text-text text-[10px] sm:text-xs tracking-wider rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
                 style={{
                   gridColumnStart: col + 1,
                   gridColumnEnd: `span ${span}`,

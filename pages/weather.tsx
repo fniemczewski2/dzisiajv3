@@ -12,7 +12,6 @@ import {
   CloudSnow,
   CloudRain,
   CloudLightning,
-  Loader2,
   Gauge,
   Droplet,
   ThermometerSnowflake,
@@ -25,23 +24,23 @@ import { getAppDateTime } from "../lib/dateUtils";
 import LoadingState from "../components/LoadingState";
 
 function WeatherIcon({ code }: { code: number }) {
-  if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500" />;
-  if (code === 2) return <CloudSun className="w-10 h-10 text-yellow-500" />;
-  if (code <= 3) return <Cloud className="w-10 h-10 text-gray-500" />;
-  if (code <= 48) return <CloudFog className="w-10 h-10 text-gray-500" />;
-  if (code <= 67) return <CloudDrizzle className="w-10 h-10 text-blue-400" />;
-  if (code <= 77) return <CloudSnow className="w-10 h-10 text-blue-300" />;
-  if (code <= 82) return <CloudRain className="w-10 h-10 text-primary" />;
-  if (code <= 86) return <CloudSnow className="w-10 h-10 text-blue-300" />;
-  return <CloudLightning className="w-10 h-10 text-yellow-600" />;
+  if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
+  if (code === 2) return <CloudSun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
+  if (code <= 3) return <Cloud className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
+  if (code <= 48) return <CloudFog className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
+  if (code <= 67) return <CloudDrizzle className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
+  if (code <= 77) return <CloudSnow className="w-10 h-10 text-blue-300 drop-shadow-sm" />;
+  if (code <= 82) return <CloudRain className="w-10 h-10 text-primary drop-shadow-sm" />;
+  if (code <= 86) return <CloudSnow className="w-10 h-10 text-blue-300 drop-shadow-sm" />;
+  return <CloudLightning className="w-10 h-10 text-yellow-500 dark:text-yellow-400 drop-shadow-sm" />;
 }
 
 function airQualityColor(value: number): string {
-  if (value <= 20) return "text-green-600";
-  if (value <= 35) return "text-green-400";
-  if (value <= 50) return "text-yellow-500";
-  if (value <= 100) return "text-orange-500";
-  return "text-red-600";
+  if (value <= 20) return "text-green-600 dark:text-green-400";
+  if (value <= 35) return "text-green-500";
+  if (value <= 50) return "text-yellow-500 dark:text-yellow-400";
+  if (value <= 100) return "text-orange-500 dark:text-orange-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 function evaluateBiomet(forecast: any) {
@@ -51,7 +50,7 @@ function evaluateBiomet(forecast: any) {
   const w = forecast?.hourly.windspeed_10m?.[0];
 
   if (t == null || p == null || h == null || w == null) {
-    return { label: "Brak danych", color: "text-gray-400" };
+    return { label: "Brak danych", color: "text-textMuted" };
   }
 
   let score = 100;
@@ -70,9 +69,9 @@ function evaluateBiomet(forecast: any) {
   if (score > 100) score = 100;
   if (score < 0) score = 0;
 
-  if (score >= 75) return { label: "Korzystny", color: "text-green-600" };
-  if (score >= 50) return { label: "Umiarkowany", color: "text-yellow-600" };
-  return { label: "Niekorzystny", color: "text-red-600" };
+  if (score >= 75) return { label: "Korzystny", color: "text-green-600 dark:text-green-400" };
+  if (score >= 50) return { label: "Umiarkowany", color: "text-yellow-600 dark:text-yellow-400" };
+  return { label: "Niekorzystny", color: "text-red-600 dark:text-red-400" };
 }
 
 
@@ -141,63 +140,59 @@ export default function WeatherPage() {
         <title>Pogoda – Dzisiaj</title>
       </Head>
       <Layout>
-        <h2 className="text-xl mb-4 font-semibold">Pogoda</h2>
+        <h2 className="text-xl mb-4 font-semibold text-text">Pogoda</h2>
 
         {loading ? (
             <LoadingState />
         ) : error ? (
-          <p className="text-red-600 text-center">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>
         ) : forecast && air ? (
           <>
-             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-              <ThermometerSnowflake className="w-5 h-5 text-blue-600" />
-              <span className="text-base font-medium">
-                Min&nbsp;
-                <span className="font-semibold">
-                  {forecast.daily.temperature_2m_min?.[0]?.toFixed(1) ?? "-"}°C
+            {/* Główne kafelki (Oryginalny, kompaktowy p-3) */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <ThermometerSnowflake className="w-5 h-5 text-blue-500" />
+                <span className="text-base font-medium text-text">
+                  Min&nbsp;
+                  <span className="font-semibold">
+                    {forecast.daily.temperature_2m_min?.[0]?.toFixed(1) ?? "-"}°C
+                  </span>
                 </span>
-              </span>
-            </div>
+              </div>
 
-            <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-              <ThermometerSun className="w-5 h-5 text-red-500" />
-              <span className="text-base font-medium">
-                Max&nbsp;
-                <span className="font-semibold">
-                  {forecast.daily.temperature_2m_max?.[0]?.toFixed(1) ?? "-"}°C
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <ThermometerSun className="w-5 h-5 text-red-500" />
+                <span className="text-base font-medium text-text">
+                  Max&nbsp;
+                  <span className="font-semibold">
+                    {forecast.daily.temperature_2m_max?.[0]?.toFixed(1) ?? "-"}°C
+                  </span>
                 </span>
-              </span>
-            </div>
-           
-              
+              </div>
 
-              <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-                <CloudRain className="w-5 h-5 text-blue-600" />
-                 <div className="flex flex-col">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <CloudRain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                 <div className="flex flex-col text-text">
                   <span className="font-medium">Opady</span>
                   <span className="text-sm">
                     {forecast.daily.precipitation_sum?.[0]?.toFixed(1) ?? "0"} mm
                   </span>
-
                 </div>
               </div>
 
-              <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-              <Wind className="w-5 h-5 text-sky-500 rotate-[calc(${forecast.hourly.winddirection_10m?.[0] ?? 0}deg)]" />
-              <div className="flex flex-col">
-                <span className="font-medium">Wiatr</span>
-                <span className="text-sm">
-                 {forecast.hourly.windspeed_10m?.[0]
-                  ? `${forecast.hourly.windspeed_10m[0]} km/h`
-                  : "-"}
-                </span>
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <Wind className="w-5 h-5 text-sky-500" style={{ transform: `rotate(${forecast.hourly.winddirection_10m?.[0] ?? 0}deg)` }} />
+                <div className="flex flex-col text-text">
+                  <span className="font-medium">Wiatr</span>
+                  <span className="text-sm">
+                   {forecast.hourly.windspeed_10m?.[0] ? `${forecast.hourly.windspeed_10m[0]} km/h` : "-"}
+                  </span>
+                </div>
               </div>
-            </div>
 
-              <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
                 <Cloud className={`w-5 h-5 ${airQualityColor(air.hourly.pm10?.[0] ?? 0)}`} />
-                <div className="flex flex-col">
+                <div className="flex flex-col text-text">
                   <span className="font-medium">PM10</span>
                   <span className="text-sm">
                     {air.hourly.pm10?.[0] ?? "-"} µg/m³
@@ -205,9 +200,9 @@ export default function WeatherPage() {
                 </div>
               </div>
 
-              <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
                 <Cloud className={`w-5 h-5 ${airQualityColor(air.hourly.pm2_5?.[0] ?? 0)}`} />
-                <div className="flex flex-col">
+                <div className="flex flex-col text-text">
                   <span className="font-medium">PM2.5</span>
                   <span className="text-sm">
                     {air.hourly.pm2_5?.[0] ?? "-"} µg/m³
@@ -215,105 +210,101 @@ export default function WeatherPage() {
                 </div>
               </div>
 
-              <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-                <Gauge className="w-5 h-5 text-blue-600" />
-                <div className="flex flex-col">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <Gauge className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="flex flex-col text-text">
                   <span className="font-medium">Ciśnienie</span>
                   <span className="text-sm">
-                    {forecast.hourly.pressure_msl?.[0]
-                      ? `${forecast.hourly.pressure_msl[0]} hPa`
-                      : "-"}
+                    {forecast.hourly.pressure_msl?.[0] ? `${forecast.hourly.pressure_msl[0]} hPa` : "-"}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-                <Droplet className="w-5 h-5 text-indigo-500" />
-                <div className="flex flex-col">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <Droplet className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+                <div className="flex flex-col text-text">
                   <span className="font-medium">Wilgotność</span>
                   <span className="text-sm">
-                    {forecast.hourly.relative_humidity_2m?.[0]
-                      ? `${forecast.hourly.relative_humidity_2m[0]}%`
-                      : "-"}
+                    {forecast.hourly.relative_humidity_2m?.[0] ? `${forecast.hourly.relative_humidity_2m[0]}%` : "-"}
                   </span>
                 </div>
               </div>
             
-
-            <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
                 <Sun className="w-5 h-5 text-yellow-500" />
-                <span className="text-base font-medium">
-                  UV max&nbsp;{forecast.daily.uv_index_max?.[0] ?? "-"}
-                </span>
+                <div className="flex flex-col text-text">
+                  <span className="font-medium">UV max</span>
+                  <span className="text-sm">{forecast.daily.uv_index_max?.[0] ?? "-"}</span>
+                </div>
               </div>
 
               {(() => {
                 const biomet = evaluateBiomet(forecast);
                 return (
-                  <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-                    
+                  <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
                     <Gauge className={`w-5 h-5 ${biomet.color}`} />
-                    <div className="flex flex-col">
-                    <span className="text-base font-medium">Biomet</span>
-                    <span className={`text-sm`}>{biomet.label}</span>
+                    <div className="flex flex-col text-text">
+                      <span className="text-base font-medium">Biomet</span>
+                      <span className={`text-sm ${biomet.color}`}>{biomet.label}</span>
                     </div>
                   </div>
                 );
               })()}
 
-            <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-              <Sunrise className="w-5 h-5 text-yellow-400" />
-               <div className="flex flex-col">
-              <span className="text-base font-medium">Wschód</span>
-                <span className="text-sm">
-                  {new Date(forecast.daily.sunrise?.[0]).toLocaleTimeString("pl-PL", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <Sunrise className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+                <div className="flex flex-col text-text">
+                  <span className="text-base font-medium">Wschód</span>
+                  <span className="text-sm">
+                    {new Date(forecast.daily.sunrise?.[0]).toLocaleTimeString("pl-PL", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-card border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow flex items-center space-x-3">
+                <Sunset className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+                <div className="flex flex-col text-text">
+                  <span className="text-base font-medium">Zachód</span>
+                  <span className="text-sm">
+                    {new Date(forecast.daily.sunset?.[0]).toLocaleTimeString("pl-PL", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div className="bg-white p-3 rounded-xl shadow-md flex items-center space-x-3">
-              <Sunset className="w-5 h-5 text-orange-500" />
-               <div className="flex flex-col">
-              <span className="text-base font-medium">Zachód</span>
-                <span className="text-sm">
-                  {new Date(forecast.daily.sunset?.[0]).toLocaleTimeString("pl-PL", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                </div>
-            </div>
-            </div>
             
-            <h3 className="text-lg font-semibold mb-2">Prognoza na kolejne 24h</h3>
-            <div className="overflow-x-auto bg-white rounded-xl shadow-md mb-6">
-              <table className="min-w-full text-sm table-auto">
-                <thead className="bg-white text-gray-700 font-semibold">
+            {/* PROGNOZA NA 24H (Tabela kompaktowa) */}
+            <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne 24h</h3>
+            <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl shadow-md mb-6">
+              <table className="min-w-full text-sm table-auto text-left">
+                <thead className="bg-surface text-textSecondary font-semibold border-b border-gray-200 dark:border-gray-700">
                   <tr>
-                    <th className="p-2 text-left">Godz</th>
-                    <th className="p-2 text-left">Temp.</th>
-                    <th className="p-2 text-left">Opady</th>
-                    <th className="p-2 text-left">Wiatr</th>
-                    <th className="p-2 text-left">UV</th>
+                    <th className="p-2">Godz</th>
+                    <th className="p-2">Temp.</th>
+                    <th className="p-2">Opady</th>
+                    <th className="p-2">Wiatr</th>
+                    <th className="p-2">UV</th>
                   </tr>
                 </thead>
-                <tbody className="text-gray-700">
+                <tbody className="text-textSecondary">
                   {(() => {
                     const now = getAppDateTime();
                     const currentISO = now.toISOString();
                     const start = forecast.hourly.time.findIndex((t: string) => t >= currentISO);
                     return forecast.hourly.time.slice(start, start + 24).map((time: string, i: number) => (
-                      <tr key={time} className={i % 2 === 0 ? "bg-gray-50" : ""}>
-                        <td className="px-2 py-2">
+                      <tr key={time} className={i % 2 === 0 ? "bg-card" : "bg-surface/40"}>
+                        <td className="px-2 py-2 text-text font-medium">
                           {new Date(time).toLocaleTimeString("pl-PL", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </td>
-                        <td className="px-2 py-2">{forecast.hourly.temperature_2m[start + i]}°C</td>
+                        <td className="px-2 py-2 text-text font-medium">{forecast.hourly.temperature_2m[start + i]}°C</td>
                         <td className="px-2 py-2">{forecast.hourly.precipitation[start + i]} mm</td>
                         <td className="px-2 py-2">{forecast.hourly.windspeed_10m[start + i]} km/h</td>
                         <td className="px-2 py-2">{forecast.hourly.uv_index[start + i]}</td>
@@ -324,25 +315,26 @@ export default function WeatherPage() {
               </table>
             </div>
 
-            <h3 className="text-lg font-semibold mb-2">Prognoza na kolejne dni</h3>
+            {/* PROGNOZA DŁUGOTERMINOWA (Oryginalny grid i odstępy) */}
+            <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne dni</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4 mb-6">
-              {forecast.daily.time.map((date: string, i: number) => (
-                <div key={date} className="bg-white p-4 rounded-xl text-center shadow">
-                  <p className="text-sm text-gray-600">
+              {forecast.daily.time.slice(1).map((date: string, i: number) => (
+                <div key={date} className="bg-card border border-gray-200 dark:border-gray-700 p-4 rounded-xl text-center shadow">
+                  <p className="text-sm text-textSecondary">
                     {new Date(date).toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
                   </p>
                   <div className="my-2 flex justify-center">
-                    <WeatherIcon code={forecast.daily.weathercode[i]} />
+                    <WeatherIcon code={forecast.daily.weathercode[i + 1]} />
                   </div>
-                  <p className="text-base font-semibold">
-                    {forecast.daily.temperature_2m_min[i]}° – {forecast.daily.temperature_2m_max[i]}°
+                  <p className="text-base font-semibold text-text">
+                    {forecast.daily.temperature_2m_min[i + 1]}° – {forecast.daily.temperature_2m_max[i + 1]}°
                   </p>
                 </div>
               ))}
             </div>
           </>
         ) : (
-          <p className="text-center">Brak danych pogodowych.</p>
+          <p className="text-center text-textMuted">Brak danych pogodowych.</p>
         )}
       </Layout>
     </>

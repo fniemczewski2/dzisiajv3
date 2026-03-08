@@ -1,6 +1,5 @@
-import { List, MapPin, Search } from "lucide-react";
+import { List, MapPin } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import ImportPlaces from "./ImportPlaces";
 import { usePlaces } from "../../hooks/usePlaces";
 import SearchBar from "../SearchBar";
 
@@ -22,15 +21,8 @@ interface PlaceFiltersProps {
   viewMode: "list" | "map";
 }
 
-
 const DAYS = [
-  "Poniedziałek",  
-  "Wtorek",  
-  "Środa",         
-  "Czwartek",    
-  "Piątek",    
-  "Sobota",      
-  "Niedziela"      
+  "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"       
 ];
 
 export default function PlaceFilters({
@@ -46,6 +38,7 @@ export default function PlaceFilters({
 }: PlaceFiltersProps) {
   const [showTimeFilter, setShowTimeFilter] = useState(false);
   const [showTagFilter, setShowTagFilter] = useState(false);
+  
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
       onTagsChange(selectedTags.filter((t) => t !== tag));
@@ -54,10 +47,7 @@ export default function PlaceFilters({
     }
   };
 
-  const handleTimeFilterChange = (
-    field: keyof TimeFilter,
-    value: string | number
-  ) => {
+  const handleTimeFilterChange = (field: keyof TimeFilter, value: string | number) => {
     const newFilter = timeFilter || { day: 0, startTime: "09:00", endTime: "17:00" };
     onTimeFilterChange({ ...newFilter, [field]: value });
   };
@@ -76,150 +66,130 @@ export default function PlaceFilters({
       .slice(0, 20);
   }, [places]);
 
-
   return (
-    <>
-      <div className="w-full flex flex-nowrap items-center space-x-2">
+    <div className="mb-6">
+      <div className="w-full flex flex-nowrap items-center gap-2">
          <SearchBar
-            value={searchQuery}
-            onChange={onSearchChange}
-            placeholder="Nazwa lub adres..."
-            suggestions={suggestions}
-            onSuggestionClick={onSearchChange}
-            className="flex-1"
-            storageKey="places-search"
-          />
-         {viewMode === "map" ? (
-              <button
-                onClick={() => setViewMode("list")}
-                className={"px-3 py-1.5 rounded-lg transition-colors bg-primary hover:bg-secondary border-transparent text-white flex items-center mt-0"}
-              >
-                Lista&nbsp;&nbsp;
-                <List/>
-              </button>
-            ) : (
-              <button
-                onClick={() => setViewMode("map")}
-                className={"px-3 py-1.5 rounded-lg transition-colors bg-primary hover:bg-secondary border-transparent text-white flex items-center mt-0"}
-              >
-                Mapa&nbsp;&nbsp;
-                <MapPin/>
-              </button>
-            )}     
-        </div>
+           value={searchQuery}
+           onChange={onSearchChange}
+           placeholder="Szukaj po nazwie lub adresie..."
+           suggestions={suggestions}
+           onSuggestionClick={onSearchChange}
+           className="flex-1"
+           storageKey="places-search"
+         />
+         <button
+           onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+           className="px-4 py-2 rounded-xl transition-colors bg-primary hover:bg-secondary text-white flex items-center justify-center gap-2 h-[42px] min-w-[90px] font-medium"
+         >
+           {viewMode === "map" ? (
+             <>Lista <List className="w-5 h-5"/></>
+           ) : (
+             <>Mapa <MapPin className="w-5 h-5"/></>
+           )}
+         </button>
+      </div>
       
-      <div className="mt-4">
-
-      {/* Tags */}
-      {availableTags.length > 0 && (
-        
-        <div className="mb-2">
-          <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tagi
-          </label>
-          <button
-            onClick={() => setShowTagFilter(!showTagFilter)}
-            className="text-sm text-primary hover:text-secondary hover:underline mb-2"
-          >
-            {showTagFilter ? "Ukryj" : "Pokaż"}
-          </button>
-          </div>
-          {showTagFilter && (
-          <div className="flex flex-wrap gap-2">
-            {availableTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                className={`
-                  px-3 py-1 rounded-full text-sm transition-colors
-                  ${
-                    selectedTags.includes(tag)
-                      ? "bg-primary text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }
-                `}
-              >
-                {tag}
-              </button>
-            ))}
-            </div>
-          )}
-          </div>
-      )}
-
-      {/* Time Filter */}
-      <div className="mb-2">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Godziny otwarcia
-          </label>
-          <button
-            onClick={() => setShowTimeFilter(!showTimeFilter)}
-            className="text-sm text-primary hover:text-secondary hover:underline"
-          >
-            {showTimeFilter ? "Ukryj" : "Pokaż"}
-          </button>
-        </div>
-
-        {showTimeFilter && (
-          <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">
-                Dzień tygodnia:
+      <div className="mt-4 space-y-3">
+        {/* Tagi */}
+        {availableTags.length > 0 && (
+          <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">
+                Tagi
               </label>
-              <select
-                value={timeFilter?.day ?? 0}
-                onChange={(e) =>
-                  handleTimeFilterChange("day", parseInt(e.target.value))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-              >
-                {DAYS.map((day, index) => (
-                  <option key={index} value={index}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Od:</label>
-                <input
-                  type="time"
-                  value={timeFilter?.startTime ?? "09:00"}
-                  onChange={(e) =>
-                    handleTimeFilterChange("startTime", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Do:</label>
-                <input
-                  type="time"
-                  value={timeFilter?.endTime ?? "17:00"}
-                  onChange={(e) =>
-                    handleTimeFilterChange("endTime", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-
-            {timeFilter && (
               <button
-                onClick={clearTimeFilter}
-                className="w-full px-3 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg text-sm transition-colors"
+                onClick={() => setShowTagFilter(!showTagFilter)}
+                className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-wider transition-colors"
               >
-                Wyczyść filtr
+                {showTagFilter ? "Ukryj" : "Filtruj po tagach"}
               </button>
+            </div>
+            
+            {showTagFilter && (
+              <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                {availableTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                      selectedTags.includes(tag)
+                        ? "bg-primary text-white border-primary"
+                        : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         )}
+
+        {/* Filtr czasowy */}
+        <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">
+              Godziny otwarcia
+            </label>
+            <button
+              onClick={() => setShowTimeFilter(!showTimeFilter)}
+              className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-wider transition-colors"
+            >
+              {showTimeFilter ? "Ukryj" : "Filtruj po czasie"}
+            </button>
+          </div>
+
+          {showTimeFilter && (
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-3">
+              <div>
+                <label className="form-label">Dzień tygodnia:</label>
+                <select
+                  value={timeFilter?.day ?? 0}
+                  onChange={(e) => handleTimeFilterChange("day", parseInt(e.target.value))}
+                  className="input-field py-1.5"
+                >
+                  {DAYS.map((day, index) => (
+                    <option key={index} value={index}>{day}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Od godziny:</label>
+                  <input
+                    type="time"
+                    value={timeFilter?.startTime ?? "09:00"}
+                    onChange={(e) => handleTimeFilterChange("startTime", e.target.value)}
+                    className="input-field py-1.5"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Do godziny:</label>
+                  <input
+                    type="time"
+                    value={timeFilter?.endTime ?? "17:00"}
+                    onChange={(e) => handleTimeFilterChange("endTime", e.target.value)}
+                    className="input-field py-1.5"
+                  />
+                </div>
+              </div>
+
+              {timeFilter && (
+                <div className="pt-2">
+                  <button
+                    onClick={clearTimeFilter}
+                    className="w-full px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+                  >
+                    Wyczyść filtr czasowy
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-    </>
   );
 }

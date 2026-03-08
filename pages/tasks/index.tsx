@@ -119,28 +119,11 @@ export default function TasksPage() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Zadania&nbsp;({todayDone}/{todayTotal})
-
-            <div className="flex justify-between items-center gap-2">
-              <button
-                onClick={() => router.push("/tasks/eisenhower")}
-                title="Eisenhower Matrix"
-                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                <Brain className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => router.push("/tasks/kanban")}
-                title="Kanban Board"
-                className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                <Table2 className="w-5 h-5" />
-              </button>
-            </div>
           </h2>
 
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        <Reminders onTasksChange={fetchTasks} />
+        
 
         {/* Focus Mode Toggle */}
         <div className="flex items-center justify-between mb-4">
@@ -155,7 +138,7 @@ export default function TasksPage() {
                   className={`p-1.5 rounded-xl border shadow transition-colors flex items-center justify-center ${
                     dateFilter === opt.value
                       ? "bg-primary text-white border-primary"
-                      : "bg-gray-100 text-gray-700 border-transparent"
+                      : "bg-card text-textSecondary border-transparent"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -169,7 +152,7 @@ export default function TasksPage() {
             className={`px-3 py-1.5 flex items-center rounded-lg shadow ${
               focusModeEnabled
                 ? "bg-primary text-white border-primary hover:bg-secondary"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                : "bg-white text-textSecondary border-gray-300 hover:bg-card"
             }`}
             title={focusModeEnabled ? "Wyłącz tryb skupienia" : "Włącz tryb skupienia"}
           >
@@ -202,7 +185,10 @@ export default function TasksPage() {
             onStartTimer={handleStartTimer}
           />
         ) : (
+          <>
           <TaskList tasks={filteredTasks} onTasksChange={fetchTasks} />
+          <Reminders onTasksChange={fetchTasks} />
+          </>
         )}
       </Layout>
     </>

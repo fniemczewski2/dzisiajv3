@@ -1,4 +1,4 @@
-import { Calendar, Coins, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-react";
+import { Calendar, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -7,7 +7,7 @@ export default function Navbar() {
     fixed bottom-4
     inset-x-4
     px-4
-    bg-white/70 
+    bg-card 
     backdrop-blur-md 
     p-2
     flex justify-around 
@@ -42,7 +42,7 @@ function NavLink({
   return (
     <a
       href={href}
-      className="flex flex-col items-center text-gray-600 hover:text-primary transition-colors"
+      className="flex flex-col items-center text-textSecondary hover:textPrimary transition-colors"
     >
       <Icon className="w-6 h-6" />
       <span className="text-xs">{label}</span>

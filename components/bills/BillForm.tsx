@@ -68,15 +68,10 @@ export default function BillForm({
     if (onCancel) onCancel();
   };
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-2 bg-card p-4 rounded-xl shadow max-w-md"
-    >
+ return (
+    <form onSubmit={handleSubmit} className="form-card max-w-md">
       <div>
-        <label className="block text-sm font-medium mb-2" htmlFor="amount">
-          Kwota:
-        </label>
+        <label className="form-label" htmlFor="amount">Kwota:</label>
         <div className="flex items-center gap-2">
           <button
             id="includeInBudget"
@@ -84,8 +79,8 @@ export default function BillForm({
             onClick={() => setIsIncome(!isIncome)}
             className={`p-2 rounded-lg transition-colors ${
               isIncome 
-                ? "bg-green-500 text-white hover:bg-green-600" 
-                : "bg-red-500 text-white hover:bg-red-600"
+                ? "bg-green-600 hover:bg-green-700 text-white" 
+                : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
             }`}
             disabled={loading}
             title={isIncome ? "Przychód" : "Wydatek"}
@@ -99,7 +94,7 @@ export default function BillForm({
             placeholder="Kwota"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="flex-1 p-2 border rounded-lg"
+            className="input-field flex-1"
             required
             disabled={loading}
           />
@@ -107,40 +102,33 @@ export default function BillForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="description">
-          Opis:
-        </label>
+        <label className="form-label" htmlFor="description">Opis:</label>
         <textarea
           id="description"
-          placeholder="Opis"
+          placeholder="Krótki opis"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 border rounded-lg"
+          className="input-field"
+          rows={2}
           disabled={loading}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="date">
-          Data:
-        </label>
+        <label className="form-label" htmlFor="date">Data:</label>
         <input
           id="date"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full p-2 border rounded-lg"
+          className="input-field"
           required
           disabled={loading}
         />
       </div>
 
-      <div className="flex space-x-2 items-center">
-        {isEdit ? (
-          <SaveButton loading={loading} />
-        ) : (
-          <AddButton loading={loading} />
-        )}
+      <div className="flex space-x-2 items-center pt-2">
+        {isEdit ? <SaveButton loading={loading} /> : <AddButton loading={loading} />}
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>

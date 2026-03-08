@@ -125,125 +125,110 @@ const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.target.value = "";
   };
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 bg-card p-4 rounded-xl shadow"
-    >
+ return (
+    <form onSubmit={handleSubmit} className="form-card max-w-lg">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium">
-          Tytuł:
-        </label>
+        <label htmlFor="title" className="form-label">Tytuł:</label>
         <input
           id="title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 w-full p-2 border rounded"
+          className="input-field"
           required
           disabled={loading}
         />
       </div>
 
       <div>
-        <label htmlFor="desc" className="block text-sm font-medium">
-          Opis:
-        </label>
+        <label htmlFor="desc" className="form-label">Opis:</label>
         <textarea
           id="desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="mt-1 w-full p-2 border rounded"
+          className="input-field"
+          rows={2}
           disabled={loading}
         />
       </div>
-      <div className="flex items-center mt-1">
-          <label htmlFor="allDay" className="text-sm font-medium">
-            Wydarzenie całodniowe:
-          </label>
-          <input
-            id="allDay"
-            type="checkbox"
-            checked={allDay}
-            onChange={(e) => setAllDay(e.target.checked)}
-            className="ml-2 p-2 h-4 w-4 border rounded-lg"
-            disabled={loading}
-          />
-        </div>
+
+      <div className="flex items-center">
+        <input
+          id="allDay"
+          type="checkbox"
+          checked={allDay}
+          onChange={(e) => setAllDay(e.target.checked)}
+          className="h-4 w-4 text-primary bg-transparent border-gray-300 dark:border-gray-600 rounded focus:ring-primary"
+          disabled={loading}
+        />
+        <label htmlFor="allDay" className="ml-2 text-sm font-medium text-text">
+          Wydarzenie całodniowe
+        </label>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="start" className="block text-sm font-medium">
-            Początek:
-          </label>
+          <label htmlFor="start" className="form-label">Początek:</label>
           <input
             id="start"
             type={allDay ? "date" : "datetime-local"}
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            className="mt-1 w-full p-2 border rounded"
+            className="input-field"
             required
             disabled={loading}
           />
         </div>
         <div>
-          <label htmlFor="end" className="block text-sm font-medium">
-            Koniec:
-          </label>
+          <label htmlFor="end" className="form-label">Koniec:</label>
           <input
             id="end"
             type={allDay ? "date" : "datetime-local"}
             value={end}
             onChange={(e) => setEnd(e.target.value)}
-            className="mt-1 w-full p-2 border rounded"
+            className="input-field"
             required
             disabled={loading}
           />
         </div>
       </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="place" className="block text-sm font-medium">
-            Miejsce:
-          </label>
+          <label htmlFor="place" className="form-label">Miejsce:</label>
           <input
             id="place"
             type="text"
             value={place}
             onChange={(e) => setPlace(e.target.value)}
-            className="mt-1 w-full p-2 border rounded"
+            className="input-field"
             disabled={loading}
           />
         </div>
         <div>
-          <label htmlFor="share" className="block text-sm font-medium">
-            Udostępnij:
-          </label>
+          <label htmlFor="share" className="form-label">Udostępnij:</label>
           <select
             id="share"
             value={share}
             onChange={(e) => setShare(e.target.value)}
-            className="mt-1 w-full p-2 border rounded"
+            className="input-field"
             disabled={loading}
           >
             <option value="null">Nie udostępniaj</option>
             {userOptions.map((email) => (
-              <option key={email} value={email}>
-                {email}
-              </option>
+              <option key={email} value={email}>{email}</option>
             ))}
           </select>
         </div>
       </div>
 
       <div>
-        <label htmlFor="repeat" className="block text-sm font-medium">
-          Powtarzaj:
-        </label>
+        <label htmlFor="repeat" className="form-label">Powtarzaj:</label>
         <select
           id="repeat"
           value={repeat}
           onChange={(e) => setRepeat(e.target.value as Event["repeat"])}
-          className="mt-1 w-full p-2 border rounded"
+          className="input-field"
           disabled={loading}
         >
           <option value="none">Nie</option>
@@ -253,21 +238,12 @@ const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
         </select>
       </div>
 
-      <div className="flex space-x-2 items-center">
+      <div className="flex space-x-2 items-center pt-2">
         <AddButton loading={loading} />
-
-        <label className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 cursor-pointer transition disabled:opacity-50">
-          .ics
-          <Upload className="w-5 h-5" />
-          <input
-            type="file"
-            accept=".ics"
-            onChange={handleFileUpload}
-            className="hidden"
-            disabled={loading}
-          />
+        <label className="px-3 py-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex items-center gap-2 cursor-pointer transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-sm font-medium">
+          .ics <Upload className="w-4 h-4" />
+          <input type="file" accept=".ics" onChange={handleFileUpload} className="hidden" disabled={loading} />
         </label>
-        
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
