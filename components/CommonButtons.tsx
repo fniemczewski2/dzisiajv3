@@ -104,7 +104,7 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
     aria-label="Uruchom timer"
-    title="Start Focus Mode"
+    title="Start Pomodoro"
   >
     <Timer className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Timer</span>

@@ -1,4 +1,5 @@
-// pages/notes.tsx
+"use client";
+
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
@@ -38,32 +39,37 @@ export default function NotesPage() {
       </Head>
       <Layout>
         
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
-            Notatki&nbsp;
-            <div className="flex justify-between items-center gap-2">
+        {/* NAGŁÓWEK */}
+        <div className="flex justify-between items-center mb-6 gap-2">
+          <div className="flex flex-row items-center gap-3 sm:gap-4">
+            <h2 className="text-2xl font-bold text-text">
+              Notatki
+            </h2>
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => router.push("/notes/movies")}
                 title="Filmy"
-                className="p-2 bg-card rounded-lg hover:bg-gray-200"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >
-                <Clapperboard className="w-5 h-5" />
+                <Clapperboard className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={() => router.push("/notes/places")}
                 title="Miejsca"
-                className="p-2 bg-card rounded-lg hover:bg-gray-200"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >
-                <MapPin className="w-5 h-5" />
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
-          </h2>
+          </div>
           
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        {(loading) && (<LoadingState />)}
+        
+        {loading && <LoadingState />}
+        
         {showForm && (
-          <div className="mb-6">
+          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
             <NoteForm
               onChange={() => {
                 fetchNotes();
@@ -82,4 +88,5 @@ export default function NotesPage() {
     </>
   );
 }
+
 NotesPage.auth = true;

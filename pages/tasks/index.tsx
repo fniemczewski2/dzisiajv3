@@ -1,4 +1,5 @@
-// pages/tasks.tsx 
+"use client";
+
 import React, { useState, useMemo } from "react";
 import {
   List,
@@ -6,10 +7,8 @@ import {
   Calendar,
   ChevronRight,
   ChevronsRight,
-  Brain,
   Target,
   ListTodo,
-  Table2,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
@@ -17,7 +16,6 @@ import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
 import TaskForm from "../../components/tasks/TaskForm";
 import TaskList from "../../components/tasks/TaskList";
-import FocusMode from "../../components/tasks/FocusMode";
 import { useTasks } from "../../hooks/useTasks";
 import { Task } from "../../types";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
@@ -41,7 +39,6 @@ export default function TasksPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
-  const [focusModeEnabled, setFocusModeEnabled] = useState(false); 
   const { tasks, loading: loadingTasks, fetchTasks } = useTasks();
 
   const { todayDone, todayTotal } = useMemo(() => {
@@ -108,26 +105,22 @@ export default function TasksPage() {
           content="Zarządzaj swoimi zadaniami: dodawaj, edytuj i usuwaj w aplikacji Dzisiaj."
         />
         <link rel="canonical" href="https://dzisiajv3.vercel.app/tasks" />
-        <meta property="og:title" content="Zadania – Dzisiaj" />
-        <meta
-          property="og:description"
-          content="Zarządzaj swoimi zadaniami: dodawaj, edytuj i usuwaj w aplikacji Dzisiaj."
-        />
       </Head>
 
       <Layout>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
-            Zadania&nbsp;({todayDone}/{todayTotal})
+        {/* NAGŁÓWEK */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-text flex items-center gap-3">
+            Zadania
+            <span className="text-sm font-bold bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-lg">
+              {todayDone}/{todayTotal}
+            </span>
           </h2>
-
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        
 
-        {/* Focus Mode Toggle */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex space-x-2">
+        {/* PASEK FILTRÓW I TRYBU SKUPIENIA */}
+        <div className="flex items-center justify-between mb-6 bg-card border border-gray-200 dark:border-gray-800 p-2 rounded-2xl shadow-sm w-fit gap-2">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (
@@ -135,36 +128,19 @@ export default function TasksPage() {
                   key={opt.value}
                   onClick={() => setDateFilter(opt.value)}
                   title={opt.title}
-                  className={`p-1.5 rounded-xl border shadow transition-colors flex items-center justify-center ${
+                  className={`p-2.5 sm:px-3 sm:py-2 rounded-xl transition-all duration-200 flex items-center justify-center ${
                     dateFilter === opt.value
-                      ? "bg-primary text-white border-primary"
-                      : "bg-card text-textSecondary border-transparent"
+                      ? "bg-primary text-white shadow-md scale-105"
+                      : "bg-transparent text-textMuted hover:text-text hover:bg-surface"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
                 </button>
               );
             })}
-          </div>
-
-          <button
-            onClick={() => setFocusModeEnabled(!focusModeEnabled)}
-            className={`px-3 py-1.5 flex items-center rounded-lg shadow ${
-              focusModeEnabled
-                ? "bg-primary text-white border-primary hover:bg-secondary"
-                : "bg-white text-textSecondary border-gray-300 hover:bg-card"
-            }`}
-            title={focusModeEnabled ? "Wyłącz tryb skupienia" : "Włącz tryb skupienia"}
-          >
-            
-            <span className="hidden sm:inline">
-              {focusModeEnabled ? "Focus" : "Wszystkie"}&nbsp;&nbsp;
-            </span>
-            {focusModeEnabled ? <Target className="w-5 h-5" /> : <ListTodo className="w-5 h-5" />}
-          </button>
         </div>
 
-        {(loadingTasks ) && <LoadingState />}
+        {loadingTasks && <LoadingState />}
 
         {showForm && (
           <div className="mb-6">
@@ -177,22 +153,13 @@ export default function TasksPage() {
             />
           </div>
         )}
-
-        {focusModeEnabled && dateFilter === "today" ? (
-          <FocusMode
-            tasks={filteredTasks}
-            onTasksChange={fetchTasks}
-            onStartTimer={handleStartTimer}
-          />
-        ) : (
-          <>
-          <TaskList tasks={filteredTasks} onTasksChange={fetchTasks} />
-          <Reminders onTasksChange={fetchTasks} />
-          </>
-        )}
+          <div className="space-y-6">
+            <TaskList tasks={filteredTasks} onTasksChange={fetchTasks} />
+            <Reminders onTasksChange={fetchTasks} />
+          </div>
       </Layout>
     </>
   );
 }
 
-TasksPage.auth = false;
+TasksPage.auth = true;

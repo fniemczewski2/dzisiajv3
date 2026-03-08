@@ -19,8 +19,7 @@ Dzisiaj v3 (meaning "Today v3" in Polish) is a feature-rich Progressive Web App 
 - **Task Management** - Organize tasks with priorities, categories, dates, and filters
 - **Pomodoro Timer** - Boost productivity with the Pomodoro technique
 - **Day Schema** - Create and follow daily routines and schedules
-- **Focus Mode** - Distraction-free task completion with timers
-- **Task Reminders** - Set recurring reminders for important tasks
+- **Recurring tasks** - Set recurring tasks
 
 ### 📅 Organization & Planning
 - **Calendar** - Plan events, meetings, and deadlines

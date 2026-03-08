@@ -1,4 +1,3 @@
-// pages/notes/backpack.tsx
 import React, { useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
@@ -10,9 +9,9 @@ export default function BackpackPage() {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
   const router = useRouter();
   
-    const handleBack = () => {
-        router.push("/notes"); 
-    };
+  const handleBack = () => {
+      router.push("/notes"); 
+  };
 
   const toggle = (item: string) => {
     setChecked((prev) => ({ ...prev, [item]: !prev[item] }));
@@ -21,39 +20,45 @@ export default function BackpackPage() {
   return (
     <>
       <Head>
-        <title>Plecak – Dzisiajv3</title>
+        <title>Plecak – Dzisiaj</title>
       </Head>
       <Layout>
-        <div className="flex justify-start gap-3 items-center mb-4">
+        <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center relative mb-6">
           <button
             onClick={handleBack}
-            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
+            title="Powrót do notatek"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-xl font-semibold">Plecak</h2>
+          <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
+            Plecak
+          </h2>
         </div>
 
-        <div className="flex flex-row flex-wrap">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {BACKPACK.map((cat) => (
-            <div key={cat.title} className="sm:m-6 sm:h-min w-fit">
-              <h3 className="font-semibold mb-2">{cat.title}</h3>
-              <ul className="p-4 max-w-[400px] sm:max-w-[480px] min-w-[280px] w-full my-2 list-disc space-y-1 bg-card rounded-xl shadow">
+            <div key={cat.title} className="bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-4 sm:p-5 flex flex-col h-full">
+              <h3 className="font-bold text-lg text-text mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
+                {cat.title}
+              </h3>
+              <ul className="flex-1">
                 {cat.items.map((item) => (
                   <li
                     key={item}
-                    className={`flex items-center ${
-                      checked[item] ? "line-through text-textSecondary" : ""
+                    className={`flex items-start gap-3 my-1 rounded-lg transition-colors hover:bg-surface/50 cursor-pointer ${
+                      checked[item] ? "text-textMuted line-through" : "text-text font-medium"
                     }`}
+                    onClick={() => toggle(item)}
                   >
                     <input
                       type="checkbox"
                       checked={!!checked[item]}
-                      onChange={() => toggle(item)}
-                      className="mr-2 h-5 w-5"
+                      readOnly // kontrolowane przez kliknięcie na <li>
+                      className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary accent-primary cursor-pointer bg-card transition-colors"
                       title="Spakowane?"
                     />
-                    {item}
+                    <span className="flex-1 leading-tight select-none pt-0.5">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -64,4 +69,5 @@ export default function BackpackPage() {
     </>
   );
 }
+
 BackpackPage.auth = true;
