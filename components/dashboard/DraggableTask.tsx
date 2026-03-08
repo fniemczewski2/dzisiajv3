@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Task } from "../../types";
 import { parseISO, format, addDays } from "date-fns";
-import { Check, ChevronsRight, Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { useTasks } from "../../hooks/useTasks";
 
@@ -56,34 +56,19 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
     onTasksChange();
   };
 
-  const handleReschedule = async (days: number) => {
-    setIsRescheduling(true);
-    const currentDate = parseISO(task.due_date);
-    const newDate = format(addDays(currentDate, days), "yyyy-MM-dd");
-    
-    await editTask({
-      ...task,
-      due_date: newDate,
-    });
-    
-    await fetchTasks();
-    onTasksChange();
-    setIsRescheduling(false);
-  };
-
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       style={{ touchAction: 'none' }}
-      className={`p-3 bg-card rounded-xl shadow-sm 
-        select-none cursor-grab active:cursor-grabbing flex flex-col justify-between
+      className={`p-3 bg-card rounded-xl shadow-sm border border-gray-200 dark:border-gray-800
+        select-none cursor-grab active:cursor-grabbing flex flex-row items-center justify-between gap-2
         hover:shadow-md transition-all duration-200
         ${isDragging ? "opacity-40 shadow-inner scale-[0.98]" : "opacity-100 scale-100"}`}
     >
-      <div className="flex">
-        <div className="flex flex-col w-full gap-2">
+      {/* Lewa strona - informacje o zadaniu */}
+      <div className="flex flex-col flex-1 min-w-0 gap-2">
         <div className="flex items-start gap-2.5">
           <span
             className="w-5 h-5 shrink-0 mt-0.5 text-[11px] font-bold rounded flex items-center justify-center shadow-sm"
@@ -103,43 +88,32 @@ export default function DraggableTask({ task, onTasksChange }: DraggableTaskProp
           </div>
         </div>
 
-        {/* Bottom section: Category + Due Date */}
         <div className="flex flex-wrap items-center gap-1.5">
           <TimeContextBadge 
             dueDate={task.due_date} 
             isDone={task.status === 'done' || task.status === 'completed'} 
             small={true}
           />
-          {task.category && (
-            <span className="px-1.5 py-0.5 bg-surface border border-gray-200 dark:border-gray-700 text-textSecondary rounded text-[9px] font-bold uppercase tracking-wider">
-              {task.category}
-            </span>
-          )}
         </div>
-        </div>
-        <div className="flex justify-between min-w-[110px] gap-1">
-          
-          {/* GŁÓWNY PRZYCISK */}
-          <button
-            onClick={handleComplete}
-            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-md bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
-            title="Zrobione"
-          >
-            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 mb-0.5" />
-            <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide">Zrobione</span>
-          </button>
+      </div>
 
-          {/* Usuń */}
-          <button
-            onClick={handleDelete}
-            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-md bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 transition-colors"
-            title="Usuń"
-          >
-            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mb-0.5" />
-            <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide">Usuń</span>
-          </button>
-          
-        </div>
+      {/* Prawa strona - Małe przyciski akcji (Zawsze w tej samej linii) */}
+      <div className="flex items-center gap-1.5 shrink-0 z-10" onPointerDown={(e) => e.stopPropagation()}>
+        <button
+          onClick={(e) => { e.stopPropagation(); handleComplete(); }}
+          className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
+          title="Zrobione"
+        >
+          <Check className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+          className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-500 transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-900/30"
+          title="Usuń"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

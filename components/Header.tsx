@@ -1,5 +1,3 @@
-// components/Header.tsx
-
 import { useState, useEffect } from "react";
 import {
   Sun,
@@ -10,7 +8,6 @@ import {
   CloudDrizzle,
   CloudFog,
   CloudSun,
-  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/router";
 import LoadingState from "./LoadingState";
@@ -46,6 +43,7 @@ export default function Header() {
     }, 1000);
 
     if (!navigator.geolocation) {
+      setLoading(false);
       return;
     }
 
@@ -80,17 +78,17 @@ export default function Header() {
           const airJson = await airRes.json();
 
           if (airJson.hourly && (airJson.hourly.pm10[0] > 45 || airJson.hourly.pm2_5[0] > 15 )) {
-            setAirQuality((airJson.hourly.pm2_5[0] - 15) > (airJson.hourly.pm10[0] - 45) ? `${airJson.hourly.pm2_5[0]} µg/m³ PM2.5` : `${airJson.hourly.pm10[0]} µg/m³ PM10`)
+            setAirQuality((airJson.hourly.pm2_5[0] - 15) > (airJson.hourly.pm10[0] - 45) ? `${airJson.hourly.pm2_5[0]} µg/m³ PM2.5` : `${airJson.hourly.pm10[0]} µg/m³ PM10`);
           }
         } catch (error) {
           console.error("Error fetching weather/air data:", error);
+        } finally {
+          setLoading(false);
         }
       },
       (error) => {
-        console.error(
-          "Geolocation permission denied or error occurred:",
-          error
-        );
+        console.error("Geolocation permission denied or error occurred:", error);
+        setLoading(false);
       },
       {
         enableHighAccuracy: true,
@@ -98,71 +96,76 @@ export default function Header() {
         maximumAge: 0,
       }
     );
-    setLoading(false);
+
     return () => clearInterval(timer);
   }, []);
 
-  function WeatherIcon({ code }: { code: number }) {
-    if (code <= 1) return <Sun className="w-6 h-6 text-textSecondary" />;
-    if (code === 2) return <CloudSun className="w-6 h-6 text-textSecondary" />;
-    if (code <= 3) return <Cloud className="w-6 h-6 text-textSecondary" />;
-    if (code <= 48) return <CloudFog className="w-6 h-6 text-textSecondary" />;
-    if (code <= 67) return <CloudDrizzle className="w-6 h-6 text-textSecondary" />;
-    if (code <= 77) return <CloudSnow className="w-6 h-6 text-textSecondary" />;
-    if (code <= 82) return <CloudRain className="w-6 h-6 text-textSecondary" />;
-    if (code <= 86) return <CloudSnow className="w-6 h-6 text-textSecondary" />;
-    return <CloudLightning className="w-6 h-6 text-textSecondary" />;
+  function WeatherIcon({ code, className = "" }: { code: number, className?: string }) {
+    if (code <= 1) return <Sun className={className} />;
+    if (code === 2) return <CloudSun className={className} />;
+    if (code <= 3) return <Cloud className={className} />;
+    if (code <= 48) return <CloudFog className={className} />;
+    if (code <= 67) return <CloudDrizzle className={className} />;
+    if (code <= 77) return <CloudSnow className={className} />;
+    if (code <= 82) return <CloudRain className={className} />;
+    if (code <= 86) return <CloudSnow className={className} />;
+    return <CloudLightning className={className} />;
   }
 
   return (
-    <header
-      className="
-        bg-card shadow-md rounded-xl px-3 py-2 sm:p-4
-        flex
-        justify-center
-        w-full
-        flex-row
-        flex-nowrap">
-          <div className="text-text text-left flex flex-col sm:flex-1 justify-center">
-            <div className="text-xl font-semibold">{currentTime}</div>
-            <span className="text-textSecondary text-[12px] sm:text-sm">
-              {currentDate}
-            </span>
-            <BirthdayIndicator />
-          </div>
+    <header className="bg-card border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
+      <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-start gap-3">
+      {/* Lewa strona: Czas i data */}
+      {/* min-w-0 pozwala dacie na truncate, żeby nie wypychała prawego bloku */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
+          {currentTime}
+        </div>
+        <span className="text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
+          {currentDate}
+        </span>
+        <div className="mt-1">
+          <BirthdayIndicator />
+        </div>
+      </div>
 
-          <h1 className="text-2xl font-bold text-primary sm:block hidden sm:flex-1 text-center">
-            Dzisiaj v3
-          </h1>
-          <div className="flex-1">
-            {currentTemp != null &&
-              dailyMin != null &&
-              dailyMax != null &&
-              weatherCode != null && (
-                loading ? <LoadingState /> :
-                <div onClick={() => router.push("/weather")} className="flex flex-col flex-1 items-left text-textSecondary">
-                  <div className={`${airQuality ? 'text-lg' : 'text-xl'} flex items-center font-semibold justify-end space-x-1`}>
-                    <WeatherIcon code={weatherCode} />
-                    <span className={`${airQuality ? 'text-lg' : 'text-xl'} text-textSecondary`}>{currentTemp}°C</span>
-                  </div>
-                  {airQuality ? (
-                  <>
-                  <span className="text-textSecondary text-[11px] sm:text-sm ml-5 text-right">
-                    min {dailyMin}° · max {dailyMax}°
-                  </span>
-                  <span className="text-red-700 text-[11px] sm:text-sm ml-5 text-right">
-                    {airQuality}
-                  </span>
-                  </>
-                  ) : (
-                    <span className="text-textSecondary text-[12px] sm:text-sm ml-5 text-right">
-                      min {dailyMin}° · max {dailyMax}°
-                    </span>
-                  )
-                  }
-                </div>
-              )}
-              </div>
+      {/* Środek: Tytuł (ukryty na mobilkach dla czystości) */}
+      <div className="hidden sm:flex flex-col flex-1 items-center justify-center">
+        <h1 className="text-2xl font-black text-text tracking-tighter">
+          Dzisiaj <span className="text-primary opacity-80">v3</span>
+        </h1>
+      </div>
+
+      {/* Prawa strona: Pogoda */}
+      {/* shrink-0 zapewnia, że box zawsze pobierze tyle miejsca, ile absolutnie potrzebuje */}
+      <div className="shrink-0 flex flex-1 justify-end">
+        {loading ? (
+          <LoadingState />
+        ) : currentTemp != null && dailyMin != null && dailyMax != null && weatherCode != null ? (
+          <div 
+            onClick={() => router.push("/weather")} 
+            className="flex flex-col items-end cursor-pointer group p-2 -m-2 rounded-xl hover:bg-surface transition-colors"
+            title="Kliknij, aby zobaczyć pełną prognozę"
+          >
+            <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
+              <WeatherIcon code={weatherCode} className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="font-bold leading-none">{currentTemp}°C</span>
+            </div>
+            
+            {/* Dodano whitespace-nowrap by zapobiec łamaniu tekstu wpół */}
+            <span className="whitespace-nowrap text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
+              min {dailyMin}° · max {dailyMax}°
+            </span>
+            
+            {airQuality && (
+              <span className="whitespace-nowrap text-[9px] sm:text-[10px] font-black text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded uppercase tracking-wider mt-1 border border-red-100 dark:border-red-900/50">
+                {airQuality}
+              </span>
+            )}
+          </div>
+        ) : null}
+      </div>
+      </span>
 
     </header>
   );

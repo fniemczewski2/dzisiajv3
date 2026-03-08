@@ -5,7 +5,7 @@ import { useTasks } from "../hooks/useTasks";
 import { useEvents } from "../hooks/useEvents";
 import { useDaySchemas } from "../hooks/useDaySchemas";
 import TaskIcons from "../components/tasks/TaskIcons";
-import { ListTodo, Calendar } from "lucide-react";
+import { ListTodo, Calendar, GripVertical } from "lucide-react";
 import { Task } from "../types";
 import { dateToTimestamp } from "../lib/dateUtils";
 
@@ -95,7 +95,6 @@ export default function DashboardPage() {
     inLanguage: "pl-PL",
   };
 
-  // Configure sensors with long press for touch and immediate for mouse
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -120,18 +119,15 @@ export default function DashboardPage() {
 
     let animationFrameId: number;
     const scrollSpeed = 10;
-    const edgeThreshold = 100; // pixels from edge to start scrolling
+    const edgeThreshold = 100;
 
     const autoScroll = () => {
       const mouseY = (window as any).lastMouseY || 0;
       const windowHeight = window.innerHeight;
       
-      // Scroll down when near bottom
       if (mouseY > windowHeight - edgeThreshold) {
         window.scrollBy(0, scrollSpeed);
-      }
-      // Scroll up when near top
-      else if (mouseY < edgeThreshold) {
+      } else if (mouseY < edgeThreshold) {
         window.scrollBy(0, -scrollSpeed);
       }
 
@@ -158,28 +154,25 @@ export default function DashboardPage() {
     };
   }, [draggedTask]);
 
-  // Memoized active tasks
   const activeTasks = useMemo(() => {
     return tasks.filter(t => t.status === 'pending' || t.status === 'accepted');
   }, [tasks]);
 
-  // Memoized scheduled tasks
   const scheduledTasks = useMemo(() => {
     return activeTasks.filter(t => t.scheduled_time);
   }, [activeTasks]);
 
-  // NEW: Memoized all-day events to display before the schedule
+  // Czyste karty dla wydarzeń całodniowych
   const allDayEvents = useMemo(() => {
     return events.map(event => ({
       id: event.id,
       title: event.title,
       type: 'event' as const,
-      color: 'bg-blue-50 text-blue-700 border-blue-100',
+      color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
       data: event
     }));
   }, [events]);
 
-  // Memoized plan by hour
   const planByHour = useMemo(() => {
     const map: Record<string, Array<{ 
       id: string; 
@@ -194,7 +187,6 @@ export default function DashboardPage() {
       map[timeStr] = [];
     });
 
-    // Add schema entries
     const todaySchema = schemas.find(s => s.days && s.days.includes(currentDayOfWeek));
     if (todaySchema?.entries) {
       todaySchema.entries.forEach((entry, idx) => {
@@ -205,13 +197,12 @@ export default function DashboardPage() {
             id: `schema-${idx}`,
             title: entry.label,
             type: 'schema',
-            color: 'bg-card text-textSecondary border-gray-200'
+            color: 'bg-surface border border-dashed border-gray-200 dark:border-gray-700 text-textSecondary'
           });
         }
       });
     }
 
-    // Add events
     events.forEach(event => {
       const cleanStart = event.start_time.replace(" ", "T");
       const timePart = cleanStart.split('T')[1];
@@ -223,13 +214,12 @@ export default function DashboardPage() {
           id: event.id,
           title: event.title,
           type: 'event',
-          color: 'bg-blue-100 text-blue-800 border-blue-200',
+          color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
           data: event
         });
       }
     });
 
-    // Add scheduled tasks
     scheduledTasks.forEach(task => {
       if (task.scheduled_time) {
         const cleanStart = task.scheduled_time.replace(" ", "T");
@@ -242,7 +232,7 @@ export default function DashboardPage() {
             id: String(task.id),
             title: task.title,
             type: 'task',
-            color: 'bg-green-100 text-green-800 border-green-200',
+            color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
             data: task
           });
         }
@@ -362,26 +352,32 @@ export default function DashboardPage() {
         onDragStart={handleDragStart} 
         onDragEnd={handleDragEnd}
       >
-        <div className="space-y-2 sm:space-y-6 max-w-7xl mx-auto">
+        <div className="space-y-4 sm:space-y-6 mx-auto">
 
-          {settings?.show_habits && <TaskIcons />}
-          {settings?.show_water_tracker && <WaterTracker />}
-          <DailySpendingForm/>
-          <TransportWidget />
+          {/* Szybkie widżety */}
+          <div className="flex flex-col">
+            {settings?.show_habits && <TaskIcons />}
+            {settings?.show_water_tracker && <WaterTracker />}
+            <DailySpendingForm/>
+            <TransportWidget />
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <section className="lg:col-span-2">
-              
-              {/* NEW SECTION: All-day events before the main schedule */}
-
-
-              <h2 className="text-xl font-semibold my-4 flex items-center gap-2">
-                <Calendar className="text-textSecondary" /> Twój Plan Dnia
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* LEWA KOLUMNA - Plan Dnia */}
+            <section className="lg:col-span-2 bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-text mb-6 flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+                <div className="p-2 bg-primary/10 rounded-xl">
+                  <Calendar className="text-primary w-5 h-5" /> 
+                </div>
+                Twój Plan Dnia
               </h2>
               
-              <div className="relative">
-                <div className="absolute left-[1.65rem] top-4 bottom-4 w-0.5 bg-card z-0"></div>
-                <div className="space-y-0 relative z-10">
+              <div className="relative pl-1">
+                {/* Linia osi czasu */}
+                <div className="absolute left-[1.8rem] top-4 bottom-4 w-[2px] bg-gray-200 dark:bg-gray-800 z-0 rounded-full"></div>
+                
+                <div className="space-y-2 relative z-10">
                   {HOURS.map((h) => {
                     const timeKey = `${String(h).padStart(2, '0')}:00`;
                     const items = planByHour[timeKey] || [];
@@ -404,12 +400,15 @@ export default function DashboardPage() {
               </div>
             </section>
             
-            {allDayEvents.length > 0 && (
-                <div className="space-y-8">
-                  <h3 className="text-xl font-semibold my-4 flex items-center gap-2">
-                    <Calendar /> Wydarzenia na dziś
+            {/* PRAWA KOLUMNA - Wydarzenia i Zadania */}
+            <div className="lg:col-span-1 space-y-6">
+              
+              {allDayEvents.length > 0 && (
+                <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
+                  <h3 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
+                    <Calendar className="text-blue-500 w-5 h-5" /> Wydarzenia
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="space-y-3">
                     {allDayEvents.map((item) => (
                       <PlanItem
                         key={item.id}
@@ -420,37 +419,45 @@ export default function DashboardPage() {
                       />
                     ))}
                   </div>
-                </div>
+                </section>
               )}
-            <div className="space-y-8">
-              <section >
-                <h2 className="text-xl font-semibold my-4 flex items-center gap-2">
-                  <ListTodo /> Zadania na dziś
+
+              <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
+                  <ListTodo className="text-green-500 w-5 h-5" /> Zadania na dziś
                 </h2>
-                <p className="text-xs text-gray-500 mb-4">
-                  Przytrzymaj i przeciągnij aby zaplanować
+                <p className="text-[10px] font-bold uppercase tracking-wider text-textMuted mb-5 flex items-center gap-1">
+                  <GripVertical className="w-3 h-3" /> Przeciągnij na plan
                 </p>
+                
                 {tasksLoading ? (
-                  <p className="text-gray-500 text-sm">Ładowanie...</p>
+                  <div className="flex justify-center py-4"><LoadingState /></div>
                 ) : (
                   <div className="space-y-3">
                     {activeTasks.map(task => (
                       <DraggableTask key={task.id} task={task} onTasksChange={fetchTasks}/>
                     ))}
+                    {activeTasks.length === 0 && (
+                      <p className="text-sm font-medium text-textMuted text-center py-4 bg-surface rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                        Wszystko zrobione!
+                      </p>
+                    )}
                   </div>
                 )}
               </section>
             </div>
+
           </div>
         </div>
 
         <DragOverlay 
-        style={{ touchAction: 'none' }}
-        dropAnimation={{
-          sideEffects: defaultDropAnimationSideEffects({
-            styles: { active: { opacity: '0.5' } },
-          }),
-        }}>
+          style={{ touchAction: 'none' }}
+          dropAnimation={{
+            sideEffects: defaultDropAnimationSideEffects({
+              styles: { active: { opacity: '0.5' } },
+            }),
+          }}
+        >
           {draggedTask ? <StaticTaskItem task={draggedTask} /> : null}
         </DragOverlay>
       </DndContext>
