@@ -152,7 +152,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
                 <div className="flex-1">
                   <label className="form-label">Data rozpoczęcia:</label>
                   <input
-                    type="date"
+                    type="date w-full min-w-0 px-1 text-sm"
                     className="input-field"
                     value={form.data_poczatkowa}
                     onChange={(e) => setForm({ ...form, data_poczatkowa: e.target.value })}
