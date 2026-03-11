@@ -174,7 +174,7 @@ const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
             type={allDay ? "date" : "datetime-local"}
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            className="input-field"
+            className="input-field text-xs w-full min-w-0 px-1"
             required
             disabled={loading}
           />
@@ -186,14 +186,12 @@ const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
             type={allDay ? "date" : "datetime-local"}
             value={end}
             onChange={(e) => setEnd(e.target.value)}
-            className="input-field"
+            className="input-field text-xs w-full min-w-0 px-1"
             required
             disabled={loading}
           />
         </div>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="place" className="form-label">Miejsce:</label>
           <input
@@ -205,6 +203,7 @@ const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
             disabled={loading}
           />
         </div>
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="share" className="form-label">Udostępnij:</label>
           <select
@@ -220,22 +219,21 @@ const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
             ))}
           </select>
         </div>
-      </div>
-
-      <div>
-        <label htmlFor="repeat" className="form-label">Powtarzaj:</label>
-        <select
-          id="repeat"
-          value={repeat}
-          onChange={(e) => setRepeat(e.target.value as Event["repeat"])}
-          className="input-field"
-          disabled={loading}
-        >
-          <option value="none">Nie</option>
-          <option value="weekly">Co tydzień</option>
-          <option value="monthly">Co miesiąc</option>
-          <option value="yearly">Co rok</option>
-        </select>
+        <div>
+          <label htmlFor="repeat" className="form-label">Powtarzaj:</label>
+          <select
+            id="repeat"
+            value={repeat}
+            onChange={(e) => setRepeat(e.target.value as Event["repeat"])}
+            className="input-field"
+            disabled={loading}
+          >
+            <option value="none">Nie</option>
+            <option value="weekly">Co tydzień</option>
+            <option value="monthly">Co miesiąc</option>
+            <option value="yearly">Co rok</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex space-x-2 items-center pt-2">

@@ -121,7 +121,7 @@ export default function BillForm({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="input-field w-full min-w-0 px-1 text-sm"
+          className="input-field w-full min-w-0 px-1 text-xs"
           required
           disabled={loading}
         />
