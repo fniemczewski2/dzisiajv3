@@ -158,7 +158,7 @@ export default function TaskForm({
             id="due"
             ref={dueDateRef}
             defaultValue={todayIso}
-            type="date"
+            type="date w-full min-w-0 px-1 text-sm"
             className="input-field h-[46px] sm:h-[48px]"
             required
           />

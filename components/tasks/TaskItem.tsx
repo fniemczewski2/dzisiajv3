@@ -239,7 +239,7 @@ export default function TaskItem({ task, onTasksChange }: Props) {
           <div>
             <label className="form-label">Data wykonania:</label>
             <input
-              type="date"
+              type="date w-full min-w-0 px-1 text-sm"
               value={editedTask.due_date}
               onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })}
               className="input-field"

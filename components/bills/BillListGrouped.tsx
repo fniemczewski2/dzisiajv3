@@ -175,7 +175,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
                               date: e.target.value,
                             })
                           }
-                          className="input-field"
+                          className="input-field w-full min-w-0 px-1 text-sm"
                         />
                       </div>
 

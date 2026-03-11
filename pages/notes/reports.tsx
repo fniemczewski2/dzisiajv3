@@ -163,7 +163,7 @@ export default function ReportsPage() {
                   <div>
                     <label className="form-label">Data:</label>
                     <input
-                      type="date"
+                      type="date w-full min-w-0 px-1 text-sm"
                       value={editedReport.date || ""}
                       onChange={(e) => setEditedReport({ ...editedReport, date: e.target.value })}
                       className="input-field"
@@ -269,7 +269,7 @@ export default function ReportsPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <input
-                              type="date"
+                              type="date w-full min-w-0 px-1 text-sm"
                               value={task.data}
                               onChange={(e) => updateTask(i, "data", e.target.value)}
                               className="input-field py-1.5 bg-card"
