@@ -71,7 +71,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
             ref={dateRef}
             type="date"
             defaultValue={getAppDate()}
-            className="input-field w-full min-w-0 px-1 text-sm"
+            className="input-field w-full min-w-0 px-1 text-xs"
             required
             disabled={loading}
           />
@@ -161,7 +161,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   type="date"
-                  className="input-field bg-card w-full min-w-0 px-1 text-sm"
+                  className="input-field bg-card w-full min-w-0 px-1 text-xs"
                   value={t.data}
                   onChange={(e) => {
                     const copy = [...tasks]; copy[i].data = e.target.value; setTasks(copy);

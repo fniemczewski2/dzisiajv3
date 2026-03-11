@@ -100,7 +100,7 @@ export default function StreakForm({
           </label>
           <input
             id="start-date"
-            type="date w-full min-w-0 px-1 text-sm"
+            type="date w-full min-w-0 px-1 text-xs"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             max={new Date().toISOString().split("T")[0]}

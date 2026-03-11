@@ -169,14 +169,14 @@ export default function CalendarDayDetails({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-1 md:gap-3">
                     <div className="min-w-0 max-w-[100%]">
                       <label className="form-label">Rozpoczęcie:</label>
                       <input
                         type="datetime-local"
                         value={editedEvent.start_time.slice(0, 16)}
                         onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })}
-                        className="input-field text-sm w-full min-w-0 px-1"
+                        className="input-field text-xs w-full min-w-0 px-1"
                       />
                     </div>
                     <div className="min-w-0 max-w-[100%]">
@@ -185,7 +185,7 @@ export default function CalendarDayDetails({
                         type="datetime-local"
                         value={editedEvent.end_time.slice(0, 16)}
                         onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })}
-                        className="input-field text-sm w-full min-w-0 px-1"
+                        className="input-field text-xs w-full min-w-0 px-1"
                       />
                     </div>
                   </div>
