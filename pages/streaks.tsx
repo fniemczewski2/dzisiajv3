@@ -12,12 +12,13 @@ import { useStreaks } from "../hooks/useStreaks";
 import { Streak } from "../types";
 import { AddButton } from "../components/CommonButtons";
 import { useAuth } from "../providers/AuthProvider";
+import NoResultsState from "../components/NoResultsState";
 
 export default function StreaksPage() {
-  const { user} = useAuth();
+  const { user } = useAuth();
   const userId = user?.id;
 
-  const { streaks, loading, refetch, deleteStreak, updateStreak } = useStreaks();
+  const { streaks, loading, refetch, deleteStreak, updateStreak, getMilestoneMessage } = useStreaks();
   const [showForm, setShowForm] = useState(false);
 
   const handleEdit = async (updatedStreak: Streak) => {
@@ -75,17 +76,13 @@ export default function StreaksPage() {
                 streak={streak}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
+                getMilestoneMessage={getMilestoneMessage} 
               />
             ))}
           </div>
         ) : (
           
-          <div className="text-center py-16">
-            <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">
-              Nie masz jeszcze żadnych celów do śledzenia
-            </p>
-          </div>
+          <NoResultsState text="celów"/>
         
         )}
     </Layout>

@@ -13,7 +13,7 @@ export function DroppableHourSlot({ time, children }: { time: string, children: 
   return (
     <div 
       ref={setNodeRef} 
-      className={`relative min-h-[5rem] border-b border-gray-100 dark:border-gray-800 last:border-0 transition-colors duration-200 
+      className={`relative min-h-[3rem] transition-colors duration-200 
         ${isOver ? 'bg-primary/5 dark:bg-primary/10 ring-inset ring-2 ring-primary/50' : 'hover:bg-surface/50'}
       `}
     >
@@ -23,7 +23,7 @@ export function DroppableHourSlot({ time, children }: { time: string, children: 
       </div>
 
       {/* Content Area */}
-      <div className="ml-12 pl-2 pr-2 py-2 min-h-[5rem] flex flex-col justify-center">
+      <div className="ml-12 sm:px-2 p-0 min-h-lg flex flex-col justify-center">
         <div className="relative z-10">
           {children}
         </div>

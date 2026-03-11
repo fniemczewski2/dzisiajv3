@@ -10,10 +10,7 @@ export default function LoveButton() {
   const [sent, setSent] = useState(false);
 
   const sendLove = async () => {
-    if (!user) {
-      console.error("Brak zalogowanego użytkownika");
-      return;
-    }
+    if (!user) {return;}
 
     setLoading(true);
 

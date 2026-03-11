@@ -54,7 +54,6 @@ export default function MenuGrid() {
                     key={button.path}
                     onClick={() => router.push(button.path)}
                     title={button.title}
-                    // flex-1 i brak min-w pozwala im idealnie się ścisnąć na 320px
                     className={`
                       relative p-1.5 sm:p-2 rounded-xl border transition-all
                       flex flex-col items-center justify-center gap-1 sm:gap-1.5 flex-1 group
@@ -72,8 +71,6 @@ export default function MenuGrid() {
                     }`}>
                       {button.label}
                     </span>
-                    
-                    {/* Badge (Dostosowany by nie ucinał się na brzegach ciasnych przycisków) */}
                     {button.badge && (
                       <span className="absolute -top-1.5 -right-0.5 sm:-right-1.5 px-1.5 py-0.5 bg-red-500 dark:bg-red-600 text-white text-[8px] font-black rounded-full shadow-sm border-2 border-card z-10">
                         {button.badge}

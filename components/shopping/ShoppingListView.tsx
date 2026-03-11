@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Plus, Trash2, User, X } from "lucide-react";
+import { Plus, Trash2, User } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
 import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
-import { useAuth } from "../../providers/AuthProvider";
+import NoResultsState from "../NoResultsState";
 
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
@@ -15,8 +15,6 @@ export default function ShoppingListView() {
   const nameRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
-  const { user } = useAuth();
-  const userId = user?.id;
 
   useEffect(() => {
     if (editingId && nameRef.current) {
@@ -164,7 +162,7 @@ export default function ShoppingListView() {
             key={list.id}
             className="p-5 break-inside-avoid bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
           >
-            <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+            <div className="flex justify-between items-start mb-4">
               <div className="flex-1 mr-4 min-w-0">
                 <h3 className="font-bold text-lg text-text leading-tight truncate">{list.name}</h3>
                 {list.display_share_info && (
@@ -186,7 +184,7 @@ export default function ShoppingListView() {
               {list.elements.map((el) => (
                 <li
                   key={el.id}
-                  className={`flex items-center justify-between group/item p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface/50 ${
+                  className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${
                     el.completed ? "line-through text-textMuted" : "text-text"
                   }`}
                 >
@@ -201,7 +199,7 @@ export default function ShoppingListView() {
                   </div>
                   <button
                     onClick={() => removeElement(list, el.id)}
-                    className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0"
+                    className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0"
                     title="Usuń produkt"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -209,9 +207,7 @@ export default function ShoppingListView() {
                 </li>
               ))}
               {list.elements.length === 0 && (
-                <li className="text-textMuted text-sm font-medium py-2 text-center bg-surface rounded-lg">
-                  Brak produktów na liście
-                </li>
+                <NoResultsState text="produktów na liście" />
               )}
             </ul>
 
@@ -223,9 +219,7 @@ export default function ShoppingListView() {
       })}
 
       {lists.length === 0 && (
-        <li className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-          <p className="text-textSecondary font-medium">Brak list zakupów. Dodaj nową listę!</p>
-        </li>
+        <NoResultsState text="list zakupów" />
       )}
     </ul>
   );

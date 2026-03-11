@@ -67,7 +67,6 @@ export default function TrainingPage() {
             round={round}
             phases={phases}
             controls={controls}
-            showControls={true}
           />
 
           {/* Panel konfiguracyjny (Aktywny tylko gdy zegar NIE JEST uruchomiony/zapauzowany w trakcie) */}

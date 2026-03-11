@@ -90,9 +90,9 @@ export function useTransport(autoRefresh = false) {
         setLoadingNearby(false);
         lastCoords.current = null;
         if (err.code === 1) {
-          setLocationError("Brak zgody na lokalizację. Przystanki w pobliżu nie zostaną wyświetlone.");
+          setLocationError("Brak zgody na lokalizację.");
         } else {
-          setLocationError("Nie udało się pobrać Twojej lokalizacji GPS.");
+          setLocationError("Nie udało się pobrać lokalizacji GPS.");
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }

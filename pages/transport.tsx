@@ -6,6 +6,8 @@ import StopItem from "../components/transport/StopItem";
 import { useTransport } from "../hooks/useTransport";
 import { useSettings } from "../hooks/useSettings";
 import { useAuth } from "../providers/AuthProvider";
+import NoResultsState from "../components/NoResultsState";
+import LoadingState from "../components/LoadingState";
 
 // Rozszerzony typ dla lokalnych wyników wyszukiwania
 interface LocalSearchResult {
@@ -124,17 +126,11 @@ export default function TransportPage() {
             <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
             <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
               {favoriteStops.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground italic">
-                  Nie masz jeszcze ulubionych przystanków.
-                </p>
+                <NoResultsState text="ulubionych przystanków" />
               ) : loadingFavorites && favoritesGroups.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground animate-pulse">
-                  Ładowanie kursów...
-                </p>
+                <LoadingState/>
               ) : favoritesGroups.length === 0 ? (
-                <p className="p-4 text-sm text-destructive">
-                  Brak kursów dla Twoich ulubionych lokalizacji.
-                </p>
+                <NoResultsState text="kursów dla wskazanych przystanków" />
               ) : (
                 favoritesGroups.map((group) => (
                   <StopItem
@@ -153,30 +149,21 @@ export default function TransportPage() {
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
             <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-              {/* 1. Stan: Pobieranie lokalizacji */}
-              {loadingNearby && nearbyGroups.length === 0 && (
-                <p className="p-4 text-sm text-muted-foreground animate-pulse">
-                  Szukanie przystanków...
-                </p>
-              )}
+              {loadingNearby && nearbyGroups.length === 0 && 
+                <LoadingState />
+              }
 
-              {/* 2. Stan: Błąd geolokalizacji lub brak zgody */}
               {locationError && (
-                <div className="p-4 space-y-3">
-                  <p className="p-4 text-sm text-muted-foreground">
-                    Błąd lokalizacji.
-                  </p>
+                <div className="text-center py-10 w-md h-md" >
+                    <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
+                    <p className="text-textSecondary">Nie udało się uzyskać  lokalizacji.</p>
                 </div>
               )}
 
-              {/* 3. Stan: Mamy GPS, ale brak przystanków w promieniu 2-5km */}
               {!loadingNearby && !locationError && nearbyGroups.length === 0 && (
-                <p className="p-4 text-sm text-muted-foreground">
-                  Brak przystanków w okolicy (2km).
-                </p>
+                <NoResultsState text="przystanków w pobliżu" />
               )}
 
-              {/* 4. Lista wyników */}
               {nearbyGroups.map((group: any) => (
                 <StopItem
                   key={`nearby_${group.stop_name}`}

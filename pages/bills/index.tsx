@@ -5,7 +5,7 @@ import { Calculator, ChartColumnBig } from "lucide-react";
 import { useBills } from "../../hooks/useBills";
 import BillListGrouped from "../../components/bills/BillListGrouped";
 import { useRouter } from "next/router";
-import DailySpendingForm from "../../components/bills/DailySpendingForm";
+import DailySpendingForm from "../../components/widgets/DailySpendingForm";
 import BillForm from "../../components/bills/BillForm";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";

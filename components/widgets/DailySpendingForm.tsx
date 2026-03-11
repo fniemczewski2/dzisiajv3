@@ -42,7 +42,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   }
 
   return (
-    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-4 flex justify-between items-center px-4 py-3 gap-3 transition-colors">
+    <div className="widget flex justify-between items-center px-4 py-3 gap-3">
       
       {/* Sekcja nagłówka i ikony */}
       <div className="flex items-center text-text">

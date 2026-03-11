@@ -19,17 +19,17 @@ const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "duolingo", Icon: Languages },
 ];
 
-interface TaskIconsProps {
+interface HabbitIconsProps {
   date?: string;
 }
 
-export default function TaskIcons({ date }: TaskIconsProps) {
+export default function HabbitIcons({ date }: HabbitIconsProps) {
   const { habits, loading, toggleHabit } = useDailyHabits(date);
 
   if (!habits) return <LoadingState />;
 
   return (
-    <div className="grid grid-cols-8 gap-1 sm:gap-2 mb-4">
+    <div className="grid grid-cols-8 gap-1 sm:gap-2 mb-2 sm:mb-4">
       {items.map(({ key, Icon }) => {
         const isActive = habits[key];
         

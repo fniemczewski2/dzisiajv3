@@ -108,17 +108,14 @@ export function useTasks(
 
       const fetchedTasks = data || [];
 
-      // 1. Wyciągnięcie brakujących ID
       const neededIds = Array.from(new Set(
         fetchedTasks
           .map((t: Task) => t.user_id === userId ? t.for_user_id : t.user_id)
           .filter((id: string) => Boolean(id) && id !== userId && !userEmails[id as string])
       ));
 
-      // 💡 OMINIĘCIE STALE STATE: Kopia maili na której pracujemy podczas tego wywołania
       let currentEmails = { ...userEmails };
 
-      // 2. Pobieranie nowych maili jednym strzałem
       if (neededIds.length > 0) {
         const { data: emailData, error: rpcError } = await supabase
           .rpc('get_emails_by_ids', { user_ids: neededIds });
@@ -134,7 +131,6 @@ export function useTasks(
         }
       }
 
-      // 3. Przypisywanie informacji (korzystamy z currentEmails)
       const tasksWithDisplayInfo = fetchedTasks.map((task: Task) => {
         const isOwner = task.user_id === userId;
         const targetId = isOwner ? task.for_user_id : task.user_id;
@@ -172,7 +168,6 @@ export function useTasks(
     if (!userId) return;
     setLoading(true);
 
-    // Wyłuskujemy bezpieczne dane
     const { shared_with_email, display_share_info, ...taskData } = task as any;
     let finalForUserId: string = taskData.for_user_id || userId;
     
@@ -216,7 +211,6 @@ export function useTasks(
       const { shared_with_email, display_share_info, ...taskData } = task as any;
       let finalForUserId = taskData.for_user_id;
 
-      // Pozwala na cofnięcie zadania do siebie
       if (shared_with_email !== undefined) {
         if (shared_with_email.includes('@')) {
           const { data: foundId } = await supabase

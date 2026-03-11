@@ -3,43 +3,35 @@ import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { useTasks } from "../hooks/useTasks";
 import { useEvents } from "../hooks/useEvents";
+import { useStreaks } from "../hooks/useStreaks";
 import { useDaySchemas } from "../hooks/useDaySchemas";
-import TaskIcons from "../components/tasks/TaskIcons";
-import { ListTodo, Calendar, GripVertical } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Task } from "../types";
 import { dateToTimestamp } from "../lib/dateUtils";
 
-// --- DND IMPORTS ---
 import { 
-  DndContext, 
-  DragEndEvent,
-  DragStartEvent,
-  useSensor, 
-  useSensors, 
-  PointerSensor,
-  TouchSensor,
-  DragOverlay,
-  defaultDropAnimationSideEffects
+  DndContext, DragEndEvent, DragStartEvent, useSensor, useSensors, 
+  PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
-import WaterTracker from "../components/tasks/WaterTracker";
 import { useSettings } from "../hooks/useSettings";
 import LoadingState from "../components/LoadingState";
-import DailySpendingForm from "../components/bills/DailySpendingForm";
 
-// Import separated components
-import { StaticTaskItem } from "../components/dashboard/StaticTaskItem";
-import DraggableTask from "../components/dashboard/DraggableTask";
-import { DroppableHourSlot } from "../components/dashboard/DroppableHourSlot";
+import { DraggingTaskItem, DraggingEventItem } from "../components/dashboard/DraggingItem";
 import { PlanItem } from "../components/dashboard/PlanItem";
-import TransportWidget from "../components/transport/TransportWidget";
+import { DraggablePlanItem } from "../components/dashboard/DraggablePlanItem";
 import { useRouter } from "next/router";
 import { useAuth } from "../providers/AuthProvider";
 
-// --- CONSTANTS ---
+// Importy naszych podzielonych komponentów (upewnij się że ścieżki się zgadzają)
+import { DashboardWidgets } from "../components/widgets/DashboardWidgets";
+import { MilestonesList } from "../components/dashboard/MilestonesList";
+import { DailyPlan } from "../components/dashboard/DailyPlan";
+import { UnscheduledTasks } from "../components/dashboard/UnscheduledTasks";
+
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00 - 23:00
 
 export default function DashboardPage() {
-  const { user, loadingUser, supabase } = useAuth();
+  const { user, loadingUser } = useAuth();
   const userId = user?.id;
   const router = useRouter();
 
@@ -55,68 +47,32 @@ export default function DashboardPage() {
   const todayString = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
   const currentDayOfWeek = todayDate.getDay();
 
-  const { tasks, loading: tasksLoading, fetchTasks, setDoneTask } = useTasks("", todayString);
-  const { events, deleteEvent } = useEvents(todayString, todayString); 
+  const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, deleteTask, editTask } = useTasks("", todayString);
+  const { events, deleteEvent, fetchEvents, editEvent } = useEvents(todayString, todayString); 
+  const { streaks, getMilestoneMessage } = useStreaks();
   const { schemas } = useDaySchemas();
   const { settings, loading: loadingSettings } = useSettings();
 
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
 
   const homepageStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "Dzisiaj v3",
-    description: "Kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki i kalendarz w jednym miejscu.",
+    description: "Kompleksowa aplikacja do zarządzania czasem i produktywnością.",
     url: "https://dzisiajv3.vercel.app",
-    applicationCategory: "ProductivityApplication",
-    operatingSystem: "Web Browser, iOS, Android",
-    browserRequirements: "Requires JavaScript. Requires HTML5.",
-    softwareVersion: "3.0",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-    featureList: [
-      "Zarządzanie zadaniami z priorytetami",
-      "Kalendarz wydarzeń",
-      "Notatki i listy",
-      "Śledzenie rachunków i budżetu",
-      "Technika Pomodoro",
-      "Macierz Eisenhowera",
-      "Tryb offline (PWA)",
-      "Synchronizacja w chmurze",
-    ],
-    screenshot: "https://dzisiajv3.vercel.app/screenshot.png",
-    author: {
-      "@type": "Organization",
-      name: "Dzisiaj v3",
-    },
-    inLanguage: "pl-PL",
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200, 
-        tolerance: 5, 
-      },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  useEffect(() => setIsMounted(true), []);
 
-  // Auto-scroll during drag
   useEffect(() => {
-    if (!draggedTask) return;
-
+    if (!draggedTask && !draggedEventTitle) return;
     let animationFrameId: number;
     const scrollSpeed = 10;
     const edgeThreshold = 100;
@@ -124,22 +80,14 @@ export default function DashboardPage() {
     const autoScroll = () => {
       const mouseY = (window as any).lastMouseY || 0;
       const windowHeight = window.innerHeight;
-      
-      if (mouseY > windowHeight - edgeThreshold) {
-        window.scrollBy(0, scrollSpeed);
-      } else if (mouseY < edgeThreshold) {
-        window.scrollBy(0, -scrollSpeed);
-      }
-
+      if (mouseY > windowHeight - edgeThreshold) window.scrollBy(0, scrollSpeed);
+      else if (mouseY < edgeThreshold) window.scrollBy(0, -scrollSpeed);
       animationFrameId = requestAnimationFrame(autoScroll);
     };
 
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      if (e instanceof MouseEvent) {
-        (window as any).lastMouseY = e.clientY;
-      } else if (e instanceof TouchEvent && e.touches.length > 0) {
-        (window as any).lastMouseY = e.touches[0].clientY;
-      }
+      if (e instanceof MouseEvent) (window as any).lastMouseY = e.clientY;
+      else if (e instanceof TouchEvent && e.touches.length > 0) (window as any).lastMouseY = e.touches[0].clientY;
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -152,90 +100,41 @@ export default function DashboardPage() {
       cancelAnimationFrame(animationFrameId);
       delete (window as any).lastMouseY;
     };
-  }, [draggedTask]);
+  }, [draggedTask, draggedEventTitle]);
 
-  const activeTasks = useMemo(() => {
-    return tasks.filter(t => t.status === 'pending' || t.status === 'accepted');
-  }, [tasks]);
+  const activeTasks = useMemo(() => tasks.filter(t => t.status === 'pending' || t.status === 'accepted'), [tasks]);
+  const scheduledTasks = useMemo(() => activeTasks.filter(t => t.scheduled_time), [activeTasks]);
 
-  const scheduledTasks = useMemo(() => {
-    return activeTasks.filter(t => t.scheduled_time);
-  }, [activeTasks]);
-
-  // Czyste karty dla wydarzeń całodniowych
-  const allDayEvents = useMemo(() => {
-    return events.map(event => ({
-      id: event.id,
-      title: event.title,
-      type: 'event' as const,
-      color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
-      data: event
-    }));
-  }, [events]);
+  const allDayEvents = useMemo(() => events.map(event => ({
+    id: event.id,
+    title: event.title,
+    type: 'event' as const,
+    color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
+    data: event
+  })), [events]);
 
   const planByHour = useMemo(() => {
-    const map: Record<string, Array<{ 
-      id: string; 
-      title: string; 
-      type: 'event' | 'schema' | 'task'; 
-      color: string;
-      data?: any;
-    }>> = {};
-    
-    HOURS.forEach(h => {
-      const timeStr = `${String(h).padStart(2, '0')}:00`;
-      map[timeStr] = [];
-    });
+    const map: Record<string, any[]> = {};
+    HOURS.forEach(h => map[`${String(h).padStart(2, '0')}:00`] = []);
 
     const todaySchema = schemas.find(s => s.days && s.days.includes(currentDayOfWeek));
     if (todaySchema?.entries) {
       todaySchema.entries.forEach((entry, idx) => {
         const [h] = entry.time.split(':');
         const hourKey = `${h.padStart(2, '0')}:00`;
-        if (map[hourKey]) {
-          map[hourKey].push({
-            id: `schema-${idx}`,
-            title: entry.label,
-            type: 'schema',
-            color: 'bg-surface border border-dashed border-gray-200 dark:border-gray-700 text-textSecondary'
-          });
-        }
+        if (map[hourKey]) map[hourKey].push({ id: `schema-${idx}`, title: entry.label, type: 'schema', color: 'bg-surface border border-dashed border-gray-200 dark:border-gray-700 text-textSecondary' });
       });
     }
 
     events.forEach(event => {
-      const cleanStart = event.start_time.replace(" ", "T");
-      const timePart = cleanStart.split('T')[1];
-      const hoursOnly = timePart.split(':')[0];
-      const timeStr = `${hoursOnly.padStart(2, '0')}:00`;
-
-      if (map[timeStr]) {
-        map[timeStr].push({
-          id: event.id,
-          title: event.title,
-          type: 'event',
-          color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
-          data: event
-        });
-      }
+      const timeStr = `${event.start_time.replace(" ", "T").split('T')[1].split(':')[0].padStart(2, '0')}:00`;
+      if (map[timeStr]) map[timeStr].push({ id: event.id, title: event.title, type: 'event', color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text', data: event });
     });
 
     scheduledTasks.forEach(task => {
       if (task.scheduled_time) {
-        const cleanStart = task.scheduled_time.replace(" ", "T");
-        const timePart = cleanStart.split('T')[1];
-        const hoursOnly = timePart.split(':')[0];
-        const timeStr = `${hoursOnly.padStart(2, '0')}:00`;
-        
-        if (map[timeStr]) {
-          map[timeStr].push({
-            id: String(task.id),
-            title: task.title,
-            type: 'task',
-            color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
-            data: task
-          });
-        }
+        const timeStr = `${task.scheduled_time.replace(" ", "T").split('T')[1].split(':')[0].padStart(2, '0')}:00`;
+        if (map[timeStr]) map[timeStr].push({ id: String(task.id), title: task.title, type: 'task', color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text', data: task });
       }
     });
 
@@ -244,221 +143,132 @@ export default function DashboardPage() {
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const dragId = String(event.active.id);
-    let task: Task | undefined;
-    
-    if (dragId.startsWith('scheduled-task-')) {
-      const taskId = dragId.replace('scheduled-task-', '');
-      task = tasks.find(t => String(t.id) === String(taskId));
-    } else if (dragId.startsWith('task-')) {
-      const taskId = dragId.replace('task-', '');
-      task = tasks.find(t => String(t.id) === String(taskId));
+    if (dragId.startsWith('task-')) {
+      const task = tasks.find(t => String(t.id) === dragId.replace('task-', ''));
+      if (task) setDraggedTask(task);
+    } else if (dragId.startsWith('plan-task-')) {
+      const task = tasks.find(t => String(t.id) === dragId.replace('plan-task-', ''));
+      if (task) setDraggedTask(task);
+    } else if (dragId.startsWith('plan-event-')) {
+      const evt = events.find(e => String(e.id) === dragId.replace('plan-event-', ''));
+      if (evt) setDraggedEventTitle(evt.title);
     }
-    
-    if (task) {
-      setDraggedTask(task);
-    }
-  }, [tasks]);
+  }, [tasks, events]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
     setDraggedTask(null); 
-    
+    setDraggedEventTitle(null);
     if (!over || !userId) return;
 
-    const targetTime = over.data.current?.time;
-    if (!targetTime) return;
+    const targetTime = over.data?.current?.time || String(over.id);
+    if (!targetTime || typeof targetTime !== 'string' || !targetTime.includes(':')) return;
 
     const dragId = String(active.id);
-    let taskId: string;
-    
-    if (dragId.startsWith('scheduled-task-')) {
-      taskId = dragId.replace('scheduled-task-', '');
-    } else if (dragId.startsWith('task-')) {
-      taskId = dragId.replace('task-', '');
-    } else {
-      return;
-    }
-    
-    const currentTask = tasks.find(t => String(t.id) === String(taskId));
-    if (!currentTask) return;
-
     const [hours, minutes] = targetTime.split(':').map(Number);
-    const scheduledDateTime = new Date(todayDate);
-    scheduledDateTime.setHours(hours, minutes || 0, 0, 0);
 
-    const timestampString = dateToTimestamp(scheduledDateTime);
+    let taskId = dragId.startsWith('plan-task-') ? dragId.replace('plan-task-', '') : (dragId.startsWith('task-') ? dragId.replace('task-', '') : null);
 
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ scheduled_time: timestampString })
-        .eq('id', taskId);
+    if (taskId) {
+      const currentTask = tasks.find(t => String(t.id) === String(taskId));
+      if (!currentTask) return;
+      const scheduledDateTime = new Date(todayDate);
+      scheduledDateTime.setHours(hours, minutes || 0, 0, 0);
+      try {
+        await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
+        await fetchTasks();
+      } catch (err) { console.error("Error scheduling task:", err); }
+    } else if (dragId.startsWith('plan-event-')) {
+      const eventId = dragId.replace('plan-event-', '');
+      const currentEvent = events.find(e => String(e.id) === String(eventId));
+      if (!currentEvent) return;
+      const oldStart = new Date(currentEvent.start_time.replace(" ", "T"));
+      const oldEnd = new Date(currentEvent.end_time.replace(" ", "T"));
+      const durationMs = oldEnd.getTime() - oldStart.getTime();
 
-      if (error) {
-        console.error("Error scheduling task:", error);
-        return;
-      }
+      const newStart = new Date(todayDate);
+      newStart.setHours(hours, minutes || 0, 0, 0);
+      const newEnd = new Date(newStart.getTime() + durationMs);
 
-      await fetchTasks();
-    } catch (err) {
-      console.error("Critical error scheduling task:", err);
+      try {
+        await editEvent({ ...currentEvent, start_time: dateToTimestamp(newStart), end_time: dateToTimestamp(newEnd) });
+        await fetchEvents();
+      } catch (err) { console.error("Error rescheduling event:", err); }
     }
-  }, [userId, tasks, todayDate, supabase, fetchTasks]);
+  }, [userId, tasks, events, todayDate, editTask, editEvent, fetchTasks, fetchEvents]);
 
+  // Ujednolicone wrappery operacji
   const handleRemoveFromSchedule = useCallback(async (taskId: string) => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ scheduled_time: null })
-        .eq('id', taskId);
-
-      if (error) {
-        console.error("Error removing task from schedule:", error);
-        return;
-      }
-
+    const currentTask = tasks.find(t => String(t.id) === String(taskId));
+    if (currentTask) {
+      await editTask({ ...currentTask, scheduled_time: null });
       await fetchTasks();
-    } catch (err) {
-      console.error("Error removing task from schedule:", err);
     }
-  }, [supabase, fetchTasks]);
+  }, [tasks, editTask, fetchTasks]);
 
   const handleMarkAsDone = useCallback(async (taskId: string) => {
-    try {
-      await setDoneTask(String(taskId));
-      await fetchTasks();
-    } catch (err) {
-      console.error("Error marking task as done:", err);
-    }
+    await setDoneTask(String(taskId));
+    await fetchTasks();
   }, [setDoneTask, fetchTasks]);
+
+  const handleDeleteTaskWrapper = useCallback(async (taskId: string) => {
+    await deleteTask(taskId);
+    await fetchTasks();
+  }, [deleteTask, fetchTasks]);
 
   if (!isMounted || loadingSettings) return <LoadingState />;
 
   return (
     <>
-    <SEO          
-          title="Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem"
-          description="Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania z technikami Pomodoro i Eisenhower, twórz notatki, śledź rachunki i planuj w kalendarzu. Wszystko w jednym miejscu, offline i online."
-          canonical="https://dzisiajv3.vercel.app"
-          ogType="website"
-          keywords="zarządzanie zadaniami, produktywność, notatki, kalendarz, pomodoro, eisenhower matrix, organizacja czasu, todo list, planner, budżet domowy, rachunki, pwa"
-          structuredData={homepageStructuredData}
-      />
+    <SEO title="Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem" structuredData={homepageStructuredData} />
     <Layout>
-      
-      <DndContext 
-        id="dashboard-dnd"
-        sensors={sensors} 
-        onDragStart={handleDragStart} 
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="space-y-4 sm:space-y-6 mx-auto">
-
-          {/* Szybkie widżety */}
-          <div className="flex flex-col">
-            {settings?.show_habits && <TaskIcons />}
-            {settings?.show_water_tracker && <WaterTracker />}
-            <DailySpendingForm/>
-            <TransportWidget />
-          </div>
+          
+          <DashboardWidgets settings={settings} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* LEWA KOLUMNA - Plan Dnia */}
-            <section className="lg:col-span-2 bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-text mb-6 flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
-                <div className="p-2 bg-primary/10 rounded-xl">
-                  <Calendar className="text-primary w-5 h-5" /> 
-                </div>
-                Twój Plan Dnia
-              </h2>
-              
-              <div className="relative pl-1">
-                {/* Linia osi czasu */}
-                <div className="absolute left-[1.8rem] top-4 bottom-4 w-[2px] bg-gray-200 dark:bg-gray-800 z-0 rounded-full"></div>
-                
-                <div className="space-y-2 relative z-10">
-                  {HOURS.map((h) => {
-                    const timeKey = `${String(h).padStart(2, '0')}:00`;
-                    const items = planByHour[timeKey] || [];
-
-                    return (
-                      <DroppableHourSlot key={timeKey} time={timeKey}>
-                        {items.map((item, idx) => (
-                          <PlanItem
-                            key={`${item.id}-${idx}`}
-                            item={item}
-                            onMarkAsDone={handleMarkAsDone}
-                            onRemoveFromSchedule={handleRemoveFromSchedule}
-                            onDeleteEvent={deleteEvent}
-                          />
-                        ))}
-                      </DroppableHourSlot>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
+            <DailyPlan 
+              planByHour={planByHour} 
+              handleMarkAsDone={handleMarkAsDone} 
+              handleDeleteTask={handleDeleteTaskWrapper}
+              handleRemoveFromSchedule={handleRemoveFromSchedule} 
+              handleDeleteEvent={deleteEvent} 
+            />
             
-            {/* PRAWA KOLUMNA - Wydarzenia i Zadania */}
             <div className="lg:col-span-1 space-y-6">
-              
               {allDayEvents.length > 0 && (
                 <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
                   <h3 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
                     <Calendar className="text-blue-500 w-5 h-5" /> Wydarzenia
                   </h3>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-2">
                     {allDayEvents.map((item) => (
-                      <PlanItem
-                        key={item.id}
-                        item={item}
-                        onMarkAsDone={handleMarkAsDone}
-                        onRemoveFromSchedule={handleRemoveFromSchedule}
-                        onDeleteEvent={deleteEvent}
-                      />
+                      <DraggablePlanItem key={`right-plan-event-${item.id}`} id={`plan-event-${item.id}`} type="event">
+                        <PlanItem item={item} onMarkAsDoneTask={handleMarkAsDone} onDeleteTask={handleDeleteTaskWrapper} onRemoveFromSchedule={handleRemoveFromSchedule} onDeleteEvent={deleteEvent} />
+                      </DraggablePlanItem>
                     ))}
                   </div>
                 </section>
               )}
 
-              <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
-                  <ListTodo className="text-green-500 w-5 h-5" /> Zadania na dziś
-                </h2>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-textMuted mb-5 flex items-center gap-1">
-                  <GripVertical className="w-3 h-3" /> Przeciągnij na plan
-                </p>
-                
-                {tasksLoading ? (
-                  <div className="flex justify-center py-4"><LoadingState /></div>
-                ) : (
-                  <div className="space-y-3">
-                    {activeTasks.map(task => (
-                      <DraggableTask key={task.id} task={task} onTasksChange={fetchTasks}/>
-                    ))}
-                    {activeTasks.length === 0 && (
-                      <p className="text-sm font-medium text-textMuted text-center py-4 bg-surface rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-                        Wszystko zrobione!
-                      </p>
-                    )}
-                  </div>
-                )}
-              </section>
+              <UnscheduledTasks 
+                tasksLoading={tasksLoading} 
+                activeTasks={activeTasks} 
+                handleMarkAsDone={handleMarkAsDone}
+                handleDeleteTask={handleDeleteTaskWrapper}
+                handleRemoveFromSchedule={handleRemoveFromSchedule}
+                handleDeleteEvent={deleteEvent}
+              />
+              
+              <MilestonesList streaks={streaks} getMilestoneMessage={getMilestoneMessage} />
             </div>
-
           </div>
         </div>
 
-        <DragOverlay 
-          style={{ touchAction: 'none' }}
-          dropAnimation={{
-            sideEffects: defaultDropAnimationSideEffects({
-              styles: { active: { opacity: '0.5' } },
-            }),
-          }}
-        >
-          {draggedTask ? <StaticTaskItem task={draggedTask} /> : null}
+        <DragOverlay style={{ touchAction: 'none' }} dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
+          {draggedTask ? <DraggingTaskItem task={draggedTask} /> : draggedEventTitle ? (<DraggingEventItem title={draggedEventTitle}/>) : null}
         </DragOverlay>
       </DndContext>
     </Layout>

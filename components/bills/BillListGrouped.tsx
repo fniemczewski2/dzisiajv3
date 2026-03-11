@@ -6,6 +6,7 @@ import { Check, Minus, Plus } from "lucide-react";
 import { Bill } from "../../types";
 import { useBills } from "../../hooks/useBills";
 import { DeleteButton, EditButton, SaveButton, CancelButton, ShareButton } from "../CommonButtons";
+import NoResultsState from "../NoResultsState";
 
 interface BillListProps {
   bills: Bill[];
@@ -77,6 +78,12 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
       alert("Udostępnianie nie jest wspierane w tej przeglądarce.");
     }
   };
+
+  if (bills.length === 0) {
+    return (
+      <NoResultsState text="rachunków" />
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

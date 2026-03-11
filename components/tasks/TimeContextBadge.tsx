@@ -21,7 +21,7 @@ export default function TimeContextBadge({
   return (
     <div
       className={`
-        inline-flex items-center justify-center gap-1.5 rounded-md font-medium shadow-sm transition-colors
+        inline-flex items-center justify-center gap-1.5 rounded-md font-medium shadow-sm transition-colors border
         ${context.color}
         ${context.shouldPulse ? 'animate-pulse' : ''}
         ${small ? 'text-xs px-2 py-1 h-[24px]' : 'text-sm px-3 py-1.5'}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Place } from "../../types";
 import { ChevronDown, Globe, MapPin, Phone, Star } from "lucide-react";
 import { EditButton, DeleteButton } from "../CommonButtons"; // Używamy ujednoliconych przycisków!
+import NoResultsState from "../NoResultsState";
 
 interface PlacesListProps {
   places: Place[];
@@ -22,9 +23,10 @@ export default function PlacesList({
 
   if (places.length === 0) {
     return (
-      <div className="bg-surface border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center text-textMuted font-medium">
-        Brak miejsc spełniających kryteria.
-      </div>
+      <NoResultsState
+        text="miejsc"
+        isSearch
+      />
     );
   }
 

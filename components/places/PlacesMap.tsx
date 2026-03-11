@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Place } from "../../types";
+import NoResultsState from "../NoResultsState";
 
 interface PlacesMapProps {
   places: Place[];
@@ -160,13 +161,7 @@ export default function PlacesMap({ places, onPlaceClick }: PlacesMapProps) {
   return (
     <div className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden relative z-0">
       <div ref={mapRef} className="h-[600px] w-full" />
-      {places.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm pointer-events-none z-[900]">
-          <p className="text-textMuted font-medium px-4 py-2 bg-surface rounded-lg border border-gray-200 dark:border-gray-700">
-            Brak miejsc do wyświetlenia
-          </p>
-        </div>
-      )}
+      <NoResultsState text="miejsc" />
     </div>
   );
 }

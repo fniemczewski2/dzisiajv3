@@ -69,6 +69,81 @@ export function useStreaks() {
     }
   };
 
+  const getMilestoneMessage = (
+    startDateInput: string | Date,
+    currentDateInput: string | Date = new Date()
+  ): string => {
+    const start = new Date(startDateInput);
+    const current = new Date(currentDateInput);
+  
+    start.setHours(0, 0, 0, 0);
+    current.setHours(0, 0, 0, 0);
+  
+    const diffTime = current.getTime() - start.getTime();
+    const days = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  
+    if (days < 0) return "";
+  
+    const getMonthsLabel = (m: number) => {
+      const lastDigit = m % 10;
+      const lastTwoDigits = m % 100;
+      if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
+        return `${m} miesiące`;
+      }
+      return `${m} miesięcy`;
+    };
+  
+    const getYearsLabel = (y: number) => {
+      if (y === 1) return "ROK";
+      const lastDigit = y % 10;
+      const lastTwoDigits = y % 100;
+      if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
+        return `${y} lata`;
+      }
+      return `${y} lat`;
+    };
+  
+    const isLastDayOfMonth = (date: Date) => {
+      const nextDay = new Date(date);
+      nextDay.setDate(date.getDate() + 1);
+      return nextDay.getDate() === 1;
+    };
+  
+    const isAnniversary =
+      start.getDate() === current.getDate() ||
+      (start.getDate() > current.getDate() && isLastDayOfMonth(current));
+  
+    if (isAnniversary && days >= 28) {
+      const monthsPassed =
+        (current.getFullYear() - start.getFullYear()) * 12 +
+        current.getMonth() -
+        start.getMonth();
+      const yearsPassed = current.getFullYear() - start.getFullYear();
+  
+      if (monthsPassed > 0 && monthsPassed % 12 === 0) {
+        return `${getYearsLabel(yearsPassed)}!`;
+      }
+  
+      if (monthsPassed > 0) {
+        if (monthsPassed === 1) return "Pierwszy miesiąc!";
+        if (monthsPassed === 2) return "Dwa miesiące!";
+        if (monthsPassed === 3) return "Trzy miesiące!";
+        if (monthsPassed === 4) return "Cztery miesiące!";
+        if (monthsPassed === 5) return "Pięć miesięcy!";
+        if (monthsPassed === 6) return "Pół roku!";
+  
+        
+        return `${getMonthsLabel(monthsPassed)}!`;
+      }
+    }
+    if (days === 0) return "Dobry start!";
+    if (days === 7) return "Pierwszy tydzień!";
+    if (days === 100) return "100 dni!";
+    if (days > 0 && days % 100 === 0) return `${days} dni! Kontynuuj!`;
+  
+    return "";
+  };
+
   useEffect(() => {
     if (userId) {
       fetchStreaks();
@@ -81,5 +156,6 @@ export function useStreaks() {
     refetch: fetchStreaks,
     deleteStreak,
     updateStreak,
+    getMilestoneMessage
   };
 }

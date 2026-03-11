@@ -6,6 +6,7 @@ import { AddButton } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
 import MovieCard from "./MovieCard";
+import NoResultsState from "../NoResultsState";
 
 export default function MovieWatchlist() {
   const {
@@ -104,7 +105,7 @@ export default function MovieWatchlist() {
   return (
     <>
       <div className="flex justify-between items-center mb-6 mt-2">
-        <h2 className="text-2xl font-bold text-text">Twoje Filmy</h2>
+        <h2 className="text-2xl font-bold text-text">Filmy</h2>
         {!showAddForm && (
           <AddButton onClick={() => setShowAddForm(true)} type="button" />
         )}
@@ -146,7 +147,7 @@ export default function MovieWatchlist() {
                 <p className="text-textSecondary font-medium">Nie znaleziono filmów pasujących do "{searchQuery}"</p>
               </>
             ) : (
-              <p className="text-textSecondary font-medium">Brak filmów na liście. Dodaj swój pierwszy film!</p>
+              <NoResultsState text="filmów" />
             )}
           </div>
         ) : (

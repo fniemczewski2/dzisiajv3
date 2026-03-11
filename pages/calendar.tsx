@@ -57,7 +57,7 @@ export default function CalendarPage() {
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { events, loading, fetchEvents,deleteEvent, editEvent } = useEvents(rangeStart, rangeEnd);
+  const { events, loading, fetchEvents, deleteEvent, editEvent, addEvent } = useEvents(rangeStart, rangeEnd);
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
@@ -84,16 +84,12 @@ export default function CalendarPage() {
 
   const handleEventsChange = useCallback(() => {
     setShowForm(false);
-  }, []);
+    fetchEvents(); 
+  }, [fetchEvents]);
 
   const handleCancelForm = useCallback(() => {
     setShowForm(false);
   }, []);
-
-  const eventsForDay = useMemo(() => {
-    if (!selectedDate) return [];
-    return events.filter((event) => eventSpansDate(event, selectedDate));
-  }, [events, selectedDate]);
 
   const tasksForDay = useMemo(() => {
     if (!selectedDateStr) return [];
@@ -110,18 +106,27 @@ export default function CalendarPage() {
         <title>Kalendarz - Dzisiaj</title>
       </Head>
       <Layout>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Kalendarz</h2>
-          {!showForm && <AddButton onClick={openNew} type="button" />}
+        
+        {/* NAGŁÓWEK */}
+        <div className="flex justify-between items-center mb-6 gap-2">
+          <div className="flex flex-row items-center gap-3 sm:gap-4">
+            <h2 className="text-2xl font-bold text-text">
+              Kalendarz
+            </h2>
+          </div>
+          
+          {!showForm && !selectedDate && <AddButton onClick={openNew} type="button" />}
         </div>
 
         {showForm && (
-          <EventForm
-            currentDate={currentDate}
-            onEventsChange={handleEventsChange}
-            onCancel={handleCancelForm}
-            selectedDate={selectedDate}
-          />
+          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+            <EventForm
+              currentDate={currentDate}
+              onEventsChange={handleEventsChange}
+              onCancel={handleCancelForm}
+              selectedDate={selectedDate}
+            />
+          </div>
         )}
 
         {!selectedDate && (
@@ -138,7 +143,7 @@ export default function CalendarPage() {
           <CalendarDayDetails
             selectedDate={selectedDateStr}
             tasks={tasksForDay}
-            events={eventsForDay}
+            events={events} 
             onEventsChange={fetchEvents}
             onBack={() => setSelectedDate(null)}
             onEditEvent={editEvent}

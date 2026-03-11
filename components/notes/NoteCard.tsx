@@ -12,7 +12,6 @@ interface NoteCardProps {
   onDelete: (id: string) => void;
   onTogglePin: (id: string) => void;
   onToggleArchive: (id: string) => void;
-  onExportPDF: (note: Note) => void;
   colorMap: { [key: string]: string };
 }
 
@@ -22,7 +21,6 @@ export default function NoteCard({
   onDelete,
   onTogglePin,
   onToggleArchive,
-  onExportPDF,
   colorMap,
 }: NoteCardProps) {
   const renderWithLinks = (text: string) => {
@@ -77,8 +75,8 @@ export default function NoteCard({
       )}
 
       {/* Tytuł */}
-      <div className="flex justify-between items-end border-b border-black/5 dark:border-white/5">
-      <h3 className="font-bold text-lg text-text mb-3 pr-4 leading-tight">{note.title}</h3>
+      <div className="flex justify-between items-end border-b mb-3 border-black/5 dark:border-white/5">
+      <h3 className="font-bold text-lg text-text pr-2">{note.title}</h3>
       <p className="flex-1 text-[10px] text-textMuted font-medium text-right whitespace-nowrap">
         {note.updated_at && formatTime(note.updated_at, true)}
       </p>
@@ -96,7 +94,7 @@ export default function NoteCard({
       )}
 
       {/* Stopka i Akcje */}
-      <div className="relative flex justify-end gap-1.5 flex-wrap mt-auto pt-3 border-t border-black/5 dark:border-white/5">
+      <div className="relative flex justify-end gap-1.5 flex-wrap mt-auto pt-3">
         <PinButton onClick={() => onTogglePin(note.id)} isPinned={!!note.pinned} />
         <ArchiveButton onClick={() => onToggleArchive(note.id)} isArchived={!!note.archived} />
         <EditButton onClick={() => onEdit(note)} />
