@@ -176,7 +176,7 @@ export default function CalendarDayDetails({
                         type="datetime-local"
                         value={editedEvent.start_time.slice(0, 16)}
                         onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })}
-                        className="input-field text-sm"
+                        className="input-field text-sm w-full min-w-0 px-1"
                       />
                     </div>
                     <div className="min-w-0 max-w-[100%]">
@@ -185,7 +185,7 @@ export default function CalendarDayDetails({
                         type="datetime-local"
                         value={editedEvent.end_time.slice(0, 16)}
                         onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })}
-                        className="input-field text-sm"
+                        className="input-field text-sm w-full min-w-0 px-1"
                       />
                     </div>
                   </div>

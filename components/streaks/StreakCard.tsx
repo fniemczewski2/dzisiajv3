@@ -133,7 +133,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                   </label>
                   <input
                     id="start-date"
-                    type="date"
+                    type="date w-full min-w-0 px-1 text-sm"
                     value={editedDate}
                     onChange={(e) => setEditedDate(e.target.value)}
                     max={new Date().toISOString().split("T")[0]}
