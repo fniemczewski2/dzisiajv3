@@ -24,10 +24,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let isMounted = true;
 
     const initAuth = async () => {
-      // 1. Sprawdzamy, czy użytkownik ma już aktywną sesję (np. z ciasteczek)
       const { data: { session } } = await supabase.auth.getSession();
 
-      // 2. Opcja 2: Jeśli tryb DEV i brak sesji -> Automatycznie logujemy testowe konto
       if (process.env.NODE_ENV === "development" && !session) {
         console.log("⚠️ Tryb DEV: Automatyczne logowanie kontem testowym...");
         

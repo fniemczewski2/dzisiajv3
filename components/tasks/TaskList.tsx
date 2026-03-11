@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import TaskItem from "./TaskItem";
 import TaskTimer from "./TaskTimer";
 import { Task } from "../../types";
+import NoResultsState from "../NoResultsState";
 
 interface Props {
   tasks: Task[];
@@ -16,9 +17,7 @@ export default function TaskList({
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-10">
-        <p className="text-textMuted">Brak zadań.</p>
-      </div>
+      <NoResultsState text="zadań" />
     );
   }
 
@@ -39,7 +38,6 @@ export default function TaskList({
             <TaskItem
               task={task}
               onTasksChange={onTasksChange}
-              onStartTimer={() => setActiveTask(task)} 
             />
           </li>
         ))}

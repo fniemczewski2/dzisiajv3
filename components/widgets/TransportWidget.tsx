@@ -4,14 +4,15 @@ import React, { useState } from "react";
 import { Bus, ChevronDown, ChevronUp } from "lucide-react";
 import LoadingState from "../LoadingState";
 import { useTransport } from "../../hooks/useTransport";
-import StopItem from "./StopItem";
+import StopItem from "../transport/StopItem";
+import NoResultsState from "../NoResultsState";
 
 export default function TransportWidget() {
   const [open, setOpen] = useState(false);
   const { nearbyGroups, loadingNearby, error } = useTransport(open);
 
   return (
-    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden transition-colors">
+    <div className="widget">
       <div 
         onClick={() => setOpen(!open)} 
         className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-surface transition-colors"
@@ -20,7 +21,7 @@ export default function TransportWidget() {
           <span className="text-primary mr-3">
             <Bus className="w-5 h-5 sm:w-6 sm:h-6" />
           </span>
-          Transport publiczny
+          Transport
         </h3>
         <div className="text-textMuted">
           {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -44,9 +45,7 @@ export default function TransportWidget() {
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
               {!loadingNearby && nearbyGroups.length === 0 && !error && (
-                <div className="p-6 text-center text-sm font-medium text-textMuted">
-                  Brak przystanków w okolicy (2km).
-                </div>
+                <NoResultsState text="przystanków w pobliżu" />
               )}
               {nearbyGroups.map((group) => (
                 <StopItem 

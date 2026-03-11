@@ -6,7 +6,7 @@ import { useNotes } from "../../hooks/useNotes";
 import SearchBar from "../SearchBar";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
-import { sortNotes, filterNotes, getNoteTitles, exportNoteToPDF } from "../../lib/notesUtils";
+import { sortNotes, filterNotes, getNoteTitles } from "../../lib/notesUtils";
 
 interface NoteListProps {
   notes: Note[];
@@ -73,10 +73,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
     onNotesChange();
   };
 
-  const handleExportPDF = async (note: Note) => {
-    await exportNoteToPDF(note);
-  };
-
   return (
     <div>
       <SearchBar
@@ -115,7 +111,6 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
               onDelete={handleDelete}
               onTogglePin={handleTogglePin}
               onToggleArchive={handleToggleArchive}
-              onExportPDF={handleExportPDF}
               colorMap={COLOR_MAP}
             />
           );

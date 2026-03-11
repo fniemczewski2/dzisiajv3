@@ -15,6 +15,8 @@ import {
   CancelButton, 
   PdfButton 
 } from "../../components/CommonButtons";
+import { formatDate } from "../../lib/dateUtils";
+import { format } from "date-fns";
 
 export default function ReportsPage() {
   const { reports, loading, editReport, deleteReport } = useReports();
@@ -318,9 +320,11 @@ export default function ReportsPage() {
                 className="p-5 mb-4 break-inside-avoid bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
               >
                 <div className="flex-1">
-                  <div className="mb-3 border-b border-gray-100 dark:border-gray-800 pb-3">
-                    <h3 className="font-bold text-lg text-text leading-tight">{r.topic || "Brak tytułu"}</h3>
-                    <p className="text-xs font-semibold text-textMuted uppercase tracking-wider mt-1">{r.date}</p>
+                  <div className="flex justify-between items-end border-b mb-3 border-black/5 dark:border-white/5">
+                    <h3 className="font-bold text-lg text-text pr-2">{r.topic}</h3>
+                    <p className="flex-1 text-[10px] text-textMuted font-medium text-right whitespace-nowrap">
+                      {format(new Date(r.date), "dd.MM.RRRR")}
+                    </p>
                   </div>
 
                   {r.participants && r.participants.length > 0 && (
@@ -349,7 +353,7 @@ export default function ReportsPage() {
                   )}
                 </div>
 
-                <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-4 mt-auto border-t border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-4 mt-auto">
                   <PdfButton onClick={() => handleGenerate(r)} />
                   <EditButton onClick={() => handleEdit(r)} />
                   <DeleteButton onClick={() => handleDelete(r.id)} />

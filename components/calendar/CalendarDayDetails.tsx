@@ -3,14 +3,18 @@ import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Calendar, Check, Clock, MapPin, User, X, Download } from "lucide-react";
 import { Task, Event } from "../../types";
-import WaterTracker from "../tasks/WaterTracker";
-import DailySpendingForm from "../bills/DailySpendingForm";
-import TaskIcons from "../tasks/TaskIcons";
+import WaterTracker from "../widgets/WaterTracker";
+import DailySpendingForm from "../widgets/DailySpendingForm";
+import TaskIcons from "../widgets/HabbitIcons";
 import { useSettings } from "../../hooks/useSettings";
-import ICAL from "ical.js";
 import { formatTime, localDateTimeToISO, parseEventDate } from "../../lib/dateUtils";
-import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
-import { useAuth } from "../../providers/AuthProvider";
+// Dodano import AddButton
+import { EditButton, DeleteButton, SaveButton, CancelButton, AddButton } from "../CommonButtons";
+import NoResultsState from "../NoResultsState";
+import { generateSingleEventICS } from "../../lib/icsGenerator";
+
+// Import EventForm (w zakładce /components/calendar/EventForm)
+import EventForm from "./EventForm";
 
 interface Props {
   selectedDate: string;
@@ -22,27 +26,11 @@ interface Props {
   onDeleteEvent: (id: string) => Promise<void>;
 }
 
-function escapeICalText(s?: string) {
-  if (!s) return "";
-  return s
-    .replace(/\\/g, "\\\\")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,")
-    .replace(/\r\n/g, "\\n")
-    .replace(/\n/g, "\\n");
-}
-
 const eventSpansDate = (event: Event, selectedDateStr: string): boolean => {
   const eventStart = event.start_time.split("T")[0];
   const eventEnd = event.end_time.split("T")[0];
-
-  if (selectedDateStr === eventStart && selectedDateStr === eventEnd) {
-    return true;
-  }
-
-  if (selectedDateStr < eventStart || selectedDateStr > eventEnd) {
-    return false;
-  }
+  if (selectedDateStr === eventStart && selectedDateStr === eventEnd) {return true;}
+  if (selectedDateStr < eventStart || selectedDateStr > eventEnd) {return false;}
   return true;
 };
 
@@ -58,10 +46,10 @@ export default function CalendarDayDetails({
   const { settings } = useSettings();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false); // NOWY STAN
   const titleRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
-
   const eventsForDay = events.filter(event => eventSpansDate(event, selectedDate));
 
   useEffect(() => {
@@ -96,84 +84,36 @@ export default function CalendarDayDetails({
     onEventsChange();
   };
 
-  const generateSingleEventICS = (ev: Event) => {
-    try {
-      const vcalendar = new ICAL.Component(["vcalendar", [], []]);
-      vcalendar.updatePropertyWithValue("prodid", "-//Dzisiajv3//PL");
-      vcalendar.updatePropertyWithValue("version", "2.0");
-      vcalendar.updatePropertyWithValue("calscale", "GREGORIAN");
-      vcalendar.updatePropertyWithValue("method", "PUBLISH");
+  const handleEventsChangeLocal = () => {
+      setShowAddForm(false);
+      onEventsChange();
+  }
 
-      const vevent = new ICAL.Component("vevent");
-      const uid = ev.id ? ev.id.replace(/\s+/g, "_") : `evt-${Date.now()}`;
-
-      const dtStart = parseEventDate(ev.start_time);
-      const dtEnd = parseEventDate(ev.end_time);
-
-      const icalStart = ICAL.Time.fromJSDate(dtStart, false);
-      const icalEnd = ICAL.Time.fromJSDate(dtEnd, false);
-      const icalStamp = ICAL.Time.fromJSDate(new Date(), false);
-
-      vevent.addPropertyWithValue("uid", uid);
-      vevent.addPropertyWithValue("dtstamp", icalStamp);
-      vevent.addPropertyWithValue("dtstart", icalStart);
-      vevent.addPropertyWithValue("dtend", icalEnd);
-
-      const propStart = vevent.getFirstProperty("dtstart");
-      const propEnd = vevent.getFirstProperty("dtend");
-      if (propStart) propStart.setParameter("VALUE", "DATE-TIME");
-      if (propEnd) propEnd.setParameter("VALUE", "DATE-TIME");
-
-      if (ev.title)
-        vevent.addPropertyWithValue("summary", escapeICalText(ev.title));
-      if (ev.description)
-        vevent.addPropertyWithValue(
-          "description",
-          escapeICalText(ev.description)
-        );
-      if (ev.place)
-        vevent.addPropertyWithValue("location", escapeICalText(ev.place));
-      if (ev.user_id)
-        vevent.addPropertyWithValue("organizer", `MAILTO:${ev.user_id}`);
-
-      vcalendar.addSubcomponent(vevent);
-
-      const icsString = vcalendar.toString();
-      const blob = new Blob([icsString], {
-        type: "text/calendar;charset=utf-8",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-
-      const startDate = parseEventDate(ev.start_time);
-      const datePart = format(startDate, "yyyy-MM-dd");
-      a.download = `${datePart}_${uid}.ics`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("generateSingleEventICS error:", err);
-      alert("Nie udało się wygenerować pliku .ics dla tego wydarzenia.");
-    }
-  };
+  const selectedDateObject = new Date(selectedDate);
 
   return (
     <div className="py-4 mb-5 space-y-6">
       {/* Pasek Nagłówkowy */}
-      <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center relative">
+      <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center justify-between relative">
         <button
           onClick={onBack}
-          className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
+          className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors shrink-0"
           title="Powrót do kalendarza"
         >
           <Calendar className="w-5 h-5" />
         </button>
 
-        <h3 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
+        <h3 className="font-bold text-lg sm:text-xl text-text text-center capitalize tracking-wide truncate px-2">
           {format(parseISO(selectedDate), "d MMMM yyyy", { locale: pl })}
         </h3>
+
+        {!showAddForm ? (
+           <div className="w-10 h-10 flex shrink-0 justify-center items-center">
+             <AddButton onClick={() => setShowAddForm(true)} type="button" />
+           </div>
+        ) : (
+            <div className="w-10 h-10 shrink-0"></div>
+        )}
       </div>
 
       <div className="flex flex-auto flex-wrap flex-col justify-center space-y-4">
@@ -182,7 +122,18 @@ export default function CalendarDayDetails({
         <DailySpendingForm date={selectedDate} />
       </div>
 
-      {eventsForDay.length > 0 && (
+      {showAddForm && (
+         <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+             <EventForm
+               currentDate={selectedDateObject}
+               selectedDate={selectedDateObject}
+               onEventsChange={handleEventsChangeLocal}
+               onCancel={() => setShowAddForm(false)}
+             />
+         </div>
+      )}
+
+      {eventsForDay.length > 0 ? (
         <section className="flex flex-wrap gap-4 justify-center">
           {eventsForDay.map((event) => {
             const isEditing = editingId === event.id;
@@ -219,22 +170,22 @@ export default function CalendarDayDetails({
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
+                    <div className="min-w-0 max-w-[100%]">
                       <label className="form-label">Rozpoczęcie:</label>
                       <input
                         type="datetime-local"
                         value={editedEvent.start_time.slice(0, 16)}
                         onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })}
-                        className="input-field"
+                        className="input-field text-sm"
                       />
                     </div>
-                    <div>
+                    <div className="min-w-0 max-w-[100%]">
                       <label className="form-label">Zakończenie:</label>
                       <input
                         type="datetime-local"
                         value={editedEvent.end_time.slice(0, 16)}
                         onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })}
-                        className="input-field"
+                        className="input-field text-sm"
                       />
                     </div>
                   </div>
@@ -256,7 +207,7 @@ export default function CalendarDayDetails({
                       <select
                         value={currentShareEmail}
                         onChange={(e) => setEditedEvent({ ...editedEvent, shared_with_email: e.target.value })}
-                        className="input-field py-1.5"
+                        className="input-field py-1.5 text-sm"
                       >
                         <option value="">Tylko dla mnie</option>
                         {userOptions.map((email) => (
@@ -269,7 +220,7 @@ export default function CalendarDayDetails({
                       <select
                         value={editedEvent.repeat || "none"}
                         onChange={(e) => setEditedEvent({ ...editedEvent, repeat: e.target.value as Event["repeat"] })}
-                        className="input-field py-1.5"
+                        className="input-field py-1.5 text-sm"
                       >
                         <option value="none">Brak (jednorazowe)</option>
                         <option value="weekly">Co tydzień</option>
@@ -333,7 +284,7 @@ export default function CalendarDayDetails({
                 <div className="flex justify-between w-full gap-1 sm:gap-1.5 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                   <button
                     onClick={() => generateSingleEventICS(event)}
-                    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-primary/10 text-textMuted hover:text-primary transition-colors"
+                    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
                     title="Pobierz zdarzenie do kalendarza Google/Apple"
                   >
                     <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -346,15 +297,20 @@ export default function CalendarDayDetails({
             );
           })}
         </section>
+      ) : (
+       <NoResultsState text="wydarzeń" />
       )}
-
-      <section className="bg-card border border-gray-200 dark:border-gray-800 p-5 shadow-sm rounded-2xl">
-        <h4 className="font-bold text-lg text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">Zadania na ten dzień</h4>
-        {tasks.length ? (
+      
+      {/* ZADANIA DLA DANEGO DNIA */}
+      {tasks.length > 0 && (
+      <section className="bg-card border border-gray-200 dark:border-gray-800 p-5 shadow-sm rounded-2xl max-w-md mx-auto w-full">
+        <h4 className="font-bold text-lg text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+          <Check className="text-primary w-5 h-5"/> Zadania z tego dnia
+        </h4>
           <ul className="space-y-3">
             {tasks.map((t) => (
               <li key={t.id} className="flex flex-col">
-                <div className="flex flex-nowrap gap-3 items-center p-2 rounded-lg hover:bg-surface transition-colors group">
+                <div className="flex flex-nowrap gap-3 items-center p-2 rounded-lg hover:bg-surface transition-colors group border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                   <span
                     className="w-7 h-7 text-xs font-bold rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
                     style={{
@@ -365,23 +321,21 @@ export default function CalendarDayDetails({
                     {t.priority}
                   </span>
 
-                  <h3 className={`text-base font-semibold break-words flex-1 leading-tight ${t.status === "done" ? "line-through text-textMuted" : "text-text"}`}>
+                  <h3 className={`text-sm sm:text-base font-semibold break-words flex-1 leading-tight ${t.status === "done" ? "line-through text-textMuted" : "text-text"}`}>
                     {t.title}
                   </h3>
                   
                   {t.status === "done" ? (
-                    <Check className="w-5 h-5 text-green-500" />
+                    <Check className="w-5 h-5 text-green-500 shrink-0" />
                   ) : (
-                    <X className="w-5 h-5 text-textMuted group-hover:text-red-500 transition-colors" />
+                    <X className="w-5 h-5 text-textMuted group-hover:text-red-500 transition-colors shrink-0" />
                   )}
                 </div>
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="text-textMuted text-sm font-medium py-4 text-center">Brak zaplanowanych zadań.</p>
-        )}
       </section>
+      )}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import { format, parseISO, addDays } from "date-fns";
 import { Check, Minus, Plus } from "lucide-react";
@@ -6,6 +8,7 @@ import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
 import TimeContextBadge from "./TimeContextBadge";
 import CompletionCelebration from "./CompletionCelebration";
+import UniversalTimer from "../Timer"; // Bezpośredni import
 import { 
   EditButton, 
   DeleteButton, 
@@ -19,14 +22,15 @@ import { useAuth } from "../../providers/AuthProvider";
 interface Props {
   task: Task;
   onTasksChange: () => void;
-  onStartTimer?: () => void;
 }
 
-export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
-  const { user } = useAuth();
+export default function TaskItem({ task, onTasksChange }: Props) {
+  const { user, supabase } = useAuth();
   const userId = user?.id;
   const isDone = task.status === "done";
   const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
+  
+  // Stany ogólne
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -35,11 +39,28 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   
   const titleRef = useRef<HTMLInputElement>(null);
 
+  // --- STANY TIMERA ---
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerPaused, setTimerPaused] = useState(false);
+
   useEffect(() => {
     if (isEditing && titleRef.current) {
       titleRef.current.focus();
     }
   }, [isEditing]);
+
+  // Logika odliczania czasu
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (timerRunning && !timerPaused) {
+      interval = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning, timerPaused]);
 
   const handleDelete = async () => {
     if (!confirm("Czy na pewno chcesz usunąć to zadanie?")) return;
@@ -91,6 +112,40 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     setIsRescheduling(false);
   };
 
+  // --- FUNKCJE TIMERA ---
+  const handleOpenTimer = () => {
+    setIsTimerActive(true);
+  };
+
+  const stopTimerAndSave = async () => {
+    setTimerRunning(false);
+    setTimerPaused(false);
+    setIsTimerActive(false); // Ukrywa widok timera
+
+    // Zapisujemy tylko, jeśli upłynęła chociaż minuta
+    if (timerSeconds >= 60) {
+      const minutes = Math.floor(timerSeconds / 60);
+      const newNote = `Czas: ${minutes} min`;
+      const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
+
+      await supabase
+        .from("tasks")
+        .update({ description: updatedDesc })
+        .eq("id", task.id);
+        
+      await fetchTasks();
+      onTasksChange();
+    }
+    setTimerSeconds(0);
+  };
+
+  const cancelTimer = () => {
+    setTimerRunning(false);
+    setTimerPaused(false);
+    setTimerSeconds(0);
+    setIsTimerActive(false);
+  };
+
   const increasePriority = () => setEditedTask(prev => ({ ...prev, priority: Math.max(1, prev.priority - 1) }));
   const decreasePriority = () => setEditedTask(prev => ({ ...prev, priority: Math.min(5, prev.priority + 1) }));
 
@@ -99,6 +154,31 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
   const isOverdue = dueDate < today;
   const isHighPriority = task.priority === 1;
 
+  // 1. WIDOK: TRYB TIMERA
+  if (isTimerActive) {
+    return (
+      <div className="w-full h-full animate-in fade-in zoom-in duration-300">
+        <UniversalTimer
+          title={task.title}
+          secondsLeft={timerSeconds}
+          running={timerRunning}
+          paused={timerPaused}
+          compact={true} // Tryb kompaktowy idealnie pasuje do list
+          controls={{
+            start: () => {
+              setTimerRunning(true);
+              setTimerPaused(false);
+            },
+            pause: () => setTimerPaused((p) => !p),
+            stop: stopTimerAndSave,
+            cancel: cancelTimer,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // 2. WIDOK: TRYB EDYCJI
   if (isEditing) {
     return (
       <div className="p-4 w-full bg-card border border-primary dark:border-primary-dark rounded-xl shadow-lg transition-colors">
@@ -185,13 +265,13 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     );
   }
   
-  // WIDOK NORMALNY
+  // 3. WIDOK NORMALNY
   return (
     <>
       <div className="p-4 w-full h-full bg-card border border-gray-200 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary-dark/50 rounded-xl shadow-sm flex flex-col justify-between transition-all group">
         
         <div className="space-y-3 flex-1">
-          <div onClick={onStartTimer} className="flex justify-start gap-3 items-start cursor-pointer">
+          <div onClick={handleOpenTimer} className="flex justify-start gap-3 items-start cursor-pointer">
             <span
               className="w-6 h-6 shrink-0 mt-0.5 text-xs font-bold rounded-md flex items-center justify-center shadow-sm transition duration-200 group-hover:shadow"
               style={{
@@ -265,7 +345,6 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
                   await fetchTasks();
                   onTasksChange();
                 }}
-                // GŁÓWNY PRZYCISK: Zawsze pokolorowany
                 className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
               >
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -277,14 +356,13 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
             <>
               <button
                 onClick={handleComplete}
-                // GŁÓWNY PRZYCISK: Zawsze pokolorowany
                 className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors"
               >
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
                 <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
               </button>
               <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
-              {onStartTimer && <TimerButton onClick={onStartTimer} />}
+              <TimerButton onClick={handleOpenTimer} />
               <EditButton onClick={handleEdit} />
               <DeleteButton onClick={handleDelete} />
             </>
@@ -296,4 +374,3 @@ export default function TaskItem({ task, onTasksChange, onStartTimer }: Props) {
     </>
   );
 }
-

@@ -17,7 +17,7 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
   const fillPercent = (water / 2) * 100;
 
   return (
-    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl flex items-center justify-between px-4 py-3 mb-4 shadow-sm transition-colors">
+    <div className="widget flex items-center justify-between px-4 py-3">
       <div className="text-primary mr-3">
         <Droplet className="w-5 h-5 sm:w-6 sm:h-6" />
       </div>

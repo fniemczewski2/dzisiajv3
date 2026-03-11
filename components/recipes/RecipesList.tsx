@@ -5,6 +5,7 @@ import type { Recipe, RecipeCategory } from "../../types";
 import { useRecipes } from "../../hooks/useRecipes";
 import { SaveButton, CancelButton, EditButton, DeleteButton } from "../CommonButtons";
 import SearchBar from "../SearchBar";
+import NoResultsState from "../NoResultsState";
 
 const CATEGORIES: RecipeCategory[] = [
   "śniadanie",
@@ -372,7 +373,7 @@ export default function RecipesList() {
         {filteredAndSorted.length === 0 && (
           <li className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
             <Search className="w-10 h-10 mx-auto mb-3 text-textMuted opacity-50" />
-            <p className="text-textSecondary font-medium">Brak przepisów spełniających kryteria.</p>
+            <NoResultsState text="przepisów" isSearch/>
           </li>
         )}
       </ul>

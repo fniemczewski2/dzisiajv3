@@ -3,6 +3,7 @@
 import React from "react";
 import { MapPin, Star, X } from "lucide-react";
 import { Departure } from "../../hooks/useTransport";
+import NoResultsState from "../NoResultsState";
 
 interface StopItemProps {
   stopName: string;
@@ -33,12 +34,12 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
     <div className="p-4 bg-transparent transition-colors hover:bg-surface/50">
       {/* Nagłówek przystanku */}
       <div className="flex justify-between items-start mb-4">
-        <h4 className="font-bold text-[15px] text-text flex items-center leading-tight">
+        <h4 className="font-medium text-md text-text flex items-center leading-tight">
           {stopName}
         </h4>
         <div className="flex items-center gap-1.5 shrink-0 pl-2">
           
-          <div className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-textSecondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md">
+          <div className="flex items-center gap-1 text-xs font-bold tracking-wider uppercase text-textSecondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md">
             <MapPin className="w-3 h-3" />
             {distance !== undefined ? `${Math.round(distance)}m` : zone_id === "S" ? "Szczecin" : "Poznań"}
           </div>
@@ -69,11 +70,11 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
               
               <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
                 {/* Numer linii */}
-                <span className="flex items-center gap-1 font-black text-sm bg-primary text-white px-2.5 py-1.5 rounded-lg min-w-[42px] justify-center shadow-sm shrink-0">
+                <span className="flex items-center gap-1 font-black text-md bg-primary text-white px-1 py:0.5 md:px-2.5 md:py-1.5 rounded-lg min-w-[42px] justify-center shadow-sm shrink-0">
                   {dep.line}
                 </span>
                 {/* Kierunek */}
-                <span className="text-sm font-bold truncate uppercase tracking-tight text-textSecondary group-hover:text-text transition-colors">
+                <span className="text-sm font-medium truncate uppercase tracking-tight text-textSecondary group-hover:text-text transition-colors">
                   {dep.direction}
                 </span>
               </div>
@@ -82,12 +83,12 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
               <div className="text-right shrink-0">
                 <div className={`text-sm tabular-nums tracking-tight ${getStatusColor(dep)}`}>
                   {dep.minutes <= 0 ? (
-                    <span className="text-green-600 dark:text-green-500 font-black animate-pulse">TERAZ</span>
+                    <span className="text-green-600 dark:text-green-500 font-bold animate-pulse">TERAZ</span>
                   ) : (
                     `${dep.minutes} min`
                   )}
                 </div>
-                <div className="text-[10px] font-medium text-textMuted leading-none mt-1">
+                <div className="text-[9px] font-medium text-textMuted leading-none mt-0.5 md:mt-1">
                   {dep.time}
                 </div>
               </div>
@@ -95,9 +96,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
             </div>
           ))
         ) : (
-          <div className="flex items-center justify-center py-4 text-xs font-medium text-textMuted">
-            Brak odjazdów w najbliższym czasie
-          </div>
+          <NoResultsState text="kursów" />
         )}
       </div>
     </div>

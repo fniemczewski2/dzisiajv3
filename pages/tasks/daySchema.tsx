@@ -10,6 +10,7 @@ import { getAppDateTime } from "../../lib/dateUtils";
 import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
 import LoadingState from "../../components/LoadingState";
 import { AddButton, EditButton, DeleteButton } from "../../components/CommonButtons";
+import NoResultsState from "../../components/NoResultsState";
 
 export default function DaySchemaPage() {
   const { schemas, loading, refresh, deleteSchema } = useDaySchemas();
@@ -92,16 +93,12 @@ export default function DaySchemaPage() {
             </li>
             ))}
             {schemas.length === 0 && !loading && (
-              <li className="col-span-full text-center py-8 text-textMuted font-medium bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-                Brak zapisanych schematów. Dodaj swój pierwszy!
-              </li>
+              <NoResultsState text="schematów dnia" />
             )}
         </ul>
 
         <div className="mb-6 bg-card border border-gray-200 dark:border-gray-800 p-5 rounded-2xl shadow-sm">
-          <h3 className="text-lg font-bold text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">
-            {activeSchema ? `Aktywny: ${activeSchema.name}` : "Brak przypisanego schematu na dziś"}
-          </h3>
+          <NoResultsState text="aktywnego schematu dnia na dzisiaj" />
 
           {sortedEntries.length > 0 ? (
             <div className="relative border-l-2 border-gray-200 dark:border-gray-700 pl-4 py-2">

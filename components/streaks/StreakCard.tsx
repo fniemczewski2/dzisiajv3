@@ -14,6 +14,7 @@ interface StreakCardProps {
   streak: Streak;
   onEdit: (s: Streak) => void;
   onDelete: (id: string) => void;
+  getMilestoneMessage: (startDate: string | Date, currentDate?: string | Date) => string;
 }
 
 const ICON_MAP: { [key: string]: React.ComponentType<any> } = {
@@ -30,7 +31,7 @@ const ICONS = [
   { name: "piggybank", icon: PiggyBank }, { name: "medical", icon: BriefcaseMedical }, 
 ];
 
-export default function StreakCard({ streak, onEdit, onDelete }: StreakCardProps) {
+export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessage }: StreakCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(streak.name);
   const [editedDate, setEditedDate] = useState(streak.start_date);
@@ -40,23 +41,7 @@ export default function StreakCard({ streak, onEdit, onDelete }: StreakCardProps
   const days = differenceInDays(new Date(), parseISO(streak.start_date));
   const Icon = ICON_MAP[isEditing ? editedIcon : (streak.icon || "flame")];
 
-  const getMilestoneMessage = (days: number): string => {
-    if (days === 0) return "Dobry start!";
-    if (days === 7) return "Pierwszy tydzień!";
-    if (days === 30) return "Pierwszy miesiąc!";
-    if (days === 61) return "Dwa miesiące!";
-    if (days === 91) return "Trzy miesiące!";
-    if (days === 122) return "Cztery miesiące!";
-    if (days === 100) return "100 dni!";
-    if (days === 365) return "ROK!";
-    if (days % 100 === 0) return `${days} dni! Kontynuuj!`;
-    if (days / 30 > 4 && days % 30 === 0) return `${Math.floor(days / 30)} miesięcy!`;
-    if (days / 365 > 1 && days / 365 < 5 && days % 365 === 0) return `${Math.floor(days / 365)} lata!`;
-    if (days / 365 > 4 && days % 365 === 0) return `${Math.floor(days / 365)} lat!`;
-    return "";
-  };
-
-  const milestone = getMilestoneMessage(days);
+  const milestone = getMilestoneMessage(streak.start_date);
 
   const handleSave = () => {
     onEdit({
@@ -189,7 +174,7 @@ export default function StreakCard({ streak, onEdit, onDelete }: StreakCardProps
         {/* Milestone message */}
         {milestone && !isEditing && (
           <div className="mb-3 text-center">
-            <div className="inline-block text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+            <div className="inline-block text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
               {milestone}
             </div>
           </div>

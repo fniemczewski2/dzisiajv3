@@ -37,7 +37,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
 
   const handleRequestPermission = async () => {
     if (!isSupported) {
-      alert('Powiadomienia Push nie są wspierane w Twojej przeglądarce.');
+      alert('Powiadomienia Push nie są wspierane w tej przeglądarce.');
       return;
     }
 
@@ -74,7 +74,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Brak konfiguracji Supabase');
+        throw new Error('Błąd konfiguracji Supabase');
       }
 
       const edgeFunctionUrl = `${supabaseUrl}/functions/v1/send-push`;
@@ -141,7 +141,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
           </div>
 
           <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
-            <span className="font-semibold text-textSecondary">API Przeglądarki:</span>
+            <span className="font-semibold text-textSecondary">Przeglądarka:</span>
             <span className={`px-2 py-1 rounded font-bold uppercase tracking-wide border ${
               isSupported 
                 ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30'
@@ -167,13 +167,13 @@ export default function PushNotificationManager({ userId }: { userId: string | u
           </div>
           
           <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
-            <span className="font-semibold text-textSecondary">Baza danych:</span>
+            <span className="font-semibold text-textSecondary">Subskrypcja:</span>
             <span className={`px-2 py-1 rounded font-bold uppercase tracking-wide border ${
               isSubscribed 
                 ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30' 
                 : 'bg-card text-textMuted border-gray-200 dark:border-gray-700'
             }`}>
-              {isSubscribed ? 'Subskrybuje' : 'Brak Sub.'}
+              {isSubscribed ? 'Aktywna' : 'Brak'}
             </span>
           </div>
         </div>

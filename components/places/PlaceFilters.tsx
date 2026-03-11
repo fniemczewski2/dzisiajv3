@@ -156,7 +156,7 @@ export default function PlaceFilters({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="min-w-0 max-w-[100%]">
                   <label className="form-label">Od godziny:</label>
                   <input
                     type="time"
@@ -165,7 +165,7 @@ export default function PlaceFilters({
                     className="input-field py-1.5"
                   />
                 </div>
-                <div>
+                <div className="min-w-0 max-w-[100%]">
                   <label className="form-label">Do godziny:</label>
                   <input
                     type="time"

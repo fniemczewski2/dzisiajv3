@@ -30,7 +30,6 @@ export function useEvents(
 
       const fetchedEvents = data || [];
 
-      // Pobieranie brakujących maili
       const neededIds = Array.from(new Set(
         fetchedEvents
           .map((ev: Event) => ev.user_id === userId ? ev.shared_with_id : ev.user_id)

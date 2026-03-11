@@ -9,6 +9,7 @@ import { useTasks } from "../../hooks/useTasks";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import { Task } from "../../types";
 import { useAuth } from "../../providers/AuthProvider";
+import NoResultsState from "../NoResultsState";
 
 export default function Reminders({ onTasksChange }: { onTasksChange?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -93,7 +94,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
           
           <div className="px-4 py-3 text-sm">
             {liczba === 0 ? (
-              <p className="text-textMuted text-center py-2">Brak zadań cyklicznych</p>
+              <NoResultsState text="zadań cyklicznych" />
             ) : (
               <ul className="space-y-3">
                 {remindersToShow.map((r) => (

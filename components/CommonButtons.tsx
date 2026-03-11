@@ -38,7 +38,7 @@ export const SaveButton = ({ onClick, loading, disabled, type = "submit" }: Butt
     type={type}
     onClick={onClick}
     disabled={loading || disabled}
-    className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent"
   >
     Zapisz
     <Save className="w-5 h-5" />
@@ -50,7 +50,7 @@ export const CancelButton = ({ onCancel, loading }: { onCancel: () => void; load
     type="button"
     onClick={onCancel}
     disabled={loading}
-    className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border"
   >
     Anuluj
   </button>
@@ -62,7 +62,7 @@ export const DeleteButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 border border-transparent hover:border-red-600 dark:hover:border-red-400 transition-colors"
     aria-label="Usuń"
   >
     <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -74,7 +74,7 @@ export const EditButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
     aria-label="Edytuj"
   >
     <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -87,7 +87,7 @@ export const RescheduleButton = ({ onClick, loading }: { onClick: () => void; lo
     onClick={onClick}
     type="button"
     disabled={loading}
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-textMuted hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors disabled:opacity-50"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-textMuted hover:text-yellow-600 dark:hover:text-yellow-500 border border-transparent hover:border-yellow-600 dark:hover:border-yellow-500 transition-colors disabled:opacity-50"
     aria-label="Przesuń na jutro"
     title="Przesuń na jutro"
   >
@@ -102,7 +102,7 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
     aria-label="Uruchom timer"
     title="Start Pomodoro"
   >
@@ -115,7 +115,7 @@ export const ShareButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
     aria-label="Udostępnij"
     title="Udostępnij"
   >
@@ -128,7 +128,7 @@ export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
     title={isPinned ? "Odepnij" : "Przypnij"}
   >
     <Pin className={`w-4 h-4 sm:w-5 sm:h-5 mb-1 ${isPinned ? "fill-primary" : ""}`} />
@@ -142,7 +142,7 @@ export const ArchiveButton = ({ onClick, isArchived }: { onClick: () => void; is
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
     title={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
   >
     <Archive className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -168,7 +168,7 @@ export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-primary/10 text-textMuted hover:text-primary transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
     title="Do obejrzenia"
   >
     <Eye className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -180,7 +180,7 @@ export const PdfButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
     aria-label="Generuj PDF"
     title="Generuj PDF"
   >
