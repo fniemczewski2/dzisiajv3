@@ -198,7 +198,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
           <button
             onClick={handleToggleNotifications}
             disabled={loading}
-            className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 ${
+            className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold transition-all disabled:opacity-50 ${
               isSubscribed
                 ? 'bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50'
                 : 'bg-primary hover:bg-secondary text-white'
@@ -225,7 +225,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
           <button
             onClick={handleTestNotification}
             disabled={loading}
-            className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-text font-bold rounded-xl transition-colors disabled:opacity-50"
+            className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-text font-bold rounded-lg transition-colors disabled:opacity-50"
           >
             Wyślij Test
             <CheckCircle className="w-5 h-5 text-green-500" />

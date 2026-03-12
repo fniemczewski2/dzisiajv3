@@ -21,10 +21,10 @@ export default function TimeContextBadge({
   return (
     <span
       className={`
-        inline-flex items-center justify-center gap-1.5 rounded-md shadow-sm transition-colors bg-surfaceHover border uppercase
+        inline-flex items-center justify-center rounded-md shadow-sm transition-colors bg-surfaceHover border uppercase
         ${context.color}
         ${context.shouldPulse ? 'animate-pulse' : ''}
-        ${small ? 'text-xs px-2 py-1 h-[24px] font-medium' : 'text-sm px-3 py-1.5 font-bold'}
+        ${small ? 'text-xs px-2 py-1 h-[24px] gap-1 font-medium' : 'text-sm px-3 py-1.5  gap-1.5 font-bold'}
         ${className}
       `}
     >
@@ -35,7 +35,7 @@ export default function TimeContextBadge({
       )}
       <span>{context.display}</span>
       {context.shouldPulse && (
-        <span className="relative flex h-2 w-2 ml-1">
+        <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
         </span>

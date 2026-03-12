@@ -158,7 +158,7 @@ export default function Header() {
             </span>
             
             {airQuality && (
-              <span className="whitespace-nowrap text-[9px] sm:text-[10px] font-medium text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded uppercase tracking-wider mt-1 border border-red-100 dark:border-red-900/50">
+              <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded uppercase tracking-wider">
                 {airQuality}
               </span>
             )}

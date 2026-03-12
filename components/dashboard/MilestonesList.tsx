@@ -21,7 +21,7 @@ export const MilestonesList = React.memo(({ streaks, getMilestoneMessage }: Mile
   if (streaksWithMilestones.length === 0) return null;
 
   return (
-    <section className="card rounded-3xl p-5 sm:p-6 shadow-sm animate-in fade-in zoom-in duration-300">
+    <section className="card rounded-xl p-5 sm:p-6 shadow-sm animate-in fade-in zoom-in duration-300">
       <h3 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
         <Trophy className="text-accent w-5 h-5" /> Postępy
       </h3>

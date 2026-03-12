@@ -41,7 +41,7 @@ export default function BirthdayIndicator({ date }: Props) {
       {specialEvents.map((event) => (
         <span
           key={event.id}
-          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-[11px] text-right flex items-center justify-start uppercase tracking-wider bg-red-50 dark:bg-red-900/20 px-1 py-0.5 rounded border border-red-100 dark:border-red-900/50"
+          className="text-red-600 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
           title={event.description || event.title}
         >
           <Cake className="w-3 h-3 mr-1 shrink-0" /> 
