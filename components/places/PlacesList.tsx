@@ -1,8 +1,23 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useMemo, useEffect } from "react";
 import { Place } from "../../types";
-import { ChevronDown, Globe, MapPin, Phone, Star } from "lucide-react";
-import { EditButton, DeleteButton } from "../CommonButtons"; // Używamy ujednoliconych przycisków!
+import { ChevronDown, Globe, MapPin, Phone, Star, Navigation } from "lucide-react";
+import { EditButton, DeleteButton } from "../CommonButtons";
+import { useSettings } from "../../hooks/useSettings";
 import NoResultsState from "../NoResultsState";
+
+// Funkcja matematyczna obliczająca odległość w kilometrach (Haversine formula)
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Promień Ziemi w km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; 
+};
 
 interface PlacesListProps {
   places: Place[];
@@ -16,18 +31,64 @@ export default function PlacesList({
   onDelete,
 }: PlacesListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { settings, requestGeolocation } = useSettings();
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Zdobądź lokalizację użytkownika, jeśli wybrał sortowanie po odległości, a jeszcze jej nie mamy
+  useEffect(() => {
+    if (settings?.sort_places === "distance" && !userCoords) {
+      requestGeolocation((coords) => setUserCoords(coords));
+    }
+  }, [settings?.sort_places, userCoords, requestGeolocation]);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  // Sortowanie miejsc (Zabezpieczone przed nullami i błędnymi typami)
+  const sortedPlaces = useMemo(() => {
+    const sortType = settings?.sort_places || "alphabetical";
+    
+    return [...places].sort((a, b) => {
+      if (sortType === "distance" && userCoords) {
+        // Bezpieczne rzutowanie na liczby
+        const latA = Number(a.lat) || 0;
+        const lngA = Number(a.lng) || 0;
+        const latB = Number(b.lat) || 0;
+        const lngB = Number(b.lng) || 0;
+
+        // Jeśli brak współrzędnych, spychamy na dół listy
+        if (!latA || !lngA) return 1;
+        if (!latB || !lngB) return -1;
+
+        const distA = calculateDistance(userCoords.lat, userCoords.lng, latA, lngA);
+        const distB = calculateDistance(userCoords.lat, userCoords.lng, latB, lngB);
+
+        return distA - distB;
+      }
+      
+      // Domyślnie alfabetycznie (A->Z) ze sprawdzeniem nulla
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+      return nameA.localeCompare(nameB, "pl");
+    });
+  }, [places, settings?.sort_places, userCoords]);
+
+  // Pomocnicza funkcja formatująca (w 100% bezpieczna dla pustych wartości)
+  const getDistanceText = (latVal?: string | number | null, lngVal?: string | number | null) => {
+    if (!userCoords || !latVal || !lngVal) return null;
+    
+    const lat = Number(latVal);
+    const lng = Number(lngVal);
+    
+    if (!lat || !lng) return null;
+
+    const d = calculateDistance(userCoords.lat, userCoords.lng, lat, lng);
+    return d < 1 ? `${(d * 1000).toFixed(0)} m` : `${d.toFixed(1)} km`;
+  };
+
   if (places.length === 0) {
-    return (
-      <NoResultsState
-        text="miejsc"
-        isSearch
-      />
-    );
+    return <NoResultsState text="miejsc" isSearch />;
   }
 
   const DAY_NAMES: { [key: string]: string } = {
@@ -41,15 +102,16 @@ export default function PlacesList({
 
   return (
     <div className="space-y-3">
-      {places.map((place) => {
+      {sortedPlaces.map((place) => {
         const isExpanded = expandedId === place.id;
+        // KRYTYCZNA POPRAWKA: Przekazujemy zmienne bezpośrednio (bez groźnego .toString())
+        const distanceText = getDistanceText(place.lat, place.lng);
 
         return (
           <div
             key={place.id}
             className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 transition-all duration-200 hover:border-primary/50 group overflow-hidden"
           >
-            {/* Header */}
             <div
               className="p-4 cursor-pointer"
               onClick={() => toggleExpand(place.id)}
@@ -59,9 +121,19 @@ export default function PlacesList({
                   <h3 className="font-bold text-lg text-text leading-tight truncate">
                     {place.name}
                   </h3>
-                  {place.address && (
-                    <p className="text-xs text-textSecondary mt-1 truncate">{place.address}</p>
+                  
+                  {/* Wyświetlanie adresu oraz obliczonej odległości */}
+                  {(place.address || distanceText) && (
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-textSecondary">
+                      <span className="truncate">{place.address}</span>
+                      {distanceText && (
+                        <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface text-primary font-semibold rounded-md shrink-0 border border-gray-200 dark:border-gray-700">
+                          <Navigation className="w-3 h-3" /> {distanceText}
+                        </span>
+                      )}
+                    </div>
                   )}
+
                   {place.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2.5">
                       {place.tags.map((tag, idx) => (
@@ -76,7 +148,7 @@ export default function PlacesList({
                   )}
                 </div>
                 <button
-                  className="p-2 bg-surface text-textSecondary rounded-lg transition-colors group-hover:bg-primary/10 group-hover:text-primary shrink-0"
+                  className="p-2 bg-surface text-textSecondary rounded-lg transition-colors group-hover:bg-blue-100 dark:hover:bg-blue-900 group-hover:text-primary shrink-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleExpand(place.id);
@@ -87,11 +159,8 @@ export default function PlacesList({
               </div>
             </div>
 
-            {/* Rozwinięte Detale */}
             {isExpanded && (
               <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4 bg-surface/30">
-                
-                {/* Informacje (Ocena, Tel, WWW) */}
                 <div className="space-y-2">
                   {place.rating && (
                     <div className="flex items-center gap-2">
@@ -117,7 +186,6 @@ export default function PlacesList({
                   )}
                 </div>
 
-                {/* Godziny Otwarcia */}
                 {place.opening_hours && (
                   <div>
                     <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Godziny otwarcia:</span>
@@ -138,7 +206,6 @@ export default function PlacesList({
                   </div>
                 )}
 
-                {/* Notatki */}
                 {place.notes && (
                   <div>
                     <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Notatki:</span>
@@ -148,13 +215,13 @@ export default function PlacesList({
                   </div>
                 )}
 
-                {/* Przyciski Akcji */}
                 <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-4 border-t border-gray-100 dark:border-gray-800">
+                  {/* KRYTYCZNA POPRAWKA: Prawdziwy link Google Maps, który zadziała na mobile i desktop */}
                   <a
                     href={
                       place.google_place_id
-                        ? `https://google.com/maps/place/?q=place_id:${place.google_place_id}` // Poprawiony link do Google Maps na mobile/web
-                        : `https://google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}${place.address ? ", " + place.address : ""}`)}`
+                        ? `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${place.google_place_id}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}${place.address ? ", " + place.address : ""}`)}`
                     }
                     target="_blank"
                     rel="noopener noreferrer"

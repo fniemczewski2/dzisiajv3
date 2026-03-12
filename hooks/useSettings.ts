@@ -1,16 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
-
-type SettingsType = {
-  sort_order: string;
-  show_completed: boolean;
-  show_habits: boolean;
-  show_water_tracker: boolean;
-  show_budget_items: boolean;
-  show_notifications: boolean;
-  users: string[];
-  favorite_stops:{ name: string; zone_id: string }[];
-};
+import { Settings } from "../types";
 
 type GeoCoords = { lat: number; lng: number };
 
@@ -30,11 +20,11 @@ const safeParseArray = (data: any) => {
 };
 
 export function useSettings() {
-
-  const { user, supabase} = useAuth();
+  const { user, supabase } = useAuth();
   const userId = user?.id;
 
-  const [settings, setSettings] = useState<SettingsType>({
+  // 1. STATYCZNE WARTOŚCI DOMYŚLNE (przed załadowaniem z bazy)
+  const [settings, setSettings] = useState<Settings>({
     sort_order: "priority",
     show_completed: true,
     show_habits: true,
@@ -43,6 +33,31 @@ export function useSettings() {
     show_notifications: true,
     users: [],
     favorite_stops: [],
+    
+    // Powiadomienia
+    notif_morning_brief: true,
+    notif_tasks: true,
+    notif_events: true,
+    notif_water: true,
+    notif_habits: true,
+    notif_evening: true,
+
+    // Sortowanie
+    sort_notes: "updated_desc",
+    sort_shopping: "updated_desc",
+    sort_movies: "rating",
+    sort_recipes: "category",
+    sort_places: "alphabetical",
+
+    // Poszczególne nawyki
+    habit_pills: true,
+    habit_bath: true,
+    habit_workout: true,
+    habit_friends: true,
+    habit_work: true,
+    habit_housework: true,
+    habit_plants: true,
+    habit_duolingo: true,
   });
 
   const [loading, setLoading] = useState(true);
@@ -57,13 +72,23 @@ export function useSettings() {
 
     const loadSettings = async () => {
       setLoading(true);
+      
+      // Lista wszystkich kolumn do pobrania z bazy
+      const columns = [
+        "sort_order", "show_completed", "show_habits", "show_water_tracker", "show_budget_items", "show_notifications", "users", "favorite_stops",
+        "notif_morning_brief", "notif_tasks", "notif_events", "notif_water", "notif_habits", "notif_evening",
+        "sort_notes", "sort_shopping", "sort_movies", "sort_recipes", "sort_places",
+        "habit_pills", "habit_bath", "habit_workout", "habit_friends", "habit_work", "habit_housework", "habit_plants", "habit_duolingo"
+      ].join(",");
+
       const { data, error } = await supabase
         .from("settings")
-        .select("sort_order,show_completed,show_habits,show_water_tracker,show_budget_items,show_notifications,users,favorite_stops")
+        .select(columns)
         .eq("user_id", userId)
         .maybeSingle();
         
       if (!error && data) {
+        // 2. NADPISYWANIE DANYMI Z BAZY LUB FALLBACK DO DOMYŚLNYCH
         setSettings({
           sort_order: data.sort_order ?? "priority",
           show_completed: data.show_completed ?? true,
@@ -73,6 +98,28 @@ export function useSettings() {
           show_notifications: data.show_notifications ?? true,
           users: safeParseArray(data.users),
           favorite_stops: safeParseArray(data.favorite_stops),
+
+          notif_morning_brief: data.notif_morning_brief ?? true,
+          notif_tasks: data.notif_tasks ?? true,
+          notif_events: data.notif_events ?? true,
+          notif_water: data.notif_water ?? true,
+          notif_habits: data.notif_habits ?? true,
+          notif_evening: data.notif_evening ?? true,
+
+          sort_notes: data.sort_notes ?? "updated_desc",
+          sort_shopping: data.sort_shopping ?? "updated_desc",
+          sort_movies: data.sort_movies ?? "updated_desc",
+          sort_recipes: data.sort_recipes ?? "category",
+          sort_places: data.sort_places ?? "alphabetical",
+
+          habit_pills: data.habit_pills ?? true,
+          habit_bath: data.habit_bath ?? true,
+          habit_workout: data.habit_workout ?? true,
+          habit_friends: data.habit_friends ?? true,
+          habit_work: data.habit_work ?? true,
+          habit_housework: data.habit_housework ?? true,
+          habit_plants: data.habit_plants ?? true,
+          habit_duolingo: data.habit_duolingo ?? true,
         });
       }
       setLoading(false);
@@ -92,6 +139,24 @@ export function useSettings() {
     return { error };
   }, [supabase, settings, userId]);
   
+  const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
+    if (!userId) return { error: "No user" };
+
+    setSaving(true);
+    const updatedSettings = { ...settings, ...partialSettings };
+    setSettings(updatedSettings);
+
+    const payload = { user_id: userId, ...updatedSettings };
+    const { error } = await supabase.from("settings").upsert(payload, { onConflict: "user_id" });
+    setSaving(false);
+
+    if (error) {
+       console.error("Błąd zapisywania partial settings:", error);
+    }
+
+    return { error };
+  }, [supabase, settings, userId]);
+
   const addFavoriteStop = async (name: string, zone_id: string = "AUTO") => {
     if (settings.favorite_stops.some(s => s.name === name)) return;
 
@@ -172,6 +237,7 @@ export function useSettings() {
     saving,
     locationStatus,
     saveSettings,
+    updateSettings, 
     addFavoriteStop,
     removeFavoriteStop,
     addUser,

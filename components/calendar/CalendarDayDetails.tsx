@@ -92,27 +92,27 @@ export default function CalendarDayDetails({
   const selectedDateObject = new Date(selectedDate);
 
   return (
-    <div className="py-4 mb-5 space-y-6">
+    <div className="mb-5 space-y-6">
       {/* Pasek Nagłówkowy */}
-      <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center justify-between relative">
+      <div className="flex items-center justify-between relative">
         <button
           onClick={onBack}
-          className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors shrink-0"
+          className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-lg transition-colors shrink-0"
           title="Powrót do kalendarza"
         >
           <Calendar className="w-5 h-5" />
         </button>
 
-        <h3 className="font-bold text-lg sm:text-xl text-text text-center capitalize tracking-wide truncate px-2">
-          {format(parseISO(selectedDate), "d MMMM yyyy", { locale: pl })}
+        <h3 className="font-bold text-md sm:text-xl text-text text-center capitalize tracking-wide truncate md:px-2">
+          {format(parseISO(selectedDate), "d.MM.yyyy", { locale: pl })}
         </h3>
 
         {!showAddForm ? (
-           <div className="w-10 h-10 flex shrink-0 justify-center items-center">
+           <div className="h-10 flex shrink-0 justify-center items-center">
              <AddButton onClick={() => setShowAddForm(true)} type="button" />
            </div>
         ) : (
-            <div className="w-10 h-10 shrink-0"></div>
+            <div className="h-10 shrink-0"></div>
         )}
       </div>
 

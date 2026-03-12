@@ -39,7 +39,7 @@ export const MilestonesList = React.memo(({ streaks, getMilestoneMessage }: Mile
             <Link 
               href="/streaks" 
               title="Zobacz wszystkie postępy" 
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg hover:bg-primary/10 text-textSecondary hover:text-primary transition-colors border bg-surface"
+              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 text-textSecondary hover:text-primary transition-colors border bg-surface"
             >
               <Trophy className="w-4 h-4" />
             </Link>

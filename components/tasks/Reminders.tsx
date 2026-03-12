@@ -106,7 +106,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => handleAddTask(r)} title="Dodaj jako zadanie" className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                      <button onClick={() => handleAddTask(r)} title="Dodaj jako zadanie" className="p-2 text-primary hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-colors">
                         <ListPlus className="w-4 h-4" />
                       </button>
                       <button onClick={() => completeReminder(r.id)} title="Zakończ zadanie" className="p-2 text-green-600 hover:bg-green-600/10 rounded-lg transition-colors">

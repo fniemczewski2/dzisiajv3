@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useMemo } from "react";
 import Layout from "../../components/Layout";
 import SEO from "../../components/SEO";
@@ -20,6 +21,7 @@ interface TimeFilter {
 }
 
 export default function PlacesPage() {
+  // 1. NAJPIERW WSZYSTKIE HOOKI (zawsze w tej samej kolejności)
   const {
     places,
     loading,
@@ -38,7 +40,7 @@ export default function PlacesPage() {
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>();
     places.forEach((place) => {
-      place.tags.forEach((tag) => tagSet.add(tag));
+      (place.tags || []).forEach((tag) => tagSet.add(tag));
     });
     return Array.from(tagSet).sort();
   }, [places]);
@@ -53,40 +55,32 @@ export default function PlacesPage() {
       }
 
       if (selectedTags.length > 0) {
-        const hasTag = selectedTags.some((tag) => place.tags.includes(tag));
+        const hasTag = selectedTags.some((tag) => place.tags?.includes(tag));
         if (!hasTag) return false;
       }
       
       if (timeFilter && place.opening_hours) {
-        const dayNames = [
-          "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" 
-        ];
-        
+        const dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
         const dayName = dayNames[timeFilter.day];
         const hours = place.opening_hours[dayName];
 
         if (!hours || !Array.isArray(hours) || hours.length === 0) return false;
 
-        const hoursStr = hours[0];
-        const match = hoursStr.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
+        const match = hours[0].match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
         if (!match) return false;
 
         const [, openTime, closeTime] = match;
         const requestStart = timeFilter.startTime;
         const requestEnd = timeFilter.endTime;
 
-        const isOpenDuringEntireTime =
-          openTime <= requestStart &&
-          closeTime >= requestEnd &&
-          requestStart < requestEnd;
-
-        if (!isOpenDuringEntireTime) return false;
+        if (!(openTime <= requestStart && closeTime >= requestEnd && requestStart < requestEnd)) return false;
       }
 
       return true;
     });
   }, [places, searchQuery, selectedTags, timeFilter]);
 
+  // 2. FUNKCJE POMOCNICZE (Handlery)
   const handleSavePlace = async (updates: Partial<Place>) => {
     if (!editingPlace) return;
     try {
@@ -98,11 +92,7 @@ export default function PlacesPage() {
     }
   };
 
-  const handleImport = async (
-    jsonData: any,
-    fetchGoogleData: boolean,
-    autoTag: boolean
-  ): Promise<number> => {
+  const handleImport = async (jsonData: any, fetchGoogleData: boolean, autoTag: boolean): Promise<number> => {
     const count = await importFromGoogleMaps(jsonData, fetchGoogleData, autoTag);
     return count || 0;
   };
@@ -116,6 +106,7 @@ export default function PlacesPage() {
     }
   };
 
+  // 3. DOPIERO TERAZ WARUNKOWY RETURN (Kiedy wszystkie hooki zostały już zarejestrowane)
   if (loading) {
     return (
       <Layout>
@@ -124,12 +115,10 @@ export default function PlacesPage() {
     );
   }
 
+  // 4. GŁÓWNY RENDER
   return (
     <Layout>
-      <SEO
-        title="Miejsca"
-        description="Zarządzaj swoimi ulubionymi miejscami z Google Maps"
-      />
+      <SEO title="Miejsca" description="Zarządzaj swoimi ulubionymi miejscami" />
       
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-text">Miejsca</h2>
@@ -138,8 +127,7 @@ export default function PlacesPage() {
             onClick={() => setShowImport(true)}
             className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-xl flex items-center gap-2 transition-colors shadow-sm"
           >
-            Importuj 
-            <Upload className="w-5 h-5" />
+            Importuj <Upload className="w-5 h-5" />
           </button>
         )}
       </div>
