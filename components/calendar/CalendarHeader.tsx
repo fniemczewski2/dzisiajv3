@@ -13,7 +13,7 @@ interface Props {
 export default function CalendarHeader({ currentDate, onPrev, onNext }: Props) {
   return (
     <div className={clsx("flex items-center px-4 pb-4 sm:pb-6 my-2 sm:my-4 justify-center")}>
-      <div className="flex items-center bg-card border border-gray-200 dark:border-gray-800 rounded-2xl p-1 shadow-sm">
+      <div className="flex items-center card rounded-2xl p-1 shadow-sm">
         <button
           onClick={onPrev}
           className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"

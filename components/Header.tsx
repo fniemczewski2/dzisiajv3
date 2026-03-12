@@ -113,7 +113,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-card border border-gray-200 dark:border-gray-800 shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
+    <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
       <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-start gap-3">
       {/* Lewa strona: Czas i data */}
       {/* min-w-0 pozwala dacie na truncate, żeby nie wypychała prawego bloku */}

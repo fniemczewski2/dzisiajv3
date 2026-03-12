@@ -109,7 +109,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
   };
 
   return (
-    <div className="bg-card rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6 mb-4 transition-colors">
+    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 text-text">
           <div>
@@ -130,7 +130,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
           <div className="flex items-center justify-between text-xs sm:text-sm">
             <span className="font-semibold text-textSecondary">Platforma:</span>
             <div className="flex gap-2">
-              <span className="px-2 py-1 rounded bg-card text-text font-medium border border-gray-200 dark:border-gray-700 uppercase">
+              <span className="px-2 py-1 rounded card text-text font-medium uppercase">
                 {platform === 'ios' ? 'iOS' : platform === 'android' ? 'Android' : 'Desktop'}
               </span>
               {isStandalone && 
@@ -172,7 +172,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
             <span className={`px-2 py-1 rounded font-bold uppercase tracking-wide border ${
               isSubscribed 
                 ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30' 
-                : 'bg-card text-textMuted border-gray-200 dark:border-gray-700'
+                : 'card text-textMuted'
             }`}>
               {isSubscribed ? 'Aktywna' : 'Brak'}
             </span>

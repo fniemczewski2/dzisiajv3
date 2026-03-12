@@ -18,7 +18,7 @@ export const DailyPlan = React.memo(({
   planByHour, handleMarkAsDone, handleDeleteTask, handleRemoveFromSchedule, handleDeleteEvent
 }: DailyPlanProps) => {
   return (
-    <section className="lg:col-span-2 bg-card border border-gray-200 dark:border-gray-800 rounded-3xl px-2 py-4 sm:p-4 shadow-sm">
+    <section className="lg:col-span-2 card rounded-3xl px-2 py-4 sm:p-4 shadow-sm">
       <h2 className="text-xl font-bold text-text mb-6 flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
         <div className="rounded-xl">
           <Calendar className="text-primary w-5 h-5" /> 

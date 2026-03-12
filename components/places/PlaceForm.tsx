@@ -71,7 +71,7 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 className="text-xl font-semibold text-text mb-4">Edytuj miejsce</h2>
 

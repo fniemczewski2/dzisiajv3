@@ -13,7 +13,7 @@ export default function LocationSection({
   const [showDetails, setShowDetails] = useState(false);
 
   return (
-    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
+    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 text-text">
           <div>
@@ -33,7 +33,7 @@ export default function LocationSection({
         <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-2">
             <span className="font-semibold text-textSecondary">Aktualne współrzędne:</span>
-            <span className="px-2.5 py-1 font-mono font-medium rounded-md bg-card border border-gray-200 dark:border-gray-700 text-text">
+            <span className="px-2.5 py-1 font-mono font-medium rounded-md card text-text">
               {locationStatus || 'Brak danych'}
             </span>
           </div>

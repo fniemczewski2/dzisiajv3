@@ -81,7 +81,7 @@
   }
 
   .widget {
-    @apply mb-2 sm:mb-4 bg-card border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow-sm transition;
+    @apply mb-2 sm:mb-4 bg-card border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow transition;
   }
 
   select.input-field {
@@ -91,5 +91,9 @@
   .dark select.input-field option {
     background-color: #1E293B; 
     color: #F8FAFC;            
+  }
+
+  .card {
+    @apply bg-card border border-gray-200 dark:border-gray-700 shadow transition
   }
 }

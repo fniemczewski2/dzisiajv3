@@ -146,7 +146,7 @@ export default function CalendarDayDetails({
               return (
                 <div
                   key={event.id}
-                  className="p-5 w-full max-w-md bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg space-y-4"
+                  className="p-5 w-full max-w-md bg-card border border-primary dark:border-primary rounded-2xl shadow-lg space-y-4"
                 >
                   <div>
                     <label className="form-label">Tytuł wydarzenia:</label>
@@ -241,7 +241,7 @@ export default function CalendarDayDetails({
             return (
               <div
                 key={event.id}
-                className="p-5 w-full max-w-md bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md hover:border-primary/50 transition-all flex flex-col"
+                className="p-5 w-full max-w-md card rounded-2xl shadow-sm hover:shadow-md hover:border-primary/50 transition-all flex flex-col"
               >
                 <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
@@ -303,7 +303,7 @@ export default function CalendarDayDetails({
       
       {/* ZADANIA DLA DANEGO DNIA */}
       {tasks.length > 0 && (
-      <section className="bg-card border border-gray-200 dark:border-gray-800 p-5 shadow-sm rounded-2xl max-w-md mx-auto w-full">
+      <section className="card p-5 shadow-sm rounded-2xl max-w-md mx-auto w-full">
         <h4 className="font-bold text-lg text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
           <Check className="text-primary w-5 h-5"/> Zadania z tego dnia
         </h4>

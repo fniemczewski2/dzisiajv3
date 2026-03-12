@@ -57,19 +57,19 @@ export default function NoteCard({
     <li
       className={clsx(
         "break-inside-avoid py-4 px-5 my-2 sm:m-3 max-w-sm min-w-[300px] rounded-2xl shadow-sm flex flex-col justify-start border transition-all duration-200 hover:shadow-md max-h-fit relative group",
-        colorMap[note.bg_color] || "bg-card border-gray-200 dark:border-gray-700",
+        colorMap[note.bg_color] || "card border-gray-200 dark:border-gray-700",
         note.archived && "opacity-60 grayscale-[0.3]"
       )}
     >
       {/* Wskaźniki Przypięcia/Archiwum */}
       {note.pinned && !note.archived && (
-        <div className="absolute -top-2 -right-2 bg-card p-1.5 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="absolute -top-2 -right-2 p-1.5 rounded-full shadow-sm card">
           <Pin className="w-4 h-4 text-primary fill-primary" />
         </div>
       )}
 
       {note.archived && (
-        <div className="absolute -top-2 -right-2 bg-card p-1.5 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="absolute -top-2 -right-2 p-1.5 rounded-full shadow-sm card">
           <Archive className="w-4 h-4 text-textMuted" />
         </div>
       )}

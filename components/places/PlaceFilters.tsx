@@ -93,7 +93,7 @@ export default function PlaceFilters({
       <div className="mt-4 space-y-3">
         {/* Tagi */}
         {availableTags.length > 0 && (
-          <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4">
+          <div className="card rounded-xl p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">
                 Tagi
@@ -127,7 +127,7 @@ export default function PlaceFilters({
         )}
 
         {/* Filtr czasowy */}
-        <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4">
+        <div className="card rounded-xl p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">
               Godziny otwarcia

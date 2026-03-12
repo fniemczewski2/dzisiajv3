@@ -6,7 +6,7 @@ export default function Navbar() {
   const router = useRouter();
 
   return (
-    <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg bg-card backdrop-blur-xl border border-gray-200 dark:border-gray-800 p-2 shadow-2xl rounded-2xl z-50 transition-colors">
+    <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg card backdrop-blur-xl p-2 shadow-2xl rounded-2xl z-50 transition-colors">
       <div className="flex justify-between items-center gap-1 sm:gap-2">
         <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
         <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />

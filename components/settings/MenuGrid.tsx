@@ -8,7 +8,7 @@ export default function MenuGrid() {
   return (
     <div className="space-y-4 mb-4">
       {/* Quick Actions - zawsze widoczne na górze */}
-      <div className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-2 sm:p-3">
+      <div className="card rounded-2xl shadow-sm p-2 sm:p-3">
         <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-textMuted uppercase tracking-widest">
           Szybkie Akcje
         </h3>
@@ -20,7 +20,7 @@ export default function MenuGrid() {
                 key={action.path}
                 onClick={() => router.push(action.path)}
                 title={action.title}
-                className="group relative p-1.5 sm:p-2 bg-primary text-white hover:bg-secondary rounded-xl border border-primary dark:border-primary-dark transition-all flex flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
+                className="group relative p-1.5 sm:p-2 bg-primary text-white hover:bg-secondary rounded-lg border border-primary dark:border-primary-dark transition-all flex flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
               >
                 <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
                 <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
@@ -37,7 +37,7 @@ export default function MenuGrid() {
         return (
           <div 
             key={category.name}
-            className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-2 sm:p-3"
+            className="card rounded-xl p-2 sm:p-3"
           >
             <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-textMuted uppercase tracking-widest">
               {category.name}
@@ -55,7 +55,7 @@ export default function MenuGrid() {
                     onClick={() => router.push(button.path)}
                     title={button.title}
                     className={`
-                      relative p-1.5 sm:p-2 rounded-xl border transition-all
+                      relative p-1.5 sm:p-2 rounded-lg border transition-all
                       flex flex-col items-center justify-center gap-1 sm:gap-1.5 flex-1 group
                       bg-surface border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-surfaceHover text-textSecondary'
                     `}

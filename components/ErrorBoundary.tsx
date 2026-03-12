@@ -42,7 +42,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-card">
+        <div className="min-h-screen flex items-center justify-center p-4 card">
           <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -53,7 +53,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details
-                className="text-left mb-4 p-3 bg-card rounded text-xs cursor-pointer"
+                className="text-left mb-4 p-3 card rounded text-xs cursor-pointer"
                 open={this.state.showDetails}
               >
                 <summary

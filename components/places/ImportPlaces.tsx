@@ -56,7 +56,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
   };
 
   return (
-    <div className="mb-6 p-4 sm:p-6 bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4">
+    <div className="mb-6 p-4 sm:p-6 card rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4">
       <h3 className="text-lg font-bold text-text mb-4">Importuj z Google Maps</h3>
 
       <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-xl mb-5 overflow-hidden">

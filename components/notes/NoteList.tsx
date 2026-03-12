@@ -15,7 +15,7 @@ interface NoteListProps {
 }
 
 const COLOR_MAP: { [key: string]: string } = {
-  "zinc-50": "bg-zinc-50 dark:bg-card border-gray-200 dark:border-gray-700",
+  "zinc-50": "bg-zinc-50 dark:card",
   "yellow-100": "bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/30",
   "green-100": "bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-700/30",
   "cyan-100": "bg-cyan-100 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700/30",

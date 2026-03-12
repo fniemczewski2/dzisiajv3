@@ -145,7 +145,7 @@ export default function ReportsPage() {
               return (
                 <li
                   key={r.id}
-                  className="p-5 break-inside-avoid bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg space-y-4 animate-in fade-in mb-4"
+                  className="p-5 break-inside-avoid bg-card border border-primary rounded-2xl shadow-lg space-y-4 animate-in fade-in mb-4"
                 >
                   {/* Topic */}
                   <div>
@@ -248,14 +248,14 @@ export default function ReportsPage() {
                     <label className="form-label">Zadania:</label>
                     <div className="space-y-3 mt-1">
                       {editedReport.tasks?.map((task, i) => (
-                        <div key={i} className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-surface space-y-2">
+                        <div key={i} className="p-3 card rounded-xl bg-surface space-y-2">
                           <div className="flex gap-2">
                             <input
                               type="text"
                               value={task.zadanie}
                               onChange={(e) => updateTask(i, "zadanie", e.target.value)}
                               placeholder="Zadanie"
-                              className="input-field py-1.5 bg-card"
+                              className="input-field py-1.5 bg-surface"
                             />
                             {(editedReport.tasks?.length || 0) > 1 && (
                               <button
@@ -317,7 +317,7 @@ export default function ReportsPage() {
             return (
               <li
                 key={r.id}
-                className="p-5 mb-4 break-inside-avoid bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
+                className="p-5 mb-4 break-inside-avoid card rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
               >
                 <div className="flex-1">
                   <div className="flex justify-between items-end border-b mb-3 border-black/5 dark:border-white/5">

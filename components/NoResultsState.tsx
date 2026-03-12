@@ -17,7 +17,7 @@ export default function NoResultsState({ fullScreen = false, size = 'md', text, 
   const len = text.length;
 
   const content = (
-    <div className="text-center py-10 w-md h-md rounded-xl bg-gray-100 dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700" >
+    <div className="text-center py-10 w-md h-md rounded-xl card" >
         <h3 className="text-lg font-medium text-text mb-4">Brak {text}</h3>
         <p className="text-textSecondary">Brak {text} {isSearch ? "spełniających kryteria." : len < 15 && "do wyświetlenia."}</p>
     </div>

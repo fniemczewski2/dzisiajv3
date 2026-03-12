@@ -84,7 +84,7 @@ export default function Home() {
                       return (
                         <article
                           key={feature.title}
-                          className="bg-card p-6 m-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                          className="card p-6 m-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
                         >
                           <div className="text-4xl mb-4">
                             <IconComponent />

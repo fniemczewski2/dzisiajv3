@@ -208,7 +208,7 @@ export default function TaskItem({ task, onTasksChange }: Props) {
                 >
                   <Minus size={18} />
                 </button>
-                <div className="flex-1 flex items-center justify-center text-lg bg-card border border-gray-200 dark:border-gray-700 rounded-xl text-text shadow-inner">
+                <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">
                   {editedTask.priority}
                 </div>
                 <button
@@ -268,7 +268,7 @@ export default function TaskItem({ task, onTasksChange }: Props) {
   // 3. WIDOK NORMALNY
   return (
     <>
-      <div className="p-4 w-full h-full bg-card border border-gray-200 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary-dark/50 rounded-xl shadow-sm flex flex-col justify-between transition-all group">
+      <div className="p-4 w-full h-full card hover:border-primary/50 dark:hover:border-primary-dark/50 rounded-xl shadow-sm flex flex-col justify-between transition-all group">
         
         <div className="space-y-3 flex-1">
           <div onClick={handleOpenTimer} className="flex justify-start gap-3 items-start cursor-pointer">

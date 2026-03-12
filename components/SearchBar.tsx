@@ -128,7 +128,7 @@ export default function SearchBar({
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full rounded-xl pl-11 pr-10 py-2.5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all"
+          className="w-full rounded-xl pl-11 pr-10 py-2.5 card shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all"
         />
         {value && (
           <button
@@ -152,7 +152,7 @@ export default function SearchBar({
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-2 bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-64 overflow-y-auto custom-scrollbar"
+          className="absolute z-50 w-full mt-2 card rounded-xl shadow-lg max-h-64 overflow-y-auto custom-scrollbar"
         >
           {/* Recent searches */}
           {!value && recentSearches.length > 0 && (

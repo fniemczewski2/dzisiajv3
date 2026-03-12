@@ -110,7 +110,7 @@ export default function PlacesList({
         return (
           <div
             key={place.id}
-            className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 transition-all duration-200 hover:border-primary/50 group overflow-hidden"
+            className="card rounded-2xl shadow-sm transition-all duration-200 hover:border-primary/50 group overflow-hidden"
           >
             <div
               className="p-4 cursor-pointer"
@@ -189,7 +189,7 @@ export default function PlacesList({
                 {place.opening_hours && (
                   <div>
                     <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Godziny otwarcia:</span>
-                    <div className="bg-card border border-gray-100 dark:border-gray-800 p-3 rounded-xl space-y-1.5 shadow-sm">
+                    <div className="card p-3 rounded-xl space-y-1.5 shadow-sm">
                     {DAY_ORDER
                       .filter(day => place.opening_hours?.[day])
                       .map((day) => (
@@ -209,7 +209,7 @@ export default function PlacesList({
                 {place.notes && (
                   <div>
                     <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Notatki:</span>
-                    <p className="bg-card border border-gray-100 dark:border-gray-800 p-3 rounded-xl text-sm text-textSecondary leading-relaxed shadow-sm whitespace-pre-wrap">
+                    <p className="card p-3 rounded-xl text-sm text-textSecondary leading-relaxed shadow-sm whitespace-pre-wrap">
                       {place.notes}
                     </p>
                   </div>
