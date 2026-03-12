@@ -21,10 +21,10 @@ export default function TimeContextBadge({
   return (
     <span
       className={`
-        inline-flex items-center justify-center gap-1.5 rounded-md font-medium shadow-sm transition-colors border
+        inline-flex items-center justify-center gap-1.5 rounded-md shadow-sm transition-colors bg-surfaceHover border uppercase
         ${context.color}
         ${context.shouldPulse ? 'animate-pulse' : ''}
-        ${small ? 'text-xs px-2 py-1 h-[24px]' : 'text-sm px-3 py-1.5'}
+        ${small ? 'text-xs px-2 py-1 h-[24px] font-medium' : 'text-sm px-3 py-1.5 font-bold'}
         ${className}
       `}
     >

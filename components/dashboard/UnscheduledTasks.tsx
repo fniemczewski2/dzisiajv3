@@ -4,6 +4,8 @@ import LoadingState from '../LoadingState';
 import NoResultsState from '../NoResultsState';
 import { DraggablePlanItem } from './DraggablePlanItem';
 import { PlanItem } from './PlanItem';
+import { AddButton } from '../CommonButtons';
+import { useRouter } from 'next/router';
 
 interface UnscheduledTasksProps {
   tasksLoading: boolean;
@@ -17,11 +19,15 @@ interface UnscheduledTasksProps {
 export const UnscheduledTasks = React.memo(({
   tasksLoading, activeTasks, handleMarkAsDone, handleDeleteTask, handleRemoveFromSchedule, handleDeleteEvent
 }: UnscheduledTasksProps) => {
+  const router = useRouter();
   return (
     <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
+      <div className='flex flex-nowrap justify-between'>
       <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
         <ListTodo className="text-green-500 w-5 h-5" /> Zadania na dziś
       </h2>
+      <AddButton onClick={() => router.push("/tasks?action=add")} type="button" />
+      </div>
       <p className="text-[10px] font-bold uppercase tracking-wider text-textMuted mb-5 flex items-center gap-1">
         <GripVertical className="w-3 h-3" /> Przeciągnij na plan
       </p>

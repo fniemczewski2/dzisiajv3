@@ -70,7 +70,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
               
               <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
                 {/* Numer linii */}
-                <span className="flex items-center gap-1 font-black text-md bg-primary text-white px-1 py:0.5 md:px-2.5 md:py-1.5 rounded-lg min-w-[42px] justify-center shadow-sm shrink-0">
+                <span className="flex items-center gap-1 font-bold text-md bg-primary text-white px-1 py:0.5 md:px-2.5 md:py-1.5 rounded-lg min-w-[42px] justify-center shadow-sm shrink-0">
                   {dep.line}
                 </span>
                 {/* Kierunek */}

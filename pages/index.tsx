@@ -27,6 +27,7 @@ import { DashboardWidgets } from "../components/widgets/DashboardWidgets";
 import { MilestonesList } from "../components/dashboard/MilestonesList";
 import { DailyPlan } from "../components/dashboard/DailyPlan";
 import { UnscheduledTasks } from "../components/dashboard/UnscheduledTasks";
+import { AddButton } from "../components/CommonButtons";
 
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00 - 23:00
 
@@ -244,9 +245,12 @@ export default function DashboardPage() {
             <div className="lg:col-span-1 space-y-6">
               {allDayEvents.length > 0 && (
                 <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
-                  <h3 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
-                    <Calendar className="text-blue-500 w-5 h-5" /> Wydarzenia
-                  </h3>
+                <div className='flex flex-nowrap justify-between mb-5'>
+                  <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
+                    <Calendar className="text-primary w-5 h-5" /> Wydarzenia
+                  </h2>
+                  <AddButton onClick={() => router.push("/calendar?action=add")} type="button" />
+                </div>
                   <div className="grid grid-cols-1 gap-2">
                     {allDayEvents.map((item) => (
                       <DraggablePlanItem key={`side-event-${item.id}`} id={`side-event-${item.id}`} type="event">

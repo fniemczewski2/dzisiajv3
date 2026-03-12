@@ -112,7 +112,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
     <div className="bg-card rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sm:p-6 mb-4 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 text-text">
-          <div className="p-2 bg-primary/10 rounded-lg">
+          <div>
             <Bell className="w-5 h-5 text-primary flex-shrink-0" />
           </div>
           <h3 className="text-lg font-bold">Powiadomienia</h3>

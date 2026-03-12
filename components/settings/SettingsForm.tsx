@@ -1,7 +1,9 @@
 import React from "react";
-import { Save, Trash2, PlusCircle, Settings as SettingsIcon, ArrowUpDown } from "lucide-react";
+import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw } from "lucide-react";
 import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
+// Import przycisków z CommonButtons
+import { SaveButton, CancelButton } from "../CommonButtons"; 
 
 interface SettingsFormProps {
   settings: any;
@@ -11,13 +13,25 @@ interface SettingsFormProps {
   onRemoveUser: (idx: number) => void;
   onUpdateUser: (idx: number, value: string) => void;
   onSave: (e: React.SyntheticEvent<HTMLFormElement>) => void;
+  onRestoreDefaults: () => void;
 }
 
 export default function SettingsForm({
-  settings, saving, onSettingsChange, onAddUser, onRemoveUser, onUpdateUser, onSave,
+  settings, 
+  saving, 
+  onSettingsChange, 
+  onAddUser, 
+  onRemoveUser, 
+  onUpdateUser, 
+  onSave,
+  onRestoreDefaults
 }: SettingsFormProps) {
   
-  // Pomocnicza funkcja do renderowania suwaków
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    onSave(e);
+  };
+
   const renderSwitch = (id: string, label: string) => {
     const isChecked = settings[id] !== false;
 
@@ -48,7 +62,7 @@ export default function SettingsForm({
   };
 
   return (
-    <form onSubmit={onSave} className="form-card mb-6">
+    <form onSubmit={handleFormSubmit} className="form-card mb-6">
       <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
         <h3 className="text-xl font-semibold flex items-center text-text">
           <SettingsIcon className="w-5 h-5 mr-2 text-textMuted" />
@@ -83,12 +97,11 @@ export default function SettingsForm({
         )}
       </div>
 
-      {/* Domyślne sortowanie (NOWA SEKCJA) */}
+      {/* Domyślne sortowanie */}
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
         <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">SORTOWANIE</h4>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Zadania */}
           <div>
             <label htmlFor="sort_order" className="form-label text-xs">Zadania:</label>
             <select
@@ -104,7 +117,6 @@ export default function SettingsForm({
             </select>
           </div>
 
-          {/* Notatki */}
           <div>
             <label htmlFor="sort_notes" className="form-label text-xs">Notatki:</label>
             <select
@@ -118,7 +130,6 @@ export default function SettingsForm({
             </select>
           </div>
 
-          {/* Listy zakupów */}
           <div>
             <label htmlFor="sort_shopping" className="form-label text-xs">Listy zakupów:</label>
             <select
@@ -132,7 +143,6 @@ export default function SettingsForm({
             </select>
           </div>
 
-          {/* Filmy */}
           <div>
             <label htmlFor="sort_movies" className="form-label text-xs">Filmy:</label>
             <select
@@ -147,7 +157,6 @@ export default function SettingsForm({
             </select>
           </div>
 
-          {/* Przepisy */}
           <div>
             <label htmlFor="sort_recipes" className="form-label text-xs">Przepisy:</label>
             <select
@@ -162,7 +171,6 @@ export default function SettingsForm({
             </select>
           </div>
 
-          {/* Miejsca */}
           <div>
             <label htmlFor="sort_places" className="form-label text-xs">Miejsca:</label>
             <select
@@ -213,18 +221,32 @@ export default function SettingsForm({
         </div>
       </div>
 
-      <div className="pt-2">
+      {/* PRZYCISKI AKCJI (Zaktualizowana sekcja) */}
+      <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+        
         <button
-          type="submit"
+          type="button"
+          onClick={onRestoreDefaults}
           disabled={saving}
-          className="px-5 py-2.5 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center transition-colors disabled:opacity-50 justify-center w-full sm:w-auto"
+          className="flex items-center text-sm font-medium text-textMuted hover:text-red-500 transition-colors px-2 py-1 disabled:opacity-50"
         >
-          {saving ? (
-            <><span className="mr-2">Zapisywanie...</span><LoadingState /></>
-          ) : (
-            <>Zapisz ustawienia <Save className="w-5 h-5 ml-2" /></>
-          )}
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Przywróć domyślne
         </button>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end relative">
+
+          
+          <div className="relative">
+            {saving && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-black/60 rounded-lg">
+                <LoadingState />
+              </div>
+            )}
+            <SaveButton type="submit" disabled={saving} />
+          </div>
+        </div>
+
       </div>
     </form>
   );

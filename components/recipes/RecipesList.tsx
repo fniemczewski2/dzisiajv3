@@ -278,7 +278,7 @@ export default function RecipesList() {
                 <div className="flex-1 pr-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
                   {r.category && (
-                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary/20 rounded-md text-[10px] font-bold uppercase tracking-wider">
                       {r.category}
                     </span>
                   )}
