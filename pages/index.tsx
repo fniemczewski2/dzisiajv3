@@ -1,28 +1,27 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { useTasks } from "../hooks/useTasks";
 import { useEvents } from "../hooks/useEvents";
 import { useStreaks } from "../hooks/useStreaks";
 import { useDaySchemas } from "../hooks/useDaySchemas";
+import { useSettings } from "../hooks/useSettings";
+import { useAuth } from "../providers/AuthProvider";
+import { useDashboardDnd } from "../hooks/useDashboardDnd";
 import { Calendar } from "lucide-react";
-import { Task } from "../types";
-import { dateToTimestamp } from "../lib/dateUtils";
+import { format } from "date-fns";
 
 import { 
-  DndContext, DragEndEvent, DragStartEvent, useSensor, useSensors, 
-  PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
+  DndContext, useSensor, useSensors, PointerSensor, 
+  TouchSensor, DragOverlay, defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
-import { useSettings } from "../hooks/useSettings";
-import LoadingState from "../components/LoadingState";
 
+import LoadingState from "../components/LoadingState";
 import { DraggingTaskItem, DraggingEventItem } from "../components/dashboard/DraggingItem";
 import { PlanItem } from "../components/dashboard/PlanItem";
 import { DraggablePlanItem } from "../components/dashboard/DraggablePlanItem";
 import { useRouter } from "next/router";
-import { useAuth } from "../providers/AuthProvider";
 
-// Importy naszych podzielonych komponentów (upewnij się że ścieżki się zgadzają)
 import { DashboardWidgets } from "../components/widgets/DashboardWidgets";
 import { MilestonesList } from "../components/dashboard/MilestonesList";
 import { DailyPlan } from "../components/dashboard/DailyPlan";
@@ -44,8 +43,9 @@ export default function DashboardPage() {
 
   const [isMounted, setIsMounted] = useState(false);
   
-  const todayDate = new Date();
-  const todayString = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+  // POPRAWKA: Czyste formatowanie daty za pomocą date-fns
+  const todayDate = useMemo(() => new Date(), []);
+  const todayString = useMemo(() => format(todayDate, 'yyyy-MM-dd'), [todayDate]);
   const currentDayOfWeek = todayDate.getDay();
 
   const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, deleteTask, editTask } = useTasks("", todayString);
@@ -54,8 +54,17 @@ export default function DashboardPage() {
   const { schemas } = useDaySchemas();
   const { settings, loading: loadingSettings } = useSettings();
 
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
+  // POPRAWKA: Integracja z nowym hookiem Drag & Drop
+  const { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd } = useDashboardDnd({
+    tasks,
+    events,
+    userId,
+    todayDate,
+    editTask,
+    editEvent,
+    fetchTasks,
+    fetchEvents
+  });
 
   const homepageStructuredData = {
     "@context": "https://schema.org",
@@ -72,6 +81,9 @@ export default function DashboardPage() {
 
   useEffect(() => setIsMounted(true), []);
 
+  // POPRAWKA: Użycie useRef zamiast mutowania (window as any).lastMouseY
+  const lastMouseY = useRef<number>(0);
+
   useEffect(() => {
     if (!draggedTask && !draggedEventTitle) return;
     let animationFrameId: number;
@@ -79,7 +91,7 @@ export default function DashboardPage() {
     const edgeThreshold = 100;
 
     const autoScroll = () => {
-      const mouseY = (window as any).lastMouseY || 0;
+      const mouseY = lastMouseY.current; // Odczyt bezpiecznej referencji
       const windowHeight = window.innerHeight;
       if (mouseY > windowHeight - edgeThreshold) window.scrollBy(0, scrollSpeed);
       else if (mouseY < edgeThreshold) window.scrollBy(0, -scrollSpeed);
@@ -87,8 +99,8 @@ export default function DashboardPage() {
     };
 
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      if (e instanceof MouseEvent) (window as any).lastMouseY = e.clientY;
-      else if (e instanceof TouchEvent && e.touches.length > 0) (window as any).lastMouseY = e.touches[0].clientY;
+      if (e instanceof MouseEvent) lastMouseY.current = e.clientY;
+      else if (e instanceof TouchEvent && e.touches.length > 0) lastMouseY.current = e.touches[0].clientY;
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -99,7 +111,6 @@ export default function DashboardPage() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('touchmove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
-      delete (window as any).lastMouseY;
     };
   }, [draggedTask, draggedEventTitle]);
 
@@ -142,67 +153,7 @@ export default function DashboardPage() {
     return map;
   }, [schemas, events, scheduledTasks, currentDayOfWeek]);
 
- const handleDragStart = useCallback((event: DragStartEvent) => {
-    const dragId = String(event.active.id);
-    if (dragId.startsWith('task-')) {
-      const task = tasks.find(t => String(t.id) === dragId.replace('task-', ''));
-      if (task) setDraggedTask(task);
-    } else if (dragId.startsWith('plan-task-')) {
-      const task = tasks.find(t => String(t.id) === dragId.replace('plan-task-', ''));
-      if (task) setDraggedTask(task);
-    } 
-    // POPRAWKA: Rozpoznawanie wydarzeń z obu list
-    else if (dragId.startsWith('plan-event-') || dragId.startsWith('side-event-')) {
-      const rawId = dragId.replace('plan-event-', '').replace('side-event-', '');
-      const evt = events.find(e => String(e.id) === rawId);
-      if (evt) setDraggedEventTitle(evt.title);
-    }
-  }, [tasks, events]);
-
-  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setDraggedTask(null); 
-    setDraggedEventTitle(null);
-    if (!over || !userId) return;
-
-    const targetTime = over.data?.current?.time || String(over.id);
-    if (!targetTime || typeof targetTime !== 'string' || !targetTime.includes(':')) return;
-
-    const dragId = String(active.id);
-    const [hours, minutes] = targetTime.split(':').map(Number);
-
-    let taskId = dragId.startsWith('plan-task-') ? dragId.replace('plan-task-', '') : (dragId.startsWith('task-') ? dragId.replace('task-', '') : null);
-
-    if (taskId) {
-      const currentTask = tasks.find(t => String(t.id) === String(taskId));
-      if (!currentTask) return;
-      const scheduledDateTime = new Date(todayDate);
-      scheduledDateTime.setHours(hours, minutes || 0, 0, 0);
-      try {
-        await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
-        await fetchTasks();
-      } catch (err) { console.error("Error scheduling task:", err); }
-    } else if (dragId.startsWith('plan-event-') || dragId.startsWith('side-event-')) {
-      const eventId = dragId.replace('plan-event-', '').replace('side-event-', '');
-      const currentEvent = events.find(e => String(e.id) === String(eventId));
-      
-      if (!currentEvent) return;
-      const oldStart = new Date(currentEvent.start_time.replace(" ", "T"));
-      const oldEnd = new Date(currentEvent.end_time.replace(" ", "T"));
-      const durationMs = oldEnd.getTime() - oldStart.getTime();
-
-      const newStart = new Date(todayDate);
-      newStart.setHours(hours, minutes || 0, 0, 0);
-      const newEnd = new Date(newStart.getTime() + durationMs);
-
-      try {
-        await editEvent({ ...currentEvent, start_time: dateToTimestamp(newStart), end_time: dateToTimestamp(newEnd) });
-        await fetchEvents();
-      } catch (err) { console.error("Error rescheduling event:", err); }
-    }
-  }, [userId, tasks, events, todayDate, editTask, editEvent, fetchTasks, fetchEvents]);
-
-  // Ujednolicone wrappery operacji
+  // Ujednolicone wrappery operacji z useCallback
   const handleRemoveFromSchedule = useCallback(async (taskId: string) => {
     const currentTask = tasks.find(t => String(t.id) === String(taskId));
     if (currentTask) {
@@ -244,7 +195,7 @@ export default function DashboardPage() {
             
             <div className="lg:col-span-1 space-y-6">
               {allDayEvents.length > 0 && (
-                <section className="card rounded-3xl p-5 sm:p-6 shadow-sm">
+                <section className="card rounded-xl p-5 sm:p-6 shadow-sm">
                 <div className='flex flex-nowrap justify-between mb-5'>
                   <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
                     <Calendar className="text-primary w-5 h-5" /> Wydarzenia

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Trash2, ArrowRight, Check } from "lucide-react";
+import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Check } from "lucide-react";
 import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 
@@ -39,11 +39,11 @@ const getQuickLink = (title: string): { path: string; icon: React.ReactNode; lab
   return null;
 };
 
-export const PlanItem: React.FC<PlanItemProps> = ({ 
+export const PlanItem = React.memo(({ 
   item, 
   onMarkAsDoneTask, 
   onRemoveFromSchedule, 
-}) => {
+}: PlanItemProps) => {
   const quickLink = getQuickLink(item.title);
 
   const priorityColors = {
@@ -83,13 +83,11 @@ export const PlanItem: React.FC<PlanItemProps> = ({
             </span>
           )}
           {item.title}
-          
         </p>
 
         <p className="flex items-center flex-wrap gap-2 mt-2">
           {item.type === 'task' && (
             <TimeContextBadge dueDate={item.data.due_date} small/>
-
           )}
           <span className="text-[9px] font-semibold uppercase tracking-wider text-textMuted">
             {getLabel(item)}
@@ -97,7 +95,7 @@ export const PlanItem: React.FC<PlanItemProps> = ({
         </p>
       </div>
       
-      {/* Prawa strona - Małe przyciski z onPointerDown blokującym kolizje z DnD */}
+      {/* Prawa strona - Przyciski */}
       <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
         {quickLink && (
           <Link 
@@ -110,15 +108,13 @@ export const PlanItem: React.FC<PlanItemProps> = ({
         )}
         
         {item.type === 'event' && (
-          <>
-            <Link 
-              href="/calendar" 
-              title="Pokaż w kalendarzu" 
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-blu text-textSecondary hover:text-primary transition-colors border"
-            >
-              <Calendar className="w-4 h-4" />
-            </Link>
-          </>
+          <Link 
+            href="/calendar" 
+            title="Pokaż w kalendarzu" 
+            className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-blue-100 dark:hover:bg-blue-900 text-textSecondary hover:text-primary transition-colors border"
+          >
+            <Calendar className="w-4 h-4" />
+          </Link>
         )}
         
         {item.type === 'task' && onMarkAsDoneTask && onRemoveFromSchedule && (
@@ -143,4 +139,5 @@ export const PlanItem: React.FC<PlanItemProps> = ({
       </div>
     </div>
   );
-};
+});
+PlanItem.displayName = 'PlanItem';

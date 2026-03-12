@@ -45,6 +45,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     name: "Zadania i Produktywność",
     items: [
       {path: "/", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
+      { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
      
@@ -53,10 +54,10 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
     name: "Notatki i planowanie",
     items: [
-      { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
-      { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia" },
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
+      { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
       { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
+      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
     ],
   },
     {
@@ -66,7 +67,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
       { path: "/bills/calculator", title: "Kalkulator", icon: Calculator, label: "Kalkulator" },
       { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
-      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
+      
     ],
   },
   { name: "Wyjścia i wyjazdy",

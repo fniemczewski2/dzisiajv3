@@ -1,9 +1,10 @@
 import React from "react";
-import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw } from "lucide-react";
+import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info } from "lucide-react";
 import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
 // Import przycisków z CommonButtons
 import { SaveButton, CancelButton } from "../CommonButtons"; 
+import { useRouter } from "next/router";
 
 interface SettingsFormProps {
   settings: any;
@@ -31,6 +32,8 @@ export default function SettingsForm({
     e.preventDefault(); 
     onSave(e);
   };
+
+  const router = useRouter();
 
   const renderSwitch = (id: string, label: string) => {
     const isChecked = settings[id] !== false;
@@ -234,8 +237,15 @@ export default function SettingsForm({
           Przywróć domyślne
         </button>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end relative">
-
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between relative">
+            <button
+              type="button"
+              className="flex gap-2 pl-4 pr-3 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-textSecondary"
+              onClick={() => router.push("/guide")}
+            >
+              Instrukcja 
+              <Info/>
+            </button>
           
           <div className="relative">
             {saving && (

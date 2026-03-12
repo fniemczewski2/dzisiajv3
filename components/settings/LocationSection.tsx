@@ -42,7 +42,7 @@ export default function LocationSection({
       
       <button
         onClick={onRequestLocation}
-        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-secondary text-white font-bold rounded-xl shadow-sm transition-colors"
+        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-secondary text-white font-bold rounded-lg shadow-sm transition-colors"
       >
         <span>Pobierz lokalizację</span>
         <MapPin className="w-5 h-5" />

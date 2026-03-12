@@ -43,7 +43,7 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
   if (activeItems.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap justify-between md:justify-start gap-1 sm:gap-2 mb-2 sm:mb-4">
+    <div className="flex flex-nowrap justify-between md:justify-start gap-1 sm:gap-2 mb-2 sm:mb-4">
       {activeItems.map(({ key, Icon }) => {
         const isActive = habits[key];
         
@@ -54,7 +54,7 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
             disabled={habitsLoading}
             onClick={() => toggleHabit(key)}
             className={`
-              p-2 sm:p-3 flex-1 min-w-[40px] max-w-[80px] sm:max-w-none rounded-xl border transition-colors flex justify-center items-center
+              p-2 sm:p-3 flex-1 min-w-[32px] max-w-[80px] sm:max-w-none rounded-xl border transition-colors flex justify-center items-center
               ${isActive 
                 ? "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 shadow-sm" 
                 : "card text-textSecondary hover:bg-surface hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"

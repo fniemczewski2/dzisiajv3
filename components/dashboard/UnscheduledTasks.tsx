@@ -21,10 +21,10 @@ export const UnscheduledTasks = React.memo(({
 }: UnscheduledTasksProps) => {
   const router = useRouter();
   return (
-    <section className="card rounded-3xl p-5 sm:p-6 shadow-sm">
+    <section className="card rounded-xl p-5 sm:p-6 shadow-sm">
       <div className='flex flex-nowrap justify-between'>
       <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
-        <ListTodo className="text-green-500 w-5 h-5" /> Zadania na dziś
+        <ListTodo className="text-green-500 w-5 h-5" /> Zadania
       </h2>
       <AddButton onClick={() => router.push("/tasks?action=add")} type="button" />
       </div>

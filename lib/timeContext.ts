@@ -17,7 +17,6 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
   if (isDone) {
     return {
       display: "Wykonane",
-      // ZMIANA: Dodano solidne, neutralne szarości. Szary tekst (400) jest czytelny i nie odwraca uwagi.
       color: 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700',
       icon: Check,
       shouldPulse: false,
@@ -28,7 +27,7 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
   if (isPast(dueDate) && !isToday(dueDate) && !isDone) {
     const daysAgo = Math.abs(differenceInCalendarDays(now, dueDate));
     return {
-      display: daysAgo === 1 ? 'Od\u00A0wczoraj' : `Zaległe\u00A0od\u00A0${daysAgo}\u00A0dni`,
+      display: daysAgo === 1 ? 'Od\u00A0wczoraj' : `Zaległe\u00A0${daysAgo}\u00A0dni`,
       // ZMIANA: Tekst red-300 (bardzo jasny) na bardzo ciemnym czerwonym tle (950) z wyraźną, ale nierażącą ramką (800)
       color: 'text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800/80',
       icon: Siren,
