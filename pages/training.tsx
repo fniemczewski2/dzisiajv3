@@ -71,7 +71,7 @@ export default function TrainingPage() {
 
           {/* Panel konfiguracyjny (Aktywny tylko gdy zegar NIE JEST uruchomiony/zapauzowany w trakcie) */}
           {(!running && !paused) && (
-            <div className="p-4 sm:p-6 bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
+            <div className="p-4 sm:p-6 card rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
                 <Settings2 className="w-5 h-5 text-textMuted" />
                 <h3 className="font-bold text-text uppercase tracking-wider text-sm">

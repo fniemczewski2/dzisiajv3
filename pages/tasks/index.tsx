@@ -120,7 +120,7 @@ export default function TasksPage() {
         </div>
 
         {/* PASEK FILTRÓW I TRYBU SKUPIENIA */}
-        <div className="flex items-center justify-between mb-6 bg-card border border-gray-200 dark:border-gray-800 p-2 rounded-2xl shadow-sm w-fit gap-2">
+        <div className="flex items-center justify-between mb-6 card p-2 rounded-2xl shadow-sm w-fit gap-2">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (

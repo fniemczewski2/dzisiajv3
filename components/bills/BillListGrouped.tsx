@@ -98,7 +98,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
 
               if (isEditing && editedBill) {
                 return (
-                  <li key={b.id} className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-4 transition-colors">
+                  <li key={b.id} className="card rounded-xl shadow-md p-4 transition-colors">
                     <div className="space-y-3">
                       {/* Amount */}
                       <div>
@@ -193,7 +193,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
               return (
                 <li
                   key={b.id}
-                  className="bg-card border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition hover:shadow-md"
+                  className="card rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3 transition hover:shadow-md"
                 >
                   <div className="flex flex-col flex-1 space-y-1">
                     <span className={`font-bold text-lg tabular-nums ${b.is_income ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>

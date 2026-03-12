@@ -16,7 +16,7 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Props) 
   return (
     <div className="w-full">
       <h3 className="font-bold mb-2 text-text">Budżet roczny</h3>
-      <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-x-auto mb-4">
+      <div className="card rounded-xl shadow-sm overflow-x-auto mb-4">
         <table className="w-full table-auto text-xs sm:text-sm">
           <thead className="bg-surface text-textSecondary font-semibold border-b border-gray-200 dark:border-gray-700">
             <tr>
@@ -31,7 +31,7 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Props) 
             {Array.from({ length: 12 }, (_, i) => {
               const m = i + 1;
               const monthData = data[m];
-              const rowClass = i % 2 === 0 ? "bg-card" : "bg-surface/60";
+              const rowClass = i % 2 === 0 ? "bg-card" : "bg-surface";
 
               if (!loadedMonths.has(m)) {
                 return (

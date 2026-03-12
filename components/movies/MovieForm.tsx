@@ -250,7 +250,7 @@ return (
                   key={movie.id}
                   type="button"
                   onClick={() => selectMovie(movie)}
-                  className="w-full text-left p-3 bg-card hover:bg-surfaceHover rounded-lg transition-colors border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full text-left p-3 card hover:bg-surfaceHover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <div className="flex gap-3">
                     {movie.poster_path && (

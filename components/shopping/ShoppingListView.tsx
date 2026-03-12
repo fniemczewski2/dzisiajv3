@@ -98,9 +98,8 @@ export default function ShoppingListView() {
           return (
             <li
               key={list.id}
-              className="p-5 break-inside-avoid bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg space-y-4 animate-in fade-in"
+              className="p-5 break-inside-avoid card rounded-2xl shadow-lg space-y-4 animate-in fade-in"
             >
-              {/* ... RESZTA KODU BEZ ZMIAN ... */}
               <div className="space-y-4">
                 <div>
                   <label className="form-label">Nazwa listy:</label>
@@ -124,7 +123,7 @@ export default function ShoppingListView() {
                 {list.elements.map((el) => (
                   <li key={el.id} className={`flex items-center justify-between ${el.completed ? "line-through text-textMuted" : "text-text"}`}>
                     <div className="flex items-center flex-1 gap-3">
-                      <input type="checkbox" checked={el.completed} readOnly className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-not-allowed bg-card" />
+                      <input type="checkbox" checked={el.completed} readOnly className="h-5 w-5 rounded text-primary focus:ring-primary accent-primary cursor-not-allowed card" />
                       <span className="flex-1 font-medium">{el.text}</span>
                     </div>
                   </li>
@@ -137,7 +136,7 @@ export default function ShoppingListView() {
         return (
           <li
             key={list.id}
-            className="p-5 break-inside-avoid bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
+            className="p-5 break-inside-avoid card rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
           >
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1 mr-4 min-w-0">
@@ -159,7 +158,7 @@ export default function ShoppingListView() {
               {list.elements.map((el) => (
                 <li key={el.id} className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${el.completed ? "line-through text-textMuted" : "text-text"}`}>
                   <div className="flex items-center flex-1 gap-3 min-w-0">
-                    <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)} className="h-5 w-5 shrink-0 rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary accent-primary cursor-pointer bg-card transition-colors" />
+                    <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)} className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
                   <button onClick={() => removeElement(list, el.id)} className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0" title="Usuń produkt">

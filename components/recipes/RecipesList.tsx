@@ -174,14 +174,14 @@ export default function RecipesList() {
         <button
           type="button"
           onClick={() => setShowFilters((s) => !s)}
-          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-[42px] sm:min-w-[140px] shrink-0 bg-card border border-gray-200 dark:border-gray-800 text-textSecondary hover:text-text hover:bg-surface"
+          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-[42px] sm:min-w-[140px] shrink-0 card text-textSecondary hover:text-text hover:bg-surface"
         >
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
         </button>
       </div>
 
       {showFilters && (
-        <div className="max-w-2xl mx-auto bg-card border border-gray-200 dark:border-gray-800 p-4 rounded-xl shadow-sm">
+        <div className="max-w-2xl mx-auto card p-4 rounded-xl shadow-sm">
           <span className="text-[11px] font-bold uppercase tracking-wider text-textMuted mb-3 block">Filtruj po składnikach:</span>
           <div className="flex flex-wrap gap-2">
             {products.map((p) => (
@@ -217,7 +217,7 @@ export default function RecipesList() {
 
           if (isEditing && editedRecipe) {
             return (
-              <li key={r.id} className="bg-card border border-primary dark:border-primary-dark rounded-2xl shadow-lg p-5 animate-in fade-in">
+              <li key={r.id} className="bg-card border border-primary dark:border-primary rounded-2xl shadow-lg p-5 animate-in fade-in">
                 <div className="space-y-4">
                   <div>
                     <label className="form-label">Nazwa potrawy:</label>
@@ -249,7 +249,7 @@ export default function RecipesList() {
                     {editedRecipe.products && editedRecipe.products.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2 p-3 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
                         {editedRecipe.products.map((p) => (
-                          <span key={p} className="inline-flex items-center gap-1.5 bg-card border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider shadow-sm">
+                          <span key={p} className="inline-flex items-center gap-1.5 card px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider shadow-sm">
                             {p}
                             <button type="button" onClick={() => removeProduct(p)} className="text-red-500 hover:text-white hover:bg-red-500 rounded p-0.5 transition-colors">
                               <X className="w-3.5 h-3.5" />
@@ -273,7 +273,7 @@ export default function RecipesList() {
           }
 
           return (
-            <li key={r.id} className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden transition-all duration-200 hover:border-primary/50 group">
+            <li key={r.id} className="card rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary/50 group">
               <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => toggleOpen(r.id)}>
                 <div className="flex-1 pr-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
@@ -297,7 +297,7 @@ export default function RecipesList() {
                       <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Składniki:</span>
                       <div className="flex flex-wrap gap-1.5 bg-surface p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
                         {r.products.map((p) => (
-                          <span key={p} className="text-xs px-2 py-1 rounded-lg bg-card border border-gray-200 dark:border-gray-700 text-text font-medium">
+                          <span key={p} className="text-xs px-2 py-1 rounded-lg card text-text font-medium">
                             {p}
                           </span>
                         ))}

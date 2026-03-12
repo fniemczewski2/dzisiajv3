@@ -74,7 +74,7 @@ export default function MovieCard({
       className={`p-4 rounded-xl border transition-all duration-200 group ${
         movie.watched
           ? "bg-surface border-gray-200 dark:border-gray-800 opacity-60 grayscale-[0.3]"
-          : "bg-card border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-primary/50 dark:hover:border-primary-dark/50"
+          : "card shadow-sm hover:shadow-md hover:border-primary/50 dark:hover:border-primary-dark/50"
       }`}
     >
       {isEditing ? (

@@ -152,16 +152,13 @@ export default function PlacesMap({ places, onPlaceClick }: PlacesMapProps) {
 
   if (!mapLoaded) {
     return (
-      <div className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 flex justify-center items-center h-[600px]">
+      <div className="card rounded-2xl shadow-sm p-6 flex justify-center items-center h-[600px]">
         <div className="text-textMuted font-medium animate-pulse">Ładowanie mapy...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden relative z-0">
-      <div ref={mapRef} className="h-[600px] w-full" />
       <NoResultsState text="miejsc" />
-    </div>
   );
 }

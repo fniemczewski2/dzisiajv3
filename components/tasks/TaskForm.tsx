@@ -76,7 +76,7 @@ export default function TaskForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 bg-card border border-gray-200 dark:border-gray-800 p-5 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 mb-6"
+      className="space-y-4 card p-5 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 mb-6"
     >
       <div>
         <label htmlFor="title" className="form-label">
@@ -104,7 +104,7 @@ export default function TaskForm({
             >
               <Minus size={18} />
             </button>
-            <div className="flex-1 flex items-center justify-center text-lg bg-card border border-gray-200 dark:border-gray-700 rounded-xl text-text shadow-inner">
+            <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">
               {priority}
             </div>
             <button

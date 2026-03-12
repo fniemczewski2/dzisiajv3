@@ -21,13 +21,13 @@ export const MilestonesList = React.memo(({ streaks, getMilestoneMessage }: Mile
   if (streaksWithMilestones.length === 0) return null;
 
   return (
-    <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm animate-in fade-in zoom-in duration-300">
+    <section className="card rounded-3xl p-5 sm:p-6 shadow-sm animate-in fade-in zoom-in duration-300">
       <h3 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
         <Trophy className="text-accent w-5 h-5" /> Postępy
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {streaksWithMilestones.map((streak) => (
-          <div key={streak.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-card border">
+          <div key={streak.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl card">
             <div className="flex flex-col sm:flex-row min-w-0">
               <p className="font-bold text-sm sm:text-base text-text leading-tight truncate">
                 {streak.name}

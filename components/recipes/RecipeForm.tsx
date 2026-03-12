@@ -123,7 +123,7 @@ export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
         
         {/* Dropdown podpowiedzi */}
         {suggestions.length > 0 && (
-          <div className="mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden">
+          <div className="mt-1 rounded-lg card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden">
             {suggestions.map((s) => (
               <button
                 key={s}

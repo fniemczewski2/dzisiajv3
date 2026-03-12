@@ -97,7 +97,7 @@ export default function BudgetPage() {
           <div className="items-center sm:flex-1 justify-center flex">
             <button
               onClick={onPrev}
-              className="p-2 bg-card rounded-lg hover:bg-gray-200"
+              className="p-2 bg-card rounded-lg hover:bg-surface"
               title="Poprzedni rok"
               aria-label="Poprzedni rok"
             >
@@ -106,7 +106,7 @@ export default function BudgetPage() {
             <h2 className="text-lg font-semibold mx-4">{year}</h2>
             <button
               onClick={onNext}
-              className="p-2 bg-card rounded-lg hover:bg-gray-200"
+              className="p-2 bg-card rounded-lg hover:bg-surface"
               title="Następny rok"
               aria-label="Następny rok"
             >

@@ -69,7 +69,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 transition-all hover:shadow-md flex flex-col h-full">
+    <div className="card rounded-2xl shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
       {/* Header z ikoną i nazwą */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 flex-1 relative">
@@ -85,7 +85,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
 
           {/* Icon Picker (Pokazuje się pod ikoną) */}
           {showIconPicker && (
-            <div className="absolute top-[3.5rem] left-0 mt-2 bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-2 z-50 w-[220px] grid grid-cols-5 gap-2">
+            <div className="absolute top-[3.5rem] left-0 mt-2 card rounded-xl shadow-lg p-2 z-50 w-[220px] grid grid-cols-5 gap-2">
               {ICONS.map((item) => {
                 const IconComponent = item.icon;
                 return (

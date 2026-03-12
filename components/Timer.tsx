@@ -90,7 +90,7 @@ export default function UniversalTimer({
 
   return (
     <div 
-      className={`w-full max-w-md mx-auto bg-card border border-gray-200 dark:border-gray-700 shadow-md rounded-2xl flex flex-col items-center transition-colors ${
+      className={`w-full max-w-md mx-auto card shadow-md rounded-2xl flex flex-col items-center transition-colors ${
         compact ? "p-4 gap-3 sm:gap-4" : "p-6 gap-6"
       }`}
     >

@@ -110,7 +110,7 @@ export default function DashboardPage() {
     id: event.id,
     title: event.title,
     type: 'event' as const,
-    color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
+    color: 'card shadow-sm text-text',
     data: event
   })), [events]);
 
@@ -129,13 +129,13 @@ export default function DashboardPage() {
 
     events.forEach(event => {
       const timeStr = `${event.start_time.replace(" ", "T").split('T')[1].split(':')[0].padStart(2, '0')}:00`;
-      if (map[timeStr]) map[timeStr].push({ id: event.id, title: event.title, type: 'event', color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text', data: event });
+      if (map[timeStr]) map[timeStr].push({ id: event.id, title: event.title, type: 'event', color: 'card shadow-sm text-text', data: event });
     });
 
     scheduledTasks.forEach(task => {
       if (task.scheduled_time) {
         const timeStr = `${task.scheduled_time.replace(" ", "T").split('T')[1].split(':')[0].padStart(2, '0')}:00`;
-        if (map[timeStr]) map[timeStr].push({ id: String(task.id), title: task.title, type: 'task', color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text', data: task });
+        if (map[timeStr]) map[timeStr].push({ id: String(task.id), title: task.title, type: 'task', color: 'card shadow-sm text-text', data: task });
       }
     });
 
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             
             <div className="lg:col-span-1 space-y-6">
               {allDayEvents.length > 0 && (
-                <section className="bg-card border border-gray-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm">
+                <section className="card rounded-3xl p-5 sm:p-6 shadow-sm">
                 <div className='flex flex-nowrap justify-between mb-5'>
                   <h2 className="text-lg font-bold text-text mb-1 flex items-center gap-2">
                     <Calendar className="text-primary w-5 h-5" /> Wydarzenia

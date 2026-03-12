@@ -10,6 +10,7 @@ import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import { Task } from "../../types";
 import { useAuth } from "../../providers/AuthProvider";
 import NoResultsState from "../NoResultsState";
+import { CancelButton, SaveButton } from "../CommonButtons";
 
 export default function Reminders({ onTasksChange }: { onTasksChange?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
   };
 
   return (
-    <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm my-4 overflow-hidden transition-colors">
+    <div className="card rounded-xl shadow-sm my-4 overflow-hidden transition-colors">
       <div
         className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface transition-colors"
         onClick={() => setOpen(!open)}
@@ -98,7 +99,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
             ) : (
               <ul className="space-y-3">
                 {remindersToShow.map((r) => (
-                  <li key={r.id} className="flex justify-between items-center gap-3 bg-card p-3 rounded-lg border border-gray-100 dark:border-gray-700/60 shadow-sm">
+                  <li key={r.id} className="flex justify-between items-center gap-3 card p-3 rounded-lg shadow-sm">
                     <div className="flex-1">
                       <div className="font-medium text-text">{r.tytul}</div>
                       <div className="text-xs font-medium text-primary mt-0.5">
@@ -171,15 +172,11 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
-                <button className="px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg font-medium transition-colors" onClick={handleAdd}>
-                  Zapisz
-                </button>
-                <button className="px-4 py-2 bg-surface text-textSecondary hover:bg-surfaceHover rounded-lg font-medium transition-colors" onClick={() => {
+                <SaveButton onClick={handleAdd}/>
+                <CancelButton onCancel={() => {
                   setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
                   setShowForm(false);
-                }}>
-                  Anuluj
-                </button>
+                }}/>
               </div>
             </div>
           )}

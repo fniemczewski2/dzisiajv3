@@ -124,7 +124,7 @@ export default function TransportPage() {
 
           <section>
             <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
-            <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+            <div className="card rounded-xl shadow-sm overflow-hidden">
               {favoriteStops.length === 0 ? (
                 <NoResultsState text="ulubionych przystanków" />
               ) : loadingFavorites && favoritesGroups.length === 0 ? (
@@ -148,7 +148,7 @@ export default function TransportPage() {
           </section>
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
-            <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+            <div className="card rounded-xl shadow-sm overflow-hidden">
               {loadingNearby && nearbyGroups.length === 0 && 
                 <LoadingState />
               }

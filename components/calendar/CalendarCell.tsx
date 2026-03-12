@@ -31,8 +31,8 @@ const CalendarCell: React.FC<Props> = ({
         "flex flex-col justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200",
         isOutside 
           ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface" 
-          : "bg-card border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md hover:border-primary/50",
-        isToday && "ring-2 ring-primary ring-offset-2 dark:ring-offset-card"
+          : "card shadow-sm hover:shadow-md",
+        isToday && "ring-1 ring-primary"
       )}
       onClick={onClick}
     >

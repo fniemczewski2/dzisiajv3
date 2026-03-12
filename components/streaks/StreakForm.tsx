@@ -74,7 +74,7 @@ export default function StreakForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-card border border-gray-200 dark:border-gray-800 p-5 sm:p-6 rounded-2xl shadow-sm mb-8 animate-in fade-in slide-in-from-top-4"
+      className="card p-5 sm:p-6 rounded-2xl shadow-sm mb-8 animate-in fade-in slide-in-from-top-4"
     >
       <h3 className="text-xl font-bold text-text mb-6">Dodaj nowy nawyk</h3>
       

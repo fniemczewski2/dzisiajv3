@@ -41,7 +41,7 @@ export default function NotificationPreferences() {
           const isActive = settings[key as keyof typeof settings] !== false; 
 
           return (
-            <div key={key} className="flex items-center justify-between gap-4 p-3 hover:bg-surface rounded-xl transition-colors">
+            <div key={key} className="flex items-center justify-between gap-4 p-3 rounded-xl transition-colors">
               <div className="flex items-start gap-3">
                 <div className={`p-2 rounded-xl bg-surface border border-gray-100 dark:border-gray-800 shrink-0 ${color}`}>
                   <Icon className="w-4 h-4" />

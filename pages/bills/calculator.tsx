@@ -47,7 +47,7 @@ const InputField = ({
           placeholder="0"
           onChange={onChange}
           readOnly={readOnly}
-          className={`w-full py-2.5 px-3 border border-gray-200 dark:border-gray-700 rounded-r-xl outline-none font-medium text-text bg-card focus:ring-2 focus:ring-primary focus:border-primary transition-all ${
+          className={`w-full py-2.5 px-3 rounded-r-xl outline-none font-medium text-text cardfocus:ring-2 focus:ring-primary focus:border-primary transition-all ${
             readOnly ? 'bg-surface cursor-not-allowed opacity-70' : ''
           }`}
         />
@@ -177,7 +177,7 @@ export default function BillCalculator() {
       <div className="max-w-4xl mx-auto space-y-6">
         
         {/* Pasek Nagłówkowy */}
-        <div className="bg-card border border-gray-200 dark:border-gray-800 p-4 shadow-sm rounded-2xl flex items-center relative">
+        <div className="card p-4 shadow-sm rounded-2xl flex items-center relative">
           <button
             onClick={handleBack}
             className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
@@ -195,7 +195,7 @@ export default function BillCalculator() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Opłaty */}
-            <section className="bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <section className="cardp-5 sm:p-6 rounded-2xl shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
                 Miesięczne Opłaty
               </h2>
@@ -215,7 +215,7 @@ export default function BillCalculator() {
             </section>
 
             {/* Dochody */}
-            <section className="bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <section className="cardp-5 sm:p-6 rounded-2xl shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
                 Dochody i Podatki
               </h2>
@@ -247,7 +247,7 @@ export default function BillCalculator() {
                     <select 
                         value={currency1}
                         onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
-                        className="text-xs font-bold bg-card border border-gray-300 dark:border-gray-600 text-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
+                        className="text-xs font-bold cardtext-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="PLN">PLN</option>
                         <option value="EUR">EUR</option>
@@ -300,7 +300,7 @@ export default function BillCalculator() {
                     <select 
                         value={currency2}
                         onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
-                        className="text-xs font-bold bg-card border border-gray-300 dark:border-gray-600 text-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
+                        className="text-xs font-bold cardtext-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="PLN">PLN</option>
                         <option value="EUR">EUR</option>
@@ -352,7 +352,7 @@ export default function BillCalculator() {
 
           {/* Podsumowanie */}
           <div className="lg:col-span-1">
-            <section className="bg-card p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 sticky top-6">
+            <section className="cardp-5 sm:p-6 rounded-2xl shadow-sm sticky top-6">
               <h2 className="text-lg font-bold text-text mb-6 text-center border-b border-gray-100 dark:border-gray-800 pb-3">Podsumowanie</h2>
               
               <div className="space-y-4">
