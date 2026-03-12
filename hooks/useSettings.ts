@@ -60,6 +60,36 @@ export function useSettings() {
     habit_duolingo: true,
   });
 
+  const DEFAULT_SETTINGS = {
+      sort_order: "priority",
+      show_completed: true,
+      show_habits: true,
+      show_water_tracker: true,
+      show_budget_items: true,
+      show_notifications: true,
+      users: [],
+      favorite_stops: [],
+      notif_morning_brief: true,
+      notif_tasks: true,
+      notif_events: true,
+      notif_water: true,
+      notif_habits: true,
+      notif_evening: true,
+      sort_notes: "updated_desc",
+      sort_shopping: "updated_desc",
+      sort_movies: "rating",
+      sort_recipes: "category",
+      sort_places: "alphabetical",
+      habit_pills: true,
+      habit_bath: true,
+      habit_workout: true,
+      habit_friends: true,
+      habit_work: true,
+      habit_housework: true,
+      habit_plants: true,
+      habit_duolingo: true,
+  };
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
@@ -233,6 +263,7 @@ export function useSettings() {
   return {
     settings,
     setSettings,
+    DEFAULT_SETTINGS,
     loading,
     saving,
     locationStatus,

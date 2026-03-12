@@ -55,7 +55,7 @@ const CalendarCell: React.FC<Props> = ({
             </div>
           )}
           {eCount && (
-            <div className="flex items-center justify-center px-1.5 py-0.5 bg-primary/10 text-primary rounded-md text-[10px] font-bold">
+            <div className="flex items-center justify-center px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/70 rounded-md text-[10px] font-bold">
               +{eCount}
             </div>
           )}

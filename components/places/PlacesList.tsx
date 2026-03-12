@@ -139,7 +139,7 @@ export default function PlacesList({
                       {place.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider rounded-md"
+                          className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider rounded-md"
                         >
                           {tag}
                         </span>

@@ -13,8 +13,8 @@ export function DroppableHourSlot({ time, children }: { time: string, children: 
   return (
     <div 
       ref={setNodeRef} 
-      className={`relative min-h-[3rem] transition-colors duration-200 
-        ${isOver ? 'bg-primary/5 dark:bg-primary/10 ring-inset ring-2 ring-primary/50' : 'hover:bg-surface/50'}
+      className={`relative min-h-[3rem] transition-colors duration-200 rounded-lg
+        ${isOver && 'bg-blue-100 dark:bg-blue-900/70 ring-inset ring-2 ring-primary'}
       `}
     >
       {/* Hour Label */}

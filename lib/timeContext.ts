@@ -17,8 +17,8 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
   if (isDone) {
     return {
       display: "Wykonane",
-      // Dodałem domyślny, delikatny kolor ramki dla trybu jasnego i ciemnego
-      color: 'text-textMuted bg-surface border-gray-200 dark:border-gray-800',
+      // ZMIANA: Dodano solidne, neutralne szarości. Szary tekst (400) jest czytelny i nie odwraca uwagi.
+      color: 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700',
       icon: Check,
       shouldPulse: false,
     };
@@ -26,12 +26,11 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
 
   // 2. STATUS: ZALEGŁE
   if (isPast(dueDate) && !isToday(dueDate) && !isDone) {
-    // Poprawka na dni kalendarzowe
     const daysAgo = Math.abs(differenceInCalendarDays(now, dueDate));
     return {
       display: daysAgo === 1 ? 'Od\u00A0wczoraj' : `Zaległe\u00A0od\u00A0${daysAgo}\u00A0dni`,
-      // Wzmocniony kolor ramki (red-300 w jasnym i red-500/30 w ciemnym), żeby był widoczny
-      color: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-500/30',
+      // ZMIANA: Tekst red-300 (bardzo jasny) na bardzo ciemnym czerwonym tle (950) z wyraźną, ale nierażącą ramką (800)
+      color: 'text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800/80',
       icon: Siren,
       shouldPulse: true,
     };
@@ -41,7 +40,9 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
   if (isToday(dueDate)) {
       return {
         display: `Dzisiaj`,
-        color: 'text-primary bg-surface border-primary',
+        // ZMIANA: Skonkretyzowano kolory (niebieski). Jeśli używasz zmiennej 'primary', upewnij się, że ma jasny odpowiednik dla trybu ciemnego. 
+        // Użycie tailwindowego 'blue' gwarantuje perfekcyjny kontrast.
+        color: 'text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800/80',
         icon: Clock,
         shouldPulse: true,
       };
@@ -53,8 +54,8 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
     const dayName = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'][dueDate.getDay()];
     return {
       display: `${daysUntil === 1 ? "Jutro" : dayName + " (" + daysUntil + " dni)" }`,
-      // Wzmocniony zielony border
-      color: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/20 border-green-300 dark:border-green-500/30',
+      // ZMIANA: Tekst green-300 świetnie odcina się od ciemnozielonego tła, nie męcząc wzroku.
+      color: 'text-green-600 dark:text-green-300 bg-green-50 dark:bg-green-950/40 border-green-300 dark:border-green-800/80',
       icon: ChevronsRight,
       shouldPulse: false,
     };
@@ -63,7 +64,8 @@ export function getTimeContext(dueDateString: string, isDone: boolean = false): 
   // 5. STATUS: DALEKA PRZYSZŁOŚĆ (powyżej 7 dni)
   return {
     display: `Za ${daysUntil} dni`,
-    color: 'text-textSecondary bg-surface border-gray-200 dark:border-gray-800',
+    // ZMIANA: Użycie wyraźnych szarości zamiast przezroczystości, aby element nie "znikał" na ciemnych kartach.
+    color: 'text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700',
     icon: Calendar,
     shouldPulse: false,
   };

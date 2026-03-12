@@ -76,7 +76,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
           
           {/* Ikona - klikalna w trybie edycji */}
           <div 
-            className={`flex-shrink-0 text-primary bg-primary/10 rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-primary/20 hover:scale-105' : ''} transition-transform`}
+            className={`flex-shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
             title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
           >
@@ -162,10 +162,10 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
       <div className="mt-auto">
         {!isEditing && (
           <div className="text-center py-4 bg-surface rounded-xl border border-gray-100 dark:border-gray-800/50 mb-3">
-            <div className="text-5xl font-black text-primary tracking-tighter drop-shadow-sm">
+            <div className="text-5xl font-bold text-prmiary tracking-tighter drop-shadow-sm">
               {days}
             </div>
-            <div className="text-[11px] font-bold uppercase tracking-widest text-textSecondary mt-1">
+            <div className="text-[11px] font-medium uppercase tracking-widest text-textSecondary mt-1">
               {days === 0 ? "dni" : days === 1 ? "dzień" : "dni"} z rzędu
             </div>
           </div>

@@ -38,12 +38,12 @@ function NavLink({
       href={href}
       className={`flex flex-col items-center justify-center flex-1 py-2 sm:py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${
         isActive 
-          ? "bg-primary/10 text-primary" 
+          ? "text-primary" 
           : "text-textMuted hover:text-text hover:bg-surface"
       }`}
     >
       <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform ${isActive ? "scale-110" : ""}`} />
-      <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${isActive ? "font-black" : "font-bold"}`}>
+      <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${`isActive ? "font-bold" : "font-medium"`}`}>
         {label}
       </span>
     </Link>

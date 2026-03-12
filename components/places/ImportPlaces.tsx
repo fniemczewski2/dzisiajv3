@@ -111,7 +111,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
-            fetchGoogleData ? "border-primary bg-primary/5" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+            fetchGoogleData ? "border-primary bg-blue-100 dark:bg-blue-900/70" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
           }`}>
             <input
               type="checkbox"
@@ -130,7 +130,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
           </label>
 
           <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
-            autoTagEnabled ? "border-primary bg-primary/5" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+            autoTagEnabled ? "border-primary bg-blue-100 dark:bg-blue-900/70" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
           }`}>
             <input
               type="checkbox"

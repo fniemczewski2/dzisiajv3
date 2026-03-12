@@ -117,7 +117,7 @@ export default function Header() {
       <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-start gap-3">
       {/* Lewa strona: Czas i data */}
       {/* min-w-0 pozwala dacie na truncate, żeby nie wypychała prawego bloku */}
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0" onClick={() => router.push("/calendar")} >
         <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
           {currentTime}
         </div>
@@ -131,7 +131,7 @@ export default function Header() {
 
       {/* Środek: Tytuł (ukryty na mobilkach dla czystości) */}
       <div className="hidden sm:flex flex-col flex-1 items-center justify-center">
-        <h1 className="text-2xl font-black text-text tracking-tighter">
+        <h1 className="text-2xl font-bold text-text tracking-wider">
           Dzisiaj <span className="text-primary opacity-80">v3</span>
         </h1>
       </div>
@@ -158,7 +158,7 @@ export default function Header() {
             </span>
             
             {airQuality && (
-              <span className="whitespace-nowrap text-[9px] sm:text-[10px] font-black text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded uppercase tracking-wider mt-1 border border-red-100 dark:border-red-900/50">
+              <span className="whitespace-nowrap text-[9px] sm:text-[10px] font-medium text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded uppercase tracking-wider mt-1 border border-red-100 dark:border-red-900/50">
                 {airQuality}
               </span>
             )}

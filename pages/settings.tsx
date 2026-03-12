@@ -13,9 +13,9 @@ import { useSettings } from "../hooks/useSettings";
 import PushNotificationManager from '../components/settings/PushNotificationManager';
 import LoveButton from "../components/settings/LoveButton";
 import { useAuth } from "../providers/AuthProvider";
-import NotificationPreferences from "../components/settings/NotificationPreferencesForm";
 
 export default function SettingsPage() {
+
   const { user } = useAuth();
   const {
     settings,
@@ -29,6 +29,8 @@ export default function SettingsPage() {
     saveSettings,
     requestGeolocation,
     handleSignOut,
+    updateSettings,
+    DEFAULT_SETTINGS
   } = useSettings();
 
   return (
@@ -58,6 +60,12 @@ export default function SettingsPage() {
           onRemoveUser={removeUser}
           onUpdateUser={updateUser}
           onSave={saveSettings}
+          onRestoreDefaults={() => {
+            if (window.confirm("Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane.")) {
+              setSettings(DEFAULT_SETTINGS);
+              updateSettings(DEFAULT_SETTINGS); 
+            }
+          }}
         />
 
         <PushNotificationManager userId={user?.id}/>
