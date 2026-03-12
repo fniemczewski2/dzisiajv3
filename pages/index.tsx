@@ -141,7 +141,7 @@ export default function DashboardPage() {
     return map;
   }, [schemas, events, scheduledTasks, currentDayOfWeek]);
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
+ const handleDragStart = useCallback((event: DragStartEvent) => {
     const dragId = String(event.active.id);
     if (dragId.startsWith('task-')) {
       const task = tasks.find(t => String(t.id) === dragId.replace('task-', ''));
@@ -149,8 +149,11 @@ export default function DashboardPage() {
     } else if (dragId.startsWith('plan-task-')) {
       const task = tasks.find(t => String(t.id) === dragId.replace('plan-task-', ''));
       if (task) setDraggedTask(task);
-    } else if (dragId.startsWith('plan-event-')) {
-      const evt = events.find(e => String(e.id) === dragId.replace('plan-event-', ''));
+    } 
+    // POPRAWKA: Rozpoznawanie wydarzeń z obu list
+    else if (dragId.startsWith('plan-event-') || dragId.startsWith('side-event-')) {
+      const rawId = dragId.replace('plan-event-', '').replace('side-event-', '');
+      const evt = events.find(e => String(e.id) === rawId);
       if (evt) setDraggedEventTitle(evt.title);
     }
   }, [tasks, events]);
@@ -178,9 +181,10 @@ export default function DashboardPage() {
         await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
         await fetchTasks();
       } catch (err) { console.error("Error scheduling task:", err); }
-    } else if (dragId.startsWith('plan-event-')) {
-      const eventId = dragId.replace('plan-event-', '');
+    } else if (dragId.startsWith('plan-event-') || dragId.startsWith('side-event-')) {
+      const eventId = dragId.replace('plan-event-', '').replace('side-event-', '');
       const currentEvent = events.find(e => String(e.id) === String(eventId));
+      
       if (!currentEvent) return;
       const oldStart = new Date(currentEvent.start_time.replace(" ", "T"));
       const oldEnd = new Date(currentEvent.end_time.replace(" ", "T"));
@@ -245,7 +249,7 @@ export default function DashboardPage() {
                   </h3>
                   <div className="grid grid-cols-1 gap-2">
                     {allDayEvents.map((item) => (
-                      <DraggablePlanItem key={`right-plan-event-${item.id}`} id={`plan-event-${item.id}`} type="event">
+                      <DraggablePlanItem key={`side-event-${item.id}`} id={`side-event-${item.id}`} type="event">
                         <PlanItem item={item} onMarkAsDoneTask={handleMarkAsDone} onDeleteTask={handleDeleteTaskWrapper} onRemoveFromSchedule={handleRemoveFromSchedule} onDeleteEvent={deleteEvent} />
                       </DraggablePlanItem>
                     ))}
@@ -268,7 +272,7 @@ export default function DashboardPage() {
         </div>
 
         <DragOverlay style={{ touchAction: 'none' }} dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
-          {draggedTask ? <DraggingTaskItem task={draggedTask} /> : draggedEventTitle ? (<DraggingEventItem title={draggedEventTitle}/>) : null}
+          {draggedTask ? <DraggingTaskItem title={draggedTask.title} /> : draggedEventTitle ? (<DraggingEventItem title={draggedEventTitle}/>) : null}
         </DragOverlay>
       </DndContext>
     </Layout>

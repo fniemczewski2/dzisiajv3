@@ -3,14 +3,12 @@
 import React from "react";
 import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Trash2, ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
-import { DeleteButton } from "../CommonButtons";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 
 interface PlanItemData {
   id: string;
   title: string;
   type: 'event' | 'schema' | 'task';
-  color: string;
   data?: any;
 }
 
@@ -68,7 +66,7 @@ export const PlanItem: React.FC<PlanItemProps> = ({
   };
   
   return (
-    <div className={`mb-2 p-3 rounded-xl border shadow-sm flex justify-between items-center group transition-colors ${item.color}`}>
+    <div className={`mb-2 p-3 rounded-xl flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors `}>
       
       {/* Lewa strona - Tytuł */}
       <div className="flex-1 min-w-0 pr-2">
@@ -105,7 +103,7 @@ export const PlanItem: React.FC<PlanItemProps> = ({
           <Link 
             href={quickLink.path} 
             title={quickLink.label} 
-            className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-primary/10 text-textSecondary hover:text-primary transition-colors border"
+            className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-blue-100 dark:hover:bg-blue-900 text-textSecondary hover:text-primary transition-colors border"
           >
             {quickLink.icon}
           </Link>
@@ -116,7 +114,7 @@ export const PlanItem: React.FC<PlanItemProps> = ({
             <Link 
               href="/calendar" 
               title="Pokaż w kalendarzu" 
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-primary/10 text-textSecondary hover:text-primary transition-colors border"
+              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-blu text-textSecondary hover:text-primary transition-colors border"
             >
               <Calendar className="w-4 h-4" />
             </Link>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, BellOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
+import NotificationPreferences from './NotificationPreferencesForm';
 
 export default function PushNotificationManager({ userId }: { userId: string | undefined }) {
   const {
@@ -178,8 +179,8 @@ export default function PushNotificationManager({ userId }: { userId: string | u
           </div>
         </div>
       )}
-
-      <div className="flex flex-wrap gap-3">
+      <NotificationPreferences/>
+      <div className="flex flex-wrap gap-3 pt-2">
         {/* Request Permission Button */}
         {isSupported && permission === 'default' && (
           <button

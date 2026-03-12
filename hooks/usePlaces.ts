@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Place, PlaceInsert, OpeningHours } from "../types";
 import { generatePlaceTags } from "../lib/placeTagging";
@@ -7,25 +7,22 @@ import { useAuth } from "../providers/AuthProvider";
 export function usePlaces() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("Ładowanie...");
+  const [message, setMessage] = useState("");
   const { user } = useAuth();
   const userId = user?.id;
-  
-  useEffect(() => {
-    if (userId) {
-      fetchPlaces();
-    }
-  }, [userId]);
 
-  const fetchPlaces = async () => {
-    if (!userId) return;
+  const fetchPlaces = useCallback(async () => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     const { data, error } = await supabase
       .from("places")
       .select("*")
       .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .order('name', { ascending: true });
 
     if (error) {
       console.error("Error fetching places:", error);
@@ -33,96 +30,103 @@ export function usePlaces() {
       setPlaces(data || []);
     }
     setLoading(false);
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchPlaces();
+  }, [fetchPlaces]);
 
   const addPlace = async (place: PlaceInsert) => {
-    if (!userId) return;
-
+    if (!userId) throw new Error("Musisz być zalogowany");
+    console.log(place)
     const { data, error } = await supabase
       .from("places")
-      .insert([place])
+      .insert([{ ...place, user_id: userId }])
       .select()
       .single();
 
     if (error) {
       console.error("Error adding place:", error);
       throw error;
-    } else {
-      setPlaces([data, ...places]);
-      return data;
     }
+    
+    setPlaces(prev => [data, ...prev]);
+    return data;
   };
 
   const updatePlace = async (id: string, updates: Partial<Place>) => {
+    if (!userId) throw new Error("Musisz być zalogowany");
+
     const { data, error } = await supabase
       .from("places")
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", id)
+      .eq("user_id", userId) // Zabezpieczenie RLS
       .select()
       .single();
 
     if (error) {
       console.error("Error updating place:", error);
       throw error;
-    } else {
-      setPlaces(places.map((p) => (p.id === id ? data : p)));
-      return data;
     }
+    
+    setPlaces(prev => prev.map((p) => (p.id === id ? data : p)));
+    return data;
   };
 
   const deletePlace = async (id: string) => {
-    const { error } = await supabase.from("places").delete().eq("id", id);
+    if (!userId) throw new Error("Musisz być zalogowany");
+
+    const { error } = await supabase
+      .from("places")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId);
 
     if (error) {
       console.error("Error deleting place:", error);
       throw error;
-    } else {
-      setPlaces(places.filter((p) => p.id !== id));
     }
+    
+    setPlaces(prev => prev.filter((p) => p.id !== id));
   };
 
   const extractHours = (dayText: string): string[] => {
+    if (!dayText) return [];
     const match = dayText.match(/:\s*(.+)$/);
     if (!match) return [];
     
     const hours = match[1].trim();
-    if (hours.toLowerCase() === "closed" || hours.toLowerCase() === "nieczynne") {
+    const lowerHours = hours.toLowerCase();
+    if (lowerHours.includes("closed") || lowerHours.includes("nieczynne")) {
       return [];
     }
     
-    let converted = hours;
-    
-    // AM/PM to 24h
-    converted = converted.replace(/(\d+):(\d+)\s*AM/gi, (match, h, m) => {
-      const hour = parseInt(h);
-      return `${hour === 12 ? '00' : h.padStart(2, '0')}:${m}`;
-    });
-    
-    converted = converted.replace(/(\d+):(\d+)\s*PM/gi, (match, h, m) => {
-      const hour = parseInt(h);
-      return `${hour === 12 ? 12 : hour + 12}:${m}`;
-    });
-    
-    converted = converted.replace(/–/g, "-").replace(/\s+/g, "");
+    let converted = hours
+      .replace(/(\d+):(\d+)\s*AM/gi, (_, h, m) => {
+        const hour = parseInt(h);
+        return `${hour === 12 ? '00' : h.padStart(2, '0')}:${m}`;
+      })
+      .replace(/(\d+):(\d+)\s*PM/gi, (_, h, m) => {
+        const hour = parseInt(h);
+        return `${hour === 12 ? 12 : hour + 12}:${m}`;
+      })
+      .replace(/–/g, "-")
+      .replace(/\s+/g, "");
     
     return [converted];
   };
 
   const fetchPlaceDetails = async (lat: number, lng: number, name: string) => {
     try {
-      const params = new URLSearchParams();
-      
-      params.append("name", name);
-      params.append("lat", lat.toString());
-      params.append("lng", lng.toString());
+      const params = new URLSearchParams({
+        name,
+        lat: lat.toString(),
+        lng: lng.toString()
+      });
 
       const response = await fetch(`/api/google-places?${params.toString()}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.warn(`Failed to fetch place details: ${errorData.error}`, errorData);
-        return null;
-      }
+      if (!response.ok) return null;
 
       const data = await response.json();
       const result = data.result;
@@ -145,7 +149,6 @@ export function usePlaces() {
         rating: result.rating,
         opening_hours: openingHours,
         google_place_id: result.place_id,
-        // Return full result for tag generation
         google_data: result,
       };
     } catch (error) {
@@ -154,21 +157,12 @@ export function usePlaces() {
     }
   };
 
-  /**
-   * Find existing place by coordinates or name
-   * Returns the existing place if found, null otherwise
-   */
-  const findExistingPlace = async (
-    name: string,
-    lat: number,
-    lng: number
-  ): Promise<Place | null> => {
+  const findExistingPlace = async (name: string, lat: number, lng: number): Promise<Place | null> => {
     if (!userId) return null;
-
-    // Strategy 1: Find by exact coordinates (within 0.0001 degrees ~ 11 meters)
     const coordThreshold = 0.0001;
     
-    const { data: coordMatches, error: coordError } = await supabase
+    // Szukanie po koordynatach
+    const { data: coordMatches } = await supabase
       .from("places")
       .select("*")
       .eq("user_id", userId)
@@ -177,183 +171,92 @@ export function usePlaces() {
       .gte("lng", lng - coordThreshold)
       .lte("lng", lng + coordThreshold);
 
-    if (coordError) {
-      console.error("Error finding by coordinates:", coordError);
-    } else if (coordMatches && coordMatches.length > 0) {
-      // If we found places at the same coordinates, check if name matches
-      const exactMatch = coordMatches.find(
-        (p) => p.name.toLowerCase() === name.toLowerCase()
-      );
-      if (exactMatch) return exactMatch;
-      
-      // Return the first coordinate match even if name doesn't match exactly
-      // (same location = probably same place with slightly different name)
-      return coordMatches[0];
+    if (coordMatches && coordMatches.length > 0) {
+      const exactMatch = coordMatches.find(p => p.name.toLowerCase() === name.toLowerCase());
+      return exactMatch || coordMatches[0];
     }
 
-    // Strategy 2: Find by exact name (fallback)
-    const { data: nameMatches, error: nameError } = await supabase
+    // Fallback: po nazwie
+    const { data: nameMatches } = await supabase
       .from("places")
       .select("*")
       .eq("user_id", userId)
-      .ilike("name", name); // Case-insensitive match
-
-    if (nameError) {
-      console.error("Error finding by name:", nameError);
-      return null;
-    }
+      .ilike("name", name);
 
     return nameMatches && nameMatches.length > 0 ? nameMatches[0] : null;
   };
 
-  const importFromGoogleMaps = async (
-    jsonData: any,
-    fetchGoogleData = true,
-    autoTag = true
-  ) => {
-    if (!userId) return 0;
+  const importFromGoogleMaps = async (jsonData: any, fetchGoogleData = true, autoTag = true) => {
+    if (!userId) throw new Error("Brak zalogowanego użytkownika");
 
     try {
       const features = jsonData.features || [];
-      const placesToInsert: PlaceInsert[] = [];
-      const placesToUpdate: { id: string; updates: Partial<Place> }[] = [];
-      let skippedCount = 0;
+      let importedCount = 0;
+      let updatedCount = 0;
 
       for (let i = 0; i < features.length; i++) {
         const feature = features[i];
-        
         if (!feature.properties?.location?.name) continue;
 
         const [lng, lat] = feature.geometry.coordinates;
-        
         if (lat === 0 && lng === 0) continue;
 
         const placeName = feature.properties.location.name;
-        const address = feature.properties.location.address || undefined;
+        setMessage(`Przetwarzanie: ${placeName}...`);
 
-        // Check if place already exists
         const existingPlace = await findExistingPlace(placeName, lat, lng);
-
         const baseData: any = {
           name: placeName,
-          address,
+          address: feature.properties.location.address || undefined,
           lat,
           lng,
+          user_id: userId
         };
 
         let googleData = null;
-
-        // Fetch Google Place details if enabled
         if (fetchGoogleData) {
-          try {
-            const googleDetails = await fetchPlaceDetails(lat, lng, placeName);
-            
-            if (googleDetails) {
-              // Extract google_data before spreading
-              googleData = googleDetails.google_data;
-              delete googleDetails.google_data;
-              
-              // Assign other Google details
-              Object.assign(baseData, googleDetails);
-            }
-           
-            // Rate limiting: wait 500ms between requests
-            if (i < features.length - 1) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          } catch (error) {
-            console.error(`Error fetching Google data for ${placeName}:`, error);
+          const googleDetails = await fetchPlaceDetails(lat, lng, placeName);
+          if (googleDetails) {
+            googleData = googleDetails.google_data;
+            delete googleDetails.google_data;
+            Object.assign(baseData, googleDetails);
           }
+          if (i < features.length - 1) await new Promise(r => setTimeout(r, 400));
         }
 
-        // Generate automatic tags if enabled
         let tags: string[] = [];
         if (autoTag) {
           try {
             tags = await generatePlaceTags(placeName, googleData);
-          } catch (error) {
-            console.error(`Error generating tags for ${placeName}:`, error);
-            // If tag generation fails, try with just the name
-            try {
-              tags = await generatePlaceTags(placeName);
-            } catch (fallbackError) {
-              console.error(`Fallback tag generation also failed for ${placeName}`);
-              tags = [];
-            }
+          } catch {
+            tags = [];
           }
         }
 
         if (existingPlace) {
-          // Place exists - UPDATE it
-          const updates: Partial<Place> = {
-            ...baseData,
-            tags: tags.length > 0 ? tags : existingPlace.tags, 
-            updated_at: new Date().toISOString(),
-          };
-
-          placesToUpdate.push({
-            id: existingPlace.id,
-            updates,
-          });
-
-          setMessage("Aktualizowanie" + {placeName});
-        } else {
-          // Place doesn't exist - INSERT it
-          const newPlace: PlaceInsert = {
-            user_id: userId,
-            ...baseData,
-            tags,
-            notes: undefined,
-          };
-
-          placesToInsert.push(newPlace);
-          setMessage("Dodawanie:" + {placeName});
-        }
-      }
-
-      let insertedCount = 0;
-      let updatedCount = 0;
-
-      // Insert new places
-      if (placesToInsert.length > 0) {
-        const { data: insertedData, error: insertError } = await supabase
-          .from("places")
-          .insert(placesToInsert)
-          .select();
-
-        if (insertError) {
-          console.error("Error inserting places:", insertError);
-          throw insertError;
-        }
-
-        insertedCount = insertedData?.length || 0;
-        setMessage("Dodano: " + {insertedCount} + " miejsc");
-      }
-
-      // Update existing places
-      if (placesToUpdate.length > 0) {
-        for (const { id, updates } of placesToUpdate) {
-          const { error: updateError } = await supabase
+          const { error: updErr } = await supabase
             .from("places")
-            .update(updates)
-            .eq("id", id);
-
-          if (updateError) {
-            console.error(`Error updating place ${id}:`, updateError);
-          } else {
-            updatedCount++;
-          }
+            .update({
+              ...baseData,
+              tags: tags.length > 0 ? tags : existingPlace.tags,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", existingPlace.id);
+          if (!updErr) updatedCount++;
+        } else {
+          const { error: insErr } = await supabase
+            .from("places")
+            .insert([{ ...baseData, tags }]);
+          if (!insErr) importedCount++;
         }
-        setMessage(
-          "Dodano: " + {insertedCount} + " miejsc" +
-          "\nZaaktualizowano: " + {insertedCount} + " miejsc"
-        );
       }
-      // Refresh the places list
+
+      setMessage(`Import zakończony. Dodano: ${importedCount}, Zaktualizowano: ${updatedCount}`);
       await fetchPlaces();
-      return insertedCount + updatedCount;
+      return importedCount + updatedCount;
     } catch (error) {
-      console.error("Error in importFromGoogleMaps:", error);
+      console.error("Import error:", error);
+      setMessage("Wystąpił błąd podczas importu.");
       throw error;
     }
   };

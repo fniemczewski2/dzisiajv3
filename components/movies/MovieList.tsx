@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { Loader2, Search } from "lucide-react";
 import { useMovies } from "../../hooks/useMovies";
+import { useSettings } from "../../hooks/useSettings"; // <--- DODANO
 import { AddButton } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
@@ -19,30 +20,41 @@ export default function MovieWatchlist() {
     toggleWatched,
     updateNotes,
   } = useMovies();
+  
+  const { settings } = useSettings(); // <--- DODANO
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
-  const sortedMovies = useMemo(() => {
-    const unwatched = movies
-      .filter((m) => !m.watched)
-      .sort((a, b) => {
-        if (a.rating === null) return 1;
-        if (b.rating === null) return -1;
-        return b.rating - a.rating;
-      });
+const sortedMovies = useMemo(() => {
+    const sortType = settings?.sort_movies || "updated_desc";
 
-    const watched = movies
-      .filter((m) => m.watched)
-      .sort((a, b) => {
-        if (a.rating === null) return 1;
-        if (b.rating === null) return -1;
-        return b.rating - a.rating;
-      });
+    const sortFn = (a: any, b: any) => {
+      if (sortType === "alphabetical") {
+        return a.title.localeCompare(b.title, "pl");
+      }
 
-    return [...unwatched, ...watched];
-  }, [movies]);
+      if (sortType === "rating") {
+        const ratingA = a.rating ?? -1; 
+        const ratingB = b.rating ?? -1;
+        
+        if (ratingA !== ratingB) {
+          return ratingB - ratingA; // Malejąco
+        }
+      }
+
+      // Domyślnie: updated_desc (zabezpieczone przed brakującymi datami)
+      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+      return dateB - dateA; 
+    };
+
+    const unwatched = movies.filter((m) => !m.watched).sort(sortFn);
+    const watched = movies.filter((m) => m.watched).sort(sortFn);
+
+    return [...unwatched, ...watched]; 
+  }, [movies, settings?.sort_movies]);
 
   const filteredMovies = useMemo(() => {
     if (!searchQuery.trim()) return sortedMovies;

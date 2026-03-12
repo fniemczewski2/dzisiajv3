@@ -19,7 +19,7 @@ export default function DaySchemaPage() {
 
   const now = getAppDateTime();
   const currentTime = format(now, "HH:mm");
-  const currentDay = now.getDay(); // 0 = Sunday
+  const currentDay = (now.getDay() + 6) % 7;
 
   const activeSchema = schemas?.find((schema) => schema.days.includes(currentDay)) || null;
 
@@ -98,16 +98,14 @@ export default function DaySchemaPage() {
         </ul>
 
         <div className="mb-6 bg-card border border-gray-200 dark:border-gray-800 p-5 rounded-2xl shadow-sm">
-          <NoResultsState text="aktywnego schematu dnia na dzisiaj" />
-
           {sortedEntries.length > 0 ? (
-            <div className="relative border-l-2 border-gray-200 dark:border-gray-700 pl-4 py-2">
+            <div className="relative border-gray-200 dark:border-gray-700 py-2">
               <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />
 
               {sortedEntries.map((entry) => (
-                <div key={entry.time} className="relative mb-3 flex items-center space-x-4">
-                  <span className="text-sm font-bold text-textMuted w-12 shrink-0">{entry.time}</span>
-                  <span className="text-base font-medium text-text">{entry.label}</span>
+                <div key={entry.time} className="relative mb-3 flex items-center space-x-2">
+                  <span className="text-sm font-bold text-textMuted w-12 h-[24px] flex items-center shrink-0">{entry.time}</span>
+                  <span className="font-lg font-medium text-text">{entry.label}</span>
                 </div>
               ))}
             </div>

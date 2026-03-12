@@ -13,6 +13,7 @@ import { useSettings } from "../hooks/useSettings";
 import PushNotificationManager from '../components/settings/PushNotificationManager';
 import LoveButton from "../components/settings/LoveButton";
 import { useAuth } from "../providers/AuthProvider";
+import NotificationPreferences from "../components/settings/NotificationPreferencesForm";
 
 export default function SettingsPage() {
   const { user } = useAuth();

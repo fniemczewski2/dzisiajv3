@@ -3,17 +3,17 @@ import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { Note } from "../../types";
 import { useNotes } from "../../hooks/useNotes";
+import { useSettings } from "../../hooks/useSettings"; // <--- DODANO
 import SearchBar from "../SearchBar";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
-import { sortNotes, filterNotes, getNoteTitles } from "../../lib/notesUtils";
+import { filterNotes, getNoteTitles } from "../../lib/notesUtils";
 
 interface NoteListProps {
   notes: Note[];
   onNotesChange: () => void;
 }
 
-// Aktualizacja: Złożone klasy wspierające Tryb Jasny i Ciemny
 const COLOR_MAP: { [key: string]: string } = {
   "zinc-50": "bg-zinc-50 dark:bg-card border-gray-200 dark:border-gray-700",
   "yellow-100": "bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/30",
@@ -24,11 +24,30 @@ const COLOR_MAP: { [key: string]: string } = {
 
 export default function NoteList({ notes, onNotesChange }: NoteListProps) {
   const { deleteNote, editNote, togglePin, toggleArchive } = useNotes();
+  const { settings } = useSettings(); // <--- DODANO
+  
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const sortedNotes = useMemo(() => sortNotes(notes), [notes]);
+  const sortedNotes = useMemo(() => {
+    const sortType = settings?.sort_notes || "updated_desc";
+    
+    return [...notes].sort((a, b) => {
+      // Zawsze na samej górze przypięte
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+
+      if (sortType === "alphabetical") {
+        return (a.title || "").localeCompare(b.title || "", "pl");
+      }
+      
+      // Domyślnie: data aktualizacji/stworzenia malejąco
+      const dateA = new Date(a.updated_at || 0).getTime();
+      const dateB = new Date(b.updated_at || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [notes, settings?.sort_notes]);
+
   const filteredNotes = useMemo(() => filterNotes(sortedNotes, searchQuery), [sortedNotes, searchQuery]);
   const suggestions = useMemo(() => getNoteTitles(notes), [notes]);
 

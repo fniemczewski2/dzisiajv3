@@ -19,7 +19,7 @@ export default function TimeContextBadge({
   const Icon = context.icon;
   
   return (
-    <div
+    <span
       className={`
         inline-flex items-center justify-center gap-1.5 rounded-md font-medium shadow-sm transition-colors border
         ${context.color}
@@ -40,6 +40,6 @@ export default function TimeContextBadge({
           <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
         </span>
       )}
-    </div>
+    </span>
   );
 }

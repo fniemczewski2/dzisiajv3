@@ -142,7 +142,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
             <div>
               <div className="flex items-center gap-2 font-bold text-text text-sm">
                 <Tag className="w-4 h-4 text-primary" />
-                Sztuczna Inteligencja
+                Automatyczne tagi
               </div>
               <p className="text-xs text-textMuted mt-0.5">Generuje tagi określające styl miejsca (kawiarnia, park itp.)</p>
             </div>

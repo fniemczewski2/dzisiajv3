@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Tryb Jasny */
+    color-scheme: light;
     --color-primary: #2563EB;
     --color-secondary: #1E40AF;
     --color-accent: #F59E0B;
@@ -18,7 +18,7 @@
   }
 
   .dark {
-    /* Tryb Ciemny */
+    color-scheme: dark;
     --color-primary: #3B82F6;
     --color-secondary: #93C5FD;
     --color-accent: #FBBF24;
@@ -82,5 +82,14 @@
 
   .widget {
     @apply mb-2 sm:mb-4 bg-card border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow-sm transition;
+  }
+
+  select.input-field {
+    @apply dark:bg-[#1E293B]; 
+  }
+
+  .dark select.input-field option {
+    background-color: #1E293B; 
+    color: #F8FAFC;            
   }
 }

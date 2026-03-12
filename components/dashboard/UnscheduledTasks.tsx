@@ -35,7 +35,6 @@ export const UnscheduledTasks = React.memo(({
               id: String(task.id),
               title: task.title,
               type: 'task' as const,
-              color: 'bg-card border border-gray-200 dark:border-gray-800 shadow-sm text-text',
               data: task
             };
 
