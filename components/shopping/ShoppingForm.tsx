@@ -5,7 +5,6 @@ import { useSettings } from "../../hooks/useSettings";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import LoadingState from "../LoadingState";
 import { AddButton, CancelButton } from "../CommonButtons";
-import { useAuth } from "../../providers/AuthProvider";
 
 interface ShoppingFormProps {
   onChange: () => void;
@@ -14,9 +13,7 @@ interface ShoppingFormProps {
 
 export default function ShoppingForm({ onChange, onCancel }: ShoppingFormProps) {
   const { settings } = useSettings();
-  const { addShoppingList, loading } = useShoppingLists();
-  const { user } = useAuth();
-  
+  const { addShoppingList, loading } = useShoppingLists();  
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];

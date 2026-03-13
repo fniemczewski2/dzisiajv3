@@ -91,7 +91,7 @@ export default function ShoppingListView() {
 
   return (
     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {sortedLists.map((list) => { // ZMIANA NA sortedLists
+      {sortedLists.map((list) => {
         const isEditing = editingId === list.id;
 
         if (isEditing && editedList) {
@@ -110,7 +110,7 @@ export default function ShoppingListView() {
                   <select value={editedList.shared_with_id || ""} onChange={(e) => setEditedList({ ...editedList, shared_with_id: e.target.value || null })} className="input-field">
                     <option value="">Tylko dla mnie</option>
                     {userOptions.map((email) => (
-                      <option key={email} value={email}>{email}</option>
+                      <option key={email} value={id}>{email}</option>
                     ))}
                   </select>
                 </div>
