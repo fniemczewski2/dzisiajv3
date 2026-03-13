@@ -4,18 +4,26 @@ import { Plus, Trash2, User } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
+import { useAuth } from "../../providers/AuthProvider";
 import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
   const { settings } = useSettings();
+  const { supabase } = useAuth(); // Potrzebne do wywołania funkcji RPC
+
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editedList, setEditedList] = useState<ShoppingList | null>(null);
+  
+  // Przechowujemy E-MAIL wybranej osoby do udostępnienia
+  const [sharedEmail, setSharedEmail] = useState("");
+  
   const nameRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
 
+  // Focus na pole input przy rozpoczęciu edycji
   useEffect(() => {
     if (editingId && nameRef.current) {
       nameRef.current.focus();
@@ -35,24 +43,57 @@ export default function ShoppingListView() {
     });
   }, [lists, settings?.sort_shopping]);
 
-  const handleEdit = (list: ShoppingList) => {
+  // Wejście w tryb edycji - pobranie e-maila jeśli lista była udostępniona
+  const handleEdit = async (list: ShoppingList) => {
     setEditingId(list.id);
     setEditedList({ ...list });
+    
+    if (list.shared_with_id) {
+      const { data, error } = await supabase.rpc('get_email_by_user_id', { 
+        target_uuid: list.shared_with_id 
+      });
+      if (data && !error) {
+        setSharedEmail(data);
+      } else {
+        setSharedEmail("");
+      }
+    } else {
+      setSharedEmail("");
+    }
   };
 
   const handleCancelEdit = () => {
     setEditingId(undefined);
     setEditedList(null);
+    setSharedEmail("");
   };
 
   const handleSaveEdit = async () => {
     if (editedList?.id) {
+      let targetUserId = null;
+
+      // Jeśli wybrano e-mail z listy, zamieniamy go z powrotem na ID użytkownika
+      if (sharedEmail) {
+        const { data, error } = await supabase.rpc('get_user_id_by_email', { 
+          email_address: sharedEmail 
+        });
+
+        if (data && !error) {
+          targetUserId = data;
+        } else {
+          alert("Błąd: Nie znaleziono użytkownika o takim adresie e-mail w bazie.");
+          return;
+        }
+      }
+
       await editShoppingList(editedList.id, {
         name: editedList.name,
-        shared_with_id: editedList.shared_with_id,
+        shared_with_id: targetUserId, // Zapisujemy zdekodowane ID (lub null)
       });
+      
       setEditingId(undefined);
       setEditedList(null);
+      setSharedEmail("");
     }
   };
 
@@ -94,6 +135,7 @@ export default function ShoppingListView() {
       {sortedLists.map((list) => {
         const isEditing = editingId === list.id;
 
+        // ===== TRYB EDYCJI =====
         if (isEditing && editedList) {
           return (
             <li
@@ -103,17 +145,31 @@ export default function ShoppingListView() {
               <div className="space-y-4">
                 <div>
                   <label className="form-label">Nazwa listy:</label>
-                  <input ref={nameRef} type="text" value={editedList.name} onChange={(e) => setEditedList({ ...editedList, name: e.target.value })} className="input-field font-medium" />
+                  <input 
+                    ref={nameRef} 
+                    type="text" 
+                    value={editedList.name} 
+                    onChange={(e) => setEditedList({ ...editedList, name: e.target.value })} 
+                    className="input-field font-medium" 
+                  />
                 </div>
-                <div>
-                  <label className="form-label">Udostępnij dla:</label>
-                  <select value={editedList.shared_with_id || ""} onChange={(e) => setEditedList({ ...editedList, shared_with_id: e.target.value || null })} className="input-field">
-                    <option value="">Tylko dla mnie</option>
-                    {userOptions.map((email) => (
-                      <option key={email} value={id}>{email}</option>
-                    ))}
-                  </select>
-                </div>
+                
+                {userOptions.length > 0 && (
+                  <div>
+                    <label className="form-label">Udostępnij dla:</label>
+                    <select 
+                      value={sharedEmail} 
+                      onChange={(e) => setSharedEmail(e.target.value)} 
+                      className="input-field"
+                    >
+                      <option value="">Tylko dla mnie</option>
+                      {userOptions.map((email) => (
+                        <option key={email} value={email}>{email}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-2 pt-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                   <SaveButton onClick={handleSaveEdit} type="button" />
                   <CancelButton onCancel={handleCancelEdit} />
@@ -133,6 +189,7 @@ export default function ShoppingListView() {
           );
         }
 
+        // ===== TRYB WIDOKU / NORMALNY =====
         return (
           <li
             key={list.id}
@@ -154,20 +211,22 @@ export default function ShoppingListView() {
               </div>
             </div>
 
-            <ul className="list-none mb-4 flex-1">
+            <ul className="list-none mb-4 flex-1 space-y-1">
               {list.elements.map((el) => (
                 <li key={el.id} className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${el.completed ? "line-through text-textMuted" : "text-text"}`}>
                   <div className="flex items-center flex-1 gap-3 min-w-0">
                     <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)} className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
-                  <button onClick={() => removeElement(list, el.id)} className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0" title="Usuń produkt">
+                  <button onClick={() => removeElement(list, el.id)} className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0 transition-colors" title="Usuń produkt">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </li>
               ))}
               {list.elements.length === 0 && (
-                <NoResultsState text="produktów na liście" />
+                <div className="mt-4">
+                  <NoResultsState text="produktów na liście" />
+                </div>
               )}
             </ul>
 
@@ -179,7 +238,9 @@ export default function ShoppingListView() {
       })}
 
       {lists.length === 0 && (
-        <NoResultsState text="list zakupów" />
+        <div className="col-span-full">
+          <NoResultsState text="list zakupów" />
+        </div>
       )}
     </ul>
   );
@@ -203,7 +264,7 @@ function AddElementForm({ onAdd }: { onAdd: (text: string) => void }) {
         placeholder="Nowy produkt..."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="input-field py-2"
+        className="input-field py-2 flex-1 min-w-0"
       />
       <button className="flex items-center justify-center px-4 bg-primary text-white font-bold rounded-xl hover:bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt">
         <Plus className="w-5 h-5" />

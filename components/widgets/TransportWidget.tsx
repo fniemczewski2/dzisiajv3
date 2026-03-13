@@ -29,7 +29,7 @@ export default function TransportWidget() {
       </div>
 
       {open && (
-        <div className="animate-in slide-in-from-top-2 border-t border-gray-100 dark:border-gray-800 bg-surface/30">
+        <div className="animate-in slide-in-from-top-2 border-t border-gray-100 dark:border-gray-800 bg-surface">
           
           {/* Komunikat błędu */}
           {error && (

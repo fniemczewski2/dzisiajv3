@@ -1,8 +1,10 @@
 import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
 import { ListTodo } from "lucide-react";
-import React from "react";
+import React, { useMemo } from "react"; // <-- DODANO IMPORT
 import { getAppDate } from "../../lib/dateUtils";
+import { useSettings } from "../../hooks/useSettings";
+import { MoodEntry, MoodOption } from "../../types"; // <-- DODANO MoodOption
 
 interface Props {
   date: Date;
@@ -11,6 +13,9 @@ interface Props {
   eCount?: number | null;
   isMobile: boolean;
   onClick: () => void;
+  dayMood?: MoodEntry | null;
+  DEFAULT_MOODS: MoodOption[];
+  holiday?: string; 
 }
 
 const CalendarCell: React.FC<Props> = ({
@@ -20,19 +25,31 @@ const CalendarCell: React.FC<Props> = ({
   eCount,
   isMobile,
   onClick,
+  dayMood,
+  DEFAULT_MOODS,
+  holiday
 }) => {
   const today = parseISO(getAppDate());
   const isOutside = date.getMonth() !== currentMonth;
   const isToday = isSameDay(date, today);
-
+  const { settings } = useSettings(); // <-- POPRAWIONO DESTRUKTURYZACJĘ
+  
+  const moodOption = useMemo(() => {
+    if (!dayMood) return null;
+    return (
+      settings?.mood_options?.find((o: any) => o.id === dayMood.mood_id) || 
+      DEFAULT_MOODS.find(o => o.id === dayMood.mood_id)
+    );
+  }, [dayMood, settings, DEFAULT_MOODS]);
+  
   return (
     <div
       className={clsx(
-        "flex flex-col justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200",
+        "flex flex-col relative justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200",
         isOutside 
           ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface" 
           : "card shadow-sm hover:shadow-md",
-        isToday && "ring-1 ring-primary"
+        isToday && "ring-1 ring-primary",
       )}
       onClick={onClick}
     >
@@ -41,23 +58,40 @@ const CalendarCell: React.FC<Props> = ({
           className={clsx(
             "text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors",
             isToday ? "bg-primary text-white" : "text-text",
-            isOutside && !isToday && "text-textMuted"
+            isOutside && !isToday && "text-textMuted",
+            holiday && ( !isToday ? "text-red-600 dark:text-red-400" : "bg-red-600 dark:bg-red-400/80")
           )}
         >
           {date.getDate()}
         </div>
+        {(moodOption && isMobile) && (
+          <div 
+            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full absolute top-1 right-1 shadow-sm" 
+            style={{ backgroundColor: moodOption.color }}
+            title={moodOption.label}
+          />
+        )}
 
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1 z-10">
           {tCount && !isMobile && (
             <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
               <ListTodo size={12} />
               {tCount}
             </div>
+            
           )}
+          
           {eCount && (
             <div className="flex items-center justify-center px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/70 rounded-md text-[10px] font-bold">
               +{eCount}
             </div>
+          )}
+          {!isMobile && (
+          <div 
+            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shadow-sm" 
+            style={{ backgroundColor: moodOption?.color }}
+            title={moodOption?.label}
+          />
           )}
         </div>
       </div>

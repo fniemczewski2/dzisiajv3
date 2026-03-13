@@ -288,7 +288,7 @@ export default function RecipesList() {
                 </button>
               </div>
               {open && (
-                <div className="px-4 pb-4 pt-1 bg-surface/30 border-t border-gray-100 dark:border-gray-800 space-y-4">
+                <div className="px-4 pb-4 pt-1 bg-surface border-t border-gray-100 dark:border-gray-800 space-y-4">
                   {r.description && (
                     <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap pt-3">{r.description}</p>
                   )}

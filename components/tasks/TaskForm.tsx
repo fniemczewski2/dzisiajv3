@@ -136,9 +136,7 @@ export default function TaskForm({
               "przyjaciele",
               "zakupy",
               "podróże",
-              "dostawa",
-              "święta",
-              "przypomnienia",
+              "trening",
               "inne",
             ].map((cat) => (
               <option key={cat} value={cat}>

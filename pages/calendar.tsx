@@ -16,6 +16,8 @@ import { useTasks } from "../hooks/useTasks";
 import LoadingState from "../components/LoadingState";
 import { AddButton } from "../components/CommonButtons";
 import { useQuickAction } from "../hooks/useQuickAction";
+import { useMoods } from "../hooks/useMoods";
+import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <LoadingState />,
@@ -65,6 +67,7 @@ export default function CalendarPage() {
     selectedDateStr ?? undefined,
     selectedDateStr ?? undefined
   );
+  const { moods } = useMoods();
 
   const goToPrevMonth = () => {
     setCurrentDate(
@@ -154,6 +157,8 @@ export default function CalendarPage() {
             currentDate={currentDate}
             events={events}
             onSelectDate={(date) => setSelectedDate(date)}
+            moods={moods}
+            DEFAULT_MOODS={DEFAULT_MOODS}
           />
         )}
       </Layout>

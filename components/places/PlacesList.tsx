@@ -160,7 +160,7 @@ export default function PlacesList({
             </div>
 
             {isExpanded && (
-              <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4 bg-surface/30">
+              <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4 bg-surface">
                 <div className="space-y-2">
                   {place.rating && (
                     <div className="flex items-center gap-2">

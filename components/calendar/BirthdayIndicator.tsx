@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { useEvents } from "../../hooks/useEvents";
 import { format } from "date-fns";
 import { eventSpansDate, getAppDate } from "../../lib/dateUtils";
-import { Cake } from "lucide-react";
+import { Cake, Star } from "lucide-react";
+import { getPolishHolidays } from "../../lib/holidays"; // <-- Import logiki świąt
 
 interface Props {
   date?: string; // Format: "YYYY-MM-DD"
@@ -11,7 +12,8 @@ interface Props {
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
 export default function BirthdayIndicator({ date }: Props) {
-  const dateObj = useMemo(() => new Date(date? date + "T00:00:00" : getAppDate() + "T00:00:00"), [date]);
+  const dateStr = date || getAppDate(); // Zabezpieczenie stringa daty
+  const dateObj = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
   
   const monthStart = useMemo(() => 
     format(new Date(dateObj.getFullYear(), dateObj.getMonth(), 1), "yyyy-MM-dd"),
@@ -25,6 +27,7 @@ export default function BirthdayIndicator({ date }: Props) {
   
   const { events, loading } = useEvents(monthStart, monthEnd);
 
+  // Filtrowanie specjalnych wydarzeń (urodziny, rocznice) z bazy
   const specialEvents = useMemo(() => {
     return events.filter((event) => {
       if (!eventSpansDate(event, dateObj)) return false;
@@ -34,17 +37,35 @@ export default function BirthdayIndicator({ date }: Props) {
     });
   }, [events, dateObj]);
 
-  if (loading || specialEvents.length === 0) return null;
+  // Pobieranie polskiego święta na ten konkretny dzień
+  const holiday = useMemo(() => {
+    const holidaysMap = getPolishHolidays(dateObj.getFullYear());
+    return holidaysMap[dateStr] || null;
+  }, [dateObj, dateStr]);
+
+  if (loading || (specialEvents.length === 0 && !holiday)) return null;
 
   return (
     <div className="space-y-1">
+      {/* 1. Wyświetlanie Świąt */}
+      {holiday && (
+        <span
+          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
+          title={holiday}
+        >
+          <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 shrink-0" /> 
+          <span className="truncate">{holiday}</span>
+        </span>
+      )}
+
+      {/* 2. Wyświetlanie Urodzin / Rocznic */}
       {specialEvents.map((event) => (
         <span
           key={event.id}
-          className="text-red-600 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
+          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
           title={event.description || event.title}
         >
-          <Cake className="w-3 h-3 mr-1 shrink-0" /> 
+          <Cake className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 shrink-0" /> 
           <span className="truncate">{event.title}</span>
         </span>
       ))}

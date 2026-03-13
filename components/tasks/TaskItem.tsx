@@ -8,7 +8,8 @@ import { getAppDate } from "../../lib/dateUtils";
 import { useTasks } from "../../hooks/useTasks";
 import TimeContextBadge from "./TimeContextBadge";
 import CompletionCelebration from "./CompletionCelebration";
-import UniversalTimer from "../Timer"; // Bezpośredni import
+import UniversalTimer from "../Timer";
+import { useSettings } from "../../hooks/useSettings"; // DODANE: hook ustawień
 import { 
   EditButton, 
   DeleteButton, 
@@ -29,10 +30,13 @@ export default function TaskItem({ task, onTasksChange }: Props) {
   const userId = user?.id;
   const isDone = task.status === "done";
   const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
+  const { settings } = useSettings(); // DODANE: ustawienia (do pobrania e-maili)
+  const userOptions = settings?.users ?? [];
   
   // Stany ogólne
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
+  const [sharedEmail, setSharedEmail] = useState(""); // DODANE: Stan dla udostępnianego maila
   const [showCelebration, setShowCelebration] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const CELEBRATION_MS = 2500;
@@ -69,21 +73,58 @@ export default function TaskItem({ task, onTasksChange }: Props) {
     onTasksChange();
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     setIsEditing(true);
     setEditedTask(task);
+
+    // Pobieramy e-mail dla trybu edycji (jeśli zadanie było już udostępnione)
+    if (task.for_user_id) {
+      const { data, error } = await supabase.rpc('get_email_by_user_id', { 
+        target_uuid: task.for_user_id 
+      });
+      if (data && !error) {
+        setSharedEmail(data);
+      } else {
+        setSharedEmail("");
+      }
+    } else {
+      setSharedEmail("");
+    }
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditedTask(task);
+    setSharedEmail("");
   };
 
   const handleSaveEdit = async () => {
-    await editTask(editedTask);
+    let targetUserId = null;
+
+    // Zamieniamy wybrany e-mail na ID użytkownika
+    if (sharedEmail) {
+      const { data, error } = await supabase.rpc('get_user_id_by_email', { 
+        email_address: sharedEmail 
+      });
+
+      if (data && !error) {
+        targetUserId = data;
+      } else {
+        alert("Błąd: Nie znaleziono użytkownika o takim adresie e-mail w bazie.");
+        return;
+      }
+    }
+
+    // Dodajemy przetłumaczone ID do edytowanego zadania
+    await editTask({
+      ...editedTask,
+      for_user_id: targetUserId,
+    });
+    
     await fetchTasks();
     onTasksChange();
     setIsEditing(false);
+    setSharedEmail("");
   };
 
   const handleComplete = async () => {
@@ -120,9 +161,8 @@ export default function TaskItem({ task, onTasksChange }: Props) {
   const stopTimerAndSave = async () => {
     setTimerRunning(false);
     setTimerPaused(false);
-    setIsTimerActive(false); // Ukrywa widok timera
+    setIsTimerActive(false); 
 
-    // Zapisujemy tylko, jeśli upłynęła chociaż minuta
     if (timerSeconds >= 60) {
       const minutes = Math.floor(timerSeconds / 60);
       const newNote = `Czas: ${minutes} min`;
@@ -163,7 +203,7 @@ export default function TaskItem({ task, onTasksChange }: Props) {
           secondsLeft={timerSeconds}
           running={timerRunning}
           paused={timerPaused}
-          compact={true} // Tryb kompaktowy idealnie pasuje do list
+          compact={true} 
           controls={{
             start: () => {
               setTimerRunning(true);
@@ -229,21 +269,50 @@ export default function TaskItem({ task, onTasksChange }: Props) {
                 onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })}
                 className="input-field py-1.5 h-[38px]"
               >
-                {["edukacja", "praca", "osobiste", "aktywizm", "przyjaciele", "zakupy", "podróże", "dostawa", "święta", "inne"].map((cat) => (
+                {[              
+                  "edukacja",
+                  "praca",
+                  "osobiste",
+                  "aktywizm",
+                  "przyjaciele",
+                  "zakupy",
+                  "podróże",
+                  "trening",
+                  "inne"
+                ].map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="form-label">Data wykonania:</label>
-            <input
-              type="date w-full min-w-0 px-1 text-xs"
-              value={editedTask.due_date}
-              onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })}
-              className="input-field"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="form-label">Data wykonania:</label>
+              <input
+                type="date"
+                value={editedTask.due_date}
+                onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })}
+                className="input-field w-full min-w-0 px-1 text-xs h-[38px]"
+              />
+            </div>
+
+            {/* Udostępnianie zadania */}
+            {userOptions.length > 0 && (
+              <div>
+                <label className="form-label">Udostępnij dla:</label>
+                <select
+                  value={sharedEmail}
+                  onChange={(e) => setSharedEmail(e.target.value)}
+                  className="input-field py-1.5 h-[38px]"
+                >
+                  <option value="">Tylko dla mnie</option>
+                  {userOptions.map((email: string) => (
+                    <option key={email} value={email}>{email}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div>
@@ -315,7 +384,7 @@ export default function TaskItem({ task, onTasksChange }: Props) {
           </div>
 
           {(task.description || task.display_share_info) && (
-            <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface/50 border border-gray-100 dark:border-gray-800 p-3">
+            <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface border border-gray-100 dark:border-gray-800 p-3">
               {task.description && (
                 <span className="text-sm text-textSecondary whitespace-pre-wrap leading-relaxed">{task.description}</span>
               )}
