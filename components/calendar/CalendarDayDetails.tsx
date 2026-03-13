@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Calendar, Check, Clock, MapPin, User, X, Download, CalendarHeart } from "lucide-react"; // DODANE CalendarHeart
+import { Calendar, Check, Clock, MapPin, User, X, Download, CalendarHeart, Star } from "lucide-react"; // DODANE CalendarHeart
 import { Task, Event } from "../../types";
 import WaterTracker from "../widgets/WaterTracker";
 import DailySpendingForm from "../widgets/DailySpendingForm";
@@ -144,10 +144,15 @@ export default function CalendarDayDetails({
           >
             <Calendar className="w-5 h-5" />
           </button>
-
+          <div className="flex flex-col items-center">
           <h3 className="font-bold text-md sm:text-xl text-text text-center capitalize tracking-wide truncate md:px-2 flex items-center justify-center gap-2">
             {format(parseISO(selectedDate), "d.MM.yyyy", { locale: pl })}
+            
           </h3>
+          <span className="flex items-center gap-1.5 px-3 py-1 text-red-600 dark:text-red-400 text-xs font-medium shadow-sm  uppercase tracking-wider">
+            {holiday}
+          </span>
+          </div>
 
           {!showAddForm ? (
              <div className="h-10 flex shrink-0 justify-center items-center">
@@ -157,16 +162,6 @@ export default function CalendarDayDetails({
               <div className="h-10 shrink-0 w-10"></div>
           )}
         </div>
-        
-        {/* Informacja o święcie (jeśli występuje w tym dniu) */}
-        {holiday && (
-          <div className="flex justify-center -mt-1">
-             <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full text-xs font-bold shadow-sm border border-red-100 dark:border-red-900/30 uppercase tracking-wider">
-                <CalendarHeart className="w-3.5 h-3.5" />
-                {holiday}
-             </span>
-          </div>
-        )}
       </div>
 
       <div className="flex flex-auto flex-wrap flex-col justify-center">
