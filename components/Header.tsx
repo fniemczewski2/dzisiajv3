@@ -115,17 +115,21 @@ export default function Header() {
   return (
     <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
       <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-start gap-3">
-      {/* Lewa strona: Czas i data */}
-      {/* min-w-0 pozwala dacie na truncate, żeby nie wypychała prawego bloku */}
-      <div className="flex flex-col flex-1 min-w-0" onClick={() => router.push("/calendar")} >
-        <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
-          {currentTime}
-        </div>
-        <span className="text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
-          {currentDate}
-        </span>
-        <div className="mt-1">
-          <BirthdayIndicator />
+      <div className="shrink-0 flex flex-1">
+        <div 
+          onClick={() => router.push("/calendar")}
+          className="flex flex-col items-start cursor-pointer group p-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
+          title="Kliknij, aby zobaczyć pełną prognozę" 
+        >
+          <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
+            {currentTime}
+          </div>
+          <span className="text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
+            {currentDate}
+          </span>
+          <div className="mt-1">
+            <BirthdayIndicator />
+          </div>
         </div>
       </div>
 
@@ -158,7 +162,7 @@ export default function Header() {
             </span>
             
             {airQuality && (
-              <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded uppercase tracking-wider">
+              <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-600 dark:text-red-400 px-1.5 py-0.5 mt-1 rounded uppercase tracking-wider">
                 {airQuality}
               </span>
             )}

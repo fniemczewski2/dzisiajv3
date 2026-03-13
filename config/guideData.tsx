@@ -111,7 +111,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: "text-purple-500",
     listItems: [
       <><strong>Kalendarz:</strong> Pełny widok całego miesiąca. Dodasz tu wydarzenia, oraz podejrzysz statystki z poprzednich dni.</>,
-      <><strong>Ważne daty:</strong> Jeśli w opisie wydarzenia użyjesz słów takich jak 'urodziny', 'imieniny' lub 'rocznica', system w tym dniu pokaże informację w nagłówku.".</>
+      <><strong>Ważne daty:</strong> Jeśli w opisie wydarzenia użyjesz słów takich jak 'urodziny', 'imieniny' lub 'rocznica', system w tym dniu pokaże informację w nagłówku.</>
     ],
   },
 {

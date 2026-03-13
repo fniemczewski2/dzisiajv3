@@ -22,7 +22,7 @@ export default function GuidePage() {
           <div className="mb-8 text-center sm:text-left mt-4">
             <h1 className="text-3xl font-bold text-text flex items-center justify-center sm:justify-start gap-3">
               <BookOpen className="w-8 h-8 text-primary" />
-              Przewodnik
+              Instrukcja
             </h1>
             <p className="text-textSecondary mt-2">
               Poznaj wszystkie możliwości, moduły oraz ukryte funkcje Twojego osobistego asystenta.

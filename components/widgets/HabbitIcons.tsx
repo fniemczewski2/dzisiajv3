@@ -32,14 +32,11 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
     return <LoadingState />;
   }
 
-  // Filtrujemy ikony sprawdzając odpowiednią flagę w settings (np. "habit_pills")
   const activeItems = items.filter(({ key }) => {
     const settingKey = `habit_${key}` as keyof typeof settings;
-    // Domyślnie traktujemy jako włączone, jeśli z jakiegoś powodu brakuje klucza w bazie
     return settings[settingKey] !== false; 
   });
 
-  // Jeśli użytkownik wyłączył wszystkie nawyki, nie renderujemy komponentu
   if (activeItems.length === 0) return null;
 
   return (
