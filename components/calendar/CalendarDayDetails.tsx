@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Calendar, Check, Clock, MapPin, User, X, Download } from "lucide-react";
+import { Calendar, Check, Clock, MapPin, User, X, Download, CalendarHeart } from "lucide-react"; // DODANE CalendarHeart
 import { Task, Event } from "../../types";
 import WaterTracker from "../widgets/WaterTracker";
 import DailySpendingForm from "../widgets/DailySpendingForm";
@@ -12,6 +12,9 @@ import { EditButton, DeleteButton, SaveButton, CancelButton, AddButton } from ".
 import NoResultsState from "../NoResultsState";
 import { generateSingleEventICS } from "../../lib/icsGenerator";
 import EventForm from "./EventForm";
+import MoodWidget from "../widgets/MoodTracker";
+import { useAuth } from "../../providers/AuthProvider"; 
+import { getPolishHolidays } from "../../lib/holidays"; 
 
 interface Props {
   selectedDate: string;
@@ -41,13 +44,20 @@ export default function CalendarDayDetails({
   onDeleteEvent,
 }: Props) {
   const { settings } = useSettings();
+  const { supabase } = useAuth(); 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false); // NOWY STAN
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [sharedEmail, setSharedEmail] = useState(""); 
   const titleRef = useRef<HTMLInputElement>(null);
 
   const userOptions = settings?.users ?? [];
   const eventsForDay = events.filter(event => eventSpansDate(event, selectedDate));
+
+  // Sprawdzanie świąt
+  const selectedDateObject = new Date(selectedDate);
+  const holidaysMap = getPolishHolidays(selectedDateObject.getFullYear());
+  const holiday = holidaysMap[selectedDate] || null;
 
   useEffect(() => {
     if (editingId && titleRef.current) {
@@ -55,21 +65,57 @@ export default function CalendarDayDetails({
     }
   }, [editingId]);
 
-  const handleEdit = (event: Event) => {
+  const handleEdit = async (event: Event) => {
     setEditingId(event.id);
     setEditedEvent({ ...event });
+
+    // Tłumaczenie ID na E-mail przy wejściu w edycję
+    if (event.shared_with_id) {
+      const { data, error } = await supabase.rpc('get_email_by_user_id', { 
+        target_uuid: event.shared_with_id 
+      });
+      if (data && !error) {
+        setSharedEmail(data);
+      } else {
+        setSharedEmail("");
+      }
+    } else {
+      setSharedEmail("");
+    }
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditedEvent(null);
+    setSharedEmail("");
   };
 
   const handleSaveEdit = async () => {
     if (editedEvent) {
-      await onEditEvent(editedEvent);
+      let targetUserId = null;
+
+      // Zamieniamy wybrany e-mail na ID przed zapisem
+      if (sharedEmail) {
+        const { data, error } = await supabase.rpc('get_user_id_by_email', { 
+          email_address: sharedEmail 
+        });
+
+        if (data && !error) {
+          targetUserId = data;
+        } else {
+          alert("Błąd: Nie znaleziono użytkownika o takim adresie e-mail w bazie.");
+          return;
+        }
+      }
+
+      await onEditEvent({
+        ...editedEvent,
+        shared_with_id: targetUserId, // Nadpisujemy ID przetłumaczoną wartością
+      });
+      
       setEditingId(null);
       setEditedEvent(null);
+      setSharedEmail("");
       onEventsChange();
     }
   };
@@ -86,36 +132,47 @@ export default function CalendarDayDetails({
       onEventsChange();
   }
 
-  const selectedDateObject = new Date(selectedDate);
-
   return (
     <div className="mb-5 space-y-6">
       {/* Pasek Nagłówkowy */}
-      <div className="flex items-center justify-between relative">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-lg transition-colors shrink-0"
-          title="Powrót do kalendarza"
-        >
-          <Calendar className="w-5 h-5" />
-        </button>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between relative">
+          <button
+            onClick={onBack}
+            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-lg transition-colors shrink-0"
+            title="Powrót do kalendarza"
+          >
+            <Calendar className="w-5 h-5" />
+          </button>
 
-        <h3 className="font-bold text-md sm:text-xl text-text text-center capitalize tracking-wide truncate md:px-2">
-          {format(parseISO(selectedDate), "d.MM.yyyy", { locale: pl })}
-        </h3>
+          <h3 className="font-bold text-md sm:text-xl text-text text-center capitalize tracking-wide truncate md:px-2 flex items-center justify-center gap-2">
+            {format(parseISO(selectedDate), "d.MM.yyyy", { locale: pl })}
+          </h3>
 
-        {!showAddForm ? (
-           <div className="h-10 flex shrink-0 justify-center items-center">
-             <AddButton onClick={() => setShowAddForm(true)} type="button" />
-           </div>
-        ) : (
-            <div className="h-10 shrink-0"></div>
+          {!showAddForm ? (
+             <div className="h-10 flex shrink-0 justify-center items-center">
+               <AddButton onClick={() => setShowAddForm(true)} type="button" />
+             </div>
+          ) : (
+              <div className="h-10 shrink-0 w-10"></div>
+          )}
+        </div>
+        
+        {/* Informacja o święcie (jeśli występuje w tym dniu) */}
+        {holiday && (
+          <div className="flex justify-center -mt-1">
+             <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full text-xs font-bold shadow-sm border border-red-100 dark:border-red-900/30 uppercase tracking-wider">
+                <CalendarHeart className="w-3.5 h-3.5" />
+                {holiday}
+             </span>
+          </div>
         )}
       </div>
 
-      <div className="flex flex-auto flex-wrap flex-col justify-center space-y-4">
-        <TaskIcons date={selectedDate} />
-        <WaterTracker date={selectedDate} />
+      <div className="flex flex-auto flex-wrap flex-col justify-center">
+        {settings.show_habits && <TaskIcons date={selectedDate} />}
+        {settings.show_water_tracker && <WaterTracker date={selectedDate} />}
+        {settings.show_mood_tracker && <MoodWidget date={selectedDate} />}
         <DailySpendingForm date={selectedDate} />
       </div>
 
@@ -136,10 +193,6 @@ export default function CalendarDayDetails({
             const isEditing = editingId === event.id;
 
             if (isEditing && editedEvent) {
-              const currentShareEmail = editedEvent.shared_with_email !== undefined 
-                ? editedEvent.shared_with_email 
-                : (editedEvent.display_share_info ? editedEvent.display_share_info.split(": ")[1] : "");
-
               return (
                 <div
                   key={event.id}
@@ -199,19 +252,21 @@ export default function CalendarDayDetails({
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="form-label">Udostępnij dla:</label>
-                      <select
-                        value={currentShareEmail}
-                        onChange={(e) => setEditedEvent({ ...editedEvent, shared_with_email: e.target.value })}
-                        className="input-field py-1.5 text-sm"
-                      >
-                        <option value="">Tylko dla mnie</option>
-                        {userOptions.map((email) => (
-                          <option key={email} value={email}>{email}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {userOptions.length > 0 && (
+                      <div>
+                        <label className="form-label">Udostępnij dla:</label>
+                        <select
+                          value={sharedEmail}
+                          onChange={(e) => setSharedEmail(e.target.value)}
+                          className="input-field py-1.5 text-sm"
+                        >
+                          <option value="">Tylko dla mnie</option>
+                          {userOptions.map((email) => (
+                            <option key={email} value={email}>{email}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div>
                       <label className="form-label">Powtarzaj:</label>
                       <select

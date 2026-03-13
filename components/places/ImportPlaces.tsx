@@ -74,7 +74,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
         </button>
 
         {showInstructions && (
-          <div className="p-4 pt-0 border-t border-gray-100 dark:border-gray-800 bg-surface/50">
+          <div className="p-4 pt-0 border-t border-gray-100 dark:border-gray-800 bg-surface">
             <ol className="space-y-3 text-sm text-textSecondary mt-3 font-medium">
               <li className="flex gap-2 items-start">
                 <span className="font-bold text-primary">1.</span>

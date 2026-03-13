@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { Settings } from "../types";
+import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
 
 type GeoCoords = { lat: number; lng: number };
 
@@ -31,6 +32,7 @@ export function useSettings() {
     show_water_tracker: true,
     show_budget_items: true,
     show_notifications: true,
+    show_mood_tracker: true,
     users: [],
     favorite_stops: [],
     
@@ -58,6 +60,7 @@ export function useSettings() {
     habit_housework: true,
     habit_plants: true,
     habit_duolingo: true,
+    mood_options: DEFAULT_MOODS,
   });
 
   const DEFAULT_SETTINGS = {
@@ -66,6 +69,7 @@ export function useSettings() {
       show_habits: true,
       show_water_tracker: true,
       show_budget_items: true,
+      show_mood_tracker: true,
       show_notifications: true,
       users: [],
       favorite_stops: [],
@@ -88,6 +92,8 @@ export function useSettings() {
       habit_housework: true,
       habit_plants: true,
       habit_duolingo: true,
+      mood_options: DEFAULT_MOODS,
+      
   };
 
   const [loading, setLoading] = useState(true);
@@ -125,6 +131,7 @@ export function useSettings() {
           show_habits: data.show_habits ?? true,
           show_water_tracker: data.show_water_tracker ?? true,
           show_budget_items: data.show_budget_items ?? true,
+          show_mood_tracker: data.show_mood_tracker ?? true,
           show_notifications: data.show_notifications ?? true,
           users: safeParseArray(data.users),
           favorite_stops: safeParseArray(data.favorite_stops),
@@ -150,6 +157,7 @@ export function useSettings() {
           habit_housework: data.habit_housework ?? true,
           habit_plants: data.habit_plants ?? true,
           habit_duolingo: data.habit_duolingo ?? true,
+          mood_options: data.mood_options ?? [],
         });
       }
       setLoading(false);

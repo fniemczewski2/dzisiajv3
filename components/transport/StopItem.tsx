@@ -31,7 +31,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
   }, [departures, many]);
 
   return (
-    <div className="p-4 bg-transparent transition-colors hover:bg-surface/50">
+    <div className="p-4 bg-transparent transition-colors hover:bg-surfaceHover">
       {/* Nagłówek przystanku */}
       <div className="flex justify-between items-start mb-4">
         <h4 className="font-medium text-md text-text flex items-center leading-tight">

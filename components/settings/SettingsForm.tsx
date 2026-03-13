@@ -1,10 +1,24 @@
-import React from "react";
-import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Smile, X } from "lucide-react";
 import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
-// Import przycisków z CommonButtons
-import { SaveButton, CancelButton } from "../CommonButtons"; 
+import { SaveButton } from "../CommonButtons"; 
 import { useRouter } from "next/router";
+
+interface MoodOption {
+  id: string;
+  label: string;
+  color: string;
+}
+
+// Domyślne nastroje do fallbacku, jeśli użytkownik ich nie ma
+const DEFAULT_MOODS: MoodOption[] = [
+  { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
+  { id: "m2", label: "Dobrze", color: "#3b82f6" },    
+  { id: "m3", label: "Neutralnie", color: "#eab308" },
+  { id: "m4", label: "Źle", color: "#f97316" },       
+  { id: "m5", label: "Okropnie", color: "#ef4444" },  
+];
 
 interface SettingsFormProps {
   settings: any;
@@ -28,12 +42,30 @@ export default function SettingsForm({
   onRestoreDefaults
 }: SettingsFormProps) {
   
+  const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
+  const router = useRouter();
+
+  // Lokalny stan dla Mood Trackera
+  const [moodEnabled, setMoodEnabled] = useState(settings?.show_mood_tracker ?? false);
+  const [moodOptions, setMoodOptions] = useState<MoodOption[]>(settings?.mood_options ?? DEFAULT_MOODS);
+
+  // Synchronizacja lokalnego stanu Mood Trackera z nadrzędnym `settings` przed zapisem
+  useEffect(() => {
+    onSettingsChange({
+      ...settings,
+      show_mood_tracker: moodEnabled,
+      mood_options: moodOptions,
+    });
+    // W tej tablicy zależności pomijamy 'settings' i 'onSettingsChange', aby uniknąć nieskończonej pętli.
+    // Zaktualizuje to `settings` tylko gdy zmienią się `moodEnabled` lub `moodOptions`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moodEnabled, moodOptions]);
+
+
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     onSave(e);
   };
-
-  const router = useRouter();
 
   const renderSwitch = (id: string, label: string) => {
     const isChecked = settings[id] !== false;
@@ -100,8 +132,97 @@ export default function SettingsForm({
         )}
       </div>
 
+      {/* MOOD TRACKER SETTINGS */}
+      <section className="bg-surface border border-gray-100 dark:border-gray-800 rounded-xl p-4 sm:p-5 shadow-sm mb-6 mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-bold text-text flex items-center gap-2">
+            <Smile className="w-5 h-5 text-indigo-500" />
+            Śledzenie Nastroju (Mood Tracker)
+          </h2>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={moodEnabled} 
+              onChange={(e) => setMoodEnabled(e.target.checked)} 
+              className="sr-only peer" 
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+          </label>
+        </div>
+
+        {moodEnabled && (
+          <div className="space-y-4 mt-4 animate-in fade-in">
+            <p className="text-xs text-textSecondary mb-2">Etykiety nastrojów (max. 10):</p>
+            {moodOptions.map((opt, index) => (
+              <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-card rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                <input
+                  type="text"
+                  value={opt.label}
+                  onChange={(e) => {
+                    const newOpts = [...moodOptions];
+                    newOpts[index].label = e.target.value;
+                    setMoodOptions(newOpts);
+                  }}
+                  className="input-field flex-1"
+                  placeholder="Nazwa nastroju..."
+                />
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Szybkie palety kolorów */}
+                  {PRESET_COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => {
+                        const newOpts = [...moodOptions];
+                        newOpts[index].color = color;
+                        setMoodOptions(newOpts);
+                      }}
+                      className={`w-6 h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-offset-2 ring-primary dark:ring-offset-gray-900' : 'hover:scale-110'}`}
+                      style={{ backgroundColor: color }}
+                      title={`Ustaw kolor: ${color}`}
+                    />
+                  ))}
+                  {/* Wybór dowolnego (Custom) koloru HTML5 */}
+                  <input 
+                    type="color" 
+                    value={opt.color} 
+                    onChange={(e) => {
+                      const newOpts = [...moodOptions];
+                      newOpts[index].color = e.target.value;
+                      setMoodOptions(newOpts);
+                    }}
+                    className="w-8 h-8 p-0 border-0 rounded cursor-pointer bg-transparent ml-2" 
+                    title="Wybierz własny kolor"
+                  />
+                  {moodOptions.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => setMoodOptions(moodOptions.filter(m => m.id !== opt.id))}
+                      className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      title="Usuń nastrój"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {moodOptions.length < 10 && (
+              <button
+                type="button"
+                onClick={() => setMoodOptions([...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }])}
+                className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mt-2 p-2"
+              >
+                <PlusCircle className="w-4 h-4" /> Dodaj nastrój
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+
       {/* Domyślne sortowanie */}
-      <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
+      <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6">
         <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">SORTOWANIE</h4>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -109,7 +230,7 @@ export default function SettingsForm({
             <label htmlFor="sort_order" className="form-label text-xs">Zadania:</label>
             <select
               id="sort_order"
-              value={settings.sort_order}
+              value={settings.sort_order || "priority"}
               onChange={(e) => onSettingsChange({ ...settings, sort_order: e.target.value })}
               className="input-field"
             >
@@ -193,7 +314,7 @@ export default function SettingsForm({
       <div className="pt-6 border-t border-gray-100 dark:border-gray-800 mb-6">
         <label className="form-label">Zaufani użytkownicy (Udostępnianie):</label>
         <div className="space-y-2 max-w-md">
-          {settings.users.map((u: string, idx: number) => (
+          {settings.users && settings.users.map((u: string, idx: number) => (
             <div key={idx} className="flex items-center gap-2">
               <input
                 type="email"
@@ -212,7 +333,7 @@ export default function SettingsForm({
               </button>
             </div>
           ))}
-          {settings.users.length < 10 && (
+          {(!settings.users || settings.users.length < 10) && (
             <button
               type="button"
               onClick={onAddUser}
@@ -224,7 +345,7 @@ export default function SettingsForm({
         </div>
       </div>
 
-      {/* PRZYCISKI AKCJI (Zaktualizowana sekcja) */}
+      {/* PRZYCISKI AKCJI */}
       <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
         
         <button
@@ -240,16 +361,16 @@ export default function SettingsForm({
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between relative">
             <button
               type="button"
-              className="flex gap-2 pl-4 pr-3 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-textSecondary"
+              className="flex items-center gap-2 pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-700 shadow-sm"
               onClick={() => router.push("/guide")}
             >
               Instrukcja 
-              <Info/>
+              <Info className="w-4 h-4"/>
             </button>
           
           <div className="relative">
             {saving && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-black/60 rounded-lg">
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-black/60 rounded-lg z-10">
                 <LoadingState />
               </div>
             )}

@@ -46,7 +46,7 @@ export default function SuitcasePage() {
                 {cat.items.map((item) => (
                   <li
                     key={item}
-                    className={`flex items-start gap-3 my-1 rounded-lg transition-colors hover:bg-surface/50 cursor-pointer ${
+                    className={`flex items-start gap-3 my-1 rounded-lg transition-colors hover:bg-surface cursor-pointer ${
                       checked[item] ? "text-textMuted line-through" : "text-text font-medium"
                     }`}
                     onClick={() => toggle(item)}

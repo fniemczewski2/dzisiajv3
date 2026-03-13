@@ -54,6 +54,8 @@ export type Settings = {
   show_water_tracker: boolean;
   show_budget_items: boolean;
   show_notifications: boolean;
+  show_mood_tracker: boolean;
+  
   users: string[];
   favorite_stops:{ name: string; zone_id: string }[];
 
@@ -78,6 +80,8 @@ export type Settings = {
   habit_housework: boolean;
   habit_plants: boolean;
   habit_duolingo: boolean;
+
+  mood_options?: MoodOption[];
 };
 
 export type HabitKey =
@@ -289,4 +293,15 @@ export interface Departure {
   type: 'tram' | 'bus' | 'train';
 }
 
+export interface MoodOption {
+  id: string;
+  label: string;
+  color: string;
+}
 
+export interface MoodEntry {
+  id: string;
+  user_id: string;
+  date: string;
+  mood_id: string;
+}

@@ -91,7 +91,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
       </div>
 
       {open && (
-        <div className="border-t border-gray-100 dark:border-gray-800 bg-surface/30">
+        <div className="border-t border-gray-100 dark:border-gray-800 bg-surface">
           
           <div className="px-4 py-3 text-sm">
             {liczba === 0 ? (

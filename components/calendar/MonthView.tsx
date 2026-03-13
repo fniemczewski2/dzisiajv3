@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Event } from "../../types";
+import { Event, MoodEntry, MoodOption } from "../../types";
 import {
   startOfMonth,
   endOfMonth,
@@ -17,11 +17,14 @@ import {
 import CalendarCell from "./CalendarCell";
 import { useCalendarData } from "../../hooks/useCalendar";
 import { useResponsive } from "../../hooks/useResponsive";
+import { getPolishHolidays } from "../../lib/holidays";
 
 interface Props {
   events: Event[];
   currentDate: Date;
   onSelectDate: (date: Date) => void;
+  moods: MoodEntry[];
+  DEFAULT_MOODS: MoodOption[]; // <-- POPRAWIONO TYPOWANIE (Dodano [])
 }
 
 const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
@@ -41,7 +44,7 @@ const parseEventDate = (timestamp: string): Date => {
   );
 };
 
-const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
+const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate, moods, DEFAULT_MOODS }) => {
   const isMobile = useResponsive();
   const { calendarStart, calendarEnd, rangeStart, rangeEnd } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -60,6 +63,7 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
   }, [currentDate]);
 
   const { tasksCount } = useCalendarData(rangeStart, rangeEnd);
+  
   const weeks = useMemo(() => {
     const result: Date[][] = [];
     let current = calendarStart;
@@ -155,6 +159,23 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
     });
   }, [weeks, events]);
 
+  const moodMap = useMemo(() => {
+    const map: Record<string, MoodEntry> = {};
+    moods.forEach((m) => {
+      map[m.date] = m;
+    });
+    return map;
+  }, [moods]);
+
+  const holidaysMap = useMemo(() => {
+    const year = currentDate.getFullYear();
+    return {
+      ...getPolishHolidays(year - 1),
+      ...getPolishHolidays(year),
+      ...getPolishHolidays(year + 1)
+    };
+  }, [currentDate]);
+
   return (
     <div className="space-y-1 sm:space-y-2">
       <div className="grid grid-cols-7 text-center font-bold text-xs sm:text-sm text-textMuted uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
@@ -179,6 +200,9 @@ const MonthView: React.FC<Props> = ({ events, currentDate, onSelectDate }) => {
                   isMobile={isMobile}
                   currentMonth={currentDate.getMonth()}
                   eCount={overflowCounts[dayIdx] || null}
+                  dayMood={moodMap[dateStr]}
+                  DEFAULT_MOODS={DEFAULT_MOODS} 
+                  holiday={holidaysMap[dateStr]}
                 />
               );
             })}
