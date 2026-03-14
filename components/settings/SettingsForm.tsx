@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Smile, X, Pen } from "lucide-react";
+import React from "react";
+import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
 import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
 import { SaveButton } from "../CommonButtons"; 
@@ -11,7 +11,6 @@ interface MoodOption {
   color: string;
 }
 
-// Domyślne nastroje do fallbacku, jeśli użytkownik ich nie ma
 const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
   { id: "m2", label: "Dobrze", color: "#3b82f6" },    
@@ -45,22 +44,9 @@ export default function SettingsForm({
   const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
   const router = useRouter();
 
-  // Lokalny stan dla Mood Trackera
-  const [moodEnabled, setMoodEnabled] = useState(settings?.show_mood_tracker ?? false);
-  const [moodOptions, setMoodOptions] = useState<MoodOption[]>(settings?.mood_options ?? DEFAULT_MOODS);
-
-  // Synchronizacja lokalnego stanu Mood Trackera z nadrzędnym `settings` przed zapisem
-  useEffect(() => {
-    onSettingsChange({
-      ...settings,
-      show_mood_tracker: moodEnabled,
-      mood_options: moodOptions,
-    });
-    // W tej tablicy zależności pomijamy 'settings' i 'onSettingsChange', aby uniknąć nieskończonej pętli.
-    // Zaktualizuje to `settings` tylko gdy zmienią się `moodEnabled` lub `moodOptions`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moodEnabled, moodOptions]);
-
+  // Odczyt bezpośrednio z obiektu 'settings' przekazanego przez bazę danych
+  const moodEnabled = settings?.show_mood_tracker ?? false;
+  const moodOptions = settings?.mood_options ?? DEFAULT_MOODS;
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
@@ -113,7 +99,29 @@ export default function SettingsForm({
         {renderSwitch("show_notifications", "Pokaż zadania cykliczne")}
         {renderSwitch("show_budget_items", "Pokaż planowane wydatki")}
         {renderSwitch("show_habits", "Pokaż sekcję nawyków")}
-        {renderSwitch("show_mood_tracker", "Pokaż śledzenie nastroju")}
+        
+        {/* Niestandardowy przełącznik dla nastrojów */}
+        <div className="flex items-center justify-between py-2">
+          <label htmlFor="show_mood_tracker" className="text-sm font-medium text-text cursor-pointer select-none">
+            Pokaż śledzenie nastroju
+          </label>
+          <button
+            id="show_mood_tracker"
+            type="button"
+            onClick={() => onSettingsChange({ ...settings, show_mood_tracker: !moodEnabled })}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              moodEnabled ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'
+            }`}
+            role="switch"
+            aria-checked={moodEnabled}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                moodEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
 
         {settings.show_habits && (
           <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
@@ -132,85 +140,89 @@ export default function SettingsForm({
         )}
       </div>
 
-        {moodEnabled && (
-            <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl"> 
-            <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Nastroje</h4>
-            {moodOptions.map((opt, index) => (
-              <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4 border-b border-gray-100 dark:border-gray-900 shadow-sm">
-                <div className="flex justify-between">
+      {moodEnabled && (
+        <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6"> 
+          <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Nastroje</h4>
+          {moodOptions.map((opt: MoodOption, index: number) => (
+            <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4 border-b border-gray-100 dark:border-gray-900 shadow-sm">
+              <div className="flex justify-between w-full sm:flex-1">
                 <input
                   type="text"
                   value={opt.label}
                   onChange={(e) => {
                     const newOpts = [...moodOptions];
                     newOpts[index].label = e.target.value;
-                    setMoodOptions(newOpts);
+                    onSettingsChange({ ...settings, mood_options: newOpts }); // Zapis natychmiastowy do stanu
                   }}
                   className="input-field flex-1 bg-card"
                   placeholder="Nazwa nastroju..."
                 />
-                {moodOptions.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => setMoodOptions(moodOptions.filter(m => m.id !== opt.id))}
-                      className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                      title="Usuń nastrój"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                  </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {/* Szybkie palety kolorów */}
-                  {PRESET_COLORS.map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => {
-                        const newOpts = [...moodOptions];
-                        newOpts[index].color = color;
-                        setMoodOptions(newOpts);
-                      }}
-                      className={`w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-primary' : 'hover:scale-110'}`}
-                      style={{ backgroundColor: color }}
-                      title={`Ustaw kolor: ${color}`}
-                    />
-                  ))}
-                  {/* Wybór dowolnego (Custom) koloru HTML5 */}
-                  <div 
-                    className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 ml-2 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
-                    style={{ backgroundColor: opt.color }}
-                    title="Wybierz własny kolor"
-                  >
-                    <input 
-                      type="color" 
-                      value={opt.color} 
-                      onChange={(e) => {
-                        const newOpts = [...moodOptions];
-                        newOpts[index].color = e.target.value;
-                        setMoodOptions(newOpts);
-                      }}
-                      // Przezroczysty input rozciągnięty na całe kółko
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                    />
-                    <Pen className="w-3.5 h-3.5 absolute top-2 left-2"/>
-                  </div>
 
+                {/* Możesz usunąć każdy nastrój - nawet zostawiając 0 */}
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    const newOpts = moodOptions.filter((m: MoodOption) => m.id !== opt.id);
+                    onSettingsChange({ ...settings, mood_options: newOpts }); // Skuteczne, natychmiastowe usunięcie
+                  }}
+                  className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg shrink-0"
+                  title="Usuń nastrój"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="flex items-center gap-2 shrink-0 mt-2 sm:mt-0">
+                {PRESET_COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => {
+                      const newOpts = [...moodOptions];
+                      newOpts[index].color = color;
+                      onSettingsChange({ ...settings, mood_options: newOpts });
+                    }}
+                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-primary' : 'hover:scale-110'}`}
+                    style={{ backgroundColor: color }}
+                    title={`Ustaw kolor: ${color}`}
+                  />
+                ))}
+                
+                <div 
+                  className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 ml-2 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
+                  style={{ backgroundColor: opt.color }}
+                  title="Wybierz własny kolor"
+                >
+                  <input 
+                    type="color" 
+                    value={opt.color} 
+                    onChange={(e) => {
+                      const newOpts = [...moodOptions];
+                      newOpts[index].color = e.target.value;
+                      onSettingsChange({ ...settings, mood_options: newOpts });
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                  />
+                  <Pen className="w-3.5 h-3.5 absolute top-2 left-2 pointer-events-none text-white drop-shadow-md"/>
                 </div>
               </div>
-            ))}
-            
-            {moodOptions.length < 10 && (
-              <button
-                type="button"
-                onClick={() => setMoodOptions([...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }])}
-                className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mt-2 p-2"
-              >
-                <PlusCircle className="w-4 h-4" /> Dodaj nastrój
-              </button>
-            )}
-          </div>
-        )}
+            </div>
+          ))}
+          
+          {moodOptions.length < 10 && (
+            <button
+              type="button"
+              onClick={() => {
+                const newOpts = [...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }];
+                onSettingsChange({ ...settings, mood_options: newOpts });
+              }}
+              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mt-2 p-2"
+            >
+              <PlusCircle className="w-4 h-4" /> Dodaj nastrój
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Domyślne sortowanie */}
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6">
