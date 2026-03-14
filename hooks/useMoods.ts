@@ -24,7 +24,7 @@ export function useMoods(startDate?: string, endDate?: string) {
     fetchMoods();
   }, [fetchMoods]);
 
-  const logMood = async (date: string, mood_id: string) => {
+  const logMood = async (date: string, mood_id: string | null) => {
     if (!user) return;
     
     const { data, error } = await supabase
