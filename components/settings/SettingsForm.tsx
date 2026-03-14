@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Smile, X } from "lucide-react";
+import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Smile, X, Pen } from "lucide-react";
 import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
 import { SaveButton } from "../CommonButtons"; 
@@ -112,8 +112,8 @@ export default function SettingsForm({
         {renderSwitch("show_water_tracker", "Pokaż tracker wody")}
         {renderSwitch("show_notifications", "Pokaż zadania cykliczne")}
         {renderSwitch("show_budget_items", "Pokaż planowane wydatki")}
-        
         {renderSwitch("show_habits", "Pokaż sekcję nawyków")}
+        {renderSwitch("show_mood_tracker", "Pokaż śledzenie nastroju")}
 
         {settings.show_habits && (
           <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
@@ -132,29 +132,12 @@ export default function SettingsForm({
         )}
       </div>
 
-      {/* MOOD TRACKER SETTINGS */}
-      <section className="bg-surface border border-gray-100 dark:border-gray-800 rounded-xl p-4 sm:p-5 shadow-sm mb-6 mt-4">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-bold text-text flex items-center gap-2">
-            <Smile className="w-5 h-5 text-indigo-500" />
-            Śledzenie Nastroju (Mood Tracker)
-          </h2>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={moodEnabled} 
-              onChange={(e) => setMoodEnabled(e.target.checked)} 
-              className="sr-only peer" 
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-          </label>
-        </div>
-
         {moodEnabled && (
-          <div className="space-y-4 mt-4 animate-in fade-in">
-            <p className="text-xs text-textSecondary mb-2">Etykiety nastrojów (max. 10):</p>
+            <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl"> 
+            <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Nastroje</h4>
             {moodOptions.map((opt, index) => (
-              <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-card rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4 border-b border-gray-100 dark:border-gray-900 shadow-sm">
+                <div className="flex justify-between">
                 <input
                   type="text"
                   value={opt.label}
@@ -163,9 +146,20 @@ export default function SettingsForm({
                     newOpts[index].label = e.target.value;
                     setMoodOptions(newOpts);
                   }}
-                  className="input-field flex-1"
+                  className="input-field flex-1 bg-card"
                   placeholder="Nazwa nastroju..."
                 />
+                {moodOptions.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => setMoodOptions(moodOptions.filter(m => m.id !== opt.id))}
+                      className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      title="Usuń nastrój"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Szybkie palety kolorów */}
                   {PRESET_COLORS.map(color => (
@@ -177,33 +171,31 @@ export default function SettingsForm({
                         newOpts[index].color = color;
                         setMoodOptions(newOpts);
                       }}
-                      className={`w-6 h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-offset-2 ring-primary dark:ring-offset-gray-900' : 'hover:scale-110'}`}
+                      className={`w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-primary' : 'hover:scale-110'}`}
                       style={{ backgroundColor: color }}
                       title={`Ustaw kolor: ${color}`}
                     />
                   ))}
                   {/* Wybór dowolnego (Custom) koloru HTML5 */}
-                  <input 
-                    type="color" 
-                    value={opt.color} 
-                    onChange={(e) => {
-                      const newOpts = [...moodOptions];
-                      newOpts[index].color = e.target.value;
-                      setMoodOptions(newOpts);
-                    }}
-                    className="w-8 h-8 p-0 border-0 rounded cursor-pointer bg-transparent ml-2" 
+                  <div 
+                    className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 ml-2 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
+                    style={{ backgroundColor: opt.color }}
                     title="Wybierz własny kolor"
-                  />
-                  {moodOptions.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => setMoodOptions(moodOptions.filter(m => m.id !== opt.id))}
-                      className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                      title="Usuń nastrój"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+                  >
+                    <input 
+                      type="color" 
+                      value={opt.color} 
+                      onChange={(e) => {
+                        const newOpts = [...moodOptions];
+                        newOpts[index].color = e.target.value;
+                        setMoodOptions(newOpts);
+                      }}
+                      // Przezroczysty input rozciągnięty na całe kółko
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    />
+                    <Pen className="w-3.5 h-3.5 absolute top-2 left-2"/>
+                  </div>
+
                 </div>
               </div>
             ))}
@@ -219,7 +211,6 @@ export default function SettingsForm({
             )}
           </div>
         )}
-      </section>
 
       {/* Domyślne sortowanie */}
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6">
