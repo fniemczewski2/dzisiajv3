@@ -6,10 +6,17 @@ import LoadingState from "../LoadingState";
 import { useTransport } from "../../hooks/useTransport";
 import StopItem from "../transport/StopItem";
 import NoResultsState from "../NoResultsState";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function TransportWidget() {
   const [open, setOpen] = useState(false);
-  const { nearbyGroups, loadingNearby, error } = useTransport(open);
+  const { nearbyGroups, loadingNearby, locationError } = useTransport(open); 
+  const { toast } = useToast();
+
+  if (locationError)
+  {
+    toast.error("Wystąpił błąd lokalizacji")
+  }
 
   return (
     <div className="widget">
@@ -30,21 +37,13 @@ export default function TransportWidget() {
 
       {open && (
         <div className="animate-in slide-in-from-top-2 border-t border-gray-100 dark:border-gray-800 bg-surface">
-          
-          {/* Komunikat błędu */}
-          {error && (
-            <div className="p-4 text-center text-sm font-medium text-red-500">
-              {error}
-            </div>
-          )}
-          
-          {loadingNearby && nearbyGroups.length === 0 && !error ? (
+          {loadingNearby && nearbyGroups.length === 0 && !locationError ? (
             <div className="p-6 flex justify-center">
               <LoadingState />
             </div>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
-              {!loadingNearby && nearbyGroups.length === 0 && !error && (
+              {!loadingNearby && nearbyGroups.length === 0 && !locationError && (
                 <NoResultsState text="przystanków w pobliżu" />
               )}
               {nearbyGroups.map((group) => (

@@ -8,6 +8,7 @@ import { useSettings } from "../hooks/useSettings";
 import { useAuth } from "../providers/AuthProvider";
 import NoResultsState from "../components/NoResultsState";
 import LoadingState from "../components/LoadingState";
+import { useToast } from "../providers/ToastProvider";
 
 // Rozszerzony typ dla lokalnych wyników wyszukiwania
 interface LocalSearchResult {
@@ -18,12 +19,13 @@ interface LocalSearchResult {
 
 export default function TransportPage() {
   const { supabase } = useAuth();
+  const { toast } = useToast();
   const {
     nearbyGroups,
     favoritesGroups,
     loadingNearby,
     loadingFavorites,
-    locationError, // Pobieramy błąd lokalizacji z hooka
+    locationError, 
     fetchFavorites,
   } = useTransport(true);
 
@@ -42,7 +44,7 @@ export default function TransportPage() {
       const stops = JSON.parse(favoritesJSON);
       fetchFavorites(stops);
     } catch (e) {
-      console.error("Błąd parsowania ulubionych przystanków:", e);
+      toast.error("Wystąpił błąd pobierania ulubionych przystanków");
     }
   }, [favoritesJSON, fetchFavorites]);
 

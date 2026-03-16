@@ -1,3 +1,4 @@
+// hooks/useDailyHabits.ts
 import { useState, useEffect } from "react";
 import { getAppDate } from "../lib/dateUtils";
 import { DailyHabits, HabitKey } from "../types";
@@ -27,14 +28,11 @@ export function useDailyHabits(date?: string) {
 
   const [habits, setHabits] = useState<DailyHabits | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // Fetch — błąd fetcha nie jest krytyczny, fallback do domyślnych wartości
   const fetchHabits = async () => {
     if (!userId) return;
-
     setLoading(true);
-    setError(null);
-
     try {
       const { data, error } = await supabase
         .from("daily_habits")
@@ -45,48 +43,42 @@ export function useDailyHabits(date?: string) {
 
       if (error) throw error;
 
-      if (data) {
-        setHabits({
-          ...data,
-          water_amount: data.water_amount ?? 0,
-          daily_spending: data.daily_spending ?? 0,
-        });
-      } else {
-        setHabits(getDefaultHabits(targetDate, userId));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setHabits(
+        data
+          ? { ...data, water_amount: data.water_amount ?? 0, daily_spending: data.daily_spending ?? 0 }
+          : getDefaultHabits(targetDate, userId)
+      );
+    } catch {
       setHabits(getDefaultHabits(targetDate, userId));
     } finally {
       setLoading(false);
     }
   };
 
+  // Optimistic toggle → upsert → rollback + throw na błąd
   const toggleHabit = async (key: HabitKey) => {
     if (!habits || !userId) return;
 
-    const newValue = !habits[key];
+    const prevValue = habits[key] as boolean;
+    const newValue = !prevValue;
 
-    setHabits((prev) => (prev ? { ...prev, [key]: newValue } : prev));
+    setHabits((h) => (h ? { ...h, [key]: newValue } : h));
 
     try {
-      const payload = {
-        date: targetDate,
-        user_id: userId,
-        [key]: newValue,
-        water_amount: habits.water_amount ?? 0,
-        daily_spending: habits.daily_spending ?? 0,
-      };
-
-      const { error } = await supabase
-        .from("daily_habits")
-        .upsert(payload, { onConflict: "date,user_id" });
-
+      const { error } = await supabase.from("daily_habits").upsert(
+        {
+          date: targetDate,
+          user_id: userId,
+          [key]: newValue,
+          water_amount: habits.water_amount ?? 0,
+          daily_spending: habits.daily_spending ?? 0,
+        },
+        { onConflict: "date,user_id" }
+      );
       if (error) throw error;
     } catch (err) {
-      console.error("Toggle habit error:", err);
-      setHabits((prev) => (prev ? { ...prev, [key]: !newValue } : prev));
-      setError(err instanceof Error ? err.message : "Failed to update habit");
+      setHabits((h) => (h ? { ...h, [key]: prevValue } : h));
+      throw err;
     }
   };
 
@@ -94,28 +86,24 @@ export function useDailyHabits(date?: string) {
     if (!habits || !userId) return;
 
     const validAmount = isNaN(amount) ? 0 : amount;
+    const prevAmount = habits.water_amount;
 
-    setHabits((prev) => (prev ? { ...prev, water_amount: validAmount } : prev));
+    setHabits((h) => (h ? { ...h, water_amount: validAmount } : h));
 
     try {
-      const payload = {
-        date: targetDate,
-        user_id: userId,
-        water_amount: validAmount,
-        daily_spending: habits.daily_spending ?? 0,
-      };
-
-      const { error } = await supabase
-        .from("daily_habits")
-        .upsert(payload, { onConflict: "date,user_id" });
-
+      const { error } = await supabase.from("daily_habits").upsert(
+        {
+          date: targetDate,
+          user_id: userId,
+          water_amount: validAmount,
+          daily_spending: habits.daily_spending ?? 0,
+        },
+        { onConflict: "date,user_id" }
+      );
       if (error) throw error;
     } catch (err) {
-      console.error("Update water error:", err);
-      setHabits((prev) =>
-        prev ? { ...prev, water_amount: habits.water_amount } : prev
-      );
-      setError(err instanceof Error ? err.message : "Failed to update water");
+      setHabits((h) => (h ? { ...h, water_amount: prevAmount } : h));
+      throw err;
     }
   };
 
@@ -123,29 +111,24 @@ export function useDailyHabits(date?: string) {
     if (!habits || !userId) return;
 
     const validAmount = isNaN(amount) ? 0 : amount;
-    setHabits((prev) => (prev ? { ...prev, daily_spending: validAmount } : prev));
+    const prevAmount = habits.daily_spending;
+
+    setHabits((h) => (h ? { ...h, daily_spending: validAmount } : h));
 
     try {
-      const payload = {
-        date: targetDate,
-        user_id: userId,
-        daily_spending: validAmount,
-        water_amount: habits.water_amount ?? 0,
-      };
-
-      const { error } = await supabase
-        .from("daily_habits")
-        .upsert(payload, { onConflict: "date,user_id" });
-
+      const { error } = await supabase.from("daily_habits").upsert(
+        {
+          date: targetDate,
+          user_id: userId,
+          daily_spending: validAmount,
+          water_amount: habits.water_amount ?? 0,
+        },
+        { onConflict: "date,user_id" }
+      );
       if (error) throw error;
     } catch (err) {
-      console.error("Update spending error:", err);
-      setHabits((prev) =>
-        prev ? { ...prev, daily_spending: habits.daily_spending } : prev
-      );
-      setError(
-        err instanceof Error ? err.message : "Failed to update spending"
-      );
+      setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
+      throw err;
     }
   };
 
@@ -153,13 +136,5 @@ export function useDailyHabits(date?: string) {
     fetchHabits();
   }, [userId, targetDate]);
 
-  return {
-    habits,
-    loading,
-    error,
-    fetchHabits,
-    toggleHabit,
-    updateWater,
-    updateSpending,
-  };
+  return { habits, loading, fetchHabits, toggleHabit, updateWater, updateSpending };
 }

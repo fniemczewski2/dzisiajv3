@@ -1,9 +1,11 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { useAuth } from "../providers/AuthProvider";
+import { useToast } from "../providers/ToastProvider";
 
 export default function LoginForm() {
   const { user, supabase } = useAuth();
+  const { toast } = useToast();
   const router = useRouter();
 
   const nextPath = useMemo(() => {
@@ -25,8 +27,7 @@ export default function LoginForm() {
     });
 
     if (error) {
-      console.error("Login error:", error);
-      alert("Nie udało się zalogować. Spróbuj ponownie.");
+      toast.error("Nie udało się zalogować. Spróbuj ponownie.");
     }
   };
 

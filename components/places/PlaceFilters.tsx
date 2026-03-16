@@ -76,7 +76,6 @@ export default function PlaceFilters({
            suggestions={suggestions}
            onSuggestionClick={onSearchChange}
            className="flex-1"
-           storageKey="places-search"
          />
          <button
            onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}

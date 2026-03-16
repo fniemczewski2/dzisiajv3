@@ -11,9 +11,11 @@ import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
 import LoadingState from "../../components/LoadingState";
 import { AddButton, EditButton, DeleteButton } from "../../components/CommonButtons";
 import NoResultsState from "../../components/NoResultsState";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function DaySchemaPage() {
   const { schemas, loading, refresh, deleteSchema } = useDaySchemas();
+  const { toast } = useToast();
   const [editing, setEditing] = useState<Schema | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
 
@@ -84,9 +86,9 @@ export default function DaySchemaPage() {
                 <div className="flex gap-1.5 shrink-0">
                   <EditButton onClick={() => openEdit(schema)} />
                   <DeleteButton onClick={async () => {
-                        if (confirm(`Na pewno usunąć schemat "${schema.name}"?`)) {
-                          await deleteSchema(schema.id || "");
-                        }
+                       const ok = await toast.confirm("Czy na pewno chcesz usunąć ten schemat?");
+                       if (!ok) return;
+                       await deleteSchema(schema.id || "");
                     }} 
                   />
                 </div>

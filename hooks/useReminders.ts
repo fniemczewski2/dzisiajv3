@@ -1,83 +1,83 @@
-import { useState, useEffect } from "react";
+// hooks/useReminders.ts
+
+import { useState, useEffect, useCallback } from "react";
 import { Reminder } from "../types";
 import { getAppDate, getAppDateTime } from "../lib/dateUtils";
 import { useAuth } from "../providers/AuthProvider";
 
 export function useReminders() {
-  const { user, supabase } = useAuth(); 
+  const { user, supabase } = useAuth();
   const userId = user?.id;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const today = getAppDate();
 
-  useEffect(() => {
+  const fetchReminders = useCallback(async () => {
     if (!userId) return;
-    fetchReminders();
-  }, [userId]);
-
-  const fetchReminders = async () => {
     const { data, error } = await supabase
       .from("reminders")
       .select("*")
       .eq("user_id", userId)
       .order("data_poczatkowa", { ascending: true });
+    if (error) throw error;
+    if (data) setReminders(data as Reminder[]);
+  }, [supabase, userId]);
 
-    if (!error && data) setReminders(data);
-  };
+  const addReminder = useCallback(
+    async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
+      if (!userId) throw new Error("Musisz być zalogowany");
+      const { data, error } = await supabase
+        .from("reminders")
+        .insert({ user_id: userId, tytul, data_poczatkowa, powtarzanie, done: null })
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) setReminders((prev) => [...prev, data as Reminder]);
+    },
+    [supabase, userId]
+  );
 
-  const addReminder = async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
-    if (!userId) return;
-    const { data, error } = await supabase
-      .from("reminders")
-      .insert({
-        user_id: userId,
-        tytul,
-        data_poczatkowa,
-        powtarzanie,
-        done: null,
-      })
-      .select()
-      .single();
+  const postponeReminder = useCallback(
+    async (id: string, powtarzanie: number) => {
+      const dt = getAppDateTime();
+      dt.setDate(dt.getDate() + 1 - powtarzanie);
+      const done = dt.toISOString().slice(0, 10);
 
-    if (!error && data) setReminders((prev) => [...prev, data]);
-  };
+      const { data, error } = await supabase
+        .from("reminders")
+        .update({ done })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) setReminders((prev) => prev.map((r) => (r.id === id ? (data as Reminder) : r)));
+    },
+    [supabase]
+  );
 
-  const postponeReminder = async (id: string, powtarzanie: number) => {
-    const today = getAppDateTime(); 
-    today.setDate(today.getDate() + 1 - powtarzanie);
-    const done = today.toISOString().slice(0, 10)
+  const completeReminder = useCallback(
+    async (id: string) => {
+      const { data, error } = await supabase
+        .from("reminders")
+        .update({ done: today })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) setReminders((prev) => prev.map((r) => (r.id === id ? (data as Reminder) : r)));
+    },
+    [supabase, today]
+  );
 
-    const { data, error } = await supabase
-      .from("reminders")
-      .update({ done })
-      .eq("id", id)
-      .select()
-      .single();
+  const deleteReminder = useCallback(
+    async (id: string) => {
+      const { error } = await supabase.from("reminders").delete().eq("id", id);
+      if (error) throw error;
+      setReminders((prev) => prev.filter((r) => r.id !== id));
+    },
+    [supabase]
+  );
 
-    if (data) {
-      setReminders((prev) => prev.map((r) => (r.id === id ? data : r)));
-    }
-  };
-
-  const completeReminder = async (id: string) => {
-    const doneDate = today;
-    const { data, error } = await supabase
-      .from("reminders")
-      .update({ done: doneDate })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (!error && data) {
-      setReminders((prev) => prev.map((r) => (r.id === id ? data : r)));
-    }
-  };
-
-  const deleteReminder = async (id: string) => {
-    const { error } = await supabase.from("reminders").delete().eq("id", id);
-    if (!error) setReminders((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  const getVisibleReminders = () => {
+  const getVisibleReminders = useCallback((): Reminder[] => {
     return reminders.filter((r) => {
       if (r.data_poczatkowa > today) return false;
       if (!r.done) return true;
@@ -85,7 +85,11 @@ export function useReminders() {
       nextDue.setDate(nextDue.getDate() + r.powtarzanie);
       return today >= nextDue.toISOString().slice(0, 10);
     });
-  };
+  }, [reminders, today]);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
 
   return {
     allReminders: reminders,

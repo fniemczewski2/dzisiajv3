@@ -1,9 +1,14 @@
 import React from 'react';
-import { 
-  Activity, LayoutDashboard, CheckSquare, Calendar, 
-  Wallet, Settings, 
-  Dumbbell, ShoppingCart, Clapperboard, 
-  Target,
+import {
+  Activity,
+  LayoutDashboard,
+  CheckSquare,
+  Calendar,
+  Wallet,
+  Settings,
+  Dumbbell,
+  ShoppingCart,
+  Clapperboard,
   Pen,
   Backpack,
   Sun,
@@ -14,7 +19,11 @@ import {
   Calculator,
   Bus,
   MapPin,
-  Droplet
+  Droplet,
+  ScrollText,
+  RefreshCw,
+  Trophy,
+  Smile,
 } from 'lucide-react';
 
 export type GuideSection = {
@@ -25,239 +34,586 @@ export type GuideSection = {
   listItems: React.ReactNode[];
 };
 
+/** Wyróżnienie ważnego pojęcia */
+const K = ({ children }: { children: React.ReactNode }) => (
+  <strong className="text-text font-semibold">{children}</strong>
+);
+
 export const guideSections: GuideSection[] = [
-{
-    id: "dashboard",
-    title: "Dzisiaj (widok główny)",
+
+  // ── KOKPIT GŁÓWNY ──────────────────────────
+  {
+    id: 'dashboard',
+    title: 'Kokpit główny (Dzisiaj)',
     mainIcon: <LayoutDashboard className="w-6 h-6" />,
-    iconColorClass: "text-blue-500",
+    iconColorClass: 'text-blue-500',
     listItems: [
-      <><strong>Centrum dowodzenia:</strong> Główny widok na dany dzień. Posiada interaktywną oś czasu (06:00 - 23:00), która ułatwia wizualizację całego dnia.</>,
-      <><strong>Przeciągnij i Upuść:</strong> Możesz swobodnie przeciągać zadania oraz wydarzenia na konkretne godziny na osi czasu. Aplikacja automatycznie zaktualizuje ich harmonogram.</>,
-      <><strong>Szybkie Widgety:</strong> Na samej górze kokpitu znajdziesz narzędzia ułatwiające codzienne czynności, m.in. licznik wypitej wody, tablicę nawyków oraz pole do błyskawicznego wpisywania codziennych wydatków.</>,
-      <><strong>Skróty:</strong> Jeśli w nazwie elementu użyjesz słów kluczowych takich jak 'trening', 'zakupy', 'film' lub 'spotkanie', system automatycznie rozpozna intencję i wyświetli przy zadaniu szybki przycisk skrótu do odpowiedniego modułu w aplikacji.</>
-    ]
+      <>
+        <K>Centrum dowodzenia.</K> Widok główny zbiera w jednym miejscu wszystko, co istotne na dziś: plan dnia, listę zadań, wydarzenia z kalendarza, widgety nawyków, wody i nastroju oraz kamienie milowe z celów.
+      </>,
+      <>
+        <K>Oś czasu 06:00–23:00.</K> Lewa kolumna to interaktywny harmonogram dnia podzielony na godziny. Wyświetla zadania zaplanowane na konkretną godzinę, wpisy z aktywnego schematu dnia i wydarzenia z kalendarza.
+      </>,
+      <>
+        <K>Przeciągnij i upuść.</K> Zadania z listy po prawej możesz przeciągnąć na dowolną godzinę na osi czasu. Aplikacja zapamięta ten czas. Już umieszczone elementy możesz przesuwać między slotami. 
+      </>,
+      <>
+        <K>Widgety na górze strony.</K> Tuż nad główną treścią widoczne są: ikony nawyków, pasek wody, tracker nastroju i pole dziennych wydatków. Możesz je aktualizować bezpośrednio z kokpitu, bez przechodzenia do innej sekcji.
+      </>,
+      <>
+        <K>Inteligentne skróty.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się ikonka skrótu:<ul><li><em>trening</em> → Trening,</li><li><em>zakupy</em> → Listy zakupów,</li><li> <em>spotkanie</em> → Sprawozdania,</li><li> <em>film</em> → Filmy.</li></ul>
+      </>,
+      <>
+        <K>Licznik ukończenia.</K> W nagłówku sekcji zadań widoczny jest wskaźnik <em>wykonane/wszystkie</em> dla bieżącego dnia, np. 3/7.
+      </>,
+    ],
   },
+
+  // ── SCHEMATY DNIA ──────────────────────────
   {
-    id: "day_schema",
-    title: "Plan dnia (Schematy)",
+    id: 'day_schema',
+    title: 'Schematy dnia',
     mainIcon: <Logs className="w-6 h-6" />,
-    iconColorClass: "text-purple-500",
+    iconColorClass: 'text-purple-500',
     listItems: [
-      <><strong>Automatyzacja rutyn:</strong> Narzędzie pozwalające na tworzenie stałych, powtarzalnych bloków czasowych (np. "Praca w biurze od 8:00 do 16:00" w każdy poniedziałek i wtorek).</>,
-      <><strong>Blokowanie czasu:</strong> Raz skonfigurowany schemat jest automatycznie nanoszony na Twój główny widok 'Dzisiaj'. Rezerwuje wybrane godziny, pomagając lepiej planować resztę wolnego czasu.</>
-    ]
+      <>
+        <K>Automatyczne bloki czasowe.</K> Schemat to zestaw wpisów (godzina + etykieta) przypisanych do wybranych dni tygodnia. Gdy nastanie właściwy dzień, wpisy schematu automatycznie pojawiają się na osi czasu kokpitu jako szare bloki.
+      </>,
+      <>
+        <K>Tworzenie schematu.</K> Wejdź na stronę <em>Plan dnia</em>, kliknij <em>Dodaj</em>, nadaj nazwę, zaznacz dni tygodnia i dodaj wpisy. Każdy wpis to para: godzina i etykieta (np. 08:00 / Praca, 13:00 / Obiad).
+      </>,
+      <>
+        <K>Wiele schematów.</K> Możesz mieć wiele schematów przypisanych do różnych dni. Jeśli dany dzień pasuje do kilku schematów, wyświetlony zostanie pierwszy pasujący.
+      </>,
+      <>
+        <K>Różnica między schematem a zadaniem.</K> Schematy to stałe rutyny — nie mają statusu "wykonane" i wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
+      </>,
+    ],
   },
+
+  // ── NAWYKI ─────────────────────────────────
   {
-    id: "habits",
-    title: "Codzienne Nawyki",
-    mainIcon: <Activity className="w-6 h-6" />, 
-    iconColorClass: "text-indigo-500",
+    id: 'habits',
+    title: 'Codzienne nawyki',
+    mainIcon: <Activity className="w-6 h-6" />,
+    iconColorClass: 'text-indigo-500',
     listItems: [
-      <><strong>Szybkie odhaczanie:</strong> Niezależny, podręczny widget na Głównym Kokpicie służący do śledzenia małych, powtarzalnych czynności każdego dnia.</>,
-      <><strong>Personalizacja:</strong> W ustawieniach aplikacji możesz dokładnie wybrać, które z predefiniowanych nawyków chcesz śledzić.</>,
-      <><strong>Prosta obsługa:</strong> Wystarczy jedno kliknięcie w odpowiednią ikonkę na kokpicie, by oznaczyć dany nawyk jako zrealizowany w bieżącym dniu. O północy statusy nawyków automatycznie się zerują.</>
-    ]
+      <>
+        <K>Osiem ikon na kokpicie.</K> Każda reprezentuje jeden nawyk: Leki, Higiena, Trening, Relacje, Praca, Dom, Higiena cyfrowa, Języki obce. Kliknij ikonę, by oznaczyć nawyk jako wykonany.
+      </>,
+      <>
+        <K>Dane historyczne.</K> Widok szczegółów dnia w kalendarzu pokazuje, które nawyki były odhaczone w wybranym dniu. Możesz wracać do poprzednich dat i uzupełniać zaległe wpisy.
+      </>,
+      <>
+        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki — ikona zniknie z kokpitu. Nie powoduje to usunięcia historycznych danych.
+      </>,
+      <>
+        <K>Reset.</K> Reset następuje automatycznie o północy — każdy dzień zaczyna się od zera.
+      </>,
+    ],
   },
+
+  // ── WODA ───────────────────────────────────
   {
-    id: "water_tracker",
-    title: "Nawodnienie (Water Tracker)",
-    mainIcon: <Droplet className="w-6 h-6" />, 
-    iconColorClass: "text-cyan-500",
+    id: 'water_tracker',
+    title: 'Tracker wody',
+    mainIcon: <Droplet className="w-6 h-6" />,
+    iconColorClass: 'text-cyan-500',
     listItems: [
-      <><strong>Kontrola płynów:</strong> Wizualny licznik wbudowany w Główny Kokpit, pomagający dbać o zdrowe nawyki i odpowiednie nawodnienie organizmu w ciągu dnia.</>,
-      <><strong>Szybki dostęp:</strong> Wypijasz szklankę wody – dodajesz ją jednym kliknięciem do swojego licznika. Postęp automatycznie resetuje się każdego nowego dnia.</>,
-      <><strong>Opcjonalność:</strong> Jeśli nie potrzebujesz śledzić swojego nawodnienia, możesz całkowicie ukryć ten widget w Ustawieniach aplikacji, aby odzyskać miejsce na ekranie głównym.</>
-    ]
+      <>
+        <K>Suwak. </K> Przesuń pasek lub kliknij w dowolne miejsce, by zaktualizować ilość wypitej wody. Wartość zapisuje się natychmiast. Cel to 2 litry dziennie.
+      </>,
+      <>
+        <K>Dostępność.</K> Widget widoczny jest na kokpicie głównym oraz w widoku szczegółów dnia w kalendarzu. Możesz uzupełniać wartości dla poprzednich dni.
+      </>,
+      <>
+        <K>Wyłączanie widgetu.</K> Jeśli nie potrzebujesz trackera wody, ukryj go w Ustawieniach (przełącznik <em>Pokaż tracker wody</em>). Historia danych zostaje zachowana.
+      </>,
+    ],
   },
+
+  // ── NASTRÓJ ────────────────────────────────
   {
-    id: "tasks_list",
-    title: "Lista Zadań",
+    id: 'mood_tracker',
+    title: 'Śledzenie nastroju',
+    mainIcon: <Smile className="w-6 h-6" />,
+    iconColorClass: 'text-pink-500',
+    listItems: [
+      <>
+        <K>Dzienne oznaczenie.</K> Widget nastroju pokazuje kolorowe przyciski z etykietami. Kliknij jeden, by zapisać nastrój na dziś. Kliknięcie tego samego przycisku ponownie cofnie wybór.
+      </>,
+      <>
+        <K>Widoczność w kalendarzu.</K> Każdy dzień z zapisanym nastrojem jest oznaczony kolorową kropką w komórce kalendarza miesięcznego — na komputerze w rogu, na telefonie jako mały wskaźnik.
+      </>,
+      <>
+        <K>Konfiguracja.</K> W Ustawieniach możesz zmieniać etykiety, kolory (6 gotowych presetów + dowolny color picker) oraz usuwać lub dodawać opcje (limit 10). Zmiany są widoczne natychmiast.
+      </>,
+      <>
+        <K>Włączanie modułu.</K> Nastrój jest domyślnie włączony. Możesz go wyłączyć przełącznikiem <em>Pokaż śledzenie nastroju</em> w Ustawieniach.
+      </>,
+    ],
+  },
+
+  // ── ZADANIA ────────────────────────────────
+  {
+    id: 'tasks_list',
+    title: 'Lista zadań',
     mainIcon: <CheckSquare className="w-6 h-6" />,
-    iconColorClass: "text-green-500",
+    iconColorClass: 'text-green-500',
     listItems: [
-      <><strong>Zarządzanie:</strong> Kompletna lista Twoich zadań do załatwienia. Możesz swobodnie dodawać, edytować i usuwać wpisy.</>,
-      <><strong>Kategorie:</strong> Grupuj swoje zadania, przypisując im konkretne kategorie tematyczne. Ułatwia to organizację i szybkie odnalezienie spraw z danego obszaru życia.</>,
-      <><strong>Priorytety:</strong> Każdemu zadaniu możesz przypisać priorytet ważności w skali od 1 (bardzo ważne/krytyczne) do 5 (mało ważne). Aplikacja oznacza je odpowiednimi kolorami.</>,
-      <><strong>Inteligentne Etykiety Czasowe (Time Badge):</strong> System automatycznie analizuje datę wykonania i przypina do zadania dynamiczną etykietę (np. "Dzisiaj", "Jutro", "Za 3 dni" lub wyróżnione na czerwono "Zaległe"), co pozwala błyskawicznie ocenić, ile masz czasu na realizację.</>,
-      <><strong>Zadania Cykliczne:</strong> Posiadasz sprawy, które regularnie wracają? Ustaw zadanie jako powtarzalne. Po jego odhaczeniu system samodzielnie zaplanuje kolejne wystąpienie zgodnie z ustalonym cyklem.</>,
-      <><strong>Satysfakcja:</strong> Po pomyślnym ukończeniu zadania i oznaczeniu go jako "zrobione", system wyświetli na ekranie satysfakcjonującą animację konfetti.</>
+      <>
+        <K>Priorytety 1–5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz sortować zadania według priorytetu, daty lub alfabetycznie — wybierz w Ustawieniach.
+      </>,
+      <>
+        <K>Filtry czasowe.</K> Pasek filtrów nad listą pozwala wyświetlić zadania z: wczoraj, dzisiaj, jutra, pojutrze lub wszystkie naraz. 
+      </>,
+      <>
+        <K>Etykieta czasowa.</K> Każde zadanie ma kolorowy znacznik informujący o kontekście czasowym. Etykiety aktualizują się automatycznie o północy.
+      </>,
+      <>
+        <K>Odłożenie na jutro.</K> Przycisk <em>Odłóż</em> przesuwa datę zadania o jeden dzień bez otwierania formularza edycji.
+      </>,
+      <>
+        <K>Timer przy zadaniu.</K> Kliknij tytuł zadania lub przycisk <em>Timer</em>, by uruchomić stoper bezpośrednio na karcie. Po zakończeniu sesji (min. 60 sekund) wynik w minutach zostaje dopisany do opisu zadania.
+      </>,
+      <>
+        <K>Udostępnianie zadań.</K> Przy tworzeniu lub edycji możesz przypisać zadanie innemu użytkownikowi z listy zaufanych. Pojawi się u niego ze statusem <em>Oczekuje akceptacji</em> i wymaga potwierdzenia.
+      </>,
+      <>
+        <K>Animacja ukończenia.</K> Odhaczenie zadania wyzwala animację konfetti z dźwiękiem — ton akordu zmienia się w zależności od priorytetu.
+      </>,
     ],
-  },  
+  },
+
+  // ── ZADANIA CYKLICZNE ──────────────────────
   {
-    id: "pomodoro",
-    title: "Zegar Pomodoro",
+    id: 'reminders',
+    title: 'Zadania cykliczne',
+    mainIcon: <RefreshCw className="w-6 h-6" />,
+    iconColorClass: 'text-teal-500',
+    listItems: [
+      <>
+        <K>Tworzenie.</K> W sekcji Zadania rozwiń panel <em>Zadania cykliczne</em> i kliknij <em>Dodaj</em>. Wpisz tytuł, datę pierwszego pojawienia i interwał w dniach.
+      </>,
+      <>
+        <K>Dostępne akcje.</K> Każde widoczne przypomnienie ma trzy przyciski: <em>Dodaj jako zadanie</em> (tworzy jednorazowe zadanie z odpowiednią datą), <em>Zakończ</em> (oznacza jako wykonane i odlicza kolejny termin), <em>Odłóż</em> (przesuwa termin o jeden interwał do przodu).
+      </>,
+      <>
+        <K>Widoczność.</K> Domyślnie lista pokazuje tylko te przypomnienia, których termin już nadszedł. Kliknij <em>Pokaż wszystkie</em>, by wyświetlić całą bazę cyklicznych.
+      </>,
+    ],
+  },
+
+  // ── POMODORO ───────────────────────────────
+  {
+    id: 'pomodoro',
+    title: 'Timer Pomodoro',
     mainIcon: <Timer className="w-6 h-6" />,
-    iconColorClass: "text-red-500",
+    iconColorClass: 'text-red-500',
     listItems: [
-      <><strong>Praca w blokach:</strong> Wbudowany stoper pomagający w utrzymaniu maksymalnego skupienia podczas nauki lub pracy, bazujący na popularnej technice zarządzania czasem.</>,
-      <><strong>Konfiguracja:</strong> Pozwala na sztywne ustawienie bloków czasu (np. 25 minut głębokiej pracy, po których następuje 5 minut obowiązkowej przerwy na regenerację).</>
-    ]
-  },
-  {
-    id: "planning",
-    title: "Notatki",
-    mainIcon: <Pen className="w-6 h-6" />,
-    iconColorClass: "text-purple-500",
-    listItems: [
-      <><strong>Notatki:</strong> Główny folder na Twoje szybkie zapytania, luźne myśli i standardowe teksty.</>,
-      <><strong>Sprawozdanie:</strong> Moduł idealny do pisania podsumowań ze spotkań. Każdy wpis możesz pobrać jednym kliknięciem jako gotowy, sformatowany dokument PDF.</>
-    ]
-  },
-  {
-    id: "calendar",
-    title: "Kalendarz",
-    mainIcon: <Calendar className="w-6 h-6" />,
-    iconColorClass: "text-purple-500",
-    listItems: [
-      <><strong>Kalendarz:</strong> Pełny widok całego miesiąca. Dodasz tu wydarzenia, oraz podejrzysz statystki z poprzednich dni.</>,
-      <><strong>Ważne daty:</strong> Jeśli w opisie wydarzenia użyjesz słów takich jak 'urodziny', 'imieniny' lub 'rocznica', system w tym dniu pokaże informację w nagłówku.</>
+      <>
+        <K>Technika Pomodoro.</K> Praca w blokach skupienia (domyślnie 25 minut) przeplatanych krótkimi przerwami (5 minut). Pomaga utrzymać koncentrację i zapobiegać wypaleniu.
+      </>,
+      <>
+        <K>Konfiguracja.</K> Kliknij ikonę koła zębatego pod timerem, by zmienić długość bloku pracy i przerwy. Nowe ustawienia wchodzą w życie przy kolejnym starcie timera.
+      </>,
+      <>
+        <K>Nawigacja między fazami.</K> Przyciski <em>Cofnij</em> i <em>Dalej</em> pozwalają ręcznie przechodzić między fazą pracy a przerwą bez czekania na koniec odliczania.
+      </>,
+      <>
+        <K>Dźwięk i blokada ekranu.</K> Po zakończeniu każdej fazy odtwarzany jest sygnał dźwiękowy. Na obsługiwanych urządzeniach timer aktywuje blokadę wygaszania ekranu (Wake Lock).
+      </>,
     ],
   },
-{
-    id: "bills",
-    title: "Finanse i Rachunki",
+
+  // ── NOTATKI ────────────────────────────────
+  {
+    id: 'notes',
+    title: 'Notatki',
+    mainIcon: <Pen className="w-6 h-6" />,
+    iconColorClass: 'text-purple-500',
+    listItems: [
+      <>
+        <K>Format listowy.</K> Notatki to listy punktowane — każda linia to osobny element. Ułatwia to edycję, przeglądanie na telefonie i późniejsze rozwijanie treści.
+      </>,
+      <>
+        <K>Automatyczne rozpoznawanie linków.</K> Jeśli wpiszesz URL (z http:// lub bez), aplikacja automatycznie zamieni go w klikalny link otwierający się w nowej karcie.
+      </>,
+      <>
+        <K>Kolory tła.</K> Każdej notatce można przypisać jeden z 5 kolorów: biały, żółty, zielony, niebieski, czerwony. W trybie ciemnym kolory są subtelnie przyciemnione.
+      </>,
+      <>
+        <K>Przypinanie i archiwizacja.</K> Przypięte notatki wyświetlają się zawsze na górze listy. Zarchiwizowane są ukryte (nie usunięte) — przywrócisz je przyciskiem <em>Pokaż</em>.
+      </>,
+      <>
+        <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie po dacie aktualizacji (domyślnie) lub alfabetycznie. Przypięte notatki zawsze są na górze niezależnie od wybranego sortowania.
+      </>,
+      <>
+        <K>Wyszukiwarka.</K> Pole wyszukiwania filtruje notatki w czasie rzeczywistym, przeszukując zarówno tytuły, jak i zawartość każdego elementu listy.
+      </>,
+    ],
+  },
+
+  // ── SPRAWOZDANIA ───────────────────────────
+  {
+    id: 'reports',
+    title: 'Sprawozdania ze spotkań',
+    mainIcon: <ScrollText className="w-6 h-6" />,
+    iconColorClass: 'text-slate-500',
+    listItems: [
+      <>
+        <K>Struktura protokołu.</K> Każde sprawozdanie zawiera: temat i datę spotkania, agendę (lista punktów), uczestników (z rolami moderatora i sprawozdawcy dla pierwszych dwóch pozycji) oraz zadania z osobą odpowiedzialną i datą.
+      </>,
+      <>
+        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie sprawozdania, by pobrać gotowy, sformatowany dokument — idealny do wysłania mailem lub archiwizacji.
+      </>,
+      <>
+        <K>Edycja po fakcie.</K> Możesz wracać do sprawozdań i uzupełniać brakujące dane. Każdą sekcję można rozszerzać o kolejne punkty agendy, uczestników lub zadania za pomocą przycisku <em>Dodaj</em>.
+      </>,
+    ],
+  },
+
+  // ── KALENDARZ ──────────────────────────────
+  {
+    id: 'calendar',
+    title: 'Kalendarz',
+    mainIcon: <Calendar className="w-6 h-6" />,
+    iconColorClass: 'text-purple-500',
+    listItems: [
+      <>
+        <K>Widok miesięczny.</K> Kalendarz pokazuje cały miesiąc z naniesionymi wydarzeniami. Wielodniowe wydarzenia rozciągają się na kilka komórek. W komórkach widoczna jest liczba zadań i nadmiarowych wydarzeń (+N).
+      </>,
+      <>
+        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome — Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są automatycznie obliczane i oznaczane czerwonym kolorem w kalendarzu oraz w nagłówku aplikacji.
+      </>,
+      <>
+        <K>Szczegóły dnia.</K> Kliknij dowolny dzień, by zobaczyć pełną listę wydarzeń, zadania z tego dnia oraz widgety nawyków, wody, nastroju i dziennych wydatków.
+      </>,
+      <>
+        <K>Urodziny i rocznice.</K> Jeśli tytuł lub opis wydarzenia zawiera słowo <em>urodziny</em>, <em>imieniny</em>, <em>rocznica</em>, w nagłówku aplikacji tego dnia pojawi się nazwa wydarzenia.
+      </>,
+      <>
+        <K>Powtarzanie wydarzeń.</K> Przy tworzeniu możesz ustawić powtarzanie: co tydzień, co miesiąc lub co rok. Powtarzające się instancje generowane są automatycznie bez tworzenia osobnych wpisów w bazie danych.
+      </>,
+      <>
+        <K>Import i eksport .ics.</K> Możesz importować zdarzenia z pliku .ics (np. eksport z Google Calendar) bezpośrednio w formularzu. Każde wydarzenie możesz też pobrać jako plik .ics i dodać do dowolnego kalendarza zewnętrznego.
+      </>,
+      <>
+        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych — wydarzenie pojawi się w jego kalendarzu.
+      </>,
+    ],
+  },
+
+  // ── RACHUNKI ───────────────────────────────
+  {
+    id: 'bills',
+    title: 'Rachunki i finanse',
     mainIcon: <Wallet className="w-6 h-6" />,
-    iconColorClass: "text-emerald-500",
+    iconColorClass: 'text-emerald-500',
     listItems: [
-      <><strong>Zarządzanie wydatkami:</strong> Baza Twoich wydatków stałych opłat, planowanych zakupów oraz małychh wydatków.</>,
-      <><strong>Zarządzanie przychodami:</strong> Baza Twoich przychodów - aby nie zapominać, że ktoś ci coś wisi, albo masz otrzymać zwrot.</>,
-    ]
+      <>
+        <K>Wydatki i przychody.</K> Każdy wpis może być wydatkiem (–) lub przychodem (+). Przychody to np. wynagrodzenie, zwroty, wpłaty od innych. Wydatki to stałe opłaty, faktury i zaplanowane zakupy.
+      </>,
+      <>
+        <K>Oznaczanie jako zapłacone.</K> Wydatki mają przycisk <em>Opłać</em>. Po kliknięciu wpis znika z głównej listy (jest schowany, nie usunięty), dzięki czemu lista zawiera wyłącznie nieuregulowane pozycje.
+      </>,
+      <>
+        <K>Udostępnij.</K> Kliknij <em>Wyślij</em> przy rachunku, by skopiować lub wysłać gotową wiadomość z kwotą i opisem — przydatne do żądania zwrotów.
+      </>,
+      <>
+        <K>Grupowanie po miesiącach.</K> Rachunki automatycznie grupowane są według miesięcy, posortowane chronologicznie w obrębie każdej grupy.
+      </>,
+      <>
+        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki</em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie "bieżące".
+      </>,
+    ],
   },
+
+  // ── BUDŻET ─────────────────────────────────
   {
-    id: "budget",
-    title: "Budżet",
+    id: 'budget',
+    title: 'Budżet roczny',
     mainIcon: <ChartColumnBig className="w-6 h-6" />,
-    iconColorClass: "text-teal-500",
+    iconColorClass: 'text-teal-500',
     listItems: [
-      <><strong>Planowanie dużych wydatków:</strong> Miesięczne zestawienia i tabele pozwalają na długoterminowe układanie budżetu i przygotowanie się na większe, nadchodzące obciążenia finansowe.</>,
-      <><strong>Obliczanie godzin pracy:</strong> Narzędzie ułatwia ustalenie, jaką dokładnie liczbę godzin musisz przepracować w danym miesiącu, aby pokryć wszystkie zaplanowane opłaty i rachunki.</>,
-      <><strong>Kontrola drobnych wydatków:</strong> Aby zapanować nad codziennymi kosztami, wystarczy dodać w systemie wydatek z opisem <em>"bieżące"</em>. Pozwala to wyznaczyć i skutecznie kontrolować osobny budżet przeznaczony wyłącznie na małe zakupy i zachcianki.</>
-    ]
+      <>
+        <K>Trzy tabele.</K> Strona budżetu rocznego zawiera: tabelę podsumowania (wpływy, wydatki zrealizowane, planowane, pozostało), tabelę bieżących wydatków (budżet vs. dzienne wydatki z nawyków) oraz tabelę godzin pracy.
+      </>,
+      <>
+        <K>Obliczanie godzin pracy.</K> Wpisz stawkę godzinową dla każdego miesiąca (kliknij ikonę edycji). Aplikacja podzieli sumę wydatków przez stawkę i pokaże, ile godzin pracy potrzebujesz na pokrycie kosztów.
+      </>,
+      <>
+        <K>Wydatki bieżące.</K> Każdy rachunek z opisem <em>Bieżące</em> trafia do tabeli bieżących jako planowany budżet na drobne zakupy. Porównanie z faktycznie wydanymi (z dziennego trackera) pokazuje nadwyżkę lub niedobór.
+      </>,
+      <>
+        <K>Nawigacja po latach.</K> Użyj strzałek w górnej części strony, by przeglądać budżety z poprzednich i przyszłych lat. Stawki godzinowe są pamiętane osobno dla każdego roku.
+      </>,
+    ],
   },
+
+  // ── KALKULATOR ─────────────────────────────
   {
-    id: "calculator",
-    title: "Kalkulator Rachunków",
+    id: 'calculator',
+    title: 'Kalkulator podziału rachunków',
     mainIcon: <Calculator className="w-6 h-6" />,
-    iconColorClass: "text-blue-500",
+    iconColorClass: 'text-blue-500',
     listItems: [
-      <><strong>Podział rachunków za mieszkanie:</strong> Dedykowane narzędzie służące do szybkiego i bezproblemowego dzielenia współdzielonych opłat (np. czynsz, prąd, internet).</>,
-      <><strong>Sprawiedliwa metoda rozliczeń:</strong> Kalkulator wykorzystuje uczciwy algorytm podziału kosztów pomiędzy domowników lub współlokatorów. </>
-    ]
+      <>
+        <K>Do czego służy.</K> Narzędzie do sprawiedliwego podziału wspólnych kosztów mieszkania (wynajem, czynsz, media) między dwie osoby z uwzględnieniem różnicy w dochodach.
+      </>,
+      <>
+        <K>Algorytm hybrydowy.</K> Każda osoba płaci połowę kwoty stałej (50/50) plus dodatkową część proporcjonalną do swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej — uczciwie, nie po równo.
+      </>,
+      <>
+        <K>Obsługa walut.</K> Dochód każdej osoby można wpisać w PLN lub EUR. Kurs EUR/PLN pobierany jest automatycznie z API NBP. Możesz go też wpisać ręcznie.
+      </>,
+      <>
+        <K>Podatki i ZUS.</K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto "na rękę". Kalkulator pokaże kwotę podatku i wynikowy dochód.
+      </>,
+    ],
   },
+
+  // ── LISTY ZAKUPÓW ──────────────────────────
   {
-    id: "shopping",
-    title: "Listy Zakupów",
+    id: 'shopping',
+    title: 'Listy zakupów',
     mainIcon: <ShoppingCart className="w-6 h-6" />,
-    iconColorClass: "text-amber-500",
+    iconColorClass: 'text-amber-500',
     listItems: [
-      <><strong>Organizacja zakupów:</strong> Twórz lity zakupowe. Możesz przygotować osobne zestawienia i współdzielić je z innymi.</>,
-      <><strong>Tryb sklepowy:</strong> Listy są zoptymalizowane pod kątem używania na smartfonie. Będąc między półkami, wystarczy jedno kliknięcie, aby przekreślić i odhaczyć produkt lądujący w koszyku.</>
-    ]
+      <>
+        <K>Maksymalnie 5 list.</K> Możesz prowadzić do 5 aktywnych list jednocześnie.
+      </>,
+      <>
+        <K>Odhaczanie produktów.</K> Kliknij checkbox lub tekst produktu, by go przekreślić. Odhaczone produkty zostają na liście (możesz odkliknąć), dzięki czemu lista jest wielokrotnego użytku.
+      </>,
+      <>
+        <K>Udostępnianie w czasie rzeczywistym.</K> Udostępnij listę innemu użytkownikowi — oboje widzicie te same zmiany natychmiast, bez ręcznego odświeżania.
+      </>,
+      <>
+        <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub alfabetycznie.
+      </>,
+    ],
   },
+
+  // ── PRZEPISY ───────────────────────────────
   {
-    id: "recipes",
-    title: "Przepisy Kulinarne",
+    id: 'recipes',
+    title: 'Przepisy kulinarne',
     mainIcon: <CookingPot className="w-6 h-6" />,
-    iconColorClass: "text-orange-500",
+    iconColorClass: 'text-orange-500',
     listItems: [
-      <><strong>Cyfrowa książka kucharska:</strong> Twój prywatny notatnik do zapisywania ulubionych dań, eksperymentów kulinarnych i instrukcji ich przygotowania.</>,
-      <><strong>Kategorie posiłków:</strong> Zapisane przepisy możesz wygodnie dzielić na kategorie (np. śniadania, obiady, desery), co znacząco ułatwia późniejsze planowanie jadłospisu na dany tydzień.</>
-    ]
+      <>
+        <K>Baza przepisów.</K> Każdy przepis ma nazwę, kategorię (śniadanie, zupa, danie główne, przystawka, sałatka, deser), listę składników i opis przygotowania.
+      </>,
+      <>
+        <K>Autouzupełnianie składników.</K> Przy wpisywaniu składnika aplikacja sugeruje produkty użyte już w innych przepisach. Zatwierdź Enter-em lub przecinkiem. Backspace usuwa ostatni dodany składnik.
+      </>,
+      <>
+        <K>Filtrowanie po składnikach.</K> Kliknij <em>Pokaż filtry</em>, by wyświetlić chmurę tagów. Zaznaczenie kilku składników pokaże tylko przepisy zawierające wszystkie z nich jednocześnie.
+      </>,
+      <>
+        <K>Sortowanie.</K> W Ustawieniach wybierz: według kategorii (domyślnie), alfabetycznie lub według daty dodania.
+      </>,
+    ],
   },
+
+  // ── PAKOWANIE ──────────────────────────────
   {
-    id: "outings",
-    title: "Pakowanie",
+    id: 'packing',
+    title: 'Checklisty pakowania',
     mainIcon: <Backpack className="w-6 h-6" />,
-    iconColorClass: "text-orange-500",
+    iconColorClass: 'text-orange-500',
     listItems: [
-      <><strong>Plecak:</strong> Mój plecak ma wszystko. A to jest pełna lista wyposażenia, zeby być zawsze gotowym na wszystko.</>,
-      <><strong>Walizka:</strong> Kompleksowy asystent pakowania bagażu na wyjazdy i dalsze podróże, dzięki któremu nigdy nie zapomnisz ważnych rzeczy.</>,
-      <><strong>Plecak Bezpieczeństwa:</strong> Plecak ewakuacyjny na wypadek zagrożeń, zgodny z poradnikiem bezpieczeństwa.</>,
-    ]
+      <>
+        <K>Trzy predefiniowane listy.</K> Aplikacja zawiera: <em>Plecak</em> (codzienny ekwipunek), <em>Walizka</em> (wyjazdy i podróże) oraz <em>Plecak bezpieczeństwa</em> (lista ewakuacyjna).
+      </>,
+      <>
+        <K>Odhaczanie pozycji.</K> Kliknij pozycję lub checkbox, by ją zaznaczyć. Zaznaczone pozycje są przekreślone. 
+      </>,
+      <>
+        <K>Kategorie.</K> Listy podzielone są na kategorie (Apteczka, Elektronika, Odzież itp.), co ułatwia systematyczne pakowanie sekcja po sekcji.
+      </>,
+    ],
   },
+
+  // ── TRANSPORT ──────────────────────────────
   {
-    id: "transport",
-    title: "Transport Miejski",
+    id: 'transport',
+    title: 'Transport miejski',
     mainIcon: <Bus className="w-6 h-6" />,
-    iconColorClass: "text-blue-500",
+    iconColorClass: 'text-blue-500',
     listItems: [
-      <><strong>Odjazdy na żywo:</strong> Tablice z odjazdami dla komunikacji miejskiej, pokazujące linię, kierunek i czas do przyjazdu.</>,
-      <><strong>Wyszukiwarka i strefy:</strong> Możliwość ręcznego wyszukania przystanku (obsługuje Szczecin i Poznań) i dodania go do ulubionych.</>,
-      <><strong>Lokalizacja GPS:</strong> Aplikacja potrafi automatycznie wykryć Twoją pozycję i wyświetlić przystanki znajdujące się najbliżej Ciebie</>
-    ]
+      <>
+        <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską na całym świecie. Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
+      </>,
+      <>
+        <K>Odjazdy GPS.</K> Sekcja <em>Najbliżej (GPS)</em> automatycznie wykrywa Twoją lokalizację i wyświetla przystanki w pobliżu z odległością w metrach.
+      </>,
+      <>
+        <K>Ulubione przystanki.</K> Moduł obsługuje przystanki w Poznaniu i Szczecinie. Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS.
+      </>,
+      <>
+        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku — aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do ulubionych.
+      </>,
+      <>
+        <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare — rozkładowe.
+      </>,
+    ],
   },
+
+  // ── MIEJSCA ────────────────────────────────
   {
-    id: "places",
-    title: "Miejsca i Mapa",
+    id: 'places',
+    title: 'Miejsca i mapa',
     mainIcon: <MapPin className="w-6 h-6" />,
-    iconColorClass: "text-pink-500",
+    iconColorClass: 'text-pink-500',
     listItems: [
-      <><strong>Interaktywna Mapa:</strong> Narzędzie do kolekcjonowania restauracji, kawiarni i innych punktów z możliwością przełączania między listą a widokiem mapy.</>,
-      <><strong>Import z Google Places:</strong> Nie musisz wpisywać danych ręcznie. Wyszukaj lokal, a aplikacja pobierze jego współrzędne, adres, godziny otwarcia i oceny.</>,
-      <><strong>Inteligentne Tagowanie:</strong> Asystent automatycznie przypisze miejscu tagi (np. "włoskie", "budżetowo", "24h") na podstawie danych z sieci.</>,
-      <><strong>Filtrowanie:</strong> Szybkie wyszukiwanie miejsc po tagach lub filtrowanie tych, które są na pewno otwarte w danym dniu i godzinie.</>
-    ]
+      <>
+        <K>Dwa widoki.</K> Lista miejsc i widok mapy Leaflet. Przełączaj się przyciskiem w pasku filtrów. Na mapie każde miejsce to marker — kliknięcie otwiera popup z nazwą, adresem i przyciskiem <em>Szczegóły</em>.
+      </>,
+      <>
+        <K>Import z Google Maps.</K> Wejdź na <em>Google Takeout</em>, wybierz <em>Mapy (Twoje miejsca)</em>, pobierz archiwum ZIP i wypakuj plik JSON. Wgraj go przez przycisk <em>Importuj</em> w aplikacji.
+      </>,
+      <>
+        <K>Automatyczne wzbogacanie danych.</K> Przy imporcie możesz włączyć opcję <em>Dociągnij dane</em> — aplikacja pobierze numer telefonu, stronę www i godziny otwarcia z Google Places. Opcja <em>Automatyczne tagi</em> przypisze etykiety na podstawie rodzaju miejsca.
+      </>,
+      <>
+        <K>Filtry.</K> Filtruj miejsca po tagach lub godzinach otwarcia. Filtr czasowy pozwala znaleźć miejsca otwarte w konkretny dzień tygodnia i przedział godzinowy.
+      </>,
+      <>
+        <K>Sortowanie po odległości.</K> W Ustawieniach wybierz <em>Odległość (najbliższe)</em> — aplikacja użyje GPS i wzoru Haversine do obliczenia odległości do każdego miejsca.
+      </>,
+      <>
+        <K>Nawigacja.</K> Przycisk <em>Nawiguj</em> na karcie miejsca otwiera Google Maps z wyznaczoną trasą.
+      </>,
+    ],
   },
+
+  // ── CELE (STREAKS) ─────────────────────────
   {
-    id: "streaks",
-    title: "Cele i Nawyki (Streaks)",
-    mainIcon: <Target className="w-6 h-6" />, 
-    iconColorClass: "text-rose-500",
+    id: 'streaks',
+    title: 'Cele',
+    mainIcon: <Trophy className="w-6 h-6" />,
+    iconColorClass: 'text-rose-500',
     listItems: [
-      <><strong>Moduł budowania nawyków:</strong> Zapisujesz swój cel (np. codzienny spacer, nauka języka) i odhaczasz go każdego dnia, tworząc nieprzerwany łańcuch.</>,
-      <><strong>Inteligentny algorytm gratyfikacji:</strong> System na bieżąco analizuje czas od daty startu Twojego nawyku. Przyznaje specjalne gratulacje i komunikaty za tzw. kamienie milowe – np. za ukończenie pierwszego tygodnia, równe 100 dni lub pełne rocznice (miesiące i lata).</>
-    ]
+      <>
+        <K>Czym są cele.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie wymaga codziennego odhaczania — automatycznie przelicza dni od daty startu.
+      </>,
+      <>
+        <K>Kamienie milowe.</K> Algorytm gratuluje Ci: pierwszego tygodnia (7 dni), okrągłych liczb dni (100, 200...), miesięcznic i rocznic. Gratulacje pojawiają się na karcie celu i na kokpicie w sekcji <em>Postępy</em>.
+      </>,
+      <>
+        <K>Ikony.</K> Każdy cel ma ikonę wybraną z zestawu 10 symboli (płomień, trofeum, cel, serce, papieros, piwo, sztućce, hantle, skarbonka, medycyna). Kliknij ikonę w trybie edycji, by ją zmienić.
+      </>,
+      <>
+        <K>Edycja daty startu.</K> Możesz zmienić datę startu (np. jeśli zapomnisz dodać cel od razu). Karta automatycznie przeliczy liczbę dni, tygodni, miesięcy i lat.
+      </>,
+    ],
   },
+
+  // ── TRENING ────────────────────────────────
   {
-    id: "training",
-    title: "Trening Interwałowy",
-    mainIcon: <Dumbbell className="w-6 h-6" />, 
-    iconColorClass: "text-orange-500",
+    id: 'training',
+    title: 'Timer treningowy',
+    mainIcon: <Dumbbell className="w-6 h-6" />,
+    iconColorClass: 'text-orange-500',
     listItems: [
-      <><strong>Zaawansowany stoper:</strong> Narzędzie zaprojektowane specjalnie do ćwiczeń czasowych.</>,
-      <><strong>Pełna konfiguracja planu:</strong> W panelu możesz bardzo precyzyjnie ustalić swój plan: określasz czas pojedynczego ćwiczenia (pracy), czas krótkiej przerwy oraz liczbę serii.</>,
-      <><strong>Zarządzanie cyklami:</strong> Jeśli trenujesz intensywniej, aplikacja pozwala na ustawienie wielokrotnych cykli (rund) i wplata między nie dodatkową, dłuższą przerwę na pełną regenerację organizmu.</>
-    ]
+      <>
+        <K>Timer interwałowy.</K> Skonfiguruj: czas pracy (np. 40 s), czas krótkiej przerwy (15 s), liczbę serii (8) i liczbę cykli (3). Aplikacja przeprowadzi Cię przez cały trening automatycznie.
+      </>,
+      <>
+        <K>Długa przerwa między cyklami.</K> Jeśli ustawisz więcej niż 1 cykl, pojawi się pole na długą przerwę (np. 90 sekund). Wstawiana jest automatycznie po każdym ukończonym cyklu serii.
+      </>,
+      <>
+        <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach aktywuje Wake Lock — ekran nie będzie gasł podczas treningu.
+      </>,
+      <>
+        <K>Konfiguracja tylko przed startem.</K> Panel ustawień jest dostępny wyłącznie gdy timer jest zatrzymany, co zapobiega przypadkowym zmianom w trakcie wysiłku.
+      </>,
+    ],
   },
+
+  // ── FILMY ──────────────────────────────────
   {
-    id: "movies",
-    title: "Filmy (Baza TMDB)",
-    mainIcon: <Clapperboard className="w-6 h-6" />, 
-    iconColorClass: "text-indigo-500",
+    id: 'movies',
+    title: 'Lista filmów',
+    mainIcon: <Clapperboard className="w-6 h-6" />,
+    iconColorClass: 'text-indigo-500',
     listItems: [
-      <><strong>Twoja osobista kinoteka:</strong> Miejsce do zapisywania filmów obejrzanych lub tych, które dopiero planujesz obejrzeć.</>,
-      <><strong>Integracja z API The Movie Database:</strong> Dodawanie filmów jest w pełni zautomatyzowane. Wpisujesz tytuł, a aplikacja sama dociąga z internetu oficjalny plakat, średnią ocen, gatunek oraz opis fabuły.</>,
-      <><strong>Sprawdzanie dostępności VOD:</strong> System automatycznie sprawdza bazę i informuje, na jakich polskich platformach streamingowych (np. Netflix, Disney+, HBO Max, Player) można obecnie legalnie obejrzeć dany tytuł.</>,
-      <><strong>Własne notatki:</strong> Obejrzane filmy możesz oznaczyć jako zakończone i dodać do nich własną recenzję.</>
-    ]
+      <>
+        <K>Integracja z TMDB.</K> Wpisz tytuł i kliknij <em>Szukaj w TMDB</em>. Aplikacja pokaże do 5 wyników z plakatami. Po wyborze automatycznie pobiera: gatunek, ocenę, opis i dostępność streamingową w Polsce.
+      </>,
+      <>
+        <K>Dostępność streamingowa.</K> Aplikacja sprawdza, na których platformach (Netflix, HBO Max, Disney+, Apple TV+, SkyShowtime, Player, Canal+...) film jest dostępny w Polsce w modelu subskrypcyjnym.
+      </>,
+      <>
+        <K>Dwie sekcje.</K> Filmy podzielone są na <em>Do obejrzenia</em> (góra) i <em>Obejrzane</em> (dół, przyciemnione). Przycisk <em>Obejrzane</em> / <em>Obejrzyj</em> przenosi film między sekcjami.
+      </>,
+      <>
+        <K>Notatki do filmów.</K> Rozwiń panel <em>Notatki</em> na karcie filmu, wpisz spostrzeżenia lub krótką recenzję i kliknij <em>Zapisz</em>.
+      </>,
+      <>
+        <K>Sortowanie.</K> W Ustawieniach: data modyfikacji, alfabetycznie lub według oceny (malejąco).
+      </>,
+    ],
   },
+
+  // ── POGODA ─────────────────────────────────
   {
-    id: "weather",
-    title: "Pogoda i Jakość Powietrza",
-    mainIcon: <Sun className="w-6 h-6" />, 
-    iconColorClass: "text-yellow-500",
+    id: 'weather',
+    title: 'Pogoda i jakość powietrza',
+    mainIcon: <Sun className="w-6 h-6" />,
+    iconColorClass: 'text-yellow-500',
     listItems: [
-      <><strong>Stacja meteo:</strong> Aplikacja za Twoją zgodą pobiera dokładną lokalizację geograficzną (GPS) i na jej podstawie odpytuje potężne, darmowe interfejsy: Open-Meteo API oraz Air Quality API.</>,
-      <><strong>Szczegółowe dane:</strong> Wyświetla aktualną temperaturę odczuwalną (min/max), opady, indeks UV, ciśnienie, wilgotność oraz godziny wschodu i zachodu słońca.</>,
-      <><strong>Monitoring smogu:</strong> Sprawdza jakość powietrza, pokazując aktualne stężenie szkodliwych pyłów zawieszonych PM10 oraz PM2.5.</>,
-      <><strong>Prognozy:</strong> Pokazuje prognozę pogody w rozbiciu godzina po godzinie na najbliższą dobę oraz czytelny przegląd na kolejne 5 dni.</>,
-      <><strong>Unikalny wskaźnik Biometu:</strong> Wbudowany w aplikację algorytm przetwarza siłę wiatru, skoki ciśnienia, temperaturę oraz wilgotność. Na tej podstawie ocenia, czy warunki biometeorologiczne są w danym momencie korzystne, umiarkowane czy niekorzystne dla Twojego samopoczucia.</>
-    ]
+      <>
+        <K>Dane lokalizacyjne.</K> Aplikacja prosi o zgodę na dostęp do GPS i na jego podstawie pobiera dane z Open-Meteo (pogoda) i Open-Meteo Air Quality (jakość powietrza). Zapytania idą bezpośrednio z przeglądarki.
+      </>,
+      <>
+        <K>Wskaźnik biometeorologiczny.</K> Autorski algorytm oblicza wpływ warunków pogodowych na samopoczucie na podstawie temperatury, ciśnienia, wilgotności i siły wiatru. Wynik: Korzystny / Umiarkowany / Niekorzystny.
+      </>,
+      <>
+        <K>Prognoza godzinowa.</K> Tabela z temperaturą, opadami, prędkością wiatru i indeksem UV dla kolejnych 24 godzin, zaczynając od bieżącej.
+      </>,
+      <>
+        <K>Prognoza 5-dniowa.</K> Karty z ikonką pogody i temperaturą min/max dla każdego z kolejnych 5 dni.
+      </>,
+      <>
+        <K>Jakość powietrza.</K> PM10 i PM2.5 w µg/m³ z kolorowym wskaźnikiem: zielony (dobra), żółty (umiarkowana), czerwony (zła). Jeśli przekroczone są normy, alert pojawia się też w nagłówku aplikacji.
+      </>,
+    ],
   },
+
+  // ── USTAWIENIA ─────────────────────────────
   {
-    id: "system",
-    title: "Ustawienia",
+    id: 'system',
+    title: 'Ustawienia i konfiguracja',
     mainIcon: <Settings className="w-6 h-6" />,
-    iconColorClass: "text-gray-500",
+    iconColorClass: 'text-gray-500',
     listItems: [
-      <><strong>Aplikacja w telefonie (PWA):</strong> Możesz użyć przycisku instalacji, by dodać 'Dzisiaj v3' na ekran główny telefonu. Zadziała jak tradycyjna aplikacja, bez paska adresu przeglądarki.</>,
-      <><strong>Personalizacja:</strong> Ukrywaj lub pokazuj konkretne sekcje. Jeśli korzystasz z nawyków, możesz wybrać dokładnie te, które chcesz śledzić.</>,
-      <><strong>Domyślne sortowanie:</strong> Skonfiguruj jak aplikacja ma układać elementy. </>,
-      <><strong>Powiadomienia:</strong> Zamiast włączać wszystko, wybierz powiadomienia, których potrzebujesz. </>,
-      <><strong>Zaufani użytkownicy:</strong> Dodawaj adresy e-mail osób, z którymi chcesz współdzielić dane np. zadania, wydarzenia, listy zakupów. </>,
-      <><strong>Lokalizacja:</strong> Udziel zgodę na lokalizację, aby pogoda, miejsca i transport mogły działać.</>,
-      <><strong>Wygląd:</strong> Aplikacja posiada wbudowany tryb ciemny i jasny, domyślnie dostosowując się do ustawień Twojego telefonu.</>
-    ]
-  }
+      <>
+        <K>Instalacja jako aplikacja (PWA).</K> Kliknij przycisk <em>Zainstaluj</em> w ustawieniach (pojawia się gdy przeglądarka obsługuje PWA). Na iOS: Safari → <em>Udostępnij</em> → <em>Dodaj do ekranu głównego</em>.
+      </>,
+      <>
+        <K>Tryb ciemny i jasny.</K> Przełącznik w prawym górnym rogu formularza ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.
+      </>,
+      <>
+        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów i miejsc.
+      </>,
+      <>
+        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z 6 typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie.
+      </>,
+      <>
+        <K>Zaufani użytkownicy.</K> Dodaj adresy email osób, z którymi chcesz współdzielić dane. Osoba musi mieć aktywne konto. Możesz dodać do 10 adresów.
+      </>,
+      <>
+        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne. Wymagane dla: Pogody, sortowania Miejsc po odległości i sekcji "Najbliżej" w Transporcie.
+      </>,
+      <>
+        <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie usuwa żadnych danych użytkownika.
+      </>,
+      <>
+        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia — pobierane na żywo z GitHub.
+      </>,
+    ],
+  },
 ];

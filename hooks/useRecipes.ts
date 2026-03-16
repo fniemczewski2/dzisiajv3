@@ -1,6 +1,7 @@
 // hooks/useRecipes.ts
+
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import type { Recipe, RecipeCategory } from "../types";
 import { useAuth } from "../providers/AuthProvider";
 
@@ -11,73 +12,49 @@ type NewRecipe = {
   description: string;
 };
 
-type UseRecipes = {
-  recipes: Recipe[];
-  products: string[];
-  loading: boolean;
-  error?: string;
-  refresh: () => Promise<void>;
-  addRecipe: (r: NewRecipe) => Promise<Recipe | null>;
-  editRecipe: (recipe: Recipe) => Promise<Recipe | null>;
-  deleteRecipe: (id: string) => Promise<void>;
-  suggestProducts: (q: string) => string[];
-};
-
-export function useRecipes(): UseRecipes {
+export function useRecipes() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [products, setProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>();
 
-  const fetchRecipes = async () => {
+  const fetchRecipes = useCallback(async (): Promise<Recipe[]> => {
     const { data, error } = await supabase
       .from("recipes")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
-
     if (error) throw error;
     return (data || []) as Recipe[];
-  };
+  }, [supabase, userId]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async (): Promise<string[]> => {
     const { data, error } = await supabase
       .from("products")
       .select("name")
       .eq("user_id", userId)
       .order("name", { ascending: true });
-
     if (error) throw error;
+    return ((data ?? []) as { name: string }[]).map((p) => p.name);
+  }, [supabase, userId]);
 
-    const rows = (data ?? []) as { name: string }[];
-    return rows.map((p) => p.name);
-  };
-
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (!userId) return;
-
     setLoading(true);
-    setError(undefined);
     try {
-      const [r, p] = await Promise.all([
-        fetchRecipes(),
-        fetchProducts(),
-      ]);
+      const [r, p] = await Promise.all([fetchRecipes(), fetchProducts()]);
       setRecipes(r);
       setProducts(p);
-    } catch (e: any) {
-      setError(e?.message || "Błąd podczas ładowania danych.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, fetchRecipes, fetchProducts]);
 
-  const addRecipe = async (r: NewRecipe): Promise<Recipe | null> => {
-    if (!userId) return null;
-
+  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
+  const addRecipe = async (r: NewRecipe): Promise<Recipe> => {
+    if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -91,23 +68,18 @@ export function useRecipes(): UseRecipes {
         })
         .select()
         .single();
-
       if (error) throw error;
-
       const newRecipe = data as Recipe;
       setRecipes((prev) => [newRecipe, ...prev]);
       return newRecipe;
-    } catch (e: any) {
-      setError(e?.message || "Błąd podczas dodawania przepisu.");
-      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const editRecipe = async (recipe: Recipe): Promise<Recipe | null> => {
-    if (!userId) return null;
-
+  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
+  const editRecipe = async (recipe: Recipe): Promise<Recipe> => {
+    if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -121,57 +93,39 @@ export function useRecipes(): UseRecipes {
         .eq("id", recipe.id)
         .select()
         .single();
-
       if (error) throw error;
-
-      const updatedRecipe = data as Recipe;
-      setRecipes((prev) =>
-        prev.map((r) => (r.id === recipe.id ? updatedRecipe : r))
-      );
-      return updatedRecipe;
-    } catch (e: any) {
-      setError(e?.message || "Błąd podczas edycji przepisu.");
-      return null;
+      const updated = data as Recipe;
+      setRecipes((prev) => prev.map((r) => (r.id === recipe.id ? updated : r)));
+      return updated;
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteRecipe = async (id: string) => {
-    if (!userId) return;
-
+  const deleteRecipe = async (id: string): Promise<void> => {
+    if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
     try {
-      await supabase.from("recipes").delete().eq("id", id);
+      const { error } = await supabase.from("recipes").delete().eq("id", id);
+      if (error) throw error;
       setRecipes((prev) => prev.filter((r) => r.id !== id));
-    } catch (e: any) {
-      setError(e?.message || "Błąd podczas usuwania przepisu.");
     } finally {
       setLoading(false);
     }
   };
 
-  const suggestProducts = useMemo(() => {
-    return (query: string) => {
+  const suggestProducts = useMemo(
+    () => (query: string) => {
       const q = query.toLowerCase().trim();
       if (!q) return [];
       return products.filter((p) => p.toLowerCase().includes(q)).slice(0, 5);
-    };
-  }, [products]);
+    },
+    [products]
+  );
 
   useEffect(() => {
     refresh();
-  }, [userId]);
+  }, [refresh]);
 
-  return {
-    recipes,
-    products,
-    loading,
-    error,
-    refresh,
-    addRecipe,
-    editRecipe,
-    deleteRecipe,
-    suggestProducts,
-  };
+  return { recipes, products, loading, refresh, addRecipe, editRecipe, deleteRecipe, suggestProducts };
 }

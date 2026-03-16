@@ -13,10 +13,12 @@ import { useSettings } from "../hooks/useSettings";
 import PushNotificationManager from '../components/settings/PushNotificationManager';
 import LoveButton from "../components/settings/LoveButton";
 import { useAuth } from "../providers/AuthProvider";
+import { useToast } from "../providers/ToastProvider";
 
 export default function SettingsPage() {
 
   const { user } = useAuth();
+  const { toast } = useToast();
   const {
     settings,
     setSettings,
@@ -61,10 +63,11 @@ export default function SettingsPage() {
           onUpdateUser={updateUser}
           onSave={saveSettings}
           onRestoreDefaults={() => {
-            if (window.confirm("Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane.")) {
-              setSettings(DEFAULT_SETTINGS);
-              updateSettings(DEFAULT_SETTINGS); 
-            }
+            const ok = toast.confirm("Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane.");
+            if (!ok) return;
+            setSettings(DEFAULT_SETTINGS);
+            updateSettings(DEFAULT_SETTINGS); 
+
           }}
         />
 
