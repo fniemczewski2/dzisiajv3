@@ -205,7 +205,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 gap-2">
                     {allDayEvents.map((item) => (
                       <DraggablePlanItem key={`side-event-${item.id}`} id={`side-event-${item.id}`} type="event">
-                        <PlanItem item={item} onMarkAsDoneTask={handleMarkAsDone} onDeleteTask={handleDeleteTaskWrapper} onRemoveFromSchedule={handleRemoveFromSchedule} onDeleteEvent={deleteEvent} />
+                        <PlanItem item={item} onMarkAsDoneTask={handleMarkAsDone} onRemoveFromSchedule={handleRemoveFromSchedule} />
                       </DraggablePlanItem>
                     ))}
                   </div>

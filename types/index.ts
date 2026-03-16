@@ -1,8 +1,10 @@
+// types/index.ts
+
 export type Task = {
   id: string;
   title: string;
-  for_user_id: string;
-  display_share_info?: string;
+  for_user_id?: string | null;
+  display_share_info?: string | null;
   category: string;
   priority: number;
   description: string;
@@ -41,9 +43,9 @@ export type Event = {
   end_time: string;
   place?: string;
   user_id: string;
-  shared_with_id?: string;
+  shared_with_id?: string | null;
   shared_with_email?: string;
-  display_share_info?: string;
+  display_share_info?: string | null;
   repeat: "none" | "weekly" | "monthly" | "yearly";
 };
 
@@ -55,9 +57,9 @@ export type Settings = {
   show_budget_items: boolean;
   show_notifications: boolean;
   show_mood_tracker: boolean;
-  
+
   users: string[];
-  favorite_stops:{ name: string; zone_id: string }[];
+  favorite_stops: { name: string; zone_id: string }[];
 
   sort_notes: string;
   sort_shopping: string;
@@ -127,7 +129,7 @@ export type Reminder = {
   tytul: string;
   data_poczatkowa: string;
   powtarzanie: number;
-  done: string | null; 
+  done: string | null;
 };
 
 export type WaterRow = { date: string; amount: number };
@@ -159,7 +161,7 @@ export interface Product {
 }
 
 export interface ScheduleItem {
-  time: string; 
+  time: string;
   label: string;
 }
 
@@ -168,8 +170,8 @@ export interface Schema {
   user_id?: string;
   name: string;
   days: number[];
-  entries: ScheduleItem[]; 
-  created_at?: string; 
+  entries: ScheduleItem[];
+  created_at?: string;
 }
 
 export interface ShoppingElement {
@@ -267,7 +269,6 @@ export interface Streak {
   created_at?: string;
 }
 
-// types/movie.ts
 export interface Movie {
   id: string;
   user_id: string;
@@ -289,8 +290,8 @@ export interface Departure {
   id: string;
   line: string;
   destination: string;
-  time: string; 
-  type: 'tram' | 'bus' | 'train';
+  time: string;
+  type: "tram" | "bus" | "train";
 }
 
 export interface MoodOption {
@@ -304,4 +305,96 @@ export interface MoodEntry {
   user_id: string;
   date: string;
   mood_id: string;
+}
+
+// ── Supabase RPC response types ───────────────────────────────────────────────
+// Replaces `as any[]` casts in hooks.
+// To generate full DB types run:
+//   npx supabase gen types typescript --project-id <id> > types/database.ts
+
+/** Row returned by get_emails_by_ids RPC */
+export interface EmailByIdRow {
+  id: string;
+  email: string;
+}
+
+/** Row returned by get_emails_by_ids used in push subscription lookup */
+export interface PushSubscriptionRow {
+  id: string;
+  user_id: string;
+  subscription: string | { endpoint: string; keys?: { p256dh: string; auth: string } };
+  user_agent?: string;
+  last_used?: string;
+}
+
+/** Settings row as returned from Supabase (all fields nullable — DB may not have them yet) */
+export interface SettingsRow {
+  sort_order: string | null;
+  show_completed: boolean | null;
+  show_habits: boolean | null;
+  show_water_tracker: boolean | null;
+  show_budget_items: boolean | null;
+  show_mood_tracker: boolean | null;
+  show_notifications: boolean | null;
+  users: string[] | string | null;
+  favorite_stops: { name: string; zone_id: string }[] | string | null;
+  notif_morning_brief: boolean | null;
+  notif_tasks: boolean | null;
+  notif_events: boolean | null;
+  notif_water: boolean | null;
+  notif_habits: boolean | null;
+  notif_evening: boolean | null;
+  sort_notes: string | null;
+  sort_shopping: string | null;
+  sort_movies: string | null;
+  sort_recipes: string | null;
+  sort_places: string | null;
+  habit_pills: boolean | null;
+  habit_bath: boolean | null;
+  habit_workout: boolean | null;
+  habit_friends: boolean | null;
+  habit_work: boolean | null;
+  habit_housework: boolean | null;
+  habit_plants: boolean | null;
+  habit_duolingo: boolean | null;
+  mood_options: MoodOption[] | null;
+}
+
+/** Stop row from the local stops table (transport module) */
+export interface StopRow {
+  stop_name: string;
+  zone_id: string;
+}
+
+/** Budget row — hourly rates per month */
+export interface BudgetRow {
+  user_id: string;
+  jan_rate: number;
+  feb_rate: number;
+  mar_rate: number;
+  apr_rate: number;
+  may_rate: number;
+  jun_rate: number;
+  jul_rate: number;
+  aug_rate: number;
+  sep_rate: number;
+  oct_rate: number;
+  nov_rate: number;
+  dec_rate: number;
+}
+
+/** daily_habits row as returned from Supabase */
+export interface DailyHabitsRow {
+  date: string;
+  user_id: string;
+  pills: boolean | null;
+  bath: boolean | null;
+  workout: boolean | null;
+  friends: boolean | null;
+  work: boolean | null;
+  housework: boolean | null;
+  plants: boolean | null;
+  duolingo: boolean | null;
+  water_amount: number | null;
+  daily_spending: number | null;
 }

@@ -1,3 +1,5 @@
+// hooks/useTimerEngine.ts
+
 import { useEffect, useRef, useState } from "react";
 import type { TimerPhase } from "../components/Timer";
 
@@ -11,26 +13,26 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
+  // Audio setup
   useEffect(() => {
-    audioRef.current = new Audio('/KBING.mp3');
-    audioRef.current.preload = 'auto';
-    
+    audioRef.current = new Audio("/KBING.mp3");
+    audioRef.current.preload = "auto";
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      audioRef.current?.pause();
+      audioRef.current = null;
     };
   }, []);
 
+  // Wake Lock — best-effort, nie blokuje działania timera
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
-        if ('wakeLock' in navigator && running && !paused) {
-          wakeLockRef.current = await navigator.wakeLock.request('screen');
+        if ("wakeLock" in navigator && running && !paused) {
+          wakeLockRef.current = await navigator.wakeLock.request("screen");
         }
       } catch (err) {
-        console.error('Wake Lock error:', err);
+        // WakeLock może być niedostępny (np. brak uprawnień, PWA poza foreground)
+        console.warn("[useTimerEngine] WakeLock unavailable:", err);
       }
     };
 
@@ -48,34 +50,36 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && running && !paused) {
+      if (document.visibilityState === "visible" && running && !paused) {
         requestWakeLock();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       releaseWakeLock();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [running, paused]);
 
+  // Audio — best-effort, nie blokuje działania timera
   const playSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(err => {
-        console.error('Error playing sound:', err);
+      audioRef.current.play().catch((err) => {
+        console.warn("[useTimerEngine] Audio playback failed:", err);
       });
     }
   };
 
+  // Reset seconds when phase changes and timer isn't running
   useEffect(() => {
     if (!running) {
       setSecondsLeft(phases[phaseIndex]?.seconds ?? 0);
     }
   }, [phaseIndex, phases, running]);
 
+  // Tick
   useEffect(() => {
     if (running && !paused) {
       intervalRef.current = window.setInterval(() => {
@@ -90,23 +94,21 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, [running, paused]);
 
+  // Phase/round transitions
   useEffect(() => {
     if (secondsLeft <= 0 && running) {
       playSound();
-      
       const nextPhase = phaseIndex + 1;
       if (nextPhase < phases.length) {
         setPhaseIndex(nextPhase);
         setSecondsLeft(phases[nextPhase].seconds);
+      } else if (round < rounds) {
+        setRound((r) => r + 1);
+        setPhaseIndex(0);
+        setSecondsLeft(phases[0].seconds);
       } else {
-        if (round < rounds) {
-          setRound((r) => r + 1);
-          setPhaseIndex(0);
-          setSecondsLeft(phases[0].seconds);
-        } else {
-          setRunning(false);
-          setPaused(false);
-        }
+        setRunning(false);
+        setPaused(false);
       }
     }
   }, [secondsLeft, running, phaseIndex, phases, round, rounds]);
@@ -119,7 +121,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   };
 
   const pause = () => setPaused((p) => !p);
-  
+
   const stop = () => {
     setRunning(false);
     setPaused(false);
@@ -129,15 +131,15 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   };
 
   const next = () => {
-    const nextPhase = Math.min(phaseIndex + 1, phases.length - 1);
-    setPhaseIndex(nextPhase);
-    setSecondsLeft(phases[nextPhase].seconds);
+    const idx = Math.min(phaseIndex + 1, phases.length - 1);
+    setPhaseIndex(idx);
+    setSecondsLeft(phases[idx].seconds);
   };
 
   const prev = () => {
-    const prevPhase = Math.max(phaseIndex - 1, 0);
-    setPhaseIndex(prevPhase);
-    setSecondsLeft(phases[prevPhase].seconds);
+    const idx = Math.max(phaseIndex - 1, 0);
+    setPhaseIndex(idx);
+    setSecondsLeft(phases[idx].seconds);
   };
 
   const jumpToPhase = (index: number) => {
@@ -147,18 +149,8 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   };
 
   return {
-    secondsLeft,
-    running,
-    paused,
-    phaseIndex,
-    round,
-    start,
-    pause,
-    stop,
-    next,
-    prev,
-    jumpToPhase,
-    setPhaseIndex,
-    setRound,
+    secondsLeft, running, paused, phaseIndex, round,
+    start, pause, stop, next, prev, jumpToPhase,
+    setPhaseIndex, setRound,
   };
 }

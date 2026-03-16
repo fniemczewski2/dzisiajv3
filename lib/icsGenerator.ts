@@ -72,7 +72,6 @@
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("generateSingleEventICS error:", err);
-      alert("Nie udało się wygenerować pliku .ics dla tego wydarzenia.");
+      throw new Error("Nie udało się wygenerować pliku .ics dla tego wydarzenia.");
     }
   };

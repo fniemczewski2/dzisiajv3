@@ -3,6 +3,9 @@
 import { SyntheticEvent, useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
+import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "../../providers/AuthProvider";
+import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
 import { AddButton, CancelButton } from "../CommonButtons";
 
@@ -11,57 +14,55 @@ interface ShoppingFormProps {
   onCancel?: () => void;
 }
 
+const MAX_LISTS = 5;
+
 export default function ShoppingForm({ onChange, onCancel }: ShoppingFormProps) {
   const { settings } = useSettings();
-  const { addShoppingList, loading } = useShoppingLists();  
+  const { lists, addShoppingList, loading } = useShoppingLists();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await addShoppingList(name.trim(), share.trim() || null);
+    if (lists.length >= MAX_LISTS) {
+      toast.error(`Możesz mieć maksymalnie ${MAX_LISTS} list zakupów.`);
+      return;
+    }
+
+    await withRetry(
+      () => addShoppingList(name.trim(), share.trim() || null),
+      toast,
+      { context: "ShoppingForm.addShoppingList", userId: user?.id }
+    );
+
+    toast.success("Dodano pomyślnie.");
+    setName(""); setShare("");
     onChange();
-    setName("");
-    setShare("");
-    if (onCancel) onCancel();
+    onCancel?.();
   };
 
   return (
     <form onSubmit={handleSubmit} className="form-card max-w-md">
       <div>
         <label htmlFor="name" className="form-label">Nazwa listy:</label>
-        <input
-          id="name"
-          type="text"
-          placeholder="np. Zakupy na weekend"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="input-field"
-          required
-          disabled={loading}
-        />
+        <input id="name" type="text" placeholder="np. Zakupy na weekend"
+          value={name} onChange={(e) => setName(e.target.value)}
+          className="input-field" required disabled={loading} />
       </div>
-
       <div>
         <label htmlFor="share" className="form-label">Udostępnij listę:</label>
-        <select
-          id="share"
-          value={share}
-          onChange={(e) => setShare(e.target.value)}
-          className="input-field"
-          disabled={loading}
-        >
+        <select id="share" value={share} onChange={(e) => setShare(e.target.value)}
+          className="input-field" disabled={loading}>
           <option value="">Tylko dla mnie</option>
-          {userOptions.map((email) => (
-            <option key={email} value={email}>{email}</option>
-          ))}
+          {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
         </select>
         <p className="text-xs text-textSubtle mt-1.5">
           Osoby, którym udostępnisz listę, będą mogły dodawać i odhaczać na niej produkty.
         </p>
       </div>
-
       <div className="flex space-x-3 items-center pt-2">
         <AddButton loading={loading} />
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}

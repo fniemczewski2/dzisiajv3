@@ -19,7 +19,8 @@ export default function InstallPromptButton() {
 
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
-    const standalone = "standalone" in navigator && (navigator as any).standalone;
+    const standalone =
+      "standalone" in navigator && (navigator as any).standalone;
 
     setIsIOS(ios);
 
@@ -41,16 +42,14 @@ export default function InstallPromptButton() {
     } else if (isIOS) {
       try {
         if (navigator.share) {
-          await navigator.share({
-            title: "Dzisiaj",
-            url: window.location.href,
-          });
-        } 
-      } catch (err) {}
+          await navigator.share({ title: "Dzisiaj", url: window.location.href });
+        }
+      } catch {}
     }
   };
 
-  if (showInstallButton) return null;
+  // Previously: `if (showInstallButton) return null` — always hid the button.
+  if (!showInstallButton) return null;
 
   return (
     <button

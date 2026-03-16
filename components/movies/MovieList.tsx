@@ -1,109 +1,127 @@
 "use client";
+// Naprawione:
+//   1. error z useMovies — hook po refaktorze nie eksportuje error state → usunięty
+//   2. handleAddMovie: if (result) — addMovie rzuca zamiast zwracać null → usunięty
+//   3. onUpdate={updateMovie} — MovieCard.onUpdate przyjmuje Movie (cały obiekt)
+//      zgodnie z naszą sygnaturą useMovies.updateMovie(movie: Movie) — ok
+//   4. Wszystkie mutacje owinięte w withRetry + toast feedback
+"use client";
 import React, { useState, useMemo } from "react";
 import { Loader2, Search } from "lucide-react";
 import { useMovies } from "../../hooks/useMovies";
-import { useSettings } from "../../hooks/useSettings"; // <--- DODANO
+import { useSettings } from "../../hooks/useSettings";
+import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "../../providers/AuthProvider";
+import { withRetry } from "../../lib/withRetry";
 import { AddButton } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
 import MovieCard from "./MovieCard";
 import NoResultsState from "../NoResultsState";
+import type { Movie } from "../../types";
 
 export default function MovieWatchlist() {
-  const {
-    movies,
-    loading,
-    error,
-    addMovie,
-    updateMovie,
-    deleteMovie,
-    toggleWatched,
-    updateNotes,
-  } = useMovies();
-  
-  const { settings } = useSettings(); // <--- DODANO
+  const { movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
+  const { settings } = useSettings();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
-const sortedMovies = useMemo(() => {
+  const retryOpts = { userId: user?.id };
+
+  const sortedMovies = useMemo(() => {
     const sortType = settings?.sort_movies || "updated_desc";
-
-    const sortFn = (a: any, b: any) => {
-      if (sortType === "alphabetical") {
-        return a.title.localeCompare(b.title, "pl");
-      }
-
+    const sortFn = (a: Movie, b: Movie) => {
+      if (sortType === "alphabetical") return a.title.localeCompare(b.title, "pl");
       if (sortType === "rating") {
-        const ratingA = a.rating ?? -1; 
-        const ratingB = b.rating ?? -1;
-        
-        if (ratingA !== ratingB) {
-          return ratingB - ratingA; // Malejąco
-        }
+        const diff = (b.rating ?? -1) - (a.rating ?? -1);
+        if (diff !== 0) return diff;
       }
-
-      // Domyślnie: updated_desc (zabezpieczone przed brakującymi datami)
-      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
-      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
-      return dateB - dateA; 
+      return (
+        new Date(b.updated_at || b.created_at || 0).getTime() -
+        new Date(a.updated_at || a.created_at || 0).getTime()
+      );
     };
-
-    const unwatched = movies.filter((m) => !m.watched).sort(sortFn);
-    const watched = movies.filter((m) => m.watched).sort(sortFn);
-
-    return [...unwatched, ...watched]; 
+    return [
+      ...movies.filter((m) => !m.watched).sort(sortFn),
+      ...movies.filter((m) => m.watched).sort(sortFn),
+    ];
   }, [movies, settings?.sort_movies]);
 
   const filteredMovies = useMemo(() => {
     if (!searchQuery.trim()) return sortedMovies;
-    const query = searchQuery.toLowerCase();
-    return sortedMovies.filter((movie) =>
-      movie.title.toLowerCase().includes(query) ||
-      movie.genre?.toLowerCase().includes(query) ||
-      movie.platform?.toLowerCase().includes(query)
+    const q = searchQuery.toLowerCase();
+    return sortedMovies.filter(
+      (m) => m.title.toLowerCase().includes(q) ||
+        m.genre?.toLowerCase().includes(q) ||
+        m.platform?.toLowerCase().includes(q)
     );
   }, [sortedMovies, searchQuery]);
 
-  const suggestions = useMemo(() => {
-    const titles = movies.map((m) => m.title);
-    return Array.from(new Set(titles)).sort();
-  }, [movies]);
+  const suggestions = useMemo(
+    () => Array.from(new Set(movies.map((m) => m.title))).sort(),
+    [movies]
+  );
 
   const resultsLabel = useMemo(() => {
-    const count = filteredMovies.length;
-    if (count === 1) return "Znaleziono: 1 film";
-    if (count < 5) return `Znaleziono: ${count} filmy`;
-    return `Znaleziono: ${count} filmów`;
+    const n = filteredMovies.length;
+    if (n === 1) return "Znaleziono: 1 film";
+    if (n < 5) return `Znaleziono: ${n} filmy`;
+    return `Znaleziono: ${n} filmów`;
   }, [filteredMovies.length]);
 
   const handleAddMovie = async (movieData: NewMovieData) => {
-    const result = await addMovie({
-      ...movieData,
-      watched: false,
-      notes: "",
-    });
+    await withRetry(
+      () => addMovie({ ...movieData, watched: false, notes: "" }),
+      toast,
+      { context: "MovieList.addMovie", ...retryOpts }
+    );
+    toast.success("Dodano pomyślnie.");
+    setShowAddForm(false);
+  };
 
-    if (result) {
-      setShowAddForm(false);
-    }
+  const handleToggleWatched = async (id: string) => {
+    await withRetry(
+      () => toggleWatched(id),
+      toast,
+      { context: "MovieList.toggleWatched", ...retryOpts }
+    );
+    toast.success("Zmieniono pomyślnie.");
+  };
+
+  const handleDelete = async (id: string) => {
+    await withRetry(
+      () => deleteMovie(id),
+      toast,
+      { context: "MovieList.deleteMovie", ...retryOpts }
+    );
+  };
+
+  const handleUpdate = async (movie: Movie) => {
+    await withRetry(
+      () => updateMovie(movie),
+      toast,
+      { context: "MovieList.updateMovie", ...retryOpts }
+    );
+  };
+
+  const handleSaveNotes = async (movieId: string, notes: string) => {
+    await withRetry(
+      () => updateNotes(movieId, notes),
+      toast,
+      { context: "MovieList.updateNotes", ...retryOpts }
+    );
   };
 
   const toggleNotes = (movieId: string) => {
     setExpandedNotes((prev) => {
       const next = new Set(prev);
-      if (next.has(movieId)) {
-        next.delete(movieId);
-      } else {
-        next.add(movieId);
-      }
+      next.has(movieId) ? next.delete(movieId) : next.add(movieId);
       return next;
     });
-  };
-
-  const handleSaveNotes = async (movieId: string, notes: string) => {
-    await updateNotes(movieId, notes);
   };
 
   if (loading && movies.length === 0) {
@@ -118,16 +136,8 @@ const sortedMovies = useMemo(() => {
     <>
       <div className="flex justify-between items-center mb-6 mt-2">
         <h2 className="text-2xl font-bold text-text">Filmy</h2>
-        {!showAddForm && (
-          <AddButton onClick={() => setShowAddForm(true)} type="button" />
-        )}
+        {!showAddForm && <AddButton onClick={() => setShowAddForm(true)} type="button" />}
       </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 font-medium">
-          {error}
-        </div>
-      )}
 
       {showAddForm && (
         <div className="mb-8">
@@ -140,13 +150,11 @@ const sortedMovies = useMemo(() => {
       )}
 
       <SearchBar
-        value={searchQuery}
-        onChange={setSearchQuery}
+        value={searchQuery} onChange={setSearchQuery}
         placeholder="Szukaj po tytule, gatunku lub platformie..."
         suggestions={suggestions}
         resultsCount={searchQuery ? filteredMovies.length : undefined}
         resultsLabel={searchQuery ? resultsLabel : undefined}
-        storageKey="movies-search"
         className="mb-8"
       />
 
@@ -156,7 +164,7 @@ const sortedMovies = useMemo(() => {
             {searchQuery ? (
               <>
                 <Search className="w-12 h-12 mx-auto mb-4 text-textMuted opacity-50" />
-                <p className="text-textSecondary font-medium">Nie znaleziono filmów pasujących do "{searchQuery}"</p>
+                <NoResultsState text="filmów" isSearch />
               </>
             ) : (
               <NoResultsState text="filmów" />
@@ -167,9 +175,9 @@ const sortedMovies = useMemo(() => {
             <MovieCard
               key={movie.id}
               movie={movie}
-              onToggleWatched={() => toggleWatched(movie.id)}
-              onDelete={() => deleteMovie(movie.id)}
-              onUpdate={updateMovie}
+              onToggleWatched={() => handleToggleWatched(movie.id)}
+              onDelete={() => handleDelete(movie.id)}
+              onUpdate={handleUpdate}
               expandedNotes={expandedNotes}
               toggleNotes={toggleNotes}
               onSaveNotes={handleSaveNotes}

@@ -1,133 +1,107 @@
 "use client";
+
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, Trash2, User } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../providers/AuthProvider";
+import { useToast } from "../../providers/ToastProvider";
+import { withRetry } from "../../lib/withRetry";
 import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 
 export default function ShoppingListView() {
   const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
   const { settings } = useSettings();
-  const { supabase } = useAuth(); // Potrzebne do wywołania funkcji RPC
+  const { user, supabase } = useAuth();
+  const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editedList, setEditedList] = useState<ShoppingList | null>(null);
-  
-  // Przechowujemy E-MAIL wybranej osoby do udostępnienia
   const [sharedEmail, setSharedEmail] = useState("");
-  
   const nameRef = useRef<HTMLInputElement>(null);
-
   const userOptions = settings?.users ?? [];
+  const retryOpts = { userId: user?.id };
 
-  // Focus na pole input przy rozpoczęciu edycji
   useEffect(() => {
-    if (editingId && nameRef.current) {
-      nameRef.current.focus();
-    }
+    if (editingId && nameRef.current) nameRef.current.focus();
   }, [editingId]);
 
-  // SORTOWANIE LIST ZAKUPÓW
   const sortedLists = useMemo(() => {
     const sortType = settings?.sort_shopping || "updated_desc";
     return [...lists].sort((a, b) => {
-      if (sortType === "alphabetical") {
-        return a.name.localeCompare(b.name, "pl");
-      }
-      const dateA = new Date((a as any).updated_at || (a as any).created_at || 0).getTime();
-      const dateB = new Date((b as any).updated_at || (b as any).created_at || 0).getTime();
-      return dateB - dateA;
+      if (sortType === "alphabetical") return a.name.localeCompare(b.name, "pl");
+      return (
+        new Date((b as any).updated_at || (b as any).created_at || 0).getTime() -
+        new Date((a as any).updated_at || (a as any).created_at || 0).getTime()
+      );
     });
   }, [lists, settings?.sort_shopping]);
 
-  // Wejście w tryb edycji - pobranie e-maila jeśli lista była udostępniona
   const handleEdit = async (list: ShoppingList) => {
     setEditingId(list.id);
     setEditedList({ ...list });
-    
     if (list.shared_with_id) {
-      const { data, error } = await supabase.rpc('get_email_by_user_id', { 
-        target_uuid: list.shared_with_id 
+      const { data, error } = await supabase.rpc("get_email_by_user_id", {
+        target_uuid: list.shared_with_id,
       });
-      if (data && !error) {
-        setSharedEmail(data);
-      } else {
-        setSharedEmail("");
-      }
+      setSharedEmail(!error && data ? data : "");
     } else {
       setSharedEmail("");
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(undefined);
-    setEditedList(null);
-    setSharedEmail("");
-  };
+  const handleCancelEdit = () => { setEditingId(undefined); setEditedList(null); setSharedEmail(""); };
 
   const handleSaveEdit = async () => {
-    if (editedList?.id) {
-      let targetUserId = null;
-
-      // Jeśli wybrano e-mail z listy, zamieniamy go z powrotem na ID użytkownika
-      if (sharedEmail) {
-        const { data, error } = await supabase.rpc('get_user_id_by_email', { 
-          email_address: sharedEmail 
-        });
-
-        if (data && !error) {
-          targetUserId = data;
-        } else {
-          alert("Błąd: Nie znaleziono użytkownika o takim adresie e-mail w bazie.");
-          return;
-        }
-      }
-
-      await editShoppingList(editedList.id, {
-        name: editedList.name,
-        shared_with_id: targetUserId, // Zapisujemy zdekodowane ID (lub null)
+    if (!editedList?.id) return;
+    let targetUserId: string | null = null;
+    if (sharedEmail) {
+      const { data, error } = await supabase.rpc("get_user_id_by_email", {
+        email_address: sharedEmail,
       });
-      
-      setEditingId(undefined);
-      setEditedList(null);
-      setSharedEmail("");
+      if (error || !data) {
+        toast.error("Nie znaleziono użytkownika o takim adresie e-mail.");
+        return;
+      }
+      targetUserId = data;
     }
+    await withRetry(
+      () => editShoppingList(editedList.id!, { name: editedList.name, shared_with_id: targetUserId }),
+      toast,
+      { context: "ShoppingListView.editShoppingList", ...retryOpts }
+    );
+    toast.success("Zmieniono pomyślnie.");
+    setEditingId(undefined); setEditedList(null); setSharedEmail("");
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Czy na pewno chcesz usunąć tę listę zakupów?")) return;
-    await deleteShoppingList(id);
+    const ok = await toast.confirm("Czy na pewno chcesz usunąć tę listę zakupów?");
+    if (!ok) return;
+    await withRetry(
+      () => deleteShoppingList(id),
+      toast,
+      { context: "ShoppingListView.deleteShoppingList", ...retryOpts }
+    );
+    toast.success("Usunięto pomyślnie.");
   };
 
+  // Fire-and-forget inline mutations — brak UX feedback celowo (checkbox toggle)
   const toggleElement = (list: ShoppingList, elId: string) => {
-    const updated = list.elements.map((el) =>
-      el.id === elId ? { ...el, completed: !el.completed } : el
-    );
-    if (list.id) {
-      editShoppingList(list.id, { elements: updated });
-    } 
+    const updated = list.elements.map((el) => el.id === elId ? { ...el, completed: !el.completed } : el);
+    if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);
   };
 
   const addElement = (list: ShoppingList, text: string) => {
     if (!text.trim()) return;
-    const updated = [
-      ...list.elements,
-      { id: crypto.randomUUID(), text: text.trim(), completed: false },
-    ];
-    if (list.id) {
-      editShoppingList(list.id, { elements: updated });
-    }
+    const updated = [...list.elements, { id: crypto.randomUUID(), text: text.trim(), completed: false }];
+    if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);
   };
 
   const removeElement = (list: ShoppingList, elId: string) => {
     const updated = list.elements.filter((el) => el.id !== elId);
-    
-    if (list.id) {
-      editShoppingList(list.id, { elements: updated });
-    }
+    if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);
   };
 
   return (
@@ -135,41 +109,25 @@ export default function ShoppingListView() {
       {sortedLists.map((list) => {
         const isEditing = editingId === list.id;
 
-        // ===== TRYB EDYCJI =====
         if (isEditing && editedList) {
           return (
-            <li
-              key={list.id}
-              className="p-5 break-inside-avoid card rounded-2xl shadow-lg space-y-4 animate-in fade-in"
-            >
+            <li key={list.id} className="p-5 break-inside-avoid card rounded-2xl shadow-lg space-y-4 animate-in fade-in">
               <div className="space-y-4">
                 <div>
                   <label className="form-label">Nazwa listy:</label>
-                  <input 
-                    ref={nameRef} 
-                    type="text" 
-                    value={editedList.name} 
-                    onChange={(e) => setEditedList({ ...editedList, name: e.target.value })} 
-                    className="input-field font-medium" 
-                  />
+                  <input ref={nameRef} type="text" value={editedList.name}
+                    onChange={(e) => setEditedList({ ...editedList, name: e.target.value })}
+                    className="input-field font-medium" />
                 </div>
-                
                 {userOptions.length > 0 && (
                   <div>
                     <label className="form-label">Udostępnij dla:</label>
-                    <select 
-                      value={sharedEmail} 
-                      onChange={(e) => setSharedEmail(e.target.value)} 
-                      className="input-field"
-                    >
+                    <select value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field">
                       <option value="">Tylko dla mnie</option>
-                      {userOptions.map((email) => (
-                        <option key={email} value={email}>{email}</option>
-                      ))}
+                      {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
                     </select>
                   </div>
                 )}
-
                 <div className="flex justify-end gap-2 pt-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                   <SaveButton onClick={handleSaveEdit} type="button" />
                   <CancelButton onCancel={handleCancelEdit} />
@@ -189,12 +147,8 @@ export default function ShoppingListView() {
           );
         }
 
-        // ===== TRYB WIDOKU / NORMALNY =====
         return (
-          <li
-            key={list.id}
-            className="p-5 break-inside-avoid card rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full"
-          >
+          <li key={list.id} className="p-5 break-inside-avoid card rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1 mr-4 min-w-0">
                 <h3 className="font-bold text-lg text-text leading-tight truncate">{list.name}</h3>
@@ -210,62 +164,43 @@ export default function ShoppingListView() {
                 <DeleteButton onClick={() => handleDelete(list.id || "")} />
               </div>
             </div>
-
             <ul className="list-none mb-4 flex-1 space-y-1">
               {list.elements.map((el) => (
                 <li key={el.id} className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${el.completed ? "line-through text-textMuted" : "text-text"}`}>
                   <div className="flex items-center flex-1 gap-3 min-w-0">
-                    <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)} className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
+                    <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)}
+                      className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
-                  <button onClick={() => removeElement(list, el.id)} className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0 transition-colors" title="Usuń produkt">
+                  <button onClick={() => removeElement(list, el.id)}
+                    className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0 transition-colors" title="Usuń produkt">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </li>
               ))}
-              {list.elements.length === 0 && (
-                <div className="mt-4">
-                  <NoResultsState text="produktów na liście" />
-                </div>
-              )}
+              {list.elements.length === 0 && <div className="mt-4"><NoResultsState text="produktów na liście" /></div>}
             </ul>
-
             <div className="mt-auto">
               <AddElementForm onAdd={(text) => addElement(list, text)} />
             </div>
           </li>
         );
       })}
-
-      {lists.length === 0 && (
-        <div className="col-span-full">
-          <NoResultsState text="list zakupów" />
-        </div>
-      )}
+      {lists.length === 0 && <div className="col-span-full"><NoResultsState text="list zakupów" /></div>}
     </ul>
   );
 }
 
 function AddElementForm({ onAdd }: { onAdd: (text: string) => void }) {
   const [text, setText] = useState("");
-
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (text.trim()) {
-      onAdd(text);
-      setText("");
-    }
+    if (text.trim()) { onAdd(text); setText(""); }
   };
-
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-      <input
-        type="text"
-        placeholder="Nowy produkt..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="input-field py-2 flex-1 min-w-0"
-      />
+      <input type="text" placeholder="Nowy produkt..." value={text}
+        onChange={(e) => setText(e.target.value)} className="input-field py-2 flex-1 min-w-0" />
       <button className="flex items-center justify-center px-4 bg-primary text-white font-bold rounded-xl hover:bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt">
         <Plus className="w-5 h-5" />
       </button>

@@ -15,7 +15,7 @@ export default async function handler(
   const { lat, lng, name } = req.query;
 
   if (!GOOGLE_PLACES_API_KEY) {
-    console.error("GOOGLE_PLACES_API_KEY is not configured");
+    throw new Error("Wystąpił błąd klucza API");
     return res.status(500).json({ error: "API key not configured" });
   }
 
@@ -70,7 +70,7 @@ export default async function handler(
         name,
         lat,
         lng,
-        suggested_tags: tags, // Return suggested tags even without Google data
+        suggested_tags: tags, 
       });
     }
 
@@ -81,8 +81,8 @@ export default async function handler(
     const detailsData = await detailsResponse.json();
 
     if (detailsData.status !== "OK") {
-      console.error(
-        `Google Places API error: ${detailsData.status}`,
+      throw new Error(
+        `Wystąpił błąd Google Places API.`,
         detailsData.error_message
       );
       return res.status(400).json({
@@ -104,7 +104,7 @@ export default async function handler(
       auto_tags: autoTags,
     });
   } catch (error: any) {
-    console.error("Error fetching place details:", error);
+    throw new Error("Błąd pobierania szczegółów miejsca.");
     res.status(500).json({
       error: "Failed to fetch place details",
       message: error.message,

@@ -1,10 +1,11 @@
+// components/calendar/CalendarCell.tsx
 import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
-import { ListTodo } from "lucide-react";
-import React, { useMemo } from "react"; // <-- DODANO IMPORT
+import { Calendar, ListTodo } from "lucide-react";
+import React, { memo, useMemo } from "react";
 import { getAppDate } from "../../lib/dateUtils";
 import { useSettings } from "../../hooks/useSettings";
-import { MoodEntry, MoodOption } from "../../types"; // <-- DODANO MoodOption
+import { MoodEntry, MoodOption } from "../../types";
 
 interface Props {
   date: Date;
@@ -15,10 +16,27 @@ interface Props {
   onClick: () => void;
   dayMood?: MoodEntry | null;
   DEFAULT_MOODS: MoodOption[];
-  holiday?: string; 
+  holiday?: string;
 }
 
-const CalendarCell: React.FC<Props> = ({
+// ── Niestandardowy komparator dla React.memo ──────────────────────────────────
+// Porównujemy tylko pola które faktycznie wpływają na wygląd komórki.
+// date porównujemy przez getTime() — instancje Date nie są referencyjnie równe.
+function areEqual(prev: Props, next: Props): boolean {
+  return (
+    prev.date.getTime() === next.date.getTime() &&
+    prev.currentMonth === next.currentMonth &&
+    prev.tCount === next.tCount &&
+    prev.eCount === next.eCount &&
+    prev.isMobile === next.isMobile &&
+    prev.onClick === next.onClick &&
+    prev.dayMood?.mood_id === next.dayMood?.mood_id &&
+    prev.holiday === next.holiday
+    // DEFAULT_MOODS jest stałą — nie porównujemy referencyjnie
+  );
+}
+
+const CalendarCell = memo(function CalendarCell({
   date,
   currentMonth,
   tCount,
@@ -27,29 +45,30 @@ const CalendarCell: React.FC<Props> = ({
   onClick,
   dayMood,
   DEFAULT_MOODS,
-  holiday
-}) => {
+  holiday,
+}: Props) {
   const today = parseISO(getAppDate());
   const isOutside = date.getMonth() !== currentMonth;
   const isToday = isSameDay(date, today);
-  const { settings } = useSettings(); // <-- POPRAWIONO DESTRUKTURYZACJĘ
-  
+  const { settings } = useSettings();
+
   const moodOption = useMemo(() => {
     if (!dayMood) return null;
     return (
-      settings?.mood_options?.find((o: any) => o.id === dayMood.mood_id) || 
-      DEFAULT_MOODS.find(o => o.id === dayMood.mood_id)
+      settings?.mood_options?.find(
+        (o: MoodOption) => o.id === dayMood.mood_id
+      ) ?? DEFAULT_MOODS.find((o) => o.id === dayMood.mood_id)
     );
-  }, [dayMood, settings, DEFAULT_MOODS]);
-  
+  }, [dayMood, settings?.mood_options, DEFAULT_MOODS]);
+
   return (
     <div
       className={clsx(
         "flex flex-col relative justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200",
-        isOutside 
-          ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface" 
+        isOutside
+          ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface"
           : "card shadow-sm hover:shadow-md",
-        isToday && "ring-1 ring-primary",
+        isToday && "ring-1 ring-primary"
       )}
       onClick={onClick}
     >
@@ -59,14 +78,18 @@ const CalendarCell: React.FC<Props> = ({
             "text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors",
             isToday ? "bg-primary text-white" : "text-text",
             isOutside && !isToday && "text-textMuted",
-            holiday && ( !isToday ? "text-red-600 dark:text-red-400" : "bg-red-600 dark:bg-red-400/80")
+            holiday &&
+              (!isToday
+                ? "text-red-600 dark:text-red-400"
+                : "bg-red-600 dark:bg-red-400/80")
           )}
         >
           {date.getDate()}
         </div>
-        {(moodOption && isMobile) && (
-          <div 
-            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full absolute top-1 right-1 shadow-sm" 
+
+        {moodOption && isMobile && (
+          <div
+            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full absolute top-1 right-1 shadow-sm"
             style={{ backgroundColor: moodOption.color }}
             title={moodOption.label}
           />
@@ -78,25 +101,25 @@ const CalendarCell: React.FC<Props> = ({
               <ListTodo size={12} />
               {tCount}
             </div>
-            
           )}
-          
-          {eCount && (
-            <div className="flex items-center justify-center px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/70 rounded-md text-[10px] font-bold">
+          {(eCount !=0 && !isMobile) && (
+            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
+              <Calendar size={12} />
               +{eCount}
             </div>
           )}
           {!isMobile && (
-          <div 
-            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shadow-sm" 
-            style={{ backgroundColor: moodOption?.color }}
-            title={moodOption?.label}
-          />
+            <div
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shadow-sm"
+              style={{ backgroundColor: moodOption?.color }}
+              title={moodOption?.label}
+            />
           )}
         </div>
       </div>
     </div>
   );
-};
+},
+areEqual);
 
 export default CalendarCell;

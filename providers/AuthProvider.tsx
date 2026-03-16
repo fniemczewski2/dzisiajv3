@@ -14,7 +14,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Tworzymy klienta domyślnie używając tylko bezpiecznego anon_key
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -39,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           });
 
           if (error) {
-            console.error("Błąd automatycznego logowania DEV:", error.message);
+            throw new Error("Błąd automatycznego logowania DEV");
           } else if (isMounted) {
             setUser(signInData.user);
           }
@@ -47,7 +46,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.warn("Brak NEXT_PUBLIC_USER_EMAIL lub NEXT_PUBLIC_USER_PASSWORD w .env");
         }
       } else if (isMounted) {
-        // 3. Tryb produkcji (lub jeśli już jest sesja w DEV) - przypisujemy usera
         setUser(session?.user ?? null);
       }
 
@@ -58,7 +56,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initAuth();
 
-    // 4. Nasłuchiwanie na zmiany sesji (np. gdy użytkownik kliknie "Wyloguj")
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (isMounted) {
         setUser(session?.user ?? null);

@@ -13,10 +13,12 @@ import { Streak } from "../types";
 import { AddButton } from "../components/CommonButtons";
 import { useAuth } from "../providers/AuthProvider";
 import NoResultsState from "../components/NoResultsState";
+import { useToast } from "../providers/ToastProvider";
 
 export default function StreaksPage() {
   const { user } = useAuth();
   const userId = user?.id;
+  const { toast } = useToast();
 
   const { streaks, loading, refetch, deleteStreak, updateStreak, getMilestoneMessage } = useStreaks();
   const [showForm, setShowForm] = useState(false);
@@ -30,9 +32,9 @@ export default function StreaksPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Czy na pewno chcesz usunąć ten cel?")) {
-      await deleteStreak(id);
-    }
+    const ok = await toast.confirm("Czy na pewno chcesz usunąć ten cel?");
+    if (!ok) return;
+    await deleteStreak(id);
   };
 
   const handleFormChange = () => {

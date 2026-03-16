@@ -17,6 +17,7 @@ import {
 } from "../../components/CommonButtons";
 import { formatDate } from "../../lib/dateUtils";
 import { format } from "date-fns";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function ReportsPage() {
   const { reports, loading, editReport, deleteReport } = useReports();
@@ -25,6 +26,7 @@ export default function ReportsPage() {
   const [editedReport, setEditedReport] = useState<Report | null>(null);
   const [showForm, setShowForm] = useState(false);
   const topicRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (editingId && topicRef.current) {
@@ -53,7 +55,8 @@ export default function ReportsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Czy na pewno chcesz usunąć sprawozdanie?")) return;
+    const ok = await toast.confirm("Czy na pewno chcesz usunąć to sprawozdanie?");
+    if (!ok) return;
     await deleteReport(id);
   };
 

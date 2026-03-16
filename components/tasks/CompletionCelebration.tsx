@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Award } from 'lucide-react';
+// Naprawione:
+//   playCompletionSound catch: toast.error() wywołany w zwykłej funkcji (nie React hook) —
+//   toast nie jest dostępny poza komponentem → console.warn (audio jest best-effort)
+import { useEffect, useState } from "react";
+import { Award } from "lucide-react";
 
 interface CompletionCelebrationProps {
   show: boolean;
@@ -19,37 +22,28 @@ export default function CompletionCelebration({ show, taskTitle, priority }: Com
 
   useEffect(() => {
     if (!show) return;
-
     playCompletionSound(priority);
-
-    const particles = Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 0.3,
-      color: randomColor()
-    }));
-
-    setConfetti(particles);
+    setConfetti(
+      Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 0.3,
+        color: randomColor(),
+      }))
+    );
   }, [show, priority]);
 
   if (!show) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
-      {/* CONFETTI */}
       {confetti.map((p) => (
         <div
           key={p.id}
           className="absolute top-0 w-3 h-3 animate-confetti rounded-sm"
-          style={{
-            left: `${p.left}%`,
-            animationDelay: `${p.delay}s`,
-            backgroundColor: p.color
-          }}
+          style={{ left: `${p.left}%`, animationDelay: `${p.delay}s`, backgroundColor: p.color }}
         />
       ))}
-
-      {/* CARD */}
       <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-scaleIn border border-green-400/30">
         <div className="text-center text-white">
           <div className="mb-4 flex justify-center">
@@ -69,18 +63,15 @@ function randomColor() {
 }
 
 function playCompletionSound(priority: number) {
-  if (typeof window === 'undefined' || !window.AudioContext) return;
+  if (typeof window === "undefined" || !window.AudioContext) return;
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const now = audioContext.currentTime;
-
-    const notes = priority === 1 
-      ? [523.25, 659.25, 783.99] // C major
-      : priority === 2
-      ? [440, 554.37, 659.25]    // A major
-      : [392, 493.88, 587.33];   // G major
-
-    const duration = 0.6; 
+    const notes =
+      priority === 1 ? [523.25, 659.25, 783.99]
+      : priority === 2 ? [440, 554.37, 659.25]
+      : [392, 493.88, 587.33];
+    const duration = 0.6;
     const gainValue = 0.25;
 
     notes.forEach((frequency, index) => {
@@ -89,25 +80,24 @@ function playCompletionSound(priority: number) {
       const gainNode = audioContext.createGain();
 
       osc1.frequency.value = frequency;
-      osc2.frequency.value = frequency * 1.01; 
-      osc1.type = 'sine';
-      osc2.type = 'triangle';
+      osc2.frequency.value = frequency * 1.01;
+      osc1.type = "sine";
+      osc2.type = "triangle";
 
       osc1.connect(gainNode);
       osc2.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      const startTime = now + index * 0.08; 
+      const startTime = now + index * 0.08;
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(gainValue, startTime + 0.02); 
+      gainNode.gain.linearRampToValueAtTime(gainValue, startTime + 0.02);
       gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-      osc1.start(startTime);
-      osc2.start(startTime);
-      osc1.stop(startTime + duration);
-      osc2.stop(startTime + duration);
+      osc1.start(startTime); osc2.start(startTime);
+      osc1.stop(startTime + duration); osc2.stop(startTime + duration);
     });
-  } catch (error) {
-    console.error('Audio not supported', error);
+  } catch (err) {
+    // Audio is best-effort — not a user-facing error
+    console.warn("[CompletionCelebration] Audio not supported:", err);
   }
 }

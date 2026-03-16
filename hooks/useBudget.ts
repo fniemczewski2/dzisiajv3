@@ -82,7 +82,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       return monthData;
     } catch (error) {
-      console.error(`Error fetching data for month ${month}:`, error);
+      throw new Error(`Error fetching data for month ${month}`);
       return getEmptyMonthData();
     }
   };
@@ -144,7 +144,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         return newSet;
       });
     } catch (error) {
-      console.error("Error loading budget data:", error);
+      throw new Error("Wystąpił błąd pobierania danych");
     } finally {
       setLoading(false);
     }

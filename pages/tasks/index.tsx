@@ -120,7 +120,7 @@ export default function TasksPage() {
         </div>
 
         {/* PASEK FILTRÓW I TRYBU SKUPIENIA */}
-        <div className="flex items-center justify-between mb-6 card p-2 rounded-2xl shadow-sm w-fit gap-2">
+        <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm w-fit gap-2">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (
@@ -128,7 +128,7 @@ export default function TasksPage() {
                   key={opt.value}
                   onClick={() => setDateFilter(opt.value)}
                   title={opt.title}
-                  className={`p-2.5 sm:px-3 sm:py-2 rounded-xl transition-all duration-200 flex items-center justify-center ${
+                  className={`p-2.5 sm:px-3 sm:py-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
                     dateFilter === opt.value
                       ? "bg-primary text-white shadow-md scale-105"
                       : "bg-transparent text-textMuted hover:text-text hover:bg-surface"
