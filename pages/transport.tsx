@@ -10,7 +10,6 @@ import NoResultsState from "../components/NoResultsState";
 import LoadingState from "../components/LoadingState";
 import { useToast } from "../providers/ToastProvider";
 
-// Rozszerzony typ dla lokalnych wyników wyszukiwania
 interface LocalSearchResult {
   name: string;
   zone_id: string;
@@ -18,8 +17,9 @@ interface LocalSearchResult {
 }
 
 export default function TransportPage() {
-  const { supabase } = useAuth();
+  const { supabase } = useAuth(); // Zwracamy supabase do bezpośrednich zapytań!
   const { toast } = useToast();
+  
   const {
     nearbyGroups,
     favoritesGroups,
@@ -29,7 +29,7 @@ export default function TransportPage() {
     fetchFavorites,
   } = useTransport(true);
 
-  const { settings, addFavoriteStop, removeFavoriteStop } = useSettings();
+  const { settings, addFavoriteStop, removeFavoriteStop, loading: settingsLoading } = useSettings();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LocalSearchResult[]>([]);
@@ -40,15 +40,17 @@ export default function TransportPage() {
 
   // Efekt dla ulubionych przystanków
   useEffect(() => {
+    if (settingsLoading) return;
+
     try {
       const stops = JSON.parse(favoritesJSON);
       fetchFavorites(stops);
     } catch (e) {
       toast.error("Wystąpił błąd pobierania ulubionych przystanków");
     }
-  }, [favoritesJSON, fetchFavorites]);
+  }, [favoritesJSON, fetchFavorites, settingsLoading]);
 
-  // Logika Wyszukiwarki (Lokalna baza Supabase)
+  // Wyszukiwarka korzystająca bezpośrednio z Twojej tabeli 'stops'
   useEffect(() => {
     const loadSuggestions = async () => {
       if (!searchQuery || searchQuery.trim().length < 2) {
@@ -57,6 +59,7 @@ export default function TransportPage() {
         return;
       }
 
+      // Bezpośrednie zapytanie do Twojej bazy danych
       const { data, error } = await supabase
         .from("stops")
         .select("stop_name, zone_id")
@@ -64,6 +67,7 @@ export default function TransportPage() {
         .limit(30);
 
       if (error || !data) {
+        console.error("Błąd wyszukiwania przystanków:", error);
         setSuggestions([]);
         setSearchResults([]);
         return;
@@ -72,14 +76,16 @@ export default function TransportPage() {
       const uniqueStops = new Map<string, LocalSearchResult>();
 
       (data as any[]).forEach((stop) => {
+        if (!stop.stop_name) return;
+
         if (!uniqueStops.has(stop.stop_name)) {
           const isSzczecin = stop.zone_id === "S";
-          const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id}`;
+          const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id || ""}`;
           const displayString = `${stop.stop_name} (${cityName})`.trim();
 
           uniqueStops.set(stop.stop_name, {
             name: stop.stop_name,
-            zone_id: stop.zone_id,
+            zone_id: stop.zone_id || "AUTO",
             displayString: displayString,
           });
         }
@@ -93,6 +99,27 @@ export default function TransportPage() {
     const debounce = setTimeout(loadSuggestions, 300);
     return () => clearTimeout(debounce);
   }, [searchQuery, supabase]);
+
+  // Funkcja obsługująca bezpieczne wybranie sugestii z SearchBara
+  const handleSuggestionClick = (value: string | any) => {
+    const strValue = typeof value === 'string' ? value : value?.target?.innerText || "";
+    if (!strValue) return;
+
+    const selectedStop = searchResults.find((s) => s.displayString === strValue);
+    
+    if (selectedStop) {
+      addFavoriteStop(selectedStop.name, selectedStop.zone_id);
+      toast.success(`Dodano do ulubionych: ${selectedStop.name}`);
+    } else {
+      const fallbackName = strValue.split(" (")[0];
+      addFavoriteStop(fallbackName, "AUTO");
+      toast.success(`Dodano do ulubionych: ${fallbackName}`);
+    }
+    
+    setSearchQuery("");
+    setSuggestions([]);
+    setSearchResults([]);
+  };
 
   return (
     <>
@@ -110,18 +137,7 @@ export default function TransportPage() {
             onChange={setSearchQuery}
             placeholder="Wyszukaj przystanek..."
             suggestions={suggestions}
-            onSuggestionClick={(value) => {
-              const selectedStop = searchResults.find((s) => s.displayString === value);
-              if (selectedStop) {
-                addFavoriteStop(selectedStop.name, selectedStop.zone_id);
-              } else {
-                const fallbackName = value.split(" (")[0];
-                addFavoriteStop(fallbackName, "AUTO");
-              }
-              setSearchQuery("");
-              setSuggestions([]);
-              setSearchResults([]);
-            }}
+            onSuggestionClick={handleSuggestionClick}
           />
 
           <section>
@@ -148,6 +164,7 @@ export default function TransportPage() {
               )}
             </div>
           </section>
+          
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
             <div className="card rounded-xl shadow-sm overflow-hidden">
@@ -158,7 +175,7 @@ export default function TransportPage() {
               {locationError && (
                 <div className="text-center py-10 w-md h-md" >
                     <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
-                    <p className="text-textSecondary">Nie udało się uzyskać  lokalizacji.</p>
+                    <p className="text-textSecondary">Nie udało się uzyskać lokalizacji.</p>
                 </div>
               )}
 

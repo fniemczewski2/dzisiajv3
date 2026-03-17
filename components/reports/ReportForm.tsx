@@ -49,6 +49,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
       { context: "ReportForm.addReport", userId: user?.id }
     );
 
+    // FIX: toast.success BEFORE onCancel to avoid unmount race
     toast.success("Dodano pomyślnie.");
     if (topicRef.current) topicRef.current.value = "";
     if (dateRef.current)  dateRef.current.value  = getAppDate();

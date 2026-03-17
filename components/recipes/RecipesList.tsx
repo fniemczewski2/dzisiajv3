@@ -16,8 +16,14 @@ const CATEGORIES: RecipeCategory[] = [
   "śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser",
 ];
 
-export default function RecipesList() {
-  const { recipes, products, deleteRecipe, editRecipe } = useRecipes();
+interface RecipesListProps {
+  // FIX: refreshToken triggers a re-fetch without unmounting the component.
+  // When the parent increments this, useEffect runs refresh().
+  refreshToken?: number;
+}
+
+export default function RecipesList({ refreshToken }: RecipesListProps) {
+  const { recipes, products, deleteRecipe, editRecipe, refresh } = useRecipes();
   const { settings } = useSettings();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -31,6 +37,13 @@ export default function RecipesList() {
   const [prodInput, setProdInput] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
   const retryOpts = { userId: user?.id };
+
+  // FIX: when refreshToken changes, re-fetch recipes (without unmounting)
+  useEffect(() => {
+    if (refreshToken !== undefined) {
+      refresh();
+    }
+  }, [refreshToken]);
 
   useEffect(() => {
     if (editingId && nameRef.current) nameRef.current.focus();
@@ -66,6 +79,7 @@ export default function RecipesList() {
     setProdFilter((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
   const toggleOpen = (id: string) => setOpenId((prev) => prev === id ? null : id);
 
+  // FIX: await toast.confirm, add toast.success
   const handleDelete = async (id: string) => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć ten przepis?");
     if (!ok) return;
@@ -81,6 +95,7 @@ export default function RecipesList() {
 
   const handleCancelEdit = () => { setEditingId(null); setEditedRecipe(null); setProdInput(""); };
 
+  // FIX: add toast.success
   const handleSaveEdit = async () => {
     if (!editedRecipe) return;
     await withRetry(async () => { await editRecipe(editedRecipe); }, toast, { context: "RecipesList.editRecipe", ...retryOpts });
@@ -128,16 +143,12 @@ export default function RecipesList() {
               <button key={p} onClick={() => toggleProd(p)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
                   prodFilter.includes(p) ? "bg-primary text-white border-primary shadow-sm" : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
-                }`}>
-                {p}
-              </button>
+                }`}>{p}</button>
             ))}
           </div>
           {prodFilter.length > 0 && (
             <button className="mt-4 w-full py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
-              onClick={() => setProdFilter([])}>
-              Wyczyść filtry składników
-            </button>
+              onClick={() => setProdFilter([])}>Wyczyść filtry składników</button>
           )}
         </div>
       )}
@@ -176,7 +187,7 @@ export default function RecipesList() {
                       </button>
                     </div>
                     {suggestions.length > 0 && (
-                      <div className="mt-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-surface shadow-lg max-h-40 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800 custom-scrollbar">
+                      <div className="mt-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-surface shadow-lg max-h-40 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
                         {suggestions.map((s) => (
                           <button key={s} type="button" onClick={() => commitProduct(s)}
                             className="w-full text-left px-4 py-2 hover:bg-card text-sm font-medium transition-colors">{s}</button>

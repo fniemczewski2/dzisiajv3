@@ -2,23 +2,25 @@
 
 import { SyntheticEvent, useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
-import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
 import { AddButton, CancelButton } from "../CommonButtons";
+import { ShoppingList } from "../../types";
 
 interface ShoppingFormProps {
   onChange: () => void;
   onCancel?: () => void;
+  lists: ShoppingList[];
+  loading: boolean;
+  addShoppingList: (name: string, shared_with_email: string | null) => Promise<boolean>;
 }
 
 const MAX_LISTS = 5;
 
-export default function ShoppingForm({ onChange, onCancel }: ShoppingFormProps) {
+export default function ShoppingForm({ onChange, onCancel, lists, loading, addShoppingList }: ShoppingFormProps) {
   const { settings } = useSettings();
-  const { lists, addShoppingList, loading } = useShoppingLists();
   const { toast } = useToast();
   const { user } = useAuth();
   const [name, setName] = useState("");

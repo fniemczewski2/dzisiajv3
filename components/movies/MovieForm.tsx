@@ -144,8 +144,6 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
       toast,
       { context: "MovieForm.onSubmit", userId: user?.id }
     );
-
-    toast.success("Dodano pomyślnie.");
     setFormData({ title: "", genre: "", rating: "", platform: "", description: "" });
     setMovieOptions([]);
     setShowOptions(false);

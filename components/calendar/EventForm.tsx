@@ -82,8 +82,6 @@ export default function EventForm({
       { context: "EventForm.addEvent", userId }
     );
 
-    // toast.success PRZED onCancel — onCancel zamyka formularz,
-    // toast musi być zarejestrowany zanim komponent zniknie z drzewa
     toast.success("Dodano pomyślnie.");
     resetForm();
     onEventsChange();

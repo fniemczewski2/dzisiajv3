@@ -69,6 +69,7 @@ export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
       { context: "RecipeForm.addRecipe", userId: user?.id }
     );
 
+    // FIX: toast.success BEFORE onChange/onCancel to survive unmount
     toast.success("Dodano pomyślnie.");
     setName(""); setCategory("śniadanie"); setDescription(""); setPicked([]); setProdInput("");
     onChange();
@@ -106,9 +107,7 @@ export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
           <div className="mt-1 rounded-lg card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden">
             {suggestions.map((s) => (
               <button key={s} type="button" onClick={() => commitProduct(s)}
-                className="w-full text-left px-4 py-2 hover:bg-surface text-text text-sm transition-colors">
-                {s}
-              </button>
+                className="w-full text-left px-4 py-2 hover:bg-surface text-text text-sm transition-colors">{s}</button>
             ))}
           </div>
         )}

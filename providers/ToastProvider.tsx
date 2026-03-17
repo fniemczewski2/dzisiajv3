@@ -4,8 +4,6 @@
 import React, { createContext, useCallback, useContext, useReducer, useRef } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 type ToastVariant = "success" | "error" | "info";
 
 interface NotificationToast {
@@ -44,8 +42,6 @@ interface ToastContextValue {
   };
 }
 
-// ── Reducer ───────────────────────────────────────────────────────────────────
-
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {
     case "ADD":
@@ -57,11 +53,7 @@ function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   }
 }
 
-// ── Context ───────────────────────────────────────────────────────────────────
-
 const ToastContext = createContext<ToastContextValue | null>(null);
-
-// ── Notification component ────────────────────────────────────────────────────
 
 const VARIANT_STYLES: Record<ToastVariant, string> = {
   success: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300",
@@ -94,8 +86,6 @@ function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove:
     </div>
   );
 }
-
-// ── Confirm component ─────────────────────────────────────────────────────────
 
 function ConfirmEl({ item, onRemove }: { item: ConfirmToast; onRemove: (id: string) => void }) {
   const answer = (value: boolean) => {
@@ -131,8 +121,6 @@ function ConfirmEl({ item, onRemove }: { item: ConfirmToast; onRemove: (id: stri
   );
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
-
 const AUTO_DISMISS_MS = 4000;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -167,7 +155,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             resolve,
           },
         });
-        // Confirm toasts never auto-dismiss — user must choose
       });
     },
     []
@@ -183,10 +170,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      {/* Fixed portal — bottom-center, sits above the navbar */}
       <div
         aria-label="Powiadomienia"
-        className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
+        className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
       >
         {toasts.map((item) => (
           <div key={item.id} className="pointer-events-auto w-full">

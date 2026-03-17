@@ -106,6 +106,7 @@ export default function CalendarDayDetails({
       toast,
       { context: "CalendarDayDetails.editEvent", userId: user?.id }
     );
+    
     toast.success("Zmieniono pomyślnie.");
     setEditingId(null);
     setEditedEvent(null);
@@ -116,11 +117,13 @@ export default function CalendarDayDetails({
   const handleDelete = async (event: Event) => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć to wydarzenie?");
     if (!ok) return;
+    
     await withRetry(
       () => onDeleteEvent(event.id),
       toast,
       { context: "CalendarDayDetails.deleteEvent", userId: user?.id }
     );
+    
     toast.success("Usunięto pomyślnie.");
     onEventsChange();
   };
@@ -168,7 +171,7 @@ export default function CalendarDayDetails({
       </div>
 
       {showAddForm && (
-        <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+        <div className="mb-6">
           <EventForm
             currentDate={selectedDateObject}
             selectedDate={selectedDateObject}

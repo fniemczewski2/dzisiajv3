@@ -1,6 +1,6 @@
 // hooks/useShoppingLists.ts
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "../types";
 import { useAuth } from "../providers/AuthProvider";
 
@@ -11,7 +11,10 @@ export function useShoppingLists() {
   const userId = user?.id;
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
+
+  // FIX: useRef instead of useState — same infinite loop bug as useEvents/useTasks.
+  // setUserEmails in fetchShoppingLists body → new fetchShoppingLists ref → useEffect fires again.
+  const userEmailsRef = useRef<Record<string, string>>({});
 
   const fetchShoppingLists = useCallback(async () => {
     if (!userId) return;
@@ -32,12 +35,11 @@ export function useShoppingLists() {
           fetchedLists
             .map((l) => (l.user_id === userId ? l.shared_with_id : l.user_id))
             .filter((id): id is string =>
-              typeof id === "string" && id !== userId && !userEmails[id]
+              typeof id === "string" && id !== userId && !userEmailsRef.current[id]
             )
         )
       );
 
-      let currentEmails = { ...userEmails };
       if (neededIds.length > 0) {
         const { data: emailData } = await supabase.rpc("get_emails_by_ids", {
           user_ids: neededIds,
@@ -46,10 +48,12 @@ export function useShoppingLists() {
           const newEmails = (emailData as { id: string; email: string }[]).reduce<
             Record<string, string>
           >((acc, curr) => { acc[curr.id] = curr.email; return acc; }, {});
-          currentEmails = { ...currentEmails, ...newEmails };
-          setUserEmails(currentEmails);
+          // FIX: mutate ref directly — no state update, no cascade
+          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
         }
       }
+
+      const currentEmails = userEmailsRef.current;
 
       setLists(
         fetchedLists.map((list) => {
@@ -67,8 +71,8 @@ export function useShoppingLists() {
     } finally {
       setLoading(false);
     }
-  }, [userId, supabase, userEmails]);
-
+  // FIX: userEmails removed from deps
+  }, [userId, supabase]);
 
   const addShoppingList = useCallback(
     async (name: string, shared_with_email: string | null): Promise<boolean> => {
@@ -127,7 +131,7 @@ export function useShoppingLists() {
 
   useEffect(() => {
     fetchShoppingLists();
-  }, [userId]);
+  }, [fetchShoppingLists]);
 
   return {
     lists,

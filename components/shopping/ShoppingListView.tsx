@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, Trash2, User } from "lucide-react";
 import { ShoppingList } from "../../types";
-import { useShoppingLists } from "../../hooks/useShoppingLists";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../providers/AuthProvider";
 import { useToast } from "../../providers/ToastProvider";
@@ -11,8 +10,13 @@ import { withRetry } from "../../lib/withRetry";
 import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 
-export default function ShoppingListView() {
-  const { lists, deleteShoppingList, editShoppingList } = useShoppingLists();
+interface ShoppingListViewProps {
+  lists: ShoppingList[];
+  editShoppingList: (id: string, updates: any) => Promise<void>;
+  deleteShoppingList: (id: string) => Promise<void>;
+}
+
+export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList }: ShoppingListViewProps) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
   const { toast } = useToast();
@@ -87,7 +91,6 @@ export default function ShoppingListView() {
     toast.success("Usunięto pomyślnie.");
   };
 
-  // Fire-and-forget inline mutations — brak UX feedback celowo (checkbox toggle)
   const toggleElement = (list: ShoppingList, elId: string) => {
     const updated = list.elements.map((el) => el.id === elId ? { ...el, completed: !el.completed } : el);
     if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);

@@ -31,8 +31,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const isDone = task.status === "done";
-  const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } =
-    useTasks();
+  const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
   const { settings } = useSettings();
   const { toast } = useToast();
   const userOptions = settings?.users ?? [];
@@ -58,19 +57,22 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
 
   useEffect(() => {
     if (!timerRunning || timerPaused) return;
-    const interval = setInterval(
-      () => setTimerSeconds((s) => s + 1),
-      1000
-    );
+    const interval = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
     return () => clearInterval(interval);
   }, [timerRunning, timerPaused]);
 
+  // FIX: use toast.confirm instead of alert, add toast.success
   const handleDelete = async () => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie?");
     if (!ok) return;
-    await deleteTask(task.id);
-    await fetchTasks();
-    onTasksChange();
+    try {
+      await deleteTask(task.id);
+      toast.success("Usunięto pomyślnie.");
+      await fetchTasks();
+      onTasksChange();
+    } catch {
+      toast.error("Wystąpił błąd podczas usuwania.");
+    }
   };
 
   const handleEdit = async () => {
@@ -92,6 +94,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     setSharedEmail("");
   };
 
+  // FIX: add toast.success
   const handleSaveEdit = async () => {
     let targetUserId: string | null = null;
     if (sharedEmail) {
@@ -99,18 +102,21 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
         email_address: sharedEmail,
       });
       if (error || !data) {
-        alert(
-          "Błąd: Nie znaleziono użytkownika o takim adresie e-mail w bazie."
-        );
+        toast.error("Nie znaleziono użytkownika o takim adresie e-mail w bazie.");
         return;
       }
       targetUserId = data as string;
     }
-    await editTask({ ...editedTask, for_user_id: targetUserId ?? undefined } as Task);
-    await fetchTasks();
-    onTasksChange();
-    setIsEditing(false);
-    setSharedEmail("");
+    try {
+      await editTask({ ...editedTask, for_user_id: targetUserId ?? undefined } as Task);
+      toast.success("Zmieniono pomyślnie.");
+      await fetchTasks();
+      onTasksChange();
+      setIsEditing(false);
+      setSharedEmail("");
+    } catch {
+      toast.error("Wystąpił błąd podczas zapisywania.");
+    }
   };
 
   const handleComplete = async () => {
@@ -139,13 +145,8 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     if (timerSeconds >= 60) {
       const minutes = Math.floor(timerSeconds / 60);
       const newNote = `Czas: ${minutes} min`;
-      const updatedDesc = [task.description || "", newNote]
-        .filter(Boolean)
-        .join("\n");
-      await supabase
-        .from("tasks")
-        .update({ description: updatedDesc })
-        .eq("id", task.id);
+      const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
+      await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
       await fetchTasks();
       onTasksChange();
     }
@@ -153,15 +154,9 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
   };
 
   const increasePriority = () =>
-    setEditedTask((prev) => ({
-      ...prev,
-      priority: Math.max(1, prev.priority - 1),
-    }));
+    setEditedTask((prev) => ({ ...prev, priority: Math.max(1, prev.priority - 1) }));
   const decreasePriority = () =>
-    setEditedTask((prev) => ({
-      ...prev,
-      priority: Math.min(5, prev.priority + 1),
-    }));
+    setEditedTask((prev) => ({ ...prev, priority: Math.min(5, prev.priority + 1) }));
 
   const dueDate = new Date(task.due_date).toISOString().split("T")[0];
   const today = getAppDate();
@@ -179,10 +174,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
           paused={timerPaused}
           compact
           controls={{
-            start: () => {
-              setTimerRunning(true);
-              setTimerPaused(false);
-            },
+            start: () => { setTimerRunning(true); setTimerPaused(false); },
             pause: () => setTimerPaused((p) => !p),
             stop: stopTimerAndSave,
             cancel: () => {
@@ -208,9 +200,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
               ref={titleRef}
               type="text"
               value={editedTask.title}
-              onChange={(e) =>
-                setEditedTask({ ...editedTask, title: e.target.value })
-              }
+              onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
               className="input-field font-medium"
             />
           </div>
@@ -218,21 +208,15 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
             <div>
               <label className="form-label">Priorytet:</label>
               <div className="flex items-stretch gap-1.5 mt-1">
-                <button
-                  type="button"
-                  onClick={decreasePriority}
-                  className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
-                >
+                <button type="button" onClick={decreasePriority}
+                  className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0">
                   <Minus size={18} />
                 </button>
                 <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">
                   {editedTask.priority}
                 </div>
-                <button
-                  type="button"
-                  onClick={increasePriority}
-                  className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
-                >
+                <button type="button" onClick={increasePriority}
+                  className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0">
                   <Plus size={18} />
                 </button>
               </div>
@@ -241,15 +225,9 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
               <label className="form-label">Kategoria:</label>
               <select
                 value={editedTask.category}
-                onChange={(e) =>
-                  setEditedTask({ ...editedTask, category: e.target.value })
-                }
-                className="input-field py-1.5 h-[38px]"
-              >
-                {[
-                  "edukacja", "praca", "osobiste", "aktywizm",
-                  "przyjaciele", "zakupy", "podróże", "trening", "inne",
-                ].map((cat) => (
+                onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })}
+                className="input-field py-1.5 h-[38px]">
+                {["edukacja","praca","osobiste","aktywizm","przyjaciele","zakupy","podróże","trening","inne"].map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
@@ -261,9 +239,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
               <input
                 type="date"
                 value={editedTask.due_date}
-                onChange={(e) =>
-                  setEditedTask({ ...editedTask, due_date: e.target.value })
-                }
+                onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })}
                 className="input-field w-full min-w-0 px-1 text-xs h-[38px]"
               />
             </div>
@@ -273,8 +249,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
                 <select
                   value={sharedEmail}
                   onChange={(e) => setSharedEmail(e.target.value)}
-                  className="input-field py-1.5 h-[38px]"
-                >
+                  className="input-field py-1.5 h-[38px]">
                   <option value="">Tylko dla mnie</option>
                   {userOptions.map((email: string) => (
                     <option key={email} value={email}>{email}</option>
@@ -287,9 +262,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
             <label className="form-label">Opis:</label>
             <textarea
               value={editedTask.description || ""}
-              onChange={(e) =>
-                setEditedTask({ ...editedTask, description: e.target.value })
-              }
+              onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
               className="input-field"
               rows={2}
             />
@@ -316,35 +289,25 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
               className="w-6 h-6 shrink-0 mt-0.5 text-xs font-bold rounded-md flex items-center justify-center shadow-sm"
               style={{
                 backgroundColor:
-                  task.priority === 1
-                    ? "#fca5a5"
-                    : task.priority === 2
-                    ? "#fdba74"
-                    : task.priority === 3
-                    ? "#fde68a"
-                    : task.priority === 4
-                    ? "#a7f3d0"
-                    : "#bbf7d0",
+                  task.priority === 1 ? "#fca5a5"
+                  : task.priority === 2 ? "#fdba74"
+                  : task.priority === 3 ? "#fde68a"
+                  : task.priority === 4 ? "#a7f3d0"
+                  : "#bbf7d0",
                 color:
-                  task.priority === 3
-                    ? "#A16207"
-                    : task.priority >= 3
-                    ? "#15803D"
-                    : "#B91C1C",
+                  task.priority === 3 ? "#A16207"
+                  : task.priority >= 3 ? "#15803D"
+                  : "#B91C1C",
               }}
               title={`Priorytet ${task.priority}`}
             >
               {task.priority}
             </span>
-            <h3
-              className={`text-lg sm:text-xl font-bold break-words leading-tight ${
-                isDone
-                  ? "text-textMuted line-through"
-                  : isHighPriority || isOverdue
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-text"
-              }`}
-            >
+            <h3 className={`text-lg sm:text-xl font-bold break-words leading-tight ${
+              isDone ? "text-textMuted line-through"
+              : isHighPriority || isOverdue ? "text-red-600 dark:text-red-400"
+              : "text-text"
+            }`}>
               {task.title}
             </h3>
           </div>
@@ -365,14 +328,11 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
                   {task.description}
                 </span>
               )}
-              {task.display_share_info &&
-                ["accepted", "waiting_for_acceptance", "pending"].includes(
-                  task.status
-                ) && (
-                  <span className="text-xs font-medium text-primary truncate mt-1">
-                    {task.display_share_info}
-                  </span>
-                )}
+              {task.display_share_info && ["accepted","waiting_for_acceptance","pending"].includes(task.status) && (
+                <span className="text-xs font-medium text-primary truncate mt-1">
+                  {task.display_share_info}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -383,8 +343,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
               <EditButton onClick={handleEdit} />
               <DeleteButton onClick={handleDelete} />
             </>
-          ) : task.user_id !== userId &&
-            task.status === "waiting_for_acceptance" ? (
+          ) : task.user_id !== userId && task.status === "waiting_for_acceptance" ? (
             <>
               <button
                 onClick={async () => {
@@ -395,27 +354,18 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
                 className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
               >
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">
-                  Akceptuj
-                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Akceptuj</span>
               </button>
               <DeleteButton onClick={handleDelete} />
             </>
           ) : (
             <>
-              <button
-                onClick={handleComplete}
-                className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors"
-              >
+              <button onClick={handleComplete}
+                className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors">
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">
-                  Zrobione
-                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
               </button>
-              <RescheduleButton
-                onClick={() => handleReschedule(1)}
-                loading={isRescheduling}
-              />
+              <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
               <TimerButton onClick={() => setIsTimerActive(true)} />
               <EditButton onClick={handleEdit} />
               <DeleteButton onClick={handleDelete} />
