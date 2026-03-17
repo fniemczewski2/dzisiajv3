@@ -1,0 +1,238 @@
+// pages/privacy.tsx
+import Head from "next/head";
+import Layout from "../components/Layout";
+
+export default function PrivacyPage() {
+  return (
+    <>
+      <Head>
+        <title>Polityka Prywatności – Dzisiaj v3</title>
+        <meta name="description" content="Polityka prywatności aplikacji Dzisiaj v3" />
+        <link rel="canonical" href="https://dzisiajv3.vercel.app/privacy" />
+      </Head>
+      <Layout>
+        <div className="max-w-2xl mx-auto py-8 px-2">
+          <h1 className="text-3xl font-bold text-text mb-2">Polityka Prywatności</h1>
+          <p className="text-sm text-textMuted mb-10">
+            Obowiązuje od: 1 stycznia 2025 r. &nbsp;·&nbsp; Aplikacja: Dzisiaj v3
+          </p>
+
+          <Section title="1. Administrator danych">
+            <p>
+              Administratorem danych osobowych przetwarzanych w aplikacji <strong>Dzisiaj v3</strong>{" "}
+              (dostępnej pod adresem <a href="https://dzisiajv3.vercel.app" className="text-primary hover:underline">dzisiajv3.vercel.app</a>)
+              jest Franciszek Niemczewski. Kontakt: <a href="mailto:f.niemczewski2@gmail.com" className="text-primary hover:underline">f.niemczewski2@gmail.com</a>.
+            </p>
+          </Section>
+
+          <Section title="2. Jakie dane zbieramy">
+            <p className="mb-3">Zbieramy wyłącznie dane niezbędne do działania aplikacji:</p>
+            <ul className="space-y-2 list-none">
+              <Li>
+                <strong>Dane konta Google</strong> – adres e-mail i nazwa użytkownika, pobierane
+                w momencie logowania przez Google OAuth. Nie zbieramy hasła.
+              </Li>
+              <Li>
+                <strong>Dane wprowadzone przez użytkownika</strong> – zadania, notatki, wydarzenia
+                kalendarza, rachunki, nawyki, miejsca i inne treści, które samodzielnie dodajesz
+                do aplikacji.
+              </Li>
+              <Li>
+                <strong>Tokeny Google Calendar</strong> – jeśli połączysz aplikację z Google
+                Calendar, przechowujemy token dostępu i token odświeżania umożliwiające
+                synchronizację wydarzeń. Tokeny są przechowywane w zaszyfrowanej bazie danych
+                Supabase i używane wyłącznie do komunikacji z Twoim kalendarzem.
+              </Li>
+              <Li>
+                <strong>Dane techniczne</strong> – logi błędów aplikacji (bez danych osobowych),
+                niezbędne do diagnozy problemów.
+              </Li>
+            </ul>
+          </Section>
+
+          <Section title="3. W jakim celu przetwarzamy dane">
+            <ul className="space-y-2 list-none">
+              <Li>Świadczenie usług aplikacji – wyświetlanie i synchronizacja Twoich treści.</Li>
+              <Li>Uwierzytelnianie – weryfikacja tożsamości przy logowaniu.</Li>
+              <Li>
+                Integracja z Google Calendar – import wydarzeń z Twojego kalendarza Google
+                do aplikacji oraz eksport wydarzeń z aplikacji do Google Calendar, wyłącznie
+                na Twoje żądanie.
+              </Li>
+              <Li>Udostępnianie treści – jeśli zdecydujesz się udostępnić zadania lub listy
+                innym użytkownikom, niezbędne jest powiązanie danych z adresem e-mail.
+              </Li>
+            </ul>
+          </Section>
+
+          <Section title="4. Jak używamy danych Google Calendar">
+            <p className="mb-3">
+              Korzystanie z API Google Calendar podlega dodatkowemu zobowiązaniu. Potwierdzamy, że:
+            </p>
+            <ul className="space-y-2 list-none">
+              <Li>Dane z Google Calendar (wydarzenia, tytuły, opisy, daty) są używane
+                <strong> wyłącznie</strong> do wyświetlania i synchronizacji Twoich wydarzeń
+                w ramach aplikacji Dzisiaj v3.
+              </Li>
+              <Li>
+                <strong>Nie sprzedajemy, nie wynajmujemy ani nie udostępniamy</strong> danych
+                z Twojego Google Calendar żadnym stronom trzecim.
+              </Li>
+              <Li>Dane z Google Calendar <strong>nie są używane</strong> do reklamy, profilowania
+                ani celów innych niż bezpośrednia funkcjonalność synchronizacji kalendarza.
+              </Li>
+              <Li>Możesz w każdej chwili odłączyć integrację z Google Calendar w ustawieniach
+                aplikacji (Kalendarz → Google Calendar → Odłącz). Po odłączeniu tokeny są
+                natychmiast usuwane z naszej bazy danych.
+              </Li>
+            </ul>
+            <p className="mt-3 text-sm text-textMuted">
+              Korzystanie z danych Google Calendar jest zgodne z{" "}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Google API Services User Data Policy
+              </a>
+              , w tym z zasadami ograniczonego użycia (Limited Use).
+            </p>
+          </Section>
+
+          <Section title="5. Podstawa prawna przetwarzania">
+            <ul className="space-y-2 list-none">
+              <Li><strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) – przetwarzanie niezbędne
+                do świadczenia usługi, z której korzystasz.
+              </Li>
+              <Li><strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) – integracja z Google
+                Calendar jest dobrowolna i wymaga Twojej wyraźnej zgody w procesie OAuth.
+              </Li>
+              <Li><strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – logi
+                błędów służące bezpieczeństwu i stabilności aplikacji.
+              </Li>
+            </ul>
+          </Section>
+
+          <Section title="6. Przechowywanie i bezpieczeństwo danych">
+            <ul className="space-y-2 list-none">
+              <Li>Dane przechowywane są w bazie danych <strong>Supabase</strong> (PostgreSQL)
+                z szyfrowaniem danych w spoczynku i transmisją szyfrowaną TLS/HTTPS.
+              </Li>
+              <Li>Dostęp do danych chroniony jest uwierzytelnianiem Google OAuth oraz
+                politykami Row Level Security (RLS) w Supabase – każdy użytkownik widzi
+                wyłącznie swoje dane.
+              </Li>
+              <Li>Tokeny Google Calendar przechowywane są w osobnej tabeli z RLS
+                i dostępne wyłącznie dla właściciela konta.
+              </Li>
+            </ul>
+          </Section>
+
+          <Section title="7. Przekazywanie danych stronom trzecim">
+            <p className="mb-3">Dane są przekazywane wyłącznie następującym podmiotom:</p>
+            <ul className="space-y-2 list-none">
+              <Li>
+                <strong>Supabase Inc.</strong> – dostawca bazy danych i uwierzytelniania
+                (USA; dane chronione umową DPA zgodną z RODO).
+              </Li>
+              <Li>
+                <strong>Vercel Inc.</strong> – hosting aplikacji (USA; umowa DPA zgodna z RODO).
+              </Li>
+              <Li>
+                <strong>Google LLC</strong> – logowanie i (opcjonalnie) synchronizacja kalendarza,
+                wyłącznie gdy wyrazisz na to zgodę.
+              </Li>
+            </ul>
+            <p className="mt-3">
+              Nie sprzedajemy danych osobowych i nie przekazujemy ich podmiotom reklamowym.
+            </p>
+          </Section>
+
+          <Section title="8. Twoje prawa">
+            <p className="mb-3">Zgodnie z RODO przysługuje Ci prawo do:</p>
+            <ul className="space-y-2 list-none">
+              <Li><strong>Dostępu</strong> do swoich danych.</Li>
+              <Li><strong>Sprostowania</strong> nieprawidłowych danych.</Li>
+              <Li><strong>Usunięcia danych</strong> – możesz usunąć swoje konto i wszystkie
+                dane, kontaktując się z nami na adres e-mail podany w pkt. 1.
+              </Li>
+              <Li><strong>Ograniczenia przetwarzania</strong> oraz <strong>przeniesienia danych</strong>.</Li>
+              <Li><strong>Cofnięcia zgody</strong> – w każdej chwili, bez wpływu na zgodność
+                z prawem przetwarzania dokonanego przed cofnięciem.
+              </Li>
+              <Li><strong>Wniesienia skargi</strong> do Prezesa Urzędu Ochrony Danych Osobowych
+                (PUODO), jeśli uważasz, że przetwarzamy Twoje dane niezgodnie z prawem.
+              </Li>
+            </ul>
+          </Section>
+
+          <Section title="9. Okres przechowywania danych">
+            <ul className="space-y-2 list-none">
+              <Li>Dane konta i treści użytkownika – przez czas korzystania z aplikacji;
+                usuwane na żądanie lub po usunięciu konta.
+              </Li>
+              <Li>Tokeny Google Calendar – do momentu odłączenia integracji lub usunięcia konta.</Li>
+              <Li>Logi błędów – maksymalnie 30 dni.</Li>
+            </ul>
+          </Section>
+
+          <Section title="10. Pliki cookie i śledzenie">
+            <p>
+              Aplikacja nie używa plików cookie do śledzenia ani reklamy. Sesja użytkownika
+              przechowywana jest w <code className="text-xs bg-surface px-1 py-0.5 rounded">localStorage</code> przeglądarki wyłącznie
+              w celu utrzymania stanu logowania.
+            </p>
+          </Section>
+
+          <Section title="11. Dzieci">
+            <p>
+              Aplikacja nie jest przeznaczona dla osób poniżej 13. roku życia i nie zbiera
+              świadomie danych od dzieci. Jeśli uważasz, że dziecko przekazało nam swoje dane,
+              skontaktuj się z nami w celu ich usunięcia.
+            </p>
+          </Section>
+
+          <Section title="12. Zmiany polityki prywatności">
+            <p>
+              O istotnych zmianach niniejszej polityki poinformujemy poprzez aktualizację daty
+              w nagłówku dokumentu. Dalsze korzystanie z aplikacji po wprowadzeniu zmian
+              oznacza ich akceptację.
+            </p>
+          </Section>
+
+          <Section title="13. Kontakt">
+            <p>
+              W sprawach związanych z ochroną danych osobowych skontaktuj się z nami:{" "}
+              <a href="mailto:f.niemczewski2@gmail.com" className="text-primary hover:underline">
+                f.niemczewski2@gmail.com
+              </a>
+            </p>
+          </Section>
+
+          <div className="mt-8 pt-2 border-t border-gray-200 dark:border-gray-700 text-xs text-textMuted">
+            Ostatnia aktualizacja: 1 stycznia 2025 r.
+          </div>
+        </div>
+      </Layout>
+    </>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-8">
+      <h2 className="text-lg font-bold text-text mb-3">{title}</h2>
+      <div className="text-textSecondary leading-relaxed text-sm space-y-2">{children}</div>
+    </section>
+  );
+}
+
+function Li({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex gap-2 items-start">
+      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+      <span>{children}</span>
+    </li>
+  );
+}

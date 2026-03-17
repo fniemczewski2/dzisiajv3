@@ -6,6 +6,7 @@ import Document, {
   type DocumentContext,
   type DocumentInitialProps,
 } from 'next/document';
+import Link from 'next/link';
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
