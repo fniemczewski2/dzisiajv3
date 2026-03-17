@@ -50,7 +50,7 @@ export const CancelButton = ({ onCancel, loading }: { onCancel: () => void; load
     type="button"
     onClick={onCancel}
     disabled={loading}
-    className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-textSecondary"
+    className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800"
   >
     Anuluj
   </button>

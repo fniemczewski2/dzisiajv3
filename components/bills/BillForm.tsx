@@ -5,6 +5,9 @@ import { Minus, Plus } from "lucide-react";
 import { Bill } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import { useBills } from "../../hooks/useBills";
+import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "../../providers/AuthProvider";
+import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
 import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
 
@@ -14,19 +17,15 @@ interface BillFormProps {
   initial?: Bill;
 }
 
-export default function BillForm({
-  onChange,
-  onCancel,
-  initial,
-}: BillFormProps) {
+export default function BillForm({ onChange, onCancel, initial }: BillFormProps) {
   const isEdit = !!initial;
+  const { user } = useAuth();
   const { addBill, editBill, loading } = useBills();
+  const { toast } = useToast();
 
   const [amount, setAmount] = useState("0");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(() => {
-    return initial?.date || getAppDate();
-  });
+  const [date, setDate] = useState(() => initial?.date || getAppDate());
   const [isIncome, setIsIncome] = useState(false);
 
   useEffect(() => {
@@ -41,22 +40,24 @@ export default function BillForm({
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const payload: Bill = {
+    const payload = {
       ...(isEdit && initial ? { id: initial.id } : {}),
       amount: parseFloat(amount) || 0,
       description: description.trim() || null,
-      date: date,
+      date,
       is_income: isIncome,
       done: initial?.done ?? false,
     } as Bill;
 
-    if (isEdit && initial) {
-      await editBill(payload);
-    } else {
-      await addBill(payload);
-    }
+    await withRetry(
+      () => isEdit ? editBill(payload) : addBill(payload),
+      toast,
+      { context: `BillForm.${isEdit ? "editBill" : "addBill"}`, userId: user?.id }
+    );
 
-    onChange();
+    // FIX: toast.success BEFORE onChange/onCancel — onChange calls setShowForm(false)
+    // which unmounts this component. The toast must be queued first.
+    toast.success(isEdit ? "Zmieniono pomyślnie." : "Dodano pomyślnie.");
 
     if (!isEdit) {
       setAmount("0");
@@ -65,21 +66,21 @@ export default function BillForm({
       setIsIncome(false);
     }
 
-    if (onCancel) onCancel();
+    onChange();
+    onCancel?.();
   };
 
- return (
+  return (
     <form onSubmit={handleSubmit} className="form-card max-w-md">
       <div>
         <label className="form-label" htmlFor="amount">Kwota:</label>
         <div className="flex items-center gap-2">
           <button
-            id="includeInBudget"
             type="button"
             onClick={() => setIsIncome(!isIncome)}
             className={`p-2 rounded-lg transition-colors ${
-              isIncome 
-                ? "bg-green-600 hover:bg-green-700 text-white" 
+              isIncome
+                ? "bg-green-600 hover:bg-green-700 text-white"
                 : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
             }`}
             disabled={loading}

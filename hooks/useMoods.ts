@@ -1,3 +1,5 @@
+// hooks/useMoods.ts
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { MoodEntry } from "../types";
@@ -10,36 +12,42 @@ export function useMoods(startDate?: string, endDate?: string) {
   const fetchMoods = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    let query = supabase.from("mood_entries").select("*").eq("user_id", user.id);
-    
-    if (startDate) query = query.gte("date", startDate);
-    if (endDate) query = query.lte("date", endDate);
+    try {
+      let query = supabase
+        .from("mood_entries")
+        .select("*")
+        .eq("user_id", user.id);
+      if (startDate) query = query.gte("date", startDate);
+      if (endDate)   query = query.lte("date", endDate);
 
-    const { data, error } = await query;
-    if (!error && data) setMoods(data);
-    setLoading(false);
+      const { data, error } = await query;
+      if (error) throw error;
+      setMoods(data || []);
+    } finally {
+      setLoading(false);
+    }
   }, [supabase, user, startDate, endDate]);
 
-  useEffect(() => {
-    fetchMoods();
-  }, [fetchMoods]);
+  useEffect(() => { fetchMoods(); }, [fetchMoods]);
 
+  /** Throws on error — caller: withRetry + toast (logMood is user-facing action) */
   const logMood = async (date: string, mood_id: string | null) => {
-    if (!user) return;
-    
+    if (!user) throw new Error("Musisz być zalogowany");
+
     const { data, error } = await supabase
       .from("mood_entries")
-      .upsert({ user_id: user.id, date, mood_id }, { onConflict: 'user_id, date' })
+      .upsert({ user_id: user.id, date, mood_id }, { onConflict: "user_id, date" })
       .select()
       .single();
-      
-    if (!error && data) {
-       setMoods(prev => {
-         const exists = prev.find(m => m.date === date);
-         if (exists) return prev.map(m => m.date === date ? data : m);
-         return [...prev, data];
-       });
-    }
+
+    if (error) throw error;
+
+    setMoods((prev) => {
+      const exists = prev.find((m) => m.date === date);
+      return exists
+        ? prev.map((m) => (m.date === date ? (data as MoodEntry) : m))
+        : [...prev, data as MoodEntry];
+    });
   };
 
   return { moods, loading, logMood, refreshMoods: fetchMoods };

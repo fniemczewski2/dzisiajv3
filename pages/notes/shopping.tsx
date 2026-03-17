@@ -8,7 +8,8 @@ import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 
 export default function ShoppingPage() {
-  const { loading, fetchShoppingLists } = useShoppingLists();
+  // Wywołujemy hooka tylko raz!
+  const { lists, loading, addShoppingList, editShoppingList, deleteShoppingList } = useShoppingLists();
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
@@ -38,16 +39,20 @@ export default function ShoppingPage() {
         {showForm && (
           <div className="mb-6">
             <ShoppingForm
-              onChange={() => {
-                fetchShoppingLists();
-                setShowForm(false);
-              }}
+              lists={lists}
+              loading={loading}
+              addShoppingList={addShoppingList}
+              onChange={() => setShowForm(false)}
               onCancel={() => setShowForm(false)}
             />
           </div>
         )}
         
-        <ShoppingListView />
+        <ShoppingListView 
+          lists={lists}
+          editShoppingList={editShoppingList}
+          deleteShoppingList={deleteShoppingList}
+        />
       </Layout>
     </>
   );

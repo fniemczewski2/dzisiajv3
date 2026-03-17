@@ -1,12 +1,14 @@
-import Head from 'next/head';
+// components/SEO.tsx
+import Head from "next/head";
+import { sanitizeJsonLd } from "../lib/sanitize";
 
 interface SEOProps {
   title?: string;
   description?: string;
   canonical?: string;
   ogImage?: string;
-  ogType?: 'website' | 'article' | 'profile';
-  twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player';
+  ogType?: "website" | "article" | "profile";
+  twitterCard?: "summary" | "summary_large_image" | "app" | "player";
   noindex?: boolean;
   nofollow?: boolean;
   structuredData?: object;
@@ -17,44 +19,45 @@ interface SEOProps {
 }
 
 export default function SEO({
-  title = 'Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem',
-  description = 'Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.',
-  canonical = 'https://dzisiajv3.vercel.app',
-  ogImage = 'https://dzisiajv3.vercel.app/og-image.png',
-  ogType = 'website',
-  twitterCard = 'summary_large_image',
+  title = "Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
+  description = "Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.",
+  canonical = "https://dzisiajv3.vercel.app",
+  ogImage = "https://dzisiajv3.vercel.app/og-image.png",
+  ogType = "website",
+  twitterCard = "summary_large_image",
   noindex = false,
   nofollow = false,
   structuredData,
-  keywords = 'zarządzanie zadaniami, produktywność, notatki, kalendarz, pomodoro, eisenhower matrix, organizacja czasu, todo list, planner',
-  author = 'Dzisiaj v3',
+  keywords = "zarządzanie zadaniami, produktywność, notatki, kalendarz, pomodoro, eisenhower matrix, organizacja czasu, todo list, planner",
+  author = "Dzisiaj v3",
   publishedTime,
   modifiedTime,
 }: SEOProps) {
-  const fullTitle = title.includes('Dzisiaj') ? title : `${title} - Dzisiaj v3`;
-  const robotsContent = `${noindex ? 'noindex' : 'index'},${nofollow ? 'nofollow' : 'follow'}`;
+  const fullTitle = title.includes("Dzisiaj") ? title : `${title} - Dzisiaj v3`;
+  const robotsContent = `${noindex ? "noindex" : "index"},${nofollow ? "nofollow" : "follow"}`;
 
   const defaultStructuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    name: 'Dzisiaj v3',
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Dzisiaj v3",
     description: description,
     url: canonical,
-    applicationCategory: 'ProductivityApplication',
-    operatingSystem: 'Web Browser, iOS, Android',
+    applicationCategory: "ProductivityApplication",
+    operatingSystem: "Web Browser, iOS, Android",
     offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'PLN',
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "PLN",
     },
     author: {
-      '@type': 'Organization',
-      name: 'Dzisiaj v3',
+      "@type": "Organization",
+      name: "Dzisiaj v3",
     },
-    inLanguage: 'pl-PL',
+    inLanguage: "pl-PL",
   };
 
-  const finalStructuredData = structuredData || defaultStructuredData;
+  const finalStructuredData = structuredData ?? defaultStructuredData;
+  const safeJsonLd = sanitizeJsonLd(finalStructuredData);
 
   return (
     <Head>
@@ -76,13 +79,13 @@ export default function SEO({
       <meta property="og:site_name" content="Dzisiaj v3" />
       <meta property="og:locale" content="pl_PL" />
 
-      {ogType === 'article' && publishedTime && (
+      {ogType === "article" && publishedTime && (
         <meta property="article:published_time" content={publishedTime} />
       )}
-      {ogType === 'article' && modifiedTime && (
+      {ogType === "article" && modifiedTime && (
         <meta property="article:modified_time" content={modifiedTime} />
       )}
-      {ogType === 'article' && (
+      {ogType === "article" && (
         <meta property="article:author" content={author} />
       )}
 
@@ -102,9 +105,7 @@ export default function SEO({
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(finalStructuredData),
-        }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd }}
       />
     </Head>
   );
@@ -112,10 +113,10 @@ export default function SEO({
 
 export function createBreadcrumbSchema(items: { name: string; url: string }[]) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
     itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
+      "@type": "ListItem",
       position: index + 1,
       name: item.name,
       item: item.url,
@@ -141,42 +142,41 @@ export function createArticleSchema({
   url: string;
 }) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
+    "@context": "https://schema.org",
+    "@type": "Article",
     headline: title,
     description: description,
     image: image,
     datePublished: datePublished,
     dateModified: dateModified || datePublished,
     author: {
-      '@type': 'Person',
+      "@type": "Person",
       name: author,
     },
     publisher: {
-      '@type': 'Organization',
-      name: 'Dzisiaj v3',
+      "@type": "Organization",
+      name: "Dzisiaj v3",
       logo: {
-        '@type': 'ImageObject',
-        url: 'https://dzisiajv3.vercel.app/logo.png',
+        "@type": "ImageObject",
+        url: "https://dzisiajv3.vercel.app/logo.png",
       },
     },
     mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': url,
+      "@type": "WebPage",
+      "@id": url,
     },
   };
 }
 
-
 export function createFAQSchema(faqs: { question: string; answer: string }[]) {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
     mainEntity: faqs.map((faq) => ({
-      '@type': 'Question',
+      "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
-        '@type': 'Answer',
+        "@type": "Answer",
         text: faq.answer,
       },
     })),

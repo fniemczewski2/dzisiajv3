@@ -84,7 +84,6 @@ export async function exportNoteToPDF(note: Note): Promise<void> {
       `${note.title.replace(/\s+/g, "_")}.pdf`
     );
   } catch (error) {
-    console.error("Błąd podczas eksportu do PDF:", error);
-    alert("Wystąpił błąd podczas eksportu do PDF");
+    throw new Error("Wystąpił błąd podczas eksportu do PDF");
   }
 }
