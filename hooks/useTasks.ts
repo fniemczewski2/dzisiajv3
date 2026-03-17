@@ -1,6 +1,6 @@
 // hooks/useTasks.ts
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Task } from "../types";
 import { EmailByIdRow } from "../types/index";
 import { useSettings } from "./useSettings";
@@ -53,7 +53,13 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
+
+  // FIX: use useRef instead of useState for the email cache.
+  // Previously userEmails was useState AND was listed in fetchTasks useCallback deps.
+  // When fetchTasks ran setUserEmails(), React created a new fetchTasks reference,
+  // which triggered useEffect([fetchTasks]), which ran fetchTasks again → infinite loop
+  // that appeared as a page reload/flash on every action.
+  const userEmailsRef = useRef<Record<string, string>>({});
 
   const getPriority = (task: Task): number =>
     task.status === "waiting for acceptance" ? 0 : 1;
@@ -63,7 +69,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     return createSortFunction(settings.sort_order, getPriority);
   }, [settings?.sort_order]);
 
-  // ── fetchTasks ─────────────────────────────────────────────────────────────
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
 
@@ -83,19 +88,17 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
       const fetchedTasks = (data ?? []) as Task[];
 
-      // Fetch only emails not yet cached
+      // Only fetch emails not yet cached in the ref
       const neededIds = Array.from(
         new Set(
           fetchedTasks
             .map((t) => (t.user_id === userId ? t.for_user_id : t.user_id))
             .filter(
               (id): id is string =>
-                typeof id === "string" && id !== userId && !userEmails[id]
+                typeof id === "string" && id !== userId && !userEmailsRef.current[id]
             )
         )
       );
-
-      let currentEmails = { ...userEmails };
 
       if (neededIds.length > 0) {
         const { data: emailData, error: rpcError } = await supabase.rpc(
@@ -107,10 +110,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             (acc, row) => { acc[row.id] = row.email; return acc; },
             {}
           );
-          currentEmails = { ...currentEmails, ...newEmails };
-          setUserEmails(currentEmails);
+          // FIX: mutate ref directly — no state update, no re-render cascade
+          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
         }
       }
+
+      const currentEmails = userEmailsRef.current;
 
       const tasksWithDisplayInfo = fetchedTasks.map((task) => {
         const isOwner = task.user_id === userId;
@@ -126,7 +131,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
       const sorted = [...tasksWithDisplayInfo];
       if (sortFunction) sorted.sort(sortFunction);
-      // "done" tasks always sink to the bottom
       sorted.sort((a, b) => (a.status === "done" ? 1 : 0) - (b.status === "done" ? 1 : 0));
 
       setTasks(sorted);
@@ -134,13 +138,13 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     } finally {
       setLoading(false);
     }
+  // FIX: userEmails removed from deps — it's now a ref, not state.
   }, [
     supabase, userId,
     settings?.show_completed, settings?.sort_order, sortFunction,
-    dateFrom, dateTo, userEmails,
+    dateFrom, dateTo,
   ]);
 
-  // ── addTask ────────────────────────────────────────────────────────────────
   const addTask = useCallback(
     async (task: Partial<Task> & { shared_with_email?: string }) => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -148,7 +152,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       try {
         const { shared_with_email, display_share_info, ...taskData } =
           task as Task & { shared_with_email?: string };
-        let finalForUserId: string = taskData.for_user_id || userId;
+        let finalForUserId: string = (taskData as any).for_user_id || userId;
 
         if (shared_with_email?.includes("@")) {
           const { data: foundId, error: rpcError } = await supabase.rpc(
@@ -162,10 +166,9 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           ...taskData,
           user_id: userId,
           for_user_id: finalForUserId,
-          due_date: formatDate(taskData.due_date),
+          due_date: formatDate((taskData as any).due_date),
         });
         if (insertError) throw insertError;
-
         await fetchTasks();
       } finally {
         setLoading(false);
@@ -174,7 +177,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, fetchTasks]
   );
 
-  // ── editTask ───────────────────────────────────────────────────────────────
   const editTask = useCallback(
     async (task: Task & { shared_with_email?: string }) => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -182,7 +184,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       try {
         const { shared_with_email, display_share_info, ...taskData } =
           task as Task & { shared_with_email?: string };
-        let finalForUserId = taskData.for_user_id;
+        let finalForUserId = (taskData as any).for_user_id;
 
         if (shared_with_email !== undefined) {
           if (shared_with_email.includes("@")) {
@@ -201,11 +203,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             ...taskData,
             user_id: userId,
             for_user_id: finalForUserId,
-            due_date: formatDate(taskData.due_date),
+            due_date: formatDate((taskData as any).due_date),
           })
           .eq("id", task.id);
         if (updateError) throw updateError;
-
         await fetchTasks();
       } finally {
         setLoading(false);
@@ -214,7 +215,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, fetchTasks]
   );
 
-  // ── deleteTask ─────────────────────────────────────────────────────────────
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -230,7 +230,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, fetchTasks]
   );
 
-  // ── acceptTask ─────────────────────────────────────────────────────────────
   const acceptTask = useCallback(
     async (id: string) => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -249,7 +248,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, fetchTasks]
   );
 
-  // ── setDoneTask ────────────────────────────────────────────────────────────
   const setDoneTask = useCallback(
     async (id: string) => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -268,7 +266,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, fetchTasks]
   );
 
-  // ── rescheduleTask ─────────────────────────────────────────────────────────
   const rescheduleTask = useCallback(
     async (taskId: string, newDate: string) => {
       const { data, error: updateError } = await supabase

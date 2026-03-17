@@ -45,6 +45,18 @@ export default function DaySchemaPage() {
     setShowForm(false);
   };
 
+  // FIX: await toast.confirm, add toast.success
+  const handleDelete = async (id: string) => {
+    const ok = await toast.confirm("Czy na pewno chcesz usunąć ten schemat?");
+    if (!ok) return;
+    try {
+      await deleteSchema(id);
+      toast.success("Usunięto pomyślnie.");
+    } catch {
+      toast.error("Wystąpił błąd podczas usuwania.");
+    }
+  };
+
   return (
     <>
       <Head>
@@ -77,26 +89,21 @@ export default function DaySchemaPage() {
         )}
 
         <ul className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {schemas.map((schema) => (
+          {schemas.map((schema) => (
             <li
-                key={schema.id}
-                className="flex justify-between items-center card p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
+              key={schema.id}
+              className="flex justify-between items-center card p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
             >
-                <span className="font-bold text-text ml-1">{schema.name}</span>
-                <div className="flex gap-1.5 shrink-0">
-                  <EditButton onClick={() => openEdit(schema)} />
-                  <DeleteButton onClick={async () => {
-                       const ok = await toast.confirm("Czy na pewno chcesz usunąć ten schemat?");
-                       if (!ok) return;
-                       await deleteSchema(schema.id || "");
-                    }} 
-                  />
-                </div>
+              <span className="font-bold text-text ml-1">{schema.name}</span>
+              <div className="flex gap-1.5 shrink-0">
+                <EditButton onClick={() => openEdit(schema)} />
+                <DeleteButton onClick={() => handleDelete(schema.id || "")} />
+              </div>
             </li>
-            ))}
-            {schemas.length === 0 && !loading && (
-              <NoResultsState text="schematów dnia" />
-            )}
+          ))}
+          {schemas.length === 0 && !loading && (
+            <NoResultsState text="schematów dnia" />
+          )}
         </ul>
 
         <div className="mb-6 card p-5 rounded-2xl shadow-sm">
@@ -112,7 +119,7 @@ export default function DaySchemaPage() {
               ))}
             </div>
           ) : (
-             <p className="text-textMuted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
+            <p className="text-textMuted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
           )}
         </div>
       </Layout>
@@ -127,7 +134,7 @@ function CurrentTimeLine({
   entries: ScheduleItem[];
   currentTime: string;
 }) {
-  const slotHeight = 36; // px (dostosowane do nowego mb-3)
+  const slotHeight = 36;
   const index = entries.findIndex((entry) => entry.time >= currentTime);
   const offset = index >= 0 ? index * slotHeight : entries.length * slotHeight;
 
@@ -138,4 +145,5 @@ function CurrentTimeLine({
     </div>
   );
 }
+
 DaySchemaPage.auth = true;

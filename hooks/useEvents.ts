@@ -1,13 +1,5 @@
 // hooks/useEvents.ts
-// Naprawione:
-//   1. throw new Error('msg:', err) x5 → throw error (oryginalna przyczyna tracona)
-//   2. Dead code po throw (return, throw error, setEvents([])) — usunięty
-//   3. throw new Error + throw error w addEvent/editEvent/deleteEvent —
-//      podwójny throw, drugi nieosiągalny
-//   4. useCallback na fetchEvents — stabilna referencja
-//   5. useEffect([userId, rangeStart, rangeEnd, supabase]) → useEffect([fetchEvents])
-//      — brak fetchEvents w deps powodował stale closure
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Event } from "../types";
 import { expandRepeatingEvents } from "../lib/eventUtils";
 import { useAuth } from "../providers/AuthProvider";
@@ -17,7 +9,13 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const userId = user?.id;
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
+
+  // FIX: use useRef instead of useState for userEmails cache.
+  // Previously userEmails was in useState AND in fetchEvents useCallback deps.
+  // When fetchEvents ran setUserEmails(), it created a new fetchEvents reference,
+  // which triggered the useEffect, which ran fetchEvents again → infinite loop
+  // that appeared as a full page reload/flash.
+  const userEmailsRef = useRef<Record<string, string>>({});
 
   const fetchEvents = useCallback(async () => {
     if (!userId || !rangeStart || !rangeEnd) return;
@@ -38,12 +36,11 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
             .map((ev) => (ev.user_id === userId ? ev.shared_with_id : ev.user_id))
             .filter(
               (id): id is string =>
-                typeof id === "string" && id !== userId && !userEmails[id]
+                typeof id === "string" && id !== userId && !userEmailsRef.current[id]
             )
         )
       );
 
-      let currentEmails = { ...userEmails };
       if (neededIds.length > 0) {
         const { data: emailData } = await supabase.rpc("get_emails_by_ids", {
           user_ids: neededIds,
@@ -52,10 +49,12 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
           const newEmails = (emailData as { id: string; email: string }[]).reduce<
             Record<string, string>
           >((acc, curr) => { acc[curr.id] = curr.email; return acc; }, {});
-          currentEmails = { ...currentEmails, ...newEmails };
-          setUserEmails(currentEmails);
+          // FIX: mutate the ref directly — no state update, no re-render cascade
+          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
         }
       }
+
+      const currentEmails = userEmailsRef.current;
 
       const eventsWithDisplayInfo = fetchedEvents.map((event) => {
         const isOwner = event.user_id === userId;
@@ -75,11 +74,12 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     } finally {
       setLoading(false);
     }
-  }, [supabase, userId, rangeStart, rangeEnd, userEmails]);
+  // FIX: userEmails removed from deps — it's now a ref, not state.
+  // fetchEvents reference only changes when supabase/userId/range changes.
+  }, [supabase, userId, rangeStart, rangeEnd]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -104,7 +104,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     }
   };
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const editEvent = async (event: Event & { shared_with_email?: string }) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);

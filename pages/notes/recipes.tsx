@@ -9,15 +9,12 @@ const RecipesList = dynamic(() => import("../../components/recipes/RecipesList")
 
 export default function RecipesPage() {
   const [showForm, setShowForm] = useState(false);
-  const [refreshTick, setRefreshTick] = useState(0);
-
-  const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const triggerRefresh = useCallback(() => setRefreshToken((t) => t + 1), []);
 
   return (
     <>
-      <Head>
-        <title>Przepisy – Dzisiaj</title>
-      </Head>
+      <Head><title>Przepisy – Dzisiaj</title></Head>
       <Layout>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-text">Przepisy</h2>
@@ -29,15 +26,15 @@ export default function RecipesPage() {
             <RecipeForm
               onCancel={() => setShowForm(false)}
               onChange={() => {
-                refresh();
                 setShowForm(false);
+                triggerRefresh();
               }}
             />
           </section>
         )}
 
         <section>
-          <RecipesList key={refreshTick} />
+          <RecipesList refreshToken={refreshToken} />
         </section>
       </Layout>
     </>

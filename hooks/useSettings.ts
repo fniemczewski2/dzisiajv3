@@ -22,6 +22,16 @@ const safeParseArray = (data: unknown): any[] => {
   return [];
 };
 
+// ZMIANA: Zapewnia, że wszystkie pobrane z bazy przystanki to obiekty {name, zone_id}
+// Konwertuje stare formaty (zwykłe stringi), aby aplikacja nie "wybuchała".
+const normalizeFavoriteStops = (data: unknown) => {
+  const parsed = safeParseArray(data);
+  return parsed.map((item: any) => {
+    if (typeof item === 'string') return { name: item, zone_id: 'AUTO' };
+    return { name: item?.name || '', zone_id: item?.zone_id || 'AUTO' };
+  }).filter((item: any) => item.name !== '');
+};
+
 export function useSettings() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -94,7 +104,7 @@ export function useSettings() {
           show_mood_tracker: data.show_mood_tracker ?? true,
           show_notifications: data.show_notifications ?? true,
           users: safeParseArray(data.users),
-          favorite_stops: safeParseArray(data.favorite_stops),
+          favorite_stops: normalizeFavoriteStops(data.favorite_stops), // NORMALIZACJA PRZYSTANKÓW
           notif_morning_brief: data.notif_morning_brief ?? true,
           notif_tasks: data.notif_tasks ?? true,
           notif_events: data.notif_events ?? true,
@@ -114,7 +124,7 @@ export function useSettings() {
           habit_housework: data.habit_housework ?? true,
           habit_plants: data.habit_plants ?? true,
           habit_duolingo: data.habit_duolingo ?? true,
-          mood_options: data.mood_options ?? DEFAULT_MOODS,
+          mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
         });
       }
       setLoading(false);
@@ -123,60 +133,78 @@ export function useSettings() {
     loadSettings();
   }, [supabase, userId]);
 
-  /**
-   * Persists current settings. Returns { error }.
-   * Caller should toast.success / toast.error based on result.
-   */
+  // Pomocnicza funkcja formatująca obiekty do zapisu jako tekst, 
+  // tak aby kolumny typu TEXT w Supabase nie rzucały "object Object"
+  const getPayloadWithStringifiedJSON = (currentSettings: Settings) => {
+    return {
+      ...currentSettings,
+      users: JSON.stringify(currentSettings.users),
+      favorite_stops: JSON.stringify(currentSettings.favorite_stops),
+      mood_options: JSON.stringify(currentSettings.mood_options),
+    };
+  };
+
   const saveSettings = useCallback(async () => {
     if (!userId) return { error: "No user" };
     setSaving(true);
+    
+    const payload = getPayloadWithStringifiedJSON(settings);
+
     const { error } = await supabase
       .from("settings")
-      .upsert({ user_id: userId, ...settings }, { onConflict: "user_id" });
+      .upsert({ user_id: userId, ...payload }, { onConflict: "user_id" });
     setSaving(false);
     return { error };
   }, [supabase, settings, userId]);
 
-  /**
-   * Merges partial settings and persists. Returns { error }.
-   * Caller should toast on failure.
-   */
   const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
     if (!userId) return { error: "No user" };
     setSaving(true);
+    
     const updated = { ...settings, ...partialSettings };
     setSettings(updated);
+    
+    const payload = getPayloadWithStringifiedJSON(updated);
+
     const { error } = await supabase
       .from("settings")
-      .upsert({ user_id: userId, ...updated }, { onConflict: "user_id" });
+      .upsert({ user_id: userId, ...payload }, { onConflict: "user_id" });
+    
     setSaving(false);
     if (error) throw error;
     return { error };
   }, [supabase, settings, userId]);
 
-  /**
-   * Returns false when limit reached — caller toasts.
-   * Throws on Supabase error.
-   */
   const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
-    if (settings.favorite_stops.some((s) => s.name === name)) return true;
+    // Sprawdzanie i z nowym obiektem i na starym zapisie legacy
+    if (settings.favorite_stops.some((s: any) => (s.name || s) === name)) return true;
     if (settings.favorite_stops.length >= 10) return false;
+    
     const updated = [...settings.favorite_stops, { name, zone_id }];
     setSettings((prev) => ({ ...prev, favorite_stops: updated }));
+    
     const { error } = await supabase
       .from("settings")
-      .upsert({ user_id: userId, favorite_stops: updated }, { onConflict: "user_id" });
+      .upsert({ 
+        user_id: userId, 
+        favorite_stops: JSON.stringify(updated) // BEZPIECZNY ZAPIS DO BAZY
+      }, { onConflict: "user_id" });
+      
     if (error) throw error;
     return true;
   };
 
-  /** Throws on Supabase error. */
   const removeFavoriteStop = async (name: string) => {
-    const updated = settings.favorite_stops.filter((s) => s.name !== name);
+    const updated = settings.favorite_stops.filter((s: any) => (s.name || s) !== name);
     setSettings((prev) => ({ ...prev, favorite_stops: updated }));
+    
     const { error } = await supabase
       .from("settings")
-      .upsert({ user_id: userId, favorite_stops: updated }, { onConflict: "user_id" });
+      .upsert({ 
+        user_id: userId, 
+        favorite_stops: JSON.stringify(updated) // BEZPIECZNY ZAPIS DO BAZY
+      }, { onConflict: "user_id" });
+      
     if (error) throw error;
   };
 

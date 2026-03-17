@@ -16,7 +16,6 @@ import { useAuth } from "../providers/AuthProvider";
 import { useToast } from "../providers/ToastProvider";
 
 export default function SettingsPage() {
-
   const { user } = useAuth();
   const { toast } = useToast();
   const {
@@ -62,12 +61,14 @@ export default function SettingsPage() {
           onRemoveUser={removeUser}
           onUpdateUser={updateUser}
           onSave={saveSettings}
-          onRestoreDefaults={() => {
-            const ok = toast.confirm("Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane.");
+          // FIX: await toast.confirm (was missing await — confirm returns Promise<boolean>)
+          onRestoreDefaults={async () => {
+            const ok = await toast.confirm(
+              "Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane."
+            );
             if (!ok) return;
             setSettings(DEFAULT_SETTINGS);
-            updateSettings(DEFAULT_SETTINGS); 
-
+            updateSettings(DEFAULT_SETTINGS);
           }}
         />
 

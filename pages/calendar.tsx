@@ -4,11 +4,7 @@ import Layout from "../components/Layout";
 import { useCallback, useState, useMemo } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-} from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { Event } from "../types";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
@@ -24,33 +20,6 @@ const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   ssr: false,
 });
 
-const parseEventDate = (timestamp: string): Date => {
-  const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace(" ", "T").split(".")[0];
-  const [datePart, timePart] = cleanTimestamp.split("T");
-  const [year, month, day] = datePart.split("-");
-  const [hours, minutes, seconds] = (timePart || "00:00:00").split(":");
-  
-  return new Date(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day),
-    parseInt(hours),
-    parseInt(minutes),
-    parseInt(seconds || "0")
-  );
-};
-
-const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
-  const eventStart = parseEventDate(event.start_time);
-  const eventEnd = parseEventDate(event.end_time);
-
-  const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-  const eventStartDateOnly = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
-  const eventEndDateOnly = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
-  
-  return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
-};
-
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -59,35 +28,20 @@ export default function CalendarPage() {
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { events, loading, fetchEvents, deleteEvent, editEvent, addEvent } = useEvents(rangeStart, rangeEnd);
+  const { events, loading, fetchEvents, deleteEvent, editEvent } = useEvents(rangeStart, rangeEnd);
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
-  const { tasks } = useTasks(
-    selectedDateStr ?? undefined,
-    selectedDateStr ?? undefined
-  );
+  const { tasks } = useTasks(selectedDateStr ?? undefined, selectedDateStr ?? undefined);
   const { moods } = useMoods();
 
-  const goToPrevMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-    );
-  };
+  const goToPrevMonth = () =>
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const goToNextMonth = () =>
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  const goToNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-    );
-  };
-
-  const openNew = useCallback(() => {
-    setShowForm(true);
-  }, []);
-
-  const handleEventsChange = useCallback(() => {
-    setShowForm(false);
-    fetchEvents(); 
+  const handleAfterAdd = useCallback(() => {
+    fetchEvents();
   }, [fetchEvents]);
 
   const handleCancelForm = useCallback(() => {
@@ -99,9 +53,7 @@ export default function CalendarPage() {
     return tasks.filter((task) => task.due_date === selectedDateStr);
   }, [tasks, selectedDateStr]);
 
-  useQuickAction({
-    onActionAdd: () => setShowForm(true),
-  });
+  useQuickAction({ onActionAdd: () => setShowForm(true) });
 
   return (
     <>
@@ -109,25 +61,18 @@ export default function CalendarPage() {
         <title>Kalendarz - Dzisiaj</title>
       </Head>
       <Layout>
-        
-        {/* NAGŁÓWEK */}
         <div className="flex justify-between items-center mb-6 gap-2">
-          <div className="flex flex-row items-center gap-3 sm:gap-4">
-            <h2 className="text-2xl font-bold text-text">
-              Kalendarz
-            </h2>
-          </div>
-          
-          {!showForm && !selectedDate && <AddButton onClick={openNew} type="button" />}
+          <h2 className="text-2xl font-bold text-text">Kalendarz</h2>
+          {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} type="button" />}
         </div>
 
         {showForm && (
           <div className="mb-6 animate-in fade-in slide-in-from-top-4">
             <EventForm
               currentDate={currentDate}
-              onEventsChange={handleEventsChange}
-              onCancel={handleCancelForm}
               selectedDate={selectedDate}
+              onEventsChange={handleAfterAdd}
+              onCancel={handleCancelForm}
             />
           </div>
         )}
@@ -140,9 +85,7 @@ export default function CalendarPage() {
           />
         )}
 
-        {loading ? (
-          <LoadingState />
-        ) : selectedDateStr ? (
+        {selectedDateStr ? (
           <CalendarDayDetails
             selectedDate={selectedDateStr}
             tasks={tasksForDay}
@@ -152,6 +95,8 @@ export default function CalendarPage() {
             onEditEvent={editEvent}
             onDeleteEvent={deleteEvent}
           />
+        ) : loading && events.length === 0 ? (
+          <LoadingState />
         ) : (
           <MonthView
             currentDate={currentDate}
