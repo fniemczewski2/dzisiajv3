@@ -61,7 +61,6 @@ export default function SettingsPage() {
           onRemoveUser={removeUser}
           onUpdateUser={updateUser}
           onSave={saveSettings}
-          // FIX: await toast.confirm (was missing await — confirm returns Promise<boolean>)
           onRestoreDefaults={async () => {
             const ok = await toast.confirm(
               "Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane."

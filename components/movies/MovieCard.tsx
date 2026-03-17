@@ -1,8 +1,5 @@
 "use client";
-// Naprawione TS2322:
-//   withRetry<T>(operation: () => Promise<T>, ...) wymaga Promise.
-//   Props onUpdate/onDelete/onSaveNotes były zadeklarowane jako void →
-//   zmienione na Promise<void>. Callbacki owinięte w async () => { ... }.
+
 import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";
 import type { Movie } from "../../types";

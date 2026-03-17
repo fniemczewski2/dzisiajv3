@@ -1,6 +1,5 @@
 // lib/holidays.ts
 
-// Algorytm wyznaczający datę Wielkanocy (Meeusa/Jonesa/Butchera)
 export function getEaster(year: number): Date {
   const f = Math.floor;
   const G = year % 19;
@@ -32,7 +31,6 @@ export function getPolishHolidays(year: number): Record<string, string> {
 
   const holidays: Record<string, string> = {};
 
-  // Święta stałe
   holidays[`${year}-01-01`] = "Nowy Rok";
   holidays[`${year}-01-06`] = "Trzech Króli";
   holidays[`${year}-05-01`] = "Święto Pracy";
@@ -44,7 +42,6 @@ export function getPolishHolidays(year: number): Record<string, string> {
   holidays[`${year}-12-25`] = "Boże Narodzenie";
   holidays[`${year}-12-26`] = "Boże Narodzenie";
 
-  // Święta ruchome (od Wielkanocy)
   holidays[formatDate(easter)] = "Wielkanoc";
   holidays[formatDate(addDays(easter, 1))] = "Poniedziałek Wielkanocny";
   holidays[formatDate(addDays(easter, 60))] = "Boże Ciało";

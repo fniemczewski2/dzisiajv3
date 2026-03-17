@@ -1,6 +1,5 @@
 "use client";
-// Naprawione:
-//   1. addNote bez withRetry + toast → owinięte, toast.success po zapisie
+
 import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
 import { Note } from "../../types";

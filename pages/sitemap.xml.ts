@@ -55,7 +55,6 @@ ${urls}
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   res.setHeader("Content-Type", "text/xml; charset=utf-8");
-  // Cache for 24 hours at the CDN, serve stale while revalidating.
   res.setHeader(
     "Cache-Control",
     "public, s-maxage=86400, stale-while-revalidate"

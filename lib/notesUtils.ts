@@ -8,7 +8,7 @@ export function sortNotes(notes: Note[]): Note[] {
   const sortByDate = (a: Note, b: Note) => {
     const dateA = new Date(a.updated_at || 0).getTime();
     const dateB = new Date(b.updated_at || 0).getTime();
-    return dateB - dateA; // Newest first
+    return dateB - dateA; 
   };
 
   return [

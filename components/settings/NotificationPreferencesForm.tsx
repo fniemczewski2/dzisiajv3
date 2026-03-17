@@ -1,7 +1,5 @@
 "use client";
-// Naprawione:
-//   1. toast.error() bez useToast → dodano useToast
-//   2. toast.error("Błąd...", error) — błędna sygnatura → toast.error(msg)
+
 import React, { useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../providers/ToastProvider";

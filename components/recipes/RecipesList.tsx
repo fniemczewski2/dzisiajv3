@@ -17,8 +17,6 @@ const CATEGORIES: RecipeCategory[] = [
 ];
 
 interface RecipesListProps {
-  // FIX: refreshToken triggers a re-fetch without unmounting the component.
-  // When the parent increments this, useEffect runs refresh().
   refreshToken?: number;
 }
 
@@ -38,7 +36,6 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
   const nameRef = useRef<HTMLInputElement>(null);
   const retryOpts = { userId: user?.id };
 
-  // FIX: when refreshToken changes, re-fetch recipes (without unmounting)
   useEffect(() => {
     if (refreshToken !== undefined) {
       refresh();
@@ -79,7 +76,6 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
     setProdFilter((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
   const toggleOpen = (id: string) => setOpenId((prev) => prev === id ? null : id);
 
-  // FIX: await toast.confirm, add toast.success
   const handleDelete = async (id: string) => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć ten przepis?");
     if (!ok) return;
@@ -95,7 +91,6 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
 
   const handleCancelEdit = () => { setEditingId(null); setEditedRecipe(null); setProdInput(""); };
 
-  // FIX: add toast.success
   const handleSaveEdit = async () => {
     if (!editedRecipe) return;
     await withRetry(async () => { await editRecipe(editedRecipe); }, toast, { context: "RecipesList.editRecipe", ...retryOpts });

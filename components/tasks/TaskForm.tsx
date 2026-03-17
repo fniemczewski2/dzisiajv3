@@ -1,6 +1,5 @@
 "use client";
-// Naprawione:
-//   1. addTask bez withRetry + toast → owinięte + toast.success
+
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";

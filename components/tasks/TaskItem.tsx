@@ -45,7 +45,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
 
   const titleRef = useRef<HTMLInputElement>(null);
 
-  // Timer state
+
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -61,7 +61,6 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     return () => clearInterval(interval);
   }, [timerRunning, timerPaused]);
 
-  // FIX: use toast.confirm instead of alert, add toast.success
   const handleDelete = async () => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie?");
     if (!ok) return;
@@ -94,7 +93,6 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     setSharedEmail("");
   };
 
-  // FIX: add toast.success
   const handleSaveEdit = async () => {
     let targetUserId: string | null = null;
     if (sharedEmail) {
@@ -163,7 +161,6 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
   const isOverdue = dueDate < today;
   const isHighPriority = task.priority === 1;
 
-  // ── Timer view ────────────────────────────────────────────────────────────
   if (isTimerActive) {
     return (
       <div className="w-full h-full animate-in fade-in zoom-in duration-300">
@@ -189,7 +186,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     );
   }
 
-  // ── Edit view ─────────────────────────────────────────────────────────────
+
   if (isEditing) {
     return (
       <div className="p-4 w-full bg-card border border-primary dark:border-primary-dark rounded-xl shadow-lg transition-colors">
@@ -276,7 +273,6 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     );
   }
 
-  // ── Normal view ───────────────────────────────────────────────────────────
   return (
     <>
       <div className="p-4 w-full h-full card hover:border-primary/50 dark:hover:border-primary-dark/50 rounded-xl shadow-sm flex flex-col justify-between transition-all group">

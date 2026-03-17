@@ -45,7 +45,6 @@ export default function DaySchemaPage() {
     setShowForm(false);
   };
 
-  // FIX: await toast.confirm, add toast.success
   const handleDelete = async (id: string) => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć ten schemat?");
     if (!ok) return;

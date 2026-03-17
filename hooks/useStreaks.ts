@@ -41,11 +41,9 @@ export function useStreaks() {
     await fetchStreaks();
   };
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const updateStreak = async (id: string, updates: Partial<Streak>) => {
     const { error } = await supabase.from("streaks").update(updates).eq("id", id);
     if (error) throw error;
-    // Optimistic local update — no full refetch needed for edits
     setStreaks((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
 

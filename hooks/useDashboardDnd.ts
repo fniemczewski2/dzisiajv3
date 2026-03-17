@@ -59,7 +59,6 @@ export function useDashboardDnd({
       const dragId = String(active.id);
       const [hours, minutes] = targetTime.split(":").map(Number);
 
-      // ── Task ───────────────────────────────────────────────────────────────
       if (dragId.startsWith("plan-task-") || dragId.startsWith("task-")) {
         const rawId = dragId.replace("plan-task-", "").replace("task-", "");
         const currentTask = tasks.find((t) => String(t.id) === rawId);
@@ -73,7 +72,7 @@ export function useDashboardDnd({
         return;
       }
 
-      // ── Event ──────────────────────────────────────────────────────────────
+
       if (dragId.startsWith("plan-event-") || dragId.startsWith("side-event-")) {
         const eventId = dragId.replace("plan-event-", "").replace("side-event-", "");
         const currentEvent = events.find((e) => String(e.id) === eventId);

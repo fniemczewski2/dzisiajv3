@@ -54,7 +54,7 @@ export default function BackpackPage() {
                     <input
                       type="checkbox"
                       checked={!!checked[item]}
-                      readOnly // kontrolowane przez kliknięcie na <li>
+                      readOnly 
                       className="mt-0.5 h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
                       title="Spakowane?"
                     />

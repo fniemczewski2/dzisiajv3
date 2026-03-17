@@ -17,7 +17,6 @@ export default function StreaksPage() {
   const { streaks, loading, refetch, deleteStreak, updateStreak, getMilestoneMessage } = useStreaks();
   const [showForm, setShowForm] = useState(false);
 
-  // FIX: add toast.success after edit
   const handleEdit = async (updatedStreak: Streak) => {
     try {
       await updateStreak(updatedStreak.id, {
@@ -31,7 +30,6 @@ export default function StreaksPage() {
     }
   };
 
-  // FIX: await toast.confirm, add toast.success
   const handleDelete = async (id: string) => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć ten cel?");
     if (!ok) return;

@@ -38,7 +38,6 @@ export default function BudgetPage() {
     return { month, monthName: MONTH_NAMES[i], sum, rate, hours: rate > 0 ? Math.round(sum / rate) : 0 };
   }), [data]);
 
-  // FIX: saveRates now throws on error (fixed in hook), so this try/catch works correctly.
   const handleSave = async () => {
     setSaving(true);
     try {

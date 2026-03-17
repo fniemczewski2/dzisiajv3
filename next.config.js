@@ -1,4 +1,3 @@
-// ZAMIAST: const withPWA = require("next-pwa")({
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
@@ -10,7 +9,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
     /_next\/dynamic-css-manifest\.json$/,
     /chunks\/.*\.js.map$/,
   ],
-  // Składnia runtimeCaching pozostaje taka sama
   runtimeCaching: [
     {
       urlPattern: /_next\/.*manifest\.json$/,

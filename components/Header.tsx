@@ -42,7 +42,6 @@ const StableBirthdayIndicator = memo(function StableBirthdayIndicator({
   return <BirthdayIndicator date={date} />;
 });
 
-// ── Main header ───────────────────────────────────────────────────────────────
 export default function Header() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState("");
@@ -84,8 +83,6 @@ export default function Header() {
       const tick = new Date();
       setCurrentTime(tick.toLocaleTimeString("pl-PL"));
 
-      // Update the date string at midnight so StableBirthdayIndicator refreshes
-      // for the new day without any manual intervention.
       const newDateStr = `${tick.getFullYear()}-${String(tick.getMonth() + 1).padStart(2, "0")}-${String(tick.getDate()).padStart(2, "0")}`;
       setTodayDateString((prev) => (prev !== newDateStr ? newDateStr : prev));
     }, 1000);

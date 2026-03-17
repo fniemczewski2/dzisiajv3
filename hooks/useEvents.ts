@@ -10,11 +10,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // FIX: use useRef instead of useState for userEmails cache.
-  // Previously userEmails was in useState AND in fetchEvents useCallback deps.
-  // When fetchEvents ran setUserEmails(), it created a new fetchEvents reference,
-  // which triggered the useEffect, which ran fetchEvents again → infinite loop
-  // that appeared as a full page reload/flash.
   const userEmailsRef = useRef<Record<string, string>>({});
 
   const fetchEvents = useCallback(async () => {
@@ -49,7 +44,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
           const newEmails = (emailData as { id: string; email: string }[]).reduce<
             Record<string, string>
           >((acc, curr) => { acc[curr.id] = curr.email; return acc; }, {});
-          // FIX: mutate the ref directly — no state update, no re-render cascade
+
           userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
         }
       }
@@ -74,8 +69,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     } finally {
       setLoading(false);
     }
-  // FIX: userEmails removed from deps — it's now a ref, not state.
-  // fetchEvents reference only changes when supabase/userId/range changes.
+
   }, [supabase, userId, rangeStart, rangeEnd]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);

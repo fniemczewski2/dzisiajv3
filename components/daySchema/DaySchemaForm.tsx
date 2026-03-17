@@ -69,8 +69,6 @@ export default function DaySchemaForm({
       toast,
       { context: `DaySchemaForm.${isEdit ? "updateSchema" : "addSchema"}`, userId: user?.id }
     );
-
-    // FIX: toast.success BEFORE onCancel/onSchemaSaved to survive unmount
     toast.success(isEdit ? "Zmieniono pomyślnie." : "Dodano pomyślnie.");
     setLoading(false);
     onSchemaSaved();

@@ -81,7 +81,6 @@ export default function PlacesPage() {
     });
   }, [places, searchQuery, selectedTags, timeFilter]);
 
-  // FIX: add toast.success after update
   const handleSavePlace = async (updates: Partial<Place>) => {
     if (!editingPlace) return;
     try {
@@ -98,7 +97,6 @@ export default function PlacesPage() {
     return count || 0;
   };
 
-  // FIX: deletePlace in PlacesList already uses withRetry + toast — just pass it through
   const handleDeletePlace = async (id: string) => {
     try {
       await deletePlace(id);

@@ -1,6 +1,4 @@
 // hooks/useGoogleCalendar.ts
-// All API calls carry the Supabase access token as Authorization: Bearer <token>
-// This works with createBrowserClient (localStorage-based sessions).
 
 import { useState, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
@@ -27,7 +25,6 @@ export function useGoogleCalendar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get the current Supabase access token from the active session
   const getToken = useCallback(async (): Promise<string | null> => {
     const { data: { session } } = await supabase.auth.getSession();
     return session?.access_token ?? null;
@@ -75,7 +72,6 @@ export function useGoogleCalendar() {
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       const { url } = await res.json();
-      // Redirect to Google OAuth — page will reload after callback
       window.location.href = url;
     } catch (e: any) {
       setError(`Nie udało się rozpocząć autoryzacji Google: ${e.message}`);

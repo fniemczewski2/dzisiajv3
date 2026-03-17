@@ -39,7 +39,6 @@ export interface NavigationCategory {
   color?: string; 
 }
 
-// Główna nawigacja pogrupowana w kategorie
 export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
     name: "Zadania i Produktywność",
@@ -90,8 +89,6 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   },
 ];
 
-
-// Szybkie akcje - najczęściej używane funkcje
 export const QUICK_ACTIONS: NavigationButton[] = [
   { path: "/tasks?action=add", title: "Dodaj zadanie", icon: ListTodo, label: "Zadanie" },
   { path: "/notes?action=add", title: "Dodaj notatkę", icon: Edit2, label: "Notatka" },
@@ -99,7 +96,6 @@ export const QUICK_ACTIONS: NavigationButton[] = [
   { path: "/calendar?action=add", title: "Dodaj wydarzenie", icon: Calendar, label: "Wydarzenie" },
 ];
 
-// Helper functions
 export const getAllNavigationItems = (): NavigationButton[] => {
   return NAVIGATION_CATEGORIES.flatMap(category => category.items);
 };

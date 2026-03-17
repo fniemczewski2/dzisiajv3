@@ -19,9 +19,7 @@ interface Props {
   holiday?: string;
 }
 
-// ── Niestandardowy komparator dla React.memo ──────────────────────────────────
-// Porównujemy tylko pola które faktycznie wpływają na wygląd komórki.
-// date porównujemy przez getTime() — instancje Date nie są referencyjnie równe.
+
 function areEqual(prev: Props, next: Props): boolean {
   return (
     prev.date.getTime() === next.date.getTime() &&
@@ -32,7 +30,6 @@ function areEqual(prev: Props, next: Props): boolean {
     prev.onClick === next.onClick &&
     prev.dayMood?.mood_id === next.dayMood?.mood_id &&
     prev.holiday === next.holiday
-    // DEFAULT_MOODS jest stałą — nie porównujemy referencyjnie
   );
 }
 

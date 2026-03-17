@@ -34,9 +34,9 @@ export interface Feature {
   description: string;
   icon: LucideIcon;
   category?: FeatureCategory;
-  path?: string; // Opcjonalna ścieżka do funkcji
-  badge?: "Nowe" | "Beta" | "Popularne"; // Opcjonalne odznaki
-  comingSoon?: boolean; // Czy funkcja jest w planach
+  path?: string; 
+  badge?: "Nowe" | "Beta" | "Popularne"; 
+  comingSoon?: boolean; 
 }
 
 export type FeatureCategory = 
@@ -53,7 +53,6 @@ export interface FeatureGroup {
   features: Feature[];
 }
 
-// Wszystkie funkcje pogrupowane w kategorie
 export const FEATURE_GROUPS: FeatureGroup[] = [
   {
     category: "Produktywność",
@@ -251,10 +250,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
   },
 ];
 
-// Płaska lista wszystkich funkcji (dla kompatybilności wstecznej)
 export const features: Feature[] = FEATURE_GROUPS.flatMap(group => group.features);
 
-// Dodaj na końcu placeholder dla nowych funkcji
 features.push({
   title: "Wiele więcej...",
   description: "Aplikacja jest rozwijana i\u00A0pojawiają się nowe funkcje.",
@@ -262,7 +259,6 @@ features.push({
   category: "Narzędzia",
 });
 
-// Helper functions
 export const getFeaturesByCategory = (category: FeatureCategory): Feature[] => {
   return features.filter(feature => feature.category === category);
 };
@@ -279,9 +275,8 @@ export const getFeatureByTitle = (title: string): Feature | undefined => {
   return features.find(feature => feature.title === title);
 };
 
-// Statystyki funkcji
 export const featureStats = {
-  total: features.length - 1, // Minus "Wiele więcej..."
+  total: features.length - 1, 
   byCategory: FEATURE_GROUPS.reduce((acc, group) => {
     acc[group.category] = group.features.length;
     return acc;

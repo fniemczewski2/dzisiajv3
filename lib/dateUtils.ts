@@ -5,7 +5,6 @@ export const formatDate = (date: Date): string =>
   date.toISOString().split("T")[0];
 
 export const formatTime = (timestamp: string, includeDate = false): string => {
-  // Handle both "2026-01-22 23:59:00+00" and "2026-01-22T23:59:00+00"
   const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace("T", " ").slice(0, 19);
   const [datePart, timePart] = cleanTimestamp.split(" ");
   const [year, month, day] = datePart.split("-");
@@ -18,26 +17,19 @@ export const formatTime = (timestamp: string, includeDate = false): string => {
 };
 
 export const localDateTimeToISO = (localDateTime: string): string => {
-  // Input: "2026-01-22T23:59" or "2026-01-22T23:59:59"
-  // Output: "2026-01-22T23:59:00+00" (with T separator)
   
   let cleanDateTime = localDateTime;
   
-  // Ensure we have seconds
   const parts = cleanDateTime.split(":");
   if (parts.length === 2) {
-    // No seconds, add them
     cleanDateTime += ":00";
   }
   
-  // Return in format with T separator and +00 timezone
   return `${cleanDateTime}+00`;
 };
 
-// Helper to parse event timestamp WITHOUT timezone conversion
-// Treats stored time as the display time (ignores timezone)
+
 export const parseEventDate = (timestamp: string): Date => {
-  // Handle both "2026-01-22 23:59:00+00" and "2026-01-22T23:59:00+00"
   let cleanTimestamp = timestamp
     .replace(" ", "T")
     .replace(/\+\d{2}$/, "")
@@ -47,7 +39,6 @@ export const parseEventDate = (timestamp: string): Date => {
   const [year, month, day] = datePart.split("-");
   const [hours, minutes, seconds] = (timePart || "00:00:00").split(":");
   
-  // Create date in LOCAL timezone (no conversion)
   return new Date(
     parseInt(year),
     parseInt(month) - 1,
@@ -58,7 +49,6 @@ export const parseEventDate = (timestamp: string): Date => {
   );
 };
 
-// Convert Date to timestamp format "2026-01-22T23:59:00+00"
 export const dateToTimestamp = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -67,16 +57,13 @@ export const dateToTimestamp = (date: Date): string => {
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
   
-  // Use T separator for consistency
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+00`;
 };
 
-// Check if event spans the selected date
 export const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
   const eventStart = parseEventDate(event.start_time);
   const eventEnd = parseEventDate(event.end_time);
   
-  // Normalize times to just dates for comparison
   const selectedDateOnly = new Date(selectedDate);
   selectedDateOnly.setHours(0, 0, 0, 0);
   
@@ -86,11 +73,9 @@ export const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
   const eventEndDateOnly = new Date(eventEnd);
   eventEndDateOnly.setHours(0, 0, 0, 0);
   
-  // Check if selected date falls within the event's date range
   return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
 };
 
-// Convert datetime-local value to proper format for editing
 export const getLocalDateTimeValue = (timestamp: string): string => {
   const date = parseEventDate(timestamp);
   const year = date.getFullYear();

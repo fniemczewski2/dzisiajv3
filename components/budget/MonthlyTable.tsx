@@ -32,7 +32,6 @@ export default function MonthlyBudgetTable({
             {Array.from({ length: 12 }, (_, i) => {
               const m = i + 1;
               const monthData = data[m];
-              // Naprzemienne kolory wierszy
               const rowClass = i % 2 === 0 ? "bg-card" : "bg-surface";
 
               if (!loadedMonths.has(m)) {

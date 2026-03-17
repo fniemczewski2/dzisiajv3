@@ -44,7 +44,6 @@ export default function SettingsForm({
   const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
   const router = useRouter();
 
-  // Odczyt bezpośrednio z obiektu 'settings' przekazanego przez bazę danych
   const moodEnabled = settings?.show_mood_tracker ?? false;
   const moodOptions = settings?.mood_options ?? DEFAULT_MOODS;
 
@@ -152,18 +151,17 @@ export default function SettingsForm({
                   onChange={(e) => {
                     const newOpts = [...moodOptions];
                     newOpts[index].label = e.target.value;
-                    onSettingsChange({ ...settings, mood_options: newOpts }); // Zapis natychmiastowy do stanu
+                    onSettingsChange({ ...settings, mood_options: newOpts });
                   }}
                   className="input-field flex-1 bg-card"
                   placeholder="Nazwa nastroju..."
                 />
 
-                {/* Możesz usunąć każdy nastrój - nawet zostawiając 0 */}
                 <button 
                   type="button" 
                   onClick={() => {
                     const newOpts = moodOptions.filter((m: MoodOption) => m.id !== opt.id);
-                    onSettingsChange({ ...settings, mood_options: newOpts }); // Skuteczne, natychmiastowe usunięcie
+                    onSettingsChange({ ...settings, mood_options: newOpts });
                   }}
                   className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg shrink-0"
                   title="Usuń nastrój"

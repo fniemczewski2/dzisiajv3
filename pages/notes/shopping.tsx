@@ -8,7 +8,7 @@ import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 
 export default function ShoppingPage() {
-  // Wywołujemy hooka tylko raz!
+
   const { lists, loading, addShoppingList, editShoppingList, deleteShoppingList } = useShoppingLists();
   const [showForm, setShowForm] = useState(false);
 
