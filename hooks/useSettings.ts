@@ -22,8 +22,6 @@ const safeParseArray = (data: unknown): any[] => {
   return [];
 };
 
-// ZMIANA: Zapewnia, że wszystkie pobrane z bazy przystanki to obiekty {name, zone_id}
-// Konwertuje stare formaty (zwykłe stringi), aby aplikacja nie "wybuchała".
 const normalizeFavoriteStops = (data: unknown) => {
   const parsed = safeParseArray(data);
   return parsed.map((item: any) => {
@@ -104,7 +102,7 @@ export function useSettings() {
           show_mood_tracker: data.show_mood_tracker ?? true,
           show_notifications: data.show_notifications ?? true,
           users: safeParseArray(data.users),
-          favorite_stops: normalizeFavoriteStops(data.favorite_stops), // NORMALIZACJA PRZYSTANKÓW
+          favorite_stops: normalizeFavoriteStops(data.favorite_stops), 
           notif_morning_brief: data.notif_morning_brief ?? true,
           notif_tasks: data.notif_tasks ?? true,
           notif_events: data.notif_events ?? true,
