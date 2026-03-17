@@ -3,16 +3,16 @@ import { useEvents } from "../../hooks/useEvents";
 import { format } from "date-fns";
 import { eventSpansDate, getAppDate } from "../../lib/dateUtils";
 import { Cake, Star } from "lucide-react";
-import { getPolishHolidays } from "../../lib/holidays"; // <-- Import logiki świąt
+import { getPolishHolidays } from "../../lib/holidays"; 
 
 interface Props {
-  date?: string; // Format: "YYYY-MM-DD"
+  date?: string; 
 }
 
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
 export default function BirthdayIndicator({ date }: Props) {
-  const dateStr = date || getAppDate(); // Zabezpieczenie stringa daty
+  const dateStr = date || getAppDate(); 
   const dateObj = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
   
   const monthStart = useMemo(() => 
@@ -27,7 +27,6 @@ export default function BirthdayIndicator({ date }: Props) {
   
   const { events, loading } = useEvents(monthStart, monthEnd);
 
-  // Filtrowanie specjalnych wydarzeń (urodziny, rocznice) z bazy
   const specialEvents = useMemo(() => {
     return events.filter((event) => {
       if (!eventSpansDate(event, dateObj)) return false;
@@ -37,7 +36,7 @@ export default function BirthdayIndicator({ date }: Props) {
     });
   }, [events, dateObj]);
 
-  // Pobieranie polskiego święta na ten konkretny dzień
+
   const holiday = useMemo(() => {
     const holidaysMap = getPolishHolidays(dateObj.getFullYear());
     return holidaysMap[dateStr] || null;

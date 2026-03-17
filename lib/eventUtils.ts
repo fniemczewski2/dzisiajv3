@@ -7,8 +7,6 @@ import {
 } from "date-fns";
 import { Event } from "../types";
 import { getAppDate, parseEventDate, dateToTimestamp } from "./dateUtils";
-// parseEventDate is the single source of truth — previously duplicated here
-// as parseEventTimestamp with identical logic.
 
 export function expandRepeatingEvents(
   events: Event[],

@@ -1,12 +1,10 @@
-// Naprawione:
-
 import React from "react";
 import { Calendar } from "lucide-react";
 import { DroppableHourSlot } from "./DroppableHourSlot";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import { PlanItem } from "./PlanItem";
 
-const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00 – 23:00
+const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
 
 interface DailyPlanProps {
   planByHour: Record<string, any[]>;

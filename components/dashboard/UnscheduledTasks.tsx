@@ -1,5 +1,3 @@
-// Naprawione:
-
 import React from "react";
 import { ListTodo, GripVertical } from "lucide-react";
 import LoadingState from "../LoadingState";

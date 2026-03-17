@@ -97,7 +97,7 @@ export default function NoteEditForm({
                   note.bg_color === color
                     ? "border-primary ring-2 ring-primary ring-offset-2 dark:ring-offset-card scale-110"
                     : "border-black/10 dark:border-white/10 hover:scale-110",
-                  colorMap[color].split(" ")[0] // Używa tylko pierwszej klasy (tła) dla kółka koloru
+                  colorMap[color].split(" ")[0] 
                 )}
                 title={`Wybierz kolor`}
               />

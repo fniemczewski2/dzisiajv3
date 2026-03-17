@@ -1,6 +1,3 @@
-// Naprawione:
-//   playCompletionSound catch: toast.error() wywołany w zwykłej funkcji (nie React hook) —
-//   toast nie jest dostępny poza komponentem → console.warn (audio jest best-effort)
 import { useEffect, useState } from "react";
 import { Award } from "lucide-react";
 
@@ -97,7 +94,6 @@ function playCompletionSound(priority: number) {
       osc1.stop(startTime + duration); osc2.stop(startTime + duration);
     });
   } catch (err) {
-    // Audio is best-effort — not a user-facing error
     console.warn("[CompletionCelebration] Audio not supported:", err);
   }
 }

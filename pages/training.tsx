@@ -14,7 +14,7 @@ export default function TrainingPage() {
   const [cycles, setCycles] = useState(1);
   const [longRestSec, setLongRestSec] = useState(60);
   
-  // Włączenie długiej przerwy tylko jeśli cykli jest > 1
+
   const useLongRest = cycles > 1;
 
   const cfg = {

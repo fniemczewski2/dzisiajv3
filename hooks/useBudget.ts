@@ -43,14 +43,14 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     const { data: bills } = await supabase
       .from("bills")
       .select("amount,date,is_income,description,done")
-      .eq("user_id", userId) // PRZYWRÓCONO: Zabezpieczenie danych użytkownika
+      .eq("user_id", userId) 
       .gte("date", dateStart)
       .lt("date", dateEnd);
 
     const { data: habits } = await supabase
       .from("daily_habits")
       .select("date,daily_spending")
-      .eq("user_id", userId) // PRZYWRÓCONO: Zabezpieczenie danych użytkownika
+      .eq("user_id", userId) 
       .gte("date", dateStart)
       .lt("date", dateEnd);
 
@@ -79,7 +79,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     const { data: ratesData } = await supabase
       .from("budgets")
       .select("*")
-      .eq("user_id", userId) // PRZYWRÓCONO: Inaczej maybeSingle wywali błąd na wielu userach
+      .eq("user_id", userId) 
       .maybeSingle();
 
     if (!ratesData) return {};
@@ -128,12 +128,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const payload: any = { user_id: userId };
       Object.entries(data).forEach(([monthStr, monthData]) => {
         const m = parseInt(monthStr);
-        // Zabezpieczenie przed pustym stringiem/NaN powodującym błąd 400
+
         if (m >= 1 && m <= 12) payload[`${keys[m - 1]}_rate`] = Number(monthData.rate) || 0;
       });
 
-      // ZMIANA: Pobieramy ID wpisu, aby bezpiecznie zaktualizować/stworzyć wiersz
-      // Baza nie rzuci już błędem onConflict.
       const { data: existing } = await supabase
         .from("budgets")
         .select("id")

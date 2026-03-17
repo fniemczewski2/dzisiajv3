@@ -1,7 +1,3 @@
-// Naprawione:
-//   1. handleAddTask: addTask bez withRetry + toast → owinięte
-//   2. addReminder: fire-and-forget bez .catch → .catch(console.error)
-//   3. completeReminder/postponeReminder/deleteReminder: fire-and-forget bez .catch → .catch
 import { useState } from "react";
 import {
   RefreshCw, ChevronDown, ChevronUp, Plus, Check,

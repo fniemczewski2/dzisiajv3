@@ -13,7 +13,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
-  // Audio setup
   useEffect(() => {
     audioRef.current = new Audio("/KBING.mp3");
     audioRef.current.preload = "auto";
@@ -23,7 +22,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, []);
 
-  // Wake Lock — best-effort, nie blokuje działania timera
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
@@ -31,7 +29,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
           wakeLockRef.current = await navigator.wakeLock.request("screen");
         }
       } catch (err) {
-        // WakeLock może być niedostępny (np. brak uprawnień, PWA poza foreground)
         console.warn("[useTimerEngine] WakeLock unavailable:", err);
       }
     };
@@ -62,7 +59,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, [running, paused]);
 
-  // Audio — best-effort, nie blokuje działania timera
   const playSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -72,14 +68,12 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     }
   };
 
-  // Reset seconds when phase changes and timer isn't running
   useEffect(() => {
     if (!running) {
       setSecondsLeft(phases[phaseIndex]?.seconds ?? 0);
     }
   }, [phaseIndex, phases, running]);
 
-  // Tick
   useEffect(() => {
     if (running && !paused) {
       intervalRef.current = window.setInterval(() => {
@@ -94,7 +88,6 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, [running, paused]);
 
-  // Phase/round transitions
   useEffect(() => {
     if (secondsLeft <= 0 && running) {
       playSound();

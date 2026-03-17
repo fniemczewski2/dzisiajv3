@@ -1,13 +1,4 @@
 // pages/api/google-places.ts
-//
-// Changes vs original:
-//   1. Authenticate the caller via the Supabase JWT in the Authorization header.
-//      Any request without a valid token is rejected with 401 before the Google
-//      Places API is ever contacted — this prevents quota abuse by third parties.
-//   2. Replaced `throw new Error(...)` followed by unreachable `res.status()`
-//      calls with `return res.status(...).json(...)` so the response is actually
-//      sent and the process does not crash with an unhandled exception.
-//   3. Removed the dead `throw` + `res.status` pattern that appeared twice.
 
 import { createServerClient } from '@supabase/ssr';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -38,7 +29,7 @@ async function getAuthenticatedUser(req: NextApiRequest) {
   return data.user ?? null;
 }
 
-// ── Handler ───────────────────────────────────────────────────────────────────
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -71,7 +62,6 @@ export default async function handler(
   try {
     let finalPlaceId: string | null = null;
 
-    // Step 1: Try text search
     const findPlaceUrl =
       `https://maps.googleapis.com/maps/api/place/findplacefromtext/json` +
       `?input=${encodeURIComponent(name as string)}` +
@@ -86,7 +76,6 @@ export default async function handler(
     if (findData.status === 'OK' && findData.candidates?.length > 0) {
       finalPlaceId = findData.candidates[0].place_id;
     } else {
-      // Step 2: Fallback — nearby search
       const nearbyUrl =
         `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
         `?location=${lat},${lng}` +
@@ -113,8 +102,6 @@ export default async function handler(
     if (!finalPlaceId) {
       console.warn(`[google-places] Could not find: "${name}" at ${lat},${lng}`);
 
-      // Still return auto-tags derived from the place name so the import flow
-      // can continue even without Google data.
       const tags = await generatePlaceTags(name as string);
       return res.status(404).json({
         error: 'Place not found in Google Places',
@@ -125,7 +112,6 @@ export default async function handler(
       });
     }
 
-    // Step 3: Fetch full details
     const detailsUrl =
       `https://maps.googleapis.com/maps/api/place/details/json` +
       `?place_id=${finalPlaceId}` +
@@ -142,11 +128,9 @@ export default async function handler(
       });
     }
 
-    // Step 4: Generate automatic tags
     const autoTags = await generatePlaceTags(name as string, detailsData.result);
 
-    // Step 5: Respond
-    res.setHeader('Cache-Control', 'private, max-age=3600'); // cache per-user, 1 h
+    res.setHeader('Cache-Control', 'private, max-age=3600'); 
     return res.status(200).json({ ...detailsData, auto_tags: autoTags });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';

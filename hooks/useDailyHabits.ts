@@ -29,7 +29,6 @@ export function useDailyHabits(date?: string) {
   const [habits, setHabits] = useState<DailyHabits | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch — błąd fetcha nie jest krytyczny, fallback do domyślnych wartości
   const fetchHabits = async () => {
     if (!userId) return;
     setLoading(true);
@@ -55,7 +54,6 @@ export function useDailyHabits(date?: string) {
     }
   };
 
-  // Optimistic toggle → upsert → rollback + throw na błąd
   const toggleHabit = async (key: HabitKey) => {
     if (!habits || !userId) return;
 

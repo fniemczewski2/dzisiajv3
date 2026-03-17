@@ -53,7 +53,7 @@ export default function StreakForm({ onChange, onCancel }: StreakFormProps) {
       toast,
       { context: "StreakForm.addStreak", userId: user?.id }
     );
-    // FIX: toast.success BEFORE onCancel to survive unmount
+
     toast.success("Dodano pomyślnie.");
     setName("");
     setStartDate(getAppDate());

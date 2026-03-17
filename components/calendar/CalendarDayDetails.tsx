@@ -55,9 +55,6 @@ export default function CalendarDayDetails({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
 
-  // showAddForm is lifted here so we can close it after EventForm calls
-  // onEventsChange (which triggers calendar.tsx to refetch and pass fresh
-  // events back as props — no second useEvents call needed).
   const [showAddForm, setShowAddForm] = useState(false);
   const [sharedEmail, setSharedEmail] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
@@ -140,8 +137,6 @@ export default function CalendarDayDetails({
     onEventsChange();
   };
 
-  // Called by EventForm after a successful insert.
-  // Closes the form and triggers the parent's single fetchEvents.
   const handleAfterAdd = () => {
     setShowAddForm(false);
     onEventsChange();

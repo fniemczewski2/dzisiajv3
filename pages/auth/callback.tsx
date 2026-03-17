@@ -20,8 +20,6 @@ export default function AuthCallbackPage() {
         router.replace("/login?error=auth_failed");
         return;
       }
-
-      // Where to go after login — carried in the `next` query param
       const next = router.query.next;
       const destination =
         typeof next === "string" && next.startsWith("/") ? next : "/";

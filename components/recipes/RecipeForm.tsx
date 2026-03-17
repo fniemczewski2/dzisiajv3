@@ -68,8 +68,6 @@ export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
       toast,
       { context: "RecipeForm.addRecipe", userId: user?.id }
     );
-
-    // FIX: toast.success BEFORE onChange/onCancel to survive unmount
     toast.success("Dodano pomyślnie.");
     setName(""); setCategory("śniadanie"); setDescription(""); setPicked([]); setProdInput("");
     onChange();

@@ -56,8 +56,6 @@ export const CancelButton = ({ onCancel, loading }: { onCancel: () => void; load
   </button>
 );
 
-// MAŁE PRZYCISKI AKCJI (Używają flex-1 by idealnie rozłożyć się na 320px)
-
 export const DeleteButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}

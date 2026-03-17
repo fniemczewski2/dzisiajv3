@@ -131,8 +131,6 @@ export function useSettings() {
     loadSettings();
   }, [supabase, userId]);
 
-  // Pomocnicza funkcja formatująca obiekty do zapisu jako tekst, 
-  // tak aby kolumny typu TEXT w Supabase nie rzucały "object Object"
   const getPayloadWithStringifiedJSON = (currentSettings: Settings) => {
     return {
       ...currentSettings,
@@ -174,7 +172,6 @@ export function useSettings() {
   }, [supabase, settings, userId]);
 
   const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
-    // Sprawdzanie i z nowym obiektem i na starym zapisie legacy
     if (settings.favorite_stops.some((s: any) => (s.name || s) === name)) return true;
     if (settings.favorite_stops.length >= 10) return false;
     
@@ -185,7 +182,7 @@ export function useSettings() {
       .from("settings")
       .upsert({ 
         user_id: userId, 
-        favorite_stops: JSON.stringify(updated) // BEZPIECZNY ZAPIS DO BAZY
+        favorite_stops: JSON.stringify(updated)
       }, { onConflict: "user_id" });
       
     if (error) throw error;
@@ -200,7 +197,7 @@ export function useSettings() {
       .from("settings")
       .upsert({ 
         user_id: userId, 
-        favorite_stops: JSON.stringify(updated) // BEZPIECZNY ZAPIS DO BAZY
+        favorite_stops: JSON.stringify(updated) 
       }, { onConflict: "user_id" });
       
     if (error) throw error;

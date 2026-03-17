@@ -1,24 +1,9 @@
 // components/SearchBar.tsx
-//
-// Poprawki względem poprzedniej wersji:
-//
-// 1. USUNIĘTO localStorage — zastąpiony hookiem useSessionHistory,
-//    który przechowuje historię wyszukiwań wyłącznie w pamięci React (useState).
-//    Dane nie są nigdy zapisywane do localStorage ani sessionStorage.
-//    Historia jest kasowana przy odświeżeniu strony — to celowe i akceptowalne
-//    zachowanie dla pola wyszukiwania.
-//
-// 2. Brak dostępu do window/document poza useEffect — komponent jest w pełni
-//    bezpieczny w środowisku SSR (Next.js).
-//
-// 3. Prop `storageKey` pozostawiony w interfejsie dla kompatybilności wstecznej,
-//    ale jest ignorowany (opisany w JSDoc).
 
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Clock, X } from "lucide-react";
 
-// ── Hook: historia wyszukiwań w pamięci (nie w localStorage) ─────────────────
 const MAX_HISTORY = 5;
 
 function useSessionHistory() {
@@ -37,8 +22,6 @@ function useSessionHistory() {
 
   return { history, add, clear };
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface SearchBarProps {
   value: string;
@@ -67,7 +50,6 @@ export default function SearchBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ── Obsługa kliknięcia sugestii / pozycji z historii ──────────────────────
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
       onChange(suggestion);
@@ -78,7 +60,6 @@ export default function SearchBar({
     [onChange, addToHistory, onSuggestionClick]
   );
 
-  // ── Zatwierdzenie przez Enter — zapis do historii sesji ───────────────────
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter" && value.trim()) {
@@ -94,13 +75,11 @@ export default function SearchBar({
     [value, addToHistory]
   );
 
-  // ── Wyczyszczenie pola ─────────────────────────────────────────────────────
   const handleClear = useCallback(() => {
     onChange("");
     inputRef.current?.focus();
   }, [onChange]);
 
-  // ── Zamknięcie dropdownu po kliknięciu poza komponentem ──────────────────
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -116,7 +95,6 @@ export default function SearchBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ── Filtrowanie podpowiedzi ────────────────────────────────────────────────
   const filteredSuggestions = value
     ? suggestions
         .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
@@ -126,7 +104,6 @@ export default function SearchBar({
   const showDropdown =
     isFocused && (history.length > 0 || filteredSuggestions.length > 0);
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className={`relative ${className}`}>
       {/* Pole wyszukiwania */}

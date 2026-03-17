@@ -15,7 +15,6 @@ export function usePushNotifications(userId: string | undefined) {
         .register('/custom-sw.js')
         .then(() => checkSubscription())
         .catch((err) => {
-          // SW registration is best-effort — don't crash the app
           console.warn('[usePushNotifications] Service Worker registration failed:', err)
         })
     }
@@ -28,12 +27,10 @@ export function usePushNotifications(userId: string | undefined) {
       const subscription = await registration.pushManager.getSubscription()
       setIsSubscribed(!!subscription)
     } catch (err) {
-      // Check is best-effort — missing subscription is handled gracefully
       console.warn('[usePushNotifications] checkSubscription failed:', err)
     }
   }
 
-  // Throws on failure — PushNotificationManager catches and calls toast.error()
   async function subscribeToPush() {
     if (!userId) throw new Error('Musisz być zalogowany')
     setLoading(true)
@@ -96,7 +93,6 @@ export function usePushNotifications(userId: string | undefined) {
     }
   }
 
-  // Throws on failure — PushNotificationManager catches and calls toast.error()
   async function unsubscribeFromPush() {
     setLoading(true)
     try {

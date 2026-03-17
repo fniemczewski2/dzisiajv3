@@ -17,7 +17,7 @@ interface LocalSearchResult {
 }
 
 export default function TransportPage() {
-  const { supabase } = useAuth(); // Zwracamy supabase do bezpośrednich zapytań!
+  const { supabase } = useAuth(); 
   const { toast } = useToast();
   
   const {
@@ -38,7 +38,6 @@ export default function TransportPage() {
   const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
   const favoritesJSON = JSON.stringify(favoriteStops);
 
-  // Efekt dla ulubionych przystanków
   useEffect(() => {
     if (settingsLoading) return;
 
@@ -50,7 +49,6 @@ export default function TransportPage() {
     }
   }, [favoritesJSON, fetchFavorites, settingsLoading]);
 
-  // Wyszukiwarka korzystająca bezpośrednio z Twojej tabeli 'stops'
   useEffect(() => {
     const loadSuggestions = async () => {
       if (!searchQuery || searchQuery.trim().length < 2) {
@@ -59,7 +57,6 @@ export default function TransportPage() {
         return;
       }
 
-      // Bezpośrednie zapytanie do Twojej bazy danych
       const { data, error } = await supabase
         .from("stops")
         .select("stop_name, zone_id")
@@ -100,7 +97,6 @@ export default function TransportPage() {
     return () => clearTimeout(debounce);
   }, [searchQuery, supabase]);
 
-  // Funkcja obsługująca bezpieczne wybranie sugestii z SearchBara
   const handleSuggestionClick = (value: string | any) => {
     const strValue = typeof value === 'string' ? value : value?.target?.innerText || "";
     if (!strValue) return;

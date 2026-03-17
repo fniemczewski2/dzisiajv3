@@ -54,11 +54,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // FIX: use useRef instead of useState for the email cache.
-  // Previously userEmails was useState AND was listed in fetchTasks useCallback deps.
-  // When fetchTasks ran setUserEmails(), React created a new fetchTasks reference,
-  // which triggered useEffect([fetchTasks]), which ran fetchTasks again → infinite loop
-  // that appeared as a page reload/flash on every action.
   const userEmailsRef = useRef<Record<string, string>>({});
 
   const getPriority = (task: Task): number =>
@@ -88,7 +83,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
       const fetchedTasks = (data ?? []) as Task[];
 
-      // Only fetch emails not yet cached in the ref
       const neededIds = Array.from(
         new Set(
           fetchedTasks
@@ -110,7 +104,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             (acc, row) => { acc[row.id] = row.email; return acc; },
             {}
           );
-          // FIX: mutate ref directly — no state update, no re-render cascade
+
           userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
         }
       }
@@ -138,7 +132,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     } finally {
       setLoading(false);
     }
-  // FIX: userEmails removed from deps — it's now a ref, not state.
   }, [
     supabase, userId,
     settings?.show_completed, settings?.sort_order, sortFunction,

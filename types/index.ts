@@ -307,18 +307,11 @@ export interface MoodEntry {
   mood_id: string;
 }
 
-// ── Supabase RPC response types ───────────────────────────────────────────────
-// Replaces `as any[]` casts in hooks.
-// To generate full DB types run:
-//   npx supabase gen types typescript --project-id <id> > types/database.ts
-
-/** Row returned by get_emails_by_ids RPC */
 export interface EmailByIdRow {
   id: string;
   email: string;
 }
 
-/** Row returned by get_emails_by_ids used in push subscription lookup */
 export interface PushSubscriptionRow {
   id: string;
   user_id: string;

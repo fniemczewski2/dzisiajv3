@@ -5,8 +5,6 @@ import { createClient } from "@supabase/supabase-js";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
-// Derive redirect URI from the incoming request host — works on localhost AND production
-// without needing NEXT_PUBLIC_APP_URL env var
 function getRedirectUri(req: NextApiRequest): string {
   const forwardedHost = req.headers["x-forwarded-host"];
   const host = (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) || req.headers.host || "localhost:3000";
@@ -19,8 +17,6 @@ function getRedirectUri(req: NextApiRequest): string {
   return `${proto}://${host}/api/google-calendar/callback`;
 }
 
-// Admin client — bypasses RLS for reading/writing token table
-// Use service role key if available, otherwise anon key (less secure, OK for dev)
 function getServiceSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,13 +24,11 @@ function getServiceSupabase() {
   );
 }
 
-// Verify a Supabase access token (JWT) and return the user
 async function getUserFromBearer(req: NextApiRequest) {
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) return null;
   const token = auth.slice(7);
 
-  // Use a per-request client with the user's JWT
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -61,7 +55,7 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
   return d.access_token ?? null;
 }
 
-// Get a valid (possibly refreshed) Google access token for a user
+
 async function getValidGoogleToken(userId: string): Promise<string | null> {
   const sb = getServiceSupabase();
   const { data } = await sb
@@ -72,12 +66,10 @@ async function getValidGoogleToken(userId: string): Promise<string | null> {
 
   if (!data) return null;
 
-  // Still valid (with 60s buffer)?
   if (data.expires_at && Date.now() < new Date(data.expires_at).getTime() - 60_000) {
     return data.access_token;
   }
 
-  // Needs refresh
   if (!data.refresh_token) return null;
   const fresh = await refreshGoogleToken(data.refresh_token);
   if (!fresh) return null;
@@ -90,7 +82,6 @@ async function getValidGoogleToken(userId: string): Promise<string | null> {
   return fresh;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined): string => {
   if (!dt) return new Date().toISOString().slice(0, 19) + "+00";
   if (dt.dateTime) {
@@ -110,15 +101,9 @@ const toRFC3339 = (ts: string): string => {
   }
 };
 
-// ── Handler ───────────────────────────────────────────────────────────────────
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { action } = req.query;
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /api/google-calendar?action=auth-url
-  // Returns the Google OAuth URL. Client passes Supabase token as Bearer.
-  // We embed userId+token in `state` so the callback can identify the user.
-  // ─────────────────────────────────────────────────────────────────────────
   if (action === "auth-url" && req.method === "GET") {
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
@@ -141,14 +126,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ url: url.toString(), redirectUri });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GET /api/google-calendar?action=list-calendars
-  // ─────────────────────────────────────────────────────────────────────────
+
   if (action === "list-calendars" && req.method === "GET") {
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
 
-    // Quick check: does a token row exist at all?
     const sb = getServiceSupabase();
     const { data: row } = await sb
       .from("google_calendar_tokens")
@@ -171,9 +153,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ connected: true, calendars: data.items ?? [] });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // POST /api/google-calendar?action=import
-  // ─────────────────────────────────────────────────────────────────────────
   if (action === "import" && req.method === "POST") {
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
@@ -228,9 +207,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ imported, skipped, total: items.length });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // POST /api/google-calendar?action=export
-  // ─────────────────────────────────────────────────────────────────────────
   if (action === "export" && req.method === "POST") {
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
@@ -289,9 +265,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ exported, skipped });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // DELETE /api/google-calendar?action=disconnect
-  // ─────────────────────────────────────────────────────────────────────────
   if (action === "disconnect" && req.method === "DELETE") {
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Unauthorized" });

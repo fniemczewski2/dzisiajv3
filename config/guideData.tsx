@@ -41,7 +41,6 @@ const K = ({ children }: { children: React.ReactNode }) => (
 
 export const guideSections: GuideSection[] = [
 
-  // ── KOKPIT GŁÓWNY ──────────────────────────
   {
     id: 'dashboard',
     title: 'Kokpit główny (Dzisiaj)',
@@ -69,7 +68,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── SCHEMATY DNIA ──────────────────────────
   {
     id: 'day_schema',
     title: 'Schematy dnia',
@@ -91,7 +89,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── NAWYKI ─────────────────────────────────
   {
     id: 'habits',
     title: 'Codzienne nawyki',
@@ -113,7 +110,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── WODA ───────────────────────────────────
   {
     id: 'water_tracker',
     title: 'Tracker wody',
@@ -132,7 +128,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── NASTRÓJ ────────────────────────────────
   {
     id: 'mood_tracker',
     title: 'Śledzenie nastroju',
@@ -154,7 +149,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── ZADANIA ────────────────────────────────
   {
     id: 'tasks_list',
     title: 'Lista zadań',
@@ -185,7 +179,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── ZADANIA CYKLICZNE ──────────────────────
   {
     id: 'reminders',
     title: 'Zadania cykliczne',
@@ -204,7 +197,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── POMODORO ───────────────────────────────
   {
     id: 'pomodoro',
     title: 'Timer Pomodoro',
@@ -226,7 +218,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── NOTATKI ────────────────────────────────
   {
     id: 'notes',
     title: 'Notatki',
@@ -254,7 +245,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── SPRAWOZDANIA ───────────────────────────
   {
     id: 'reports',
     title: 'Sprawozdania ze spotkań',
@@ -273,7 +263,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── KALENDARZ ──────────────────────────────
   {
     id: 'calendar',
     title: 'Kalendarz',
@@ -304,7 +293,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── RACHUNKI ───────────────────────────────
   {
     id: 'bills',
     title: 'Rachunki i finanse',
@@ -329,7 +317,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── BUDŻET ─────────────────────────────────
   {
     id: 'budget',
     title: 'Budżet roczny',
@@ -351,7 +338,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── KALKULATOR ─────────────────────────────
   {
     id: 'calculator',
     title: 'Kalkulator podziału rachunków',
@@ -373,7 +359,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── LISTY ZAKUPÓW ──────────────────────────
   {
     id: 'shopping',
     title: 'Listy zakupów',
@@ -395,7 +380,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── PRZEPISY ───────────────────────────────
   {
     id: 'recipes',
     title: 'Przepisy kulinarne',
@@ -417,7 +401,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── PAKOWANIE ──────────────────────────────
   {
     id: 'packing',
     title: 'Checklisty pakowania',
@@ -436,7 +419,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── TRANSPORT ──────────────────────────────
   {
     id: 'transport',
     title: 'Transport miejski',
@@ -461,7 +443,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── MIEJSCA ────────────────────────────────
   {
     id: 'places',
     title: 'Miejsca i mapa',
@@ -489,7 +470,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── CELE (STREAKS) ─────────────────────────
   {
     id: 'streaks',
     title: 'Cele',
@@ -511,7 +491,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── TRENING ────────────────────────────────
   {
     id: 'training',
     title: 'Timer treningowy',
@@ -533,7 +512,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── FILMY ──────────────────────────────────
   {
     id: 'movies',
     title: 'Lista filmów',
@@ -558,7 +536,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── POGODA ─────────────────────────────────
   {
     id: 'weather',
     title: 'Pogoda i jakość powietrza',
@@ -583,7 +560,6 @@ export const guideSections: GuideSection[] = [
     ],
   },
 
-  // ── USTAWIENIA ─────────────────────────────
   {
     id: 'system',
     title: 'Ustawienia i konfiguracja',

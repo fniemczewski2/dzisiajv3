@@ -39,7 +39,6 @@ async function logErrorToEdgeFunction(
         jwt = data.session.access_token;
       }
     } catch {
-      // Non-fatal — proceed with anon key
     }
   }
 

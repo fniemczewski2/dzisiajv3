@@ -36,7 +36,6 @@ export default function LoginForm() {
       options: {
         redirectTo,
         queryParams: {
-          // Ensure Google returns a refresh token (needed for long sessions)
           access_type: "offline",
           prompt: "select_account",
         },

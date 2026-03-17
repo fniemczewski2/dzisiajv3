@@ -37,7 +37,7 @@ import { DailyPlan } from "../components/dashboard/DailyPlan";
 import { UnscheduledTasks } from "../components/dashboard/UnscheduledTasks";
 import { AddButton } from "../components/CommonButtons";
 
-const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06:00–23:00
+const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); 
 
 export default function DashboardPage() {
   const { user, loadingUser } = useAuth();

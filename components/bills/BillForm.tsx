@@ -55,8 +55,6 @@ export default function BillForm({ onChange, onCancel, initial }: BillFormProps)
       { context: `BillForm.${isEdit ? "editBill" : "addBill"}`, userId: user?.id }
     );
 
-    // FIX: toast.success BEFORE onChange/onCancel — onChange calls setShowForm(false)
-    // which unmounts this component. The toast must be queued first.
     toast.success(isEdit ? "Zmieniono pomyślnie." : "Dodano pomyślnie.");
 
     if (!isEdit) {

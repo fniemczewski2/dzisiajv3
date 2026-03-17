@@ -48,7 +48,6 @@ export default function InstallPromptButton() {
     }
   };
 
-  // Previously: `if (showInstallButton) return null` — always hid the button.
   if (!showInstallButton) return null;
 
   return (
