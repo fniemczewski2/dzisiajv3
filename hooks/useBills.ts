@@ -1,6 +1,5 @@
 // hooks/useBills.ts
-// Wszystkie mutacje rzucają błędy — komponent obsługuje przez withRetry + toast.
-// Hook nigdy nie wywołuje toast() bezpośrednio.
+
 import { useState, useEffect, useCallback } from "react";
 import { Bill } from "../types";
 import { useSettings } from "./useSettings";

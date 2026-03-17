@@ -14,6 +14,7 @@ import { AddButton } from "../components/CommonButtons";
 import { useQuickAction } from "../hooks/useQuickAction";
 import { useMoods } from "../hooks/useMoods";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
+import GoogleCalendarSync from "../components/calendar/GoogleCalendarSync";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   loading: () => <LoadingState />,
@@ -105,6 +106,9 @@ export default function CalendarPage() {
             moods={moods}
             DEFAULT_MOODS={DEFAULT_MOODS}
           />
+        )}
+        {!selectedDate && (
+          <GoogleCalendarSync onSyncComplete={fetchEvents} />
         )}
       </Layout>
     </>

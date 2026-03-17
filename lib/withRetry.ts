@@ -1,9 +1,12 @@
 // lib/withRetry.ts
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 export interface WithRetryOptions {
   context: string;
   userId?: string;
   retryDelay?: number;
+  supabase?: SupabaseClient;
 }
 
 type ToastHandle = {
@@ -17,27 +20,27 @@ const RETRY_DELAY_MS = 1500;
 async function logErrorToEdgeFunction(
   error: unknown,
   context: string,
-  userId?: string
+  userId?: string,
+  supabase?: SupabaseClient
 ): Promise<void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey    = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anonKey) {
-    console.error("[withRetry] brak zmiennych środowiskowych Supabase");
+    console.error("[withRetry] Missing Supabase env vars — cannot log error");
     return;
   }
 
   let jwt = anonKey;
-  try {
-    const stored = localStorage.getItem(
-      `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`
-    );
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      jwt = parsed?.access_token ?? anonKey;
+  if (supabase) {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.access_token) {
+        jwt = data.session.access_token;
+      }
+    } catch {
+      // Non-fatal — proceed with anon key
     }
-  } catch {
-    // localStorage niedostępny (SSR) — użyj anon key
   }
 
   try {
@@ -56,8 +59,7 @@ async function logErrorToEdgeFunction(
       }),
     });
   } catch (fetchError) {
-    // Logowanie nie może crashować aplikacji
-    console.error("[withRetry] nie udało się zalogować błędu:", fetchError);
+    console.error("[withRetry] Failed to log error:", fetchError);
   }
 }
 
@@ -67,13 +69,13 @@ export async function withRetry<T>(
   toast: ToastHandle,
   options: WithRetryOptions
 ): Promise<T> {
-  const { context, userId, retryDelay = RETRY_DELAY_MS } = options;
+  const { context, userId, supabase, retryDelay = RETRY_DELAY_MS } = options;
 
   try {
     return await operation();
   } catch (firstError) {
     toast.error("Wystąpił błąd. System automatycznie próbuje ponownie…");
-    console.warn(`[withRetry] pierwsza próba nieudana (${context}):`, firstError);
+    console.warn(`[withRetry] First attempt failed (${context}):`, firstError);
 
     await new Promise((resolve) => setTimeout(resolve, retryDelay));
 
@@ -81,8 +83,8 @@ export async function withRetry<T>(
       return await operation();
     } catch (secondError) {
       toast.error("Wystąpił nieoczekiwany błąd. Powiadom administratora.");
-      console.error(`[withRetry] retry nieudany (${context}):`, secondError);
-      await logErrorToEdgeFunction(secondError, context, userId);
+      console.error(`[withRetry] Retry failed (${context}):`, secondError);
+      await logErrorToEdgeFunction(secondError, context, userId, supabase);
       throw secondError;
     }
   }

@@ -1,5 +1,6 @@
 // components/Header.tsx
-import { useState, useEffect, useRef } from "react";
+
+import { useState, useEffect, memo } from "react";
 import {
   Sun,
   Cloud,
@@ -15,9 +16,40 @@ import LoadingState from "./LoadingState";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
 import { useToast } from "../providers/ToastProvider";
 
+function WeatherIcon({
+  code,
+  className = "",
+}: {
+  code: number;
+  className?: string;
+}) {
+  if (code <= 1) return <Sun className={className} />;
+  if (code === 2) return <CloudSun className={className} />;
+  if (code <= 3) return <Cloud className={className} />;
+  if (code <= 48) return <CloudFog className={className} />;
+  if (code <= 67) return <CloudDrizzle className={className} />;
+  if (code <= 77) return <CloudSnow className={className} />;
+  if (code <= 82) return <CloudRain className={className} />;
+  if (code <= 86) return <CloudSnow className={className} />;
+  return <CloudLightning className={className} />;
+}
+
+const StableBirthdayIndicator = memo(function StableBirthdayIndicator({
+  date,
+}: {
+  date: string;
+}) {
+  return <BirthdayIndicator date={date} />;
+});
+
+// ── Main header ───────────────────────────────────────────────────────────────
 export default function Header() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState("");
+  const [todayDateString, setTodayDateString] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
   const [currentTime, setCurrentTime] = useState("");
   const [currentTemp, setCurrentTemp] = useState<number | null>(null);
   const [dailyMin, setDailyMin] = useState<number | null>(null);
@@ -25,7 +57,6 @@ export default function Header() {
   const [airQuality, setAirQuality] = useState<string | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
   const router = useRouter();
-
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,6 +67,7 @@ export default function Header() {
     setLoading(true);
 
     const now = new Date();
+
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
         weekday: "short",
@@ -47,9 +79,15 @@ export default function Header() {
     setCurrentTime(now.toLocaleTimeString("pl-PL"));
 
     const timer = setInterval(() => {
-      if (isMounted) {
-        setCurrentTime(new Date().toLocaleTimeString("pl-PL"));
-      }
+      if (!isMounted) return;
+
+      const tick = new Date();
+      setCurrentTime(tick.toLocaleTimeString("pl-PL"));
+
+      // Update the date string at midnight so StableBirthdayIndicator refreshes
+      // for the new day without any manual intervention.
+      const newDateStr = `${tick.getFullYear()}-${String(tick.getMonth() + 1).padStart(2, "0")}-${String(tick.getDate()).padStart(2, "0")}`;
+      setTodayDateString((prev) => (prev !== newDateStr ? newDateStr : prev));
     }, 1000);
 
     if (!navigator.geolocation) {
@@ -98,7 +136,6 @@ export default function Header() {
 
           const airRes = await fetch(airUrl.toString(), { signal });
           if (!isMounted) return;
-
           const airJson = await airRes.json();
 
           if (
@@ -113,14 +150,13 @@ export default function Header() {
             );
           }
         } catch (error) {
-          // AbortError jest oczekiwany przy odmontowaniu — nie logujemy go
           if (error instanceof Error && error.name === "AbortError") return;
           toast.error("Wystąpił błąd pobierania danych pogodowych");
         } finally {
           if (isMounted) setLoading(false);
         }
       },
-      (error) => {
+      () => {
         toast.error("Wystąpił błąd lokalizacji.");
         if (isMounted) setLoading(false);
       },
@@ -134,27 +170,10 @@ export default function Header() {
     };
   }, []);
 
-  function WeatherIcon({
-    code,
-    className = "",
-  }: {
-    code: number;
-    className?: string;
-  }) {
-    if (code <= 1) return <Sun className={className} />;
-    if (code === 2) return <CloudSun className={className} />;
-    if (code <= 3) return <Cloud className={className} />;
-    if (code <= 48) return <CloudFog className={className} />;
-    if (code <= 67) return <CloudDrizzle className={className} />;
-    if (code <= 77) return <CloudSnow className={className} />;
-    if (code <= 82) return <CloudRain className={className} />;
-    if (code <= 86) return <CloudSnow className={className} />;
-    return <CloudLightning className={className} />;
-  }
-
   return (
     <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
       <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-start gap-3">
+
         <div className="shrink-0 flex flex-1">
           <div
             onClick={() => router.push("/calendar")}
@@ -168,7 +187,7 @@ export default function Header() {
               {currentDate}
             </span>
             <div className="mt-1">
-              <BirthdayIndicator />
+              <StableBirthdayIndicator date={todayDateString} />
             </div>
           </div>
         </div>
@@ -192,7 +211,10 @@ export default function Header() {
               title="Kliknij, aby zobaczyć pełną prognozę"
             >
               <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
-                <WeatherIcon code={weatherCode} className="w-5 h-5 sm:w-6 sm:h-6" />
+                <WeatherIcon
+                  code={weatherCode}
+                  className="w-5 h-5 sm:w-6 sm:h-6"
+                />
                 <span className="font-bold leading-none">{currentTemp}°C</span>
               </div>
               <span className="whitespace-nowrap text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
