@@ -1,112 +1,115 @@
-import { useEffect, useState } from "react";
+// hooks/useShoppingLists.ts
+
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "../types";
 import { useAuth } from "../providers/AuthProvider";
 
+const MAX_LISTS = 5;
+
 export function useShoppingLists() {
-  const { user, supabase } = useAuth(); 
+  const { user, supabase } = useAuth();
   const userId = user?.id;
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
 
-  const fetchShoppingLists = async () => {
-    if (!userId) return; 
+  // FIX: useRef instead of useState — same infinite loop bug as useEvents/useTasks.
+  // setUserEmails in fetchShoppingLists body → new fetchShoppingLists ref → useEffect fires again.
+  const userEmailsRef = useRef<Record<string, string>>({});
+
+  const fetchShoppingLists = useCallback(async () => {
+    if (!userId) return;
     setLoading(true);
-    
     try {
       const { data, error } = await supabase
         .from("shopping_lists")
         .select("*")
         .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
-        .limit(5);
+        .limit(MAX_LISTS);
 
       if (error) throw error;
-      
-      const fetchedLists = data || [];
 
-      // Poprawka TS: Type Guard "id is string" pozwala uniknąć błędów
-      const neededIds = Array.from(new Set(
-        fetchedLists
-          .map((l: ShoppingList) => l.user_id === userId ? l.shared_with_id : l.user_id)
-          .filter((id: string) => Boolean(id) && id !== userId && !userEmails[id as string])
-      ));
+      const fetchedLists = (data || []) as ShoppingList[];
 
-
-      let currentEmails = { ...userEmails };
+      const neededIds = Array.from(
+        new Set(
+          fetchedLists
+            .map((l) => (l.user_id === userId ? l.shared_with_id : l.user_id))
+            .filter((id): id is string =>
+              typeof id === "string" && id !== userId && !userEmailsRef.current[id]
+            )
+        )
+      );
 
       if (neededIds.length > 0) {
-        const { data: emailData } = await supabase.rpc('get_emails_by_ids', { user_ids: neededIds });
+        const { data: emailData } = await supabase.rpc("get_emails_by_ids", {
+          user_ids: neededIds,
+        });
         if (emailData) {
-          const newEmails = (emailData as {id: string, email: string}[]).reduce((acc, curr) => {
-            acc[curr.id] = curr.email;
-            return acc;
-          }, {} as Record<string, string>);
-          
-          // Zasilamy zarówno lokalną kopię na teraz, jak i React State na później
-          currentEmails = { ...currentEmails, ...newEmails };
-          setUserEmails(currentEmails);
+          const newEmails = (emailData as { id: string; email: string }[]).reduce<
+            Record<string, string>
+          >((acc, curr) => { acc[curr.id] = curr.email; return acc; }, {});
+          // FIX: mutate ref directly — no state update, no cascade
+          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
         }
       }
 
-      const listsWithDisplayInfo = fetchedLists.map((list: ShoppingList) => {
-        const isOwner = list.user_id === userId;
-        const targetId = isOwner ? list.shared_with_id : list.user_id;
-        
-        // Używamy currentEmails, a nie userEmails!
-        const email = targetId ? (currentEmails[targetId] || "...") : "";
+      const currentEmails = userEmailsRef.current;
 
-        return {
-          ...list,
-          display_share_info: isOwner
-            ? (list.shared_with_id ? `Udostępniono: ${email}` : null)
-            : `Od: ${email}`
-        };
-      });
-
-      setLists(listsWithDisplayInfo as ShoppingList[]);
-    } catch (error) {
-       console.error("Error fetching shopping lists:", error);
+      setLists(
+        fetchedLists.map((list) => {
+          const isOwner = list.user_id === userId;
+          const targetId = isOwner ? list.shared_with_id : list.user_id;
+          const email = targetId ? (currentEmails[targetId] ?? "...") : "";
+          return {
+            ...list,
+            display_share_info: isOwner
+              ? list.shared_with_id ? `Udostępniono: ${email}` : null
+              : `Od: ${email}`,
+          };
+        }) as ShoppingList[]
+      );
     } finally {
       setLoading(false);
     }
-  };
+  // FIX: userEmails removed from deps
+  }, [userId, supabase]);
 
-  const addShoppingList = async (name: string, shared_with_email: string | null) => {
-    if (lists.length >= 5) return alert("Maksymalnie 5 list.");
-    
-    let sharedWithUuid = null;
+  const addShoppingList = useCallback(
+    async (name: string, shared_with_email: string | null): Promise<boolean> => {
+      if (lists.length >= MAX_LISTS) return false;
 
-    if (shared_with_email && shared_with_email.includes('@')) {
-      const { data: foundId } = await supabase.rpc('get_user_id_by_email', { 
-        email_address: shared_with_email.trim().toLowerCase() 
-      });
-      sharedWithUuid = foundId || null;
-    }
+      let sharedWithUuid: string | null = null;
+      if (shared_with_email?.includes("@")) {
+        const { data: foundId } = await supabase.rpc("get_user_id_by_email", {
+          email_address: shared_with_email.trim().toLowerCase(),
+        });
+        sharedWithUuid = foundId || null;
+      }
 
-    const { error } = await supabase
-      .from("shopping_lists")
-      .insert([{ 
-        name, 
-        shared_with_id: sharedWithUuid, 
-        elements: [], 
-        user_id: userId 
-      }]);
+      const { error } = await supabase
+        .from("shopping_lists")
+        .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }]);
 
-    if (!error) {
+      if (error) throw error;
       await fetchShoppingLists();
-    }
-  };
+      return true;
+    },
+    [lists.length, supabase, userId, fetchShoppingLists]
+  );
 
-  const editShoppingList = async (id: string, updates: Partial<ShoppingList> & { shared_with_email?: string }) => {
+  const editShoppingList = async (
+    id: string,
+    updates: Partial<ShoppingList> & { shared_with_email?: string }
+  ) => {
     const { shared_with_email, display_share_info, ...finalUpdates } = updates as any;
+
     if (shared_with_email !== undefined) {
-      if (shared_with_email && shared_with_email.includes('@')) {
-        const { data: foundId } = await supabase.rpc('get_user_id_by_email', { 
-          email_address: shared_with_email.trim().toLowerCase() 
+      if (shared_with_email?.includes("@")) {
+        const { data: foundId } = await supabase.rpc("get_user_id_by_email", {
+          email_address: shared_with_email.trim().toLowerCase(),
         });
         finalUpdates.shared_with_id = foundId || null;
       } else {
-        // Jeśli przekazano pusty string ("" lub "null" jako tekst), zerujemy powiązanie w bazie
         finalUpdates.shared_with_id = null;
       }
     }
@@ -116,19 +119,27 @@ export function useShoppingLists() {
       .update(finalUpdates)
       .eq("id", id);
 
-    if (!error) {
-       await fetchShoppingLists();
-    }
+    if (error) throw error;
+    await fetchShoppingLists();
   };
 
   const deleteShoppingList = async (id: string) => {
-    await supabase.from("shopping_lists").delete().eq("id", id);
-    setLists(lists.filter((l) => l.id !== id));
+    const { error } = await supabase.from("shopping_lists").delete().eq("id", id);
+    if (error) throw error;
+    setLists((prev) => prev.filter((l) => l.id !== id));
   };
 
   useEffect(() => {
     fetchShoppingLists();
-  }, [userId]);
+  }, [fetchShoppingLists]);
 
-  return { lists, loading, addShoppingList, fetchShoppingLists, editShoppingList, deleteShoppingList };
+  return {
+    lists,
+    loading,
+    maxLists: MAX_LISTS,
+    fetchShoppingLists,
+    addShoppingList,
+    editShoppingList,
+    deleteShoppingList,
+  };
 }

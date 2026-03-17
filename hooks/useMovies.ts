@@ -1,169 +1,94 @@
 // hooks/useMovies.ts
+
 import { useState, useEffect, useCallback } from "react";
-import type { Movie, MovieInsert, MovieUpdate } from "../types";
+import type { Movie, MovieInsert } from "../types";
 import { useAuth } from "../providers/AuthProvider";
 
-interface UseMoviesReturn {
-  movies: Movie[];
-  loading: boolean;
-  error: string | null;
-  addMovie: (movie: Omit<MovieInsert, "user_id">) => Promise<Movie | null>;
-  updateMovie: (id: string, updates: Partial<Movie>) => Promise<boolean>;
-  deleteMovie: (id: string) => Promise<boolean>;
-  toggleWatched: (id: string) => Promise<boolean>;
-  updateNotes: (id: string, notes: string) => Promise<boolean>;
-  refresh: () => Promise<void>;
-}
-
-export function useMovies(): UseMoviesReturn {
-  const { user, supabase} = useAuth();
+export function useMovies() {
+  const { user, supabase } = useAuth();
   const userId = user?.id;
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Pobierz filmy z bazy danych
   const fetchMovies = useCallback(async () => {
-    if (!userId) {
-      setMovies([]);
-      setLoading(false);
-      return;
-    }
-
+    if (!userId) { setMovies([]); setLoading(false); return; }
     setLoading(true);
-    setError(null);
-
     try {
       const { data, error } = await supabase
         .from("movies")
         .select("*")
         .eq("user_id", userId)
         .order("rating", { ascending: false, nullsFirst: false });
-
       if (error) throw error;
-
       setMovies(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Błąd podczas ładowania filmów");
-      setMovies([]);
     } finally {
       setLoading(false);
     }
   }, [supabase, userId]);
 
-  // Automatyczne ładowanie przy montowaniu komponentu
-  useEffect(() => {
-    fetchMovies();
-  }, [fetchMovies]);
+  useEffect(() => { fetchMovies(); }, [fetchMovies]);
 
-  // Dodaj nowy film
+  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addMovie = useCallback(
-    async (movie: Omit<MovieInsert, "user_id">) => {
-      if (!userId) return null;
-
-      try {
-        const { data, error } = await supabase
-          .from("movies")
-          .insert({
-            ...movie,
-            user_id: userId,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setMovies((prev) => [data, ...prev]);
-        return data;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Błąd podczas dodawania filmu");
-        return null;
-      }
+    async (movie: Omit<MovieInsert, "user_id">): Promise<Movie> => {
+      if (!userId) throw new Error("Musisz być zalogowany");
+      const { data, error } = await supabase
+        .from("movies")
+        .insert({ ...movie, user_id: userId })
+        .select()
+        .single();
+      if (error) throw error;
+      setMovies((prev) => [data, ...prev]);
+      return data;
     },
     [supabase, userId]
   );
 
-  // Aktualizuj film
+  /**
+   * Accepts a full Movie object (matches MovieList.tsx calling convention).
+   * Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.")
+   */
   const updateMovie = useCallback(
-    async (id: string, updates: Partial<Movie>) => {
-      try {
-        const { error } = await supabase
-          .from("movies")
-          .update(updates)
-          .eq("id", id);
-
-        if (error) throw error;
-
-        setMovies((prev) =>
-          prev.map((movie) =>
-            movie.id === id ? { ...movie, ...updates } : movie
-          )
-        );
-        return true;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Błąd podczas aktualizacji filmu");
-        return false;
-      }
+    async (movie: Movie): Promise<void> => {
+      const { id, ...updates } = movie;
+      const { error } = await supabase.from("movies").update(updates).eq("id", id);
+      if (error) throw error;
+      setMovies((prev) => prev.map((m) => (m.id === id ? movie : m)));
     },
-    [supabase, userId]
+    [supabase]
   );
 
-  // Usuń film
   const deleteMovie = useCallback(
-    async (id: string) => {
-      try {
-        const { error } = await supabase
-          .from("movies")
-          .delete()
-          .eq("id", id)
-
-
-        if (error) throw error;
-
-        setMovies((prev) => prev.filter((movie) => movie.id !== id));
-        return true;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Błąd podczas usuwania filmu");
-        return false;
-      }
+    async (id: string): Promise<void> => {
+      const { error } = await supabase.from("movies").delete().eq("id", id);
+      if (error) throw error;
+      setMovies((prev) => prev.filter((m) => m.id !== id));
     },
-    [supabase, userId]
+    [supabase]
   );
 
-  // Przełącz status obejrzenia
+  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const toggleWatched = useCallback(
-    async (id: string) => {
+    async (id: string): Promise<void> => {
       const movie = movies.find((m) => m.id === id);
-      if (!movie) return false;
-
-      return updateMovie(id, { watched: !movie.watched });
+      if (!movie) return;
+      await updateMovie({ ...movie, watched: !movie.watched });
     },
     [movies, updateMovie]
   );
 
-  // Zaktualizuj notatki
+  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const updateNotes = useCallback(
-    async (id: string, notes: string) => {
-      return updateMovie(id, { notes });
+    async (id: string, notes: string): Promise<void> => {
+      const movie = movies.find((m) => m.id === id);
+      if (!movie) return;
+      await updateMovie({ ...movie, notes });
     },
-    [updateMovie]
+    [movies, updateMovie]
   );
 
-  // Odśwież listę filmów
-  const refresh = useCallback(async () => {
-    await fetchMovies();
-  }, [fetchMovies]);
+  const refresh = useCallback(async () => { await fetchMovies(); }, [fetchMovies]);
 
-  return {
-    movies,
-    loading,
-    error,
-    addMovie,
-    updateMovie,
-    deleteMovie,
-    toggleWatched,
-    updateNotes,
-    refresh,
-  };
+  return { movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes, refresh };
 }

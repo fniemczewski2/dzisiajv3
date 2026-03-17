@@ -25,25 +25,33 @@ function NavLink({
   currentPath,
 }: {
   href: string;
-  Icon: any;
+  Icon: React.ComponentType<{ className?: string }>;
   label: string;
   currentPath: string;
 }) {
-  // Oznacz element jako aktywny, jeśli ścieżka dokładnie pasuje 
-  // lub jeśli jest to strona podrzędna (np. /tasks/pomodoro podświetla /tasks)
-  const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
+  const isActive =
+    currentPath === href ||
+    (href !== "/" && currentPath.startsWith(href));
 
   return (
-    <Link 
+    <Link
       href={href}
       className={`flex flex-col items-center justify-center flex-1 py-2 sm:py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${
-        isActive 
-          ? "text-primary" 
+        isActive
+          ? "text-primary"
           : "text-textMuted hover:text-text hover:bg-surface"
       }`}
     >
-      <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform ${isActive ? "scale-110" : ""}`} />
-      <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${`isActive ? "font-bold" : "font-medium"`}`}>
+      <Icon
+        className={`w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform ${
+          isActive ? "scale-110" : ""
+        }`}
+      />
+      <span
+        className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${
+          isActive ? "font-bold" : "font-medium"
+        }`}
+      >
         {label}
       </span>
     </Link>

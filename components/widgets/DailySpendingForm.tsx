@@ -3,6 +3,9 @@ import { Coins, Save, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
+import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "../../providers/AuthProvider";
+import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
 
@@ -14,6 +17,8 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   const today = getAppDate();
   const targetDate = date ?? today;
   const { habits, loading, updateSpending } = useDailyHabits(targetDate);
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,7 +31,12 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
 
   const handleSave = async () => {
     const value = parseFloat(inputRef.current?.value || "0");
-    await updateSpending(value);
+    await withRetry(
+      () => updateSpending(value),
+      toast,
+      { context: "DailySpendingForm.updateSpending", userId: user?.id }
+    );
+    toast.success("Zmieniono pomyślnie.");
     setIsEditing(false);
   };
 
@@ -37,14 +47,10 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
     setIsEditing(false);
   };
 
-  if (loading || !habits) {
-    return <LoadingState />;
-  }
+  if (loading || !habits) return <LoadingState />;
 
   return (
     <div className="widget flex justify-between items-center px-4 py-3 gap-3">
-      
-      {/* Sekcja nagłówka i ikony */}
       <div className="flex items-center text-text">
         <span className="text-yellow-500 mr-3">
           <Coins className="w-5 h-5" />
@@ -59,7 +65,6 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
         </h3>
       </div>
 
-      {/* Sekcja edycji lub podglądu kwoty */}
       {isEditing ? (
         <div className="flex items-center gap-1.5 sm:gap-2 max-h-[24px]">
           <input
@@ -70,31 +75,22 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
             title="Szybki wydatek"
             autoFocus
           />
-          
-          <button
-            onClick={handleSave}
+          <button onClick={handleSave}
             className="flex items-center justify-center h-[30px] min-w-[30px] bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-            title="Zapisz"
-            type="button"
-          >
+            title="Zapisz" type="button">
             <Save className="w-4 h-4" />
           </button>
-          <button
-            onClick={handleCancel}
+          <button onClick={handleCancel}
             className="flex items-center justify-center h-[30px] min-w-[30px] bg-surface text-textSecondary hover:text-text hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
-            title="Anuluj"
-            type="button"
-          >
+            title="Anuluj" type="button">
             <X className="w-4 h-4" />
           </button>
         </div>
       ) : (
-        <div
-          onClick={() => setIsEditing(true)}
+        <div onClick={() => setIsEditing(true)}
           className="max-h-[24px] cursor-pointer text-sm sm:text-base font-bold text-text hover:text-primary transition-colors flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-lg shrink-0"
-          title="Kliknij, aby edytować"
-        >
-          {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"} 
+          title="Kliknij, aby edytować">
+          {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"}
           <span className="text-[10px] sm:text-xs font-medium text-textMuted uppercase tracking-wider">PLN</span>
         </div>
       )}

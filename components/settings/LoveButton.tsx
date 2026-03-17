@@ -3,32 +3,27 @@
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../providers/AuthProvider";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function LoveButton() {
   const { user, supabase } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
   const sendLove = async () => {
-    if (!user) {return;}
-
+    if (!user) return;
     setLoading(true);
-
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Nie można pobrać tokena dostępu");
-      }
-
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (!session?.access_token) throw new Error("Nie można pobrać tokena dostępu");
 
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/send-love`,
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`,
         {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({}),
@@ -36,16 +31,14 @@ export default function LoveButton() {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Edge function error:", errorData);
+        toast.error("Nie udało się wysłać serduszka.");
         return;
       }
 
       setSent(true);
       setTimeout(() => setSent(false), 60000);
-
-    } catch (error) {
-      console.error("Error sending love:", error);
+    } catch {
+      toast.error("Nie udało się wysłać serduszka.");
     } finally {
       setLoading(false);
     }
@@ -62,10 +55,7 @@ export default function LoveButton() {
       }`}
       title="Wyślij serduszko twórcy <3"
     >
-      <Heart 
-        className={`w-5 h-5 ${sent ? "animate-pulse" : ""}`} 
-        fill={sent ? "#fff" : "none"} 
-      />
+      <Heart className={`w-5 h-5 ${sent ? "animate-pulse" : ""}`} fill={sent ? "#fff" : "none"} />
     </button>
   );
 }

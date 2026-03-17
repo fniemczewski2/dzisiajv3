@@ -1,45 +1,39 @@
+// hooks/useEuroRate.ts
+
 import { useState, useEffect } from "react";
 
 interface NbpResponse {
   table: string;
   currency: string;
   code: string;
-  rates: {
-    no: string;
-    effectiveDate: string;
-    mid: number;
-  }[];
+  rates: { no: string; effectiveDate: string; mid: number }[];
 }
 
-export const useEuroRate = () => {
+export function useEuroRate() {
   const [rate, setRate] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRate = async () => {
       try {
-        // Fetching from NBP API (Table A - average exchange rates)
         const response = await fetch(
           "https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json"
         );
-
         if (!response.ok) {
-          throw new Error("Failed to fetch exchange rate");
+          throw new Error(`NBP API error: ${response.status}`);
         }
 
         const data: NbpResponse = await response.json();
         const currentRate = data?.rates?.[0]?.mid;
 
-        if (currentRate) {
-          setRate(currentRate);
-        } else {
-          throw new Error("Invalid data format received from NBP");
+        if (!currentRate) {
+          throw new Error("Nieprawidłowy format odpowiedzi z NBP");
         }
+
+        setRate(currentRate);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        setError(message);
-        console.error("Error fetching Euro rate:", err);
+        setError(err instanceof Error ? err.message : "Nieznany błąd");
       } finally {
         setLoading(false);
       }
@@ -49,4 +43,4 @@ export const useEuroRate = () => {
   }, []);
 
   return { rate, loading, error };
-};
+}

@@ -11,6 +11,7 @@ import PlacesMap from "../../components/places/PlacesMap";
 import PlaceForm from "../../components/places/PlaceForm";
 import { Place } from "../../types";
 import { Upload } from "lucide-react";
+import { useToast } from "../../providers/ToastProvider";
 
 type ViewMode = "list" | "map";
 
@@ -21,7 +22,6 @@ interface TimeFilter {
 }
 
 export default function PlacesPage() {
-  // 1. NAJPIERW WSZYSTKIE HOOKI (zawsze w tej samej kolejności)
   const {
     places,
     loading,
@@ -36,6 +36,7 @@ export default function PlacesPage() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const { toast } = useToast();
 
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>();
@@ -80,15 +81,15 @@ export default function PlacesPage() {
     });
   }, [places, searchQuery, selectedTags, timeFilter]);
 
-  // 2. FUNKCJE POMOCNICZE (Handlery)
+  // FIX: add toast.success after update
   const handleSavePlace = async (updates: Partial<Place>) => {
     if (!editingPlace) return;
     try {
       await updatePlace(editingPlace.id, updates);
+      toast.success("Zmieniono pomyślnie.");
       setEditingPlace(null);
-    } catch (error) {
-      console.error("Error updating place:", error);
-      alert("Błąd podczas zapisywania miejsca");
+    } catch {
+      toast.error("Wystąpił błąd podczas zapisywania miejsca.");
     }
   };
 
@@ -97,16 +98,15 @@ export default function PlacesPage() {
     return count || 0;
   };
 
+  // FIX: deletePlace in PlacesList already uses withRetry + toast — just pass it through
   const handleDeletePlace = async (id: string) => {
     try {
       await deletePlace(id);
-    } catch (error) {
-      console.error("Error deleting place:", error);
-      alert("Błąd podczas usuwania miejsca");
+    } catch {
+      toast.error("Wystąpił błąd podczas usuwania miejsca.");
     }
   };
 
-  // 3. DOPIERO TERAZ WARUNKOWY RETURN (Kiedy wszystkie hooki zostały już zarejestrowane)
   if (loading) {
     return (
       <Layout>
@@ -115,7 +115,6 @@ export default function PlacesPage() {
     );
   }
 
-  // 4. GŁÓWNY RENDER
   return (
     <Layout>
       <SEO title="Miejsca" description="Zarządzaj swoimi ulubionymi miejscami" />

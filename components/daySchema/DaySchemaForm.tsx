@@ -3,6 +3,9 @@
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
+import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "../../providers/AuthProvider";
+import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
 import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
 
@@ -14,7 +17,7 @@ export interface DaySchemaEntry {
 export interface DaySchema {
   id?: string;
   name: string;
-  days: number[]; 
+  days: number[];
   entries: DaySchemaEntry[];
 }
 
@@ -32,6 +35,8 @@ export default function DaySchemaForm({
   onCancel,
 }: DaySchemaFormProps) {
   const { addSchema, updateSchema } = useDaySchemas();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const isEdit = !!initialSchema?.id;
 
   const [schemaName, setSchemaName] = useState("");
@@ -50,34 +55,30 @@ export default function DaySchemaForm({
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     if (!schemaName || days.length === 0 || entries.length === 0) {
-      alert("Uzupełnij nazwę, dni i przynajmniej jeden wpis.");
+      toast.error("Uzupełnij nazwę, dni i przynajmniej jeden wpis.");
       return;
     }
 
     setLoading(true);
+    const payload = { name: schemaName.trim(), days, entries };
 
-    const payload = {
-      name: schemaName.trim(),
-      days,
-      entries
-    };
+    await withRetry(
+      () => isEdit && initialSchema?.id
+        ? updateSchema(initialSchema.id, payload)
+        : addSchema(payload as any),
+      toast,
+      { context: `DaySchemaForm.${isEdit ? "updateSchema" : "addSchema"}`, userId: user?.id }
+    );
 
-    if (isEdit && initialSchema?.id) {
-      await updateSchema(initialSchema.id, payload);
-    } else {
-      await addSchema(payload);
-    }
-
+    // FIX: toast.success BEFORE onCancel/onSchemaSaved to survive unmount
+    toast.success(isEdit ? "Zmieniono pomyślnie." : "Dodano pomyślnie.");
     setLoading(false);
     onSchemaSaved();
-    if (onCancel) onCancel();
+    onCancel?.();
   };
 
-  const toggleDay = (day: number) => {
-    setDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
-  };
+  const toggleDay = (day: number) =>
+    setDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
 
   const handleEntryChange = (index: number, field: keyof DaySchemaEntry, value: string) => {
     const updated = [...entries];
@@ -85,41 +86,28 @@ export default function DaySchemaForm({
     setEntries(updated);
   };
 
-  const addEntry = () => {
-    setEntries([...entries, { time: "", label: "" }]);
-  };
-
-  const removeEntry = (index: number) => {
-    setEntries(entries.filter((_, i) => i !== index));
-  };
+  const addEntry = () => setEntries([...entries, { time: "", label: "" }]);
+  const removeEntry = (index: number) => setEntries(entries.filter((_, i) => i !== index));
 
   return (
     <form onSubmit={handleSubmit} className="form-card max-w-lg">
       <div>
         <label className="form-label">Nazwa schematu:</label>
-        <input
-          type="text"
-          value={schemaName}
+        <input type="text" value={schemaName}
           onChange={(e) => setSchemaName(e.target.value)}
-          className="input-field"
-          required
-        />
+          className="input-field" required />
       </div>
 
       <div>
         <label className="form-label">Dni tygodnia:</label>
         <div className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => toggleDay(i)}
+            <button key={i} type="button" onClick={() => toggleDay(i)}
               className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
-                days.includes(i) 
-                  ? "bg-primary border-primary text-white" 
+                days.includes(i)
+                  ? "bg-primary border-primary text-white"
                   : "bg-surface border-gray-200 dark:border-gray-700 text-textSecondary hover:bg-surfaceHover"
-              }`}
-            >
+              }`}>
               {label}
             </button>
           ))}
@@ -131,47 +119,29 @@ export default function DaySchemaForm({
         <div className="space-y-2">
           {entries.map((entry, i) => (
             <div key={i} className="flex w-full gap-2 items-center">
-              <input
-                type="time"
-                value={entry.time}
+              <input type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
-                className="input-field w-32"
-                required
-              />
-              <input
-                type="text"
-                value={entry.label}
-                placeholder="Etykieta"
+                className="input-field w-32" required />
+              <input type="text" value={entry.label} placeholder="Etykieta"
                 onChange={(e) => handleEntryChange(i, "label", e.target.value)}
-                className="input-field flex-1"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => removeEntry(i)}
-                className="p-2 text-textMuted hover:text-red-500 transition-colors"
-                title="Usuń wpis"
-              >
+                className="input-field flex-1" required />
+              <button type="button" onClick={() => removeEntry(i)}
+                className="p-2 text-textMuted hover:text-red-500 transition-colors" title="Usuń wpis">
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
           ))}
         </div>
-        
-        <button
-          type="button"
-          onClick={addEntry}
-          className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-3"
-        >
-          <PlusCircle className="mr-1.5 w-4 h-4" />
-          Dodaj nowy wpis
+        <button type="button" onClick={addEntry}
+          className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-3">
+          <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj nowy wpis
         </button>
       </div>
 
       <div className="flex gap-3 items-center pt-2">
         {isEdit ? <SaveButton loading={loading} /> : <AddButton loading={loading} />}
         {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
-        {loading && <LoadingState/>}
+        {loading && <LoadingState />}
       </div>
     </form>
   );
