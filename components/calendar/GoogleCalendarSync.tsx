@@ -89,7 +89,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
   };
 
   return (
-    <div className="card rounded-xl shadow-sm overflow-hidden mb-6 transition-all">
+    <div className="card rounded-xl shadow-sm overflow-hidden mt-6 b-6 transition-all">
       {/* Header */}
       <button
         onClick={() => {
@@ -99,20 +99,19 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-200 dark:border-gray-700 shrink-0">
+          <div className="w-8 h-8 flex items-center justify-center">
             <GoogleIcon />
           </div>
           <div className="text-left">
-            <p className="font-bold text-text text-sm">Google Calendar</p>
+            <p className="font-bold text-text text-sm">Kalendarz Google</p>
             <p className="text-[10px] font-medium uppercase tracking-wider text-textMuted">
               {connected === null ? "Sprawdzanie..." : connected ? "Połączony" : "Niepołączony"}
             </p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-textMuted">
+              wersja testowa
+            </p>
           </div>
-          {connected && (
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 px-2 py-0.5 rounded-full">
-              <Check className="w-3 h-3" /> Aktywny
-            </span>
-          )}
+
         </div>
         {expanded ? (
           <ChevronUp className="w-4 h-4 text-textMuted shrink-0" />
@@ -246,9 +245,9 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
 
               {/* Info */}
               <div className="text-xs text-textMuted space-y-1 pt-1 border-t border-gray-100 dark:border-gray-800">
-                <p>• <strong>Import</strong> — pobiera nadchodzące wydarzenia z Google do Dzisiaj v3</p>
-                <p>• <strong>Eksport</strong> — wysyła Twoje wydarzenia z Dzisiaj v3 do Google Calendar</p>
-                <p>• Duplikaty są automatycznie pomijane przy imporcie</p>
+                <p><strong>Import</strong> — pobiera nadchodzące wydarzenia z Google do Dzisiaj v3</p>
+                <p><strong>Eksport</strong> — wysyła Twoje wydarzenia z Dzisiaj v3 do Google Calendar</p>
+                <p>Duplikaty są automatycznie pomijane przy imporcie</p>
               </div>
 
               {/* Disconnect */}
