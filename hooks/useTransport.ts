@@ -23,7 +23,6 @@ export interface SearchResult {
   name: string;
   zone_id: string;
 }
-
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();
 
@@ -35,21 +34,38 @@ export function useTransport(autoRefresh = false) {
 
   const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
 
+  const nearbyAbortRef    = useRef<AbortController | null>(null);
+  const favoritesAbortRef = useRef<AbortController | null>(null);
+
   const fetchNearbyData = useCallback(async () => {
     if (!lastCoords.current) {
       setLoadingNearby(false);
       return;
     }
+
+    nearbyAbortRef.current?.abort();
+    const controller = new AbortController();
+    nearbyAbortRef.current = controller;
+
     setLoadingNearby(true);
+
     try {
       const { data, error: invokeError } = await supabase.functions.invoke(
         "get-transitland-times",
-        { body: { lat: lastCoords.current.lat, lon: lastCoords.current.lng } }
+        {
+          body: {
+            lat: lastCoords.current.lat,
+            lon: lastCoords.current.lng,
+          },
+        }
       );
+
+      if (controller.signal.aborted) return;
 
       if (invokeError) throw new Error("Błąd sieciowy podczas łączenia z funkcją.");
 
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
+
       if (parsed?.error === "LOCATION_REQUIRED") {
         setLocationError("Lokalizacja jest wymagana, aby pokazać przystanki w pobliżu.");
         setNearbyGroups([]);
@@ -58,13 +74,14 @@ export function useTransport(autoRefresh = false) {
         setLocationError(null);
       }
     } catch (err) {
-      // Not re-thrown — nearby fetch failure is non-fatal, locationError shown in UI
+      if (controller.signal.aborted) return;
       setLocationError("Problem z pobieraniem odjazdów w pobliżu.");
       console.error("[useTransport] fetchNearbyData:", err);
     } finally {
-      setLoadingNearby(false);
+      if (!controller.signal.aborted) setLoadingNearby(false);
     }
   }, [supabase]);
+
 
   const initLocationAndFetch = useCallback(() => {
     if (!navigator.geolocation) {
@@ -86,20 +103,30 @@ export function useTransport(autoRefresh = false) {
         setLoadingNearby(false);
         lastCoords.current = null;
         setLocationError(
-          err.code === 1 ? "Brak zgody na lokalizację." : "Nie udało się pobrać lokalizacji GPS."
+          err.code === 1
+            ? "Brak zgody na lokalizację."
+            : "Nie udało się pobrać lokalizacji GPS."
         );
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, [fetchNearbyData]);
 
-  // Throws on error — caller (transport page) can wrap with withRetry + toast
   const fetchFavorites = useCallback(
     async (stops: { name: string; zone_id: string }[]) => {
       const names = stops.map((s) => s.name);
-      if (!names.length) { setFavoritesGroups([]); return; }
+
+      if (!names.length) {
+        setFavoritesGroups([]);
+        return;
+      }
+
+      favoritesAbortRef.current?.abort();
+      const controller = new AbortController();
+      favoritesAbortRef.current = controller;
 
       setLoadingFavorites(true);
+
       try {
         const { data, error: invokeError } = await supabase.functions.invoke(
           "get-transitland-times",
@@ -112,18 +139,21 @@ export function useTransport(autoRefresh = false) {
           }
         );
 
+        if (controller.signal.aborted) return;
         if (invokeError) throw invokeError;
 
         const parsed = typeof data === "string" ? JSON.parse(data) : data;
         if (parsed?.success) setFavoritesGroups(parsed.success);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        throw err;
       } finally {
-        setLoadingFavorites(false);
+        if (!controller.signal.aborted) setLoadingFavorites(false);
       }
     },
     [supabase]
   );
 
-  // Returns empty array on error — search failures are non-fatal
   const searchStops = useCallback(
     async (query: string): Promise<SearchResult[]> => {
       if (query.length < 3) return [];
@@ -152,12 +182,19 @@ export function useTransport(autoRefresh = false) {
   useEffect(() => {
     initLocationAndFetch();
 
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     if (autoRefresh) {
-      const interval = setInterval(() => {
+      intervalId = setInterval(() => {
         if (lastCoords.current) fetchNearbyData();
-      }, 30000);
-      return () => clearInterval(interval);
+      }, 30_000);
     }
+
+    return () => {
+      nearbyAbortRef.current?.abort();
+      favoritesAbortRef.current?.abort();
+      if (intervalId !== null) clearInterval(intervalId);
+    };
   }, [initLocationAndFetch, autoRefresh, fetchNearbyData]);
 
   return {

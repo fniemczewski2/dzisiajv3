@@ -1,11 +1,5 @@
 "use client";
-// Naprawione:
-//   1. error z useMovies — hook po refaktorze nie eksportuje error state → usunięty
-//   2. handleAddMovie: if (result) — addMovie rzuca zamiast zwracać null → usunięty
-//   3. onUpdate={updateMovie} — MovieCard.onUpdate przyjmuje Movie (cały obiekt)
-//      zgodnie z naszą sygnaturą useMovies.updateMovie(movie: Movie) — ok
-//   4. Wszystkie mutacje owinięte w withRetry + toast feedback
-"use client";
+
 import React, { useState, useMemo } from "react";
 import { Loader2, Search } from "lucide-react";
 import { useMovies } from "../../hooks/useMovies";
