@@ -32,11 +32,50 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
   const remindersToShow = showAll ? allReminders : visibleReminders;
   const [form, setForm] = useState({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
 
-  const handleAdd = () => {
-    if (!form.tytul || !form.data_poczatkowa) return;
-    addReminder(form.tytul, form.data_poczatkowa, form.powtarzanie).catch(console.error);
-    setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
-    setShowForm(false);
+  const handleAdd = async () => {
+    if (!form.tytul || !form.data_poczatkowa) {
+      toast.error("Tytuł i data początkowa są wymagane.");
+      return;
+    }
+    try {
+      await addReminder(form.tytul, form.data_poczatkowa, form.powtarzanie);
+      toast.success("Dodano przypomnienie pomyślnie.");
+      setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
+      setShowForm(false);
+    } catch (error) {
+      toast.error("Wystąpił błąd podczas dodawania przypomnienia.");
+      console.error(error);
+    }
+  };
+
+  const handleComplete = async (id: string) => {
+    try {
+      await completeReminder(id);
+      toast.success("Oznaczono jako wykonane.");
+    } catch (error) {
+      toast.error("Wystąpił błąd podczas aktualizacji.");
+    }
+  };
+
+  const handlePostpone = async (id: string, powtarzanie: number) => {
+    try {
+      await postponeReminder(id, powtarzanie);
+      toast.success("Zadanie odłożone na później.");
+    } catch (error) {
+      toast.error("Wystąpił błąd.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const ok = await toast.confirm("Czy na pewno chcesz trwale usunąć to zadanie cykliczne?");
+    if (!ok) return;
+
+    try {
+      await deleteReminder(id);
+      toast.success("Usunięto pomyślnie.");
+    } catch (error) {
+      toast.error("Wystąpił błąd podczas usuwania.");
+    }
   };
 
   const handleAddTask = async (reminder: any) => {
@@ -75,7 +114,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
       toast,
       { context: "Reminders.addTask", userId }
     );
-    toast.success("Dodano pomyślnie.");
+    toast.success("Utworzono zadanie na podstawie przypomnienia.");
     onTasksChange?.();
   };
 
@@ -96,7 +135,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
       </div>
 
       {open && (
-        <div className="border-t border-gray-100 dark:border-gray-800 bg-surface">
+        <div className="border-t border-gray-100 dark:border-gray-800 bg-card">
           <div className="px-4 py-3 text-sm">
             {remindersToShow.length === 0 ? (
               <NoResultsState text="zadań cyklicznych" />
@@ -115,15 +154,15 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
                         className="p-2 text-primary hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-colors">
                         <ListPlus className="w-4 h-4" />
                       </button>
-                      <button onClick={() => completeReminder(r.id).catch(console.error)} title="Zakończ zadanie"
+                      <button onClick={() => handleComplete(r.id)} title="Zakończ zadanie"
                         className="p-2 text-green-600 hover:bg-green-600/10 rounded-lg transition-colors">
                         <Check className="w-4 h-4" />
                       </button>
-                      <button onClick={() => postponeReminder(r.id, r.powtarzanie).catch(console.error)} title="Odłóż na później"
+                      <button onClick={() => handlePostpone(r.id, r.powtarzanie)} title="Odłóż na później"
                         className="p-2 text-yellow-600 hover:bg-yellow-600/10 rounded-lg transition-colors">
                         <ChevronsRight className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteReminder(r.id).catch(console.error)} title="Usuń całkowicie"
+                      <button onClick={() => handleDelete(r.id)} title="Usuń całkowicie"
                         className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -159,18 +198,18 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="form-label">Data rozpoczęcia:</label>
-                  <input type="date" className="input-field" value={form.data_poczatkowa}
+                  <input type="date" className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" value={form.data_poczatkowa}
                     onChange={(e) => setForm({ ...form, data_poczatkowa: e.target.value })} />
                 </div>
                 <div className="flex-1">
-                  <label className="form-label">Powtarzanie co (dni):</label>
+                  <label className="form-label">Co (dni):</label>
                   <input type="number" min={1} max={365} className="input-field" value={form.powtarzanie}
                     onChange={(e) => setForm({ ...form, powtarzanie: Number(e.target.value) })} />
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
                 <SaveButton onClick={handleAdd} />
-                <CancelButton onCancel={() => {
+                <CancelButton onClick={() => {
                   setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
                   setShowForm(false);
                 }} />

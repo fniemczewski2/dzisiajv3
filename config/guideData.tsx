@@ -34,7 +34,6 @@ export type GuideSection = {
   listItems: React.ReactNode[];
 };
 
-/** Wyróżnienie ważnego pojęcia */
 const K = ({ children }: { children: React.ReactNode }) => (
   <strong className="text-text font-semibold">{children}</strong>
 );

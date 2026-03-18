@@ -157,7 +157,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                     <SaveButton onClick={handleSaveEdit} type="button" />
-                    <CancelButton onCancel={handleCancelEdit} />
+                    onClick={handleCancelEdit} />
                   </div>
                 </li>
               );

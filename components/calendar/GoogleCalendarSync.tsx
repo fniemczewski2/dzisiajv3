@@ -1,96 +1,122 @@
-// components/calendar/GoogleCalendarSync.tsx
 "use client";
-
+ 
 import React, { useEffect, useState } from "react";
 import {
-  RefreshCw,
-  Download,
-  Upload,
-  Link2,
-  Link2Off,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  Loader2,
-  AlertCircle,
+  Download, Upload, Link2Off, ChevronDown, ChevronUp,
+  Check, Loader2, AlertCircle,
 } from "lucide-react";
-import { useGoogleCalendar, GoogleCalendarInfo } from "../../hooks/useGoogleCalendar";
+import { useGoogleCalendar } from "../../hooks/useGoogleCalendar";
 import { useToast } from "../../providers/ToastProvider";
-
+ 
 interface Props {
   onSyncComplete?: () => void;
 }
-
+ 
 export default function GoogleCalendarSync({ onSyncComplete }: Props) {
   const {
-    connected,
-    calendars,
-    loading,
-    error,
-    checkConnection,
-    connect,
-    disconnect,
-    importFromGoogle,
-    exportToGoogle,
+    connected, calendars, loading, error,
+    checkConnection, connect, disconnect,
+    importFromGoogle, exportToGoogle,
   } = useGoogleCalendar();
-
+ 
   const { toast } = useToast();
-
   const [expanded, setExpanded] = useState(false);
-  const [selectedCalendar, setSelectedCalendar] = useState<string>("");
-  const [importRange, setImportRange] = useState<"30" | "90" | "180" | "365">("90");
-  const [lastResult, setLastResult] = useState<{ type: "import" | "export"; imported?: number; exported?: number; skipped?: number } | null>(null);
-
+  const [selectedCalendar, setSelectedCalendar] = useState("");
+  const [importRange, setImportRange] = useState<"past30" | "all" | "future90" | "future365">("all");
+  const [lastResult, setLastResult] = useState<{
+    type: "import" | "export";
+    imported?: number;
+    exported?: number;
+    skipped?: number;
+    total?: number;
+    message?: string;
+  } | null>(null);
+ 
   useEffect(() => {
-    if (expanded && connected === null) {
-      checkConnection();
-    }
+    if (expanded && connected === null) checkConnection();
   }, [expanded]);
-
+ 
   useEffect(() => {
     if (calendars.length > 0 && !selectedCalendar) {
       const primary = calendars.find((c) => c.primary);
       setSelectedCalendar(primary?.id || calendars[0]?.id || "");
     }
   }, [calendars]);
-
-  const handleImport = async () => {
-    if (!selectedCalendar) return;
-    const timeMin = new Date().toISOString();
-    const timeMax = new Date(Date.now() + parseInt(importRange) * 86400000).toISOString();
-    const result = await importFromGoogle(selectedCalendar, timeMin, timeMax);
-    setLastResult({ type: "import", ...result });
-    if (result.imported !== undefined) {
-      toast.success(`Zaimportowano ${result.imported} nowych wydarzeń (pominięto: ${result.skipped ?? 0})`);
-      onSyncComplete?.();
-    } else {
-      toast.error("Nie udało się zaimportować wydarzeń.");
+ 
+  const getRangeDates = () => {
+    const now = new Date();
+    switch (importRange) {
+      case "past30":
+        return {
+          timeMin: new Date(now.getTime() - 30 * 86_400_000).toISOString(),
+          timeMax: new Date(now.getTime() + 30 * 86_400_000).toISOString(),
+        };
+      case "future90":
+        return {
+          timeMin: now.toISOString(),
+          timeMax: new Date(now.getTime() + 90 * 86_400_000).toISOString(),
+        };
+      case "future365":
+        return {
+          timeMin: now.toISOString(),
+          timeMax: new Date(now.getTime() + 365 * 86_400_000).toISOString(),
+        };
+      case "all":
+      default:
+        return {
+          timeMin: new Date(now.getTime() - 365 * 86_400_000).toISOString(),
+          timeMax: new Date(now.getTime() + 365 * 86_400_000).toISOString(),
+        };
     }
   };
-
+ 
+  const handleImport = async () => {
+    if (!selectedCalendar) return;
+    const { timeMin, timeMax } = getRangeDates();
+    const result = await importFromGoogle(selectedCalendar, timeMin, timeMax);
+    setLastResult({ type: "import", ...result });
+ 
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      const msg = result.total === 0
+        ? "Google Calendar nie zwrócił żadnych wydarzeń w wybranym zakresie."
+        : `Zaimportowano ${result.imported} nowych · ${result.skipped} już istniało · łącznie ${result.total} z Google`;
+      if (result.imported === 0 && (result.total ?? 0) > 0) {
+        toast.info(msg);
+      } else if (result.imported === 0) {
+        toast.info("Brak wydarzeń w wybranym zakresie czasowym.");
+      } else {
+        toast.success(msg);
+        onSyncComplete?.();
+      }
+    }
+  };
+ 
   const handleExport = async () => {
     if (!selectedCalendar) return;
     const result = await exportToGoogle(selectedCalendar);
     setLastResult({ type: "export", ...result });
-    if (result.exported !== undefined) {
-      toast.success(`Wyeksportowano ${result.exported} wydarzeń do Google Calendar`);
+ 
+    if (result.error) {
+      toast.error(result.error);
+    } else if (result.exported === 0) {
+      toast.info(result.message || "Brak wydarzeń do eksportu w zakresie ±30 dni.");
     } else {
-      toast.error("Nie udało się wyeksportować wydarzeń.");
+      toast.success(`Wyeksportowano ${result.exported} wydarzeń do Google Calendar`);
     }
   };
-
+ 
   const handleDisconnect = async () => {
-    const ok = await toast.confirm("Czy na pewno chcesz odłączyć Google Calendar? Istniejące zsynchronizowane wydarzenia pozostaną.");
+    const ok = await toast.confirm("Odłączyć Google Calendar?");
     if (!ok) return;
     await disconnect();
-    toast.success("Odłączono Google Calendar.");
     setLastResult(null);
+    toast.success("Odłączono Google Calendar.");
   };
 
   return (
     <div className="card rounded-xl shadow-sm overflow-hidden mt-6 b-6 transition-all">
-      {/* Header */}
       <button
         onClick={() => {
           setExpanded((p) => !p);
@@ -120,10 +146,8 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
         )}
       </button>
 
-      {/* Body */}
       {expanded && (
         <div className="border-t border-gray-100 dark:border-gray-800 bg-surface px-4 py-4 space-y-4">
-          {/* Error */}
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 text-sm font-medium">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -131,7 +155,6 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
             </div>
           )}
 
-          {/* Loading state */}
           {loading && (
             <div className="flex items-center justify-center py-4 gap-2 text-textMuted">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -139,7 +162,6 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
             </div>
           )}
 
-          {/* Not connected */}
           {!loading && connected === false && (
             <div className="space-y-3">
               <p className="text-sm text-textSecondary">
@@ -156,10 +178,8 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
             </div>
           )}
 
-          {/* Connected */}
           {!loading && connected === true && (
             <div className="space-y-4">
-              {/* Calendar selector */}
               {calendars.length > 0 && (
                 <div>
                   <label className="form-label">Kalendarz Google:</label>
@@ -176,29 +196,30 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
                   </select>
                 </div>
               )}
-
-              {/* Import range */}
               <div>
                 <label className="form-label">Zakres importu:</label>
                 <div className="flex gap-2 flex-wrap">
-                  {(["30", "90", "180", "365"] as const).map((days) => (
+                  {([
+                    { key: "all",       label: "±1 rok" },
+                    { key: "past30",    label: "±30 dni" },
+                    { key: "future90",  label: "+90 dni" },
+                    { key: "future365", label: "+1 rok" },
+                  ] as const).map(({ key, label }) => (
                     <button
-                      key={days}
+                      key={key}
                       type="button"
-                      onClick={() => setImportRange(days)}
+                      onClick={() => setImportRange(key)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
-                        importRange === days
+                        importRange === key
                           ? "bg-primary text-white border-primary"
                           : "bg-card text-textSecondary border-gray-200 dark:border-gray-700 hover:bg-surface"
                       }`}
                     >
-                      {days === "365" ? "1 rok" : `${days} dni`}
+                        {label}
                     </button>
                   ))}
                 </div>
               </div>
-
-              {/* Action buttons */}
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleImport}
@@ -225,8 +246,6 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
                   Eksportuj
                 </button>
               </div>
-
-              {/* Last result */}
               {lastResult && (
                 <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 text-sm font-medium text-green-700 dark:text-green-400">
                   {lastResult.type === "import" ? (
@@ -243,14 +262,12 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
                 </div>
               )}
 
-              {/* Info */}
               <div className="text-xs text-textMuted space-y-1 pt-1 border-t border-gray-100 dark:border-gray-800">
                 <p><strong>Import</strong> — pobiera nadchodzące wydarzenia z Google do Dzisiaj v3</p>
                 <p><strong>Eksport</strong> — wysyła Twoje wydarzenia z Dzisiaj v3 do Google Calendar</p>
                 <p>Duplikaty są automatycznie pomijane przy imporcie</p>
               </div>
 
-              {/* Disconnect */}
               <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
                 <button
                   onClick={handleDisconnect}

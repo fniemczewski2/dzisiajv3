@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Plus, Trash2, User } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { ShoppingList } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../providers/AuthProvider";
@@ -133,7 +133,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                 )}
                 <div className="flex justify-end gap-2 pt-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                   <SaveButton onClick={handleSaveEdit} type="button" />
-                  <CancelButton onCancel={handleCancelEdit} />
+                  <CancelButton onClick={handleCancelEdit} />
                 </div>
               </div>
               <ul className="list-none space-y-2.5 opacity-60 pointer-events-none grayscale-[0.5]">
@@ -175,10 +175,9 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                       className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
-                  <button onClick={() => removeElement(list, el.id)}
-                    className="p-1.5 text-red-500 hover:text-white hover:bg-red-500 rounded-md ml-2 shrink-0 transition-colors" title="Usuń produkt">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <DeleteButton onClick={() => removeElement(list, el.id)}
+                    small
+                  />
                 </li>
               ))}
               {list.elements.length === 0 && <div className="mt-4"><NoResultsState text="produktów na liście" /></div>}

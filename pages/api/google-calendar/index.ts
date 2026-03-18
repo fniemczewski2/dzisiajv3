@@ -7,7 +7,10 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
 function getRedirectUri(req: NextApiRequest): string {
   const forwardedHost = req.headers["x-forwarded-host"];
-  const host = (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) || req.headers.host || "localhost:3000";
+  const host =
+    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) ||
+    req.headers.host ||
+    "localhost:3000";
   const proto =
     req.headers["x-forwarded-proto"] === "https" ||
     String(host).includes("vercel.app") ||
@@ -28,14 +31,11 @@ async function getUserFromBearer(req: NextApiRequest) {
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) return null;
   const token = auth.slice(7);
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) return null;
+  const { data: { user }, error } = await getServiceSupabase().auth.getUser(token);
+  if (error || !user) {
+    console.error("[gcal] getUser failed:", error?.message);
+    return null;
+  }
   return { user, token };
 }
 
@@ -50,11 +50,13 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
       grant_type: "refresh_token",
     }),
   });
-  if (!r.ok) return null;
+  if (!r.ok) {
+    console.error("[gcal] token refresh failed:", await r.text());
+    return null;
+  }
   const d = await r.json();
   return d.access_token ?? null;
 }
-
 
 async function getValidGoogleToken(userId: string): Promise<string | null> {
   const sb = getServiceSupabase();
@@ -76,7 +78,7 @@ async function getValidGoogleToken(userId: string): Promise<string | null> {
 
   await sb
     .from("google_calendar_tokens")
-    .update({ access_token: fresh, expires_at: new Date(Date.now() + 3600_000).toISOString() })
+    .update({ access_token: fresh, expires_at: new Date(Date.now() + 3_600_000).toISOString() })
     .eq("user_id", userId);
 
   return fresh;
@@ -86,8 +88,12 @@ const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined): s
   if (!dt) return new Date().toISOString().slice(0, 19) + "+00";
   if (dt.dateTime) {
     const d = new Date(dt.dateTime);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}+00`;
+    const warsawStr = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Warsaw",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).format(d);
+    return warsawStr.replace(" ", "T") + "+00";
   }
   if (dt.date) return `${dt.date}T00:00:00+00`;
   return new Date().toISOString().slice(0, 19) + "+00";
@@ -95,7 +101,19 @@ const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined): s
 
 const toRFC3339 = (ts: string): string => {
   try {
-    return new Date(ts.replace(" ", "T").replace(/\+00$/, "")).toISOString();
+
+    const localStr = ts
+      .replace(" ", "T")
+      .replace(/([+-]\d{2}:\d{2}|[+-]\d{2}|Z)$/, "");
+    const refDate = new Date(localStr + "Z"); 
+    const offsetStr = new Intl.DateTimeFormat("en", {
+      timeZone: "Europe/Warsaw",
+      timeZoneName: "shortOffset",
+    }).formatToParts(refDate).find((p) => p.type === "timeZoneName")?.value ?? "GMT+1";
+    const match = offsetStr.match(/GMT([+-])(\d+)/);
+    const sign = match?.[1] ?? "+";
+    const hrs = String(parseInt(match?.[2] ?? "1")).padStart(2, "0");
+    return localStr + sign + hrs + ":00"; 
   } catch {
     return new Date().toISOString();
   }
@@ -108,24 +126,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const auth = await getUserFromBearer(req);
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
 
-    const redirectUri = getRedirectUri(req);
-
     const state = Buffer.from(
       JSON.stringify({ userId: auth.user.id, token: auth.token })
     ).toString("base64url");
 
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
-    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("redirect_uri", getRedirectUri(req));
     url.searchParams.set("response_type", "code");
-    url.searchParams.set("scope", "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events");
+    url.searchParams.set(
+      "scope",
+      "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events"
+    );
     url.searchParams.set("access_type", "offline");
     url.searchParams.set("prompt", "consent");
     url.searchParams.set("state", state);
 
-    return res.json({ url: url.toString(), redirectUri });
+    return res.json({ url: url.toString() });
   }
-
 
   if (action === "list-calendars" && req.method === "GET") {
     const auth = await getUserFromBearer(req);
@@ -137,6 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select("user_id")
       .eq("user_id", auth.user.id)
       .maybeSingle();
+
     if (!row) return res.json({ connected: false });
 
     const accessToken = await getValidGoogleToken(auth.user.id);
@@ -146,7 +165,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    if (r.status === 401) return res.json({ connected: false });
+    if (r.status === 401) {
+
+      await sb.from("google_calendar_tokens").delete().eq("user_id", auth.user.id);
+      return res.json({ connected: false });
+    }
     if (!r.ok) return res.status(r.status).json({ error: "Google Calendar API error" });
 
     const data = await r.json();
@@ -163,24 +186,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const accessToken = await getValidGoogleToken(auth.user.id);
     if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
+    const defaultTimeMin = new Date(Date.now() - 365 * 86_400_000).toISOString();
+    const defaultTimeMax = new Date(Date.now() + 365 * 86_400_000).toISOString();
+
     const url = new URL(
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`
     );
-    url.searchParams.set("timeMin", timeMin || new Date().toISOString());
-    url.searchParams.set("timeMax", timeMax || new Date(Date.now() + 90 * 86_400_000).toISOString());
+    url.searchParams.set("timeMin", timeMin || defaultTimeMin);
+    url.searchParams.set("timeMax", timeMax || defaultTimeMax);
     url.searchParams.set("singleEvents", "true");
-    url.searchParams.set("maxResults", "250");
+    url.searchParams.set("maxResults", "500");
     url.searchParams.set("orderBy", "startTime");
 
-    const r = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
-    if (!r.ok) return res.status(r.status).json({ error: "Failed to fetch events from Google" });
+    const r = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!r.ok) {
+      const body = await r.text();
+      console.error("[gcal import] Google error:", r.status, body);
+      return res.status(r.status).json({ error: "Failed to fetch events from Google" });
+    }
 
     const { items = [] } = await r.json();
+
     const sb = getServiceSupabase();
-    let imported = 0, skipped = 0;
+    let imported = 0;
+    let skipped = 0;
 
     for (const ev of items as any[]) {
-      if (ev.status === "cancelled" || !ev.start || !ev.end) { skipped++; continue; }
+      if (ev.status === "cancelled" || !ev.start || !ev.end) {
+        skipped++;
+        continue;
+      }
 
       const { data: dup } = await sb
         .from("events")
@@ -188,7 +226,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("google_event_id", ev.id)
         .eq("user_id", auth.user.id)
         .maybeSingle();
-      if (dup) { skipped++; continue; }
+
+      if (dup) {
+        skipped++;
+        continue;
+      }
 
       const { error } = await sb.from("events").insert({
         user_id: auth.user.id,
@@ -201,7 +243,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         google_event_id: ev.id,
         shared_with_id: null,
       });
-      if (!error) imported++; else skipped++;
+
+      if (!error) {
+        imported++;
+      } else {
+        console.error("[gcal import] insert error:", error.message);
+        skipped++;
+      }
     }
 
     return res.json({ imported, skipped, total: items.length });
@@ -218,19 +266,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
     const sb = getServiceSupabase();
+
     let query = sb.from("events").select("*").eq("user_id", auth.user.id);
     if (eventIds?.length) {
       query = query.in("id", eventIds);
     } else {
-      const now = new Date().toISOString().slice(0, 10);
-      const future = new Date(Date.now() + 90 * 86_400_000).toISOString().slice(0, 10);
-      query = query.gte("start_time", now).lte("start_time", future);
+      const past30 = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+      const future = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+      query = query.gte("start_time", past30).lte("start_time", future);
     }
 
-    const { data: events } = await query;
-    if (!events?.length) return res.json({ exported: 0, skipped: 0 });
+    const { data: events, error: fetchErr } = await query;
+    if (fetchErr) {
+      console.error("[gcal export] DB fetch error:", fetchErr.message);
+      return res.status(500).json({ error: "Failed to fetch local events" });
+    }
+    if (!events?.length) {
+      return res.json({ exported: 0, skipped: 0, message: "No events found in selected range" });
+    }
 
-    let exported = 0, skipped = 0;
+    let exported = 0;
+    let skipped = 0;
 
     for (const ev of events) {
       const body = {
@@ -248,16 +304,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const r = await fetch(endpoint, {
         method,
-        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(body),
       });
 
       if (r.ok) {
         const created = await r.json();
-        await sb.from("events").update({ google_event_id: created.id }).eq("id", ev.id);
+        await sb
+          .from("events")
+          .update({ google_event_id: created.id })
+          .eq("id", ev.id);
         exported++;
       } else {
-        console.error("[export] Google API error:", r.status, await r.text());
+        const errBody = await r.text();
+        console.error("[gcal export] Google API error:", r.status, errBody);
         skipped++;
       }
     }

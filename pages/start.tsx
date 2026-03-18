@@ -51,7 +51,6 @@ export default function Home() {
 
         <Layout>
           <main id="main-content" className="max-w-4xl mx-auto">
-            {/* Hero Section */}
             <section className="text-center sm:py-12 px-4 line-">
               <h1 className="text-4xl md:text-5xl font-bold mb-4 text-text leading-snug">
                 Organizuj swój&nbsp;dzień z&nbsp;<span className="text-primary leading-snug">Dzisiaj&nbsp;v3</span>
@@ -70,7 +69,6 @@ export default function Home() {
               </div>
             </section>
 
-            {/* Features Section */}
             <section className="py-12 px-4" aria-labelledby="features-heading">
               <h2 id="features-heading" className="text-3xl font-bold text-center mb-12">
                 Wszystko czego potrzebujesz

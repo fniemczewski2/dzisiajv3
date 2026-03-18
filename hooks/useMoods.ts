@@ -30,7 +30,6 @@ export function useMoods(startDate?: string, endDate?: string) {
 
   useEffect(() => { fetchMoods(); }, [fetchMoods]);
 
-  /** Throws on error — caller: withRetry + toast (logMood is user-facing action) */
   const logMood = async (date: string, mood_id: string | null) => {
     if (!user) throw new Error("Musisz być zalogowany");
 

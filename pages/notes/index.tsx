@@ -38,8 +38,6 @@ export default function NotesPage() {
         />
       </Head>
       <Layout>
-        
-        {/* NAGŁÓWEK */}
         <div className="flex justify-between items-center mb-6 gap-2">
           <div className="flex flex-row items-center gap-3 sm:gap-4">
             <h2 className="text-2xl font-bold text-text">

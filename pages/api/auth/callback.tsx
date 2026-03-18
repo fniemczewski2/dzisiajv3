@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "../../providers/AuthProvider";
-import LoadingState from "../../components/LoadingState";
+import { useAuth } from "../../../providers/AuthProvider";
+import LoadingState from "../../../components/LoadingState";
 
 export default function AuthCallbackPage() {
   const { supabase } = useAuth();
@@ -16,7 +16,7 @@ export default function AuthCallbackPage() {
       );
 
       if (error) {
-        console.error("[auth/callback] exchangeCodeForSession error:", error.message);
+        console.error("exchangeCodeForSession error:", error.message);
         router.replace("/login?error=auth_failed");
         return;
       }

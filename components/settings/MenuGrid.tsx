@@ -7,7 +7,6 @@ export default function MenuGrid() {
 
   return (
     <div className="space-y-4 mb-4">
-      {/* Quick Actions - zawsze widoczne na górze */}
       <div className="card rounded-2xl shadow-sm p-2 sm:p-3">
         <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-textMuted uppercase tracking-widest">
           Szybkie Akcje
@@ -31,8 +30,6 @@ export default function MenuGrid() {
           })}
         </div>
       </div>
-
-      {/* Kategorie nawigacji */}
       {NAVIGATION_CATEGORIES.map((category) => {
         return (
           <div 
@@ -43,7 +40,6 @@ export default function MenuGrid() {
               {category.name}
             </h3>
 
-            {/* Zmieniono na flex-nowrap bez scrollowania z mniejszym gapem na mobile */}
             <div className="flex flex-nowrap gap-1.5 sm:gap-2">
               {category.items.map((button) => {
                 const IconComponent = button.icon;

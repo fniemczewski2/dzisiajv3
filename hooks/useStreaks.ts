@@ -26,7 +26,6 @@ export function useStreaks() {
     }
   }, [userId, supabase]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addStreak = async (newStreak: Omit<Streak, "id" | "user_id">) => {
     const { error } = await supabase
       .from("streaks")

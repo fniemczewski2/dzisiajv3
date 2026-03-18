@@ -18,9 +18,6 @@ export function sortNotes(notes: Note[]): Note[] {
   ];
 }
 
-/**
- * Filter notes by search query (searches in title and items)
- */
 export function filterNotes(notes: Note[], query: string): Note[] {
   if (!query.trim()) return notes;
 
@@ -32,18 +29,12 @@ export function filterNotes(notes: Note[], query: string): Note[] {
   );
 }
 
-/**
- * Get all unique note titles for autocomplete suggestions
- */
 export function getNoteTitles(notes: Note[]): string[] {
   const titles = notes.map((n) => n.title);
   const uniqueTitles = new Set(titles);
   return Array.from(uniqueTitles).sort();
 }
 
-/**
- * Export note to PDF
- */
 export async function exportNoteToPDF(note: Note): Promise<void> {
   if (typeof window === "undefined") return;
 

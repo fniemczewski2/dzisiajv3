@@ -90,7 +90,6 @@ export default function PlaceFilters({
       </div>
       
       <div className="mt-4 space-y-3">
-        {/* Tagi */}
         {availableTags.length > 0 && (
           <div className="card rounded-xl p-3 sm:p-4">
             <div className="flex items-center justify-between">
@@ -124,8 +123,6 @@ export default function PlaceFilters({
             )}
           </div>
         )}
-
-        {/* Filtr czasowy */}
         <div className="card rounded-xl p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">

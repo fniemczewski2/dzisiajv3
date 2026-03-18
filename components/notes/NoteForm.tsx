@@ -100,7 +100,7 @@ export default function NoteForm({ onChange, onCancel }: NoteFormProps) {
       </div>
       <div className="flex space-x-2 items-center pt-2">
         <AddButton loading={loading} />
-        {typeof onCancel === "function" && <CancelButton onCancel={onCancel} loading={loading} />}
+        {typeof onCancel === "function" && <CancelButton onClick={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

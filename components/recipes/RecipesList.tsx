@@ -211,7 +211,7 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
                   </div>
                   <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
                     <SaveButton onClick={handleSaveEdit} type="button" />
-                    <CancelButton onCancel={handleCancelEdit} />
+                    <CancelButton onClick={handleCancelEdit} />
                   </div>
                 </div>
               </li>
@@ -219,12 +219,12 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
           }
 
           return (
-            <li key={r.id} className="card rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary/50 group">
+            <li key={r.id} className="card rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
               <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => toggleOpen(r.id)}>
                 <div className="flex-1 pr-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
                   {r.category && (
-                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary/20 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
                       {r.category}
                     </span>
                   )}

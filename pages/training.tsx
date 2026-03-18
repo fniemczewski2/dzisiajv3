@@ -57,8 +57,7 @@ export default function TrainingPage() {
       <Layout>
         <div className="max-w-2xl mx-auto space-y-6">
           <h2 className="text-2xl font-bold text-text mb-6">Trening</h2>
-          
-          {/* Główny zegar treningowy */}
+
           <UniversalTimer
             secondsLeft={secondsLeft}
             running={running}
@@ -69,7 +68,6 @@ export default function TrainingPage() {
             controls={controls}
           />
 
-          {/* Panel konfiguracyjny (Aktywny tylko gdy zegar NIE JEST uruchomiony/zapauzowany w trakcie) */}
           {(!running && !paused) && (
             <div className="p-4 sm:p-6 card rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
@@ -80,7 +78,6 @@ export default function TrainingPage() {
               </div>
               
               <div className="space-y-4">
-                {/* Czas Ćwiczeń */}
                 <div className="flex w-full items-center justify-between">
                   <label className="font-medium text-textSecondary text-sm">Czas pracy:</label>
                   <div className="flex items-center gap-2">
@@ -95,8 +92,6 @@ export default function TrainingPage() {
                     <span className="text-xs font-semibold text-textMuted uppercase tracking-wider w-8">sek</span>
                   </div>
                 </div>
-
-                {/* Czas Przerw */}
                 <div className="flex w-full items-center justify-between">
                   <label className="font-medium text-textSecondary text-sm">Krótka przerwa:</label>
                   <div className="flex items-center gap-2">
@@ -112,7 +107,7 @@ export default function TrainingPage() {
                   </div>
                 </div>
 
-                {/* Powtórzenia i Cykle */}
+ 
                 <div className="flex w-full items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800/50">
                   <label className="font-medium text-textSecondary text-sm">Serie & Cykle:</label>
                   <div className="flex items-center gap-2">
@@ -137,8 +132,6 @@ export default function TrainingPage() {
                     />
                   </div>
                 </div>
-
-                {/* Długa przerwa (pomiędzy cyklami, ukryta jeśli jest tylko 1 cykl) */}
                 {cycles > 1 && (
                   <div className="flex w-full items-center justify-between animate-in fade-in slide-in-from-top-2">
                     <label className="font-medium text-textSecondary text-sm">Długa przerwa:</label>

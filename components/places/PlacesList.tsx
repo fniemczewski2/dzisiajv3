@@ -93,7 +93,7 @@ export default function PlacesList({ places, onEdit, onDelete }: PlacesListProps
 
         return (
           <div key={place.id}
-            className="card rounded-2xl shadow-sm transition-all duration-200 hover:border-primary/50 group overflow-hidden">
+            className="card rounded-xl shadow-sm transition-all duration-200 hover:border-primary group overflow-hidden">
             <div className="p-4 cursor-pointer" onClick={() => toggleExpand(place.id)}>
               <div className="flex items-start justify-between">
                 <div className="flex-1 pr-2 min-w-0">
@@ -112,7 +112,7 @@ export default function PlacesList({ places, onEdit, onDelete }: PlacesListProps
                     <div className="flex flex-wrap gap-1.5 mt-2.5">
                       {place.tags.map((tag, idx) => (
                         <span key={idx}
-                          className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                          className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary text-[10px] font-bold uppercase tracking-wider rounded-md">
                           {tag}
                         </span>
                       ))}

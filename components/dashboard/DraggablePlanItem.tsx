@@ -26,8 +26,6 @@ export function DraggablePlanItem({ id, type, children }: DraggablePlanItemProps
       style={{ touchAction: isDraggable ? 'none' : 'auto' }}
       className={`${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
-      {/* Przenosimy isDragging (scale i opacity) oraz transition na wewnętrzny element. 
-          Dzięki temu dnd-kit prawidłowo namierzy pozycję kursora z zewnętrznego diva! */}
       <div 
         className={`relative pointer-events-auto transition-all duration-200 ${
           isDragging ? 'opacity-40 scale-[0.98]' : 'opacity-100 scale-100'

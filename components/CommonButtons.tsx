@@ -11,7 +11,8 @@ import {
   Archive,
   Pin,
   Eye,
-  Download
+  Download,
+  X
 } from "lucide-react";
 
 interface ButtonProps {
@@ -19,9 +20,10 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
+  small?: boolean;
 }
 
-export const AddButton = ({ onClick, loading, disabled, type = "submit" }: ButtonProps) => (
+export const AddButton = ({ onClick, loading, disabled, type = "submit", small = false }: ButtonProps) => (
   <button
     type={type}
     onClick={onClick}
@@ -33,50 +35,51 @@ export const AddButton = ({ onClick, loading, disabled, type = "submit" }: Butto
   </button>
 );
 
-export const SaveButton = ({ onClick, loading, disabled, type = "submit" }: ButtonProps) => (
+export const SaveButton = ({ onClick, loading, disabled, type = "submit", small = false }: ButtonProps) => (
   <button
     type={type}
     onClick={onClick}
     disabled={loading || disabled}
-    className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent"
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent`}
   >
-    Zapisz
-    <Save className="w-5 h-5" />
+    {!small && "Zapisz"}
+    <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
   </button>
 );
 
-export const CancelButton = ({ onCancel, loading }: { onCancel: () => void; loading?: boolean }) => (
+export const CancelButton = ({ onClick, loading, disabled, small = false }: ButtonProps) => (
   <button
     type="button"
-    onClick={onCancel}
+    onClick={onClick}
     disabled={loading}
-    className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800"
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
   >
-    Anuluj
+    {!small && "Anuluj"}
+    <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
   </button>
 );
 
-export const DeleteButton = ({ onClick }: { onClick: () => void }) => (
+export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 border border-transparent hover:border-red-600 dark:hover:border-red-400 transition-colors"
+    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 border border-transparent hover:border-red-600 dark:hover:border-red-400 transition-colors`}
     aria-label="Usuń"
   >
-    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Usuń</span>
+    <Trash2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Usuń</span>}
   </button>
 );
 
-export const EditButton = ({ onClick }: { onClick: () => void }) => (
+export const EditButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
     aria-label="Edytuj"
   >
-    <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Edytuj</span>
+    <Edit2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Edytuj</span>}
   </button>
 );
 

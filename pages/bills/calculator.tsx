@@ -176,7 +176,6 @@ export default function BillCalculator() {
 
       <div className="max-w-4xl mx-auto space-y-6">
         
-        {/* Pasek Nagłówkowy */}
         <div className="card p-4 shadow-sm rounded-2xl flex items-center relative">
           <button
             onClick={handleBack}
@@ -193,8 +192,7 @@ export default function BillCalculator() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            
-            {/* Opłaty */}
+
             <section className="card p-5 sm:p-6 rounded-2xl shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
                 Miesięczne Opłaty
@@ -214,7 +212,6 @@ export default function BillCalculator() {
               </div>
             </section>
 
-            {/* Dochody */}
             <section className="card p-5 sm:p-6 rounded-2xl shadow-sm">
               <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
                 Dochody i Podatki
@@ -239,8 +236,7 @@ export default function BillCalculator() {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                
-                {/* Osoba 1 */}
+
                 <div className="space-y-4 p-4 rounded-xl border flex flex-col justify-between border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
                     <h3 className="font-bold text-text">Osoba 1</h3>
@@ -293,7 +289,6 @@ export default function BillCalculator() {
                   </div>
                 </div>
 
-                {/* Osoba 2 */}
                 <div className="space-y-4 p-4 rounded-xl flex flex-col justify-between border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
                     <h3 className="font-medium text-text">Osoba 2</h3>
@@ -349,8 +344,6 @@ export default function BillCalculator() {
               </div>
             </section>
           </div>
-
-          {/* Podsumowanie */}
           <div className="lg:col-span-1">
             <section className="card p-5 sm:p-6 rounded-2xl shadow-sm sticky top-6">
               <h2 className="text-lg font-bold text-text mb-6 text-center border-b border-gray-100 dark:border-gray-800 pb-3">Podsumowanie</h2>

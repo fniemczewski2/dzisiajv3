@@ -130,7 +130,7 @@ export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
       </div>
       <div className="flex gap-3 items-center pt-2">
         <AddButton loading={loading} disabled={!canSave} />
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

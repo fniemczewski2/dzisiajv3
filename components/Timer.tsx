@@ -93,14 +93,13 @@ export default function UniversalTimer({
         compact ? "p-4 gap-3 sm:gap-4" : "p-6 gap-6"
       }`}
     >
-      {/* Nagłówek */}
+
       <div className="text-center w-full space-y-1">
         <h2 className={`font-bold flex items-center justify-center gap-2 text-text ${compact ? "text-lg sm:text-xl" : "text-2xl"}`}>
           {getIcon(displayLabel)}
           <span className="truncate">{displayLabel}</span>
         </h2>
         
-        {/* Pokaż następną fazę tylko w trybie wielofazowym */}
         {isMultiPhase && (
           <div className="text-[10px] sm:text-xs font-semibold text-textMuted uppercase tracking-wider">
             {nextPhase ? `Następne: ${nextPhase.label}` : "Następne: Koniec"}
@@ -108,7 +107,6 @@ export default function UniversalTimer({
         )}
       </div>
 
-      {/* Główny licznik czasu */}
       <div className="text-center w-full">
         <div 
           className={`font-mono font-bold text-primary tracking-tight tabular-nums leading-none ${
@@ -118,7 +116,6 @@ export default function UniversalTimer({
           {formatTime(secondsLeft)}
         </div>
         
-        {/* Odznaki (Pills) tylko dla trybu wielofazowego */}
         {isMultiPhase && (
           <div className="flex items-center justify-center gap-2 mt-3 sm:mt-4">
             <span className="bg-surface text-textSecondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border border-gray-200 dark:border-gray-700">
@@ -143,7 +140,6 @@ export default function UniversalTimer({
             </button>
           )}
 
-          {/* Opcjonalny przycisk anulowania (przydatny w stoperze zadań) */}
           {controls.cancel && (
             <button
               onClick={controls.cancel}
@@ -155,7 +151,6 @@ export default function UniversalTimer({
             </button>
           )}
 
-          {/* Główny przycisk (Start / Pauza) */}
           {!running ? (
             <button
               onClick={controls.start}

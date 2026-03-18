@@ -114,9 +114,8 @@ export function useTransport(autoRefresh = false) {
 
   const fetchFavorites = useCallback(
     async (stops: { name: string; zone_id: string }[]) => {
-      const names = stops.map((s) => s.name);
 
-      if (!names.length) {
+      if (!stops || stops.length === 0) {
         setFavoritesGroups([]);
         return;
       }
@@ -132,9 +131,7 @@ export function useTransport(autoRefresh = false) {
           "get-transitland-times",
           {
             body: {
-              stopNames: names,
-              lat: lastCoords.current?.lat,
-              lon: lastCoords.current?.lng,
+              stopNames: stops 
             },
           }
         );

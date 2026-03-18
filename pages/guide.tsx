@@ -18,7 +18,6 @@ export default function GuidePage() {
       <Layout>
         <div className="max-w-4xl mx-auto space-y-6 px-2 sm:px-0 mb-10">
           
-          {/* Nagłówek */}
           <div className="mb-8 text-center sm:text-left mt-4">
             <h1 className="text-3xl font-bold text-text flex items-center justify-center sm:justify-start gap-3">
               <BookOpen className="w-8 h-8 text-primary" />
@@ -29,7 +28,6 @@ export default function GuidePage() {
             </p>
           </div>
 
-          {/* Renderowanie sekcji z config/guideData.tsx */}
           {guideSections.map((section) => (
             <section key={section.id} className="bg-surface border border-gray-200 dark:border-gray-800 rounded-xl p-5 sm:p-6 shadow-sm">
               <h2 className="text-xl font-bold text-text flex items-center gap-2 mb-4">
@@ -37,7 +35,7 @@ export default function GuidePage() {
                 {section.title}
               </h2>
               
-              <ul className="space-y-3 text-textSecondary list-none marker:text-primary/50">
+              <ul className="space-y-3 text-textSecondary list-none marker:text-primary">
                 {section.listItems.map((item, index) => (
                   <li key={index} className="leading-relaxed">{item}</li>
                 ))}

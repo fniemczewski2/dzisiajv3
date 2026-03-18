@@ -52,7 +52,6 @@ export function useRecipes() {
     }
   }, [userId, fetchRecipes, fetchProducts]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addRecipe = async (r: NewRecipe): Promise<Recipe> => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -77,7 +76,6 @@ export function useRecipes() {
     }
   };
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const editRecipe = async (recipe: Recipe): Promise<Recipe> => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);

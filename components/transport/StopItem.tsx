@@ -32,7 +32,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
 
   return (
     <div className="p-4 bg-transparent transition-colors hover:bg-surfaceHover">
-      {/* Nagłówek przystanku */}
+
       <div className="flex justify-between items-start mb-4">
         <h4 className="font-medium text-md text-text flex items-center leading-tight">
           {stopName}
@@ -56,8 +56,6 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
           )}
         </div>
       </div>
-
-      {/* Lista odjazdów */}
       <div className="space-y-2.5 animate-in fade-in duration-500">
         {isLoading && !departures.length ? (
           <div className="space-y-3 py-2 animate-pulse">
@@ -69,17 +67,14 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
             <div key={`${dep.line}-${dep.minutes}-${idx}`} className="flex items-center justify-between group">
               
               <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
-                {/* Numer linii */}
                 <span className="flex items-center gap-1 font-bold text-md bg-primary text-white px-1 py:0.5 md:px-2.5 md:py-1.5 rounded-lg min-w-[42px] justify-center shadow-sm shrink-0">
                   {dep.line}
                 </span>
-                {/* Kierunek */}
                 <span className="text-sm font-medium truncate uppercase tracking-tight text-textSecondary group-hover:text-text transition-colors">
                   {dep.direction}
                 </span>
               </div>
 
-              {/* Czas do odjazdu */}
               <div className="text-right shrink-0">
                 <div className={`text-sm tabular-nums tracking-tight ${getStatusColor(dep)}`}>
                   {dep.minutes <= 0 ? (
