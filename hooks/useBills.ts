@@ -1,11 +1,30 @@
 // hooks/useBills.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { Bill } from "../types";
-import { useSettings } from "./useSettings";
 import { useAuth } from "../providers/AuthProvider";
+import { useSettings } from "./useSettings";
+import type { Bill } from "../types";
+import { addMonths, format, parseISO, isAfter } from "date-fns";
 
-export function useBills() {
+function getRecurringDates(startDate: string, recurringUntil: string): string[] {
+  const dates: string[] = [];
+  let current = addMonths(parseISO(startDate), 1);
+  const until = parseISO(recurringUntil);
+
+  while (!isAfter(current, until)) {
+    dates.push(format(current, "yyyy-MM-dd"));
+    current = addMonths(current, 1);
+  }
+  return dates;
+}
+
+interface FetchOptions {
+  dateFrom?: string;
+  dateTo?: string;
+  includeRecurringChildren?: boolean;
+}
+
+export function useBills(options: FetchOptions = {}) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
@@ -18,118 +37,181 @@ export function useBills() {
     if (!userId || settings == null) return;
     setLoading(true);
     try {
-      const { data: incomeData, error: incomeError } = await supabase
+      let query = supabase
         .from("bills")
-        .select("*")
+        .select(`
+          *,
+          category:budget_categories(*)
+        `)
         .eq("user_id", userId)
-        .eq("is_income", true)
-        .eq("done", false)
         .order("date", { ascending: true });
 
-      if (incomeError) throw incomeError;
-      setIncomeItems(incomeData || []);
+      if (options.dateFrom) query = query.gte("date", options.dateFrom);
+      if (options.dateTo)   query = query.lte("date", options.dateTo);
+      if (!options.includeRecurringChildren) {
+        query = query.is("parent_bill_id", null);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const bills = (data ?? []) as Bill[];
+      setIncomeItems(bills.filter((b) => b.is_income));
 
       if (settings.show_budget_items) {
-        const { data: budgetData, error: budgetError } = await supabase
+        setExpenseItems(bills.filter((b) => !b.is_income));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren]);
+
+  useEffect(() => { fetchBills(); }, [fetchBills]);
+
+  const addBill = useCallback(
+    async (
+      bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">
+    ): Promise<Bill> => {
+      if (!userId) throw new Error("Musisz być zalogowany");
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
           .from("bills")
-          .select("*")
+          .insert({ ...bill, user_id: userId, parent_bill_id: null })
+          .select()
+          .single();
+
+        if (error) throw error;
+        const parent = data as Bill;
+
+        if (bill.is_recurring && bill.recurring_until) {
+          const childDates = getRecurringDates(bill.date, bill.recurring_until);
+          if (childDates.length > 0) {
+            const children = childDates.map((date) => ({
+              user_id:          userId,
+              amount:           bill.amount,
+              description:      bill.description,
+              date,
+              is_income:        bill.is_income,
+              done:             false,
+              category_id:      bill.category_id,
+              is_recurring:     false,   
+              recurring_until:  null,
+              parent_bill_id:   parent.id,
+            }));
+
+            const { error: childError } = await supabase
+              .from("bills")
+              .insert(children);
+
+            if (childError) throw childError;
+          }
+        }
+
+        return parent;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [supabase, userId]
+  );
+
+  const editBill = useCallback(
+    async (
+      bill: Bill,
+      options: { updateFutureRecurring?: boolean } = {}
+    ): Promise<Bill> => {
+      if (!userId) throw new Error("Musisz być zalogowany");
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("bills")
+          .update({
+            amount:          bill.amount,
+            description:     bill.description,
+            date:            bill.date,
+            is_income:       bill.is_income,
+            done:            bill.done,
+            category_id:     bill.category_id,
+            is_recurring:    bill.is_recurring,
+            recurring_until: bill.recurring_until,
+          })
+          .eq("id", bill.id)
           .eq("user_id", userId)
-          .eq("is_income", false)
-          .eq("done", false)
-          .order("date", { ascending: true });
+          .select()
+          .single();
 
-        if (budgetError) throw budgetError;
-        setExpenseItems(budgetData || []);
+        if (error) throw error;
+        if (options.updateFutureRecurring) {
+          const today = format(new Date(), "yyyy-MM-dd");
+          await supabase
+            .from("bills")
+            .update({
+              amount:      bill.amount,
+              description: bill.description,
+              category_id: bill.category_id,
+            })
+            .eq("parent_bill_id", bill.id)
+            .gte("date", today);
+        }
+
+        return data as Bill;
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, settings, supabase]);
+    },
+    [supabase, userId]
+  );
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
-  const addBill = async (bill: Omit<Bill, "id" | "user_id">): Promise<Bill> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("bills")
-        .insert({ ...bill, user_id: userId })
-        .select()
-        .single();
 
-      if (error) throw error;
-      if (!data) throw new Error("Brak danych zwróconych przez bazę");
+  const deleteBill = useCallback(
+    async (id: string, deleteFutureRecurring = false): Promise<void> => {
+      if (!userId) throw new Error("Musisz być zalogowany");
+      setLoading(true);
+      try {
+        if (deleteFutureRecurring) {
+          const today = format(new Date(), "yyyy-MM-dd");
+          await supabase
+            .from("bills")
+            .delete()
+            .eq("parent_bill_id", id)
+            .gte("date", today);
+        }
 
-      if (bill.is_income) {
-        setIncomeItems((prev) => [...prev, data as Bill]);
-      } else {
-        setExpenseItems((prev) => [...prev, data as Bill]);
+        const { error } = await supabase
+          .from("bills")
+          .delete()
+          .eq("id", id)
+          .eq("user_id", userId);
+
+        if (error) throw error;
+      } finally {
+        setLoading(false);
       }
+    },
+    [supabase, userId]
+  );
 
-      return data as Bill;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const markAsDone = useCallback(
+    async (id: string): Promise<void> => {
+      if (!userId) throw new Error("Musisz być zalogowany");
+      setLoading(true);
+      try {
+        const { error } = await supabase
+          .from("bills")
+          .update({ done: true })
+          .eq("id", id)
+          .eq("user_id", userId);
 
-  const editBill = async (bill: Bill): Promise<Bill> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("bills")
-        .update({ ...bill, user_id: userId })
-        .eq("id", bill.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      if (!data) throw new Error("Brak danych zwróconych przez bazę");
-
-      if (bill.is_income) {
-        setIncomeItems((prev) => prev.map((b) => (b.id === bill.id ? (data as Bill) : b)));
-      } else {
-        setExpenseItems((prev) => prev.map((b) => (b.id === bill.id ? (data as Bill) : b)));
+        if (error) throw error;
+        setIncomeItems((prev) => prev.filter((b) => b.id !== id));
+        setExpenseItems((prev) => prev.filter((b) => b.id !== id));
+      } finally {
+        setLoading(false);
       }
-
-      return data as Bill;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteBill = async (id: string): Promise<void> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
-    setLoading(true);
-    try {
-      const { error } = await supabase.from("bills").delete().eq("id", id);
-      if (error) throw error;
-      setIncomeItems((prev) => prev.filter((b) => b.id !== id));
-      setExpenseItems((prev) => prev.filter((b) => b.id !== id));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markAsDone = async (id: string): Promise<void> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("bills")
-        .update({ done: true })
-        .eq("id", id);
-      if (error) throw error;
-      setIncomeItems((prev) => prev.filter((b) => b.id !== id));
-      setExpenseItems((prev) => prev.filter((b) => b.id !== id));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBills();
-  }, [fetchBills]);
+    },
+    [supabase, userId]
+  );
 
   return {
     incomeItems,
@@ -142,5 +224,3 @@ export function useBills() {
     markAsDone,
   };
 }
-
-export default useBills;

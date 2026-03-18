@@ -50,7 +50,6 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
 
   return (
     <div className="mb-2 p-3 rounded-xl flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors">
-      {/* Left — Title */}
       <div className="flex-1 min-w-0 pr-2">
         <p className="flex items-center gap-2 font-bold text-sm leading-tight truncate">
           {item.type === "task" && (
@@ -70,8 +69,6 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
           </span>
         </p>
       </div>
-
-      {/* Right — Buttons */}
       <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
         {quickLink && (
           <Link href={quickLink.path} title={quickLink.label}

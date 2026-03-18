@@ -1,7 +1,5 @@
 /* styles/animations.css */
-/* Add these animations to your globals.css or create a new animations.css file */
 
-/* Pulse animation for urgent tasks */
 @keyframes pulse-urgent {
   0%, 100% {
     opacity: 1;
@@ -15,7 +13,6 @@
   animation: pulse-urgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Confetti animation */
 @keyframes confetti-fall {
   0% {
     transform: translateY(-100px) rotateZ(0deg);
@@ -31,7 +28,6 @@
   animation: confetti-fall 2.5s ease-out forwards;
 }
 
-/* Scale in animation for celebration modal */
 @keyframes scale-in {
   0% {
     transform: scale(0.8);
@@ -50,7 +46,6 @@
   animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Fade in animation */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -64,7 +59,6 @@
   animation: fade-in 0.3s ease-out;
 }
 
-/* Bounce animation for icons */
 @keyframes bounce-soft {
   0%, 100% {
     transform: translateY(0);
@@ -78,7 +72,6 @@
   animation: bounce-soft 1s ease-in-out infinite;
 }
 
-/* Shimmer effect for loading */
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -100,7 +93,6 @@
   animation: shimmer 2s infinite;
 }
 
-/* Slide up animation */
 @keyframes slide-up {
   from {
     transform: translateY(20px);
@@ -116,7 +108,6 @@
   animation: slide-up 0.4s ease-out;
 }
 
-/* Glow effect for urgent items */
 @keyframes glow {
   0%, 100% {
     box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
@@ -130,7 +121,6 @@
   animation: glow 2s ease-in-out infinite;
 }
 
-/* Success checkmark animation */
 @keyframes check-scale {
   0% {
     transform: scale(0);
@@ -147,7 +137,6 @@
   animation: check-scale 0.3s ease-out;
 }
 
-/* Wobble animation for attention */
 @keyframes wobble {
   0%, 100% {
     transform: translateX(0);
@@ -173,7 +162,6 @@
   animation: wobble 0.8s ease-in-out;
 }
 
-/* Ping animation with color */
 @keyframes ping-colored {
   75%, 100% {
     transform: scale(2);
@@ -185,7 +173,6 @@
   animation: ping-colored 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Utility classes for timing */
 .animation-delay-100 {
   animation-delay: 100ms;
 }
@@ -202,12 +189,10 @@
   animation-delay: 500ms;
 }
 
-/* Smooth height transition */
 .transition-height {
   transition: height 0.3s ease-in-out;
 }
 
-/* Smooth max-height for collapsible content */
 .transition-max-height {
   transition: max-height 0.3s ease-in-out;
 }

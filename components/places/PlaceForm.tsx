@@ -74,8 +74,6 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
       <div className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 className="text-xl font-semibold text-text mb-4">Edytuj miejsce</h2>
-
-          {/* Tags */}
           <div>
             <label className="form-label">Tagi:</label>
             <div className="flex gap-2 mb-3">
@@ -113,8 +111,6 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
               ))}
             </div>
           </div>
-
-          {/* Rating & Phone (Grid) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="form-label">Ocena (0-5):</label>
@@ -139,8 +135,6 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
               />
             </div>
           </div>
-
-          {/* Website */}
           <div>
             <label className="form-label">Strona internetowa:</label>
             <input
@@ -151,8 +145,6 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
               className="input-field"
             />
           </div>
-
-          {/* Opening Hours */}
           <div>
             <label className="form-label">Godziny otwarcia:</label>
             <div className="space-y-2 bg-surface p-3 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -172,8 +164,6 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
               ))}
             </div>
           </div>
-
-          {/* Notes */}
           <div>
             <label className="form-label">Notatki:</label>
             <textarea
@@ -187,7 +177,7 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
 
           <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
             <SaveButton type="submit" />
-            <CancelButton onCancel={onCancel} />
+            <CancelButton onClick={onCancel} />
           </div>
         </form>
       </div>

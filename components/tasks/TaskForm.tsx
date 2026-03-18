@@ -114,11 +114,11 @@ export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
         <div>
           <label htmlFor="due" className="form-label">Data wykonania:</label>
           <input id="due" ref={dueDateRef} defaultValue={todayIso} type="date"
-            className="input-field h-[46px] sm:h-[48px] w-full min-w-0 px-1 text-xs" required />
+            className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" required />
         </div>
         <div>
           <label htmlFor="for" className="form-label">Zadanie dla:</label>
-          <select id="for" ref={forUserRef} className="input-field h-[46px] sm:h-[48px]" required defaultValue={userId}>
+          <select id="for" ref={forUserRef} className="input-field h-min sm:h-[48px]" required defaultValue={userId}>
             <option value={userId}>Mnie</option>
             {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
           </select>
@@ -134,7 +134,7 @@ export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
         {loading && <div className="mr-2"><LoadingState /></div>}
         <AddButton loading={loading} />
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
       </div>
     </form>
   );

@@ -31,7 +31,6 @@ export function usePlaces() {
 
   useEffect(() => { fetchPlaces(); }, [fetchPlaces]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addPlace = async (place: PlaceInsert) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     const { data, error } = await supabase
@@ -44,7 +43,6 @@ export function usePlaces() {
     return data;
   };
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const updatePlace = async (id: string, updates: Partial<Place>) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     const { data, error } = await supabase
@@ -142,7 +140,6 @@ export function usePlaces() {
     return nameMatches?.length ? nameMatches[0] : null;
   };
 
-  /** Throws on error — caller: withRetry + toast progress via setMessage */
   const importFromGoogleMaps = async (
     jsonData: any,
     fetchGoogleData = true,

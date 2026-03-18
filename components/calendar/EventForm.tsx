@@ -195,7 +195,7 @@ export default function EventForm({
           .ics <Upload className="w-4 h-4" />
           <input type="file" accept=".ics" onChange={handleFileUpload} className="hidden" disabled={loading} />
         </label>
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

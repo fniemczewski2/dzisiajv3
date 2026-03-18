@@ -180,7 +180,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
           />
         </label>
         
-        <CancelButton onCancel={onCollapse} />
+        <CancelButton onClick={onCollapse} />
       </div>
     </div>
   );

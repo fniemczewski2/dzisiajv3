@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { differenceInDays, parseISO } from "date-fns";
 import { 
   Flame, Trophy, Target, Heart, Cigarette, Beer,
-  UtensilsCrossed, Dumbbell, Edit2, Trash2, PiggyBank,
+  UtensilsCrossed, Dumbbell, PiggyBank,
   BriefcaseMedical,
 } from "lucide-react";
 import { Streak } from "../../types";
@@ -70,11 +70,8 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
 
   return (
     <div className="card rounded-2xl shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
-      {/* Header z ikoną i nazwą */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 flex-1 relative">
-          
-          {/* Ikona - klikalna w trybie edycji */}
           <div 
             className={`flex-shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
@@ -83,7 +80,6 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
             <Icon className="w-7 h-7 sm:w-8 sm:h-8" />
           </div>
 
-          {/* Icon Picker (Pokazuje się pod ikoną) */}
           {showIconPicker && (
             <div className="absolute top-[3.5rem] left-0 mt-2 card rounded-xl shadow-lg p-2 z-50 w-[220px] grid grid-cols-5 gap-2">
               {ICONS.map((item) => {
@@ -143,7 +139,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                 </div>
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                   <SaveButton onClick={handleSave} type="button" />
-                  <CancelButton onCancel={handleCancel} />
+                  <CancelButton onClick={handleCancel} />
                 </div> 
               </div>
             ) : (
@@ -158,7 +154,6 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
         </div>
       </div>
 
-      {/* Zawsze na dole */}
       <div className="mt-auto">
         {!isEditing && (
           <div className="text-center py-4 bg-surface rounded-xl border border-gray-100 dark:border-gray-800/50 mb-3">
@@ -170,8 +165,6 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
             </div>
           </div>
         )}
-
-        {/* Milestone message */}
         {milestone && !isEditing && (
           <div className="mb-3 text-center">
             <div className="inline-block text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
@@ -199,7 +192,6 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
           </div>
         )}
 
-        {/* Przyciski Akcji */}
         {!isEditing && (
           <div className="flex gap-1.5 pt-3 border-t border-gray-100 dark:border-gray-800">
             <EditButton onClick={handleEdit} />

@@ -58,7 +58,6 @@ export default function NoteEditForm({
       )}
     >
       <div className="space-y-4">
-        {/* Title */}
         <div>
           <label className="form-label">Tytuł notatki:</label>
           <input
@@ -69,8 +68,6 @@ export default function NoteEditForm({
             className="input-field bg-white/50 dark:bg-black/20 font-medium"
           />
         </div>
-
-        {/* Items */}
         <div>
           <label className="form-label">Treść (jeden element na linię):</label>
           <textarea
@@ -80,8 +77,6 @@ export default function NoteEditForm({
             className="input-field bg-white/50 dark:bg-black/20 h-32"
           />
         </div>
-
-        {/* Color Picker */}
         <div className="bg-white/50 dark:bg-black/20 p-2 rounded-xl border border-black/5 dark:border-white/5">
           <span className="block text-xs font-bold text-textMuted uppercase tracking-wider mb-2 pl-1">
             Kolor tła
@@ -104,11 +99,9 @@ export default function NoteEditForm({
             ))}
           </div>
         </div>
-
-        {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-2">
           <SaveButton onClick={handleSave} type="button" />
-          <CancelButton onCancel={onCancel} />
+          <CancelButton onClick={onCancel} />
         </div>
       </div>
     </li>

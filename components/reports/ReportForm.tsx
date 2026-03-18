@@ -159,7 +159,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
 
       <div className="flex gap-3 pt-2">
         <AddButton loading={loading} />
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

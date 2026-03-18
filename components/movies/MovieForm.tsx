@@ -240,7 +240,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
 
       <div className="flex gap-2 pt-2">
         <AddButton loading={loading} type="submit" />
-        <CancelButton onCancel={onCancel} loading={loading} />
+        <CancelButton onClick={onCancel} loading={loading} />
       </div>
     </form>
   );

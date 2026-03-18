@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, SyntheticEvent } from "react";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
-import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
+import { AddButton, SaveButton, CancelButton, DeleteButton } from "../CommonButtons";
 
 export interface DaySchemaEntry {
   time: string;
@@ -119,14 +119,11 @@ export default function DaySchemaForm({
             <div key={i} className="flex w-full gap-2 items-center">
               <input type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
-                className="input-field w-32" required />
+                className="input-field w-[80px]" required />
               <input type="text" value={entry.label} placeholder="Etykieta"
                 onChange={(e) => handleEntryChange(i, "label", e.target.value)}
-                className="input-field flex-1" required />
-              <button type="button" onClick={() => removeEntry(i)}
-                className="p-2 text-textMuted hover:text-red-500 transition-colors" title="Usuń wpis">
-                <Trash2 className="w-5 h-5" />
-              </button>
+                className="input-field w-full" required />
+              <DeleteButton onClick={() => removeEntry(i)} small />
             </div>
           ))}
         </div>
@@ -138,7 +135,7 @@ export default function DaySchemaForm({
 
       <div className="flex gap-3 items-center pt-2">
         {isEdit ? <SaveButton loading={loading} /> : <AddButton loading={loading} />}
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

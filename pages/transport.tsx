@@ -37,7 +37,6 @@ export default function TransportPage() {
 
   const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
   const favoritesJSON = JSON.stringify(favoriteStops);
-
   useEffect(() => {
     if (settingsLoading) return;
 

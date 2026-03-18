@@ -29,7 +29,6 @@ export function useMovies() {
 
   useEffect(() => { fetchMovies(); }, [fetchMovies]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addMovie = useCallback(
     async (movie: Omit<MovieInsert, "user_id">): Promise<Movie> => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -45,10 +44,6 @@ export function useMovies() {
     [supabase, userId]
   );
 
-  /**
-   * Accepts a full Movie object (matches MovieList.tsx calling convention).
-   * Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.")
-   */
   const updateMovie = useCallback(
     async (movie: Movie): Promise<void> => {
       const { id, ...updates } = movie;
@@ -68,7 +63,6 @@ export function useMovies() {
     [supabase]
   );
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const toggleWatched = useCallback(
     async (id: string): Promise<void> => {
       const movie = movies.find((m) => m.id === id);
@@ -78,7 +72,6 @@ export function useMovies() {
     [movies, updateMovie]
   );
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const updateNotes = useCallback(
     async (id: string, notes: string): Promise<void> => {
       const movie = movies.find((m) => m.id === id);

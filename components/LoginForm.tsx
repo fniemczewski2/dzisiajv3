@@ -28,7 +28,7 @@ export default function LoginForm() {
 
   const handleLogin = async () => {
     const redirectTo =
-      `${window.location.origin}/auth/callback` +
+      `${window.location.origin}/api/auth/callback` +
       (nextPath !== "/" ? `?next=${encodeURIComponent(nextPath)}` : "");
 
     const { error } = await supabase.auth.signInWithOAuth({

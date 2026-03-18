@@ -148,7 +148,6 @@ export default function WeatherPage() {
           <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>
         ) : forecast && air ? (
           <>
-            {/* Główne kafelki (Oryginalny, kompaktowy p-3) */}
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
               <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
                 <ThermometerSnowflake className="w-5 h-5 text-blue-500" />
@@ -277,8 +276,7 @@ export default function WeatherPage() {
                 </div>
               </div>
             </div>
-            
-            {/* PROGNOZA NA 24H (Tabela kompaktowa) */}
+
             <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne 24h</h3>
             <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl shadow-md mb-6">
               <table className="min-w-full text-sm table-auto text-left">
@@ -314,8 +312,6 @@ export default function WeatherPage() {
                 </tbody>
               </table>
             </div>
-
-            {/* PROGNOZA DŁUGOTERMINOWA (Oryginalny grid i odstępy) */}
             <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne dni</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4 mb-6">
               {forecast.daily.time.slice(1).map((date: string, i: number) => (

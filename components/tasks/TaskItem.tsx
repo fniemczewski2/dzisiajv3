@@ -266,7 +266,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
             <SaveButton onClick={handleSaveEdit} type="button" />
-            <CancelButton onCancel={handleCancelEdit} />
+            <CancelButton onClick={handleCancelEdit} />
           </div>
         </div>
       </div>
@@ -275,7 +275,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
 
   return (
     <>
-      <div className="p-4 w-full h-full card hover:border-primary/50 dark:hover:border-primary-dark/50 rounded-xl shadow-sm flex flex-col justify-between transition-all group">
+      <div className="p-4 w-full h-full card hover:border-primary dark:hover:border-primary-dark/50 rounded-xl shadow-sm flex flex-col justify-between transition-all group">
         <div className="space-y-3 flex-1">
           <div
             onClick={() => setIsTimerActive(true)}

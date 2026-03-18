@@ -67,7 +67,7 @@ export default function ShoppingForm({ onChange, onCancel, lists, loading, addSh
       </div>
       <div className="flex space-x-3 items-center pt-2">
         <AddButton loading={loading} />
-        {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
         {loading && <LoadingState />}
       </div>
     </form>

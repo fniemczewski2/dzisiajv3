@@ -162,7 +162,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
                       </div>
                       <div className="flex justify-end gap-3 pt-2">
                         <SaveButton onClick={handleSaveEdit} type="button" />
-                        <CancelButton onCancel={handleCancelEdit} />
+                        <CancelButton onClick={handleCancelEdit} />
                       </div>
                     </div>
                   </li>

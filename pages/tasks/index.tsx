@@ -108,7 +108,6 @@ export default function TasksPage() {
       </Head>
 
       <Layout>
-        {/* NAGŁÓWEK */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text flex items-center gap-3">
             Zadania
@@ -118,8 +117,6 @@ export default function TasksPage() {
           </h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-
-        {/* PASEK FILTRÓW I TRYBU SKUPIENIA */}
         <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm w-fit gap-2">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;

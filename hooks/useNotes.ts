@@ -37,7 +37,6 @@ export function useNotes() {
     }
   }, [userId, supabase]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addNote = async (note: Note) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -60,7 +59,6 @@ export function useNotes() {
     }
   };
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const editNote = async (note: Note) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -87,7 +85,6 @@ export function useNotes() {
     }
   };
 
-  /** Throws on error — caller: withRetry */
   const togglePin = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -104,8 +101,6 @@ export function useNotes() {
       setLoading(false);
     }
   };
-
-  /** Throws on error — caller: withRetry */
   const toggleArchive = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);

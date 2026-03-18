@@ -116,7 +116,7 @@ export default function StreakForm({ onChange, onCancel }: StreakFormProps) {
         </div>
         <div className="flex space-x-3 items-center pt-4 border-t border-gray-100 dark:border-gray-800">
           <AddButton loading={loading} />
-          {onCancel && <CancelButton onCancel={onCancel} loading={loading} />}
+          {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
           {loading && <LoadingState />}
         </div>
       </div>

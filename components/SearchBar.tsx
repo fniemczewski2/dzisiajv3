@@ -106,7 +106,7 @@ export default function SearchBar({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Pole wyszukiwania */}
+
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-textMuted pointer-events-none" />
         <input
@@ -133,14 +133,12 @@ export default function SearchBar({
         )}
       </div>
 
-      {/* Licznik wyników */}
       {value && resultsCount !== undefined && (
         <p className="text-sm font-medium text-textSecondary mt-2.5 pl-1">
           {resultsLabel ?? `Znaleziono: ${resultsCount}`}
         </p>
       )}
 
-      {/* Dropdown z historią i podpowiedziami */}
       {showDropdown && (
         <div
           ref={dropdownRef}
@@ -148,7 +146,7 @@ export default function SearchBar({
           aria-label="Podpowiedzi wyszukiwania"
           className="absolute z-50 w-full mt-2 card rounded-xl shadow-lg max-h-64 overflow-y-auto custom-scrollbar"
         >
-          {/* Historia sesji (tylko gdy pole jest puste) */}
+
           {!value && history.length > 0 && (
             <div className="p-2">
               <div className="flex items-center justify-between px-3 py-2 mb-1">
@@ -178,7 +176,6 @@ export default function SearchBar({
             </div>
           )}
 
-          {/* Podpowiedzi dopasowane do bieżącego zapytania */}
           {value && filteredSuggestions.length > 0 && (
             <div className="p-2">
               <div className="px-3 py-2 mb-1">

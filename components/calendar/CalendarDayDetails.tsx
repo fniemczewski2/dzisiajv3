@@ -144,8 +144,6 @@ export default function CalendarDayDetails({
 
   return (
     <div className="mb-5 space-y-6">
-
-      {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between relative">
           <button
@@ -176,8 +174,6 @@ export default function CalendarDayDetails({
           )}
         </div>
       </div>
-
-      {/* ── Widgets ─────────────────────────────────────────────────────── */}
       <div className="flex flex-auto flex-wrap flex-col justify-center">
         {settings.show_habits        && <TaskIcons date={selectedDate} />}
         {settings.show_water_tracker && <WaterTracker date={selectedDate} />}
@@ -185,16 +181,8 @@ export default function CalendarDayDetails({
         <DailySpendingForm date={selectedDate} />
       </div>
 
-      {/* ── Add form ─────────────────────────────────────────────────────── */}
       {showAddForm && (
         <div className="mb-6">
-          {/*
-            EventForm receives onEventsChange (= calendar.tsx's fetchEvents)
-            directly.  It does NOT call useEvents internally — it only calls
-            addEvent (which it gets from its own useEvents instance scoped to
-            the current month) and then fires onEventsChange to let the parent
-            refresh its own event list.  This is the only subscription needed.
-          */}
           <EventForm
             currentDate={selectedDateObject}
             selectedDate={selectedDateObject}
@@ -203,8 +191,6 @@ export default function CalendarDayDetails({
           />
         </div>
       )}
-
-      {/* ── Events list ──────────────────────────────────────────────────── */}
       {eventsForDay.length > 0 ? (
         <section className="flex flex-wrap gap-4 justify-center">
           {eventsForDay.map((event) => {
@@ -312,7 +298,7 @@ export default function CalendarDayDetails({
                   </div>
                   <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
                     <SaveButton onClick={handleSaveEdit} type="button" />
-                    <CancelButton onCancel={handleCancelEdit} />
+                    <CancelButton onClick={handleCancelEdit} />
                   </div>
                 </div>
               );
@@ -321,7 +307,7 @@ export default function CalendarDayDetails({
             return (
               <div
                 key={event.id}
-                className="p-5 w-full max-w-md card rounded-2xl shadow-sm hover:shadow-md hover:border-primary/50 transition-all flex flex-col"
+                className="p-5 w-full max-w-md card rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all flex flex-col"
               >
                 <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
@@ -376,8 +362,6 @@ export default function CalendarDayDetails({
       ) : (
         <NoResultsState text="wydarzeń" />
       )}
-
-      {/* ── Tasks for the day ────────────────────────────────────────────── */}
       {tasks.length > 0 && (
         <section className="card p-5 shadow-sm rounded-2xl max-w-md mx-auto w-full">
           <h4 className="font-bold text-lg text-text mb-4 pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">

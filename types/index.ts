@@ -14,15 +14,48 @@ export type Task = {
   user_id: string;
 };
 
-export type Bill = {
+export interface BudgetCategory {
   id: string;
-  amount: number;
-  description: string;
-  date: string;
   user_id: string;
+  year: number;
+  name: string;
+  amount: number;        
+  is_monthly: boolean;   
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type BudgetCategoryInsert = Omit<BudgetCategory, "id" | "user_id" | "created_at" | "updated_at">;
+
+export interface Bill {
+  id: string;
+  user_id: string;
+  amount: number;
+  description: string | null;
+  date: string;                   
   is_income: boolean;
   done: boolean | null;
-};
+  category_id: string | null;        
+  is_recurring?: boolean;
+  recurring_until?: string | null;     
+  parent_bill_id?: string | null;      
+  category?: BudgetCategory | null;
+}
+
+export interface CategorySpending {
+  category: BudgetCategory;
+  spent: number;         
+  limit: number;         
+  remaining: number;     
+  thisMonthSpent: number;
+  thisMonthLimit: number;
+  thisMonthRemaining: number;
+}
+
+export interface UncategorisedSummary {
+  spent: number;        
+}
 
 export type Note = {
   id: string;
@@ -320,7 +353,6 @@ export interface PushSubscriptionRow {
   last_used?: string;
 }
 
-/** Settings row as returned from Supabase (all fields nullable — DB may not have them yet) */
 export interface SettingsRow {
   sort_order: string | null;
   show_completed: boolean | null;
@@ -353,13 +385,11 @@ export interface SettingsRow {
   mood_options: MoodOption[] | null;
 }
 
-/** Stop row from the local stops table (transport module) */
 export interface StopRow {
   stop_name: string;
   zone_id: string;
 }
 
-/** Budget row — hourly rates per month */
 export interface BudgetRow {
   user_id: string;
   jan_rate: number;
@@ -376,7 +406,7 @@ export interface BudgetRow {
   dec_rate: number;
 }
 
-/** daily_habits row as returned from Supabase */
+
 export interface DailyHabitsRow {
   date: string;
   user_id: string;

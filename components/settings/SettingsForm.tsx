@@ -1,8 +1,8 @@
 import React from "react";
-import { Trash2, PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
+import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
 import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
-import { SaveButton } from "../CommonButtons"; 
+import { DeleteButton, SaveButton } from "../CommonButtons"; 
 import { useRouter } from "next/router";
 
 interface MoodOption {
@@ -91,15 +91,13 @@ export default function SettingsForm({
         <ThemeToggle />
       </div>
 
-      {/* Toggles Główne */}
       <div className="space-y-1 mb-6">
         {renderSwitch("show_completed", "Pokaż wykonane zadania")}
         {renderSwitch("show_water_tracker", "Pokaż tracker wody")}
         {renderSwitch("show_notifications", "Pokaż zadania cykliczne")}
         {renderSwitch("show_budget_items", "Pokaż planowane wydatki")}
         {renderSwitch("show_habits", "Pokaż sekcję nawyków")}
-        
-        {/* Niestandardowy przełącznik dla nastrojów */}
+
         <div className="flex items-center justify-between py-2">
           <label htmlFor="show_mood_tracker" className="text-sm font-medium text-text cursor-pointer select-none">
             Pokaż śledzenie nastroju
@@ -144,7 +142,7 @@ export default function SettingsForm({
           <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Nastroje</h4>
           {moodOptions.map((opt: MoodOption, index: number) => (
             <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4 border-b border-gray-100 dark:border-gray-900 shadow-sm">
-              <div className="flex justify-between w-full sm:flex-1">
+              <div className="flex justify-between gap-2 md:mr-2 w-full sm:flex-1">
                 <input
                   type="text"
                   value={opt.label}
@@ -157,17 +155,13 @@ export default function SettingsForm({
                   placeholder="Nazwa nastroju..."
                 />
 
-                <button 
-                  type="button" 
+                <DeleteButton
                   onClick={() => {
                     const newOpts = moodOptions.filter((m: MoodOption) => m.id !== opt.id);
                     onSettingsChange({ ...settings, mood_options: newOpts });
                   }}
-                  className="p-1.5 text-textMuted hover:text-red-500 transition-colors ml-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg shrink-0"
-                  title="Usuń nastrój"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  small
+                  />
               </div>
               
               <div className="flex items-center gap-2 shrink-0 mt-2 sm:mt-0">
@@ -214,15 +208,13 @@ export default function SettingsForm({
                 const newOpts = [...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }];
                 onSettingsChange({ ...settings, mood_options: newOpts });
               }}
-              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mt-2 p-2"
+              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-secondary transition-colors mt-2 p-2"
             >
               <PlusCircle className="w-4 h-4" /> Dodaj nastrój
             </button>
           )}
         </div>
       )}
-
-      {/* Domyślne sortowanie */}
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6">
         <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">SORTOWANIE</h4>
         
@@ -311,7 +303,6 @@ export default function SettingsForm({
         </div>
       </div>
 
-      {/* Friends List */}
       <div className="pt-6 border-t border-gray-100 dark:border-gray-800 mb-6">
         <label className="form-label">Zaufani użytkownicy (Udostępnianie):</label>
         <div className="space-y-2 max-w-md">
@@ -324,14 +315,10 @@ export default function SettingsForm({
                 onChange={(e) => onUpdateUser(idx, e.target.value)}
                 className="input-field"
               />
-              <button
-                type="button"
+              <DeleteButton 
                 onClick={() => onRemoveUser(idx)}
-                className="p-2 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors shrink-0"
-                title="Usuń"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+                small
+              />
             </div>
           ))}
           {(!settings.users || settings.users.length < 10) && (
@@ -346,9 +333,7 @@ export default function SettingsForm({
         </div>
       </div>
 
-      {/* PRZYCISKI AKCJI */}
-      <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-        
+      <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">  
         <button
           type="button"
           onClick={onRestoreDefaults}

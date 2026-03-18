@@ -46,7 +46,6 @@ export default function BirthdayIndicator({ date }: Props) {
 
   return (
     <div className="space-y-1">
-      {/* 1. Wyświetlanie Świąt */}
       {holiday && (
         <span
           className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
@@ -57,7 +56,6 @@ export default function BirthdayIndicator({ date }: Props) {
         </span>
       )}
 
-      {/* 2. Wyświetlanie Urodzin / Rocznic */}
       {specialEvents.map((event) => (
         <span
           key={event.id}

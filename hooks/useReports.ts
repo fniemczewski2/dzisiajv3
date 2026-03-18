@@ -27,7 +27,6 @@ export function useReports() {
     }
   }, [supabase, userId]);
 
-  /** Throws on error — caller: withRetry + toast.success("Dodano pomyślnie.") */
   const addReport = useCallback(
     async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
       const { data, error } = await supabase
@@ -41,7 +40,6 @@ export function useReports() {
     [supabase, userId]
   );
 
-  /** Throws on error — caller: withRetry + toast.success("Zmieniono pomyślnie.") */
   const editReport = useCallback(
     async (id: string, updates: Partial<Report>) => {
       const { data, error } = await supabase
