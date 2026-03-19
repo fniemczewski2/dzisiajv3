@@ -7,17 +7,12 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
 function getRedirectUri(req: NextApiRequest): string {
-  const forwardedHost = req.headers["x-forwarded-host"];
-  const host =
-    (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) ||
-    req.headers.host ||
-    "localhost:3000";
-  const proto =
-    req.headers["x-forwarded-proto"] === "https" ||
-    String(host).includes("vercel.app") ||
-    (!String(host).startsWith("localhost") && !String(host).startsWith("127."))
-      ? "https"
-      : "http";
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    return `${baseUrl}/api/google-calendar/callback`;
+  }
+  const host = req.headers.host || "localhost:3000";
+  const proto = host.includes("localhost") ? "http" : "https";
   return `${proto}://${host}/api/google-calendar/callback`;
 }
 
