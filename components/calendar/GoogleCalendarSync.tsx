@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   Download, Upload, Link2Off, ChevronDown, ChevronUp,
   Check, Loader2, AlertCircle,
+  Link,
 } from "lucide-react";
 import { useGoogleCalendar } from "../../hooks/useGoogleCalendar";
 import { useToast } from "../../providers/ToastProvider";
@@ -108,7 +109,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
   };
  
   const handleDisconnect = async () => {
-    const ok = await toast.confirm("Odłączyć Google Calendar?");
+    const ok = await toast.confirm("Usuń połączenie z Google Calendar?");
     if (!ok) return;
     await disconnect();
     setLastResult(null);
@@ -147,7 +148,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
       </button>
 
       {expanded && (
-        <div className="border-t border-gray-100 dark:border-gray-800 bg-surface px-4 py-4 space-y-4">
+        <div className="border-t border-gray-100 dark:border-gray-800 bg-card px-4 py-4 space-y-4">
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 text-sm font-medium">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -170,9 +171,9 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
               <button
                 onClick={connect}
                 disabled={loading}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-text font-bold rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-colors disabled:opacity-50"
+                className="text-sm font-medium text-primary hover:text-secondary flex items-center mt-3"
               >
-                <GoogleIcon />
+                <Link className="w-4 h-4 mr-1.5"/>
                 Połącz z Google Calendar
               </button>
             </div>
@@ -224,26 +225,27 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
                 <button
                   onClick={handleImport}
                   disabled={loading || !selectedCalendar}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-secondary text-white font-bold rounded-xl transition-colors disabled:opacity-50 shadow-sm"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-secondary text-white font-bold rounded-lg transition-colors disabled:opacity-50 shadow-sm"
                 >
+                  Importuj
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  Importuj
+                  
                 </button>
                 <button
                   onClick={handleExport}
                   disabled={loading || !selectedCalendar}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold rounded-xl border border-gray-200 dark:border-gray-700 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold rounded-lg border border-gray-200 dark:border-gray-700 transition-colors disabled:opacity-50"
                 >
+                  Eksportuj
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Upload className="w-4 h-4" />
                   )}
-                  Eksportuj
                 </button>
               </div>
               {lastResult && (
@@ -262,9 +264,9 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
                 </div>
               )}
 
-              <div className="text-xs text-textMuted space-y-1 pt-1 border-t border-gray-100 dark:border-gray-800">
-                <p><strong>Import</strong> — pobiera nadchodzące wydarzenia z Google do Dzisiaj v3</p>
-                <p><strong>Eksport</strong> — wysyła Twoje wydarzenia z Dzisiaj v3 do Google Calendar</p>
+              <div className="text-xs text-textMuted space-y-1 pt-1">
+                <p><strong>Import</strong> — pobiera Twoje wydarzenia z Google do Dzisiaj v3</p>
+                <p><strong>Eksport</strong> — wysyła Twoje wydarzenia z Dzisiaj v3 do Google</p>
                 <p>Duplikaty są automatycznie pomijane przy imporcie</p>
               </div>
 
@@ -272,9 +274,9 @@ export default function GoogleCalendarSync({ onSyncComplete }: Props) {
                 <button
                   onClick={handleDisconnect}
                   disabled={loading}
-                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                  className="text-sm font-medium flex items-center text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
                 >
-                  <Link2Off className="w-3.5 h-3.5" />
+                  <Link2Off className="w-4 h-4 mr-1.5" />
                   Odłącz Google Calendar
                 </button>
               </div>

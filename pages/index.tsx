@@ -64,7 +64,8 @@ function DashboardContent() {
 
   const todayDate   = useMemo(() => new Date(), []);
   const todayString = useMemo(() => format(todayDate, "yyyy-MM-dd"), [todayDate]);
-  const currentDayOfWeek = todayDate.getDay();
+  const currentDayOfWeek = (todayDate.getDay() + 6) % 7;
+  console.log(currentDayOfWeek)
 
   const {
     tasks,
@@ -237,7 +238,7 @@ function DashboardContent() {
     [deleteTask, fetchTasks]
   );
 
-  if (!isMounted || loadingSettings) return <LoadingState />;
+  if (!isMounted || loadingSettings) return <LoadingState fullScreen/>;
 
   const homepageStructuredData = {
     "@context": "https://schema.org",

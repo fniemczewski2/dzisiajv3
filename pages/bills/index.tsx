@@ -123,6 +123,12 @@ export default function BillsPage() {
     }
   };
 
+  if (loading || catsLoading) {
+    return (
+        <LoadingState fullScreen/>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -151,8 +157,6 @@ export default function BillsPage() {
           </div>
           <AddButton onClick={() => setShowForm(true)} type="button" />
         </div>
-
-        {(loading || catsLoading) && <LoadingState />}
 
         {showForm && (
           <div className="mb-6 animate-in fade-in slide-in-from-top-4">

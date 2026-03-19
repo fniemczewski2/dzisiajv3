@@ -149,14 +149,14 @@ const MonthView = memo(function MonthView({
   }, [weeks, onSelectDate]);
 
   return (
-    <div className="space-y-1 sm:space-y-2">
+    <div className="space-y-0.5 sm:space-y-2">
       <div className="grid grid-cols-7 text-center font-bold text-xs sm:text-sm text-textMuted uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
         {weekdayNamesPL.map((d) => <div key={d} className="py-1">{d}</div>)}
       </div>
 
       {weekData.map(({ week, limitedEvents, overflowCounts }, wIdx) => (
         <div key={wIdx} className="relative">
-          <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {week.map((day) => {
               const dateStr = format(day, "yyyy-MM-dd");
               return (
@@ -176,11 +176,11 @@ const MonthView = memo(function MonthView({
             })}
           </div>
 
-          <div className="absolute top-[32px] sm:top-[38px] left-0 right-0 h-[54px] sm:h-[60px] grid grid-cols-7 grid-rows-3 gap-1 sm:gap-2 pointer-events-none">
+          <div className="absolute top-[32px] sm:top-[38px] left-0 right-0 h-[54px] sm:h-[60px] grid grid-cols-7 grid-rows-3 gap-0.5 sm:gap-2 pointer-events-none">
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={event.id + start.toISOString()}
-                className="bg-primary text-white text-[10px] sm:text-xs tracking-wider rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
+                className="bg-primary opacity-90 text-white text-[10px] sm:text-xs rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
                 style={{ gridColumnStart: col + 1, gridColumnEnd: `span ${span}`, gridRowStart: row + 1 }}
                 title={event.title}
               >

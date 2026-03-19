@@ -16,6 +16,13 @@ export default function ShoppingPage() {
     setShowForm(true);
   };
 
+    if (loading) {
+      return (
+          <LoadingState fullScreen/>
+      );
+    }
+  
+
   return (
     <>
       <Head>
@@ -34,8 +41,6 @@ export default function ShoppingPage() {
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
 
-        {loading && <LoadingState />} 
-        
         {showForm && (
           <div className="mb-6">
             <ShoppingForm

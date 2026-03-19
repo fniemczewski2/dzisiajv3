@@ -96,6 +96,12 @@ export default function TasksPage() {
     onActionAdd: () => setShowForm(true),
   });
 
+  if (loadingTasks) {
+    return (
+        <LoadingState fullScreen/>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -136,8 +142,6 @@ export default function TasksPage() {
               );
             })}
         </div>
-
-        {loadingTasks && <LoadingState />}
 
         {showForm && (
           <div className="mb-6">
