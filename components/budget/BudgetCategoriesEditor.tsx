@@ -270,11 +270,6 @@ export default function BudgetCategoriesEditor({
                     <span className="font-medium text-sm text-text truncate">
                       {cat.name}
                     </span>
-                    {cat.is_monthly && (
-                      <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-primary bg-blue-50 dark:bg-blue-900/30 border border-primary px-1.5 py-0.5 rounded">
-                        mies.
-                      </span>
-                    )}
                     {cat.amount === 0 && (
                       <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
                         brak limitu

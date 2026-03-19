@@ -1,6 +1,6 @@
 // pages/bills/budget.tsx
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,11 +11,22 @@ import { useBudgetSummary } from "../../hooks/useBudgetSummary";
 import BudgetCategoriesEditor from "../../components/budget/BudgetCategoriesEditor";
 import BudgetOverview from "../../components/budget/BugdetOverview";
 import LoadingState from "../../components/LoadingState";
+import MonthlyBudgetTable from "../../components/budget/MonthlyTable";
+import BudgetStatsTable from "../../components/budget/StatsTable";
+import SummaryTable from "../../components/budget/SummaryTable";
+import { useBudgetData } from "../../hooks/useBudget";
+import BudgetControls from "../../components/budget/BudgetControls";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function BudgetPage() {
   const currentYear = getAppDateTime().getFullYear();
   const [year, setYear] = useState(currentYear);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const { toast } = useToast();
   const router = useRouter();
+  const MONTH_NAMES = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
+  const { data, loading, loadedMonths, updateRate, saveRates } = useBudgetData(year, [1, 12]);
 
   const {
     categories,
@@ -39,6 +50,27 @@ export default function BudgetPage() {
   const handleCategoriesChange = () => {
     fetchCategories();
     refreshSummary();
+  };
+
+  const rows = useMemo(() => Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1;
+    const monthData = data[month];
+    const sum = monthData?.sum ?? 0;
+    const rate = monthData?.rate ?? 0;
+    return { month, monthName: MONTH_NAMES[i], sum, rate, hours: rate > 0 ? Math.round(sum / rate) : 0 };
+  }), [data]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await saveRates();
+      toast.success("Zmieniono pomyślnie.");
+      setIsEditing(false);
+    } catch {
+      toast.error("Wystąpił błąd podczas zapisywania.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -80,7 +112,7 @@ export default function BudgetPage() {
         {catsLoading ? (
           <LoadingState />
         ) : (
-          <div className="max-w-2xl mx-auto w-full space-y-6">
+          <div className="max-w-2xl mx-auto w-full space-y-6 mb-6">
             <BudgetOverview
               summary={summary}
               uncategorised={uncategorised}
@@ -92,6 +124,22 @@ export default function BudgetPage() {
               year={year}
               onCategoriesChange={handleCategoriesChange}
             />
+          </div>
+        )}
+        {loading ? <LoadingState /> : (
+          <div className="flex flex-wrap gap-2 sm:gap-6 w-full justify-center">
+            <div>
+              <BudgetControls
+                isEditing={isEditing}
+                saving={saving}
+                onSave={handleSave}
+                onCancel={() => setIsEditing(false)}
+                onEdit={() => setIsEditing(true)}
+              />
+              <BudgetStatsTable rows={rows} isEditing={isEditing} onRateChange={updateRate} />
+            </div>
+            <SummaryTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
+            <MonthlyBudgetTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
           </div>
         )}
       </Layout>
