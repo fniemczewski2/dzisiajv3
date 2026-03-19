@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "../../../providers/AuthProvider";
-import LoadingState from "../../../components/LoadingState";
+import { useAuth } from "../../providers/AuthProvider";
+import LoadingState from "../../components/LoadingState";
 
 export default function AuthCallbackPage() {
   const { supabase } = useAuth();
