@@ -51,7 +51,7 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Butt
   <button
     type="button"
     onClick={onClick}
-    disabled={loading}
+    disabled={loading || disabled}
     className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
   >
     {!small && "Anuluj"}

@@ -56,6 +56,13 @@ export default function DaySchemaPage() {
     }
   };
 
+    if (loading) {
+      return (
+          <LoadingState fullScreen/>
+      );
+    }
+  
+
   return (
     <>
       <Head>
@@ -71,8 +78,6 @@ export default function DaySchemaPage() {
           <h2 className="text-2xl font-bold text-text">Plan dnia</h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-
-        {loading && <LoadingState />}
 
         {showForm && (
           <section className="mb-6">

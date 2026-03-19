@@ -107,9 +107,7 @@ export default function PlacesPage() {
 
   if (loading) {
     return (
-      <Layout>
-        <LoadingState />
-      </Layout>
+        <LoadingState fullScreen/>
     );
   }
 

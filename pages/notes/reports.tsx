@@ -51,6 +51,12 @@ export default function ReportsPage() {
     generateReportPDF(report);
   };
 
+  if (loading) {
+    return (
+        <LoadingState fullScreen/>
+    );
+  }
+
   return (
     <>
       <Head><title>Sprawozdania – Dzisiaj</title></Head>
@@ -59,8 +65,6 @@ export default function ReportsPage() {
           <h2 className="text-2xl font-bold text-text">Sprawozdania</h2>
           {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
         </div>
-
-        {loading && <LoadingState />}
 
         {showForm && (
           <div className="mb-6">

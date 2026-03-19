@@ -34,6 +34,13 @@ export default function SettingsPage() {
     DEFAULT_SETTINGS
   } = useSettings();
 
+  if (loading) {
+    return (
+        <LoadingState fullScreen/>
+    );
+  }
+
+
   return (
     <>
       <Head>
@@ -48,8 +55,6 @@ export default function SettingsPage() {
           </h2>
           <InstallButton />
         </div>
-        
-        {loading && <LoadingState />}
         
         <MenuGrid />
         

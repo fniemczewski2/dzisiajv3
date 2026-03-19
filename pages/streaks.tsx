@@ -46,6 +46,12 @@ export default function StreaksPage() {
     setShowForm(false);
   };
 
+  if (loading) {
+    return (
+        <LoadingState fullScreen/>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -69,7 +75,6 @@ export default function StreaksPage() {
             onCancel={() => setShowForm(false)}
           />
         )}
-        {loading && <LoadingState />}
         {streaks ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {streaks.map((streak) => (

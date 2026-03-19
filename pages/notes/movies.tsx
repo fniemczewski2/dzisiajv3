@@ -8,6 +8,13 @@ import { useMovies } from "../../hooks/useMovies";
 
 export default function MoviesPage() {
   const { loading } = useMovies();
+
+  if (loading) {
+    return (
+      <LoadingState fullScreen/>
+    );
+  }
+  
   return (
     <>
       <Head>
@@ -22,7 +29,6 @@ export default function MoviesPage() {
       </Head>
 
       <Layout>
-        {(loading) && <LoadingState />}
         <MovieWatchlist />
       </Layout>
     </>

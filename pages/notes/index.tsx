@@ -25,6 +25,12 @@ export default function NotesPage() {
     onActionAdd: () => setShowForm(true),
   });
 
+  if (loading) {
+    return (
+        <LoadingState fullScreen/>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -63,8 +69,6 @@ export default function NotesPage() {
           
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        
-        {loading && <LoadingState />}
         
         {showForm && (
           <div className="mb-6 animate-in fade-in slide-in-from-top-4">
