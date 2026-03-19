@@ -130,14 +130,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       JSON.stringify({ userId: auth.user.id, token: auth.token })
     ).toString("base64url");
 
+    const scopes = [
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/calendar.calendarlist",
+      "https://www.googleapis.com/auth/calendar.calendars.readonly",
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar.events.owned",
+      "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+      "https://www.googleapis.com/auth/calendar.events.readonly"
+    ].join(" "); // Łączymy zakresy spacją
+
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
     url.searchParams.set("redirect_uri", getRedirectUri(req));
     url.searchParams.set("response_type", "code");
-    url.searchParams.set(
-      "scope",
-      "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events"
-    );
+    url.searchParams.set("scope", scopes); // Przypisanie nowej listy zakresów
     url.searchParams.set("access_type", "offline");
     url.searchParams.set("prompt", "consent");
     url.searchParams.set("state", state);
