@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { Settings } from "../types";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
+import { useRouter } from "next/router";
 
 type GeoCoords = { lat: number; lng: number };
 
@@ -32,6 +33,7 @@ const normalizeFavoriteStops = (data: unknown) => {
 
 export function useSettings() {
   const { user, supabase } = useAuth();
+  const router = useRouter();
   const userId = user?.id;
 
   const DEFAULT_SETTINGS: Settings = {
@@ -240,8 +242,18 @@ export function useSettings() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) {
+        throw new Error("Błąd podczas wylogowywania:", error.message);
+      }
+    } catch (err) {
+      console.error("Nieoczekiwany błąd wylogowania:", err);
+    } finally {
+      router.push("/login");
+    }
   };
+  
 
   return {
     settings,
