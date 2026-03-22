@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
-import LoadingState from "../LoadingState";
 import ThemeToggle from "./ThemeButton";
 import { DeleteButton, SaveButton } from "../CommonButtons"; 
 import { useRouter } from "next/router";
@@ -22,38 +21,36 @@ const DEFAULT_MOODS: MoodOption[] = [
 interface SettingsFormProps {
   settings: any;
   saving: boolean;
-  onSettingsChange: (settings: any) => void;
-  onAddUser: () => void;
-  onRemoveUser: (idx: number) => void;
-  onUpdateUser: (idx: number, value: string) => void;
-  onSave: (e: React.SyntheticEvent<HTMLFormElement>) => void;
+  onSave: (updatedSettings: any) => void;
   onRestoreDefaults: () => void;
 }
 
 export default function SettingsForm({
-  settings, 
+  settings: initialSettings, 
   saving, 
-  onSettingsChange, 
-  onAddUser, 
-  onRemoveUser, 
-  onUpdateUser, 
   onSave,
   onRestoreDefaults
 }: SettingsFormProps) {
   
   const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
   const router = useRouter();
+  const [localSettings, setLocalSettings] = useState(initialSettings);
 
-  const moodEnabled = settings?.show_mood_tracker ?? false;
-  const moodOptions = settings?.mood_options ?? DEFAULT_MOODS;
+  useEffect(() => {
+    setLocalSettings(initialSettings);
+  }, [initialSettings]);
+
+  const updateLocalField = (field: string, value: any) => {
+    setLocalSettings((prev: any) => ({ ...prev, [field]: value }));
+  };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); 
-    onSave(e);
+    onSave(localSettings);
   };
 
   const renderSwitch = (id: string, label: string) => {
-    const isChecked = settings[id] !== false;
+    const isChecked = localSettings[id] !== false;
 
     return (
       <div key={id} className="flex items-center justify-between py-2">
@@ -63,7 +60,7 @@ export default function SettingsForm({
         <button
           id={id}
           type="button"
-          onClick={() => onSettingsChange({ ...settings, [id]: !isChecked })}
+          onClick={() => updateLocalField(id, !isChecked)}
           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
             isChecked ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'
           }`}
@@ -81,9 +78,12 @@ export default function SettingsForm({
     );
   };
 
+  const moodEnabled = localSettings?.show_mood_tracker ?? false;
+  const moodOptions = localSettings?.mood_options ?? DEFAULT_MOODS;
+
   return (
     <form onSubmit={handleFormSubmit} className="form-card mb-6">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
         <h3 className="text-xl font-semibold flex items-center text-text">
           <SettingsIcon className="w-5 h-5 mr-2 text-textMuted" />
           Ustawienia aplikacji
@@ -91,7 +91,21 @@ export default function SettingsForm({
         <ThemeToggle />
       </div>
 
-      <div className="space-y-1 mb-6">
+      <div className="mt-0">
+
+         <div>
+            <label htmlFor="main_view" className="form-label text-xs">Widok główny:</label>
+            <select
+              id="main_view"
+              value={localSettings.main_view || "calendar"}
+              onChange={(e) => updateLocalField("main_view", e.target.value)}
+              className="input-field"
+            >
+              <option value="calendar">Kalendarz</option>
+              <option value="tasks">Zadania</option>
+              <option value="day_plan">Plan dnia</option>
+            </select>
+          </div>
         {renderSwitch("show_completed", "Pokaż wykonane zadania")}
         {renderSwitch("show_water_tracker", "Pokaż tracker wody")}
         {renderSwitch("show_notifications", "Pokaż zadania cykliczne")}
@@ -105,7 +119,7 @@ export default function SettingsForm({
           <button
             id="show_mood_tracker"
             type="button"
-            onClick={() => onSettingsChange({ ...settings, show_mood_tracker: !moodEnabled })}
+            onClick={() => updateLocalField("show_mood_tracker", !moodEnabled)}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
               moodEnabled ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'
             }`}
@@ -120,7 +134,7 @@ export default function SettingsForm({
           </button>
         </div>
 
-        {settings.show_habits && (
+        {localSettings.show_habits && (
           <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
             <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Aktywne nawyki</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
@@ -138,10 +152,10 @@ export default function SettingsForm({
       </div>
 
       {moodEnabled && (
-        <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6"> 
+        <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl"> 
           <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Nastroje</h4>
           {moodOptions.map((opt: MoodOption, index: number) => (
-            <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4 border-b border-gray-100 dark:border-gray-900 shadow-sm">
+            <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4">
               <div className="flex justify-between gap-2 md:mr-2 w-full sm:flex-1">
                 <input
                   type="text"
@@ -149,7 +163,7 @@ export default function SettingsForm({
                   onChange={(e) => {
                     const newOpts = [...moodOptions];
                     newOpts[index].label = e.target.value;
-                    onSettingsChange({ ...settings, mood_options: newOpts });
+                    updateLocalField("mood_options", newOpts);
                   }}
                   className="input-field flex-1 bg-card"
                   placeholder="Nazwa nastroju..."
@@ -158,7 +172,7 @@ export default function SettingsForm({
                 <DeleteButton
                   onClick={() => {
                     const newOpts = moodOptions.filter((m: MoodOption) => m.id !== opt.id);
-                    onSettingsChange({ ...settings, mood_options: newOpts });
+                    updateLocalField("mood_options", newOpts);
                   }}
                   small
                   />
@@ -172,7 +186,7 @@ export default function SettingsForm({
                     onClick={() => {
                       const newOpts = [...moodOptions];
                       newOpts[index].color = color;
-                      onSettingsChange({ ...settings, mood_options: newOpts });
+                      updateLocalField("mood_options", newOpts);
                     }}
                     className={`w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-primary' : 'hover:scale-110'}`}
                     style={{ backgroundColor: color }}
@@ -191,7 +205,7 @@ export default function SettingsForm({
                     onChange={(e) => {
                       const newOpts = [...moodOptions];
                       newOpts[index].color = e.target.value;
-                      onSettingsChange({ ...settings, mood_options: newOpts });
+                      updateLocalField("mood_options", newOpts);
                     }}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
                   />
@@ -206,7 +220,7 @@ export default function SettingsForm({
               type="button"
               onClick={() => {
                 const newOpts = [...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }];
-                onSettingsChange({ ...settings, mood_options: newOpts });
+                updateLocalField("mood_options", newOpts);
               }}
               className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-secondary transition-colors mt-2 p-2"
             >
@@ -215,7 +229,8 @@ export default function SettingsForm({
           )}
         </div>
       )}
-      <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl mb-6">
+      
+      <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
         <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">SORTOWANIE</h4>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,8 +238,8 @@ export default function SettingsForm({
             <label htmlFor="sort_order" className="form-label text-xs">Zadania:</label>
             <select
               id="sort_order"
-              value={settings.sort_order || "priority"}
-              onChange={(e) => onSettingsChange({ ...settings, sort_order: e.target.value })}
+              value={localSettings.sort_order || "priority"}
+              onChange={(e) => updateLocalField("sort_order", e.target.value)}
               className="input-field"
             >
               <option value="priority">Priorytet</option>
@@ -238,8 +253,8 @@ export default function SettingsForm({
             <label htmlFor="sort_notes" className="form-label text-xs">Notatki:</label>
             <select
               id="sort_notes"
-              value={settings.sort_notes || "updated_desc"}
-              onChange={(e) => onSettingsChange({ ...settings, sort_notes: e.target.value })}
+              value={localSettings.sort_notes || "updated_desc"}
+              onChange={(e) => updateLocalField("sort_notes", e.target.value)}
               className="input-field"
             >
               <option value="updated_desc">Data aktualizacji</option>
@@ -251,8 +266,8 @@ export default function SettingsForm({
             <label htmlFor="sort_shopping" className="form-label text-xs">Listy zakupów:</label>
             <select
               id="sort_shopping"
-              value={settings.sort_shopping || "updated_desc"}
-              onChange={(e) => onSettingsChange({ ...settings, sort_shopping: e.target.value })}
+              value={localSettings.sort_shopping || "updated_desc"}
+              onChange={(e) => updateLocalField("sort_shopping", e.target.value)}
               className="input-field"
             >
               <option value="updated_desc">Data aktualizacji</option>
@@ -264,8 +279,8 @@ export default function SettingsForm({
             <label htmlFor="sort_movies" className="form-label text-xs">Filmy:</label>
             <select
               id="sort_movies"
-              value={settings.sort_movies || "updated_desc"}
-              onChange={(e) => onSettingsChange({ ...settings, sort_movies: e.target.value })}
+              value={localSettings.sort_movies || "updated_desc"}
+              onChange={(e) => updateLocalField("sort_movies", e.target.value)}
               className="input-field"
             >
               <option value="updated_desc">Data aktualizacji</option>
@@ -278,8 +293,8 @@ export default function SettingsForm({
             <label htmlFor="sort_recipes" className="form-label text-xs">Przepisy:</label>
             <select
               id="sort_recipes"
-              value={settings.sort_recipes || "category"}
-              onChange={(e) => onSettingsChange({ ...settings, sort_recipes: e.target.value })}
+              value={localSettings.sort_recipes || "category"}
+              onChange={(e) => updateLocalField("sort_recipes", e.target.value)}
               className="input-field"
             >
               <option value="category">Kategorie</option>
@@ -292,8 +307,8 @@ export default function SettingsForm({
             <label htmlFor="sort_places" className="form-label text-xs">Miejsca:</label>
             <select
               id="sort_places"
-              value={settings.sort_places || "alphabetical"}
-              onChange={(e) => onSettingsChange({ ...settings, sort_places: e.target.value })}
+              value={localSettings.sort_places || "alphabetical"}
+              onChange={(e) => updateLocalField("sort_places", e.target.value)}
               className="input-field"
             >
               <option value="alphabetical">Alfabetycznie A→Z</option>
@@ -303,28 +318,35 @@ export default function SettingsForm({
         </div>
       </div>
 
-      <div className="pt-6 border-t border-gray-100 dark:border-gray-800 mb-6">
+      <div className="mt-2">
         <label className="form-label">Zaufani użytkownicy (Udostępnianie):</label>
         <div className="space-y-2 max-w-md">
-          {settings.users && settings.users.map((u: string, idx: number) => (
+          {localSettings.users && localSettings.users.map((u: string, idx: number) => (
             <div key={idx} className="flex items-center gap-2">
               <input
                 type="email"
                 value={u}
                 placeholder="Email użytkownika"
-                onChange={(e) => onUpdateUser(idx, e.target.value)}
+                onChange={(e) => {
+                  const newUsers = [...localSettings.users];
+                  newUsers[idx] = e.target.value;
+                  updateLocalField("users", newUsers);
+                }}
                 className="input-field"
               />
               <DeleteButton 
-                onClick={() => onRemoveUser(idx)}
+                onClick={() => {
+                  const newUsers = localSettings.users.filter((_: any, i: number) => i !== idx);
+                  updateLocalField("users", newUsers);
+                }}
                 small
               />
             </div>
           ))}
-          {(!settings.users || settings.users.length < 10) && (
+          {(!localSettings.users || localSettings.users.length < 10) && (
             <button
               type="button"
-              onClick={onAddUser}
+              onClick={() => updateLocalField("users", [...(localSettings.users || []), ""])}
               className="text-sm font-medium text-primary hover:text-secondary flex items-center mt-3"
             >
               <PlusCircle className="w-4 h-4 mr-1.5" /> Dodaj użytkownika
@@ -333,7 +355,7 @@ export default function SettingsForm({
         </div>
       </div>
 
-      <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">  
+      <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">  
         <button
           type="button"
           onClick={onRestoreDefaults}
@@ -344,26 +366,17 @@ export default function SettingsForm({
           Przywróć domyślne
         </button>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between relative">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-between relative">
             <button
               type="button"
-              className="flex items-center gap-2 pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-textSecondary font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-700 shadow-sm"
+              className="hover:bg-surfaceHover gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 flex w-full md:flex-1 items-center justify-center pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-textSecondary font-medium rounded-lg shadow-sm"
               onClick={() => router.push("/guide")}
             >
               Instrukcja 
               <Info className="w-4 h-4"/>
             </button>
-          
-          <div className="relative">
-            {saving && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-black/60 rounded-lg z-10">
-                <LoadingState />
-              </div>
-            )}
-            <SaveButton type="submit" disabled={saving} />
-          </div>
+            <SaveButton type="submit" loading={saving} />
         </div>
-
       </div>
     </form>
   );

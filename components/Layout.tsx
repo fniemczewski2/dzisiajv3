@@ -3,8 +3,10 @@ import Header from "./Header";
 import Navbar from "./Navbar";
 import Link from "next/link";
 import LoveCat from "./LoveCat";
+import { useSettings } from "../hooks/useSettings";
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const { settings } = useSettings();
   return (
     <div className="flex flex-col items-center">
       <Header />
@@ -24,7 +26,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             </p>
         </footer>
       </main>
-      <Navbar />
+      <Navbar settings={settings}/>
     </div>
   );
 }

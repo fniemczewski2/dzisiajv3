@@ -8,13 +8,14 @@ import {
   BriefcaseMedical,
 } from "lucide-react";
 import { Streak } from "../../types";
-import { SaveButton, CancelButton, DeleteButton, EditButton } from "../CommonButtons";
+import { DeleteButton, EditButton, FormButtons } from "../CommonButtons";
 
 interface StreakCardProps {
   streak: Streak;
   onEdit: (s: Streak) => void;
   onDelete: (id: string) => void;
   getMilestoneMessage: (startDate: string | Date, currentDate?: string | Date) => string;
+  loading: boolean;
 }
 
 const ICON_MAP: { [key: string]: React.ComponentType<any> } = {
@@ -31,7 +32,7 @@ const ICONS = [
   { name: "piggybank", icon: PiggyBank }, { name: "medical", icon: BriefcaseMedical }, 
 ];
 
-export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessage }: StreakCardProps) {
+export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessage, loading }: StreakCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(streak.name);
   const [editedDate, setEditedDate] = useState(streak.start_date);
@@ -138,8 +139,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <SaveButton onClick={handleSave} type="button" />
-                  <CancelButton onClick={handleCancel} />
+                  <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading}/>
                 </div> 
               </div>
             ) : (

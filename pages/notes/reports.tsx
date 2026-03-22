@@ -7,7 +7,7 @@ import ReportForm from "../../components/reports/ReportForm";
 import { generateReportPDF } from "../../lib/pdfGenerator";
 import { Report, ReportTask } from "../../types";
 import LoadingState from "../../components/LoadingState";
-import { AddButton, EditButton, DeleteButton, SaveButton, CancelButton, PdfButton } from "../../components/CommonButtons";
+import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "../../components/CommonButtons";
 import { format } from "date-fns";
 import { useToast } from "../../providers/ToastProvider";
 
@@ -159,10 +159,7 @@ export default function ReportsPage() {
                     <textarea value={editedReport.notes || ""} className="input-field" rows={4}
                       onChange={(e) => upd("notes", e.target.value)} />
                   </div>
-                  <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                    <SaveButton onClick={handleSaveEdit} type="button" />
-                    <CancelButton onClick={handleCancelEdit} />
-                  </div>
+                  <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
                 </li>
               );
             }

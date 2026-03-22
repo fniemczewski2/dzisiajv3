@@ -7,7 +7,7 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
-import { AddButton, SaveButton, CancelButton, DeleteButton } from "../CommonButtons";
+import { AddButton, SaveButton, CancelButton, DeleteButton, FormButtons } from "../CommonButtons";
 
 export interface DaySchemaEntry {
   time: string;
@@ -132,12 +132,7 @@ export default function DaySchemaForm({
           <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj nowy wpis
         </button>
       </div>
-
-      <div className="flex gap-3 items-center pt-2">
-        {isEdit ? <SaveButton loading={loading} /> : <AddButton loading={loading} />}
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
-      </div>
+      <FormButtons onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

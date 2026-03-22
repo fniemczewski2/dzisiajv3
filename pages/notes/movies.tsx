@@ -7,7 +7,7 @@ import LoadingState from "../../components/LoadingState";
 import { useMovies } from "../../hooks/useMovies";
 
 export default function MoviesPage() {
-  const { loading } = useMovies();
+  const { movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
 
   if (loading) {
     return (
@@ -29,7 +29,7 @@ export default function MoviesPage() {
       </Head>
 
       <Layout>
-        <MovieWatchlist />
+        <MovieWatchlist movies={movies} addMovie={addMovie} updateMovie={updateMovie} deleteMovie={deleteMovie} toggleWatched={toggleWatched} updateNotes={updateNotes} loading={loading}/>
       </Layout>
     </>
   );

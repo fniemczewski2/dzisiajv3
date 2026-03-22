@@ -9,8 +9,7 @@ import { useBills } from "../../hooks/useBills";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import LoadingState from "../LoadingState";
-import { AddButton, SaveButton, CancelButton } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 import type { Bill, BudgetCategory } from "../../types";
 
 interface BillFormProps {
@@ -230,13 +229,7 @@ export default function BillForm({
             </label>
           )}
         </div>
-      
-
-      <div className="flex space-x-2 items-center pt-2">
-        {isEdit ? <SaveButton loading={loading} /> : <AddButton loading={loading} />}
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
-      </div>
+        <FormButtons onClickClose={onCancel} loading={loading}/>
     </form>
   );
 }

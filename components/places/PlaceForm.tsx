@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Place, OpeningHours } from "../../types";
-import { SaveButton, CancelButton } from "../CommonButtons";
+import { SaveButton, CancelButton, FormButtons } from "../CommonButtons";
 import { PlusCircle, X } from "lucide-react";
 
 interface PlaceFormProps {
   place: Place | null;
   onSave: (updates: Partial<Place>) => void;
   onCancel: () => void;
+  loading: boolean;
 }
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -20,7 +21,7 @@ const DAY_NAMES: { [key: string]: string } = {
   sunday: "Nd:",
 };
 
-export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
+export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFormProps) {
   const [tags, setTags] = useState<string[]>(place?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [notes, setNotes] = useState(place?.notes || "");
@@ -174,11 +175,7 @@ export default function PlaceForm({ place, onSave, onCancel }: PlaceFormProps) {
               className="input-field"
             />
           </div>
-
-          <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-            <SaveButton type="submit" />
-            <CancelButton onClick={onCancel} />
-          </div>
+            <FormButtons onClickClose={onCancel} loading={loading}/>
         </form>
       </div>
     </div>

@@ -3,7 +3,7 @@
 "use client";
 import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
@@ -152,7 +152,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
 
   return (
     <form onSubmit={handleSubmit} className="form-card mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <div className="md:col-span-2">
           <label className="form-label">Tytuł:</label>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -161,11 +161,11 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
               className="input-field flex-1" placeholder="Np. Moonlight" />
             <button type="button" onClick={fetchTMDBData}
               disabled={fetchingTMDB || !formData.title.trim()}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap">
+              className="px-4 py-2 bg-surface hover:bg-surfaceHover text-text shadow border border-gray-200 dark:border-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap">
               {fetchingTMDB ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Szukam...</>
               ) : (
-                <><Search className="w-4 h-4" /> Szukaj w TMDB</>
+                <>Szukaj w TMDB <Search className="w-4 h-4" /></>
               )}
             </button>
           </div>
@@ -237,11 +237,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
             className="input-field" rows={3} placeholder="Krótki opis filmu..." />
         </div>
       </div>
-
-      <div className="flex gap-2 pt-2">
-        <AddButton loading={loading} type="submit" />
-        <CancelButton onClick={onCancel} loading={loading} />
-      </div>
+      <FormButtons onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

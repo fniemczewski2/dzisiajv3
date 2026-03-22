@@ -1,6 +1,6 @@
 // hooks/useSettings.ts
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { Settings } from "../types";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
@@ -31,177 +31,196 @@ const normalizeFavoriteStops = (data: unknown) => {
   }).filter((item: any) => item.name !== '');
 };
 
+const DEFAULT_SETTINGS: Settings = {
+  sort_order: "priority",
+  show_completed: true,
+  show_habits: true,
+  show_water_tracker: true,
+  show_budget_items: true,
+  show_mood_tracker: true,
+  show_notifications: true,
+  users: [],
+  favorite_stops: [],
+  notif_morning_brief: true,
+  notif_tasks: true,
+  notif_events: true,
+  notif_water: true,
+  notif_habits: true,
+  notif_evening: true,
+  sort_notes: "updated_desc",
+  sort_shopping: "updated_desc",
+  sort_movies: "rating",
+  sort_recipes: "category",
+  sort_places: "alphabetical",
+  habit_pills: true,
+  habit_bath: true,
+  habit_workout: true,
+  habit_friends: true,
+  habit_work: true,
+  habit_housework: true,
+  habit_plants: true,
+  habit_duolingo: true,
+  mood_options: DEFAULT_MOODS,
+  main_view: "calendar"
+};
+
 export function useSettings() {
-  const { user, supabase } = useAuth();
+  const { user, loadingUser, supabase } = useAuth();
   const router = useRouter();
   const userId = user?.id;
-
-  const DEFAULT_SETTINGS: Settings = {
-    sort_order: "priority",
-    show_completed: true,
-    show_habits: true,
-    show_water_tracker: true,
-    show_budget_items: true,
-    show_mood_tracker: true,
-    show_notifications: true,
-    users: [],
-    favorite_stops: [],
-    notif_morning_brief: true,
-    notif_tasks: true,
-    notif_events: true,
-    notif_water: true,
-    notif_habits: true,
-    notif_evening: true,
-    sort_notes: "updated_desc",
-    sort_shopping: "updated_desc",
-    sort_movies: "rating",
-    sort_recipes: "category",
-    sort_places: "alphabetical",
-    habit_pills: true,
-    habit_bath: true,
-    habit_workout: true,
-    habit_friends: true,
-    habit_work: true,
-    habit_housework: true,
-    habit_plants: true,
-    habit_duolingo: true,
-    mood_options: DEFAULT_MOODS,
-  };
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
+  // Ref to latest settings — prevents stale closures in callbacks
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+
   useEffect(() => {
-    if (!userId) { setLoading(false); return; }
+    // Auth still resolving — wait.
+    if (loadingUser) return;
+
+    // Auth done, no user — stop loading, keep defaults.
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    // Auth done, user exists — fetch their settings.
+    let cancelled = false;
 
     const loadSettings = async () => {
       setLoading(true);
-      const columns = [
-        "sort_order","show_completed","show_habits","show_water_tracker",
-        "show_budget_items","show_notifications","users","favorite_stops",
-        "notif_morning_brief","notif_tasks","notif_events","notif_water",
-        "notif_habits","notif_evening","sort_notes","sort_shopping",
-        "sort_movies","sort_recipes","sort_places","habit_pills","habit_bath",
-        "habit_workout","habit_friends","habit_work","habit_housework",
-        "habit_plants","habit_duolingo","show_mood_tracker","mood_options",
-      ].join(",");
+      try {
+        const { data, error } = await supabase
+          .from("settings")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-      const { data, error } = await supabase
-        .from("settings")
-        .select(columns)
-        .eq("user_id", userId)
-        .maybeSingle();
+        if (cancelled) return;
 
-      if (!error && data) {
-        setSettings({
-          sort_order: data.sort_order ?? "priority",
-          show_completed: data.show_completed ?? true,
-          show_habits: data.show_habits ?? true,
-          show_water_tracker: data.show_water_tracker ?? true,
-          show_budget_items: data.show_budget_items ?? true,
-          show_mood_tracker: data.show_mood_tracker ?? true,
-          show_notifications: data.show_notifications ?? true,
-          users: safeParseArray(data.users),
-          favorite_stops: normalizeFavoriteStops(data.favorite_stops), 
-          notif_morning_brief: data.notif_morning_brief ?? true,
-          notif_tasks: data.notif_tasks ?? true,
-          notif_events: data.notif_events ?? true,
-          notif_water: data.notif_water ?? true,
-          notif_habits: data.notif_habits ?? true,
-          notif_evening: data.notif_evening ?? true,
-          sort_notes: data.sort_notes ?? "updated_desc",
-          sort_shopping: data.sort_shopping ?? "updated_desc",
-          sort_movies: data.sort_movies ?? "updated_desc",
-          sort_recipes: data.sort_recipes ?? "category",
-          sort_places: data.sort_places ?? "alphabetical",
-          habit_pills: data.habit_pills ?? true,
-          habit_bath: data.habit_bath ?? true,
-          habit_workout: data.habit_workout ?? true,
-          habit_friends: data.habit_friends ?? true,
-          habit_work: data.habit_work ?? true,
-          habit_housework: data.habit_housework ?? true,
-          habit_plants: data.habit_plants ?? true,
-          habit_duolingo: data.habit_duolingo ?? true,
-          mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
-        });
+        if (error) {
+          console.error("[useSettings] Fetch error:", error.message);
+          setLoading(false);
+          return;
+        }
+
+        if (data) {
+          setSettings({
+            sort_order: data.sort_order ?? "priority",
+            show_completed: data.show_completed ?? true,
+            show_habits: data.show_habits ?? true,
+            show_water_tracker: data.show_water_tracker ?? true,
+            show_budget_items: data.show_budget_items ?? true,
+            show_mood_tracker: data.show_mood_tracker ?? true,
+            show_notifications: data.show_notifications ?? true,
+            users: safeParseArray(data.users),
+            favorite_stops: normalizeFavoriteStops(data.favorite_stops),
+            notif_morning_brief: data.notif_morning_brief ?? true,
+            notif_tasks: data.notif_tasks ?? true,
+            notif_events: data.notif_events ?? true,
+            notif_water: data.notif_water ?? true,
+            notif_habits: data.notif_habits ?? true,
+            notif_evening: data.notif_evening ?? true,
+            sort_notes: data.sort_notes ?? "updated_desc",
+            sort_shopping: data.sort_shopping ?? "updated_desc",
+            sort_movies: data.sort_movies ?? "updated_desc",
+            sort_recipes: data.sort_recipes ?? "category",
+            sort_places: data.sort_places ?? "alphabetical",
+            habit_pills: data.habit_pills ?? true,
+            habit_bath: data.habit_bath ?? true,
+            habit_workout: data.habit_workout ?? true,
+            habit_friends: data.habit_friends ?? true,
+            habit_work: data.habit_work ?? true,
+            habit_housework: data.habit_housework ?? true,
+            habit_plants: data.habit_plants ?? true,
+            habit_duolingo: data.habit_duolingo ?? true,
+            mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
+            main_view: data.main_view ?? "calendar"
+          });
+        }
+      } catch (err) {
+        console.error("[useSettings] Unexpected error:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     };
 
     loadSettings();
-  }, [supabase, userId]);
 
-  const getPayloadWithStringifiedJSON = (currentSettings: Settings) => {
-    return {
-      ...currentSettings,
-      users: JSON.stringify(currentSettings.users),
-      favorite_stops: JSON.stringify(currentSettings.favorite_stops),
-      mood_options: JSON.stringify(currentSettings.mood_options),
-    };
-  };
+    return () => { cancelled = true; };
+  }, [loadingUser, userId, supabase]);
+
+  const getPayloadWithStringifiedJSON = (currentSettings: Settings) => ({
+    ...currentSettings,
+    users: JSON.stringify(currentSettings.users),
+    favorite_stops: JSON.stringify(currentSettings.favorite_stops),
+    mood_options: JSON.stringify(currentSettings.mood_options),
+  });
 
   const saveSettings = useCallback(async () => {
     if (!userId) return { error: "No user" };
     setSaving(true);
-    
-    const payload = getPayloadWithStringifiedJSON(settings);
-
+    const payload = getPayloadWithStringifiedJSON(settingsRef.current);
     const { error } = await supabase
       .from("settings")
       .upsert({ user_id: userId, ...payload }, { onConflict: "user_id" });
     setSaving(false);
     return { error };
-  }, [supabase, settings, userId]);
+  }, [supabase, userId]);
 
   const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
     if (!userId) return { error: "No user" };
     setSaving(true);
-    
-    const updated = { ...settings, ...partialSettings };
-    setSettings(updated);
-    
-    const payload = getPayloadWithStringifiedJSON(updated);
 
+    const updated = { ...settingsRef.current, ...partialSettings };
+    setSettings(updated);
+
+    const payload = getPayloadWithStringifiedJSON(updated);
     const { error } = await supabase
       .from("settings")
       .upsert({ user_id: userId, ...payload }, { onConflict: "user_id" });
-    
+
     setSaving(false);
     if (error) throw error;
     return { error };
-  }, [supabase, settings, userId]);
+  }, [supabase, userId]);
 
   const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
-    if (settings.favorite_stops.some((s: any) => (s.name || s) === name)) return true;
-    if (settings.favorite_stops.length >= 10) return false;
-    
-    const updated = [...settings.favorite_stops, { name, zone_id }];
+    const stops = settingsRef.current.favorite_stops;
+    if (stops.some((s: any) => (s.name || s) === name)) return true;
+    if (stops.length >= 10) return false;
+
+    const updated = [...stops, { name, zone_id }];
     setSettings((prev) => ({ ...prev, favorite_stops: updated }));
-    
+
     const { error } = await supabase
       .from("settings")
-      .upsert({ 
-        user_id: userId, 
+      .upsert({
+        user_id: userId,
         favorite_stops: JSON.stringify(updated)
       }, { onConflict: "user_id" });
-      
+
     if (error) throw error;
     return true;
   };
 
   const removeFavoriteStop = async (name: string) => {
-    const updated = settings.favorite_stops.filter((s: any) => (s.name || s) !== name);
+    const updated = settingsRef.current.favorite_stops.filter(
+      (s: any) => (s.name || s) !== name
+    );
     setSettings((prev) => ({ ...prev, favorite_stops: updated }));
-    
+
     const { error } = await supabase
       .from("settings")
-      .upsert({ 
-        user_id: userId, 
-        favorite_stops: JSON.stringify(updated) 
+      .upsert({
+        user_id: userId,
+        favorite_stops: JSON.stringify(updated)
       }, { onConflict: "user_id" });
-      
+
     if (error) throw error;
   };
 
@@ -243,18 +262,15 @@ export function useSettings() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
-      if (error) {
-        throw new Error("Błąd podczas wylogowywania:", error.message);
-      }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (err) {
-      console.error("Nieoczekiwany błąd wylogowania:", err);
+      console.error("Błąd podczas wylogowywania:", err);
     } finally {
-      router.push("/login");
+      window.location.href = "/start";
     }
   };
   
-
   return {
     settings,
     setSettings,

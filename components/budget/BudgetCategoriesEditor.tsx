@@ -6,11 +6,9 @@ import { ChevronUp, ChevronDown, PlusCircle } from "lucide-react";
 import { useBudgetCategories } from "../../hooks/useBudgetCategories";
 import { useToast } from "../../providers/ToastProvider";
 import {
-  AddButton,
-  SaveButton,
-  CancelButton,
   EditButton,
   DeleteButton,
+  FormButtons,
 } from "../CommonButtons";
 import LoadingState from "../LoadingState";
 import type { BudgetCategory } from "../../types";
@@ -73,10 +71,7 @@ function AddCategoryForm({
         className="input-field flex-1 py-2"
         disabled={saving}
       />
-      <div className="flex flex-row gap-2">
-      <AddButton type="submit" loading={saving} disabled={!name.trim()} />
-      <CancelButton onClick={onCancel} loading={saving} />
-      </div>
+      <FormButtons loading={saving} disabled={!name.trim()} onClickClose={onCancel} />
     </form>
   );
 }
@@ -141,8 +136,7 @@ function AmountEditor({
       >
         {isMonthly ? "mies." : "rok"}
       </button>
-      <SaveButton type="submit" loading={saving} small/>
-      <CancelButton onClick={onCancel} loading={saving} small/>
+      <FormButtons onClickClose={onCancel} loading={saving} small/>
     </form>
   );
 }

@@ -49,13 +49,7 @@ const channel = supabase
       }
     }
   )
-  .subscribe((status: string) => {
-    if (status === "SUBSCRIBED") {
-      console.log("Pomyślnie podłączono nasłuchiwanie serduszek!");
-    } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
-      console.warn("Problem z kanałem Supabase Realtime:", status);
-    }
-  });
+  .subscribe(() => {});
 
 
     const handleMessage = (event: MessageEvent) => {

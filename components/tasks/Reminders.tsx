@@ -4,16 +4,20 @@ import {
   Trash2, ChevronsRight, List, ListPlus,
 } from "lucide-react";
 import { useReminders } from "../../hooks/useReminders";
-import { useTasks } from "../../hooks/useTasks";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import { Task } from "../../types";
 import NoResultsState from "../NoResultsState";
-import { CancelButton, SaveButton } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
-export default function Reminders({ onTasksChange }: { onTasksChange?: () => void }) {
+interface RemindersProps {
+  addTask: (task: Task) => Promise<unknown>;
+  onTasksChange?: () => void;
+}
+
+export default function Reminders({ addTask, onTasksChange }: RemindersProps) {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -27,7 +31,6 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
     visibleReminders, allReminders,
     addReminder, completeReminder, postponeReminder, deleteReminder,
   } = useReminders();
-  const { addTask } = useTasks();
 
   const remindersToShow = showAll ? allReminders : visibleReminders;
   const [form, setForm] = useState({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
@@ -77,6 +80,11 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
       toast.error("Wystąpił błąd podczas usuwania.");
     }
   };
+
+  const handleClose = () => {
+    setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
+    setShowForm(false);
+  }
 
   const handleAddTask = async (reminder: any) => {
     if (!userId) return;
@@ -207,13 +215,7 @@ export default function Reminders({ onTasksChange }: { onTasksChange?: () => voi
                     onChange={(e) => setForm({ ...form, powtarzanie: Number(e.target.value) })} />
                 </div>
               </div>
-              <div className="flex gap-2 pt-2">
-                <SaveButton onClick={handleAdd} />
-                <CancelButton onClick={() => {
-                  setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
-                  setShowForm(false);
-                }} />
-              </div>
+              <FormButtons onClickSave={handleAdd} onClickClose={handleClose}/>
             </div>
           )}
         </div>

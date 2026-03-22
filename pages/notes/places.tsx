@@ -12,6 +12,7 @@ import PlaceForm from "../../components/places/PlaceForm";
 import { Place } from "../../types";
 import { Upload } from "lucide-react";
 import { useToast } from "../../providers/ToastProvider";
+import Head from "next/head";
 
 type ViewMode = "list" | "map";
 
@@ -112,8 +113,12 @@ export default function PlacesPage() {
   }
 
   return (
+    <>
+    <Head>
+      <title>Miejsca - Dzisiaj</title>
+    </Head>
     <Layout>
-      <SEO title="Miejsca" description="Zarządzaj swoimi ulubionymi miejscami" />
+      
       
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-text">Miejsca</h2>
@@ -126,6 +131,7 @@ export default function PlacesPage() {
           </button>
         )}
       </div>
+      {loading && <LoadingState fullScreen/>}
 
       {showImport && (
         <ImportPlaces 
@@ -168,9 +174,11 @@ export default function PlacesPage() {
           place={editingPlace}
           onSave={handleSavePlace}
           onCancel={() => setEditingPlace(null)}
+          loading={loading}
         />
       )}
     </Layout>
+    </>
   );
 }
 

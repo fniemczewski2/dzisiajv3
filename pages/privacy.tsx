@@ -177,12 +177,18 @@ export default function PrivacyPage() {
             </ul>
           </Section>
 
-          <Section title="10. Pliki cookie i śledzenie">
-            <p>
-              Aplikacja nie używa plików cookie do śledzenia ani reklamy. Sesja użytkownika
-              przechowywana jest w <code className="text-xs bg-surface px-1 py-0.5 rounded">localStorage</code> przeglądarki wyłącznie
-              w celu utrzymania stanu logowania.
+          <Section title="10. Pliki cookie i technologie śledzenia">
+            <p className="mb-2">
+              Aplikacja <strong>nie używa</strong> plików cookie do śledzenia aktywności, profilowania ani w celach reklamowych. Wykorzystujemy wyłącznie technologie niezbędne do poprawnego działania usługi:
             </p>
+            <ul className="space-y-2 list-none">
+              <Li>
+                <strong>Niezbędne pliki cookie (Strictly Necessary Cookies):</strong> Używane przez nasz system uwierzytelniania (Supabase) do bezpiecznego przechowywania tokenów sesji. Dzięki nim nie musisz logować się ponownie przy każdym odświeżeniu strony, a dostęp do Twoich danych prywatnych na serwerze jest chroniony. Zgodnie z prawem, tego typu pliki cookie nie wymagają uprzedniej zgody użytkownika.
+              </Li>
+              <Li>
+                <strong>Pamięć lokalna (localStorage):</strong> Wykorzystywana do zapisywania Twoich preferencji interfejsu (np. tryb jasny/ciemny) oraz faktu zapoznania się z informacją o ciasteczkach, aby baner nie pojawiał się przy każdej wizycie.
+              </Li>
+            </ul>
           </Section>
 
           <Section title="11. Dzieci">

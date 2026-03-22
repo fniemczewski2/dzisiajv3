@@ -164,7 +164,7 @@ export default function TransportPage() {
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
             <div className="card rounded-xl shadow-sm overflow-hidden">
               {loadingNearby && nearbyGroups.length === 0 && 
-                <LoadingState />
+                <LoadingState fullScreen/>
               }
 
               {locationError && (

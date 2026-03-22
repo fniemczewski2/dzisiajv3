@@ -1,34 +1,10 @@
 // pages/api/google-places.ts
 
-import { createServerClient } from '@supabase/ssr';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { generatePlaceTags } from '../../lib/placeTagging';
+import { createServerSupabase } from '../../utils/supabase/server'; // Use the central utility
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
-
-async function getAuthenticatedUser(req: NextApiRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) return null;
-
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      getAll: () => {
-        return Object.entries(req.cookies ?? {}).map(([name, value]) => ({
-          name,
-          value: value ?? '',
-        }));
-      },
-      setAll: () => {
-      },
-    },
-  });
-
-  const { data } = await supabase.auth.getUser();
-  return data.user ?? null;
-}
-
 
 export default async function handler(
   req: NextApiRequest,
@@ -38,8 +14,17 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const user = await getAuthenticatedUser(req);
-  if (!user) {
+  // 1. Initialize the Supabase client using the request cookies
+  const supabase = createServerSupabase(req, res);
+
+  // 2. Safely get the user session
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  // If no user or an error occurred during auth check, reject the request
+  if (authError || !user) {
     return res
       .status(401)
       .json({ error: 'Unauthorized — valid Supabase session required' });

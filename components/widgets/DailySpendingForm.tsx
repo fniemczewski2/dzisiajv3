@@ -8,6 +8,7 @@ import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
+import { FormButtons } from "../CommonButtons";
 
 interface DailySpendingFormProps {
   date?: string;
@@ -51,8 +52,8 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
 
   return (
     <div className="widget flex justify-between items-center px-4 py-3 gap-3">
-      <div className="flex items-center text-text">
-        <span className="text-yellow-500 mr-3">
+      <div className="flex items-center text-text gap-4">
+        <span className="text-yellow-500">
           <Coins className="w-5 h-5" />
         </span>
         <h3 className="font-medium text-sm sm:text-base">
@@ -75,16 +76,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
             title="Szybki wydatek"
             autoFocus
           />
-          <button onClick={handleSave}
-            className="flex items-center justify-center h-[30px] min-w-[30px] bg-primary text-white rounded-lg hover:bg-secondary transition-colors"
-            title="Zapisz" type="button">
-            <Save className="w-4 h-4" />
-          </button>
-          <button onClick={handleCancel}
-            className="flex items-center justify-center h-[30px] min-w-[30px] bg-surface text-textSecondary hover:text-text hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
-            title="Anuluj" type="button">
-            <X className="w-4 h-4" />
-          </button>
+          <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading} small/>
         </div>
       ) : (
         <div onClick={() => setIsEditing(true)}

@@ -6,7 +6,7 @@ import { useBudgetCategories } from "../../hooks/useBudgetCategories";
 import { useBills } from "../../hooks/useBills";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
-import { CancelButton, SaveButton } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
 const REQUIRED_CATEGORIES = [
   "Opłaty stałe",
@@ -148,7 +148,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
   const [parsedData, setParsedData] = useState<ParsedTransaction[]>([]);
   const [missingCategories, setMissingCategories] = useState<string[]>([]);
   const [duplicatesCount, setDuplicatesCount] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleFileParse = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -263,7 +263,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
 
   const handleImport = async () => {
     if (parsedData.length === 0) return;
-    setIsProcessing(true);
+    setLoading(true);
 
     try {
       let updatedCategories = [...categories];
@@ -327,7 +327,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
       toast.error(error?.message || "Wystąpił błąd podczas importu danych.");
       console.error(error);
     } finally {
-      setIsProcessing(false);
+      setLoading(false);
     }
   };
 
@@ -338,7 +338,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
   };
 
   return (
-    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-6">
+    <div className="card rounded-xl shadow-sm px-4 py-3 mb-6">
       <div className="flex flex-row items-center justify-between gap-4">
         
           <h3 className="font-medium text-sm text-text flex items-center gap-4">
@@ -346,8 +346,9 @@ export default function BankCsvImporter({ year }: { year: number }) {
             Import z pliku
           </h3>
         
+        <div className="max-h-[24px] flex items-center">
         {parsedData.length === 0 && (
-          <label className="cursor-pointer p-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-xl border border-gray-200 dark:border-gray-700 transition-colors flex items-center gap-2 font-medium text-sm">
+          <label className="cursor-pointer p-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg border border-gray-200 dark:border-gray-700 transition-colors flex items-center gap-2 font-medium text-sm">
             <Upload className="w-3.5 h-3.5" />
             <input
               ref={fileInputRef}
@@ -358,6 +359,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
             />
           </label>
         )}
+        </div>
       </div>
 
       {parsedData.length > 0 && (
@@ -388,16 +390,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
             )}
           </ul>
 
-          <div className="flex gap-2">
-            <SaveButton 
-              onClick={handleImport} 
-              loading={isProcessing} 
-            />
-            <CancelButton 
-              onClick={handleCancel} 
-              disabled={isProcessing} 
-            />
-          </div>
+          <FormButtons onClickSave={handleImport} onClickClose={handleCancel} loading={loading}/>
         </div>
       )}
     </div>

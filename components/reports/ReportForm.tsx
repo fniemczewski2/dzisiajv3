@@ -9,7 +9,7 @@ import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 
 interface ReportFormProps {
   onChange: () => void;
@@ -63,8 +63,8 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-card max-w-3xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="form-card flex flex-col max-w-2xl gap-2 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <div>
           <label className="form-label">Temat spotkania:</label>
           <input ref={topicRef} className="input-field" required disabled={loading} placeholder="np. Tygodniowy status" />
@@ -76,10 +76,10 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <div>
           <label className="form-label">Agenda:</label>
-          <div className="space-y-2">
+          <div className="space-y-2 md:space-y-4">
             {agenda.map((a, i) => (
               <div key={i} className="flex gap-2">
                 <input className="input-field" value={a}
@@ -100,7 +100,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
         </div>
         <div>
           <label className="form-label">Uczestnicy:</label>
-          <div className="space-y-2">
+          <div className="space-y-2 md:space-y-4">
             {participants.map((p, i) => (
               <div key={i} className="flex gap-2">
                 <input className="input-field" value={p}
@@ -121,9 +121,9 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-        <label className="form-label">Zadania przydzielone po spotkaniu (Action Items):</label>
-        <div className="space-y-3">
+      <div>
+        <label className="form-label">Zadania po spotkaniu:</label>
+        <div className="space-y-2 md:space-y-4">
           {tasks.map((t, i) => (
             <div key={i} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-surface space-y-3">
               <div className="flex gap-2">
@@ -145,7 +145,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
             </div>
           ))}
           <button type="button" onClick={() => setTasks([...tasks, { zadanie: "", data: "", osoba: "" }])}
-            className="text-sm font-medium text-primary hover:text-secondary flex items-center mt-2">
+            className="text-sm font-medium text-primary hover:text-secondary flex items-center mt-1">
             <Plus className="w-4 h-4 mr-1" /> Dodaj zadanie
           </button>
         </div>
@@ -157,11 +157,7 @@ export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
           placeholder="Podsumowanie, wnioski..." disabled={loading} />
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <AddButton loading={loading} />
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
-      </div>
+      <FormButtons onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

@@ -6,7 +6,7 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 import { ShoppingList } from "../../types";
 
 interface ShoppingFormProps {
@@ -61,15 +61,8 @@ export default function ShoppingForm({ onChange, onCancel, lists, loading, addSh
           <option value="">Tylko dla mnie</option>
           {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
         </select>
-        <p className="text-xs text-textSubtle mt-1.5">
-          Osoby, którym udostępnisz listę, będą mogły dodawać i odhaczać na niej produkty.
-        </p>
       </div>
-      <div className="flex space-x-3 items-center pt-2">
-        <AddButton loading={loading} />
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
-      </div>
+      <FormButtons onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

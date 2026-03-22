@@ -28,7 +28,7 @@ const COLOR_MAP: { [key: string]: string } = {
 };
 
 export default function NoteList({ notes, onNotesChange }: NoteListProps) {
-  const { deleteNote, editNote, togglePin, toggleArchive } = useNotes();
+  const { deleteNote, editNote, togglePin, toggleArchive, loading } = useNotes();
   const { settings } = useSettings();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -129,7 +129,10 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
         className="mb-6 max-w-md"
       />
 
-      <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 mx-auto w-full">
+      <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 gay-y-2 mx-auto w-full">
+        {filteredNotes.length === 0 && 
+          <NoResultsState text="notatek"/>
+        }
         {filteredNotes.map((note) => {
           if (editingId === note.id && editedNote) {
             return (
@@ -140,6 +143,7 @@ export default function NoteList({ notes, onNotesChange }: NoteListProps) {
                 onCancel={handleCancelEdit}
                 onChange={setEditedNote}
                 colorMap={COLOR_MAP}
+                loading={loading}
               />
             );
           }

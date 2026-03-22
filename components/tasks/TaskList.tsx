@@ -5,11 +5,19 @@ import NoResultsState from "../NoResultsState";
 
 interface Props {
   tasks: Task[];
+  acceptTask: (id: string) => void;
+  setDoneTask: (id: string) => void;
+  editTask: (task: Task) => void;
+  deleteTask: (id: string) => void;
   onTasksChange: () => void;
 }
 
 export default function TaskList({
   tasks,
+  acceptTask,
+  setDoneTask,
+  editTask,
+  deleteTask,
   onTasksChange,
 }: Props) {
 
@@ -26,6 +34,10 @@ export default function TaskList({
           <li key={task.id} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
             <TaskItem
               task={task}
+              acceptTask={acceptTask}
+              setDoneTask={setDoneTask}
+              editTask={editTask}
+              deleteTask={deleteTask}
               onTasksChange={onTasksChange}
             />
           </li>

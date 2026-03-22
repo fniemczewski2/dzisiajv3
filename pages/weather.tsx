@@ -134,12 +134,6 @@ export default function WeatherPage() {
     );
   }, []);
 
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
-
   return (
     <>
       <Head>
@@ -147,8 +141,9 @@ export default function WeatherPage() {
       </Head>
       <Layout>
         <h2 className="text-xl mb-4 font-semibold text-text">Pogoda</h2>
-
-        {error ? (
+        {loading ? (
+          <LoadingState fullScreen/>
+        ) : error ? (
           <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>
         ) : forecast && air ? (
           <>

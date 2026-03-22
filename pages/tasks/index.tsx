@@ -7,17 +7,13 @@ import {
   Calendar,
   ChevronRight,
   ChevronsRight,
-  Target,
-  ListTodo,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
 import TaskForm from "../../components/tasks/TaskForm";
 import TaskList from "../../components/tasks/TaskList";
 import { useTasks } from "../../hooks/useTasks";
-import { Task } from "../../types";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
@@ -34,12 +30,10 @@ const FILTER_OPTIONS = [
 
 type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 
-export default function TasksPage() {
-  const router = useRouter();
-
+export default function TasksPage({isMain}: {isMain: boolean}) {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
-  const { tasks, loading: loadingTasks, fetchTasks } = useTasks();
+  const { tasks, loading, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
 
   const { todayDone, todayTotal } = useMemo(() => {
     const today = getAppDate();
@@ -56,11 +50,6 @@ export default function TasksPage() {
   };
 
   const closeForm = () => setShowForm(false);
-
-  const handleStartTimer = (task: Task) => {
-    sessionStorage.setItem('currentTask', JSON.stringify(task));
-    router.push("/tasks/pomodoro");
-  };
 
   const getFilterDate = (): string | null => {
     const now = getAppDateTime();
@@ -96,7 +85,7 @@ export default function TasksPage() {
     onActionAdd: () => setShowForm(true),
   });
 
-  if (loadingTasks) {
+  if (loading) {
     return (
         <LoadingState fullScreen/>
     );
@@ -123,7 +112,7 @@ export default function TasksPage() {
           </h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
-        <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm w-fit gap-2">
+        <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm gap-2 max-w-md">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (
@@ -131,13 +120,14 @@ export default function TasksPage() {
                   key={opt.value}
                   onClick={() => setDateFilter(opt.value)}
                   title={opt.title}
-                  className={`p-2.5 sm:px-3 sm:py-2 rounded-lg transition-all duration-200 flex items-center justify-center ${
+                  className={`p-1 sm:px-3 sm:py-2 rounded-lg transition-all flex flex-1 flex-col items-center justify-center gap-1 ${
                     dateFilter === opt.value
-                      ? "bg-primary text-white shadow-md scale-105"
+                      ? "bg-surfaceHover text-text shadow-md scale-105"
                       : "bg-transparent text-textMuted hover:text-text hover:bg-surface"
                   }`}
                 >
                   <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
+                  <span className="text-[8px] sm:text-[10px] font-bold uppercase">{opt.title}</span>
                 </button>
               );
             })}
@@ -146,17 +136,26 @@ export default function TasksPage() {
         {showForm && (
           <div className="mb-6">
             <TaskForm
+              addTask={addTask}
               onTasksChange={() => {
                 fetchTasks();
                 closeForm();
               }}
               onCancel={closeForm}
+              loading={loading}
             />
           </div>
         )}
           <div className="space-y-6">
-            <TaskList tasks={filteredTasks} onTasksChange={fetchTasks} />
-            <Reminders onTasksChange={fetchTasks} />
+            <TaskList   
+              tasks={filteredTasks} 
+              acceptTask={acceptTask}
+              setDoneTask={setDoneTask}
+              editTask={editTask}
+              deleteTask={deleteTask}
+              onTasksChange={fetchTasks} 
+            />
+            <Reminders onTasksChange={fetchTasks} addTask={addTask} />
           </div>
       </Layout>
     </>
