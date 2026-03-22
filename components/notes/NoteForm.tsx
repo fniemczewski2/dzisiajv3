@@ -74,7 +74,7 @@ export default function NoteForm({ onChange, onCancel }: NoteFormProps) {
         <label className="form-label" htmlFor="title">Tytuł:</label>
         <input id="title" ref={titleRef} type="text"
           placeholder="Tytuł notatki"
-          className="input-field font-semibold" required disabled={loading} />
+          className="input-field" required disabled={loading} />
       </div>
       <div>
         <label className="form-label" htmlFor="desc">Treść:</label>
@@ -82,16 +82,16 @@ export default function NoteForm({ onChange, onCancel }: NoteFormProps) {
           placeholder="Pozycje listy (jeden element na linię)"
           className="input-field min-h-[120px]" required disabled={loading} />
       </div>
-      <div className="flex gap-3 items-center py-1">
-        <span className="form-label mb-0">Kolor:</span>
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-2 justify-center">
+        <span className="form-label">Kolor:</span>
+        <div className="flex gap-x-2">
           {tailwindColors.map((color) => (
             <button key={color} type="button" onClick={() => setBgColor(color)}
               aria-label={`Wybierz kolor ${color}`} disabled={loading}
               className={clsx(
                 "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm",
                 bgColor === color
-                  ? "border-primary ring-2 ring-primary ring-offset-2 dark:ring-offset-card"
+                  ? "border-primary ring-1 ring-primary dark:ring-offset-card"
                   : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
                 COLOR_MAP[color]
               )} />

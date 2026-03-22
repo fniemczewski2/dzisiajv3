@@ -12,10 +12,23 @@ import SearchBar from "../SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
 import MovieCard from "./MovieCard";
 import NoResultsState from "../NoResultsState";
-import type { Movie } from "../../types";
+import type { Movie, MovieInsert } from "../../types";
+import LoadingState from "../LoadingState";
 
-export default function MovieWatchlist() {
-  const { movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
+interface MoviesProps {
+  movies: Movie[];
+  addMovie: (movie: Omit<MovieInsert, "user_id">)=> Promise<Movie>;
+  updateMovie: (movie: Movie) => Promise<void>;
+  deleteMovie: (id: string) => Promise<void>;
+  toggleWatched: (id: string) => Promise<void>;
+  updateNotes: (id: string, notes: string) => Promise<void>;
+  loading: boolean;
+}
+
+export default function MovieWatchlist({
+  movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes
+}: MoviesProps) {
+  
   const { settings } = useSettings();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -120,9 +133,7 @@ export default function MovieWatchlist() {
 
   if (loading && movies.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+        <LoadingState/>
     );
   }
 
@@ -175,6 +186,7 @@ export default function MovieWatchlist() {
               expandedNotes={expandedNotes}
               toggleNotes={toggleNotes}
               onSaveNotes={handleSaveNotes}
+              loading
             />
           ))
         )}

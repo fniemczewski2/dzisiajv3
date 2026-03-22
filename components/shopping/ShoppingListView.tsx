@@ -7,7 +7,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../providers/AuthProvider";
 import { useToast } from "../../providers/ToastProvider";
 import { withRetry } from "../../lib/withRetry";
-import { EditButton, DeleteButton, SaveButton, CancelButton } from "../CommonButtons";
+import { EditButton, DeleteButton, SaveButton, CancelButton, FormButtons } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 
 interface ShoppingListViewProps {
@@ -132,8 +132,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                   </div>
                 )}
                 <div className="flex justify-end gap-2 pt-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-                  <SaveButton onClick={handleSaveEdit} type="button" />
-                  <CancelButton onClick={handleCancelEdit} />
+                  <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
                 </div>
               </div>
               <ul className="list-none space-y-2.5 opacity-60 pointer-events-none grayscale-[0.5]">

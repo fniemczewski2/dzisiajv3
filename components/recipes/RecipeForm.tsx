@@ -8,7 +8,7 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 
 interface RecipeFormProps {
   onChange: () => void;
@@ -129,9 +129,7 @@ export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
           className="input-field" rows={4} placeholder="Krótki opis lub kroki przygotowania…" disabled={loading} />
       </div>
       <div className="flex gap-3 items-center pt-2">
-        <AddButton loading={loading} disabled={!canSave} />
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
+        <FormButtons disabled={!canSave} onClickClose={onCancel} loading={loading} />
       </div>
     </form>
   );

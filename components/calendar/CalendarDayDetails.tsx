@@ -14,7 +14,8 @@ import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { formatTime, localDateTimeToISO } from "../../lib/dateUtils";
 import {
-  EditButton, DeleteButton, SaveButton, CancelButton, AddButton,
+  EditButton, DeleteButton, AddButton,
+  FormButtons,
 } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 import { generateSingleEventICS } from "../../lib/icsGenerator";
@@ -26,10 +27,12 @@ interface Props {
   selectedDate: string;
   tasks: Task[];
   events?: Event[];
+  loading: boolean;
   onEventsChange: () => void;   
   onBack: () => void;
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
+  isMain: boolean;
 }
 
 const eventSpansDate = (event: Event, selectedDateStr: string): boolean => {
@@ -43,10 +46,12 @@ export default function CalendarDayDetails({
   selectedDate,
   tasks,
   events = [],
+  loading,
   onEventsChange,
   onBack,
   onEditEvent,
   onDeleteEvent,
+  isMain
 }: Props) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
@@ -296,10 +301,7 @@ export default function CalendarDayDetails({
                       </select>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-                    <SaveButton onClick={handleSaveEdit} type="button" />
-                    <CancelButton onClick={handleCancelEdit} />
-                  </div>
+                  <FormButtons onClickClose={handleCancelEdit} onClickSave={handleSaveEdit} loading={loading} />
                 </div>
               );
             }

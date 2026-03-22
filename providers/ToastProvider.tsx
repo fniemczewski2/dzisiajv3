@@ -2,9 +2,9 @@
 
 "use client";
 import React, { createContext, useCallback, useContext, useReducer, useRef } from "react";
-import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
+import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 
-type ToastVariant = "success" | "error" | "info";
+type ToastVariant = "success" | "error" | "info" | "loading";
 
 interface NotificationToast {
   kind: "notification";
@@ -38,6 +38,7 @@ interface ToastContextValue {
     success: (message: string) => void;
     error:   (message: string) => void;
     info:    (message: string) => void;
+    loading: () => void;
     confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
   };
 }
@@ -59,12 +60,14 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
   success: "bg-green-50 dark:bg-green-900/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300",
   error:   "bg-red-50 dark:bg-red-900/80 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300",
   info:    "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
+  loading:    "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
 };
 
 const VARIANT_ICONS: Record<ToastVariant, React.ReactNode> = {
   success: <CheckCircle className="w-4 h-4 shrink-0" />,
   error:   <XCircle className="w-4 h-4 shrink-0" />,
   info:    <Info className="w-4 h-4 shrink-0" />,
+  loading:   <Loader2 className="w-4 h-4 shrink-0 animate-spin text-primary" />
 };
 
 function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove: (id: string) => void }) {
@@ -164,6 +167,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     success: (m: string) => addNotification(m, "success"),
     error:   (m: string) => addNotification(m, "error"),
     info:    (m: string) => addNotification(m, "info"),
+    loading: () => addNotification("Ładowanie...", "loading"),
     confirm,
   };
 

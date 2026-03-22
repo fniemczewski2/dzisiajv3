@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../providers/ToastProvider";
-import { Bell, Sun, Clock, Calendar, Droplet, CheckSquare, Moon } from "lucide-react";
+import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon } from "lucide-react";
 import LoadingState from "../LoadingState";
 
 export default function NotificationPreferences() {
@@ -41,7 +41,7 @@ export default function NotificationPreferences() {
         return (
           <div key={key} className="flex items-center justify-between gap-4 p-3 rounded-xl transition-colors">
             <div className="flex items-start gap-3">
-              <div className={`p-2 rounded-xl bg-surface border border-gray-100 dark:border-gray-800 shrink-0 ${color}`}>
+              <div className="p-2 rounded-xl bg-surface border border-gray-100 dark:border-gray-800 shrink-0 text-text">
                 <Icon className="w-4 h-4" />
               </div>
               <div>

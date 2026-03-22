@@ -69,7 +69,7 @@ export default function TrainingPage() {
           />
 
           {(!running && !paused) && (
-            <div className="p-4 sm:p-6 card rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
+            <div className="p-6 card rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
                 <Settings2 className="w-5 h-5 text-textMuted" />
                 <h3 className="font-bold text-text uppercase tracking-wider text-sm">
@@ -108,8 +108,8 @@ export default function TrainingPage() {
                 </div>
 
  
-                <div className="flex w-full items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800/50">
-                  <label className="font-medium text-textSecondary text-sm">Serie & Cykle:</label>
+                <div className="flex w-full items-center justify-between">
+                  <label className="font-medium text-textSecondary text-sm">Serie i Cykle:</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"

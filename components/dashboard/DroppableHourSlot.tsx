@@ -25,9 +25,7 @@ export function DroppableHourSlot({ time, children }: { time: string, children: 
           {children}
         </div>
         {React.Children.count(children) === 0 && (
-          <div className={`h-10 mt-1 border-2 border-dashed border-gray-200 dark:border-gray-700/50 rounded-lg flex items-center justify-center text-xs text-textMuted transition-opacity ${isOver ? 'opacity-0' : 'opacity-100'}`}>
-            <Plus size={14} className="mr-1"/> Upuść zadanie
-          </div>
+          <div className={`h-10 mt-1 border-2 border-dashed border-gray-200 dark:border-gray-700/50 rounded-lg flex items-center justify-center text-xs text-textMuted transition-opacity ${isOver ? 'opacity-0' : 'opacity-100'}`}/>
         )}
       </div>
     </div>

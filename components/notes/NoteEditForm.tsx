@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import clsx from "clsx";
 import { Note } from "../../types";
-import { SaveButton, CancelButton } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
 interface NoteEditFormProps {
   note: Note;
@@ -10,6 +10,7 @@ interface NoteEditFormProps {
   onCancel: () => void;
   onChange: (note: Note) => void;
   colorMap: { [key: string]: string };
+  loading: boolean;
 }
 
 export default function NoteEditForm({
@@ -18,6 +19,7 @@ export default function NoteEditForm({
   onCancel,
   onChange,
   colorMap,
+  loading
 }: NoteEditFormProps) {
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
@@ -100,8 +102,7 @@ export default function NoteEditForm({
           </div>
         </div>
         <div className="flex justify-end gap-3 pt-2">
-          <SaveButton onClick={handleSave} type="button" />
-          <CancelButton onClick={onCancel} />
+          <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} />
         </div>
       </div>
     </li>

@@ -5,7 +5,6 @@ import Head from "next/head";
 import Layout from "../components/Layout";
 import StreakCard from "../components/streaks/StreakCard";
 import StreakForm from "../components/streaks/StreakForm";
-import LoadingState from "../components/LoadingState";
 import { useStreaks } from "../hooks/useStreaks";
 import { Streak } from "../types";
 import { AddButton } from "../components/CommonButtons";
@@ -46,12 +45,6 @@ export default function StreaksPage() {
     setShowForm(false);
   };
 
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
-
   return (
     <>
       <Head>
@@ -84,6 +77,7 @@ export default function StreaksPage() {
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 getMilestoneMessage={getMilestoneMessage}
+                loading={loading}
               />
             ))}
           </div>

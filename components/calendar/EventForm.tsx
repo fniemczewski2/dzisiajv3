@@ -12,7 +12,7 @@ import { format, startOfMonth, endOfMonth } from "date-fns";
 import ICAL from "ical.js";
 import LoadingState from "../LoadingState";
 import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -147,7 +147,7 @@ export default function EventForm({
           Wydarzenie całodniowe
         </label>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>
           <label htmlFor="start" className="form-label">Początek:</label>
           <input id="start" type={allDay ? "date" : "datetime-local"} value={start}
@@ -167,7 +167,7 @@ export default function EventForm({
           onChange={(e) => setPlace(e.target.value)}
           className="input-field" disabled={loading} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>
           <label htmlFor="share" className="form-label">Udostępnij:</label>
           <select id="share" value={share}
@@ -190,13 +190,11 @@ export default function EventForm({
         </div>
       </div>
       <div className="flex space-x-2 items-center pt-2">
-        <AddButton loading={loading} />
+        <FormButtons onClickClose={onCancel} loading={loading} />
         <label className="px-3 py-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex items-center gap-2 cursor-pointer transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-sm font-medium">
           .ics <Upload className="w-4 h-4" />
           <input type="file" accept=".ics" onChange={handleFileUpload} className="hidden" disabled={loading} />
         </label>
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
       </div>
     </form>
   );

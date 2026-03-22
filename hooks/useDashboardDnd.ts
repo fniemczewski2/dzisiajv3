@@ -8,7 +8,7 @@ interface UseDashboardDndProps {
   tasks: Task[];
   events: any[];
   userId: string | undefined;
-  todayDate: Date;
+  date: Date;
   editTask: (task: any) => Promise<void>;
   editEvent: (event: any) => Promise<void>;
   fetchTasks: () => Promise<Task[]>;
@@ -19,7 +19,7 @@ export function useDashboardDnd({
   tasks,
   events,
   userId,
-  todayDate,
+  date,
   editTask,
   editEvent,
   fetchTasks,
@@ -64,7 +64,7 @@ export function useDashboardDnd({
         const currentTask = tasks.find((t) => String(t.id) === rawId);
         if (!currentTask) return;
 
-        const scheduledDateTime = new Date(todayDate);
+        const scheduledDateTime = new Date(date);
         scheduledDateTime.setHours(hours, minutes || 0, 0, 0);
 
         await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
@@ -82,7 +82,7 @@ export function useDashboardDnd({
         const oldEnd = new Date(currentEvent.end_time.replace(" ", "T"));
         const durationMs = oldEnd.getTime() - oldStart.getTime();
 
-        const newStart = new Date(todayDate);
+        const newStart = new Date(date);
         newStart.setHours(hours, minutes || 0, 0, 0);
         const newEnd = new Date(newStart.getTime() + durationMs);
 
@@ -94,7 +94,7 @@ export function useDashboardDnd({
         await fetchEvents();
       }
     },
-    [userId, tasks, events, todayDate, editTask, editEvent, fetchTasks, fetchEvents]
+    [userId, tasks, events, date, editTask, editEvent, fetchTasks, fetchEvents]
   );
 
   return { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd };

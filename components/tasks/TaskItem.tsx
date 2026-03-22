@@ -6,7 +6,6 @@ import { format, parseISO, addDays } from "date-fns";
 import { Check, Minus, Plus } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
-import { useTasks } from "../../hooks/useTasks";
 import TimeContextBadge from "./TimeContextBadge";
 import CompletionCelebration from "./CompletionCelebration";
 import UniversalTimer from "../Timer";
@@ -16,22 +15,24 @@ import {
   DeleteButton,
   RescheduleButton,
   TimerButton,
-  SaveButton,
-  CancelButton,
+  FormButtons,
 } from "../CommonButtons";
 import { useAuth } from "../../providers/AuthProvider";
 import { useToast } from "../../providers/ToastProvider";
 
 interface Props {
   task: Task;
+  acceptTask: (id: string) => void;
+  setDoneTask: (id: string) => void;
+  editTask: (task: Task) => void;
+  deleteTask: (id: string) => void;
   onTasksChange: () => void;
 }
 
-const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
+const TaskItem = memo(function TaskItem({ task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange }: Props) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const isDone = task.status === "done";
-  const { fetchTasks, deleteTask, acceptTask, setDoneTask, editTask } = useTasks();
   const { settings } = useSettings();
   const { toast } = useToast();
   const userOptions = settings?.users ?? [];
@@ -65,9 +66,8 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie?");
     if (!ok) return;
     try {
-      await deleteTask(task.id);
+      deleteTask(task.id);
       toast.success("Usunięto pomyślnie.");
-      await fetchTasks();
       onTasksChange();
     } catch {
       toast.error("Wystąpił błąd podczas usuwania.");
@@ -106,9 +106,8 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
       targetUserId = data as string;
     }
     try {
-      await editTask({ ...editedTask, for_user_id: targetUserId ?? undefined } as Task);
+      editTask({ ...editedTask, for_user_id: targetUserId ?? undefined } as Task);
       toast.success("Zmieniono pomyślnie.");
-      await fetchTasks();
       onTasksChange();
       setIsEditing(false);
       setSharedEmail("");
@@ -118,11 +117,10 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
   };
 
   const handleComplete = async () => {
-    await setDoneTask(task.id);
+    setDoneTask(task.id);
     setShowCelebration(true);
     setTimeout(async () => {
       setShowCelebration(false);
-      await fetchTasks();
       onTasksChange();
     }, CELEBRATION_MS);
   };
@@ -130,8 +128,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
   const handleReschedule = async (days: number) => {
     setIsRescheduling(true);
     const newDate = format(addDays(parseISO(task.due_date), days), "yyyy-MM-dd");
-    await editTask({ ...task, due_date: newDate });
-    await fetchTasks();
+    editTask({ ...task, due_date: newDate });
     onTasksChange();
     setIsRescheduling(false);
   };
@@ -145,7 +142,6 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
       const newNote = `Czas: ${minutes} min`;
       const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
       await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
-      await fetchTasks();
       onTasksChange();
     }
     setTimerSeconds(0);
@@ -265,8 +261,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
             />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-            <SaveButton onClick={handleSaveEdit} type="button" />
-            <CancelButton onClick={handleCancelEdit} />
+            <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
           </div>
         </div>
       </div>
@@ -311,7 +306,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
           <div className="flex flex-wrap gap-2 items-center">
             <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
             {task.category && (
-              <span className="text-sm px-3 py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-textSecondary rounded-md text-[10px] font-bold uppercase tracking-wider">
+              <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-textSecondary rounded-md text-[10px] md:text-sm font-bold uppercase tracking-wider">
                 {task.category}
               </span>
             )}
@@ -320,7 +315,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
           {(task.description || task.display_share_info) && (
             <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface border border-gray-100 dark:border-gray-800 p-3">
               {task.description && (
-                <span className="text-sm text-textSecondary whitespace-pre-wrap leading-relaxed">
+                <span className="text-xs text-textSecondary whitespace-pre-wrap leading-relaxed">
                   {task.description}
                 </span>
               )}
@@ -343,14 +338,13 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
             <>
               <button
                 onClick={async () => {
-                  await acceptTask(task.id);
-                  await fetchTasks();
+                  acceptTask(task.id);
                   onTasksChange();
                 }}
                 className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
               >
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Akceptuj</span>
+                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Akceptuj</span>
               </button>
               <DeleteButton onClick={handleDelete} />
             </>
@@ -359,7 +353,7 @@ const TaskItem = memo(function TaskItem({ task, onTasksChange }: Props) {
               <button onClick={handleComplete}
                 className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors">
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
+                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
               </button>
               <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
               <TimerButton onClick={() => setIsTimerActive(true)} />

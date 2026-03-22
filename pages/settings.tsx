@@ -14,32 +14,42 @@ import PushNotificationManager from '../components/settings/PushNotificationMana
 import LoveButton from "../components/settings/LoveButton";
 import { useAuth } from "../providers/AuthProvider";
 import { useToast } from "../providers/ToastProvider";
+import { Settings } from "../types"; 
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  
   const {
     settings,
-    setSettings,
     loading,
     saving,
     locationStatus,
-    addUser,
-    removeUser,
-    updateUser,
-    saveSettings,
+    updateSettings,
     requestGeolocation,
     handleSignOut,
-    updateSettings,
-    DEFAULT_SETTINGS
+    DEFAULT_SETTINGS 
   } = useSettings();
 
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
+  const handleSave = async (updatedData: Settings) => {
+    const { error } = await updateSettings(updatedData);
+    if (!error) {
+      toast.success("Zapisano ustawienia!");
+    } else {
+      toast.error("Wystąpił błąd podczas zapisywania.");
+    }
+  };
+  const handleRestoreDefaults = async () => {
+    const ok = await toast.confirm(
+      "Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane."
     );
-  }
-
+    if (!ok) return;
+    const { error } = await updateSettings(DEFAULT_SETTINGS);
+    
+    if (!error) {
+      toast.success("Przywrócono domyślne ustawienia!");
+    }
+  };
 
   return (
     <>
@@ -55,40 +65,35 @@ export default function SettingsPage() {
           </h2>
           <InstallButton />
         </div>
-        
-        <MenuGrid />
-        
-        <SettingsForm
-          settings={settings}
-          saving={saving}
-          onSettingsChange={setSettings}
-          onAddUser={addUser}
-          onRemoveUser={removeUser}
-          onUpdateUser={updateUser}
-          onSave={saveSettings}
-          onRestoreDefaults={async () => {
-            const ok = await toast.confirm(
-              "Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane."
-            );
-            if (!ok) return;
-            setSettings(DEFAULT_SETTINGS);
-            updateSettings(DEFAULT_SETTINGS);
-          }}
-        />
+        {loading ? 
+        <LoadingState fullScreen /> 
+        : (
+        <>
+          
+          <MenuGrid />
+          
+          <SettingsForm
+            settings={settings}
+            saving={saving}
+            onSave={handleSave} 
+            onRestoreDefaults={handleRestoreDefaults}
+          />
 
-        <PushNotificationManager userId={user?.id}/>
-        
-        <LocationSection
-          onRequestLocation={requestGeolocation}
-          locationStatus={locationStatus}
-        />
-        
-        <UserSection
-          email={user?.email}
-          onSignOut={handleSignOut}
-        />
-        
-        <VersionInfo />
+          <PushNotificationManager userId={user?.id}/>
+          
+          <LocationSection
+            onRequestLocation={requestGeolocation}
+            locationStatus={locationStatus}
+          />
+          
+          <UserSection
+            email={user?.email}
+            onSignOut={handleSignOut}
+          />
+          
+          <VersionInfo />
+        </>
+      )}
       </Layout>
     </>
   );

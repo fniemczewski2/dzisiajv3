@@ -8,7 +8,7 @@ import { useBills } from "../../hooks/useBills";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import { DeleteButton, EditButton, SaveButton, CancelButton, ShareButton } from "../CommonButtons";
+import { DeleteButton, EditButton, ShareButton, FormButtons } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 
 interface BillListProps {
@@ -27,7 +27,7 @@ function groupByMonth(bills: Bill[]): Record<string, Bill[]> {
 
 export default function BillListGrouped({ bills, onBillsChange }: BillListProps) {
   const { user } = useAuth();
-  const { deleteBill, editBill, markAsDone } = useBills();
+  const { deleteBill, editBill, markAsDone, loading } = useBills();
   const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -160,10 +160,7 @@ export default function BillListGrouped({ bills, onBillsChange }: BillListProps)
                           className="input-field w-full min-w-0 px-1 text-xs"
                         />
                       </div>
-                      <div className="flex justify-end gap-3 pt-2">
-                        <SaveButton onClick={handleSaveEdit} type="button" />
-                        <CancelButton onClick={handleCancelEdit} />
-                      </div>
+                      <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
                     </div>
                   </li>
                 );

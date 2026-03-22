@@ -3,26 +3,24 @@
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
-import { useTasks } from "../../hooks/useTasks";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
-import LoadingState from "../LoadingState";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 import { Minus, Plus } from "lucide-react";
 
 interface TaskFormProps {
-  initialTask?: Task | null;
+  addTask: (task: Task) => Promise<unknown>;
   onTasksChange: () => void;
   onCancel?: () => void;
+  loading: boolean;
 }
 
-export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
+export default function TaskForm({ addTask, onTasksChange, onCancel, loading }: TaskFormProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
-  const { addTask, loading } = useTasks();
   const { toast } = useToast();
   const todayIso = getAppDate();
 
@@ -81,20 +79,20 @@ export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
           className="input-field font-medium" placeholder="Co masz do zrobienia?" required />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="form-label">Priorytet:</label>
           <div className="flex items-stretch gap-1.5 mt-1">
             <button type="button" onClick={decreasePriority}
-              className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
+              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
               title="Zmniejsz priorytet">
               <Minus size={18} />
             </button>
-            <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">
+            <div className="input-field flex-1 flex items-center justify-center card rounded-lg text-text shadow-inner">
               {priority}
             </div>
             <button type="button" onClick={increasePriority}
-              className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
+              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
               title="Zwiększ priorytet">
               <Plus size={18} />
             </button>
@@ -102,7 +100,7 @@ export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
         </div>
         <div>
           <label htmlFor="category" className="form-label">Kategoria:</label>
-          <select id="category" ref={categoryRef} className="input-field h-[46px] sm:h-[48px]" defaultValue="inne">
+          <select id="category" ref={categoryRef} className="input-field h-min sm:h-[48px]" defaultValue="inne">
             {["edukacja","praca","osobiste","aktywizm","przyjaciele","zakupy","podróże","trening","inne"].map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
@@ -110,11 +108,11 @@ export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="due" className="form-label">Data wykonania:</label>
           <input id="due" ref={dueDateRef} defaultValue={todayIso} type="date"
-            className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" required />
+            className="input-field h-min sm:h-[48px] w-full min-w-0 px-1" required />
         </div>
         <div>
           <label htmlFor="for" className="form-label">Zadanie dla:</label>
@@ -131,11 +129,7 @@ export default function TaskForm({ onTasksChange, onCancel }: TaskFormProps) {
           placeholder="Dodatkowe informacje..." />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-        {loading && <div className="mr-2"><LoadingState /></div>}
-        <AddButton loading={loading} />
-        {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-      </div>
+      <FormButtons onClickClose={onCancel} loading={loading}/>
     </form>
   );
 }

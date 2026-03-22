@@ -64,15 +64,15 @@
   }
   
   .form-card {
-    @apply bg-card border border-gray-200 dark:border-gray-700 p-4 md:p-6 rounded-xl shadow-sm space-y-4 transition-colors;
+    @apply bg-card border border-gray-200 dark:border-gray-700 p-4 md:p-6 rounded-xl shadow-sm transition-colors flex flex-col gap-2 md:gap-4;
   }
 
   .form-label {
-    @apply block text-sm font-medium text-textSecondary mb-1.5;
+    @apply block text-[11px] md:text-sm font-medium text-textSecondary mb-0.5 md:mb-1.5;
   }
 
   .input-field {
-    @apply w-full px-3 py-2 rounded-lg bg-transparent border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all;
+    @apply w-full px-1.5 py-1 md:px-3 md:py-2 text-base rounded-lg bg-transparent border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all;
   }
 
   .widget {
@@ -89,6 +89,6 @@
   }
 
   .card {
-    @apply bg-card border border-gray-200 dark:border-gray-700 shadow transition
+    @apply bg-card border border-gray-200 dark:border-gray-700 shadow transition animate-fadeIn
   }
 }

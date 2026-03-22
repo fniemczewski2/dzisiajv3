@@ -6,7 +6,7 @@ import type { Movie } from "../../types";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import { EditButton, DeleteButton, SaveButton, CancelButton, WatchButton, UnwatchButton } from "../CommonButtons";
+import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../CommonButtons";
 
 interface MovieCardProps {
   movie: Movie;
@@ -16,6 +16,7 @@ interface MovieCardProps {
   expandedNotes: Set<string>;
   toggleNotes: (id: string) => void;
   onSaveNotes: (id: string, notes: string) => Promise<void>;
+  loading: boolean;
 }
 
 export default function MovieCard({
@@ -26,6 +27,7 @@ export default function MovieCard({
   expandedNotes,
   toggleNotes,
   onSaveNotes,
+  loading,
 }: MovieCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -135,8 +137,7 @@ export default function MovieCard({
               className="input-field" rows={3} placeholder="Krótki opis..." />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-            <SaveButton onClick={handleSaveEdit} type="button" />
-            <CancelButton onClick={handleCancelEdit} />
+            <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
           </div>
         </div>
       ) : (

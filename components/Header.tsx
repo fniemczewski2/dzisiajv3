@@ -169,12 +169,12 @@ export default function Header() {
 
   return (
     <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
-      <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-start gap-3">
+      <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-center gap-3">
 
-        <div className="shrink-0 flex flex-1">
+        <div className="shrink-0 flex flex-1 items-center">
           <div
             onClick={() => router.push("/calendar")}
-            className="flex flex-col items-start cursor-pointer group p-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
+            className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
             title="Kliknij, aby zobaczyć pełną prognozę"
           >
             <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
@@ -183,9 +183,7 @@ export default function Header() {
             <span className="text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
               {currentDate}
             </span>
-            <div className="mt-1">
-              <StableBirthdayIndicator date={todayDateString} />
-            </div>
+            <StableBirthdayIndicator date={todayDateString} />
           </div>
         </div>
 
@@ -195,7 +193,7 @@ export default function Header() {
           </h1>
         </div>
 
-        <div className="shrink-0 flex flex-1 justify-end">
+        <div className="shrink-0 flex flex-1 justify-end items-center">
           {loading ? (
             <LoadingState />
           ) : currentTemp != null &&
@@ -204,7 +202,7 @@ export default function Header() {
             weatherCode != null ? (
             <div
               onClick={() => router.push("/weather")}
-              className="flex flex-col items-end cursor-pointer group p-2 -m-2 rounded-xl hover:bg-surface transition-colors"
+              className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
               title="Kliknij, aby zobaczyć pełną prognozę"
             >
               <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
@@ -218,7 +216,7 @@ export default function Header() {
                 min {dailyMin}° · max {dailyMax}°
               </span>
               {airQuality && (
-                <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-600 dark:text-red-400 px-1.5 py-0.5 mt-1 rounded uppercase tracking-wider">
+                <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider">
                   {airQuality}
                 </span>
               )}

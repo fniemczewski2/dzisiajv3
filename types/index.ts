@@ -117,6 +117,7 @@ export type Settings = {
   habit_duolingo: boolean;
 
   mood_options?: MoodOption[];
+  main_view: string;
 };
 
 export type HabitKey =

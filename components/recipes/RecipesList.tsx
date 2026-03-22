@@ -8,7 +8,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import { SaveButton, CancelButton, EditButton, DeleteButton } from "../CommonButtons";
+import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import NoResultsState from "../NoResultsState";
 
@@ -21,7 +21,7 @@ interface RecipesListProps {
 }
 
 export default function RecipesList({ refreshToken }: RecipesListProps) {
-  const { recipes, products, deleteRecipe, editRecipe, refresh } = useRecipes();
+  const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
   const { settings } = useSettings();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -209,10 +209,7 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
                       onChange={(e) => setEditedRecipe({ ...editedRecipe, description: e.target.value })}
                       className="input-field" rows={5} placeholder="Krok po kroku..." />
                   </div>
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <SaveButton onClick={handleSaveEdit} type="button" />
-                    <CancelButton onClick={handleCancelEdit} />
-                  </div>
+                    <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
                 </div>
               </li>
             );

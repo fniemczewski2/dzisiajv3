@@ -23,6 +23,14 @@ interface ButtonProps {
   small?: boolean;
 }
 
+interface FormButtonsProps {
+  onClickSave?: () => void;
+  onClickClose?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  small?: boolean;
+}
+
 export const AddButton = ({ onClick, loading, disabled, type = "submit", small = false }: ButtonProps) => (
   <button
     type={type}
@@ -35,12 +43,24 @@ export const AddButton = ({ onClick, loading, disabled, type = "submit", small =
   </button>
 );
 
+export const CloseButton = ({ onClick, loading, disabled, small = false }: ButtonProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={loading || disabled}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+  >
+    {!small && "Zamknij"}
+    <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
+  </button>
+);
+
 export const SaveButton = ({ onClick, loading, disabled, type = "submit", small = false }: ButtonProps) => (
   <button
     type={type}
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent`}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
   >
     {!small && "Zapisz"}
     <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
@@ -52,11 +72,26 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Butt
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
   >
     {!small && "Anuluj"}
     <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
   </button>
+);
+
+export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false }: FormButtonsProps) => (
+  <div className={`${small ? "" : "pt-4 border-t border-gray-100 dark:border-gray-800 flex-col md:flex-row"}, flex items-center md:justify-end gap-2 `}>
+    <SaveButton
+      onClick={onClickSave}
+      disabled={loading || disabled}
+      small={small}
+    />
+    <CloseButton
+      onClick={onClickClose}
+      disabled={loading || disabled}
+      small={small}
+    />
+  </div>
 );
 
 export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (

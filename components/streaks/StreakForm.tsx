@@ -11,7 +11,7 @@ import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
 import LoadingState from "../LoadingState";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 
 interface StreakFormProps {
   onChange: () => void;
@@ -66,10 +66,9 @@ export default function StreakForm({ onChange, onCancel }: StreakFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="card p-5 sm:p-6 rounded-2xl shadow-sm mb-8 animate-in fade-in slide-in-from-top-4"
+      className="form-card"
     >
-      <h3 className="text-xl font-bold text-text mb-6">Dodaj nowy nawyk</h3>
-      <div className="space-y-5">
+      <div className="space-y-4">
         <div>
           <label className="form-label" htmlFor="streak-name">Nazwa nawyku:</label>
           <input
@@ -96,29 +95,25 @@ export default function StreakForm({ onChange, onCancel }: StreakFormProps) {
         </div>
         <div>
           <label className="form-label mb-2">Ikona:</label>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
             {ICONS.map(({ name: iName, icon: IconComponent }) => (
               <button
                 key={iName}
                 type="button"
                 onClick={() => setIcon(iName)}
                 title={`Wybierz ikonę: ${iName}`}
-                className={`p-2.5 rounded-xl transition-all flex flex-col items-center justify-center ${
+                className={`p-1.5 sm:p-2.5 rounded-xl transition-all flex flex-col items-center justify-center ${
                   icon === iName
-                    ? "bg-primary text-white shadow-sm scale-110"
-                    : "bg-transparent text-textSecondary hover:bg-card hover:text-text"
+                    ? "bg-surfaceHover text-text shadow-sm scale-110"
+                    : "bg-transparent text-textMuted hover:bg-surface hover:text-text"
                 }`}
               >
-                <IconComponent className="w-5 h-5" />
+                <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             ))}
           </div>
         </div>
-        <div className="flex space-x-3 items-center pt-4 border-t border-gray-100 dark:border-gray-800">
-          <AddButton loading={loading} />
-          {onCancel && <CancelButton onClick={onCancel} loading={loading} />}
-          {loading && <LoadingState />}
-        </div>
+        <FormButtons onClickClose={onCancel} loading={loading}/>
       </div>
     </form>
   );

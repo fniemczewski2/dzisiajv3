@@ -18,7 +18,7 @@ export default function LoadingState({ fullScreen = false, size = 'md' }: Loadin
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="h-full min-h-[60vh] flex items-center justify-center">
         {content}
       </div>
     );
