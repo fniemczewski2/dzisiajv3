@@ -103,7 +103,7 @@ export default function SettingsForm({
             >
               <option value="calendar">Kalendarz</option>
               <option value="tasks">Zadania</option>
-              <option value="day_plan">Plan dnia</option>
+              <option value="day_view">Plan dnia</option>
             </select>
           </div>
         {renderSwitch("show_completed", "Pokaż wykonane zadania")}
@@ -360,10 +360,10 @@ export default function SettingsForm({
           type="button"
           onClick={onRestoreDefaults}
           disabled={saving}
-          className="flex items-center text-sm font-medium text-textMuted hover:text-red-500 transition-colors px-2 py-1 disabled:opacity-50"
+          className="flex items-center text-sm font-medium text-textMuted hover:underline transition-colors px-2 py-1 disabled:opacity-50"
         >
-          <RotateCcw className="w-4 h-4 mr-2" />
           Przywróć domyślne
+          <RotateCcw className="w-4 h-4 ml-2" />
         </button>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-between relative">

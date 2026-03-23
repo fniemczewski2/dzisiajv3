@@ -8,11 +8,12 @@ export function useStreaks() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [streaks, setStreaks] = useState<Streak[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const fetchStreaks = useCallback(async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("streaks")
@@ -22,28 +23,47 @@ export function useStreaks() {
       if (error) throw error;
       setStreaks(data || []);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [userId, supabase]);
 
   const addStreak = async (newStreak: Omit<Streak, "id" | "user_id">) => {
+    setLoading(true);
     const { error } = await supabase
       .from("streaks")
       .insert([{ ...newStreak, user_id: userId }]);
     if (error) throw error;
-    await fetchStreaks();
+    try {
+      await fetchStreaks();
+    }
+    finally {
+      setLoading(false);
+    }
   };
 
   const deleteStreak = async (id: string) => {
+    setLoading(true);
     const { error } = await supabase.from("streaks").delete().eq("id", id);
     if (error) throw error;
-    await fetchStreaks();
+    try {
+      await fetchStreaks();
+    }
+    finally {
+      setLoading(false);
+    }
   };
 
   const updateStreak = async (id: string, updates: Partial<Streak>) => {
+    setLoading(true);
     const { error } = await supabase.from("streaks").update(updates).eq("id", id);
     if (error) throw error;
     setStreaks((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    try {
+      await fetchStreaks();
+    }
+    finally {
+      setLoading(false);
+    }
   };
 
   const getMilestoneMessage = (
@@ -115,6 +135,7 @@ export function useStreaks() {
   return {
     streaks,
     loading,
+    fetching,
     fetchStreaks,
     refetch: fetchStreaks,
     addStreak,

@@ -8,7 +8,7 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import LoadingState from "../LoadingState";
-import { AddButton, CancelButton } from "../CommonButtons";
+import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
 
 interface NoteFormProps {
   onChange: () => void;
@@ -98,11 +98,7 @@ export default function NoteForm({ onChange, onCancel }: NoteFormProps) {
           ))}
         </div>
       </div>
-      <div className="flex space-x-2 items-center pt-2">
-        <AddButton loading={loading} />
-        {typeof onCancel === "function" && <CancelButton onClick={onCancel} loading={loading} />}
-        {loading && <LoadingState />}
-      </div>
+        <FormButtons onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

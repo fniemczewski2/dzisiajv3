@@ -13,8 +13,6 @@ type View = "year" | "month";
 
 function ProgressBar({ spent, planned, max, danger }: { spent: number; planned: number; max: number; danger?: boolean }) {
   const total = spent + planned;
-  
-  // Zabezpieczenie przed błędami i wychodzeniem pasków poza kontener (100%)
   const pctSpent = max > 0 ? Math.min((spent / max) * 100, 100) : 0;
   const pctPlanned = max > 0 ? Math.min((planned / max) * 100, 100 - pctSpent) : 0;
   
@@ -22,7 +20,6 @@ function ProgressBar({ spent, planned, max, danger }: { spent: number; planned: 
 
   return (
     <div className="relative h-2 bg-surface rounded-full overflow-hidden border border-gray-100 dark:border-gray-800 flex">
-      {/* Pasek wydatków zrealizowanych */}
       <div
         className={`h-full transition-all duration-500 ${
           over || danger
@@ -55,7 +52,6 @@ export default function BudgetOverview({
   const [view, setView] = useState<View>("year");
   const isYear = view === "year";
 
-  // Obliczenia sumaryczne dla wyświetlanego widoku (Rok / Miesiąc)
   const totalSpent = summary.reduce(
     (s, c) => s + (isYear ? c.spent : c.thisMonthSpent),
     0
@@ -127,8 +123,7 @@ export default function BudgetOverview({
           const p       = isYear ? item.planned : item.thisMonthPlanned;
           const l       = isYear ? item.limit : item.thisMonthLimit;
           const r       = isYear ? item.remaining : item.thisMonthRemaining;
-          
-          // Flaga dla limitu przekroczonego (nie wyświetlamy jej przy braku limitu l=0)
+
           const over    = l > 0 && (s + p) > l;
 
           return (

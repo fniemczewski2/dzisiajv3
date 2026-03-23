@@ -8,11 +8,12 @@ export function useDaySchemas() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [schemas, setSchemas] = useState<Schema[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchSchemas = useCallback(async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("day_schemas")
@@ -29,7 +30,7 @@ export function useDaySchemas() {
         })) || []
       );
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [userId, supabase]);
 
@@ -80,5 +81,5 @@ export function useDaySchemas() {
     fetchSchemas();
   }, [fetchSchemas]);
 
-  return { schemas, loading, refresh: fetchSchemas, addSchema, updateSchema, deleteSchema };
+  return { schemas, loading, fetching, fetchSchemas, addSchema, updateSchema, deleteSchema };
 }

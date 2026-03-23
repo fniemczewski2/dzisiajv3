@@ -9,11 +9,12 @@ export function useReports() {
   const userId = user?.id;
 
   const [reports, setReports] = useState<Report[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchReports = useCallback(async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("reports")
@@ -23,19 +24,25 @@ export function useReports() {
       if (error) throw error;
       setReports((data || []) as Report[]);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [supabase, userId]);
 
   const addReport = useCallback(
     async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
+      setLoading(true)
       const { data, error } = await supabase
         .from("reports")
         .insert([{ ...payload, user_id: userId }])
         .select()
         .single();
       if (error) throw error;
-      setReports((prev) => [data as Report, ...prev]);
+      try {
+        setReports((prev) => [data as Report, ...prev]);
+      } finally {
+        fetchReports();
+        setLoading(false)
+      }
     },
     [supabase, userId]
   );
@@ -49,7 +56,12 @@ export function useReports() {
         .select()
         .single();
       if (error) throw error;
-      setReports((prev) => prev.map((r) => (r.id === id ? (data as Report) : r)));
+      try {
+        setReports((prev) => prev.map((r) => (r.id === id ? (data as Report) : r)));
+      } finally {
+        fetchReports();
+        setLoading(false)
+      }
     },
     [supabase]
   );
@@ -58,7 +70,12 @@ export function useReports() {
     async (id: string) => {
       const { error } = await supabase.from("reports").delete().eq("id", id);
       if (error) throw error;
-      setReports((prev) => prev.filter((r) => r.id !== id));
+      try {
+        setReports((prev) => prev.filter((r) => r.id !== id));
+      } finally {
+        fetchReports();
+        setLoading(false)
+      }
     },
     [supabase]
   );
@@ -67,5 +84,5 @@ export function useReports() {
     fetchReports();
   }, [fetchReports]);
 
-  return { reports, loading, fetchReports, addReport, editReport, deleteReport };
+  return { reports, loading, fetching, fetchReports, addReport, editReport, deleteReport };
 }

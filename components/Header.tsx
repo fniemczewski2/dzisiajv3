@@ -175,7 +175,7 @@ export default function Header() {
           <div
             onClick={() => router.push("/calendar")}
             className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
-            title="Kliknij, aby zobaczyć pełną prognozę"
+            title="Kliknij, aby zobaczyć kalendarz"
           >
             <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
               {currentTime}

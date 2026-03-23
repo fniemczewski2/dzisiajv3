@@ -2,9 +2,29 @@ import { Calendar, Coins, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-re
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Settings } from "../types";
+import { useEffect, useState } from "react";
+import { useSettings } from "../hooks/useSettings";
 
-export default function Navbar({settings}: {settings: Settings}) {
+export default function Navbar() {
   const router = useRouter();
+  const { settings: dbSettings, DEFAULT_SETTINGS } = useSettings();
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+
+  useEffect(() => {
+    setSettings(dbSettings);
+  }, [dbSettings]);
+
+  useEffect(() => {
+    const handleSettingsChange = (e: Event) => {
+      const customEvent = e as CustomEvent<Settings>;
+      if (customEvent.detail) {
+        setSettings(customEvent.detail);
+      }
+    };
+
+    window.addEventListener("settingsUpdated", handleSettingsChange);
+    return () => window.removeEventListener("settingsUpdated", handleSettingsChange);
+  }, []);
 
   const renderMenuItems = (): React.ReactNode => {
     switch(settings.main_view){
@@ -41,7 +61,7 @@ export default function Navbar({settings}: {settings: Settings}) {
           )
         default:
           return (
-            <div className="flex justify-between items-center gap-1 sm:gap-2">
+            <div className="flex justify-between w-full items-center gap-1 sm:gap-2">
               <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
               <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
               <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '../utils/supabase/client'; // Zmiana Importu!
+import { createClient } from '../utils/supabase/client'; 
 
 type AuthContextType = {
   user: User | null;
@@ -14,11 +14,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  // Jeśli używasz Middleware, większość stron nie wymaga stanu "loadingUser: true" na start, 
-  // ale zostawiamy go dla pełnej zgodności z resztą kodu.
   const [loadingUser, setLoadingUser] = useState(true); 
-
-  // Inicjalizujemy klienta TYLKO RAZ w pamięci używając useMemo
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {

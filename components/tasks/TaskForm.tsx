@@ -14,10 +14,11 @@ interface TaskFormProps {
   addTask: (task: Task) => Promise<unknown>;
   onTasksChange: () => void;
   onCancel?: () => void;
+  selectedDate?: string;
   loading: boolean;
 }
 
-export default function TaskForm({ addTask, onTasksChange, onCancel, loading }: TaskFormProps) {
+export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate }: TaskFormProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
@@ -71,12 +72,12 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading }: 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 card p-5 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 mb-6"
+      className="form-card"
     >
       <div>
         <label htmlFor="title" className="form-label">Tytuł zadania:</label>
         <input id="title" ref={titleRef} type="text"
-          className="input-field font-medium" placeholder="Co masz do zrobienia?" required />
+          className="input-field font-medium" placeholder="Zadanie" required />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -111,8 +112,8 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading }: 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="due" className="form-label">Data wykonania:</label>
-          <input id="due" ref={dueDateRef} defaultValue={todayIso} type="date"
-            className="input-field h-min sm:h-[48px] w-full min-w-0 px-1" required />
+          <input id="due" ref={dueDateRef} defaultValue={selectedDate || todayIso} type="date"
+            className="input-field text-xs w-full min-w-0 px-1" required />
         </div>
         <div>
           <label htmlFor="for" className="form-label">Zadanie dla:</label>
@@ -124,7 +125,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading }: 
       </div>
 
       <div>
-        <label htmlFor="desc" className="form-label">Opis (opcjonalny):</label>
+        <label htmlFor="desc" className="form-label">Opis:</label>
         <textarea id="desc" ref={descriptionRef} className="input-field" rows={3}
           placeholder="Dodatkowe informacje..." />
       </div>

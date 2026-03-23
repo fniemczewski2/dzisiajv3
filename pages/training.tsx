@@ -13,7 +13,6 @@ export default function TrainingPage() {
   const [sets, setSets] = useState(8);
   const [cycles, setCycles] = useState(1);
   const [longRestSec, setLongRestSec] = useState(60);
-  
 
   const useLongRest = cycles > 1;
 

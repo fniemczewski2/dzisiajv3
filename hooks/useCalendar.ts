@@ -6,11 +6,11 @@ export function useCalendarData(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [tasksCount, setTasksCount] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("tasks")
@@ -29,7 +29,7 @@ export function useCalendarData(rangeStart: string, rangeEnd: string) {
     } catch (err) {
       console.error("[useCalendarData] fetchData failed:", err);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [supabase, userId, rangeStart, rangeEnd]);
 
@@ -37,5 +37,5 @@ export function useCalendarData(rangeStart: string, rangeEnd: string) {
     fetchData();
   }, [fetchData]);
 
-  return { tasksCount, loading, fetchData };
+  return { tasksCount, fetching, fetchData };
 }

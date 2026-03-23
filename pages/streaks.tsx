@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import StreakCard from "../components/streaks/StreakCard";
@@ -13,7 +13,7 @@ import { useToast } from "../providers/ToastProvider";
 
 export default function StreaksPage() {
   const { toast } = useToast();
-  const { streaks, loading, refetch, deleteStreak, updateStreak, getMilestoneMessage } = useStreaks();
+  const { streaks, loading, fetching, refetch, deleteStreak, updateStreak, getMilestoneMessage } = useStreaks();
   const [showForm, setShowForm] = useState(false);
 
   const handleEdit = async (updatedStreak: Streak) => {
@@ -44,6 +44,21 @@ export default function StreaksPage() {
     refetch();
     setShowForm(false);
   };
+
+    
+    useEffect(() => {
+        let toastId: string | undefined;
+        
+        if (fetching && toast.loading) {
+          toastId = toast.loading("Ładowanie finansów...");
+        }
+    
+        return () => {
+          if (toastId && toast.dismiss) {
+            toast.dismiss(toastId);
+          }
+        };
+    }, [fetching, toast]);
 
   return (
     <>
@@ -89,4 +104,3 @@ export default function StreaksPage() {
   );
 }
 
-StreaksPage.auth = true;

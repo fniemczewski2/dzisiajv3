@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Layout from "../../components/Layout";
 import SEO from "../../components/SEO";
 import LoadingState from "../../components/LoadingState";
@@ -26,6 +26,7 @@ export default function PlacesPage() {
   const {
     places,
     loading,
+    fetching,
     updatePlace,
     deletePlace,
     importFromGoogleMaps
@@ -105,12 +106,20 @@ export default function PlacesPage() {
       toast.error("Wystąpił błąd podczas usuwania miejsca.");
     }
   };
-
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
+  
+  useEffect(() => {
+      let toastId: string | undefined;
+      
+      if (fetching && toast.loading) {
+        toastId = toast.loading("Ładowanie finansów...");
+      }
+  
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
+        }
+      };
+  }, [fetching, toast]);
 
   return (
     <>
@@ -181,5 +190,3 @@ export default function PlacesPage() {
     </>
   );
 }
-
-PlacesPage.auth = true;

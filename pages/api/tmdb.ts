@@ -21,11 +21,9 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // 1. Inicjalizacja klienta i sprawdzenie sesji z ciasteczek
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  // Odrzucamy żądanie, jeśli użytkownik nie jest zalogowany
   if (authError || !user) {
     return res.status(401).json({ error: "Brak autoryzacji. Sesja wygasła lub jesteś niezalogowany." });
   }
@@ -33,7 +31,6 @@ export default async function handler(
   const apiKey = process.env.TMDB_API_KEY;
 
   if (!apiKey) {
-    // Zmieniono z throw new Error na res.status
     return res.status(500).json({ error: "Brak zmiennej środowiskowej TMDB_API_KEY" });
   }
 
@@ -67,7 +64,6 @@ export default async function handler(
     });
 
     if (!tmdbRes.ok) {
-      // Zwracamy status błędu TMDB, aby frontend wiedział co się stało
       return res.status(tmdbRes.status).json({ error: "Wystąpił bład po stronie API TMDB" });
     }
 

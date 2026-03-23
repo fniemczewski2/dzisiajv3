@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   List,
   ChevronLeft,
@@ -15,10 +15,10 @@ import TaskForm from "../../components/tasks/TaskForm";
 import TaskList from "../../components/tasks/TaskList";
 import { useTasks } from "../../hooks/useTasks";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
-import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 import Reminders from "../../components/tasks/Reminders";
+import { useToast } from "../../providers/ToastProvider";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -33,7 +33,8 @@ type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 export default function TasksPage({isMain}: {isMain: boolean}) {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
-  const { tasks, loading, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
+  const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
+  const { toast } = useToast();
 
   const { todayDone, todayTotal } = useMemo(() => {
     const today = getAppDate();
@@ -84,12 +85,20 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
   useQuickAction({
     onActionAdd: () => setShowForm(true),
   });
-
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
+  
+  useEffect(() => {
+      let toastId: string | undefined;
+      
+      if (fetching && toast.loading) {
+        toastId = toast.loading("Ładowanie finansów...");
+      }
+  
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
+        }
+      };
+  }, [fetching, toast]);
 
   return (
     <>
@@ -161,5 +170,3 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
     </>
   );
 }
-
-TasksPage.auth = true;

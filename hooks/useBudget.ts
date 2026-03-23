@@ -18,7 +18,8 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [data, setData] = useState<YearData>({});
-  const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());
 
   const keys = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -32,6 +33,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
   const fetchMonthData = async (month: number): Promise<MonthData> => {
     if (!userId) return getEmptyMonthData();
+    setFetching(true)
 
     const monthStr = String(month).padStart(2, "0");
     const dateStart = `${year}-${monthStr}-01`;
@@ -70,12 +72,14 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     (habits as any[])?.forEach(({ daily_spending }) => {
       monthData.monthlySpending += daily_spending;
     });
+    setFetching(false)
 
     return monthData;
   };
 
   const fetchRates = async () => {
     if (!userId) return {};
+    setFetching(true)
     const { data: ratesData } = await supabase
       .from("budgets")
       .select("*")
@@ -87,12 +91,13 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     for (let i = 1; i <= 12; i++) {
       rates[i] = ratesData[`${keys[i - 1]}_rate`] || 0;
     }
+    setFetching(false)
     return rates;
   };
 
   const loadData = async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const rates = await fetchRates();
       const monthsToLoad = Array.from({ length: endMonth - startMonth + 1 }, (_, i) => startMonth + i);
@@ -110,15 +115,17 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         return s;
       });
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   };
 
   const updateRate = (month: number, rate: number) => {
+    setLoading(true)
     setData((prev) => ({
       ...prev,
       [month]: { ...(prev[month] || getEmptyMonthData()), rate },
     }));
+    setLoading(false)
   };
 
   const saveRates = async () => {
@@ -163,5 +170,5 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     loadData();
   }, [userId, year, startMonth, endMonth]);
 
-  return { data, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
+  return { data, fetching, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
 }

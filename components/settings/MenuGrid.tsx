@@ -2,6 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import { NAVIGATION_CATEGORIES, QUICK_ACTIONS } from "../../config/navigation";
 import { Plus } from "lucide-react";
+import { AddSpecificButton } from "../CommonButtons";
 
 export default function MenuGrid() {
   const router = useRouter();
@@ -14,23 +15,14 @@ export default function MenuGrid() {
         </h3>
         <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {QUICK_ACTIONS.map((action) => {
-            const IconComponent = action.icon;
             return (
-              <button
-                key={action.path}
-                onClick={() => router.push(action.path)}
+              <AddSpecificButton
+                path={action.path}
                 title={action.title}
-                className="group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-secondary rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
-              >
-                
-                <div className="relative top-0 w-5 h-5 sm:h-6 sm:w-6">
-                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
-                  <Plus className="absolute left-3 top-2 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-surface rounded-full"/>
-                </div>
-                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
-                  {action.label}
-                </span>
-              </button>
+                Icon={action.icon}
+                label={action.label}
+                router={router}
+              />
             );
           })}
         </div>

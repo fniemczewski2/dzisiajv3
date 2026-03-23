@@ -163,7 +163,7 @@ export default function BudgetCategoriesEditor({
 }) {
   const { toast } = useToast();
   const {
-    categories, loading, saving, maxReached,
+    categories, loading, maxReached,
     addCategory, updateCategory, deleteCategory,
     reorderCategories
   } = useBudgetCategories(year);
@@ -256,7 +256,7 @@ export default function BudgetCategoriesEditor({
                   cat={cat}
                   onSave={(u) => handleSaveEdit(cat.id, u)}
                   onCancel={() => setEditingId(null)}
-                  saving={saving}
+                  saving={loading}
                 />
               ) : (
                 <>
@@ -283,14 +283,14 @@ export default function BudgetCategoriesEditor({
                   <div className="flex flex-col gap-0.5 shrink-0">
                     <button
                       onClick={() => move(idx, -1)}
-                      disabled={idx === 0 || saving}
+                      disabled={idx === 0 || loading}
                       className="p-0.5 text-textMuted hover:text-text disabled:opacity-20 transition-colors"
                     >
                       <ChevronUp className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => move(idx, 1)}
-                      disabled={idx === categories.length - 1 || saving}
+                      disabled={idx === categories.length - 1 || loading}
                       className="p-0.5 text-textMuted hover:text-text disabled:opacity-20 transition-colors"
                     >
                       <ChevronDown className="w-3 h-3" />
@@ -309,7 +309,7 @@ export default function BudgetCategoriesEditor({
       {showAddForm && !maxReached && (
         <AddCategoryForm
           onAdd={handleAdd}
-          saving={saving}
+          saving={loading}
           onCancel={() => setShowAddForm(false)}
         />
       )}

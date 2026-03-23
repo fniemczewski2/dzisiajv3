@@ -7,11 +7,12 @@ import { MoodEntry } from "../types";
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();
   const [moods, setMoods] = useState<MoodEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const fetchMoods = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
+    setFetching(true);
     try {
       let query = supabase
         .from("mood_entries")
@@ -24,7 +25,7 @@ export function useMoods(startDate?: string, endDate?: string) {
       if (error) throw error;
       setMoods(data || []);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [supabase, user, startDate, endDate]);
 
@@ -32,7 +33,7 @@ export function useMoods(startDate?: string, endDate?: string) {
 
   const logMood = async (date: string, mood_id: string | null) => {
     if (!user) throw new Error("Musisz być zalogowany");
-
+    setLoading(true)
     const { data, error } = await supabase
       .from("mood_entries")
       .upsert({ user_id: user.id, date, mood_id }, { onConflict: "user_id, date" })
@@ -47,7 +48,8 @@ export function useMoods(startDate?: string, endDate?: string) {
         ? prev.map((m) => (m.date === date ? (data as MoodEntry) : m))
         : [...prev, data as MoodEntry];
     });
+    setLoading(false)
   };
 
-  return { moods, loading, logMood, refreshMoods: fetchMoods };
+  return { moods, loading, fetching, logMood, fetchMoods };
 }

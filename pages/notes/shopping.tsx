@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
@@ -6,22 +6,32 @@ import ShoppingForm from "../../components/shopping/ShoppingForm";
 import ShoppingListView from "../../components/shopping/ShoppingListView";
 import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function ShoppingPage() {
 
-  const { lists, loading, addShoppingList, editShoppingList, deleteShoppingList } = useShoppingLists();
+  const { lists, loading, fetching, addShoppingList, editShoppingList, deleteShoppingList } = useShoppingLists();
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
     setShowForm(true);
   };
 
-    if (loading) {
-      return (
-          <LoadingState fullScreen/>
-      );
-    }
+  const { toast } = useToast();
   
+  useEffect(() => {
+      let toastId: string | undefined;
+      
+      if (fetching && toast.loading) {
+        toastId = toast.loading("Ładowanie finansów...");
+      }
+  
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
+        }
+      };
+  }, [fetching, toast]);
 
   return (
     <>
@@ -62,5 +72,3 @@ export default function ShoppingPage() {
     </>
   );
 }
-
-ShoppingPage.auth = true;

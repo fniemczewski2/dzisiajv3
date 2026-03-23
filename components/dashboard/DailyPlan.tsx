@@ -4,7 +4,7 @@ import { DroppableHourSlot } from "./DroppableHourSlot";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import { PlanItem } from "./PlanItem";
 
-const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
+// USUNIĘTO stałą HOURS
 
 interface DailyPlanProps {
   planByHour: Record<string, any[]>;
@@ -19,6 +19,10 @@ export const DailyPlan = React.memo(({
   handleMarkAsDone,
   handleRemoveFromSchedule,
 }: DailyPlanProps) => {
+  
+  // ZMIANA: Wyciągamy tylko te godziny, które przetrwały filtrowanie w DayView i sortujemy je
+  const visibleHours = Object.keys(planByHour).sort();
+
   return (
     <section className="lg:col-span-2 card rounded-xl px-2 py-4 sm:p-4 shadow-sm">
       <h2 className="text-xl font-bold text-text mb-6 flex items-center gap-3 pb-3 px-2 border-b border-gray-100 dark:border-gray-700">
@@ -30,8 +34,7 @@ export const DailyPlan = React.memo(({
 
       <div className="relative">
         <div className="space-y-2 relative z-10">
-          {HOURS.map((h) => {
-            const timeKey = `${String(h).padStart(2, "00")}:00`;
+          {visibleHours.map((timeKey) => {
             const items = planByHour[timeKey] || [];
 
             return (
@@ -57,4 +60,5 @@ export const DailyPlan = React.memo(({
     </section>
   );
 });
+
 DailyPlan.displayName = "DailyPlan";

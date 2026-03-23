@@ -1,6 +1,6 @@
 // pages/bills/index.tsx
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { Calculator, ChartColumnBig, Check, RefreshCw } from "lucide-react";
@@ -14,7 +14,6 @@ import { format, parseISO, getYear } from "date-fns";
 import { pl } from "date-fns/locale";
 import DailySpendingForm from "../../components/widgets/DailySpendingForm";
 import BillForm from "../../components/bills/BillForm";
-import LoadingState from "../../components/LoadingState";
 import { AddButton, EditButton, DeleteButton, ShareButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 import NoResultsState from "../../components/NoResultsState";
@@ -65,7 +64,7 @@ export default function BillsPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all"); // category id or "all"/"none"
 
   const { categories, loading: catsLoading } = useBudgetCategories(currentYear);
-  const { incomeItems, expenseItems, loading, fetchBills, markAsDone, deleteBill } = useBills({
+  const { incomeItems, expenseItems, fetching, fetchBills, markAsDone, deleteBill } = useBills({
     includeRecurringChildren: true,
   });
 
@@ -123,11 +122,21 @@ export default function BillsPage() {
     }
   };
 
-  if (loading || catsLoading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
+  const isLoading = fetching || catsLoading;
+
+  useEffect(() => {
+    let toastId: string | undefined;
+    
+    if (isLoading && toast.loading) {
+      toastId = toast.loading("Ładowanie...");
+    }
+
+    return () => {
+      if (toastId && toast.dismiss) {
+        toast.dismiss(toastId);
+      }
+    };
+  }, [isLoading, toast]);
 
   return (
     <>
@@ -288,5 +297,3 @@ export default function BillsPage() {
     </>
   );
 }
-
-BillsPage.auth = true;

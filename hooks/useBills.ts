@@ -31,11 +31,12 @@ export function useBills(options: FetchOptions = {}) {
 
   const [incomeItems, setIncomeItems] = useState<Bill[]>([]);
   const [expenseItems, setExpenseItems] = useState<Bill[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchBills = useCallback(async () => {
     if (!userId || settings == null) return;
-    setLoading(true);
+    setFetching(true);
     try {
       let query = supabase
         .from("bills")
@@ -62,7 +63,7 @@ export function useBills(options: FetchOptions = {}) {
         setExpenseItems(bills.filter((b) => !b.is_income));
       }
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren]);
 
@@ -216,6 +217,7 @@ export function useBills(options: FetchOptions = {}) {
   return {
     incomeItems,
     expenseItems,
+    fetching,
     loading,
     fetchBills,
     addBill,

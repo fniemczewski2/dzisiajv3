@@ -8,13 +8,15 @@ import { useAuth } from "../providers/AuthProvider";
 
 import LoadingState from "../components/LoadingState";
 import { useRouter } from "next/router";
-import DashboardPage from "./dashboard"
 import CalendarPage from "./calendar";
 import TasksPage from "./tasks";
+import { getAppDateTime } from "../lib/dateUtils";
+import DayView from "../components/dashboard/DayView";
 
 export default function IndexPage() {
   const { user, loadingUser } = useAuth();
   const router = useRouter();
+  const todayDate = getAppDateTime();
   const { settings, loading: loadingSettings } = useSettings();
 
   useEffect(() => {
@@ -49,7 +51,13 @@ export default function IndexPage() {
             return (<TasksPage isMain />)
           }
           case "day_view":{
-            return (<DashboardPage isMain/>)
+            return (
+            <>
+              <SEO title="Dzisiaj v3 - Twój główny pulpit" />
+              <Layout>
+                <DayView date={todayDate} isMain />
+              </Layout>
+            </>)
           }
           default:{
             return (<CalendarPage isMain />)
@@ -58,4 +66,3 @@ export default function IndexPage() {
     </>
   )
 }
-IndexPage.auth = true;

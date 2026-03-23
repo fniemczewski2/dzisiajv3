@@ -16,7 +16,6 @@ interface MovieCardProps {
   expandedNotes: Set<string>;
   toggleNotes: (id: string) => void;
   onSaveNotes: (id: string, notes: string) => Promise<void>;
-  loading: boolean;
 }
 
 export default function MovieCard({
@@ -27,7 +26,6 @@ export default function MovieCard({
   expandedNotes,
   toggleNotes,
   onSaveNotes,
-  loading,
 }: MovieCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();

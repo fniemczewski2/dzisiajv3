@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import { useToast } from "../../providers/ToastProvider";
 
 export default function ReportsPage() {
-  const { reports, loading, fetchReports, editReport, deleteReport } = useReports();
+  const { reports, fetching, fetchReports, editReport, deleteReport } = useReports();
   const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -50,12 +50,20 @@ export default function ReportsPage() {
   const handleGenerate = async (report: Report) => {
     generateReportPDF(report);
   };
-
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
+  
+  useEffect(() => {
+      let toastId: string | undefined;
+      
+      if (fetching && toast.loading) {
+        toastId = toast.loading("Ładowanie finansów...");
+      }
+  
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
+        }
+      };
+  }, [fetching, toast]);
 
   return (
     <>
@@ -209,5 +217,3 @@ export default function ReportsPage() {
     </>
   );
 }
-
-ReportsPage.auth = true;

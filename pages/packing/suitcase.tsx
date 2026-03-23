@@ -69,5 +69,3 @@ export default function SuitcasePage() {
     </>
   );
 }
-
-SuitcasePage.auth = true;

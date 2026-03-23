@@ -11,11 +11,12 @@ export function useBudgetCategories(year: number) {
   const userId = user?.id;
 
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const fetchCategories = useCallback(async () => {
-    if (!userId) { setLoading(false); return; }
-    setLoading(true);
+    if (!userId) { setFetching(false); return; }
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("budget_categories")
@@ -27,11 +28,12 @@ export function useBudgetCategories(year: number) {
       if (error) throw error;
       setCategories((data ?? []) as BudgetCategory[]);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [supabase, userId, year]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
+  
   const addCategory = useCallback(
     async (payload: {
       name: string;
@@ -42,7 +44,7 @@ export function useBudgetCategories(year: number) {
       if (categories.length >= MAX_CATEGORIES) {
         throw new Error(`Maksymalnie ${MAX_CATEGORIES} kategorii budżetu`);
       }
-      setSaving(true);
+      setLoading(true);
       try {
         const { data, error } = await supabase
           .from("budget_categories")
@@ -62,17 +64,18 @@ export function useBudgetCategories(year: number) {
         setCategories((prev) => [...prev, cat]);
         return cat;
       } finally {
-        setSaving(false);
+        setLoading(false);
       }
     },
     [supabase, userId, year, categories.length]
   );
+
   const updateCategory = useCallback(
     async (
       id: string,
       updates: Partial<Pick<BudgetCategory, "name" | "amount" | "is_monthly" | "sort_order">>
     ): Promise<void> => {
-      setSaving(true);
+      setLoading(true);
       try {
         const { error } = await supabase
           .from("budget_categories")
@@ -85,7 +88,7 @@ export function useBudgetCategories(year: number) {
           prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
         );
       } finally {
-        setSaving(false);
+        setLoading(false);
       }
     },
     [supabase, userId]
@@ -93,7 +96,7 @@ export function useBudgetCategories(year: number) {
 
   const deleteCategory = useCallback(
     async (id: string): Promise<void> => {
-      setSaving(true);
+      setLoading(true);
       try {
         const { error } = await supabase
           .from("budget_categories")
@@ -104,7 +107,7 @@ export function useBudgetCategories(year: number) {
         if (error) throw error;
         setCategories((prev) => prev.filter((c) => c.id !== id));
       } finally {
-        setSaving(false);
+        setLoading(false);
       }
     },
     [supabase, userId]
@@ -113,7 +116,7 @@ export function useBudgetCategories(year: number) {
   const reorderCategories = useCallback(
     async (reordered: BudgetCategory[]): Promise<void> => {
       setCategories(reordered); 
-      setSaving(true);
+      setLoading(true);
       try {
         await Promise.all(
           reordered.map((cat, idx) =>
@@ -125,7 +128,7 @@ export function useBudgetCategories(year: number) {
           )
         );
       } finally {
-        setSaving(false);
+        setLoading(false);
       }
     },
     [supabase, userId]
@@ -136,7 +139,7 @@ export function useBudgetCategories(year: number) {
       defaults: Array<{ name: string; amount: number; is_monthly: boolean }>
     ): Promise<void> => {
       if (!userId) throw new Error("Musisz być zalogowany");
-      setSaving(true);
+      setLoading(true);
       try {
         const rows = defaults.map((d, i) => ({
           user_id:    userId,
@@ -155,7 +158,7 @@ export function useBudgetCategories(year: number) {
         if (error) throw error;
         setCategories((data ?? []) as BudgetCategory[]);
       } finally {
-        setSaving(false);
+        setLoading(false);
       }
     },
     [supabase, userId, year]
@@ -164,7 +167,7 @@ export function useBudgetCategories(year: number) {
   return {
     categories,
     loading,
-    saving,
+    fetching,
     maxReached: categories.length >= MAX_CATEGORIES,
     fetchCategories,
     addCategory,

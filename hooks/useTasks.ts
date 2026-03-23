@@ -1,5 +1,3 @@
-// hooks/useTasks.ts
-
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Task } from "../types";
 import { EmailByIdRow } from "../types/index";
@@ -51,7 +49,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const userId = user?.id;
   const { settings } = useSettings();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [rawTasks, setRawTasks] = useState<Task[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
@@ -64,10 +63,17 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     return createSortFunction(settings.sort_order, getPriority);
   }, [settings?.sort_order]);
 
+  const tasks = useMemo(() => {
+    if (!settings) return rawTasks;
+    const sorted = [...rawTasks];
+    if (sortFunction) sorted.sort(sortFunction);
+    return sorted.sort((a, b) => (a.status === "done" ? 1 : 0) - (b.status === "done" ? 1 : 0));
+  }, [rawTasks, settings, sortFunction]);
+
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
 
-    setLoading(true);
+    setFetching(true);
     try {
       let query = supabase
         .from("tasks")
@@ -123,18 +129,14 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         };
       });
 
-      const sorted = [...tasksWithDisplayInfo];
-      if (sortFunction) sorted.sort(sortFunction);
-      sorted.sort((a, b) => (a.status === "done" ? 1 : 0) - (b.status === "done" ? 1 : 0));
-
-      setTasks(sorted);
-      return sorted;
+      setRawTasks(tasksWithDisplayInfo);
+      return tasksWithDisplayInfo;
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [
     supabase, userId,
-    settings?.show_completed, settings?.sort_order, sortFunction,
+    settings?.show_completed,
     dateFrom, dateTo,
   ]);
 
@@ -281,6 +283,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   return {
     tasks,
     loading,
+    fetching,
     fetchTasks,
     addTask,
     editTask,

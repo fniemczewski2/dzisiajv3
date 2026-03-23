@@ -1,50 +1,73 @@
-// hooks/usePlaces.ts
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Place, PlaceInsert, OpeningHours } from "../types";
 import { generatePlaceTags } from "../lib/placeTagging";
 import { useAuth } from "../providers/AuthProvider";
+import { useSettings } from "./useSettings";
 
 export function usePlaces() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
+  const { settings } = useSettings();
 
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [rawPlaces, setRawPlaces] = useState<Place[]>([]);
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const places = useMemo(() => {
+    if (!settings) return rawPlaces;
+    const sorted = [...rawPlaces];
+    if (settings.sort_places === "alphabetical") {
+      sorted.sort((a, b) => (a.name || "").localeCompare(b.name || "", "pl"));
+    } else {
+      sorted.sort(
+        (a, b) =>
+          new Date(b.updated_at || b.created_at || 0).getTime() -
+          new Date(a.updated_at || a.created_at || 0).getTime()
+      );
+    }
+    return sorted;
+  }, [rawPlaces, settings?.sort_places]);
+
   const fetchPlaces = useCallback(async () => {
-    if (!userId) { setLoading(false); return; }
-    setLoading(true);
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("places")
         .select("*")
-        .eq("user_id", userId)
-        .order("name", { ascending: true });
+        .eq("user_id", userId);
       if (error) throw error;
-      setPlaces(data || []);
+      setRawPlaces(data || []);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [userId, supabase]);
 
-  useEffect(() => { fetchPlaces(); }, [fetchPlaces]);
+  useEffect(() => {
+    fetchPlaces();
+  }, [fetchPlaces]);
 
   const addPlace = async (place: PlaceInsert) => {
     if (!userId) throw new Error("Musisz być zalogowany");
+    setLoading(true);
     const { data, error } = await supabase
       .from("places")
       .insert([{ ...place, user_id: userId }])
       .select()
       .single();
     if (error) throw error;
-    setPlaces((prev) => [data, ...prev]);
+    setRawPlaces((prev) => [data, ...prev]);
+    setLoading(false);
     return data;
   };
 
   const updatePlace = async (id: string, updates: Partial<Place>) => {
     if (!userId) throw new Error("Musisz być zalogowany");
+    setLoading(true);
     const { data, error } = await supabase
       .from("places")
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -53,19 +76,22 @@ export function usePlaces() {
       .select()
       .single();
     if (error) throw error;
-    setPlaces((prev) => prev.map((p) => (p.id === id ? data : p)));
+    setRawPlaces((prev) => prev.map((p) => (p.id === id ? data : p)));
+    setLoading(false);
     return data;
   };
 
   const deletePlace = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
+    setLoading(true);
     const { error } = await supabase
       .from("places")
       .delete()
       .eq("id", id)
       .eq("user_id", userId);
     if (error) throw error;
-    setPlaces((prev) => prev.filter((p) => p.id !== id));
+    setRawPlaces((prev) => prev.filter((p) => p.id !== id));
+    setLoading(false);
   };
 
   const extractHours = (dayText: string): string[] => {
@@ -96,18 +122,17 @@ export function usePlaces() {
       if (!response.ok) return null;
       const data = await response.json();
       const result = data.result;
-      const openingHours: OpeningHours | undefined =
-        result.opening_hours?.weekday_text
-          ? {
-              monday:    extractHours(result.opening_hours.weekday_text[0]),
-              tuesday:   extractHours(result.opening_hours.weekday_text[1]),
-              wednesday: extractHours(result.opening_hours.weekday_text[2]),
-              thursday:  extractHours(result.opening_hours.weekday_text[3]),
-              friday:    extractHours(result.opening_hours.weekday_text[4]),
-              saturday:  extractHours(result.opening_hours.weekday_text[5]),
-              sunday:    extractHours(result.opening_hours.weekday_text[6]),
-            }
-          : undefined;
+      const openingHours: OpeningHours | undefined = result.opening_hours?.weekday_text
+        ? {
+            monday: extractHours(result.opening_hours.weekday_text[0]),
+            tuesday: extractHours(result.opening_hours.weekday_text[1]),
+            wednesday: extractHours(result.opening_hours.weekday_text[2]),
+            thursday: extractHours(result.opening_hours.weekday_text[3]),
+            friday: extractHours(result.opening_hours.weekday_text[4]),
+            saturday: extractHours(result.opening_hours.weekday_text[5]),
+            sunday: extractHours(result.opening_hours.weekday_text[6]),
+          }
+        : undefined;
       return {
         phone_number: result.formatted_phone_number,
         website: result.website,
@@ -129,14 +154,22 @@ export function usePlaces() {
       .from("places")
       .select("*")
       .eq("user_id", userId)
-      .gte("lat", lat - threshold).lte("lat", lat + threshold)
-      .gte("lng", lng - threshold).lte("lng", lng + threshold);
+      .gte("lat", lat - threshold)
+      .lte("lat", lat + threshold)
+      .gte("lng", lng - threshold)
+      .lte("lng", lng + threshold);
 
     if (coordMatches?.length) {
-      return coordMatches.find((p: Place) => p.name.toLowerCase() === name.toLowerCase()) || coordMatches[0];
+      return (
+        coordMatches.find((p: Place) => p.name.toLowerCase() === name.toLowerCase()) ||
+        coordMatches[0]
+      );
     }
     const { data: nameMatches } = await supabase
-      .from("places").select("*").eq("user_id", userId).ilike("name", name);
+      .from("places")
+      .select("*")
+      .eq("user_id", userId)
+      .ilike("name", name);
     return nameMatches?.length ? nameMatches[0] : null;
   };
 
@@ -146,7 +179,7 @@ export function usePlaces() {
     autoTag = true
   ): Promise<number> => {
     if (!userId) throw new Error("Musisz być zalogowany");
-
+    setLoading(true);
     const features = jsonData.features || [];
     let importedCount = 0;
     let updatedCount = 0;
@@ -165,7 +198,9 @@ export function usePlaces() {
       const baseData: any = {
         name: placeName,
         address: feature.properties.location.address || undefined,
-        lat, lng, user_id: userId,
+        lat,
+        lng,
+        user_id: userId,
       };
 
       let googleData = null;
@@ -181,13 +216,21 @@ export function usePlaces() {
 
       let tags: string[] = [];
       if (autoTag) {
-        try { tags = await generatePlaceTags(placeName, googleData); } catch { tags = []; }
+        try {
+          tags = await generatePlaceTags(placeName, googleData);
+        } catch {
+          tags = [];
+        }
       }
 
       if (existingPlace) {
         const { error } = await supabase
           .from("places")
-          .update({ ...baseData, tags: tags.length ? tags : existingPlace.tags, updated_at: new Date().toISOString() })
+          .update({
+            ...baseData,
+            tags: tags.length ? tags : existingPlace.tags,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", existingPlace.id);
         if (!error) updatedCount++;
       } else {
@@ -197,9 +240,20 @@ export function usePlaces() {
     }
 
     setMessage(`Import zakończony. Dodano: ${importedCount}, Zaktualizowano: ${updatedCount}`);
+    setLoading(false);
     await fetchPlaces();
     return importedCount + updatedCount;
   };
 
-  return { places, loading, message, addPlace, updatePlace, deletePlace, importFromGoogleMaps, refreshPlaces: fetchPlaces };
+  return {
+    places,
+    loading,
+    fetching,
+    message,
+    addPlace,
+    updatePlace,
+    deletePlace,
+    importFromGoogleMaps,
+    refreshPlaces: fetchPlaces,
+  };
 }

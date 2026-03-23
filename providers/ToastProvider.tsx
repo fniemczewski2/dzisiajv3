@@ -38,7 +38,10 @@ interface ToastContextValue {
     success: (message: string) => void;
     error:   (message: string) => void;
     info:    (message: string) => void;
-    loading: () => void;
+    // ZMIANA: Loading teraz przyjmuje argument wiadomości i ZWRACA string (ID)
+    loading: (message?: string) => string;
+    // ZMIANA: Dodano metodę dismiss pozwalającą zamknąć konkretnego toasta
+    dismiss: (id: string) => void;
     confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
   };
 }
@@ -60,14 +63,14 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
   success: "bg-green-50 dark:bg-green-900/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300",
   error:   "bg-red-50 dark:bg-red-900/80 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300",
   info:    "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
-  loading:    "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
+  loading: "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
 };
 
 const VARIANT_ICONS: Record<ToastVariant, React.ReactNode> = {
   success: <CheckCircle className="w-4 h-4 shrink-0" />,
   error:   <XCircle className="w-4 h-4 shrink-0" />,
   info:    <Info className="w-4 h-4 shrink-0" />,
-  loading:   <Loader2 className="w-4 h-4 shrink-0 animate-spin text-primary" />
+  loading: <Loader2 className="w-4 h-4 shrink-0 animate-spin text-primary" />
 };
 
 function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove: (id: string) => void }) {
@@ -134,11 +137,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "REMOVE", id });
   }, []);
 
+  // ZMIANA: addNotification przyjmuje trzeci opcjonalny parametr autoDismiss
   const addNotification = useCallback(
-    (message: string, variant: ToastVariant) => {
+    (message: string, variant: ToastVariant, autoDismiss: boolean = true) => {
       const id = `toast-${++counter.current}`;
       dispatch({ type: "ADD", toast: { kind: "notification", id, message, variant } });
-      setTimeout(() => remove(id), AUTO_DISMISS_MS);
+      
+      if (autoDismiss) {
+        setTimeout(() => remove(id), AUTO_DISMISS_MS);
+      }
+      
+      return id; // Zwracamy ID na wypadek ręcznego usuwania (jak w przypadku Loading)
     },
     [remove]
   );
@@ -163,11 +172,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  // ZMIANA: Skonstruowany na nowo obiekt "toast"
   const toast = {
-    success: (m: string) => addNotification(m, "success"),
-    error:   (m: string) => addNotification(m, "error"),
-    info:    (m: string) => addNotification(m, "info"),
-    loading: () => addNotification("Ładowanie...", "loading"),
+    success: (m: string) => { addNotification(m, "success"); },
+    error:   (m: string) => { addNotification(m, "error"); },
+    info:    (m: string) => { addNotification(m, "info"); },
+    // loading ZWRACA ID toasta, i NIE znika automatycznie (autoDismiss = false)
+    loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
+    // Metoda do usuwania ręcznego
+    dismiss: (id: string) => remove(id),
     confirm,
   };
 
