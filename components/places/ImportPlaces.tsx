@@ -1,6 +1,6 @@
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import React, { useState } from "react";
-import { CancelButton } from "../CommonButtons";
+import { CloseButton } from "../CommonButtons";
 
 interface ImportPlacesProps {
   onImport: (jsonData: any, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;
@@ -180,7 +180,7 @@ export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps
           />
         </label>
         
-        <CancelButton onClick={onCollapse} />
+        <CloseButton onClick={onCollapse} />
       </div>
     </div>
   );

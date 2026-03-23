@@ -131,12 +131,6 @@ export default function MovieWatchlist({
     });
   };
 
-  if (loading && movies.length === 0) {
-    return (
-        <LoadingState/>
-    );
-  }
-
   return (
     <>
       <div className="flex justify-between items-center mb-6 mt-2">
@@ -186,7 +180,6 @@ export default function MovieWatchlist({
               expandedNotes={expandedNotes}
               toggleNotes={toggleNotes}
               onSaveNotes={handleSaveNotes}
-              loading
             />
           ))
         )}

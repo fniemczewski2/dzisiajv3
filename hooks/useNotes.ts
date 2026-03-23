@@ -1,5 +1,3 @@
-// hooks/useNotes.ts
-
 import { useState, useEffect, useCallback } from "react";
 import { Note } from "../types";
 import { getAppDateTime } from "../lib/dateUtils";
@@ -9,31 +7,21 @@ export function useNotes() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [notes, setNotes] = useState<Note[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchNotes = useCallback(async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("notes")
         .select("*")
         .eq("user_id", userId);
       if (error) throw error;
-
-      const sorted = ((data as any[]) || []).sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        if (a.archived && !b.archived) return 1;
-        if (!a.archived && b.archived) return -1;
-        return (
-          new Date(b.updated_at || b.created_at).getTime() -
-          new Date(a.updated_at || a.created_at).getTime()
-        );
-      });
-      setNotes(sorted);
+      setNotes((data as Note[]) || []);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [userId, supabase]);
 
@@ -101,6 +89,7 @@ export function useNotes() {
       setLoading(false);
     }
   };
+
   const toggleArchive = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -134,5 +123,5 @@ export function useNotes() {
     fetchNotes();
   }, [fetchNotes]);
 
-  return { notes, loading, fetchNotes, addNote, editNote, deleteNote, togglePin, toggleArchive };
+  return { notes, loading, fetching, fetchNotes, addNote, editNote, deleteNote, togglePin, toggleArchive };
 }

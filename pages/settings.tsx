@@ -98,5 +98,3 @@ export default function SettingsPage() {
     </>
   );
 }
-
-SettingsPage.auth = true;

@@ -1,5 +1,3 @@
-// hooks/useShoppingLists.ts
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "../types";
 import { useAuth } from "../providers/AuthProvider";
@@ -10,13 +8,14 @@ export function useShoppingLists() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [lists, setLists] = useState<ShoppingList[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
 
   const fetchShoppingLists = useCallback(async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("shopping_lists")
@@ -67,13 +66,13 @@ export function useShoppingLists() {
         }) as ShoppingList[]
       );
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
-
   }, [userId, supabase]);
 
   const addShoppingList = useCallback(
     async (name: string, shared_with_email: string | null): Promise<boolean> => {
+      setLoading(true);
       if (lists.length >= MAX_LISTS) return false;
 
       let sharedWithUuid: string | null = null;
@@ -83,13 +82,17 @@ export function useShoppingLists() {
         });
         sharedWithUuid = foundId || null;
       }
+      try {
+        const { error } = await supabase
+          .from("shopping_lists")
+          .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }]);
 
-      const { error } = await supabase
-        .from("shopping_lists")
-        .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }]);
-
-      if (error) throw error;
-      await fetchShoppingLists();
+        if (error) throw error;
+      }
+      finally {
+        fetchShoppingLists();
+        setLoading(false);
+      }
       return true;
     },
     [lists.length, supabase, userId, fetchShoppingLists]
@@ -111,20 +114,28 @@ export function useShoppingLists() {
         finalUpdates.shared_with_id = null;
       }
     }
+    try {
+      const { error } = await supabase
+        .from("shopping_lists")
+        .update(finalUpdates)
+        .eq("id", id);
 
-    const { error } = await supabase
-      .from("shopping_lists")
-      .update(finalUpdates)
-      .eq("id", id);
-
-    if (error) throw error;
-    await fetchShoppingLists();
+      if (error) throw error;  
+    } finally {
+      fetchShoppingLists();
+      setLoading(false);
+    }
   };
 
   const deleteShoppingList = async (id: string) => {
-    const { error } = await supabase.from("shopping_lists").delete().eq("id", id);
-    if (error) throw error;
-    setLists((prev) => prev.filter((l) => l.id !== id));
+    try {
+      const { error } = await supabase.from("shopping_lists").delete().eq("id", id);
+      if (error) throw error;
+      setLists((prev) => prev.filter((l) => l.id !== id));
+    } finally {
+      fetchShoppingLists();
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -134,6 +145,7 @@ export function useShoppingLists() {
   return {
     lists,
     loading,
+    fetching,
     maxLists: MAX_LISTS,
     fetchShoppingLists,
     addShoppingList,

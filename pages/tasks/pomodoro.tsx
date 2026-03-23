@@ -181,5 +181,3 @@ export default function PomodoroPage() {
     </>
   );
 }
-
-PomodoroPage.auth = true;

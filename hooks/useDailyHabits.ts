@@ -27,11 +27,12 @@ export function useDailyHabits(date?: string) {
   const targetDate = date ?? today;
 
   const [habits, setHabits] = useState<DailyHabits | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const fetchHabits = async () => {
     if (!userId) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("daily_habits")
@@ -50,13 +51,13 @@ export function useDailyHabits(date?: string) {
     } catch {
       setHabits(getDefaultHabits(targetDate, userId));
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   };
 
   const toggleHabit = async (key: HabitKey) => {
     if (!habits || !userId) return;
-
+    setLoading(true);
     const prevValue = habits[key] as boolean;
     const newValue = !prevValue;
 
@@ -77,12 +78,14 @@ export function useDailyHabits(date?: string) {
     } catch (err) {
       setHabits((h) => (h ? { ...h, [key]: prevValue } : h));
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const updateWater = async (amount: number) => {
     if (!habits || !userId) return;
-
+    setLoading(true);
     const validAmount = isNaN(amount) ? 0 : amount;
     const prevAmount = habits.water_amount;
 
@@ -102,6 +105,8 @@ export function useDailyHabits(date?: string) {
     } catch (err) {
       setHabits((h) => (h ? { ...h, water_amount: prevAmount } : h));
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,5 +139,5 @@ export function useDailyHabits(date?: string) {
     fetchHabits();
   }, [userId, targetDate]);
 
-  return { habits, loading, fetchHabits, toggleHabit, updateWater, updateSpending };
+  return { habits, loading, fetching, fetchHabits, toggleHabit, updateWater, updateSpending };
 }

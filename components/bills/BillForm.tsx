@@ -23,7 +23,7 @@ export default function BillForm({
   onChange,
   onCancel,
   initial,
-  categories,
+  categories
 }: BillFormProps) {
   const isEdit = !!initial;
   const { user } = useAuth();

@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
@@ -14,10 +14,9 @@ import { useQuickAction } from "../hooks/useQuickAction";
 import { useMoods } from "../hooks/useMoods";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
 import GoogleCalendarSync from "../components/calendar/GoogleCalendarSync";
-import DashboardPage from "./dashboard";
+import { useToast } from "../providers/ToastProvider";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
-  loading: () => <LoadingState />,
   ssr: false,
 });
 
@@ -29,12 +28,13 @@ export default function CalendarPage({isMain}: {isMain: boolean}) {
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { events, loading, fetchEvents, deleteEvent, editEvent } = useEvents(rangeStart, rangeEnd);
+  const { events, loading, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
   const { tasks } = useTasks(selectedDateStr ?? undefined, selectedDateStr ?? undefined);
   const { moods } = useMoods();
+  const { toast } = useToast();
 
   const goToPrevMonth = () =>
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -49,36 +49,36 @@ export default function CalendarPage({isMain}: {isMain: boolean}) {
     setShowForm(false);
   }, []);
 
-  const tasksForDay = useMemo(() => {
-    if (!selectedDateStr) return [];
-    return tasks.filter((task) => task.due_date === selectedDateStr);
-  }, [tasks, selectedDateStr]);
-
   useQuickAction({ onActionAdd: () => setShowForm(true) });
+    
+    useEffect(() => {
+        let toastId: string | undefined;
+        
+        if (fetching && toast.loading) {
+          toastId = toast.loading("Ładowanie finansów...");
+        }
+    
+        return () => {
+          if (toastId && toast.dismiss) {
+            toast.dismiss(toastId);
+          }
+        };
+    }, [fetching, toast]);
 
   return (
     <>
       <Head>
         <title>Kalendarz - Dzisiaj</title>
       </Head>
-      <Layout>
+      <Layout>      
+        
         {selectedDateStr ? (
           <>
           <CalendarDayDetails
             selectedDate={selectedDateStr}
-            tasks={tasksForDay}
-            events={events} 
-            onEventsChange={fetchEvents}
             onBack={() => setSelectedDate(null)}
-            onEditEvent={editEvent}
-            onDeleteEvent={deleteEvent}
-            loading={loading}
-            isMain={isMain}
           />
-          <DashboardPage isMain={false}/>
           </>
-        ) : loading && events.length === 0 ? (
-          <LoadingState fullScreen />
         ) : (
         <>
           <div className="flex justify-between items-center mb-6 gap-2">
@@ -89,10 +89,12 @@ export default function CalendarPage({isMain}: {isMain: boolean}) {
           {showForm && (
             <div className="mb-6 animate-in fade-in slide-in-from-top-4">
               <EventForm
+                addEvent={addEvent}
                 currentDate={currentDate}
                 selectedDate={selectedDate}
                 onEventsChange={handleAfterAdd}
                 onCancel={handleCancelForm}
+                loading={loading}
               />
             </div>
           )}

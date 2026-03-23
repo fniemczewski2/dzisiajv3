@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { format } from "date-fns";
@@ -8,13 +8,12 @@ import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { Schema, ScheduleItem } from "../../types";
 import { getAppDateTime } from "../../lib/dateUtils";
 import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
-import LoadingState from "../../components/LoadingState";
 import { AddButton, EditButton, DeleteButton } from "../../components/CommonButtons";
 import NoResultsState from "../../components/NoResultsState";
 import { useToast } from "../../providers/ToastProvider";
 
 export default function DaySchemaPage() {
-  const { schemas, loading, refresh, deleteSchema } = useDaySchemas();
+  const { schemas, loading, fetching, fetchSchemas, deleteSchema } = useDaySchemas();
   const { toast } = useToast();
   const [editing, setEditing] = useState<Schema | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -56,11 +55,21 @@ export default function DaySchemaPage() {
     }
   };
 
-    if (loading) {
-      return (
-          <LoadingState fullScreen/>
-      );
-    }
+
+  
+  useEffect(() => {
+      let toastId: string | undefined;
+      
+      if (fetching && toast.loading) {
+        toastId = toast.loading("Ładowanie finansów...");
+      }
+  
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
+        }
+      };
+  }, [fetching, toast]);
   
 
   return (
@@ -85,7 +94,7 @@ export default function DaySchemaPage() {
               initialSchema={editing}
               onCancel={closeForm}
               onSchemaSaved={() => {
-                refresh();
+                fetchSchemas();
                 closeForm();
               }}
             />
@@ -149,5 +158,3 @@ function CurrentTimeLine({
     </div>
   );
 }
-
-DaySchemaPage.auth = true;

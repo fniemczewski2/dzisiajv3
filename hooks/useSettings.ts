@@ -66,7 +66,6 @@ const DEFAULT_SETTINGS: Settings = {
 
 export function useSettings() {
   const { user, loadingUser, supabase } = useAuth();
-  const router = useRouter();
   const userId = user?.id;
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -74,21 +73,16 @@ export function useSettings() {
   const [saving, setSaving] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
-  // Ref to latest settings — prevents stale closures in callbacks
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
   useEffect(() => {
-    // Auth still resolving — wait.
     if (loadingUser) return;
 
-    // Auth done, no user — stop loading, keep defaults.
     if (!userId) {
       setLoading(false);
       return;
     }
-
-    // Auth done, user exists — fetch their settings.
     let cancelled = false;
 
     const loadSettings = async () => {
@@ -154,20 +148,15 @@ export function useSettings() {
     return () => { cancelled = true; };
   }, [loadingUser, userId, supabase]);
 
-  const getPayloadWithStringifiedJSON = (currentSettings: Settings) => ({
-    ...currentSettings,
-    users: JSON.stringify(currentSettings.users),
-    favorite_stops: JSON.stringify(currentSettings.favorite_stops),
-    mood_options: JSON.stringify(currentSettings.mood_options),
-  });
-
   const saveSettings = useCallback(async () => {
     if (!userId) return { error: "No user" };
     setSaving(true);
-    const payload = getPayloadWithStringifiedJSON(settingsRef.current);
+    
+    // Używamy po prostu settingsRef.current
     const { error } = await supabase
       .from("settings")
-      .upsert({ user_id: userId, ...payload }, { onConflict: "user_id" });
+      .upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" });
+      
     setSaving(false);
     return { error };
   }, [supabase, userId]);
@@ -178,11 +167,11 @@ export function useSettings() {
 
     const updated = { ...settingsRef.current, ...partialSettings };
     setSettings(updated);
-
-    const payload = getPayloadWithStringifiedJSON(updated);
+    window.dispatchEvent(new CustomEvent('settingsUpdated', { detail: updated }));
+    
     const { error } = await supabase
       .from("settings")
-      .upsert({ user_id: userId, ...payload }, { onConflict: "user_id" });
+      .upsert({ user_id: userId, ...updated }, { onConflict: "user_id" });
 
     setSaving(false);
     if (error) throw error;
@@ -270,7 +259,7 @@ export function useSettings() {
       window.location.href = "/start";
     }
   };
-  
+
   return {
     settings,
     setSettings,

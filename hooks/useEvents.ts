@@ -8,13 +8,14 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [events, setEvents] = useState<Event[]>([]);
+  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
 
   const fetchEvents = useCallback(async () => {
     if (!userId || !rangeStart || !rangeEnd) return;
-    setLoading(true);
+    setFetching(true);
     try {
       const { data, error } = await supabase
         .from("events")
@@ -67,7 +68,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       const end   = new Date(rangeEnd   + "T23:59:59");
       setEvents(expandRepeatingEvents(eventsWithDisplayInfo, start, end));
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
 
   }, [supabase, userId, rangeStart, rangeEnd]);
@@ -138,5 +139,5 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     }
   };
 
-  return { events, loading, addEvent, editEvent, deleteEvent, fetchEvents };
+  return { events, loading, fetching, addEvent, editEvent, deleteEvent, fetchEvents };
 }

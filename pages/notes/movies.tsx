@@ -1,19 +1,28 @@
 // pages/movies.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import MovieWatchlist from "../../components/movies/MovieList";
-import LoadingState from "../../components/LoadingState";
 import { useMovies } from "../../hooks/useMovies";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function MoviesPage() {
-  const { movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
+  const { movies, fetching, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
+  const { toast } = useToast();
 
-  if (loading) {
-    return (
-      <LoadingState fullScreen/>
-    );
-  }
+  useEffect(() => {
+      let toastId: string | undefined;
+      
+      if (fetching && toast.loading) {
+        toastId = toast.loading("Ładowanie finansów...");
+      }
+  
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
+        }
+      };
+  }, [fetching, toast]);
   
   return (
     <>

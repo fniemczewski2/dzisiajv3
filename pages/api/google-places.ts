@@ -13,17 +13,13 @@ export default async function handler(
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // 1. Initialize the Supabase client using the request cookies
   const supabase = createServerSupabase(req, res);
 
-  // 2. Safely get the user session
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
 
-  // If no user or an error occurred during auth check, reject the request
   if (authError || !user) {
     return res
       .status(401)

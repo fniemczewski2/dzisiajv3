@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { Clapperboard, MapPin } from "lucide-react";
@@ -8,13 +8,14 @@ import { useNotes } from "../../hooks/useNotes";
 import NoteForm from "../../components/notes/NoteForm";
 import NoteList from "../../components/notes/NoteList";
 import { useRouter } from "next/router";
-import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function NotesPage() {
-  const { notes, loading, fetchNotes } = useNotes();
+  const { notes, fetching, fetchNotes } = useNotes();
   const router = useRouter();
+  const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
@@ -25,11 +26,19 @@ export default function NotesPage() {
     onActionAdd: () => setShowForm(true),
   });
 
-  if (loading) {
-    return (
-        <LoadingState fullScreen/>
-    );
-  }
+  useEffect(() => {
+    let toastId: string | undefined;
+    
+    if (fetching && toast.loading) {
+      toastId = toast.loading("Ładowanie finansów...");
+    }
+
+    return () => {
+      if (toastId && toast.dismiss) {
+        toast.dismiss(toastId);
+      }
+    };
+  }, [fetching, toast]);
 
   return (
     <>
@@ -90,5 +99,3 @@ export default function NotesPage() {
     </>
   );
 }
-
-NotesPage.auth = true;

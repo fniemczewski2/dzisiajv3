@@ -64,7 +64,7 @@
   }
   
   .form-card {
-    @apply bg-card border border-gray-200 dark:border-gray-700 p-4 md:p-6 rounded-xl shadow-sm transition-colors flex flex-col gap-2 md:gap-4;
+    @apply bg-card border border-gray-200 dark:border-gray-700 p-4 md:p-6 rounded-xl shadow-sm transition-colors flex flex-col gap-2 md:gap-4 max-w-lg animate-fadeIn;
   }
 
   .form-label {

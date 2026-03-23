@@ -1,4 +1,3 @@
-// components/tasks/TaskItem.tsx
 "use client";
 
 import React, { useState, useRef, useEffect, memo } from "react";
@@ -45,7 +44,6 @@ const TaskItem = memo(function TaskItem({ task, acceptTask, setDoneTask, editTas
   const CELEBRATION_MS = 2500;
 
   const titleRef = useRef<HTMLInputElement>(null);
-
 
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -117,20 +115,41 @@ const TaskItem = memo(function TaskItem({ task, acceptTask, setDoneTask, editTas
   };
 
   const handleComplete = async () => {
-    setDoneTask(task.id);
-    setShowCelebration(true);
-    setTimeout(async () => {
-      setShowCelebration(false);
-      onTasksChange();
-    }, CELEBRATION_MS);
+    try {
+      setDoneTask(task.id);
+      toast.success("Zadanie wykonane!");
+      setShowCelebration(true);
+      setTimeout(async () => {
+        setShowCelebration(false);
+        onTasksChange();
+      }, CELEBRATION_MS);
+    } catch {
+      toast.error("Wystąpił błąd podczas kończenia zadania.");
+    }
   };
 
   const handleReschedule = async (days: number) => {
     setIsRescheduling(true);
-    const newDate = format(addDays(parseISO(task.due_date), days), "yyyy-MM-dd");
-    editTask({ ...task, due_date: newDate });
-    onTasksChange();
-    setIsRescheduling(false);
+    try {
+      const newDate = format(addDays(parseISO(task.due_date), days), "yyyy-MM-dd");
+      editTask({ ...task, due_date: newDate });
+      toast.success("Zadanie przełożone.");
+      onTasksChange();
+    } catch {
+      toast.error("Wystąpił błąd podczas przekładania zadania.");
+    } finally {
+      setIsRescheduling(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    try {
+      acceptTask(task.id);
+      toast.success("Zadanie zaakceptowane.");
+      onTasksChange();
+    } catch {
+      toast.error("Wystąpił błąd podczas akceptacji.");
+    }
   };
 
   const stopTimerAndSave = async () => {
@@ -138,11 +157,16 @@ const TaskItem = memo(function TaskItem({ task, acceptTask, setDoneTask, editTas
     setTimerPaused(false);
     setIsTimerActive(false);
     if (timerSeconds >= 60) {
-      const minutes = Math.floor(timerSeconds / 60);
-      const newNote = `Czas: ${minutes} min`;
-      const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
-      await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
-      onTasksChange();
+      try {
+        const minutes = Math.floor(timerSeconds / 60);
+        const newNote = `Czas: ${minutes} min`;
+        const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
+        await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
+        toast.success("Zapisano czas pracy.");
+        onTasksChange();
+      } catch {
+        toast.error("Nie udało się zapisać czasu z timera.");
+      }
     }
     setTimerSeconds(0);
   };
@@ -181,7 +205,6 @@ const TaskItem = memo(function TaskItem({ task, acceptTask, setDoneTask, editTas
       </div>
     );
   }
-
 
   if (isEditing) {
     return (
@@ -337,10 +360,7 @@ const TaskItem = memo(function TaskItem({ task, acceptTask, setDoneTask, editTas
           ) : task.user_id !== userId && task.status === "waiting_for_acceptance" ? (
             <>
               <button
-                onClick={async () => {
-                  acceptTask(task.id);
-                  onTasksChange();
-                }}
+                onClick={handleAccept}
                 className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
               >
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />

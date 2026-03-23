@@ -1,6 +1,6 @@
 // pages/bills/budget.tsx
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -72,6 +72,22 @@ export default function BudgetPage() {
       setSaving(false);
     }
   };
+
+  const isLoading = loading || summaryLoading || catsLoading;
+
+  useEffect(() => {
+    let toastId: string | undefined;
+    
+    if (isLoading && toast.loading) {
+      toastId = toast.loading("Ładowanie finansów...");
+    }
+
+    return () => {
+      if (toastId && toast.dismiss) {
+        toast.dismiss(toastId);
+      }
+    };
+  }, [isLoading, toast]);
 
   return (
     <>
@@ -146,5 +162,3 @@ export default function BudgetPage() {
     </>
   );
 }
-
-BudgetPage.auth = true;

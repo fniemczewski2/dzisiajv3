@@ -19,7 +19,6 @@ export function createServerSupabase(
               res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
             })
           } catch (error) {
-            // Może zostać zignorowane przy Middleware
           }
         },
       },

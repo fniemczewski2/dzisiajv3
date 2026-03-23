@@ -12,8 +12,11 @@ import {
   Pin,
   Eye,
   Download,
-  X
+  X,
+  Plus,
+  LucideIcon
 } from "lucide-react";
+import { NextRouter, Router, useRouter } from "next/router";
 
 interface ButtonProps {
   onClick?: () => void;
@@ -21,6 +24,15 @@ interface ButtonProps {
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
   small?: boolean;
+}
+
+interface AddSpecificButtonProps {
+  path?: string;
+  action?: () => void;
+  Icon: LucideIcon;
+  label: string;
+  title?: string;
+  router?: NextRouter
 }
 
 interface FormButtonsProps {
@@ -60,7 +72,7 @@ export const SaveButton = ({ onClick, loading, disabled, type = "submit", small 
     type={type}
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
+    className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
   >
     {!small && "Zapisz"}
     <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
@@ -80,7 +92,7 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Butt
 );
 
 export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false }: FormButtonsProps) => (
-  <div className={`${small ? "" : "pt-4 border-t border-gray-100 dark:border-gray-800 flex-col md:flex-row"}, flex items-center md:justify-end gap-2 `}>
+  <div className={`${small ? "" : "pt-4 border-t border-gray-100 dark:border-gray-800 flex-col md:flex-row"} flex items-center md:justify-end gap-2 `}>
     <SaveButton
       onClick={onClickSave}
       disabled={loading || disabled}
@@ -224,3 +236,28 @@ export const PdfButton = ({ onClick }: { onClick: () => void }) => (
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">PDF</span>
   </button>
 );
+
+export const AddSpecificButton = ({ path, Icon, title, label, action, router }: AddSpecificButtonProps) => {
+  return (
+  <button
+    key={path}
+    onClick={() => {
+        if (path && router) {
+          router.push(path);
+        }
+        if (action) {
+          action();
+        }
+      }}
+    title={title}
+    className="group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
+  >        
+      <div className="relative top-0 w-5 h-5 sm:h-6 sm:w-6">
+        <Icon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+        <Plus className="absolute left-3 top-2 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-surface rounded-full"/>
+      </div>
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
+      {label}
+    </span>
+  </button>
+)};

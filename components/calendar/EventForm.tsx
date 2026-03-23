@@ -4,39 +4,35 @@ import React, { useState, SyntheticEvent, useEffect } from "react";
 import { Upload } from "lucide-react";
 import { Event } from "../../types";
 import { useSettings } from "../../hooks/useSettings";
-import { useEvents } from "../../hooks/useEvents";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format } from "date-fns";
 import ICAL from "ical.js";
-import LoadingState from "../LoadingState";
 import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import {FormButtons } from "../CommonButtons";
 
 interface EventsFormProps {
   onEventsChange: () => void;
+  addEvent: (event: Event & { shared_with_email?: string }) => Promise<void>;
   onCancel?: () => void;
   currentDate: Date | null;
   selectedDate: Date | null;
+  loading: boolean;
 }
 
 export default function EventForm({
   onEventsChange,
+  addEvent,
   onCancel,
   currentDate = getAppDateTime(),
   selectedDate,
+  loading
 }: EventsFormProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
   const { toast } = useToast();
-
-  const base = currentDate ?? getAppDateTime();
-  const rangeStart = format(startOfMonth(base), "yyyy-MM-dd");
-  const rangeEnd   = format(endOfMonth(base),   "yyyy-MM-dd");
-  const { addEvent, loading } = useEvents(rangeStart, rangeEnd);
-
   const userOptions = settings?.users ?? [];
 
   const [title, setTitle] = useState("");
@@ -125,19 +121,15 @@ export default function EventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-card max-w-lg">
+    <form onSubmit={handleSubmit} className="form-card">
       <div>
-        <label htmlFor="title" className="form-label">Tytuł:</label>
+        <label htmlFor="title" className="form-label">Tytuł wydarzenia:</label>
         <input id="title" type="text" value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="input-field" required disabled={loading} />
+          className="input-field" required disabled={loading}
+          placeholder="Wydarzenie"/>
       </div>
-      <div>
-        <label htmlFor="desc" className="form-label">Opis:</label>
-        <textarea id="desc" value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="input-field" rows={2} disabled={loading} />
-      </div>
+
       <div className="flex items-center">
         <input id="allDay" type="checkbox" checked={allDay}
           onChange={(e) => setAllDay(e.target.checked)}
@@ -188,14 +180,20 @@ export default function EventForm({
             <option value="yearly">Co rok</option>
           </select>
         </div>
+
       </div>
-      <div className="flex space-x-2 items-center pt-2">
+      <div>
+        <label htmlFor="desc" className="form-label">Opis:</label>
+        <textarea id="desc" value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="input-field" rows={2} disabled={loading} 
+          placeholder="Dodatkowe informacje..." />
+      </div>
         <FormButtons onClickClose={onCancel} loading={loading} />
-        <label className="px-3 py-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex items-center gap-2 cursor-pointer transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-50 text-sm font-medium">
-          .ics <Upload className="w-4 h-4" />
+        <label className="flex items-center justify-center text-sm font-medium text-textMuted hover:underline transition-colors px-2 py-1 disabled:opacity-50">
+          .ics <Upload className="w-4 h-4 ml-2" />
           <input type="file" accept=".ics" onChange={handleFileUpload} className="hidden" disabled={loading} />
         </label>
-      </div>
     </form>
   );
 }
