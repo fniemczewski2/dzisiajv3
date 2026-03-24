@@ -10,6 +10,8 @@ interface Props {
   editTask: (task: Task) => void;
   deleteTask: (id: string) => void;
   onTasksChange: () => void;
+  userId: string;
+  userOptions: string[];
 }
 
 export default function TaskList({
@@ -19,6 +21,8 @@ export default function TaskList({
   editTask,
   deleteTask,
   onTasksChange,
+  userId,
+  userOptions
 }: Props) {
 
   if (tasks.length === 0) {
@@ -39,6 +43,8 @@ export default function TaskList({
               editTask={editTask}
               deleteTask={deleteTask}
               onTasksChange={onTasksChange}
+              userId={userId}
+              userOptions={userOptions}
             />
           </li>
         ))}

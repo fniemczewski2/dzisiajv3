@@ -168,7 +168,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full flex justify-center">
+    <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full max-w-[1600px] flex justify-center">
       <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-center gap-3">
 
         <div className="shrink-0 flex flex-1 items-center">

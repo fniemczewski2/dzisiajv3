@@ -105,25 +105,37 @@ export default function Reminders({ addTask, onTasksChange }: RemindersProps) {
     }
     if (nextDate <= todayDate) nextDate = getAppDateTime();
 
+    // ZMIANA: Bezpieczne formatowanie daty unikające błędu stref czasowych
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const localDateString = `${nextDate.getFullYear()}-${pad(nextDate.getMonth() + 1)}-${pad(nextDate.getDate())}`;
+
+    // ZMIANA: Usunięto 'id: ""', baza wygeneruje je sama
     const newTask = {
-      id: "",
       title: reminder.tytul,
       for_user_id: userId,
       category: "cykliczne",
       priority: 1,
       description: `Cykliczne (co ${reminder.powtarzanie} dni)`,
-      due_date: nextDate.toISOString().split("T")[0],
+      due_date: localDateString,
       status: "pending",
       user_id: userId,
     } as Task;
 
-    await withRetry(
-      () => addTask(newTask),
-      toast,
-      { context: "Reminders.addTask", userId }
-    );
-    toast.success("Utworzono zadanie na podstawie przypomnienia.");
-    onTasksChange?.();
+    try {
+      await withRetry(
+        () => addTask(newTask),
+        toast,
+        { context: "Reminders.addTask", userId }
+      );
+      
+      // ZMIANA: Po dodaniu zadania oznaczamy od razu przypomnienie jako wykonane w danym cyklu
+      await completeReminder(reminder.id);
+      
+      toast.success("Utworzono zadanie na podstawie przypomnienia.");
+      onTasksChange?.();
+    } catch (e) {
+      // Obsługa błędu jest realizowana w withRetry i toastach.
+    }
   };
 
   return (

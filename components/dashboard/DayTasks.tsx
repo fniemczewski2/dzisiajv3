@@ -1,6 +1,4 @@
-// components/dashboard/DayTasks.tsx
 import React, { useEffect } from "react";
-import LoadingState from "../LoadingState";
 import NoResultsState from "../NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 
@@ -13,9 +11,10 @@ interface DayTasksProps {
   acceptTask: (id: string) => void;
   setDoneTask: (id: string) => void;
   deleteTask: (id: string) => void;
-  removeFromSchedule: (id: string) => void;
   fetchTasks: () => void; 
   editTask: (task: any) => void;
+  userId: string;
+  userOptions: string[];
 }
 
 export const DayTasks = React.memo(({
@@ -24,54 +23,42 @@ export const DayTasks = React.memo(({
   acceptTask,
   setDoneTask,
   deleteTask,
-  removeFromSchedule,
   fetchTasks,
-  editTask
+  editTask,
+  userId,
+  userOptions
 }: DayTasksProps) => {
-
   const { toast } = useToast();
 
-  // ZMIANA: Obsługa toast.loading w tle
   useEffect(() => {
     let toastId: string | undefined;
-    
-    if (tasksLoading && toast.loading) {
-      toastId = toast.loading("ładowanie...");
-    }
-
-    return () => {
-      // Czyszczenie (zamykanie) toasta, gdy ładowanie dobiegnie końca
-      if (toastId && toast.dismiss) {
-        toast.dismiss(toastId);
-      }
-    };
+    if (tasksLoading && toast.loading) toastId = toast.loading("Ładowanie zadań...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [tasksLoading, toast]);
 
   return (
     <div className="mb-6">
-      {tasksLoading ? (
-        <div className="flex justify-center py-4"><LoadingState /></div>
-      ) : (
-        <div className="space-y-3">
-          {tasks.map((task) => {
-            return (
-              <DraggablePlanItem key={`task-${task.id}`} id={`task-${task.id}`} type="task">
-                 <div className="w-full list-none">
-                      <TaskItem
-                        task={task}
-                        acceptTask={acceptTask}
-                        setDoneTask={setDoneTask}
-                        editTask={editTask}
-                        deleteTask={deleteTask}
-                        onTasksChange={fetchTasks}
-                      />
-                    </div>
-              </DraggablePlanItem>
-            );
-          })}
-          {tasks.length === 0 && <NoResultsState text="zadań" />}
-        </div>
-      )}
+      <div className="space-y-3">
+        {tasks.map((task) => {
+          return (
+            <DraggablePlanItem key={`task-${task.id}`} id={`task-${task.id}`} type="task">
+               <div className="w-full list-none">
+                    <TaskItem
+                      task={task}
+                      acceptTask={acceptTask}
+                      setDoneTask={setDoneTask}
+                      editTask={editTask}
+                      deleteTask={deleteTask}
+                      onTasksChange={fetchTasks}
+                      userId={userId}
+                      userOptions={userOptions}
+                    />
+                  </div>
+            </DraggablePlanItem>
+          );
+        })}
+        {!tasksLoading && tasks.length === 0 && <NoResultsState text="zadań" />}
+      </div>
     </div>
   );
 });

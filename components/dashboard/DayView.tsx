@@ -1,8 +1,8 @@
 // components/dashboard/DayView.tsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { format, isSameDay } from "date-fns";
+import { format } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Calendar, Calendar as CalendarIcon, ListTodo, SaveAll, X } from "lucide-react";
+import { Calendar, ListTodo, SaveAll, Trophy, X } from "lucide-react";
 import {
   DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
 } from "@dnd-kit/core";
@@ -16,13 +16,14 @@ import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { useDashboardDnd } from "../../hooks/useDashboardDnd";
 import { useDailyOverrides } from "../../hooks/useDailyOverrides";
 import { getPolishHolidays } from "../../lib/holidays";
+import { useToast } from "../../providers/ToastProvider";
 
 import EventForm from "../calendar/EventForm";
 import TaskForm from "../tasks/TaskForm";
 import { DayEvents } from "./DayEvents";
 import { DailyPlan } from "./DailyPlan";
 import { DayTasks } from "./DayTasks";
-import { MilestonesList } from "./MilestonesList";
+import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { DashboardWidgets } from "../widgets/DashboardWidgets";
 import { AddButton, AddSpecificButton } from "../CommonButtons";
@@ -40,23 +41,42 @@ type DraftForm = {
   type: "task" | "event";
 };
 
+const getHourStr = (dateStr: string | null | undefined): string | null => {
+  if (!dateStr) return null;
+  try {
+    const timePart = dateStr.replace(" ", "T").split("T")[1];
+    if (timePart) {
+      const hour = timePart.split(":")[0];
+      if (hour && !isNaN(Number(hour))) {
+        return hour.padStart(2, "0");
+      }
+    }
+  } catch (e) {
+    console.error("Błąd parsowania godziny:", dateStr);
+  }
+  return null;
+};
+
 export default function DayView({ date, isMain = false, onBack }: DayViewProps) {
   const { user } = useAuth();
   const userId = user!.id;
   const { settings } = useSettings();
+  const { toast } = useToast();
   
   const dateStr = useMemo(() => format(date, "yyyy-MM-dd"), [date]);
   const currentDayOfWeek = (date.getDay() + 6) % 7;
+  const userOptions = settings?.users ?? [];
   const isToday = useMemo(() => dateStr === format(new Date(), "yyyy-MM-dd"), [dateStr]);
 
   const [draftForms, setDraftForms] = useState<DraftForm[]>([]);
+  const [draggedSchemaTitle, setDraggedSchemaTitle] = useState<string | null>(null);
 
   const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, acceptTask } = useTasks(dateStr, dateStr);
   const { events, fetchEvents, addEvent, deleteEvent, editEvent, loading: loadingEvents } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage } = useStreaks();
   const { schemas } = useDaySchemas();
   
-  const { hiddenSchemas, hideSchema } = useDailyOverrides(dateStr);
+  const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
 
   const holiday = useMemo(() => {
     const map = getPolishHolidays(date.getFullYear());
@@ -74,7 +94,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
 
   const lastMouseY = useRef<number>(0);
   useEffect(() => {
-    if (!draggedTask && !draggedEventTitle) return;
+    if (!draggedTask && !draggedEventTitle && !draggedSchemaTitle) return;
     let animationFrameId: number;
     const scrollSpeed = 10;
     const edgeThreshold = 100;
@@ -101,9 +121,8 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
       document.removeEventListener("touchmove", handleMove);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [draggedTask, draggedEventTitle]);
+  }, [draggedTask, draggedEventTitle, draggedSchemaTitle]);
 
-  // LOGIC FIX: Create separate lists for active vs scheduled vs unscheduled tasks
   const activeTasks = useMemo(() => tasks.filter((t) => t.status === "pending" || t.status === "accepted"), [tasks]);
   const scheduledTasks = useMemo(() => activeTasks.filter((t) => t.scheduled_time), [activeTasks]);
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
@@ -116,21 +135,32 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
     if (todaySchema?.entries) {
       todaySchema.entries.forEach((entry, idx) => {
         const schemaId = `schema-${idx}`;
-        if (!hiddenSchemas.includes(schemaId)) {
-          const h = entry.time.split(":")[0].padStart(2, "0");
-          const key = `${h}:00`;
-          if (map[key]) {
-            map[key].push({ id: schemaId, title: entry.label, type: "schema", color: "bg-surface border border-dashed border-gray-200 dark:border-gray-700 text-textSecondary" });
-          }
+        const override = overrides.find(o => o.schema_id === schemaId);
+        
+        if (override && override.new_time === null) return;
+
+        // PANCERNA ZMIANA: Niezawodne wyciągnięcie samej godziny nawet ze "slot-14:00"
+        const rawTime = override?.new_time || entry.time;
+        const timeMatch = rawTime.match(/\d{2}:\d{2}/);
+        const timeToUse = timeMatch ? timeMatch[0] : rawTime;
+        
+        const h = timeToUse.split(":")[0].padStart(2, "0");
+        const key = `${h}:00`;
+        
+        if (map[key]) {
+          map[key].push({ 
+            id: schemaId, 
+            title: entry.label, 
+            type: "schema", 
+            color: "bg-surface border border-dashed border-gray-200 dark:border-gray-700 text-textSecondary" 
+          });
         }
       });
     }
 
     events.forEach((event) => {
-      if (!event.start_time) return;
-      const d = new Date(event.start_time);
-      if (!isNaN(d.getTime())) { 
-        const h = d.getHours().toString().padStart(2, "0");
+      const h = getHourStr(event.start_time);
+      if (h) {
         const key = `${h}:00`;
         if (map[key]) {
           map[key].push({ id: event.id, title: event.title, type: "event", color: "card shadow-sm text-text border-l-4 border-l-primary", data: event });
@@ -139,10 +169,8 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
     });
 
     scheduledTasks.forEach((task) => {
-      if (!task.scheduled_time) return;
-      const d = new Date(task.scheduled_time);
-      if (!isNaN(d.getTime())) {
-        const h = d.getHours().toString().padStart(2, "0");
+      const h = getHourStr(task.scheduled_time);
+      if (h) {
         const key = `${h}:00`;
         if (map[key]) {
           map[key].push({ id: String(task.id), title: task.title, type: "task", color: "card shadow-sm text-text", data: task });
@@ -151,8 +179,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
     });
 
     if (isToday) {
-      const now = new Date();
-      const currentHour = now.getHours();
+      const currentHour = new Date().getHours();
       const filteredMap: Record<string, any[]> = {};
       
       Object.keys(map).forEach((timeKey) => {
@@ -160,13 +187,14 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
         
         if (hourNum < currentHour) {
           const shouldKeepPastHour = map[timeKey].some(item => {
-            if (item.type === "task") return true;
+            if (item.type === "task" || item.type === "schema") return true; 
             
             if (item.type === "event" && item.data?.end_time) {
-              const eventEndTime = new Date(item.data.end_time);
-              return eventEndTime > now; 
+              const endH = getHourStr(item.data.end_time);
+              if (endH !== null) {
+                return parseInt(endH, 10) >= currentHour; 
+              }
             }
-            
             return false; 
           });
 
@@ -181,11 +209,51 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
     }
 
     return map;
-  }, [schemas, events, scheduledTasks, currentDayOfWeek, isToday, hiddenSchemas]);
+  }, [schemas, events, scheduledTasks, currentDayOfWeek, isToday, overrides]);
+
+  const handleDragStartCustom = (event: any) => {
+    const { active } = event;
+    const activeId = String(active.id);
+    
+    if (activeId.startsWith("plan-schema-")) {
+      const schemaId = activeId.replace("plan-schema-", "");
+      let title = "Rutyna";
+      for (const hour of Object.keys(planByHour)) {
+         const found = planByHour[hour].find(i => i.id === schemaId);
+         if (found) { title = found.title; break; }
+      }
+      setDraggedSchemaTitle(title);
+    } else {
+      handleDragStart(event);
+    }
+  };
+
+  const handleDragEndCustom = async (event: any) => {
+    const { active, over } = event;
+    setDraggedSchemaTitle(null); 
+
+    const activeId = String(active.id);
+    if (activeId.startsWith("plan-schema-")) {
+       if (!over) return;
+       const schemaId = activeId.replace("plan-schema-", "");
+       
+       // PANCERNA ZMIANA: Zawsze wyciągamy tylko samą godzinę! 
+       const timeMatch = String(over.id).match(/\d{2}:\d{2}/);
+       if (!timeMatch) return;
+       
+       const newTime = timeMatch[0]; // To zawsze zwróci "14:00"
+       
+       await moveSchema(schemaId, newTime);
+       toast.success(`Rutyna przeniesiona na godzinę ${newTime}.`);
+    } else {
+       handleDragEnd(event);
+    }
+  };
 
   const handleRemoveFromSchedule = async (id: string, type?: string) => {
-    if (type === "schema") {
+    if (type === "schema" || id.startsWith("schema-")) {
       await hideSchema(id);
+      toast.success("Rutyna ukryta z dzisiejszego planu.");
       return;
     }
 
@@ -204,14 +272,13 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
   };
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStartCustom} onDragEnd={handleDragEndCustom}>
       <div className="space-y-4 sm:space-y-6 mx-auto w-full">
         
-        {/* Nagłówek i Nawigacja */}
         <div className="flex items-center justify-between relative">
           {onBack && (
             <button onClick={onBack} className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-lg transition-colors shrink-0">
-              <CalendarIcon className="w-5 h-5" />
+              <Calendar className="w-5 h-5" />
             </button>
           )}
 
@@ -228,6 +295,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
         </div>
 
         <DashboardWidgets settings={settings}/>
+        
         {draftForms.length > 0 && (
           <div className="mb-6 space-y-4 multi-draft-container [&_.dzisiaj-save-btn]:!hidden">
             {draftForms.map((draft, idx) => (
@@ -285,12 +353,18 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
           </div>
         )}
 
-        {/* Główny Grid DND */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <DailyPlan
               planByHour={planByHour} 
-              handleMarkAsDone={async (id) => setDoneTask(id)} 
+              handleMarkAsDone={async (id) => {
+                if (id.startsWith("schema-")) {
+                  await hideSchema(id);
+                  toast.success("Rutyna zaliczona na dzisiaj!");
+                } else {
+                  setDoneTask(id);
+                }
+              }} 
               handleDeleteTask={async (id) => deleteTask(id)}
               handleRemoveFromSchedule={handleRemoveFromSchedule} 
               handleDeleteEvent={deleteEvent}
@@ -301,7 +375,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
             <section>
               <div className="flex flex-nowrap justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
-                  <ListTodo className="text-primary w-5 h-5" /> Zadania
+                  <ListTodo className="text-primary w-5 h-5" />Zadania
                 </h2>
                 <AddButton onClick={() => handleAddDraft('task')} type="button" small />
               </div>
@@ -311,9 +385,10 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
                 setDoneTask={setDoneTask} 
                 editTask={editTask} 
                 deleteTask={deleteTask} 
-                removeFromSchedule={handleRemoveFromSchedule} 
                 tasksLoading={tasksLoading} 
                 fetchTasks={fetchTasks}
+                userId={userId}
+                userOptions={userOptions} 
               />
             </section>
 
@@ -324,18 +399,36 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
                 </h2>
                 <AddButton onClick={() => handleAddDraft('event')} type="button" small />
               </div>
-              <DayEvents events={events} loading={tasksLoading} onEditEvent={editEvent} onDeleteEvent={deleteEvent} onEventsChange={fetchEvents} />
+              <DayEvents 
+                events={events} 
+                loading={tasksLoading} 
+                onEditEvent={editEvent} 
+                onDeleteEvent={deleteEvent} 
+                onEventsChange={fetchEvents} 
+                userId={userId}
+                userOptions={userOptions} 
+              />
             </section>
             
             {streaks.length > 0 && (
-              <MilestonesList streaks={streaks} getMilestoneMessage={getMilestoneMessage} />
+              <section>
+                <div className="flex flex-nowrap justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                  <h2 className="text-lg font-bold text-text flex items-center gap-2">
+                    <Trophy className="text-primary w-5 h-5" /> Postępy
+                  </h2>
+                </div>
+                <DayStreaks streaks={streaks} getMilestoneMessage={getMilestoneMessage} />
+              </section>
             )}
           </div>
         </div>
       </div>
 
       <DragOverlay style={{ touchAction: "none" }} dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: "0.5" } } }) }}>
-        {draggedTask ? <DraggingTaskItem title={draggedTask.title} /> : draggedEventTitle ? <DraggingEventItem title={draggedEventTitle} /> : null}
+        {draggedTask ? <DraggingTaskItem title={draggedTask.title} /> 
+         : draggedEventTitle ? <DraggingEventItem title={draggedEventTitle} /> 
+         : draggedSchemaTitle ? <DraggingTaskItem title={draggedSchemaTitle} /> 
+         : null}
       </DragOverlay>
     </DndContext>
   );

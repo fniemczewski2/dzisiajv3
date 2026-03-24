@@ -3,7 +3,6 @@ import { Clock, MapPin, User, Download } from "lucide-react";
 import { Event } from "../../types";
 import { useAuth } from "../../providers/AuthProvider";
 import { useToast } from "../../providers/ToastProvider";
-import { useSettings } from "../../hooks/useSettings";
 import { withRetry } from "../../lib/withRetry";
 import { formatTime, localDateTimeToISO } from "../../lib/dateUtils";
 import { generateSingleEventICS } from "../../lib/icsGenerator";
@@ -15,6 +14,9 @@ interface EventItemProps {
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
+  // ZMIANA: Dodane propsy optymalizacyjne
+  userId: string;
+  userOptions: string[];
 }
 
 export default function EventItem({
@@ -23,16 +25,17 @@ export default function EventItem({
   onEditEvent,
   onDeleteEvent,
   onEventsChange,
+  userId,
+  userOptions
 }: EventItemProps) {
-  const { user, supabase } = useAuth();
+  // ZMIANA: Używamy tylko supabase, reszta pochodzi z propsów
+  const { supabase } = useAuth();
   const { toast } = useToast();
-  const { settings } = useSettings();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
   const [sharedEmail, setSharedEmail] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
-  const userOptions = settings?.users ?? [];
 
   useEffect(() => {
     if (isEditing && titleRef.current) titleRef.current.focus();
@@ -70,7 +73,7 @@ export default function EventItem({
       await withRetry(
         () => onEditEvent({ ...editedEvent, shared_with_id: targetUserId }),
         toast,
-        { context: "EventItem.editEvent", userId: user?.id }
+        { context: "EventItem.editEvent", userId }
       );
       toast.success("Wydarzenie zapisane pomyślnie.");
       setIsEditing(false);
@@ -89,7 +92,7 @@ export default function EventItem({
       await withRetry(
         () => onDeleteEvent(event.id),
         toast,
-        { context: "EventItem.deleteEvent", userId: user?.id }
+        { context: "EventItem.deleteEvent", userId }
       );
       toast.success("Wydarzenie usunięte pomyślnie.");
       onEventsChange();
@@ -105,96 +108,44 @@ export default function EventItem({
 
   if (isEditing && editedEvent) {
     return (
-      <div className="p-5 w-full max-w-md bg-card border border-primary dark:border-primary rounded-2xl shadow-lg space-y-4">
+      <div className="p-4 w-full max-w-md bg-card border border-primary dark:border-primary rounded-2xl shadow-lg space-y-4">
         <div>
           <label className="form-label">Tytuł wydarzenia:</label>
-          <input
-            ref={titleRef}
-            type="text"
-            value={editedEvent.title}
-            onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })}
-            className="input-field font-medium"
-          />
+          <input ref={titleRef} type="text" value={editedEvent.title} onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })} className="input-field font-medium" />
         </div>
         <div>
           <label className="form-label">Opis (opcjonalny):</label>
-          <textarea
-            value={editedEvent.description || ""}
-            onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })}
-            className="input-field"
-            rows={3}
-          />
+          <textarea value={editedEvent.description || ""} onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })} className="input-field" rows={3} />
         </div>
         <div className="grid grid-cols-2 gap-1 md:gap-3">
           <div className="min-w-0 max-w-[100%]">
             <label className="form-label">Rozpoczęcie:</label>
-            <input
-              type="datetime-local"
-              value={editedEvent.start_time.slice(0, 16)}
-              onChange={(e) =>
-                setEditedEvent({
-                  ...editedEvent,
-                  start_time: localDateTimeToISO(e.target.value),
-                })
-              }
-              className="input-field text-xs w-full min-w-0 px-1"
-            />
+            <input type="datetime-local" value={editedEvent.start_time.slice(0, 16)} onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })} className="input-field text-xs w-full min-w-0 px-1" />
           </div>
           <div className="min-w-0 max-w-[100%]">
             <label className="form-label">Zakończenie:</label>
-            <input
-              type="datetime-local"
-              value={editedEvent.end_time.slice(0, 16)}
-              onChange={(e) =>
-                setEditedEvent({
-                  ...editedEvent,
-                  end_time: localDateTimeToISO(e.target.value),
-                })
-              }
-              className="input-field text-xs w-full min-w-0 px-1"
-            />
+            <input type="datetime-local" value={editedEvent.end_time.slice(0, 16)} onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })} className="input-field text-xs w-full min-w-0 px-1" />
           </div>
         </div>
         <div>
           <label className="form-label">Miejsce:</label>
-          <input
-            type="text"
-            value={editedEvent.place || ""}
-            onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })}
-            className="input-field"
-            placeholder="Gdzie się odbędzie?"
-          />
+          <input type="text" value={editedEvent.place || ""} onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })} className="input-field" placeholder="Gdzie się odbędzie?" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           {userOptions.length > 0 && (
             <div>
               <label className="form-label">Udostępnij dla:</label>
-              <select
-                value={sharedEmail}
-                onChange={(e) => setSharedEmail(e.target.value)}
-                className="input-field py-1.5 text-sm"
-              >
+              <select value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field py-1.5 text-sm">
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email) => (
-                  <option key={email} value={email}>
-                    {email}
-                  </option>
+                  <option key={email} value={email}>{email}</option>
                 ))}
               </select>
             </div>
           )}
           <div>
             <label className="form-label">Powtarzaj:</label>
-            <select
-              value={editedEvent.repeat || "none"}
-              onChange={(e) =>
-                setEditedEvent({
-                  ...editedEvent,
-                  repeat: e.target.value as Event["repeat"],
-                })
-              }
-              className="input-field py-1.5 text-sm"
-            >
+            <select value={editedEvent.repeat || "none"} onChange={(e) => setEditedEvent({ ...editedEvent, repeat: e.target.value as Event["repeat"] })} className="input-field py-1.5 text-sm">
               <option value="none">Brak (jednorazowe)</option>
               <option value="weekly">Co tydzień</option>
               <option value="monthly">Co miesiąc</option>
@@ -208,7 +159,7 @@ export default function EventItem({
   }
 
   return (
-    <div className="p-5 w-full max-w-md card rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all flex flex-col">
+    <div className="p-4 w-full max-w-md card rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all flex flex-col">
       <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
         <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
       </div>
@@ -218,13 +169,9 @@ export default function EventItem({
           {formatTime(event.start_time) === formatTime(event.end_time) ? (
             <>{formatTime(event.start_time)}</>
           ) : event.start_time.slice(0, 10) === event.end_time.slice(0, 10) ? (
-            <>
-              {formatTime(event.start_time)} – {formatTime(event.end_time)}
-            </>
+            <>{formatTime(event.start_time)} – {formatTime(event.end_time)}</>
           ) : (
-            <>
-              {formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}
-            </>
+            <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
           )}
         </div>
         {event.place && (
@@ -246,18 +193,9 @@ export default function EventItem({
         </p>
       )}
       <div className="flex justify-between w-full gap-1 sm:gap-1.5 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-        <button
-          onClick={() => {
-            generateSingleEventICS(event);
-            toast.success("Plik ICS został pobrany.");
-          }}
-          className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
-          title="Pobierz zdarzenie do kalendarza Google/Apple"
-        >
+        <button onClick={() => { generateSingleEventICS(event); toast.success("Plik ICS został pobrany."); }} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors" title="Pobierz zdarzenie do kalendarza Google/Apple">
           <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-          <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
-            Pobierz .ICS
-          </span>
+          <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Pobierz .ICS</span>
         </button>
         <EditButton onClick={handleEdit} />
         <DeleteButton onClick={handleDelete} />
