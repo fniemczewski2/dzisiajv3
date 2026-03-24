@@ -89,6 +89,6 @@
   }
 
   .card {
-    @apply bg-card border border-gray-200 dark:border-gray-700 shadow transition animate-fadeIn
+    @apply bg-card border max-w-md border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition animate-fadeIn
   }
 }

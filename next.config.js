@@ -6,8 +6,8 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   importScripts: ['/custom-sw.js'],
   buildExcludes: [
     /middleware-manifest\.json$/,
-    /_next\/dynamic-css-manifest\.json$/,
-    /chunks\/.*\.js.map$/,
+    /.*dynamic-css-manifest\.json$/, 
+    /.*\.map$/,
   ],
   runtimeCaching: [
     {

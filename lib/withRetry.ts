@@ -24,14 +24,14 @@ async function logErrorToEdgeFunction(
   supabase?: SupabaseClient
 ): Promise<void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey    = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY; // Zmiana na PUBLISHABLE_KEY
 
-  if (!supabaseUrl || !anonKey) {
+  if (!supabaseUrl || !publishableKey) {
     console.error("[withRetry] Missing Supabase env vars — cannot log error");
     return;
   }
 
-  let jwt = anonKey;
+  let jwt = publishableKey;
   if (supabase) {
     try {
       const { data } = await supabase.auth.getSession();
@@ -48,7 +48,7 @@ async function logErrorToEdgeFunction(
       headers: {
         "Content-Type":  "application/json",
         "Authorization": `Bearer ${jwt}`,
-        "apikey":        anonKey,
+        "apikey":        publishableKey, // Przekazujemy nowy klucz publishable
       },
       body: JSON.stringify({
         context,
@@ -61,7 +61,6 @@ async function logErrorToEdgeFunction(
     console.error("[withRetry] Failed to log error:", fetchError);
   }
 }
-
 
 export async function withRetry<T>(
   operation: () => Promise<T>,

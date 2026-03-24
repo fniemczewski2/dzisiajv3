@@ -19,6 +19,8 @@ import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 import Reminders from "../../components/tasks/Reminders";
 import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "../../providers/AuthProvider";
+import { useSettings } from "../../hooks/useSettings";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -35,6 +37,10 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { settings } = useSettings();
+  const userId = user!.id;
+  const userOptions = settings?.users ?? [];
 
   const { todayDone, todayTotal } = useMemo(() => {
     const today = getAppDate();
@@ -162,7 +168,9 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
               setDoneTask={setDoneTask}
               editTask={editTask}
               deleteTask={deleteTask}
-              onTasksChange={fetchTasks} 
+              onTasksChange={fetchTasks}
+              userId={userId} 
+              userOptions={userOptions}
             />
             <Reminders onTasksChange={fetchTasks} addTask={addTask} />
           </div>

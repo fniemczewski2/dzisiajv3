@@ -41,9 +41,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const supabaseVerify = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // Zamiana ANON na PUBLISHABLE
     { global: { headers: { Authorization: `Bearer ${supabaseToken}` } } }
   );
+  
   const { data: { user }, error: authErr } = await supabaseVerify.auth.getUser(supabaseToken);
   if (authErr || !user || user.id !== userId) {
     console.error("[Google OAuth callback] Supabase token invalid:", authErr?.message);
@@ -75,9 +76,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect("/calendar?google_error=no_access_token");
   }
 
-  const supabaseAdmin = createClient(
+const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! 
   );
 
   const { error: upsertErr } = await supabaseAdmin.rpc("upsert_google_token", {

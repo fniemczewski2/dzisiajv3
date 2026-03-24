@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import SearchBar from "../components/SearchBar";
-import StopItem from "../components/transport/StopItem";
 import { useTransport } from "../hooks/useTransport";
 import { useSettings } from "../hooks/useSettings";
 import { useAuth } from "../providers/AuthProvider";
 import NoResultsState from "../components/NoResultsState";
 import LoadingState from "../components/LoadingState";
 import { useToast } from "../providers/ToastProvider";
+import { DeleteButton, FavButton } from "../components/CommonButtons";
 
 interface LocalSearchResult {
   name: string;
@@ -29,6 +29,8 @@ export default function TransportPage() {
     fetchFavorites,
   } = useTransport(true);
 
+  console.log(favoritesGroups)
+
   const { settings, addFavoriteStop, removeFavoriteStop, loading: settingsLoading } = useSettings();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,6 +39,7 @@ export default function TransportPage() {
 
   const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
   const favoritesJSON = JSON.stringify(favoriteStops);
+  
   useEffect(() => {
     if (settingsLoading) return;
 
@@ -137,7 +140,7 @@ export default function TransportPage() {
 
           <section>
             <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
-            <div className="card rounded-xl shadow-sm overflow-hidden">
+            <div className="space-y-4">
               {favoriteStops.length === 0 ? (
                 <NoResultsState text="ulubionych przystanków" />
               ) : loadingFavorites && favoritesGroups.length === 0 ? (
@@ -146,15 +149,36 @@ export default function TransportPage() {
                 <NoResultsState text="kursów dla wskazanych przystanków" />
               ) : (
                 favoritesGroups.map((group) => (
-                  <StopItem
-                    key={`fav_${group.stop_name}`}
-                    stopName={group.stop_name}
-                    departures={group.departures}
-                    isLoading={loadingFavorites}
-                    onRemove={() => removeFavoriteStop(group.stop_name)}
-                    many={true}
-                    zone_id={group.zone_id}
-                  />
+                  <div key={`group_${group.stop_name}`} className="card rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-2 border-b pb-2">
+                      <h4 className="font-bold text-primary">{group.stop_name}</h4>
+                      <DeleteButton
+                        onClick={() => removeFavoriteStop(group.stop_name)}
+                        small
+                      />
+                    </div>
+                    
+                    <div className="grid gap-3">
+                      {group.bollards?.map((bollard: any) => (
+                        <div key={bollard.bollard_code} className="">
+                          <span className="text-[10px] uppercase text-textSecondary font-mono">
+                            {bollard.bollard_code}
+                          </span>
+                          <div className="mt-1">
+                            {bollard.departures.map((dep: any, idx: number) => (
+                              <div key={idx} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                                <span className="font-medium w-8">{dep.line}</span>
+                                <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
+                                <span className={dep.is_realtime ? "text-primary font-bold" : ""}>
+                                  {dep.minutes} min
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ))
               )}
             </div>
@@ -162,15 +186,15 @@ export default function TransportPage() {
           
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
-            <div className="card rounded-xl shadow-sm overflow-hidden">
+            <div className="space-y-4">
               {loadingNearby && nearbyGroups.length === 0 && 
                 <LoadingState fullScreen/>
               }
 
               {locationError && (
-                <div className="text-center py-10 w-md h-md" >
+                <div className="text-center py-10 w-full" >
                     <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
-                    <p className="text-textSecondary">Nie udało się uzyskać lokalizacji.</p>
+                    <p className="text-textSecondary">{locationError}</p>
                 </div>
               )}
 
@@ -179,15 +203,42 @@ export default function TransportPage() {
               )}
 
               {nearbyGroups.map((group: any) => (
-                <StopItem
-                  key={`nearby_${group.stop_name}`}
-                  stopName={group.stop_name}
-                  distance={group.distance}
-                  departures={group.departures}
-                  isLoading={loadingNearby}
-                  onAddFavorite={() => addFavoriteStop(group.stop_name, group.zone_id || "AUTO")}
-                  many={true}
-                />
+                <div key={`nearby_group_${group.stop_name}`} className="card rounded-xl p-4">
+                  <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
+                    <h4 className="font-bold text-primary">{group.stop_name}</h4>
+                    <div className="flex items-center gap-3">
+                      {group.distance && <span className="text-xs text-textSecondary">{group.distance} m</span>}
+                      <FavButton
+                        onClick={() => {
+                          addFavoriteStop(group.stop_name, group.zone_id || "AUTO");
+                          toast.success(`Dodano do ulubionych: ${group.stop_name}`);
+                        }}
+                        small/>
+
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-3">
+                    {group.bollards?.map((bollard: any) => (
+                      <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg">
+                        <span className="text-[10px] uppercase text-textSecondary font-mono">
+                          Słupek: {bollard.bollard_code}
+                        </span>
+                        <div className="mt-1">
+                          {bollard.departures.map((dep: any, idx: number) => (
+                            <div key={idx} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                              <span className="font-medium w-8">{dep.line}</span>
+                              <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
+                              <span className={dep.is_realtime <= 5 ? "text-primary font-bold" : ""}>
+                                {dep.minutes} min
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </section>

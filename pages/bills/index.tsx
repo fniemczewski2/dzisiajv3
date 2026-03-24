@@ -19,6 +19,7 @@ import { useQuickAction } from "../../hooks/useQuickAction";
 import NoResultsState from "../../components/NoResultsState";
 import type { Bill, BudgetCategory } from "../../types";
 import BankCsvImporter from "../../components/budget/BankCSV";
+import BillListGrouped from "../../components/bills/BillListGrouped";
 
 const currentYear = getYear(new Date());
 
@@ -191,108 +192,7 @@ export default function BillsPage() {
         <DailySpendingForm />
         <BankCsvImporter year={currentYear} />
 
-        {incomeItems.length > 0 && (
-          <section className="mb-8">
-            <h3 className="text-xl font-bold text-text mb-4 mt-6 pb-2 border-b border-gray-100 dark:border-gray-800">
-              Wpływy
-            </h3>
-            <ul className="space-y-3 max-w-2xl">
-              {incomeItems.map((b) => (
-                <li key={b.id} className="card rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:shadow-md transition">
-                  <div className="flex-1 space-y-1">
-                    <span className="font-bold text-lg tabular-nums text-green-600 dark:text-green-500">
-                      +{b.amount.toFixed(2)} zł
-                    </span>
-                    {b.description && (
-                      <span className="block text-textSecondary text-sm">{b.description}</span>
-                    )}
-                    <span className="text-xs text-textSubtle font-medium">
-                      {format(parseISO(b.date), "dd.MM.yyyy")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShareButton onClick={() => handleShare(b)} />
-                    <EditButton onClick={() => setEditingBill(b)} />
-                    <DeleteButton onClick={() => handleDelete(b)} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          {[
-            { id: "all",  label: "Wszystkie" },
-            { id: "none", label: "Inne" },
-            ...categories.map((c) => ({ id: c.id, label: c.name })),
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setFilterCategory(id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
-                filterCategory === id
-                  ? "bg-primary text-white border-primary shadow-sm"
-                  : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="max-w-2xl space-y-6">
-          {Object.entries(grouped).length === 0 ? (
-            <NoResultsState text="rachunków" />
-          ) : (
-            Object.entries(grouped).map(([month, bills]) => (
-              <div key={month}>
-                <h4 className="text-sm font-bold text-textSecondary uppercase tracking-wider mb-3 px-1 border-b border-gray-200 dark:border-gray-700 pb-2">
-                  {month}
-                </h4>
-                <ul className="space-y-3">
-                  {bills.map((b) => (
-                    <li
-                      key={b.id}
-                      className="card rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:shadow-md transition"
-                    >
-                      <div className="flex-1 space-y-1.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-lg tabular-nums text-red-600 dark:text-red-500">
-                            -{b.amount.toFixed(2)} zł
-                          </span>
-                          <CategoryBadge category={b.category} />
-                          {b.is_recurring && <RecurringBadge />}
-                        </div>
-                        {b.description && (
-                          <span className="block text-textSecondary text-sm">{b.description}</span>
-                        )}
-                        <span className="text-xs text-textSubtle font-medium">
-                          {format(parseISO(b.date), "dd.MM.yyyy")}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t border-gray-100 dark:border-gray-800 sm:border-0">
-                        {!b.done && !b.is_income && (
-                          <button
-                            onClick={() => handleMarkDone(b)}
-                            title="Oznacz jako zapłacone"
-                            className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
-                          >
-                            <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Opłać</span>
-                          </button>
-                        )}
-                        <ShareButton onClick={() => handleShare(b)} />
-                        <EditButton onClick={() => setEditingBill(b)} />
-                        <DeleteButton onClick={() => handleDelete(b)} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))
-          )}
-        </div>
+        <BillListGrouped year={currentYear} categoryId={filterCategory}/>
       </Layout>
     </>
   );

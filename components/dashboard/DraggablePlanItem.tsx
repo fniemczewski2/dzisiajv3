@@ -10,7 +10,8 @@ interface DraggablePlanItemProps {
 }
 
 export function DraggablePlanItem({ id, type, children }: DraggablePlanItemProps) {
-  const isDraggable = type === 'task' || type === 'event';
+  // ZMIANA: Rutyny (schema) też mogą być przeciągane!
+  const isDraggable = type === 'task' || type === 'event' || type === 'schema';
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: id,

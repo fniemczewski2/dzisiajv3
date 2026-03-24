@@ -1,7 +1,6 @@
-// hooks/useTransport.ts
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../providers/AuthProvider";
+import { useToast } from "../providers/ToastProvider";
 
 export interface Departure {
   line: string;
@@ -9,29 +8,37 @@ export interface Departure {
   minutes: number;
   time: string;
   is_realtime: boolean;
-  delay: number;
+  delay?: number; // Opcjonalne
+}
+
+export interface Bollard {
+  bollard_code: string;
+  departures: Departure[];
 }
 
 export interface StopGroup {
   stop_name: string;
   zone_id: string;
   distance?: number;
-  departures: Departure[];
+  bollards: Bollard[]; 
 }
 
 export interface SearchResult {
   name: string;
   zone_id: string;
 }
+
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();
+  const { toast } = useToast();
 
   const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
   const [favoritesGroups, setFavoritesGroups] = useState<StopGroup[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-
+  
+  const lastFetchTime = useRef<Record<string, number>>({});
   const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
 
   const nearbyAbortRef    = useRef<AbortController | null>(null);
@@ -57,6 +64,7 @@ export function useTransport(autoRefresh = false) {
             lat: lastCoords.current.lat,
             lon: lastCoords.current.lng,
           },
+          signal: controller.signal
         }
       );
 
@@ -112,44 +120,38 @@ export function useTransport(autoRefresh = false) {
     );
   }, [fetchNearbyData]);
 
-  const fetchFavorites = useCallback(
-    async (stops: { name: string; zone_id: string }[]) => {
+  const fetchFavorites = useCallback(async (stops: { name: string; zone_id: string }[]) => {
+    if (!stops?.length) {
+      setFavoritesGroups([]);
+      return;
+    }
+    const now = Date.now();
+    const cacheKey = JSON.stringify(stops);
+    if (lastFetchTime.current[cacheKey] && now - lastFetchTime.current[cacheKey] < 5000) return;
 
-      if (!stops || stops.length === 0) {
-        setFavoritesGroups([]);
-        return;
+    favoritesAbortRef.current?.abort();
+    const controller = new AbortController();
+    favoritesAbortRef.current = controller;
+
+    setLoadingFavorites(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("get-transitland-times", {
+        body: { stopNames: stops, lat: lastCoords.current?.lat, lon: lastCoords.current?.lng },
+        signal: controller.signal
+      });
+      console.log(data)
+      
+      if (error) throw error;
+      setFavoritesGroups(data?.success || []);
+      lastFetchTime.current[cacheKey] = now;
+    } catch (err) {
+      if (err instanceof Error && err.name !== 'AbortError') {
+         toast.error(`Błąd pobierania odjazdów.`);
       }
-
-      favoritesAbortRef.current?.abort();
-      const controller = new AbortController();
-      favoritesAbortRef.current = controller;
-
-      setLoadingFavorites(true);
-
-      try {
-        const { data, error: invokeError } = await supabase.functions.invoke(
-          "get-transitland-times",
-          {
-            body: {
-              stopNames: stops 
-            },
-          }
-        );
-
-        if (controller.signal.aborted) return;
-        if (invokeError) throw invokeError;
-
-        const parsed = typeof data === "string" ? JSON.parse(data) : data;
-        if (parsed?.success) setFavoritesGroups(parsed.success);
-      } catch (err) {
-        if (controller.signal.aborted) return;
-        throw err;
-      } finally {
-        if (!controller.signal.aborted) setLoadingFavorites(false);
-      }
-    },
-    [supabase]
-  );
+    } finally {
+      if (!controller.signal.aborted) setLoadingFavorites(false);
+    }
+  }, [supabase, toast]);
 
   const searchStops = useCallback(
     async (query: string): Promise<SearchResult[]> => {
