@@ -32,14 +32,17 @@ const FILTER_OPTIONS = [
 
 type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 
-export default function TasksPage({isMain}: {isMain: boolean}) {
+export default function TasksPage({isMain}: {isMain?: boolean}) {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { toast } = useToast();
   const { user } = useAuth();
   const { settings } = useSettings();
-  const userId = user!.id;
+  
+  // BEZPIECZNE POBRANIE ID (ochrona przed błędem reading 'id' of null)
+  const userId = user?.id ?? "";
   const userOptions = settings?.users ?? [];
 
   const { todayDone, todayTotal } = useMemo(() => {
@@ -52,42 +55,35 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
     };
   }, [tasks]);
 
-  const openNew = () => {
-    setShowForm(true);
-  };
-
+  const openNew = () => setShowForm(true);
   const closeForm = () => setShowForm(false);
 
-  const getFilterDate = (): string | null => {
+  const filterDate = useMemo(() => {
     const now = getAppDateTime();
     switch (dateFilter) {
-      case "yesterday":
-        return format(addDays(now, -1), "yyyy-MM-dd");
-      case "today":
-        return format(now, "yyyy-MM-dd");
-      case "tomorrow":
-        return format(addDays(now, 1), "yyyy-MM-dd");
-      case "dayAfterTomorrow":
-        return format(addDays(now, 2), "yyyy-MM-dd");
-      default:
-        return null;
+      case "yesterday":        return format(addDays(now, -1), "yyyy-MM-dd");
+      case "today":            return format(now, "yyyy-MM-dd");
+      case "tomorrow":         return format(addDays(now, 1), "yyyy-MM-dd");
+      case "dayAfterTomorrow": return format(addDays(now, 2), "yyyy-MM-dd");
+      default:                 return null;
     }
-  };
+  }, [dateFilter]);
   
-  const filterDate = getFilterDate();
+  // POPRAWIONE useMemo: Zwraca przefiltrowaną listę zamiast hooków!
   const filteredTasks = useMemo(() => {
-    const allowedStatuses = ["pending", "waiting_for_acceptance"];
     if (!filterDate) return tasks;
-    if (filterDate == "today") {
+    
+    const allowedStatuses = ["pending", "waiting_for_acceptance"];
+    if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) { // Jeśli dzisiaj
       return tasks.filter(
         (t) => t.due_date <= filterDate && allowedStatuses.includes(t.status)
       );
-    }
-    else {
+    } else {
        return tasks.filter((t) => t.due_date === filterDate);
     }
   }, [tasks, filterDate]);
 
+  // Hook wyciągnięty na zewnątrz, zgodnie z zasadami Reacta
   useQuickAction({
     onActionAdd: () => setShowForm(true),
   });
@@ -96,7 +92,7 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
       let toastId: string | undefined;
       
       if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie finansów...");
+        toastId = toast.loading("Ładowanie zadań...");
       }
   
       return () => {
@@ -127,6 +123,7 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
           </h2>
           {!showForm && <AddButton onClick={openNew} type="button" />}
         </div>
+        
         <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm gap-2 max-w-md">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
@@ -149,7 +146,7 @@ export default function TasksPage({isMain}: {isMain: boolean}) {
         </div>
 
         {showForm && (
-          <div className="mb-6">
+          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
             <TaskForm
               addTask={addTask}
               onTasksChange={() => {
