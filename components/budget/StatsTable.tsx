@@ -18,8 +18,8 @@ export default function BudgetStatsTable({
   onRateChange,
 }: Props) {
   return (
-    <div className="w-full max-w-lg mb-4">
-      <div className="card rounded-xl shadow-sm overflow-x-auto">
+    <div className="w-full mb-4">
+      <div className="card rounded-xl shadow-sm">
         <table className="w-full table-auto text-xs sm:text-sm">
           <thead className="bg-surface text-textSecondary font-semibold border-b border-gray-200 dark:border-gray-700">
             <tr>

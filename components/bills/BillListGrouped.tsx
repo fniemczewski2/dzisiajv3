@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react"; // ZMIANA: Usunięto useMemo
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, isSameMonth, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "lucide-react";
 import { Bill, BudgetCategory } from "../../types";
 import { useBills } from "../../hooks/useBills";
+import { useBudgetCategories } from "../../hooks/useBudgetCategories"; 
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
@@ -41,10 +42,9 @@ function RecurringBadge() {
 }
 
 export default function BillListGrouped({ year, categoryId, onBillsChange }: BillListProps) {
-  // ZMIANA: Przejście na dynamiczne ustalanie miesięcy
   const [activeMonths, setActiveMonths] = useState<{ id: number, date: Date, label: string, isCurrentMonth: boolean }[]>([]);
   const [isLoadingMonths, setIsLoadingMonths] = useState(true);
-  const { fetchActiveMonths } = useBills(); // Importujemy nową funkcję z hooka
+  const { fetchActiveMonths } = useBills(); 
 
   useEffect(() => {
     const loadMonths = async () => {
@@ -88,14 +88,14 @@ export default function BillListGrouped({ year, categoryId, onBillsChange }: Bil
           monthData={m}
           categoryId={categoryId}
           onBillsChange={onBillsChange}
+          year={year} // Przekazujemy rok, by móc poprawnie pobrać kategorie wewnątrz miesiąca
         />
       ))}
     </div>
   );
 }
 
-function MonthAccordion({ monthData, categoryId, onBillsChange }: { monthData: any, categoryId: string, onBillsChange?: () => void }) {
-  // UWAGA: Mimo że miesiąc zawiera dane, może domyślnie być zwinięty, chyba że to bieżący miesiąc
+function MonthAccordion({ monthData, categoryId, onBillsChange, year }: { monthData: any, categoryId: string, onBillsChange?: () => void, year: number }) {
   const [isOpen, setIsOpen] = useState(monthData.isCurrentMonth);
 
   return (
@@ -117,6 +117,7 @@ function MonthAccordion({ monthData, categoryId, onBillsChange }: { monthData: a
             dateTo={format(endOfMonth(monthData.date), "yyyy-MM-dd")}
             categoryId={categoryId}
             onBillsChange={onBillsChange}
+            year={year}
           />
         </div>
       )}
@@ -124,7 +125,7 @@ function MonthAccordion({ monthData, categoryId, onBillsChange }: { monthData: a
   );
 }
 
-function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange }: { dateFrom: string, dateTo: string, categoryId: string, onBillsChange?: () => void }) {
+function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { dateFrom: string, dateTo: string, categoryId: string, onBillsChange?: () => void, year: number }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [page, setPage] = useState(1);
@@ -136,6 +137,8 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange }: { dateFro
     categoryId,
     includeRecurringChildren: true,
   });
+
+  const { categories, loading: categoriesLoading } = useBudgetCategories(year);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedBill, setEditedBill] = useState<Bill | null>(null);
@@ -168,7 +171,9 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange }: { dateFro
 
   const handleSaveEdit = async () => {
     if (!editedBill) return;
-    await withRetry(() => editBill(editedBill), toast, { context: "MonthContent.editBill", userId: user?.id });
+    const finalBill = { ...editedBill, category_id: editedBill.category_id || null };
+    
+    await withRetry(() => editBill(finalBill), toast, { context: "MonthContent.editBill", userId: user?.id });
     toast.success("Zmieniono pomyślnie.");
     setEditingId(null);
     setEditedBill(null);
@@ -243,6 +248,26 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange }: { dateFro
                 />
               </div>
             </div>
+            
+            {/* ZMIANA: Zawsze widoczne pole edycji kategorii */}
+            <div>
+              <label className="form-label" htmlFor={`category-${b.id}`}>Kategoria:</label>
+              <select
+                id={`category-${b.id}`}
+                value={editedBill.category_id || ""}
+                onChange={(e) => setEditedBill({ ...editedBill, category_id: e.target.value })}
+                className="input-field"
+                disabled={categoriesLoading}
+              >
+                <option value="">Inne (bez kategorii)</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="form-label">Opis:</label>
               <textarea
@@ -305,7 +330,6 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange }: { dateFro
 
   return (
     <div className="space-y-6">
-      
       {incomeItems.length > 0 && (
         <div>
           <h5 className="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-wider mb-3 px-1 border-b border-green-100 dark:border-green-900/30 pb-2">
@@ -316,7 +340,6 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange }: { dateFro
           </ul>
         </div>
       )}
-
       {expenseItems.length > 0 && (
         <div>
           <h5 className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-wider p-2 ">

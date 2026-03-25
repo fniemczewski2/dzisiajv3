@@ -142,28 +142,27 @@ export default function BillForm({
         />
       </div>
 
-      {!isIncome && (
-        <div>
-          <label className="form-label" htmlFor="category">Kategoria budżetu:</label>
-          <select
-            id="category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="input-field"
-            disabled={loading}
-          >
-            <option value="">Inne (bez budżetu)</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-                {cat.is_monthly
-                  ? ` (${cat.amount.toFixed(0)} zł/mies.)`
-                  : ` (${cat.amount.toFixed(0)} zł/rok)`}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* ZMIANA: Usunięto warunek `!isIncome &&`, kategoria jest zawsze widoczna */}
+      <div>
+        <label className="form-label" htmlFor="category">Kategoria:</label>
+        <select
+          id="category"
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          className="input-field"
+          disabled={loading}
+        >
+          <option value="">Inne (bez kategorii)</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+              {cat.is_monthly
+                ? ` (${cat.amount.toFixed(0)} zł/mies.)`
+                : ` (${cat.amount.toFixed(0)} zł/rok)`}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div>
         <label className="form-label" htmlFor="date">Data:</label>

@@ -17,7 +17,7 @@ export default function BudgetControls({
   onEdit,
 }: Props) {
   return (
-    <h3 className="font-bold mb-2 text-text flex justify-between items-center gap-4">
+    <h3 className="font-bold w-full text-text flex  items-center gap-4">
       <span>Liczba godzin pracy</span>
       
       {isEditing ? (

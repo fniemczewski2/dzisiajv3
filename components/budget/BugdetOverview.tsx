@@ -68,9 +68,7 @@ export default function BudgetOverview({
   );
 
   if (loading) {
-    return (
-      <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-6 animate-pulse h-48" />
-    );
+    return null;
   }
 
   return (
