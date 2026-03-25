@@ -3,15 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "../../lib/dateUtils";
 import { useBudgetCategories } from "../../hooks/useBudgetCategories";
 import { useBudgetSummary } from "../../hooks/useBudgetSummary";
 import BudgetCategoriesEditor from "../../components/budget/BudgetCategoriesEditor";
 import BudgetOverview from "../../components/budget/BugdetOverview";
-import LoadingState from "../../components/LoadingState";
-import MonthlyBudgetTable from "../../components/budget/MonthlyTable";
 import BudgetStatsTable from "../../components/budget/StatsTable";
 import SummaryTable from "../../components/budget/SummaryTable";
 import { useBudgetData } from "../../hooks/useBudget";
@@ -79,7 +77,7 @@ export default function BudgetPage() {
     let toastId: string | undefined;
     
     if (isLoading && toast.loading) {
-      toastId = toast.loading("Ładowanie finansów...");
+      toastId = toast.loading("Ładowanie budżetu...");
     }
 
     return () => {
@@ -98,16 +96,16 @@ export default function BudgetPage() {
         <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
-            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
             aria-label="Wróć"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <Coins className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-2 card rounded-2xl p-1 shadow-sm">
             <button
               onClick={() => setYear((y) => y - 1)}
-              className="p-2 bg-transparent rounded-lg hover:bg-surface"
+              className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
               aria-label="Poprzedni rok"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -115,7 +113,7 @@ export default function BudgetPage() {
             <h2 className="text-lg font-bold text-text mx-2 tabular-nums">{year}</h2>
             <button
               onClick={() => setYear((y) => y + 1)}
-              className="p-2 bg-transparent rounded-lg hover:bg-surface"
+              className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
               aria-label="Następny rok"
             >
               <ChevronRight className="w-4 h-4" />
@@ -125,39 +123,31 @@ export default function BudgetPage() {
           <div className="w-10" />
         </div>
 
-        {catsLoading ? (
-          <LoadingState />
-        ) : (
-          <div className="max-w-2xl mx-auto w-full space-y-6 mb-6">
-            <BudgetOverview
-              summary={summary}
-              uncategorised={uncategorised}
-              totalIncome={totalIncome}
-              loading={summaryLoading}
-            />
+        <div className="max-w-2xl mx-auto w-full space-y-6 mb-6">
+          <BudgetOverview
+            summary={summary}
+            uncategorised={uncategorised}
+            totalIncome={totalIncome}
+            loading={summaryLoading}
+          />
 
-            <BudgetCategoriesEditor
-              year={year}
-              onCategoriesChange={handleCategoriesChange}
+          <BudgetCategoriesEditor
+            year={year}
+            onCategoriesChange={handleCategoriesChange}
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2 sm:gap-6 w-full justify-center">
+            <BudgetControls
+              isEditing={isEditing}
+              saving={saving}
+              onSave={handleSave}
+              onCancel={() => setIsEditing(false)}
+              onEdit={() => setIsEditing(true)}
             />
-          </div>
-        )}
-        {loading ? <LoadingState /> : (
-          <div className="flex flex-wrap gap-2 sm:gap-6 w-full justify-center">
-            <div>
-              <BudgetControls
-                isEditing={isEditing}
-                saving={saving}
-                onSave={handleSave}
-                onCancel={() => setIsEditing(false)}
-                onEdit={() => setIsEditing(true)}
-              />
-              <BudgetStatsTable rows={rows} isEditing={isEditing} onRateChange={updateRate} />
-            </div>
+            <BudgetStatsTable rows={rows} isEditing={isEditing} onRateChange={updateRate} />
             <SummaryTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
-            <MonthlyBudgetTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
-          </div>
-        )}
+        </div>
       </Layout>
     </>
   );

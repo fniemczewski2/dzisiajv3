@@ -211,6 +211,16 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
     return map;
   }, [schemas, events, scheduledTasks, currentDayOfWeek, isToday, overrides]);
 
+  const streaksWithMilestones = useMemo(() => {
+    if (!streaks) return [];
+    return streaks
+      .map(streak => ({
+        ...streak,
+        milestoneMessage: getMilestoneMessage(streak.start_date)
+      }))
+      .filter(streak => streak.milestoneMessage !== "");
+  }, [streaks, getMilestoneMessage]);
+
   const handleDragStartCustom = (event: any) => {
     const { active } = event;
     const activeId = String(active.id);
@@ -410,14 +420,14 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
               />
             </section>
             
-            {streaks.length > 0 && (
+            {streaksWithMilestones.length > 0 && (
               <section>
                 <div className="flex flex-nowrap justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
                   <h2 className="text-lg font-bold text-text flex items-center gap-2">
                     <Trophy className="text-primary w-5 h-5" /> Postępy
                   </h2>
                 </div>
-                <DayStreaks streaks={streaks} getMilestoneMessage={getMilestoneMessage} />
+                <DayStreaks streaks={streaksWithMilestones} />
               </section>
             )}
           </div>

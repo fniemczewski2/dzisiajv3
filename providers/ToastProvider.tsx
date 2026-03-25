@@ -1,5 +1,3 @@
-// providers/ToastProvider.tsx
-
 "use client";
 import React, { createContext, useCallback, useContext, useReducer, useRef } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
@@ -38,9 +36,7 @@ interface ToastContextValue {
     success: (message: string) => void;
     error:   (message: string) => void;
     info:    (message: string) => void;
-    // ZMIANA: Loading teraz przyjmuje argument wiadomości i ZWRACA string (ID)
     loading: (message?: string) => string;
-    // ZMIANA: Dodano metodę dismiss pozwalającą zamknąć konkretnego toasta
     dismiss: (id: string) => void;
     confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
   };
@@ -66,12 +62,16 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
   loading: "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
 };
 
-const VARIANT_ICONS: Record<ToastVariant, React.ReactNode> = {
-  success: <CheckCircle className="w-4 h-4 shrink-0" />,
-  error:   <XCircle className="w-4 h-4 shrink-0" />,
-  info:    <Info className="w-4 h-4 shrink-0" />,
-  loading: <Loader2 className="w-4 h-4 shrink-0 animate-spin text-primary" />
-};
+// ZMIANA: Zastąpienie stałej obiektowej na funkcję zwracającą nowe elementy (żeby animacje CSS się resetowały)
+function ToastIcon({ variant }: { variant: ToastVariant }) {
+  switch (variant) {
+    case "success": return <CheckCircle className="w-4 h-4 shrink-0" />;
+    case "error":   return <XCircle className="w-4 h-4 shrink-0" />;
+    case "info":    return <Info className="w-4 h-4 shrink-0" />;
+    case "loading": return <Loader2 className="w-4 h-4 shrink-0 animate-spin text-primary" />;
+    default:        return null;
+  }
+}
 
 function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove: (id: string) => void }) {
   return (
@@ -80,7 +80,8 @@ function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove:
       aria-live="assertive"
       className={`flex items-start gap-3 w-full px-4 py-3 rounded-xl border shadow-lg text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`}
     >
-      {VARIANT_ICONS[item.variant]}
+      {/* ZMIANA: Wywołanie ikony jako komponentu */}
+      <ToastIcon variant={item.variant} />
       <span className="flex-1 leading-snug">{item.message}</span>
       <button
         onClick={() => onRemove(item.id)}
@@ -137,7 +138,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "REMOVE", id });
   }, []);
 
-  // ZMIANA: addNotification przyjmuje trzeci opcjonalny parametr autoDismiss
   const addNotification = useCallback(
     (message: string, variant: ToastVariant, autoDismiss: boolean = true) => {
       const id = `toast-${++counter.current}`;
@@ -147,7 +147,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => remove(id), AUTO_DISMISS_MS);
       }
       
-      return id; // Zwracamy ID na wypadek ręcznego usuwania (jak w przypadku Loading)
+      return id; 
     },
     [remove]
   );
@@ -172,14 +172,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  // ZMIANA: Skonstruowany na nowo obiekt "toast"
   const toast = {
     success: (m: string) => { addNotification(m, "success"); },
     error:   (m: string) => { addNotification(m, "error"); },
     info:    (m: string) => { addNotification(m, "info"); },
-    // loading ZWRACA ID toasta, i NIE znika automatycznie (autoDismiss = false)
     loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
-    // Metoda do usuwania ręcznego
     dismiss: (id: string) => remove(id),
     confirm,
   };

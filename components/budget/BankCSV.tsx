@@ -23,12 +23,12 @@ const mapCategory = (mbankCat: string, desc: string): string => {
   const d = desc.toLowerCase();
 
   if (c.includes("tv") || c.includes("internet") || c.includes("telefon") || c.includes("ubezpiecz") || d.includes("ubezpieczenie")) return "Opłaty stałe";
-  if (c.includes("rozrywka") || c.includes("multimedia") || c.includes("książki") || c.includes("prasa") || c.includes("sport") || c.includes("hobby") || c.includes("edukacja") || c.includes("kino")) return "Rozrywka";
+  if (c.includes("rozrywka") || c.includes("multimedia") || c.includes("książki") || c.includes("prasa") || c.includes("sport") || c.includes("hobby") || c.includes("edukacja") || c.includes("kino") || d.includes("kino") || c.includes("teatr")) return "Rozrywka";
   if (c.includes("odzież") || c.includes("obuwie") || d.includes("ubrania")) return "Odzież";
   if (c.includes("żywność") || c.includes("chemia") || c.includes("zdrowie") || c.includes("uroda") || c.includes("supermarket") || c.includes("apteki")) return "Jedzenie";
   if (c.includes("elektronika") || c.includes("rtv") || c.includes("agd")) return "Elektronika";
-  if (c.includes("transport") || c.includes("przejazdy") || c.includes("paliwo") || c.includes("komunikacja")) return "Transport";
-  if (c.includes("podróże") || c.includes("wakacje") || c.includes("hotel") || c.includes("loty") || d.includes("pkp") || d.includes("ryanair") || d.includes("wizzair")) return "Wakacje";
+  if (c.includes("transport") || c.includes("przejazdy") || c.includes("paliwo") || c.includes("komunikacja") || d.includes("ztm") || d.includes("mpk") || d.includes("pkp") || d.includes("regiojet")) return "Transport";
+  if (c.includes("podróże") || c.includes("wakacje") || c.includes("hotel") || c.includes("loty") || d.includes("ryanair") || d.includes("wizzair")) return "Wakacje";
   
   return "Inne"; 
 };
@@ -117,6 +117,8 @@ const cleanDescription = (rawDesc: string): string => {
     "DATA TRANSAKCJI:",
     "DATA KSIĘGOWANIA:",
     "KARTA:",
+    "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY",
+    "PRZELEW ŚRODKÓW"
   ];
 
   for (const b of boilerplate) {
@@ -126,6 +128,9 @@ const cleanDescription = (rawDesc: string): string => {
 
   desc = desc.replace(/\d{2}\.\d{2}\.\d{4}/g, "");
   desc = desc.replace(/\d{2}-\d{3}\s+[A-Za-zęóąśłżźćńĘÓĄŚŁŻŹĆŃ]+/gi, "");
+  // Usuwanie długich numerów kont, żeby opis był czytelny
+  desc = desc.replace(/\d{26}/g, ""); 
+  
   let cleaned = desc.replace(/\s+/g, ' ').trim();
   
   return cleaned || "Płatność kartą / BLIK"; 
@@ -142,7 +147,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
   const { user, supabase } = useAuth(); 
   const { toast } = useToast();
   const { categories, addCategory } = useBudgetCategories(year);
-  const { expenseItems, addBill } = useBills();
+  const { expenseItems, addBill } = useBills(); 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [parsedData, setParsedData] = useState<ParsedTransaction[]>([]);
@@ -168,6 +173,17 @@ export default function BankCsvImporter({ year }: { year: number }) {
         return;
       }
 
+      const headerLine = lines[headerIdx];
+      const headers = headerLine.split(";").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
+      
+      let dateIdx = headers.findIndex(h => h.includes("data operacji"));
+      let descIdx = headers.findIndex(h => h.includes("opis operacji") || h.includes("szczegóły"));
+      let catIdx = headers.findIndex(h => h.includes("kategoria"));
+      let amountIdx = headers.findIndex(h => h === "kwota" || h === "#kwota" || h.includes("kwota operacji") || h.includes("kwota transakcji"));
+
+      if (dateIdx === -1) dateIdx = 0;
+      if (descIdx === -1) descIdx = 1;
+
       const transactions: ParsedTransaction[] = [];
       let dupes = 0;
 
@@ -178,34 +194,37 @@ export default function BankCsvImporter({ year }: { year: number }) {
         const cols = line.split(";").map((c) => c.replace(/^"|"$/g, "").trim());
         if (cols.length < 3) continue; 
 
-        const dateStr = cols[0];
-        const rawDesc = cols[1];
+        const dateStr = cols[dateIdx] || "";
+        const rawDesc = cols[descIdx] || "";
         
         let kwotaStr = "0";
         let catRaw = "";
 
-        if (cols.length === 4) {
-          catRaw = cols[2];
-          kwotaStr = cols[3];
+        if (amountIdx !== -1 && cols[amountIdx]) {
+          kwotaStr = cols[amountIdx];
+          catRaw = catIdx !== -1 ? cols[catIdx] : "";
         } else {
-          for (let j = cols.length - 1; j >= 2; j--) {
-            if (/[\d]+,[\d]{2}/.test(cols[j])) {
+          for (let j = 2; j < cols.length; j++) {
+            if (/(?:^-?\s*\d[\d\s]*,\d{2})|(?:^-?\d+\.\d{2})/.test(cols[j])) {
               kwotaStr = cols[j];
-              if (j > 0 && /[\d]+,[\d]{2}/.test(cols[j-1])) {
-                kwotaStr = cols[j-1];
-                catRaw = cols[j-2] || "";
-              } else {
-                catRaw = cols[j-1] || "";
-              }
-              break;
+              catRaw = cols[j-1] || "";
+              break; 
             }
           }
         }
 
-        const dateParts = dateStr.split(".");
-        if (dateParts.length !== 3) continue;
-        const [dd, mm, yyyy] = dateParts;
-        const formattedDate = `${yyyy}-${mm}-${dd}`;
+        let formattedDate = "";
+        if (dateStr.includes("-")) {
+            formattedDate = dateStr;
+        } else {
+            const dateParts = dateStr.split(".");
+            if (dateParts.length === 3) {
+                const [dd, mm, yyyy] = dateParts;
+                formattedDate = `${yyyy}-${mm}-${dd}`;
+            } else {
+                continue;
+            }
+        }
 
         const cleanKwota = kwotaStr
           .replace(/[\s\u00A0]/g, "") 
@@ -214,9 +233,10 @@ export default function BankCsvImporter({ year }: { year: number }) {
           
         const amount = parseFloat(cleanKwota);
 
-        if (isNaN(amount)) continue;
-
-        if (amount >= 0) continue; 
+        // ZMIANA: Zablokowanie importu przychodów (kwot dodatnich)
+        if (isNaN(amount) || amount >= 0) continue;
+        
+        // Zostawiamy blokady zbędnych transakcji (przelewy itp.)
         if (rawDesc.toLowerCase().includes("przelew") || catRaw.toLowerCase().includes("przelew")) continue; 
         if (rawDesc.toLowerCase().includes("bankomat") || catRaw.toLowerCase().includes("bankomat")) continue;
         if (rawDesc.toLowerCase().includes("bankomacie") || catRaw.toLowerCase().includes("bankomacie")) continue;
@@ -225,9 +245,9 @@ export default function BankCsvImporter({ year }: { year: number }) {
 
         const mappedCat = mapCategory(catRaw, rawDesc);
         const absoluteAmount = Math.abs(amount);
-        
         const cleanDesc = cleanDescription(rawDesc);
 
+        // ZMIANA: Sprawdzamy duplikaty tylko wśród wydatków
         const isDuplicate = expenseItems.some(
           (b) => b.amount === absoluteAmount && b.date === formattedDate && (b.description === cleanDesc || b.description?.includes(cleanDesc.substring(0, 10)))
         );
@@ -241,6 +261,14 @@ export default function BankCsvImporter({ year }: { year: number }) {
             amount: absoluteAmount,
             mappedCategory: mappedCat,
           });
+        }
+      }
+
+      if (transactions.length === 0) {
+        if (dupes > 0) {
+            toast.info(`Wszystkie transakcje z pliku (${dupes}) zostały już zaimportowane.`);
+        } else {
+            toast.error("W pliku nie znaleziono żadnych nowych wydatków.");
         }
       }
 
@@ -338,12 +366,12 @@ export default function BankCsvImporter({ year }: { year: number }) {
   };
 
   return (
-    <div className="card rounded-xl shadow-sm px-4 py-3 mb-6">
+    <div className="widget rounded-xl shadow-sm px-4 py-3 mb-6">
       <div className="flex flex-row items-center justify-between gap-4">
         
           <h3 className="font-medium text-sm text-text flex items-center gap-4">
             <FileText className="w-5 h-5 text-primary" /> 
-            Import z pliku
+            Import z pliku mBank
           </h3>
         
         <div className="max-h-[24px] flex items-center">
