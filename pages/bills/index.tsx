@@ -165,7 +165,7 @@ export default function BillsPage() {
               </button>
             </div>
           </div>
-          <AddButton onClick={() => setShowForm(true)} type="button" />
+          <AddButton onClick={() => setShowForm(true)}/>
         </div>
 
         {showForm && (

@@ -48,7 +48,7 @@ export default function ShoppingPage() {
           <h2 className="text-2xl font-bold text-text">
             Listy zakupów
           </h2>
-          {!showForm && <AddButton onClick={openNew} type="button" />}
+          {!showForm && <AddButton onClick={openNew} />}
         </div>
 
         {showForm && (

@@ -76,7 +76,7 @@ export default function NotesPage() {
             </div>
           </div>
           
-          {!showForm && <AddButton onClick={openNew} type="button" />}
+          {!showForm && <AddButton onClick={openNew}/>}
         </div>
         
         {showForm && (

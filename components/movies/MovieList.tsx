@@ -67,7 +67,7 @@ export default function MovieWatchlist({
         m.platform?.toLowerCase().includes(q)
     );
   }, [sortedMovies, searchQuery]);
-  
+
   const suggestions = useMemo(
     () => Array.from(new Set(movies.map((m) => m.title))).sort((a, b) => a.localeCompare(b, "pl")),
     [movies]
@@ -135,7 +135,7 @@ export default function MovieWatchlist({
     <>
       <div className="flex justify-between items-center mb-6 mt-2">
         <h2 className="text-2xl font-bold text-text">Filmy</h2>
-        {!showAddForm && <AddButton onClick={() => setShowAddForm(true)} type="button" />}
+        {!showAddForm && <AddButton onClick={() => setShowAddForm(true)} />}
       </div>
 
       {showAddForm && (

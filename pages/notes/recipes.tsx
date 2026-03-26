@@ -36,7 +36,7 @@ export default function RecipesPage() {
       <Layout>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-text">Przepisy</h2>
-          {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
+          {!showForm && <AddButton onClick={() => setShowForm(true)} />}
         </div>
 
         {showForm && (
