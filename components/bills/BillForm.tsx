@@ -178,8 +178,8 @@ export default function BillForm({
       </div>
 
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 space-y-3 bg-surface">
-          <label className="flex items-center justify-between gap-3 cursor-pointer">
-            <span className="flex items-center gap-2 text-sm font-medium text-text">
+          <label htmlFor="cycle" className="flex items-center justify-between gap-3 cursor-pointer">
+            <span id="cycle" className="flex items-center gap-2 text-sm font-medium text-text">
               <RefreshCw className="w-4 h-4 text-primary" />
               Cykliczny (co miesiąc)
             </span>

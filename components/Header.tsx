@@ -172,10 +172,9 @@ export default function Header() {
       <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-center gap-3">
 
         <div className="shrink-0 flex flex-1 items-center">
-          <div
+          <button
             onClick={() => router.push("/calendar")}
             className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
-            role="button"
             title="Kliknij, aby zobaczyć kalendarz"
           >
             <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
@@ -185,7 +184,7 @@ export default function Header() {
               {currentDate}
             </span>
             <StableBirthdayIndicator date={todayDateString} />
-          </div>
+          </button>
         </div>
 
         <div className="hidden sm:flex flex-col flex-1 items-center justify-center">
@@ -201,7 +200,7 @@ export default function Header() {
             dailyMin != null &&
             dailyMax != null &&
             weatherCode != null ? (
-            <div
+            <button
               onClick={() => router.push("/weather")}
               className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
               title="Kliknij, aby zobaczyć pełną prognozę"
@@ -222,7 +221,7 @@ export default function Header() {
                   {airQuality}
                 </span>
               )}
-            </div>
+            </button>
           ) : null}
         </div>
       </span>
