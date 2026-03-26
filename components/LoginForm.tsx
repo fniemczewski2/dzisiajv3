@@ -4,10 +4,15 @@ export default function LoginForm() {
   const { supabase } = useAuth();
   
   const handleGoogleLogin = async () => {
+    // Check if there is a 'next' parameter in the current URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const nextUrl = searchParams.get('next') || '/';
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
+        // Pass the 'next' parameter back to your callback route
+        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(nextUrl)}`,
       },
     });
   };

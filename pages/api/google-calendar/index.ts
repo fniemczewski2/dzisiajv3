@@ -1,4 +1,4 @@
-// pages/api/google-calendar.ts
+// pages/api/google-calendar/index.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 
@@ -34,6 +34,8 @@ async function getUserFromBearer(req: NextApiRequest) {
   }
   return { user, token };
 }
+
+type AuthContext = NonNullable<Awaited<ReturnType<typeof getUserFromBearer>>>;
 
 async function refreshGoogleToken(refreshToken: string): Promise<string | null> {
   const r = await fetch("https://oauth2.googleapis.com/token", {
@@ -97,7 +99,6 @@ const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined): s
 
 const toRFC3339 = (ts: string): string => {
   try {
-
     const localStr = ts
       .replace(" ", "T")
       .replace(/([+-]\d{2}:\d{2}|[+-]\d{2}|Z)$/, "");
@@ -115,233 +116,223 @@ const toRFC3339 = (ts: string): string => {
   }
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { action } = req.query;
+async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const state = Buffer.from(
+    JSON.stringify({ userId: auth.user.id, token: auth.token })
+  ).toString("base64url");
 
-  if (action === "auth-url" && req.method === "GET") {
-    const auth = await getUserFromBearer(req);
-    if (!auth) return res.status(401).json({ error: "Unauthorized" });
+  const scopes = [
+    "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.calendarlist",
+    "https://www.googleapis.com/auth/calendar.calendars.readonly",
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.events.owned",
+    "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+    "https://www.googleapis.com/auth/calendar.events.readonly"
+  ].join(" ");
 
-    const state = Buffer.from(
-      JSON.stringify({ userId: auth.user.id, token: auth.token })
-    ).toString("base64url");
+  const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
+  url.searchParams.set("redirect_uri", getRedirectUri(req));
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("scope", scopes);
+  url.searchParams.set("access_type", "offline");
+  url.searchParams.set("prompt", "consent");
+  url.searchParams.set("state", state);
 
-    const scopes = [
-      "https://www.googleapis.com/auth/calendar.readonly",
-      "https://www.googleapis.com/auth/calendar.calendarlist",
-      "https://www.googleapis.com/auth/calendar.calendars.readonly",
-      "https://www.googleapis.com/auth/calendar.events",
-      "https://www.googleapis.com/auth/calendar.events.owned",
-      "https://www.googleapis.com/auth/calendar.events.owned.readonly",
-      "https://www.googleapis.com/auth/calendar.events.readonly"
-    ].join(" "); // Łączymy zakresy spacją
+  return res.json({ url: url.toString() });
+}
 
-    const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
-    url.searchParams.set("redirect_uri", getRedirectUri(req));
-    url.searchParams.set("response_type", "code");
-    url.searchParams.set("scope", scopes); // Przypisanie nowej listy zakresów
-    url.searchParams.set("access_type", "offline");
-    url.searchParams.set("prompt", "consent");
-    url.searchParams.set("state", state);
+async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const sb = getServiceSupabase();
+  const { data: row } = await sb
+    .from("google_calendar_tokens")
+    .select("user_id")
+    .eq("user_id", auth.user.id)
+    .maybeSingle();
 
-    return res.json({ url: url.toString() });
+  if (!row) return res.json({ connected: false });
+
+  const accessToken = await getValidGoogleToken(auth.user.id);
+  if (!accessToken) return res.json({ connected: false });
+
+  const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (r.status === 401) {
+    await sb.from("google_calendar_tokens").delete().eq("user_id", auth.user.id);
+    return res.json({ connected: false });
+  }
+  if (!r.ok) return res.status(r.status).json({ error: "Google Calendar API error" });
+
+  const data = await r.json();
+  return res.json({ connected: true, calendars: data.items ?? [] });
+}
+
+async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const { calendarId, timeMin, timeMax } = req.body ?? {};
+  if (!calendarId) return res.status(400).json({ error: "calendarId required" });
+
+  const accessToken = await getValidGoogleToken(auth.user.id);
+  if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
+
+  const defaultTimeMin = new Date(Date.now() - 365 * 86_400_000).toISOString();
+  const defaultTimeMax = new Date(Date.now() + 365 * 86_400_000).toISOString();
+
+  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`);
+  url.searchParams.set("timeMin", timeMin || defaultTimeMin);
+  url.searchParams.set("timeMax", timeMax || defaultTimeMax);
+  url.searchParams.set("singleEvents", "true");
+  url.searchParams.set("maxResults", "500");
+  url.searchParams.set("orderBy", "startTime");
+
+  const r = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!r.ok) {
+    const body = await r.text();
+    console.error("[gcal import] Google error:", r.status, body);
+    return res.status(r.status).json({ error: "Failed to fetch events from Google" });
   }
 
-  if (action === "list-calendars" && req.method === "GET") {
-    const auth = await getUserFromBearer(req);
-    if (!auth) return res.status(401).json({ error: "Unauthorized" });
+  const { items = [] } = await r.json();
+  const sb = getServiceSupabase();
+  let imported = 0;
+  let skipped = 0;
 
-    const sb = getServiceSupabase();
-    const { data: row } = await sb
-      .from("google_calendar_tokens")
-      .select("user_id")
+  for (const ev of items as any[]) {
+    if (ev.status === "cancelled" || !ev.start || !ev.end) {
+      skipped++;
+      continue;
+    }
+
+    const { data: dup } = await sb
+      .from("events")
+      .select("id")
+      .eq("google_event_id", ev.id)
       .eq("user_id", auth.user.id)
       .maybeSingle();
 
-    if (!row) return res.json({ connected: false });
+    if (dup) {
+      skipped++;
+      continue;
+    }
 
-    const accessToken = await getValidGoogleToken(auth.user.id);
-    if (!accessToken) return res.json({ connected: false });
-
-    const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    const { error } = await sb.from("events").insert({
+      user_id: auth.user.id,
+      title: ev.summary || "(bez tytułu)",
+      description: ev.description || "",
+      start_time: toSupabaseTime(ev.start),
+      end_time: toSupabaseTime(ev.end),
+      place: ev.location || "",
+      repeat: "none",
+      google_event_id: ev.id,
+      shared_with_id: null,
     });
 
-    if (r.status === 401) {
-
-      await sb.from("google_calendar_tokens").delete().eq("user_id", auth.user.id);
-      return res.json({ connected: false });
-    }
-    if (!r.ok) return res.status(r.status).json({ error: "Google Calendar API error" });
-
-    const data = await r.json();
-    return res.json({ connected: true, calendars: data.items ?? [] });
-  }
-
-  if (action === "import" && req.method === "POST") {
-    const auth = await getUserFromBearer(req);
-    if (!auth) return res.status(401).json({ error: "Unauthorized" });
-
-    const { calendarId, timeMin, timeMax } = req.body ?? {};
-    if (!calendarId) return res.status(400).json({ error: "calendarId required" });
-
-    const accessToken = await getValidGoogleToken(auth.user.id);
-    if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
-
-    const defaultTimeMin = new Date(Date.now() - 365 * 86_400_000).toISOString();
-    const defaultTimeMax = new Date(Date.now() + 365 * 86_400_000).toISOString();
-
-    const url = new URL(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`
-    );
-    url.searchParams.set("timeMin", timeMin || defaultTimeMin);
-    url.searchParams.set("timeMax", timeMax || defaultTimeMax);
-    url.searchParams.set("singleEvents", "true");
-    url.searchParams.set("maxResults", "500");
-    url.searchParams.set("orderBy", "startTime");
-
-    const r = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-
-    if (!r.ok) {
-      const body = await r.text();
-      console.error("[gcal import] Google error:", r.status, body);
-      return res.status(r.status).json({ error: "Failed to fetch events from Google" });
-    }
-
-    const { items = [] } = await r.json();
-
-    const sb = getServiceSupabase();
-    let imported = 0;
-    let skipped = 0;
-
-    for (const ev of items as any[]) {
-      if (ev.status === "cancelled" || !ev.start || !ev.end) {
-        skipped++;
-        continue;
-      }
-
-      const { data: dup } = await sb
-        .from("events")
-        .select("id")
-        .eq("google_event_id", ev.id)
-        .eq("user_id", auth.user.id)
-        .maybeSingle();
-
-      if (dup) {
-        skipped++;
-        continue;
-      }
-
-      const { error } = await sb.from("events").insert({
-        user_id: auth.user.id,
-        title: ev.summary || "(bez tytułu)",
-        description: ev.description || "",
-        start_time: toSupabaseTime(ev.start),
-        end_time: toSupabaseTime(ev.end),
-        place: ev.location || "",
-        repeat: "none",
-        google_event_id: ev.id,
-        shared_with_id: null,
-      });
-
-      if (!error) {
-        imported++;
-      } else {
-        console.error("[gcal import] insert error:", error.message);
-        skipped++;
-      }
-    }
-
-    return res.json({ imported, skipped, total: items.length });
-  }
-
-  if (action === "export" && req.method === "POST") {
-    const auth = await getUserFromBearer(req);
-    if (!auth) return res.status(401).json({ error: "Unauthorized" });
-
-    const { calendarId, eventIds } = req.body ?? {};
-    if (!calendarId) return res.status(400).json({ error: "calendarId required" });
-
-    const accessToken = await getValidGoogleToken(auth.user.id);
-    if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
-
-    const sb = getServiceSupabase();
-
-    let query = sb.from("events").select("*").eq("user_id", auth.user.id);
-    if (eventIds?.length) {
-      query = query.in("id", eventIds);
+    if (!error) {
+      imported++;
     } else {
-      const past30 = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
-      const future = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
-      query = query.gte("start_time", past30).lte("start_time", future);
+      console.error("[gcal import] insert error:", error.message);
+      skipped++;
     }
-
-    const { data: events, error: fetchErr } = await query;
-    if (fetchErr) {
-      console.error("[gcal export] DB fetch error:", fetchErr.message);
-      return res.status(500).json({ error: "Failed to fetch local events" });
-    }
-    if (!events?.length) {
-      return res.json({ exported: 0, skipped: 0, message: "No events found in selected range" });
-    }
-
-    let exported = 0;
-    let skipped = 0;
-
-    for (const ev of events) {
-      const body = {
-        summary: ev.title,
-        description: ev.description || "",
-        location: ev.place || "",
-        start: { dateTime: toRFC3339(ev.start_time), timeZone: "Europe/Warsaw" },
-        end: { dateTime: toRFC3339(ev.end_time), timeZone: "Europe/Warsaw" },
-      };
-
-      const method = ev.google_event_id ? "PUT" : "POST";
-      const endpoint = ev.google_event_id
-        ? `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${ev.google_event_id}`
-        : `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
-
-      const r = await fetch(endpoint, {
-        method,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (r.ok) {
-        const created = await r.json();
-        await sb
-          .from("events")
-          .update({ google_event_id: created.id })
-          .eq("id", ev.id);
-        exported++;
-      } else {
-        const errBody = await r.text();
-        console.error("[gcal export] Google API error:", r.status, errBody);
-        skipped++;
-      }
-    }
-
-    return res.json({ exported, skipped });
   }
 
-  if (action === "disconnect" && req.method === "DELETE") {
-    const auth = await getUserFromBearer(req);
-    if (!auth) return res.status(401).json({ error: "Unauthorized" });
+  return res.json({ imported, skipped, total: items.length });
+}
 
-    await getServiceSupabase()
-      .from("google_calendar_tokens")
-      .delete()
-      .eq("user_id", auth.user.id);
+async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const { calendarId, eventIds } = req.body ?? {};
+  if (!calendarId) return res.status(400).json({ error: "calendarId required" });
 
-    return res.json({ ok: true });
+  const accessToken = await getValidGoogleToken(auth.user.id);
+  if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
+
+  const sb = getServiceSupabase();
+
+  let query = sb.from("events").select("*").eq("user_id", auth.user.id);
+  if (eventIds?.length) {
+    query = query.in("id", eventIds);
+  } else {
+    const past30 = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+    const future = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+    query = query.gte("start_time", past30).lte("start_time", future);
   }
+
+  const { data: events, error: fetchErr } = await query;
+  if (fetchErr) {
+    console.error("[gcal export] DB fetch error:", fetchErr.message);
+    return res.status(500).json({ error: "Failed to fetch local events" });
+  }
+  if (!events?.length) {
+    return res.json({ exported: 0, skipped: 0, message: "No events found in selected range" });
+  }
+
+  let exported = 0;
+  let skipped = 0;
+
+  for (const ev of events) {
+    const body = {
+      summary: ev.title,
+      description: ev.description || "",
+      location: ev.place || "",
+      start: { dateTime: toRFC3339(ev.start_time), timeZone: "Europe/Warsaw" },
+      end: { dateTime: toRFC3339(ev.end_time), timeZone: "Europe/Warsaw" },
+    };
+
+    const method = ev.google_event_id ? "PUT" : "POST";
+    const endpoint = ev.google_event_id
+      ? `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${ev.google_event_id}`
+      : `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+
+    const r = await fetch(endpoint, {
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (r.ok) {
+      const created = await r.json();
+      await sb
+        .from("events")
+        .update({ google_event_id: created.id })
+        .eq("id", ev.id);
+      exported++;
+    } else {
+      const errBody = await r.text();
+      console.error("[gcal export] Google API error:", r.status, errBody);
+      skipped++;
+    }
+  }
+
+  return res.json({ exported, skipped });
+}
+
+async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  await getServiceSupabase()
+    .from("google_calendar_tokens")
+    .delete()
+    .eq("user_id", auth.user.id);
+
+  return res.json({ ok: true });
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const auth = await getUserFromBearer(req);
+  if (!auth) return res.status(401).json({ error: "Unauthorized" });
+
+  const { action } = req.query;
+
+  if (action === "auth-url" && req.method === "GET") return handleAuthUrl(req, res, auth);
+  if (action === "list-calendars" && req.method === "GET") return handleListCalendars(req, res, auth);
+  if (action === "import" && req.method === "POST") return handleImport(req, res, auth);
+  if (action === "export" && req.method === "POST") return handleExport(req, res, auth);
+  if (action === "disconnect" && req.method === "DELETE") return handleDisconnect(req, res, auth);
 
   return res.status(404).json({ error: "Unknown action" });
 }
