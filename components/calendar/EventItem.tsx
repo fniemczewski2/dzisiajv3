@@ -14,7 +14,6 @@ interface EventItemProps {
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
-  // ZMIANA: Dodane propsy optymalizacyjne
   userId: string;
   userOptions: string[];
 }
@@ -28,7 +27,6 @@ export default function EventItem({
   userId,
   userOptions
 }: EventItemProps) {
-  // ZMIANA: Używamy tylko supabase, reszta pochodzi z propsów
   const { supabase } = useAuth();
   const { toast } = useToast();
 
@@ -107,35 +105,74 @@ export default function EventItem({
   };
 
   if (isEditing && editedEvent) {
+    const editPrefix = `edit-event-${event.id}`;
+    
     return (
       <div className="p-4 w-full max-w-md bg-card border border-primary dark:border-primary rounded-2xl shadow-lg space-y-4">
         <div>
-          <label className="form-label">Tytuł wydarzenia:</label>
-          <input ref={titleRef} type="text" value={editedEvent.title} onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })} className="input-field font-medium" />
+          <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł wydarzenia:</label>
+          <input 
+            id={`${editPrefix}-title`}
+            ref={titleRef} 
+            type="text" 
+            value={editedEvent.title} 
+            onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })} 
+            className="input-field font-medium" 
+          />
         </div>
         <div>
-          <label className="form-label">Opis (opcjonalny):</label>
-          <textarea value={editedEvent.description || ""} onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })} className="input-field" rows={3} />
+          <label htmlFor={`${editPrefix}-desc`} className="form-label">Opis (opcjonalny):</label>
+          <textarea 
+            id={`${editPrefix}-desc`}
+            value={editedEvent.description || ""} 
+            onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })} 
+            className="input-field" 
+            rows={3} 
+          />
         </div>
         <div className="grid grid-cols-2 gap-1 md:gap-3">
           <div className="min-w-0 max-w-[100%]">
-            <label className="form-label">Rozpoczęcie:</label>
-            <input type="datetime-local" value={editedEvent.start_time.slice(0, 16)} onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })} className="input-field text-xs w-full min-w-0 px-1" />
+            <label htmlFor={`${editPrefix}-start`} className="form-label">Rozpoczęcie:</label>
+            <input 
+              id={`${editPrefix}-start`}
+              type="datetime-local" 
+              value={editedEvent.start_time.slice(0, 16)} 
+              onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })} 
+              className="input-field text-xs w-full min-w-0 px-1" 
+            />
           </div>
           <div className="min-w-0 max-w-[100%]">
-            <label className="form-label">Zakończenie:</label>
-            <input type="datetime-local" value={editedEvent.end_time.slice(0, 16)} onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })} className="input-field text-xs w-full min-w-0 px-1" />
+            <label htmlFor={`${editPrefix}-end`} className="form-label">Zakończenie:</label>
+            <input 
+              id={`${editPrefix}-end`}
+              type="datetime-local" 
+              value={editedEvent.end_time.slice(0, 16)} 
+              onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })} 
+              className="input-field text-xs w-full min-w-0 px-1" 
+            />
           </div>
         </div>
         <div>
-          <label className="form-label">Miejsce:</label>
-          <input type="text" value={editedEvent.place || ""} onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })} className="input-field" placeholder="Gdzie się odbędzie?" />
+          <label htmlFor={`${editPrefix}-place`} className="form-label">Miejsce:</label>
+          <input 
+            id={`${editPrefix}-place`}
+            type="text" 
+            value={editedEvent.place || ""} 
+            onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })} 
+            className="input-field" 
+            placeholder="Gdzie się odbędzie?" 
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           {userOptions.length > 0 && (
             <div>
-              <label className="form-label">Udostępnij dla:</label>
-              <select value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field py-1.5 text-sm">
+              <label htmlFor={`${editPrefix}-share`} className="form-label">Udostępnij dla:</label>
+              <select 
+                id={`${editPrefix}-share`}
+                value={sharedEmail} 
+                onChange={(e) => setSharedEmail(e.target.value)} 
+                className="input-field py-1.5 text-sm"
+              >
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email) => (
                   <option key={email} value={email}>{email}</option>
@@ -144,8 +181,13 @@ export default function EventItem({
             </div>
           )}
           <div>
-            <label className="form-label">Powtarzaj:</label>
-            <select value={editedEvent.repeat || "none"} onChange={(e) => setEditedEvent({ ...editedEvent, repeat: e.target.value as Event["repeat"] })} className="input-field py-1.5 text-sm">
+            <label htmlFor={`${editPrefix}-repeat`} className="form-label">Powtarzaj:</label>
+            <select 
+              id={`${editPrefix}-repeat`}
+              value={editedEvent.repeat || "none"} 
+              onChange={(e) => setEditedEvent({ ...editedEvent, repeat: e.target.value as Event["repeat"] })} 
+              className="input-field py-1.5 text-sm"
+            >
               <option value="none">Brak (jednorazowe)</option>
               <option value="weekly">Co tydzień</option>
               <option value="monthly">Co miesiąc</option>

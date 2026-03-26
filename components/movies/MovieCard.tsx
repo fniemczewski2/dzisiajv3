@@ -94,6 +94,8 @@ export default function MovieCard({
     toast.success("Usunięto pomyślnie.");
   };
 
+  const editPrefix = `edit-movie-${movie.id}`;
+
   return (
     <div className={`p-4 rounded-xl border transition-all duration-200 group ${
       movie.watched
@@ -103,36 +105,62 @@ export default function MovieCard({
       {isEditing ? (
         <div className="space-y-4">
           <div>
-            <label className="form-label">Tytuł:</label>
-            <input type="text" value={editForm.title}
+            <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł:</label>
+            <input 
+              id={`${editPrefix}-title`}
+              type="text" 
+              value={editForm.title}
               onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-              className="input-field font-medium" placeholder="Tytuł filmu" />
+              className="input-field font-medium" 
+              placeholder="Tytuł filmu" 
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="form-label">Gatunek:</label>
-              <input type="text" value={editForm.genre}
+              <label htmlFor={`${editPrefix}-genre`} className="form-label">Gatunek:</label>
+              <input 
+                id={`${editPrefix}-genre`}
+                type="text" 
+                value={editForm.genre}
                 onChange={(e) => setEditForm({ ...editForm, genre: e.target.value })}
-                className="input-field" placeholder="Np. Dramat" />
+                className="input-field" 
+                placeholder="Np. Dramat" 
+              />
             </div>
             <div>
-              <label className="form-label">Ocena (0-10):</label>
-              <input type="text" inputMode="decimal" value={editForm.rating}
+              <label htmlFor={`${editPrefix}-rating`} className="form-label">Ocena (0-10):</label>
+              <input 
+                id={`${editPrefix}-rating`}
+                type="text" 
+                inputMode="decimal" 
+                value={editForm.rating}
                 onChange={(e) => setEditForm({ ...editForm, rating: e.target.value })}
-                className="input-field" placeholder="7.5" />
+                className="input-field" 
+                placeholder="7.5" 
+              />
             </div>
           </div>
           <div>
-            <label className="form-label">Dostępność (Platforma):</label>
-            <input type="text" value={editForm.platform}
+            <label htmlFor={`${editPrefix}-platform`} className="form-label">Dostępność (Platforma):</label>
+            <input 
+              id={`${editPrefix}-platform`}
+              type="text" 
+              value={editForm.platform}
               onChange={(e) => setEditForm({ ...editForm, platform: e.target.value })}
-              className="input-field" placeholder="Np. Netflix, Kino" />
+              className="input-field" 
+              placeholder="Np. Netflix, Kino" 
+            />
           </div>
           <div>
-            <label className="form-label">Opis:</label>
-            <textarea value={editForm.description}
+            <label htmlFor={`${editPrefix}-desc`} className="form-label">Opis:</label>
+            <textarea 
+              id={`${editPrefix}-desc`}
+              value={editForm.description}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-              className="input-field" rows={3} placeholder="Krótki opis..." />
+              className="input-field" 
+              rows={3} 
+              placeholder="Krótki opis..." 
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
             <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
@@ -188,10 +216,14 @@ export default function MovieCard({
             </button>
             {expandedNotes.has(movie.id) && (
               <div className="mb-3">
-                <textarea value={notesText}
+                <label htmlFor={`notes-${movie.id}`} className="sr-only">Notatki do filmu</label>
+                <textarea 
+                  id={`notes-${movie.id}`}
+                  value={notesText}
                   onChange={(e) => setNotesText(e.target.value)}
                   className="input-field text-sm" rows={2}
-                  placeholder="Dodaj swoje notatki o filmie..." />
+                  placeholder="Dodaj swoje notatki o filmie..." 
+                />
                 <div className="flex justify-end mt-2">
                   <SaveButton onClick={handleSaveNotes} />
                 </div>

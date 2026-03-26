@@ -93,9 +93,10 @@ export default function PlaceFilters({
         {availableTags.length > 0 && (
           <div className="card rounded-xl p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">
+              {/* CHANGED: label -> div because it's a section heading, not a form control label */}
+              <div className="text-xs font-bold uppercase tracking-wider text-textSecondary">
                 Tagi
-              </label>
+              </div>
               <button
                 onClick={() => setShowTagFilter(!showTagFilter)}
                 className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-wider transition-colors"
@@ -125,9 +126,10 @@ export default function PlaceFilters({
         )}
         <div className="card rounded-xl p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-textSecondary">
+            {/* CHANGED: label -> div because it's a section heading */}
+            <div className="text-xs font-bold uppercase tracking-wider text-textSecondary">
               Godziny otwarcia
-            </label>
+            </div>
             <button
               onClick={() => setShowTimeFilter(!showTimeFilter)}
               className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-wider transition-colors"
@@ -139,8 +141,10 @@ export default function PlaceFilters({
           {showTimeFilter && (
             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-3">
               <div>
-                <label className="form-label">Dzień tygodnia:</label>
+                {/* CHANGED: Added htmlFor and id */}
+                <label htmlFor="filter-day" className="form-label">Dzień tygodnia:</label>
                 <select
+                  id="filter-day"
                   value={timeFilter?.day ?? 0}
                   onChange={(e) => handleTimeFilterChange("day", parseInt(e.target.value))}
                   className="input-field py-1.5"
@@ -153,8 +157,10 @@ export default function PlaceFilters({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="min-w-0 max-w-[100%]">
-                  <label className="form-label">Od godziny:</label>
+                  {/* CHANGED: Added htmlFor and id */}
+                  <label htmlFor="filter-start-time" className="form-label">Od godziny:</label>
                   <input
+                    id="filter-start-time"
                     type="time"
                     value={timeFilter?.startTime ?? "09:00"}
                     onChange={(e) => handleTimeFilterChange("startTime", e.target.value)}
@@ -162,8 +168,10 @@ export default function PlaceFilters({
                   />
                 </div>
                 <div className="min-w-0 max-w-[100%]">
-                  <label className="form-label">Do godziny:</label>
+                  {/* CHANGED: Added htmlFor and id */}
+                  <label htmlFor="filter-end-time" className="form-label">Do godziny:</label>
                   <input
+                    id="filter-end-time"
                     type="time"
                     value={timeFilter?.endTime ?? "17:00"}
                     onChange={(e) => handleTimeFilterChange("endTime", e.target.value)}
