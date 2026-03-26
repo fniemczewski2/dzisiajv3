@@ -386,7 +386,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
                   <ListTodo className="text-primary w-5 h-5" />Zadania
                 </h2>
-                <AddButton onClick={() => handleAddDraft('task')} type="button" small />
+                <AddButton onClick={() => handleAddDraft('task')} small />
               </div>
               <DayTasks 
                 tasks={unscheduledTasks} 
@@ -406,7 +406,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
                   <Calendar className="text-primary w-5 h-5" /> Wydarzenia
                 </h2>
-                <AddButton onClick={() => handleAddDraft('event')} type="button" small />
+                <AddButton onClick={() => handleAddDraft('event')} small />
               </div>
               <DayEvents 
                 events={events} 

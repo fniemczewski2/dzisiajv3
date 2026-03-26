@@ -118,7 +118,7 @@ export default function TasksPage({isMain}: {isMain?: boolean}) {
               {todayDone}/{todayTotal}
             </span>
           </h2>
-          {!showForm && <AddButton onClick={openNew} type="button" />}
+          {!showForm && <AddButton onClick={openNew} />}
         </div>
         
         <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm gap-2 max-w-md">

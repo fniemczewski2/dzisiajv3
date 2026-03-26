@@ -74,7 +74,7 @@ export default function StreaksPage() {
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Cele
           </h2>
-          {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
+          {!showForm && <AddButton onClick={() => setShowForm(true)} />}
         </div>
 
         {showForm && (

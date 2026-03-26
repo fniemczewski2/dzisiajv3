@@ -83,7 +83,7 @@ export default function DaySchemaPage() {
       <Layout>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text">Plan dnia</h2>
-          {!showForm && <AddButton onClick={openNew} type="button" />}
+          {!showForm && <AddButton onClick={openNew} />}
         </div>
 
         {showForm && (

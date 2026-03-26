@@ -83,7 +83,7 @@ export default function CalendarPage({isMain}: {isMain: boolean}) {
         <>
           <div className="flex justify-between items-center mb-6 gap-2">
             <h2 className="text-2xl font-bold text-text">Kalendarz</h2>
-            {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} type="button" />}
+            {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}
           </div>
 
           {showForm && (

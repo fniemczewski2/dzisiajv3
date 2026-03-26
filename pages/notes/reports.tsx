@@ -71,7 +71,7 @@ export default function ReportsPage() {
       <Layout>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text">Sprawozdania</h2>
-          {!showForm && <AddButton onClick={() => setShowForm(true)} type="button" />}
+          {!showForm && <AddButton onClick={() => setShowForm(true)}/>}
         </div>
 
         {showForm && (
