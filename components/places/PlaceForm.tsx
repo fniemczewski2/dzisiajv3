@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Place, OpeningHours } from "../../types";
-import { SaveButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 import { PlusCircle, X } from "lucide-react";
 
 interface PlaceFormProps {
@@ -43,16 +43,16 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
     setTags(tags.filter((t) => t !== tag));
   };
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
 
-    const updates: Partial<Place> = {
+    const updates: any = {
       tags,
-      notes: notes.trim() || undefined,
-      opening_hours: Object.keys(openingHours).length > 0 ? openingHours : undefined,
-      rating: rating ? parseFloat(rating) : undefined,
-      phone_number: phoneNumber.trim() || undefined,
-      website: website.trim() || undefined,
+      notes: notes.trim() || null,
+      opening_hours: Object.keys(openingHours).length > 0 ? openingHours : null,
+      rating: rating ? parseFloat(rating) : null,
+      phone_number: phoneNumber.trim() || null,
+      website: website.trim() || null,
     };
 
     onSave(updates);
@@ -75,14 +75,21 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
       <div className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 className="text-xl font-semibold text-text mb-4">Edytuj miejsce</h2>
+          
           <div>
-            <label className="form-label">Tagi:</label>
+            <label htmlFor="place-tags" className="form-label">Tagi:</label>
             <div className="flex gap-2 mb-3">
               <input
+                id="place-tags"
                 type="text"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
                 placeholder="Dodaj tag..."
                 className="input-field"
               />
@@ -95,9 +102,9 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag, idx) => (
+              {tags.map((tag) => (
                 <span
-                  key={idx}
+                  key={tag}
                   className="px-3 py-1 bg-surface text-textSecondary border border-gray-200 dark:border-gray-700 rounded-full text-sm flex items-center gap-1.5"
                 >
                   {tag}
@@ -112,10 +119,12 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               ))}
             </div>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="form-label">Ocena (0-5):</label>
+              <label htmlFor="place-rating" className="form-label">Ocena (0-5):</label>
               <input
+                id="place-rating"
                 type="number"
                 min="0"
                 max="5"
@@ -126,8 +135,9 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               />
             </div>
             <div>
-              <label className="form-label">Numer telefonu:</label>
+              <label htmlFor="place-phone" className="form-label">Numer telefonu:</label>
               <input
+                id="place-phone"
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
@@ -136,9 +146,11 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               />
             </div>
           </div>
+
           <div>
-            <label className="form-label">Strona internetowa:</label>
+            <label htmlFor="place-website" className="form-label">Strona internetowa:</label>
             <input
+              id="place-website"
               type="url"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
@@ -146,15 +158,17 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               className="input-field"
             />
           </div>
+
           <div>
-            <label className="form-label">Godziny otwarcia:</label>
+            <div className="form-label">Godziny otwarcia:</div>
             <div className="space-y-2 bg-surface p-3 rounded-xl border border-gray-200 dark:border-gray-700">
               {DAYS.map((day) => (
                 <div key={day} className="flex items-center gap-3">
-                  <span className="w-12 text-sm font-medium text-textSecondary">
+                  <label htmlFor={`hours-${day}`} className="w-12 text-sm font-medium text-textSecondary cursor-pointer">
                     {DAY_NAMES[day]}
-                  </span>
+                  </label>
                   <input
+                    id={`hours-${day}`}
                     type="text"
                     value={openingHours[day]?.[0] || ""}
                     onChange={(e) => updateOpeningHours(day, e.target.value)}
@@ -165,9 +179,11 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               ))}
             </div>
           </div>
+
           <div>
-            <label className="form-label">Notatki:</label>
+            <label htmlFor="place-notes" className="form-label">Notatki:</label>
             <textarea
+              id="place-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -175,7 +191,8 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
               className="input-field"
             />
           </div>
-            <FormButtons onClickClose={onCancel} loading={loading}/>
+
+          <FormButtons onClickSave={handleSubmit} onClickClose={onCancel} loading={loading}/>
         </form>
       </div>
     </div>

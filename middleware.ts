@@ -26,7 +26,8 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
-  const isPublicRoute = path === '/start' || path.startsWith('/login') || path.startsWith('/auth') || path === '/privacy'
+  
+  const isPublicRoute = path === '/start' || path.startsWith('/login') || path.startsWith('/api/auth') || path.startsWith('/auth') || path === '/privacy'
   const isAsset = path.startsWith('/_next') || path.includes('.') 
 
   if (isAsset) return response
@@ -34,10 +35,11 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/start'
+    redirectUrl.searchParams.set('next', path)
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && path === '/start') {
+  if (user && (path === '/start' || path.startsWith('/login'))) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/'
     return NextResponse.redirect(redirectUrl)
