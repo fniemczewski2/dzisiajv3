@@ -5,8 +5,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import LoadingState from "../LoadingState";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 import { ShoppingList } from "../../types";
 
 interface ShoppingFormProps {
@@ -19,7 +18,7 @@ interface ShoppingFormProps {
 
 const MAX_LISTS = 5;
 
-export default function ShoppingForm({ onChange, onCancel, lists, loading, addShoppingList }: ShoppingFormProps) {
+export default function ShoppingForm({ onChange, onCancel, lists, loading, addShoppingList }: Readonly<ShoppingFormProps>) {
   const { settings } = useSettings();
   const { toast } = useToast();
   const { user } = useAuth();

@@ -15,7 +15,7 @@ export default function BudgetControls({
   onSave,
   onCancel,
   onEdit,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <h3 className="font-bold w-full text-text flex  items-center gap-4">
       <span>Liczba godzin pracy</span>

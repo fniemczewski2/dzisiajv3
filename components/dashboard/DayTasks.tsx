@@ -27,7 +27,7 @@ export const DayTasks = React.memo(({
   editTask,
   userId,
   userOptions
-}: DayTasksProps) => {
+}: Readonly<DayTasksProps>) => {
   const { toast } = useToast();
 
   useEffect(() => {

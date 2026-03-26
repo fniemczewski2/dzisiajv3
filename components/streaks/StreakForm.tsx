@@ -10,8 +10,7 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
-import LoadingState from "../LoadingState";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
 interface StreakFormProps {
   onChange: () => void;
@@ -31,7 +30,7 @@ const ICONS = [
   { name: "medical",   icon: BriefcaseMedical },
 ];
 
-export default function StreakForm({ onChange, onCancel }: StreakFormProps) {
+export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormProps>) {
   const { addStreak } = useStreaks();
   const { toast } = useToast();
   const { user } = useAuth();

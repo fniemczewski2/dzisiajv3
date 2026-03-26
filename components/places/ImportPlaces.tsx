@@ -7,7 +7,7 @@ interface ImportPlacesProps {
   onCollapse: () => void;
 }
 
-export default function ImportPlaces({ onImport, onCollapse }: ImportPlacesProps) {
+export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPlacesProps>) {
   const [isImporting, setIsImporting] = useState(false);
   const [autoTagEnabled, setAutoTagEnabled] = useState(true);
   const [fetchGoogleData, setFetchGoogleData] = useState(true);

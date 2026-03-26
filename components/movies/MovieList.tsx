@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Loader2, Search } from "lucide-react";
-import { useMovies } from "../../hooks/useMovies";
+import { Search } from "lucide-react";
 import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
@@ -13,7 +12,6 @@ import MovieAddForm, { type NewMovieData } from "./MovieForm";
 import MovieCard from "./MovieCard";
 import NoResultsState from "../NoResultsState";
 import type { Movie, MovieInsert } from "../../types";
-import LoadingState from "../LoadingState";
 
 interface MoviesProps {
   movies: Movie[];
@@ -27,7 +25,7 @@ interface MoviesProps {
 
 export default function MovieWatchlist({
   movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes
-}: MoviesProps) {
+}: Readonly<MoviesProps>) {
   
   const { settings } = useSettings();
   const { toast } = useToast();

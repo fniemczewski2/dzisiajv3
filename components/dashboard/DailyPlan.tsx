@@ -18,7 +18,7 @@ export const DailyPlan = React.memo(({
   planByHour,
   handleMarkAsDone,
   handleRemoveFromSchedule,
-}: DailyPlanProps) => {
+}: Readonly<DailyPlanProps>) => {
 
   const visibleHours = Object.keys(planByHour).sort((a, b) => a.localeCompare(b));
 

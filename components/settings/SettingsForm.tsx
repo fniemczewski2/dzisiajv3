@@ -30,7 +30,7 @@ export default function SettingsForm({
   saving, 
   onSave,
   onRestoreDefaults
-}: SettingsFormProps) {
+}: Readonly<SettingsFormProps>) {
   
   const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
   const router = useRouter();

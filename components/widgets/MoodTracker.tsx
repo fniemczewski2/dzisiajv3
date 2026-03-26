@@ -18,7 +18,7 @@ interface MoodWidgetProps {
   date: string;
 }
 
-export default function MoodWidget({ date }: MoodWidgetProps) {
+export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
   const { settings } = useSettings();
   const { moods, logMood, loading } = useMoods(date, date);
   const todayMood = moods.find((m) => m.date === date);

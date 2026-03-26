@@ -7,8 +7,7 @@ import { useRecipes } from "../../hooks/useRecipes";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import LoadingState from "../LoadingState";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
 interface RecipeFormProps {
   onChange: () => void;
@@ -19,7 +18,7 @@ const CATEGORIES: RecipeCategory[] = [
   "śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser",
 ];
 
-export default function RecipeForm({ onChange, onCancel }: RecipeFormProps) {
+export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormProps>) {
   const { addRecipe, loading, products: allProducts } = useRecipes();
   const { toast } = useToast();
   const { user } = useAuth();

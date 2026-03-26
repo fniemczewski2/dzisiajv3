@@ -16,11 +16,9 @@ interface PackingListProps {
   onBack?: () => void;
 }
 
-export default function PackingList({ pageTitle, headerTitle, categories, onBack }: PackingListProps) {
+export default function PackingList({ pageTitle, headerTitle, categories, onBack }: Readonly<PackingListProps>) {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
   const router = useRouter();
-  
-  // Default to /notes if no custom back function is provided
   const handleBack = onBack || (() => router.push("/notes"));
 
   const toggle = (item: string) => {

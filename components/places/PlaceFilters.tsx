@@ -35,7 +35,7 @@ export default function PlaceFilters({
   onSearchChange,
   setViewMode,
   viewMode
-}: PlaceFiltersProps) {
+}: Readonly<PlaceFiltersProps>) {
   const [showTimeFilter, setShowTimeFilter] = useState(false);
   const [showTagFilter, setShowTagFilter] = useState(false);
   

@@ -2,13 +2,12 @@
 
 import { Droplet } from "lucide-react";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
-import LoadingState from "../LoadingState";
 
 interface WaterTrackerProps {
   date?: string;
 }
 
-export default function WaterTracker({ date }: WaterTrackerProps) {
+export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
   const { habits, loading, updateWater } = useDailyHabits(date);
 
   if (!habits) return null;

@@ -32,7 +32,7 @@ const ICONS = [
   { name: "piggybank", icon: PiggyBank }, { name: "medical", icon: BriefcaseMedical }, 
 ];
 
-export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessage, loading }: StreakCardProps) {
+export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessage, loading }: Readonly<StreakCardProps>) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(streak.name);
   const [editedDate, setEditedDate] = useState(streak.start_date);

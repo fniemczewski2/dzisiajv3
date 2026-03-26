@@ -11,7 +11,7 @@ interface Props {
 
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
-export default function BirthdayIndicator({ date }: Props) {
+export default function BirthdayIndicator({ date }: Readonly<Props>) {
   const dateStr = date || getAppDate(); 
   const dateObj = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
   

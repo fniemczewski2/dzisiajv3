@@ -44,7 +44,7 @@ const getLabel = (item: PlanItemData): string => {
   }
 };
 
-export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedule }: PlanItemProps) => {
+export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedule }: Readonly<PlanItemProps>) => {
   const quickLink = getQuickLink(item.title);
   const colors = priorityColors[item.data?.priority as 1 | 2 | 3 | 4 | 5] ?? priorityColors[3];
 

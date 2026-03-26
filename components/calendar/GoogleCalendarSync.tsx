@@ -13,7 +13,7 @@ interface Props {
   onSyncComplete?: () => void;
 }
  
-export default function GoogleCalendarSync({ onSyncComplete }: Props) {
+export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) {
   const {
     connected, calendars, loading, error,
     checkConnection, connect, disconnect,

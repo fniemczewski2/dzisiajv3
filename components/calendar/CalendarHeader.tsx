@@ -10,7 +10,7 @@ interface Props {
   onNext(): void;
 }
 
-export default function CalendarHeader({ currentDate, onPrev, onNext }: Props) {
+export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly<Props>) {
   return (
     <div className={clsx("flex items-center px-4 pb-4 sm:pb-6 my-2 sm:my-4 justify-center")}>
       <div className="flex items-center card rounded-2xl p-1 shadow-sm">

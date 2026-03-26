@@ -23,7 +23,7 @@ export default function TaskList({
   onTasksChange,
   userId,
   userOptions
-}: Props) {
+}: Readonly<Props>) {
 
   if (tasks.length === 0) {
     return (

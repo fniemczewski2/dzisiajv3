@@ -1,5 +1,3 @@
-import { Loader2 } from "lucide-react";
-
 interface LoadingStateProps {
   fullScreen?: boolean;
   size?: 'sm' | 'md' | 'lg';
@@ -7,7 +5,7 @@ interface LoadingStateProps {
   isSearch?: boolean;
 }
 
-export default function NoResultsState({ fullScreen = false, size = 'md', text, isSearch = false }: LoadingStateProps) {
+export default function NoResultsState({ fullScreen = false, size = 'md', text, isSearch = false }: Readonly<LoadingStateProps>) {
   const content = (
     <div className="text-center py-10 w-md h-md rounded-lg bg-surface" >
         <h3 className="text-md font-medium text-text">Brak {text} {isSearch ? "spełniających kryteria." : "do wyświetlenia."}</h3>

@@ -9,7 +9,7 @@ interface PlacesMapProps {
   onPlaceClick?: (place: Place) => void;
 }
 
-export default function PlacesMap({ places, onPlaceClick }: PlacesMapProps) {
+export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapProps>) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<any>(null);

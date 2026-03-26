@@ -5,7 +5,7 @@ interface LoadingStateProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export default function LoadingState({ fullScreen = false, size = 'md' }: LoadingStateProps) {
+export default function LoadingState({ fullScreen = false, size = 'md' }: Readonly<LoadingStateProps>) {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-8 h-8',

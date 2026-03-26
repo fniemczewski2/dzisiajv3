@@ -20,7 +20,7 @@ export default function NoteEditForm({
   onChange,
   colorMap,
   loading
-}: NoteEditFormProps) {
+}: Readonly<NoteEditFormProps>) {
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
 

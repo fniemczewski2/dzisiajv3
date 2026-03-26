@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { useDailyHabits } from "../../hooks/useDailyHabits";
 import { useSettings } from "../../hooks/useSettings";
-import LoadingState from "../LoadingState";
 import type { HabitKey } from "../../types";
 import { useToast } from "../../providers/ToastProvider";
 import { useEffect } from "react";
@@ -26,7 +25,7 @@ interface HabbitIconsProps {
   date?: string;
 }
 
-export default function HabbitIcons({ date }: HabbitIconsProps) {
+export default function HabbitIcons({ date }: Readonly<HabbitIconsProps>) {
   const { habits, loading: habitsLoading, toggleHabit } = useDailyHabits(date);
   const { settings, loading: settingsLoading } = useSettings();
   const { toast } = useToast();

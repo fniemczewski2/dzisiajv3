@@ -24,7 +24,7 @@ export function useDashboardDnd({
   editEvent,
   fetchTasks,
   fetchEvents,
-}: UseDashboardDndProps) {
+}: Readonly<UseDashboardDndProps>) {
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
 

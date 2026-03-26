@@ -26,7 +26,7 @@ export default function MovieCard({
   expandedNotes,
   toggleNotes,
   onSaveNotes,
-}: MovieCardProps) {
+}: Readonly<MovieCardProps>) {
   const { toast } = useToast();
   const { user } = useAuth();
 

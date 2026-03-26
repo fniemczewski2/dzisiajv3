@@ -48,7 +48,7 @@ export default function BudgetOverview({
   uncategorised,
   totalIncome,
   loading,
-}: Props) {
+}: Readonly<Props>) {
   const [view, setView] = useState<View>("year");
   const isYear = view === "year";
 

@@ -17,7 +17,7 @@ interface RemindersProps {
   onTasksChange?: () => void;
 }
 
-export default function Reminders({ addTask, onTasksChange }: RemindersProps) {
+export default function Reminders({ addTask, onTasksChange }: Readonly<RemindersProps>) {
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showAll, setShowAll] = useState(false);

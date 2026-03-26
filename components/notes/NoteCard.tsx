@@ -24,15 +24,12 @@ export default function NoteCard({
   onTogglePin,
   onToggleArchive,
   colorMap,
-}: NoteCardProps) {
+}: Readonly<NoteCardProps>) {
   const renderWithLinks = (text: string) => {
     if (!text) return null;
 
-    // DEFENSE: Use a safe, linear regex without overlapping greedy quantifiers.
-    // Wrapped in a single capturing group so .split() includes the matches in the array correctly.
     const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/gi;
 
-    // Optional: Pre-validate length to prevent regex from running on absurdly large blocks of text
     if (text.length > 5000) {
       return <span>{text.substring(0, 5000)}... (Text too long)</span>;
     }
@@ -40,7 +37,6 @@ export default function NoteCard({
     return text.split(urlRegex).map((part, i) => {
       if (!part) return null;
 
-      // Check if this specific part is the URL match
       if (/^(https?:\/\/|www\.)/i.test(part)) {
         const safeHref = sanitizeHref(part);
 

@@ -14,7 +14,7 @@ export default function TimeContextBadge({
   className = '', 
   showIcon = true ,
   small = false,
-}: TimeContextBadgeProps) {
+}: Readonly<TimeContextBadgeProps>) {
   const context = getTimeContext(dueDate, isDone);
   const Icon = context.icon;
   

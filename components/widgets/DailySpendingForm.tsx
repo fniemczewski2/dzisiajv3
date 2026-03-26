@@ -7,14 +7,13 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
-import LoadingState from "../LoadingState";
 import { FormButtons } from "../CommonButtons";
 
 interface DailySpendingFormProps {
   date?: string;
 }
 
-export default function DailySpendingForm({ date }: DailySpendingFormProps) {
+export default function DailySpendingForm({ date }: Readonly<DailySpendingFormProps>) {
   const today = getAppDate();
   const targetDate = date ?? today;
   const { habits, loading, updateSpending } = useDailyHabits(targetDate);

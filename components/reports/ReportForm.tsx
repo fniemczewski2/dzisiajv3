@@ -8,8 +8,7 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
 import { getAppDate } from "../../lib/dateUtils";
-import LoadingState from "../LoadingState";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
 interface ReportFormProps {
   onChange: () => void;
@@ -17,7 +16,7 @@ interface ReportFormProps {
   initial?: Report;
 }
 
-export default function ReportForm({ onChange, onCancel }: ReportFormProps) {
+export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormProps>) {
   const { addReport, loading } = useReports();
   const { toast } = useToast();
   const { user } = useAuth();

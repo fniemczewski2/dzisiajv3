@@ -24,7 +24,7 @@ export default function BillForm({
   onCancel,
   initial,
   categories
-}: BillFormProps) {
+}: Readonly<BillFormProps>) {
   const isEdit = !!initial;
   const { user } = useAuth();
   const { addBill, editBill, loading } = useBills();

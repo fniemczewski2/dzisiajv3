@@ -43,7 +43,7 @@ const CalendarCell = memo(function CalendarCell({
   dayMood,
   DEFAULT_MOODS,
   holiday,
-}: Props) {
+}: Readonly<Props>) {
   const today = parseISO(getAppDate());
   const isOutside = date.getMonth() !== currentMonth;
   const isToday = isSameDay(date, today);

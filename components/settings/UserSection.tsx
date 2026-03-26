@@ -6,7 +6,7 @@ interface UserSectionProps {
   onSignOut: () => void;
 }
 
-export default function UserSection({ email, onSignOut }: UserSectionProps) {
+export default function UserSection({ email, onSignOut }: Readonly<UserSectionProps>) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
