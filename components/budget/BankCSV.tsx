@@ -7,6 +7,7 @@ import { useBills } from "../../hooks/useBills";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { FormButtons } from "../CommonButtons";
+import { BudgetCategory } from "../../types";
 
 const REQUIRED_CATEGORIES = [
   "Opłaty stałe",
@@ -33,107 +34,119 @@ const mapCategory = (mbankCat: string, desc: string): string => {
   return "Inne"; 
 };
 
-const cleanDescription = (rawDesc: string): string => {
+const DESCRIPTION_MAPPINGS = [
+  { match: ["BIEDRONKA"], name: "Biedronka" },
+  { match: ["LIDL"], name: "Lidl" },
+  { match: ["KAUFLAND"], name: "Kaufland" },
+  { match: ["AUCHAN"], name: "Auchan" },
+  { match: ["CARREFOUR"], name: "Carrefour" },
+  { match: ["NETTO"], name: "Netto" },
+  { match: ["ALDI"], name: "Aldi" },
+  { match: ["DINO"], name: "Dino" },
+  { match: ["FAWOR"], name: "Fawor" },
+  { match: ["PIEKRANIA"], name: "Piekarnia" },
+  { match: ["PIEKRANIA NATURA"], name: "Natura" },
+  { match: ["ZABKA", "ŻABKA"], name: "Żabka" },
+  { match: ["POLOMARKET"], name: "PoloMarket" },
+  { match: ["PKP INTERCITY", "PKP IC"], name: "PKP Intercity" },
+  { match: ["KWIACIARNIA"], name: "Kwiaciarnia" },
+  { match: ["KOLEJE MAZOWIECKIE"], name: "KM", exactWord: true },
+  { match: ["KOLEJE WIELKOPOLSKIE", "KW"], name: "KW", exactWord: true },
+  { match: ["POLREGIO", "PRZEWOZY REGIONALNE"], name: "PR", exactWord: true },
+  { match: ["REGIOJET"], name: "RegioJet" },
+  { match: ["UBER"], name: "Uber" },
+  { match: ["BOLT"], name: "Bolt" },
+  { match: ["FREENOW", "FREE NOW"], name: "FreeNow" },
+  { match: ["JAKDOJADE"], name: "Jakdojade" },
+  { match: ["SKYCASH"], name: "SkyCash" },
+  { match: ["RYANAIR"], name: "Ryanair" },
+  { match: ["WIZZAIR"], name: "WizzAir" },
+  { match: ["ORLEN"], name: "Orlen" },
+  { match: ["BP"], name: "BP", exactWord: true },
+  { match: ["SHELL"], name: "Shell" },
+  { match: ["CIRCLE K", "CIRCLEK"], name: "Circle K" },
+  { match: ["ROSSMANN"], name: "Rossmann" },
+  { match: ["SUPER-PHARM", "SUPERPHARM"], name: "Super-Pharm" },
+  { match: ["HEBE"], name: "Hebe" },
+  { match: ["MCDONALD", "MC DONALD"], name: "McDonald's" },
+  { match: ["KFC"], name: "KFC", exactWord: true },
+  { match: ["BURGER KING"], name: "Burger King" },
+  { match: ["STARBUCKS"], name: "Starbucks" },
+  { match: ["PYSZNE", "PYSZNE.PL"], name: "Pyszne.pl" },
+  { match: ["GLOVO"], name: "Glovo" },
+  { match: ["WOLT"], name: "Wolt" },
+  { match: ["NETFLIX"], name: "Netflix" },
+  { match: ["SPOTIFY"], name: "Spotify" },
+  { match: ["APPLE.COM", "APPLE COM", "ITUNES"], name: "Apple" },
+  { match: ["GOOGLE", "YOUTUBE"], name: "Google" },
+  { match: ["STEAM"], name: "Steam" },
+  { match: ["PLAYSTATION", "SONY"], name: "Sony" },
+  { match: ["XBOX"], name: "Xbox" },
+  { match: ["INEA"], name: "Inea" },
+  { match: ["ALLEGRO"], name: "Allegro" },
+  { match: ["AMAZON"], name: "Amazon" },
+  { match: ["ALIEXPRESS"], name: "AliExpress" },
+  { match: ["INPOST"], name: "InPost" },
+  { match: ["IKEA"], name: "IKEA" },
+  { match: ["CASTORAMA"], name: "Castorama" },
+  { match: ["LEROY MERLIN"], name: "Leroy Merlin" },
+  { match: ["DECATHLON"], name: "Decathlon" },
+  { match: ["CCC"], name: "CCC", exactWord: true },
+  { match: ["ZARA"], name: "Zara" },
+  { match: ["H&M"], name: "H&M" },
+  { match: ["ZALANDO"], name: "Zalando" },
+  { match: ["VINTED"], name: "Vinted" },
+  { match: ["PEPCO"], name: "Pepco" },
+  { match: ["EMPIK"], name: "Empik" },
+  { match: ["KINO MUZA"], name: "Kino Muza" },
+  { match: ["CINEMA CITY"], name: "Cinema City" },
+  { match: ["MULTIKINO"], name: "Multikino" },
+  { match: ["HELIOS"], name: "Helios" },
+  { match: ["NATIONALE-NEDERLANDEN"], name: "NN Ubezpieczenie" },
+  { match: ["POZNAN ZARZAD"], name: "ZTM Poznań" }
+];
+
+const BOILERPLATE_REGEXES = [
+  /ZAKUP PRZY UŻYCIU KARTY - INTERNET/gi,
+  /ZAKUP PRZY UŻYCIU KARTY W KRAJU/gi,
+  /ZAKUP PRZY UŻYCIU KARTY ZA GRANICĄ/gi,
+  /ZAKUP PRZY UŻYCIU KARTY/gi,
+  /TRANSAKCJA KARTĄ/gi,
+  /TRANSAKCJA ZBLIŻENIOWA/gi,
+  /PŁATNOŚĆ KARTĄ/gi,
+  /OPERACJA BLIK/gi,
+  /DATA TRANSAKCJI:/gi,
+  /DATA KSIĘGOWANIA:/gi,
+  /KARTA:/gi,
+  /PRZELEW WEWNĘTRZNY PRZYCHODZĄCY/gi,
+  /PRZELEW ŚRODKÓW/gi,
+  /\d{2}\.\d{2}\.\d{4}/g,
+  /\d{2}-\d{3}\s+[A-Za-zęóąśłżźćńĘÓĄŚŁŻŹĆŃ]+/gi,
+  /\d{26}/g 
+];
+
+ const cleanDescription = (rawDesc: string): string => {
+  const descUpper = rawDesc.toUpperCase();
+
+  const mapped = DESCRIPTION_MAPPINGS.find(m => 
+    m.match.some(key => {
+      if (m.exactWord) {
+        const regex = new RegExp(`\\b${key}\\b`);
+        return regex.test(descUpper);
+      }
+      return descUpper.includes(key);
+    })
+  );
+
+  if (mapped) return mapped.name;
+
   let desc = rawDesc;
-  const descUpper = desc.toUpperCase();
-  if (descUpper.includes("BIEDRONKA")) return "Biedronka";
-  if (descUpper.includes("LIDL")) return "Lidl";
-  if (descUpper.includes("KAUFLAND")) return "Kaufland";
-  if (descUpper.includes("AUCHAN")) return "Auchan";
-  if (descUpper.includes("CARREFOUR")) return "Carrefour";
-  if (descUpper.includes("NETTO")) return "Netto";
-  if (descUpper.includes("ALDI")) return "Aldi";
-  if (descUpper.includes("DINO")) return "Dino";
-  if (descUpper.includes("FAWOR")) return "Fawor";
-  if (descUpper.includes("PIEKRANIA NATURA")) return "Natura";
-  if (descUpper.includes("ZABKA") || descUpper.includes("ŻABKA")) return "Żabka";
-  if (descUpper.includes("POLOMARKET")) return "PoloMarket";
-  if (descUpper.includes("PKP INTERCITY") || descUpper.includes("PKP IC")) return "PKP Intercity";
-  if (descUpper.includes("KOLEJE MAZOWIECKIE")) return "KM";
-  if (descUpper.includes("KOLEJE WIELKOPOLSKIE") || descUpper.includes("KW")) return "KW";
-  if (descUpper.includes("POLREGIO") || descUpper.includes("PRZEWOZY REGIONALNE")) return "PR";
-  if (descUpper.includes("REGIOJET")) return "RegioJet";
-  if (descUpper.includes("UBER")) return "Uber";
-  if (descUpper.includes("BOLT")) return "Bolt";
-  if (descUpper.includes("FREENOW") || descUpper.includes("FREE NOW")) return "FreeNow";
-  if (descUpper.includes("JAKDOJADE")) return "Jakdojade";
-  if (descUpper.includes("SKYCASH")) return "SkyCash";
-  if (descUpper.includes("RYANAIR")) return "Ryanair";
-  if (descUpper.includes("WIZZAIR")) return "WizzAir";
-  if (descUpper.includes("ORLEN")) return "Orlen";
-  if (descUpper.includes("BP")) return "BP";
-  if (descUpper.includes("SHELL")) return "Shell";
-  if (descUpper.includes("CIRCLE K") || descUpper.includes("CIRCLEK")) return "Circle K";
-  if (descUpper.includes("ROSSMANN")) return "Rossmann";
-  if (descUpper.includes("SUPER-PHARM") || descUpper.includes("SUPERPHARM")) return "Super-Pharm";
-  if (descUpper.includes("HEBE")) return "Hebe";
-  if (descUpper.includes("MCDONALD") || descUpper.includes("MC DONALD")) return "McDonald's";
-  if (descUpper.includes("KFC")) return "KFC";
-  if (descUpper.includes("BURGER KING")) return "Burger King";
-  if (descUpper.includes("STARBUCKS")) return "Starbucks";
-  if (descUpper.includes("PYSZNE") || descUpper.includes("PYSZNE.PL")) return "Pyszne.pl";
-  if (descUpper.includes("GLOVO")) return "Glovo";
-  if (descUpper.includes("WOLT")) return "Wolt";
-  if (descUpper.includes("NETFLIX")) return "Netflix";
-  if (descUpper.includes("SPOTIFY")) return "Spotify";
-  if (descUpper.includes("APPLE.COM") || descUpper.includes("APPLE COM") || descUpper.includes("ITUNES")) return "Apple";
-  if (descUpper.includes("GOOGLE") || descUpper.includes("YOUTUBE")) return "Google";
-  if (descUpper.includes("STEAM")) return "Steam";
-  if (descUpper.includes("PLAYSTATION") || descUpper.includes("SONY")) return "Sony";
-  if (descUpper.includes("XBOX")) return "Xbox";
-  if (descUpper.includes("INEA")) return "Inea";
-  if (descUpper.includes("ALLEGRO")) return "Allegro";
-  if (descUpper.includes("AMAZON")) return "Amazon";
-  if (descUpper.includes("ALIEXPRESS")) return "AliExpress";
-  if (descUpper.includes("INPOST")) return "InPost";
-  if (descUpper.includes("IKEA")) return "IKEA";
-  if (descUpper.includes("CASTORAMA")) return "Castorama";
-  if (descUpper.includes("LEROY MERLIN")) return "Leroy Merlin";
-  if (descUpper.includes("OBI")) return "OBI";
-  if (descUpper.includes("DECATHLON")) return "Decathlon";
-  if (descUpper.includes("CCC")) return "CCC";
-  if (descUpper.includes("ZARA")) return "Zara";
-  if (descUpper.includes("H&M")) return "H&M";
-  if (descUpper.includes("ZALANDO")) return "Zalando";
-  if (descUpper.includes("VINTED")) return "Vinted";
-  if (descUpper.includes("PEPCO")) return "Pepco";
-  if (descUpper.includes("EMPIK")) return "Empik";
-  if (descUpper.includes("KINO MUZA")) return "Kino Muza";
-  if (descUpper.includes("CINEMA CITY")) return "Cinema City";
-  if (descUpper.includes("MULTIKINO")) return "Multikino";
-  if (descUpper.includes("HELIOS")) return "Helios";
-  if (descUpper.includes("NATIONALE-NEDERLANDEN")) return "NN Ubezpieczenie"
-  if (descUpper.includes("POZNAN ZARZAD TRANSPORTU")) return "ZTM Poznań"
-
-  const boilerplate = [
-    "ZAKUP PRZY UŻYCIU KARTY - INTERNET",
-    "ZAKUP PRZY UŻYCIU KARTY W KRAJU",
-    "ZAKUP PRZY UŻYCIU KARTY ZA GRANICĄ",
-    "ZAKUP PRZY UŻYCIU KARTY",
-    "TRANSAKCJA KARTĄ",
-    "TRANSAKCJA ZBLIŻENIOWA",
-    "PŁATNOŚĆ KARTĄ",
-    "OPERACJA BLIK",
-    "DATA TRANSAKCJI:",
-    "DATA KSIĘGOWANIA:",
-    "KARTA:",
-    "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY",
-    "PRZELEW ŚRODKÓW"
-  ];
-
-  for (const b of boilerplate) {
-    const regex = new RegExp(b, "gi");
+  for (const regex of BOILERPLATE_REGEXES) {
     desc = desc.replace(regex, "");
   }
 
-  desc = desc.replace(/\d{2}\.\d{2}\.\d{4}/g, "");
-  desc = desc.replace(/\d{2}-\d{3}\s+[A-Za-zęóąśłżźćńĘÓĄŚŁŻŹĆŃ]+/gi, "");
-  // Usuwanie długich numerów kont, żeby opis był czytelny
-  desc = desc.replace(/\d{26}/g, ""); 
-  
-  let cleaned = desc.replace(/\s+/g, ' ').trim();
-  
-  return cleaned || "Płatność kartą / BLIK"; 
+  const cleaned = desc.replace(/\s+/g, ' ').trim();
+  return cleaned || "Płatność niezidentyfikowana"; 
 };
 
 interface ParsedTransaction {
@@ -142,6 +155,78 @@ interface ParsedTransaction {
   amount: number;
   mappedCategory: string;
 }
+
+// 2. REFACTOR: Extract parsing logic into pure functions
+const readFileAsText = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string || "");
+    reader.onerror = reject;
+    reader.readAsText(file, "windows-1250");
+  });
+};
+
+const getColumnIndices = (headers: string[]) => {
+  return {
+    dateIdx: Math.max(0, headers.findIndex(h => h.includes("data operacji"))),
+    descIdx: Math.max(1, headers.findIndex(h => h.includes("opis operacji") || h.includes("szczegóły"))),
+    catIdx: headers.findIndex(h => h.includes("kategoria")),
+    amountIdx: headers.findIndex(h => h === "kwota" || h === "#kwota" || h.includes("kwota operacji") || h.includes("kwota transakcji"))
+  };
+};
+
+const parseTransactionLine = (cols: string[], indices: any): ParsedTransaction | null => {
+  const dateStr = cols[indices.dateIdx] || "";
+  const rawDesc = cols[indices.descIdx] || "";
+  
+  let kwotaStr = "0";
+  let catRaw = "";
+
+  if (indices.amountIdx !== -1 && cols[indices.amountIdx]) {
+    kwotaStr = cols[indices.amountIdx];
+    catRaw = indices.catIdx !== -1 ? cols[indices.catIdx] : "";
+  } else {
+    for (let j = 2; j < cols.length; j++) {
+      if (/(?:^-?\s*\d[\d\s]*,\d{2})|(?:^-?\d+\.\d{2})/.test(cols[j])) {
+        kwotaStr = cols[j];
+        catRaw = cols[j-1] || "";
+        break; 
+      }
+    }
+  }
+
+  let formattedDate = "";
+  if (dateStr.includes("-")) {
+      formattedDate = dateStr;
+  } else {
+      const dateParts = dateStr.split(".");
+      if (dateParts.length !== 3) return null;
+      const [dd, mm, yyyy] = dateParts;
+      formattedDate = `${yyyy}-${mm}-${dd}`;
+  }
+
+  const cleanKwota = kwotaStr.replace(/[\s\u00A0]/g, "").replace(/(zł|pln)/gi, "").replace(",", ".");         
+  const amount = parseFloat(cleanKwota);
+
+  if (isNaN(amount) || amount >= 0) return null;
+  
+  const rawLower = rawDesc.toLowerCase();
+  const catLower = catRaw.toLowerCase();
+  
+  if (rawLower.includes("przelew") || catLower.includes("przelew")) return null; 
+  if (rawLower.includes("bankomat") || catLower.includes("bankomat")) return null;
+  if (rawLower.includes("bankomacie") || catLower.includes("bankomacie")) return null;
+  if (rawLower.includes("wpłata") || catLower.includes("wpłata")) return null; 
+  if (rawLower.includes("wpłatomat")) return null;
+
+  return {
+    date: formattedDate,
+    description: cleanDescription(rawDesc),
+    amount: Math.abs(amount),
+    mappedCategory: mapCategory(catRaw, rawDesc),
+  };
+};
+
 
 export default function BankCsvImporter({ year }: { year: number }) {
   const { user, supabase } = useAuth(); 
@@ -155,199 +240,139 @@ export default function BankCsvImporter({ year }: { year: number }) {
   const [duplicatesCount, setDuplicatesCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const handleFileParse = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 3. REFACTOR: Removed deep nesting by separating file reading and text processing
+  const handleFileParse = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.readAsText(file, "windows-1250");
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      if (!text) return;
-
-      const lines = text.split("\n");
-      const headerIdx = lines.findIndex((l) => l.includes("Data operacji") || l.includes("#Data operacji"));
-      
-      if (headerIdx === -1) {
-        toast.error("Nieprawidłowy format pliku. Brak nagłówka 'Data operacji'.");
-        return;
-      }
-
-      const headerLine = lines[headerIdx];
-      const headers = headerLine.split(";").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
-      
-      let dateIdx = headers.findIndex(h => h.includes("data operacji"));
-      let descIdx = headers.findIndex(h => h.includes("opis operacji") || h.includes("szczegóły"));
-      let catIdx = headers.findIndex(h => h.includes("kategoria"));
-      let amountIdx = headers.findIndex(h => h === "kwota" || h === "#kwota" || h.includes("kwota operacji") || h.includes("kwota transakcji"));
-
-      if (dateIdx === -1) dateIdx = 0;
-      if (descIdx === -1) descIdx = 1;
-
-      const transactions: ParsedTransaction[] = [];
-      let dupes = 0;
-
-      for (let i = headerIdx + 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-
-        const cols = line.split(";").map((c) => c.replace(/^"|"$/g, "").trim());
-        if (cols.length < 3) continue; 
-
-        const dateStr = cols[dateIdx] || "";
-        const rawDesc = cols[descIdx] || "";
-        
-        let kwotaStr = "0";
-        let catRaw = "";
-
-        if (amountIdx !== -1 && cols[amountIdx]) {
-          kwotaStr = cols[amountIdx];
-          catRaw = catIdx !== -1 ? cols[catIdx] : "";
-        } else {
-          for (let j = 2; j < cols.length; j++) {
-            if (/(?:^-?\s*\d[\d\s]*,\d{2})|(?:^-?\d+\.\d{2})/.test(cols[j])) {
-              kwotaStr = cols[j];
-              catRaw = cols[j-1] || "";
-              break; 
-            }
-          }
-        }
-
-        let formattedDate = "";
-        if (dateStr.includes("-")) {
-            formattedDate = dateStr;
-        } else {
-            const dateParts = dateStr.split(".");
-            if (dateParts.length === 3) {
-                const [dd, mm, yyyy] = dateParts;
-                formattedDate = `${yyyy}-${mm}-${dd}`;
-            } else {
-                continue;
-            }
-        }
-
-        const cleanKwota = kwotaStr
-          .replace(/[\s\u00A0]/g, "") 
-          .replace(/(zł|pln)/gi, "")  
-          .replace(",", ".");         
-          
-        const amount = parseFloat(cleanKwota);
-
-        // ZMIANA: Zablokowanie importu przychodów (kwot dodatnich)
-        if (isNaN(amount) || amount >= 0) continue;
-        
-        // Zostawiamy blokady zbędnych transakcji (przelewy itp.)
-        if (rawDesc.toLowerCase().includes("przelew") || catRaw.toLowerCase().includes("przelew")) continue; 
-        if (rawDesc.toLowerCase().includes("bankomat") || catRaw.toLowerCase().includes("bankomat")) continue;
-        if (rawDesc.toLowerCase().includes("bankomacie") || catRaw.toLowerCase().includes("bankomacie")) continue;
-        if (rawDesc.toLowerCase().includes("wpłata") || catRaw.toLowerCase().includes("wpłata")) continue; 
-        if (rawDesc.toLowerCase().includes("wpłatomat")) continue;
-
-        const mappedCat = mapCategory(catRaw, rawDesc);
-        const absoluteAmount = Math.abs(amount);
-        const cleanDesc = cleanDescription(rawDesc);
-
-        // ZMIANA: Sprawdzamy duplikaty tylko wśród wydatków
-        const isDuplicate = expenseItems.some(
-          (b) => b.amount === absoluteAmount && b.date === formattedDate && (b.description === cleanDesc || b.description?.includes(cleanDesc.substring(0, 10)))
-        );
-
-        if (isDuplicate) {
-          dupes++;
-        } else {
-          transactions.push({
-            date: formattedDate,
-            description: cleanDesc,
-            amount: absoluteAmount,
-            mappedCategory: mappedCat,
-          });
-        }
-      }
-
-      if (transactions.length === 0) {
-        if (dupes > 0) {
-            toast.info(`Wszystkie transakcje z pliku (${dupes}) zostały już zaimportowane.`);
-        } else {
-            toast.error("W pliku nie znaleziono żadnych nowych wydatków.");
-        }
-      }
-
-      const requiredToCreate = new Set<string>();
-      transactions.forEach((t) => {
-        const targetName = t.mappedCategory.trim().toLowerCase();
-        const exists = categories.some((c) => c.name.trim().toLowerCase() === targetName);
-        if (!exists) {
-          requiredToCreate.add(t.mappedCategory.trim());
-        }
-      });
-
-      setParsedData(transactions);
-      setDuplicatesCount(dupes);
-      setMissingCategories(Array.from(requiredToCreate));
-    };
+    try {
+      const text = await readFileAsText(file);
+      processCsvText(text);
+    } catch {
+      toast.error("Wystąpił błąd podczas odczytu pliku.");
+    }
 
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const processCsvText = (text: string) => {
+    const lines = text.split("\n");
+    const headerIdx = lines.findIndex((l) => l.includes("Data operacji") || l.includes("#Data operacji"));
+    
+    if (headerIdx === -1) {
+      toast.error("Nieprawidłowy format pliku. Brak nagłówka 'Data operacji'.");
+      return;
+    }
+
+    const headers = lines[headerIdx].split(";").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
+    const indices = getColumnIndices(headers);
+
+    const transactions: ParsedTransaction[] = [];
+    let dupes = 0;
+
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const cols = line.split(";").map((c) => c.replace(/^"|"$/g, "").trim());
+      if (cols.length < 3) continue; 
+
+      const parsed = parseTransactionLine(cols, indices);
+      if (!parsed) continue;
+
+      const isDuplicate = expenseItems.some(
+        (b) => b.amount === parsed.amount && b.date === parsed.date && 
+        (b.description === parsed.description || b.description?.includes(parsed.description.substring(0, 10)))
+      );
+
+      if (isDuplicate) dupes++;
+      else transactions.push(parsed);
+    }
+
+    if (transactions.length === 0) {
+      toast[dupes > 0 ? "info" : "error"](
+        dupes > 0 ? `Wszystkie transakcje z pliku (${dupes}) zostały już zaimportowane.` : "W pliku nie znaleziono żadnych nowych wydatków."
+      );
+    }
+
+    const requiredToCreate = new Set<string>();
+    transactions.forEach((t) => {
+      const targetName = t.mappedCategory.trim().toLowerCase();
+      const exists = categories.some((c) => c.name.trim().toLowerCase() === targetName);
+      if (!exists) requiredToCreate.add(t.mappedCategory.trim());
+    });
+
+    setParsedData(transactions);
+    setDuplicatesCount(dupes);
+    setMissingCategories(Array.from(requiredToCreate));
+  };
+
+  // 4. REFACTOR: Abstracted category creation loop out of handleImport
+  const ensureCategoriesExist = async (missing: string[]): Promise<BudgetCategory[]> => {
+    let updatedCategories = [...categories];
+    for (const missingCat of missing) {
+      const targetName = missingCat.toLowerCase().trim();
+      if (updatedCategories.find(c => c.name.toLowerCase().trim() === targetName)) continue;
+      
+      try {
+        const isMonthly = missingCat === "Opłaty stałe";
+        const newCat = await addCategory({ name: missingCat, amount: 0, is_monthly: isMonthly });
+        updatedCategories.push(newCat);
+      } catch (error: any) {
+        if (error?.code === "23505" || error?.message?.includes("duplicate key")) {
+          const { data } = await supabase
+            .from("budget_categories")
+            .select("*")
+            .ilike("name", missingCat.trim())
+            .eq("user_id", user?.id)
+            .eq("year", year)
+            .maybeSingle();
+          if (data) updatedCategories.push(data);
+        } else {
+          throw error;
+        }
+      }
+    }
+    return updatedCategories;
+  };
+
+  // 4. REFACTOR: Abstracted bill insertion loop out of handleImport
+  const insertBills = async (transactions: ParsedTransaction[], availableCategories: BudgetCategory[]) => {
+    for (const t of transactions) {
+      const catTarget = t.mappedCategory.trim().toLowerCase();
+      const categoryObj = availableCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
+      
+      if (!categoryObj || !categoryObj.id) {
+        console.warn("Pominięto operację - brak prawidłowego ID kategorii", t);
+        continue;
+      }
+
+      try {
+        await addBill({
+          amount: t.amount,
+          date: t.date,
+          category_id: categoryObj.id,
+          description: t.description.substring(0, 50),
+          is_income: false,
+          done: true, 
+        });
+      } catch (billError: any) {
+        if (billError?.code === "23503") {
+          throw new Error(`Błąd połączenia z kategorią "${categoryObj.name}". Odśwież stronę (klawisz F5) i spróbuj ponownie.`);
+        }
+        throw billError;
+      }
+    }
+  };
+
+  // 4. REFACTOR: Flattened handleImport main function
   const handleImport = async () => {
     if (parsedData.length === 0) return;
     setLoading(true);
 
     try {
-      let updatedCategories = [...categories];
-      
-      for (const missingCat of missingCategories) {
-        const targetName = missingCat.toLowerCase().trim();
-        const exists = updatedCategories.find(c => c.name.toLowerCase().trim() === targetName);
-        
-        if (!exists) {
-          try {
-            const isMonthly = missingCat === "Opłaty stałe";
-            const newCat = await addCategory({ name: missingCat, amount: 0, is_monthly: isMonthly });
-            updatedCategories.push(newCat);
-          } catch (error: any) {
-            if (error?.code === "23505" || error?.message?.includes("duplicate key")) {
-              const { data } = await supabase
-                .from("budget_categories")
-                .select("*")
-                .ilike("name", missingCat.trim())
-                .eq("user_id", user?.id)
-                .eq("year", year)
-                .maybeSingle();
-
-              if (data) updatedCategories.push(data);
-            } else {
-              throw error;
-            }
-          }
-        }
-      }
-
-      for (const t of parsedData) {
-        const catTarget = t.mappedCategory.trim().toLowerCase();
-        const categoryObj = updatedCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
-        
-        if (!categoryObj || !categoryObj.id) {
-          console.warn("Pominięto operację - brak prawidłowego ID kategorii", t);
-          continue;
-        }
-
-        try {
-          await addBill({
-            amount: t.amount,
-            date: t.date,
-            category_id: categoryObj.id,
-            description: t.description.substring(0, 50),
-            is_income: false,
-            done: true, 
-          });
-        } catch (billError: any) {
-          if (billError?.code === "23503") {
-            throw new Error(`Błąd połączenia z kategorią "${categoryObj.name}". Odśwież stronę (klawisz F5) i spróbuj ponownie.`);
-          }
-          throw billError;
-        }
-      }
+      const updatedCategories = await ensureCategoriesExist(missingCategories);
+      await insertBills(parsedData, updatedCategories);
 
       toast.success(`Zaimportowano ${parsedData.length} transakcji.`);
       handleCancel();

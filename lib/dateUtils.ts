@@ -40,12 +40,12 @@ export const parseEventDate = (timestamp: string): Date => {
   const [hours, minutes, seconds] = (timePart || "00:00:00").split(":");
   
   return new Date(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day),
-    parseInt(hours || "0"),
-    parseInt(minutes || "0"),
-    parseInt(seconds || "0")
+    Number.parseInt(year, 10),
+    Number.parseInt(month, 10) - 1,
+    Number.parseInt(day, 10),
+    Number.parseInt(hours || "0", 10),
+    Number.parseInt(minutes || "0", 10),
+    Number.parseInt(seconds || "0", 10)
   );
 };
 
