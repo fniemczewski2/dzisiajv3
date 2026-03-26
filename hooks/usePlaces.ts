@@ -96,12 +96,11 @@ export function usePlaces() {
 
   const extractHours = (dayText: string): string[] => {
     if (!dayText) return [];
-  
     const safeText = dayText.substring(0, 200);
-    const match = safeText.match(/:\s{0,10}(.+)$/);
-    if (!match) return [];
-
-    const hours = match[1].trim();
+    const colonIndex = safeText.indexOf(':');
+    if (colonIndex === -1) return [];
+    const hours = safeText.substring(colonIndex + 1).trim();
+    if (!hours) return [];
     const lower = hours.toLowerCase();
     
     if (lower.includes("closed") || lower.includes("nieczynne")) return [];
