@@ -250,21 +250,23 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { d
             </div>
 
             <div>
-              <label className="form-label">Opis:</label>
+              <label htmlFor="desc" className="form-label">Opis:</label>
               <textarea
                 value={editedBill.description || ""}
                 onChange={(e) => setEditedBill({ ...editedBill, description: e.target.value })}
                 className="input-field"
                 rows={2}
+                id="desc"
               />
             </div>
             <div>
-              <label className="form-label">Data:</label>
+              <label htmlFor="data" className="form-label">Data:</label>
               <input
                 type="date"
                 value={editedBill.date}
                 onChange={(e) => setEditedBill({ ...editedBill, date: e.target.value })}
                 className="input-field w-full min-w-0 px-1 text-xs"
+                id="data"
               />
             </div>
             <FormButtons onClickSave={handleSaveEdit} onClickClose={() => setEditingId(null)} loading={fetching}/>
