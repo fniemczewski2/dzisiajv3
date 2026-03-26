@@ -15,7 +15,8 @@ import {
   X,
   Plus,
   LucideIcon,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
 import { NextRouter, Router, useRouter } from "next/router";
 
@@ -76,7 +77,7 @@ export const SaveButton = ({ onClick, loading, disabled, type = "submit", small 
     className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
   >
     {!small && "Zapisz"}
-    <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
+    {!loading ? <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} /> : <Loader2 className={`${small ? "w-4 h-4" : "w-5 h-5"} animate-spin`} />}
   </button>
 );
 

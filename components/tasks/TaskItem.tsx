@@ -6,7 +6,6 @@ import { Check, Minus, Plus } from "lucide-react";
 import { Task } from "../../types";
 import { getAppDate } from "../../lib/dateUtils";
 import TimeContextBadge from "./TimeContextBadge";
-import CompletionCelebration from "./CompletionCelebration";
 import UniversalTimer from "../Timer";
 import {
   EditButton, DeleteButton, RescheduleButton, TimerButton, FormButtons,
@@ -16,10 +15,10 @@ import { useToast } from "../../providers/ToastProvider";
 
 interface Props {
   task: Task;
-  acceptTask: (id: string) => void;
-  setDoneTask: (id: string) => void;
-  editTask: (task: Task) => void;
-  deleteTask: (id: string) => void;
+  acceptTask: (id: string) => Promise<void> | void;
+  setDoneTask: (id: string) => Promise<void> | void;
+  editTask: (task: Task & { shared_with_email?: string }) => Promise<void> | void;
+  deleteTask: (id: string) => Promise<void> | void;
   onTasksChange: () => void;
   userId: string;
   userOptions: string[];
@@ -35,9 +34,7 @@ const TaskItem = memo(function TaskItem({
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [sharedEmail, setSharedEmail] = useState("");
-  const [showCelebration, setShowCelebration] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
-  const CELEBRATION_MS = 2500;
 
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -60,7 +57,7 @@ const TaskItem = memo(function TaskItem({
     const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie?");
     if (!ok) return;
     try {
-      deleteTask(task.id);
+      await deleteTask(task.id);
       toast.success("Usunięto pomyślnie.");
       onTasksChange();
     } catch {
@@ -71,7 +68,8 @@ const TaskItem = memo(function TaskItem({
   const handleEdit = async () => {
     setIsEditing(true);
     setEditedTask(task);
-    if (task.for_user_id) {
+    // Fetch the target user's email only if it's assigned to someone other than the current user
+    if (task.for_user_id && task.for_user_id !== userId) {
       const { data, error } = await supabase.rpc("get_email_by_user_id", {
         target_uuid: task.for_user_id,
       });
@@ -88,19 +86,14 @@ const TaskItem = memo(function TaskItem({
   };
 
   const handleSaveEdit = async () => {
-    let targetUserId: string | null = null;
-    if (sharedEmail) {
-      const { data, error } = await supabase.rpc("get_user_id_by_email", {
-        email_address: sharedEmail,
-      });
-      if (error || !data) {
-        toast.error("Nie znaleziono użytkownika o takim adresie e-mail w bazie.");
-        return;
-      }
-      targetUserId = data as string;
-    }
     try {
-      editTask({ ...editedTask, for_user_id: targetUserId ?? undefined } as Task);
+      // Pass the shared_with_email explicitly. The useTasks hook will handle the translation.
+      // If sharedEmail is empty string (""), the hook correctly reverts the task back to the owner.
+      await editTask({ 
+        ...editedTask, 
+        shared_with_email: sharedEmail 
+      });
+      
       toast.success("Zmieniono pomyślnie.");
       onTasksChange();
       setIsEditing(false);
@@ -112,13 +105,9 @@ const TaskItem = memo(function TaskItem({
 
   const handleComplete = async () => {
     try {
-      setDoneTask(task.id);
+      await setDoneTask(task.id);
       toast.success("Zadanie wykonane!");
-      setShowCelebration(true);
-      setTimeout(async () => {
-        setShowCelebration(false);
-        onTasksChange();
-      }, CELEBRATION_MS);
+      onTasksChange();
     } catch {
       toast.error("Wystąpił błąd podczas kończenia zadania.");
     }
@@ -128,7 +117,7 @@ const TaskItem = memo(function TaskItem({
     setIsRescheduling(true);
     try {
       const newDate = format(addDays(parseISO(task.due_date), days), "yyyy-MM-dd");
-      editTask({ ...task, due_date: newDate });
+      await editTask({ ...task, due_date: newDate });
       toast.success("Zadanie przełożone.");
       onTasksChange();
     } catch {
@@ -140,7 +129,7 @@ const TaskItem = memo(function TaskItem({
 
   const handleAccept = async () => {
     try {
-      acceptTask(task.id);
+      await acceptTask(task.id);
       toast.success("Zadanie zaakceptowane.");
       onTasksChange();
     } catch {
@@ -324,7 +313,6 @@ const TaskItem = memo(function TaskItem({
           )}
         </div>
       </div>
-      <CompletionCelebration show={showCelebration} taskTitle={task.title} priority={task.priority} />
     </>
   );
 });

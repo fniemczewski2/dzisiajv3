@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../../components/Layout";
 import SEO from "../../components/SEO";
-import { Plus, Minus, Wallet, ChevronLeft, ArrowRightLeft } from "lucide-react";
+import { Plus, Minus, Wallet, ChevronLeft, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEuroRate } from "../../hooks/useEuroRate";
 import LoadingState from "../../components/LoadingState";
@@ -176,13 +176,13 @@ export default function BillCalculator() {
 
       <div className="max-w-4xl mx-auto space-y-6">
         
-        <div className="card p-4 shadow-sm rounded-2xl flex items-center relative">
+        <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
-            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
-            title="Powrót"
+            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+            aria-label="Wróć"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <Coins className="w-4 h-4" />
           </button>
 
           <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">

@@ -102,7 +102,11 @@ export default function BudgetPage() {
             <Coins className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-2 card rounded-2xl p-1 shadow-sm">
+          <div className="flex items-center gap-2">
+            <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
+              Budżet
+            </h2>
+            <div className="card flex items-center justify-between gap-2 p-2 rounded-xl">
             <button
               onClick={() => setYear((y) => y - 1)}
               className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
@@ -118,6 +122,7 @@ export default function BudgetPage() {
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+            </div>
           </div>
 
           <div className="w-10" />

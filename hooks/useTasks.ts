@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Task } from "../types";
-import { EmailByIdRow } from "../types/index";
 import { useSettings } from "./useSettings";
 import { useAuth } from "../providers/AuthProvider";
+import { resolveSharedEmails, getUserIdByEmail } from "../utils/share";
 
 const createSortFunction = (
   sortOrder: string,
@@ -88,46 +88,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       if (queryError) throw queryError;
 
       const fetchedTasks = (data ?? []) as Task[];
-
-      const neededIds = Array.from(
-        new Set(
-          fetchedTasks
-            .map((t) => (t.user_id === userId ? t.for_user_id : t.user_id))
-            .filter(
-              (id): id is string =>
-                typeof id === "string" && id !== userId && !userEmailsRef.current[id]
-            )
-        )
-      );
-
-      if (neededIds.length > 0) {
-        const { data: emailData, error: rpcError } = await supabase.rpc(
-          "get_emails_by_ids",
-          { user_ids: neededIds }
-        );
-        if (!rpcError && emailData) {
-          const newEmails = (emailData as EmailByIdRow[]).reduce<Record<string, string>>(
-            (acc, row) => { acc[row.id] = row.email; return acc; },
-            {}
-          );
-
-          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
-        }
-      }
-
-      const currentEmails = userEmailsRef.current;
-
-      const tasksWithDisplayInfo = fetchedTasks.map((task) => {
-        const isOwner = task.user_id === userId;
-        const targetId = isOwner ? task.for_user_id : task.user_id;
-        const email = targetId ? (currentEmails[targetId] ?? "...") : "";
-        return {
-          ...task,
-          display_share_info: isOwner
-            ? task.for_user_id !== userId ? `Udostępniono: ${email}` : null
-            : `Od: ${email}`,
-        };
-      });
+      const adaptedTasks = fetchedTasks.map(t => ({ ...t, shared_with_id: t.for_user_id }));
+      const resolvedTasks = await resolveSharedEmails(adaptedTasks, userId, supabase, userEmailsRef);
+      const tasksWithDisplayInfo = fetchedTasks.map((task, i) => ({
+        ...task,
+        display_share_info: resolvedTasks[i].display_share_info
+      }));
 
       setRawTasks(tasksWithDisplayInfo);
       return tasksWithDisplayInfo;
@@ -147,14 +113,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       try {
         const { shared_with_email, display_share_info, ...taskData } =
           task as Task & { shared_with_email?: string };
+        
         let finalForUserId: string = (taskData as any).for_user_id || userId;
 
-        if (shared_with_email?.includes("@")) {
-          const { data: foundId, error: rpcError } = await supabase.rpc(
-            "get_user_id_by_email",
-            { email_address: shared_with_email.trim().toLowerCase() }
-          );
-          if (!rpcError && foundId) finalForUserId = foundId as string;
+        if (shared_with_email !== undefined) {
+          const fetchedId = await getUserIdByEmail(shared_with_email, supabase);
+          if (fetchedId) finalForUserId = fetchedId;
         }
 
         const { error: insertError } = await supabase.from("tasks").insert({
@@ -179,17 +143,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       try {
         const { shared_with_email, display_share_info, ...taskData } =
           task as Task & { shared_with_email?: string };
+        
         let finalForUserId = (taskData as any).for_user_id;
 
         if (shared_with_email !== undefined) {
-          if (shared_with_email.includes("@")) {
-            const { data: foundId } = await supabase.rpc("get_user_id_by_email", {
-              email_address: shared_with_email.trim().toLowerCase(),
-            });
-            if (foundId) finalForUserId = foundId as string;
-          } else {
-            finalForUserId = userId;
-          }
+          const fetchedId = await getUserIdByEmail(shared_with_email, supabase);
+          finalForUserId = fetchedId || userId; // fallback to userId if clearing
         }
 
         const { error: updateError } = await supabase

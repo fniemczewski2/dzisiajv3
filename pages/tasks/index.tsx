@@ -40,8 +40,7 @@ export default function TasksPage({isMain}: {isMain?: boolean}) {
   const { toast } = useToast();
   const { user } = useAuth();
   const { settings } = useSettings();
-  
-  // BEZPIECZNE POBRANIE ID (ochrona przed błędem reading 'id' of null)
+
   const userId = user?.id ?? "";
   const userOptions = settings?.users ?? [];
 
@@ -68,13 +67,12 @@ export default function TasksPage({isMain}: {isMain?: boolean}) {
       default:                 return null;
     }
   }, [dateFilter]);
-  
-  // POPRAWIONE useMemo: Zwraca przefiltrowaną listę zamiast hooków!
+
   const filteredTasks = useMemo(() => {
     if (!filterDate) return tasks;
     
-    const allowedStatuses = ["pending", "waiting_for_acceptance"];
-    if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) { // Jeśli dzisiaj
+    const allowedStatuses = ["pending", "waiting_for_acceptance", "accepted"];
+    if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) { 
       return tasks.filter(
         (t) => t.due_date <= filterDate && allowedStatuses.includes(t.status)
       );
@@ -83,7 +81,6 @@ export default function TasksPage({isMain}: {isMain?: boolean}) {
     }
   }, [tasks, filterDate]);
 
-  // Hook wyciągnięty na zewnątrz, zgodnie z zasadami Reacta
   useQuickAction({
     onActionAdd: () => setShowForm(true),
   });

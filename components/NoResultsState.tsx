@@ -8,8 +8,6 @@ interface LoadingStateProps {
 }
 
 export default function NoResultsState({ fullScreen = false, size = 'md', text, isSearch = false }: LoadingStateProps) {
-  const len = text.length;
-
   const content = (
     <div className="text-center py-10 w-md h-md rounded-lg bg-surface" >
         <h3 className="text-md font-medium text-text">Brak {text} {isSearch ? "spełniających kryteria." : "do wyświetlenia."}</h3>

@@ -21,7 +21,7 @@ interface FetchOptions {
   dateFrom?: string;
   dateTo?: string;
   includeRecurringChildren?: boolean;
-  categoryId?: string; // Dodano wsparcie dla kategorii w API
+  categoryId?: string;
 }
 
 export function useBills(options: FetchOptions = {}) {
@@ -33,19 +33,22 @@ export function useBills(options: FetchOptions = {}) {
   const [expenseItems, setExpenseItems] = useState<Bill[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(false); // Flaga informująca, czy są kolejne strony
+  const [hasMore, setHasMore] = useState(false);
 
   const fetchBills = useCallback(
     async (append = false, page = 1, limit = 20) => {
       if (!userId || settings == null) return;
       setFetching(true);
       try {
-        // Dodano count: 'exact' by wiedzieć, ile jest stron
         let query = supabase
           .from("bills")
           .select(`*, category:budget_categories(*)`, { count: "exact" })
           .eq("user_id", userId)
-          .order("date", { ascending: false }); // Sortowanie malejąco wewnątrz miesiąca
+          // ZMIANA: Dodano wielopoziomowe sortowanie gwarantujące stałą kolejność
+          .order("date", { ascending: false })        // 1. Data (najnowsze u góry)
+          .order("description", { ascending: true })  // 2. Nazwa (alfabetycznie)
+          .order("amount", { ascending: false })      // 3. Kwota (od największej)
+          .order("id", { ascending: true });          // 4. ID (zabezpieczenie stabilności paginacji)
 
 
         if (options.dateFrom) query = query.gte("date", options.dateFrom);
@@ -94,7 +97,6 @@ export function useBills(options: FetchOptions = {}) {
     [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId]
   );
 
-  // Auto-fetch na starcie i przy zmianie opcji (resetuje zawsze do 1. strony)
   useEffect(() => {
     fetchBills(false, 1, 20);
   }, [fetchBills]);
@@ -205,7 +207,6 @@ export function useBills(options: FetchOptions = {}) {
         const { error } = await supabase.from("bills").update({ done: true }).eq("id", id).eq("user_id", userId);
         if (error) throw error;
         
-        // Zaktualizuj stan lokalny (opcjonalnie, fetchBills nadpisze)
         setIncomeItems((prev) => prev.filter((b) => b.id !== id));
         setExpenseItems((prev) => prev.filter((b) => b.id !== id));
       } finally {
@@ -246,7 +247,7 @@ export function useBills(options: FetchOptions = {}) {
         activeMonthIndexes.add(month);
       });
 
-      return Array.from(activeMonthIndexes).sort((a, b) => b - a); // Zwracamy posortowane malejąco
+      return Array.from(activeMonthIndexes).sort((a, b) => b - a);
     },
     [userId, supabase]
   );

@@ -19,7 +19,7 @@ export default function BudgetStatsTable({
 }: Props) {
   return (
     <div className="w-full mb-4">
-      <div className="card rounded-xl shadow-sm">
+      <div className="card rounded-xl shadow-sm overflow-x-auto mb-4">
         <table className="w-full table-auto text-xs sm:text-sm">
           <thead className="bg-surface text-textSecondary font-semibold border-b border-gray-200 dark:border-gray-700">
             <tr>

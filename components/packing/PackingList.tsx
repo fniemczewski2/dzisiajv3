@@ -1,18 +1,28 @@
 import React, { useState } from "react";
 import Head from "next/head";
-import Layout from "../../components/Layout";
+import Layout from "../Layout";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
-import { SAFETY } from "../../config/packing"; 
 
-export default function SafetyPage() {
+interface PackingCategory {
+  title: string;
+  items: string[];
+}
+
+interface PackingListProps {
+  pageTitle: string;
+  headerTitle: string;
+  categories: PackingCategory[];
+  onBack?: () => void;
+}
+
+export default function PackingList({ pageTitle, headerTitle, categories, onBack }: PackingListProps) {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
   const router = useRouter();
   
-  const handleBack = () => {
-      router.push("/notes"); 
-  };
-  
+  // Default to /notes if no custom back function is provided
+  const handleBack = onBack || (() => router.push("/notes"));
+
   const toggle = (item: string) => {
     setChecked((prev) => ({ ...prev, [item]: !prev[item] }));
   };
@@ -20,24 +30,24 @@ export default function SafetyPage() {
   return (
     <>
       <Head>
-        <title>Plecak Bezpieczeństwa – Dzisiaj</title>
+        <title>{pageTitle}</title>
       </Head>
       <Layout>
-        <div className="card p-4 shadow-sm rounded-2xl flex items-center relative mb-6">
+        <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
             className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
-            title="Powrót do notatek"
+            title="Powrót"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h2 className="font-bold text-lg sm:text-xl text-text mx-auto text-center capitalize tracking-wide truncate px-14">
-            Plecak Bezpieczeństwa
+            {headerTitle}
           </h2>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {SAFETY.map((cat) => (
+          {categories.map((cat) => (
             <div key={cat.title} className="card rounded-2xl shadow-sm p-4 sm:p-5 flex flex-col h-full">
               <h3 className="font-bold text-lg text-text mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                 {cat.title}
@@ -54,9 +64,8 @@ export default function SafetyPage() {
                     <input
                       type="checkbox"
                       checked={!!checked[item]}
-                      readOnly
+                      readOnly 
                       className="mt-0.5 h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
-                      title="Spakowane?"
                     />
                     <span className="flex-1 leading-tight select-none pt-0.5">{item}</span>
                   </li>
