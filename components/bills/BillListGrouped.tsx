@@ -223,7 +223,7 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { d
                   step="0.01"
                   placeholder="Kwota"
                   value={editedBill.amount}
-                  onChange={(e) => setEditedBill({ ...editedBill, amount: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setEditedBill({ ...editedBill, amount: Number.parseFloat(e.target.value) || 0 })}
                   className="input-field flex-1"
                   required
                 />

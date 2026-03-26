@@ -107,11 +107,11 @@ export function usePlaces() {
 
     const converted = hours
       .replace(/(\d{1,2}):(\d{2})\s{0,10}AM/gi, (_, h, m) => {
-        const hour = parseInt(h, 10);
+        const hour = Number.parseInt(h, 10);
         return `${hour === 12 ? "00" : String(hour).padStart(2, "0")}:${m}`;
       })
       .replace(/(\d{1,2}):(\d{2})\s{0,10}PM/gi, (_, h, m) => {
-        const hour = parseInt(h, 10);
+        const hour = Number.parseInt(h, 10);
         return `${hour === 12 ? 12 : hour + 12}:${m}`;
       })
       .replace(/–/g, "-")

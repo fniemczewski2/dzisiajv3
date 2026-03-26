@@ -134,7 +134,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     try {
       const payload: any = { user_id: userId };
       Object.entries(data).forEach(([monthStr, monthData]) => {
-        const m = parseInt(monthStr);
+        const m = Number.parseInt(monthStr);
 
         if (m >= 1 && m <= 12) payload[`${keys[m - 1]}_rate`] = Number(monthData.rate) || 0;
       });

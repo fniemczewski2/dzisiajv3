@@ -206,7 +206,7 @@ const parseTransactionLine = (cols: string[], indices: any): ParsedTransaction |
   }
 
   const cleanKwota = kwotaStr.replace(/[\s\u00A0]/g, "").replace(/(zł|pln)/gi, "").replace(",", ".");         
-  const amount = parseFloat(cleanKwota);
+  const amount = Number.parseFloat(cleanKwota);
 
   if (isNaN(amount) || amount >= 0) return null;
   
