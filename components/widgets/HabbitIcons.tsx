@@ -31,6 +31,10 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
   const { settings, loading: settingsLoading } = useSettings();
   const { toast } = useToast();
 
+  if (habitsLoading || settingsLoading || !habits || !settings) {
+    return null;
+  }
+
   useEffect(() => {
       let toastId: string | undefined;
       if (settingsLoading || habitsLoading || !habits || !settings) toastId = toast.loading("Ładowanie nawyków...");
@@ -41,8 +45,6 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
     const settingKey = `habit_${key}` as keyof typeof settings;
     return settings[settingKey] !== false; 
   });
-
-  if (activeItems.length === 0) return null;
 
   return (
     <div className="flex flex-nowrap justify-between md:justify-start gap-1 sm:gap-2 mb-2 sm:mb-4">
