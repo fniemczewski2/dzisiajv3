@@ -1,4 +1,4 @@
-import { createServerClient, serializeCookieHeader } from '@supabase/ssr'
+import { createServerClient, serializeCookieHeader, type CookieOptions } from '@supabase/ssr'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,12 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               value: req.cookies[name] || '',
             }))
           },
-          setAll(cookiesToSet) {
+          // POPRAWKA: Dodano jawne typowanie dla tablicy cookiesToSet
+          setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
             try {
               cookiesToSet.forEach(({ name, value, options }) => {
                 res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
               })
             } catch (error) {
+              // Ignorujemy błędy, bo obiekt res wyśle nagłówki
             }
           },
         },
@@ -34,11 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // Dynamiczne wykrywanie hosta (Localhost vs Produkcja)
   const host = req.headers.host || 'localhost:3000'
   const protocol = host.includes('localhost') ? 'http' : 'https'
   
-  // Bezpieczne przypisanie ścieżki (Next.js query może czasem zwrócić tablicę)
   const nextPath = Array.isArray(next) ? next[0] : next
   const redirectUrl = `${protocol}://${host}${nextPath}`
   
