@@ -47,7 +47,7 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
     const timePart = dateStr.replace(" ", "T").split("T")[1];
     if (timePart) {
       const hour = timePart.split(":")[0];
-      if (hour && !isNaN(Number(hour))) {
+      if (hour && !Number.isNaN(Number(hour))) {
         return hour.padStart(2, "0");
       }
     }
