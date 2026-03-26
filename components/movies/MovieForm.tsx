@@ -1,5 +1,3 @@
-// components/movies/MovieForm.tsx
-
 "use client";
 import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
@@ -154,11 +152,17 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
     <form onSubmit={handleSubmit} className="form-card mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <div className="md:col-span-2">
-          <label className="form-label">Tytuł:</label>
+          <label htmlFor="new-movie-title" className="form-label">Tytuł:</label>
           <div className="flex flex-col sm:flex-row gap-2">
-            <input type="text" required value={formData.title}
+            <input 
+              id="new-movie-title"
+              type="text" 
+              required 
+              value={formData.title}
               onChange={(e) => { setFormData({ ...formData, title: e.target.value }); setShowOptions(false); setTmdbError(null); }}
-              className="input-field flex-1" placeholder="Np. Moonlight" />
+              className="input-field flex-1" 
+              placeholder="Np. Moonlight" 
+            />
             <button type="button" onClick={fetchTMDBData}
               disabled={fetchingTMDB || !formData.title.trim()}
               className="px-4 py-2 bg-surface hover:bg-surfaceHover text-text shadow border border-gray-200 dark:border-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap">
@@ -213,28 +217,51 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Mo
         )}
 
         <div>
-          <label className="form-label">Gatunek:</label>
-          <input type="text" value={formData.genre}
+          <label htmlFor="new-movie-genre" className="form-label">Gatunek:</label>
+          <input 
+            id="new-movie-genre"
+            type="text" 
+            value={formData.genre}
             onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-            className="input-field" placeholder="Np. Dramat, Romans" />
+            className="input-field" 
+            placeholder="Np. Dramat, Romans" 
+          />
         </div>
         <div>
-          <label className="form-label">Ocena (0–10):</label>
-          <input type="number" step="0.1" min="0" max="10" value={formData.rating}
+          <label htmlFor="new-movie-rating" className="form-label">Ocena (0–10):</label>
+          <input 
+            id="new-movie-rating"
+            type="number" 
+            step="0.1" 
+            min="0" 
+            max="10" 
+            value={formData.rating}
             onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-            className="input-field" placeholder="7.5" />
+            className="input-field" 
+            placeholder="7.5" 
+          />
         </div>
         <div className="md:col-span-2">
-          <label className="form-label">Dostępność:</label>
-          <input type="text" value={formData.platform}
+          <label htmlFor="new-movie-platform" className="form-label">Dostępność:</label>
+          <input 
+            id="new-movie-platform"
+            type="text" 
+            value={formData.platform}
             onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-            className="input-field" placeholder="Np. Netflix, HBO Max (wypełni się automatycznie)" />
+            className="input-field" 
+            placeholder="Np. Netflix, HBO Max (wypełni się automatycznie)" 
+          />
         </div>
         <div className="md:col-span-2">
-          <label className="form-label">Opis:</label>
-          <textarea value={formData.description}
+          <label htmlFor="new-movie-description" className="form-label">Opis:</label>
+          <textarea 
+            id="new-movie-description"
+            value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="input-field" rows={3} placeholder="Krótki opis filmu..." />
+            className="input-field" 
+            rows={3} 
+            placeholder="Krótki opis filmu..." 
+          />
         </div>
       </div>
       <FormButtons onClickClose={onCancel} loading={loading} />

@@ -152,30 +152,45 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
         {filteredAndSorted.map((r) => {
           const open = openId === r.id;
           const isEditing = editingId === r.id;
+          const editPrefix = `edit-recipe-${r.id}`; // Prefix for unique IDs
 
           if (isEditing && editedRecipe) {
             return (
               <li key={r.id} className="bg-card border border-primary dark:border-primary rounded-2xl shadow-lg p-5 animate-in fade-in">
                 <div className="space-y-4">
                   <div>
-                    <label className="form-label">Nazwa potrawy:</label>
-                    <input ref={nameRef} type="text" value={editedRecipe.name}
+                    <label htmlFor={`${editPrefix}-name`} className="form-label">Nazwa potrawy:</label>
+                    <input 
+                      id={`${editPrefix}-name`}
+                      ref={nameRef} 
+                      type="text" 
+                      value={editedRecipe.name}
                       onChange={(e) => setEditedRecipe({ ...editedRecipe, name: e.target.value })}
-                      className="input-field font-medium" />
+                      className="input-field font-medium" 
+                    />
                   </div>
                   <div>
-                    <label className="form-label">Kategoria:</label>
-                    <select value={editedRecipe.category || "śniadanie"}
+                    <label htmlFor={`${editPrefix}-cat`} className="form-label">Kategoria:</label>
+                    <select 
+                      id={`${editPrefix}-cat`}
+                      value={editedRecipe.category || "śniadanie"}
                       onChange={(e) => setEditedRecipe({ ...editedRecipe, category: e.target.value as RecipeCategory })}
-                      className="input-field py-1.5">
+                      className="input-field py-1.5"
+                    >
                       {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="form-label">Składniki:</label>
+                    <label htmlFor={`${editPrefix}-prod`} className="form-label">Składniki:</label>
                     <div className="flex gap-2">
-                      <input value={prodInput} onChange={(e) => setProdInput(e.target.value)}
-                        onKeyDown={onProdKeyDown} placeholder="Dodaj składnik..." className="input-field flex-1" />
+                      <input 
+                        id={`${editPrefix}-prod`}
+                        value={prodInput} 
+                        onChange={(e) => setProdInput(e.target.value)}
+                        onKeyDown={onProdKeyDown} 
+                        placeholder="Dodaj składnik..." 
+                        className="input-field flex-1" 
+                      />
                       <button type="button" onClick={() => commitProduct(prodInput)}
                         className="px-4 bg-primary text-white hover:bg-secondary rounded-xl transition-colors shadow-sm shrink-0">
                         <PlusCircleIcon className="w-5 h-5" />
@@ -204,12 +219,17 @@ export default function RecipesList({ refreshToken }: RecipesListProps) {
                     )}
                   </div>
                   <div>
-                    <label className="form-label">Przepis / Instrukcje:</label>
-                    <textarea value={editedRecipe.description || ""}
+                    <label htmlFor={`${editPrefix}-desc`} className="form-label">Przepis / Instrukcje:</label>
+                    <textarea 
+                      id={`${editPrefix}-desc`}
+                      value={editedRecipe.description || ""}
                       onChange={(e) => setEditedRecipe({ ...editedRecipe, description: e.target.value })}
-                      className="input-field" rows={5} placeholder="Krok po kroku..." />
+                      className="input-field" 
+                      rows={5} 
+                      placeholder="Krok po kroku..." 
+                    />
                   </div>
-                    <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
+                  <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
                 </div>
               </li>
             );
