@@ -67,7 +67,7 @@ export default function UniversalTimer({
   controls,
   compact = false,
   formatTime = defaultFormatTime,
-}: UniversalTimerProps) {
+}: Readonly<UniversalTimerProps>) {
   
   const isMultiPhase = phases && phases.length > 0;
   const currentPhase = isMultiPhase ? phases[phaseIndex] : null;
@@ -151,16 +151,7 @@ export default function UniversalTimer({
             </button>
           )}
 
-          {!running ? (
-            <button
-              onClick={controls.start}
-              className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-primary hover:bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
-              title="Start"
-            >
-              <Play className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Start</span>
-            </button>
-          ) : (
+          {running ? (
             <button
               onClick={controls.pause}
               className={`flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 bg-primary hover:bg-secondary border-transparent" 
@@ -169,6 +160,15 @@ export default function UniversalTimer({
             >
               {paused ? <Play className="w-5 h-5 sm:w-6 sm:h-6" /> : <Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
               <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{paused ? "Wznów" : "Pauza"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={controls.start}
+              className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-primary hover:bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
+              title="Start"
+            >
+              <Play className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Start</span>
             </button>
           )}
 

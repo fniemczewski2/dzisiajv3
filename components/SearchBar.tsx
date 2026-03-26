@@ -43,7 +43,7 @@ export default function SearchBar({
   className = "",
   resultsCount,
   resultsLabel,
-}: SearchBarProps) {
+}: Readonly<SearchBarProps>) {
   const [isFocused, setIsFocused] = useState(false);
   const { history, add: addToHistory, clear: clearHistory } = useSessionHistory();
 

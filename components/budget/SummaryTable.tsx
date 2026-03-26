@@ -12,7 +12,7 @@ interface Props {
   loadedMonths: Set<number>;
 }
 
-export default function SummaryTable({ data, monthNames, loadedMonths }: Props) {
+export default function SummaryTable({ data, monthNames, loadedMonths }: Readonly<Props>) {
   return (
     <div className="w-full">
       <h3 className="font-bold mb-2 text-text">Budżet roczny</h3>

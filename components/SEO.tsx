@@ -32,7 +32,7 @@ export default function SEO({
   author = "Dzisiaj v3",
   publishedTime,
   modifiedTime,
-}: SEOProps) {
+}: Readonly<SEOProps>) {
   const fullTitle = title.includes("Dzisiaj") ? title : `${title} - Dzisiaj v3`;
   const robotsContent = `${noindex ? "noindex" : "index"},${nofollow ? "nofollow" : "follow"}`;
 

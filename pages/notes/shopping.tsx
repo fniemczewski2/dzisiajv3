@@ -4,7 +4,6 @@ import Layout from "../../components/Layout";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import ShoppingForm from "../../components/shopping/ShoppingForm";
 import ShoppingListView from "../../components/shopping/ShoppingListView";
-import LoadingState from "../../components/LoadingState";
 import { AddButton } from "../../components/CommonButtons";
 import { useToast } from "../../providers/ToastProvider";
 

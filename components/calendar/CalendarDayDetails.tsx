@@ -7,7 +7,7 @@ interface Props {
   onBack: () => void;
 }
 
-export default function CalendarDayDetails({ selectedDate, onBack }: Props) {
+export default function CalendarDayDetails({ selectedDate, onBack }: Readonly<Props>) {
   const dateObject = useMemo(() => new Date(selectedDate), [selectedDate]);
 
   return (

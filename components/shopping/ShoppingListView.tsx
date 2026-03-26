@@ -16,7 +16,7 @@ interface ShoppingListViewProps {
   deleteShoppingList: (id: string) => Promise<void>;
 }
 
-export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList }: ShoppingListViewProps) {
+export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList }: Readonly<ShoppingListViewProps>) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
   const { toast } = useToast();

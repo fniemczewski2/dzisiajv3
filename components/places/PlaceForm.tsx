@@ -21,7 +21,7 @@ const DAY_NAMES: { [key: string]: string } = {
   sunday: "Nd:",
 };
 
-export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFormProps) {
+export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly<PlaceFormProps>) {
   const [tags, setTags] = useState<string[]>(place?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [notes, setNotes] = useState(place?.notes || "");

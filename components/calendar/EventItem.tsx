@@ -26,7 +26,7 @@ export default function EventItem({
   onEventsChange,
   userId,
   userOptions
-}: EventItemProps) {
+}: Readonly<EventItemProps>) {
   const { supabase } = useAuth();
   const { toast } = useToast();
 

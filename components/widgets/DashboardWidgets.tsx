@@ -9,7 +9,7 @@ interface DashboardWidgetsProps {
   settings: any;
 }
 
-export const DashboardWidgets = React.memo(({ settings }: DashboardWidgetsProps) => {
+export const DashboardWidgets = React.memo(({ settings }: Readonly<DashboardWidgetsProps>) => {
   const today = getAppDate();
   return (
     <div className="flex flex-col">

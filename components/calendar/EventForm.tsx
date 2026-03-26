@@ -28,7 +28,7 @@ export default function EventForm({
   currentDate = getAppDateTime(),
   selectedDate,
   loading
-}: EventsFormProps) {
+}: Readonly<EventsFormProps>) {
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();

@@ -7,8 +7,7 @@ import { useNotes } from "../../hooks/useNotes";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import LoadingState from "../LoadingState";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 
 interface NoteFormProps {
   onChange: () => void;
@@ -23,7 +22,7 @@ const COLOR_MAP: { [key: string]: string } = {
   "red-100":    "bg-red-100",
 };
 
-export default function NoteForm({ onChange, onCancel }: NoteFormProps) {
+export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>) {
   const { addNote, loading } = useNotes();
   const { toast } = useToast();
   const { user } = useAuth();

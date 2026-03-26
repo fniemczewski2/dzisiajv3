@@ -57,7 +57,7 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
   return null;
 };
 
-export default function DayView({ date, isMain = false, onBack }: DayViewProps) {
+export default function DayView({ date, isMain = false, onBack }: Readonly<DayViewProps>) {
   const { user } = useAuth();
   const userId = user!.id;
   const { settings } = useSettings();

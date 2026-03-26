@@ -9,7 +9,7 @@ interface LocationSectionProps {
 export default function LocationSection({
   onRequestLocation,
   locationStatus,
-}: LocationSectionProps) {
+}: Readonly<LocationSectionProps>) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (

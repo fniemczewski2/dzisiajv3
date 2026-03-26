@@ -16,7 +16,7 @@ interface Props {
   userOptions: string[];
 }
 
-export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Props) {
+export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Readonly<Props>) {
   const { toast } = useToast();
 
   useEffect(() => {

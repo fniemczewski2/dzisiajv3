@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
-import { AddButton, CancelButton, FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
@@ -55,7 +55,7 @@ interface TmdbWatchProviders {
   results?: { PL?: { flatrate?: TmdbProvider[]; rent?: TmdbProvider[]; buy?: TmdbProvider[]; }; };
 }
 
-export default function MovieAddForm({ onSubmit, onCancel, loading = false }: MovieAddFormProps) {
+export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Readonly<MovieAddFormProps>) {
   const { toast } = useToast();
   const { user } = useAuth();
 

@@ -4,7 +4,7 @@ interface DayStreaksProps {
   streaks: any[];
 }
 
-export const DayStreaks = React.memo(({ streaks }: DayStreaksProps) => {
+export const DayStreaks = React.memo(({ streaks }: Readonly<DayStreaksProps>) => {
 
   return (
     <>

@@ -27,7 +27,7 @@ const COLOR_MAP: { [key: string]: string } = {
   "red-100":    "bg-red-100 dark:bg-red-900/20 border-red-200 dark:border-red-700/30",
 };
 
-export default function NoteList({ notes, onNotesChange }: NoteListProps) {
+export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProps>) {
   const { deleteNote, editNote, togglePin, toggleArchive, loading } = useNotes();
   const { settings } = useSettings();
   const { toast } = useToast();

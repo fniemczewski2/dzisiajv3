@@ -33,7 +33,7 @@ const DAY_NAMES: Record<string, string> = {
 };
 const DAY_ORDER = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
 
-export default function PlacesList({ places, onEdit, onDelete }: PlacesListProps) {
+export default function PlacesList({ places, onEdit, onDelete }: Readonly<PlacesListProps>) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { settings, requestGeolocation } = useSettings();
   const { toast } = useToast();

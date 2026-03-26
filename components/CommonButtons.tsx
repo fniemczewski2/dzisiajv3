@@ -44,7 +44,7 @@ interface FormButtonsProps {
   small?: boolean;
 }
 
-export const AddButton = ({ onClick, loading, disabled, small = false }: ButtonProps) => (
+export const AddButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
   <button
     type="button"
     onClick={onClick}
@@ -56,7 +56,7 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: ButtonP
   </button>
 );
 
-export const CloseButton = ({ onClick, loading, disabled, small = false }: ButtonProps) => (
+export const CloseButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
   <button
     type="button"
     onClick={onClick}
@@ -68,7 +68,7 @@ export const CloseButton = ({ onClick, loading, disabled, small = false }: Butto
   </button>
 );
 
-export const SaveButton = ({ onClick, loading, disabled, small = false }: ButtonProps) => (
+export const SaveButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
   <button
     type="submit"
     onClick={onClick}
@@ -80,7 +80,7 @@ export const SaveButton = ({ onClick, loading, disabled, small = false }: Button
   </button>
 );
 
-export const CancelButton = ({ onClick, loading, disabled, small = false }: ButtonProps) => (
+export const CancelButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
   <button
     type="button"
     onClick={onClick}
@@ -92,7 +92,7 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Butt
   </button>
 );
 
-export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false }: FormButtonsProps) => (
+export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false }: Readonly<FormButtonsProps>) => (
   <div className={`${small ? "" : "pt-4 border-t border-gray-100 dark:border-gray-800 flex-col md:flex-row"} flex items-center md:justify-end gap-2 `}>
     <SaveButton
       onClick={onClickSave}
@@ -250,7 +250,7 @@ export const PdfButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export const AddSpecificButton = ({ path, Icon, title, label, action, router }: AddSpecificButtonProps) => {
+export const AddSpecificButton = ({ path, Icon, title, label, action, router }: Readonly<AddSpecificButtonProps>) => {
   return (
   <button
     key={path}

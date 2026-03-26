@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import Layout from "../../components/Layout";
-import SEO from "../../components/SEO";
-import LoadingState from "../../components/LoadingState";
 import { usePlaces } from "../../hooks/usePlaces";
 import ImportPlaces from "../../components/places/ImportPlaces";
 import PlaceFilters from "../../components/places/PlaceFilters";

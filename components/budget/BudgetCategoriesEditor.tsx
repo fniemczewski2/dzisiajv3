@@ -10,7 +10,6 @@ import {
   DeleteButton,
   FormButtons,
 } from "../CommonButtons";
-import LoadingState from "../LoadingState";
 import type { BudgetCategory } from "../../types";
 
 type ViewMode = "year" | "month";

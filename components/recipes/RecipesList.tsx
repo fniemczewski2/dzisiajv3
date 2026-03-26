@@ -20,7 +20,7 @@ interface RecipesListProps {
   refreshToken?: number;
 }
 
-export default function RecipesList({ refreshToken }: RecipesListProps) {
+export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>) {
   const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
   const { settings } = useSettings();
   const { toast } = useToast();

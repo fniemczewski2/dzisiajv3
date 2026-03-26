@@ -16,7 +16,7 @@ export default function BudgetStatsTable({
   rows,
   isEditing,
   onRateChange,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <div className="w-full mb-4">
       <div className="card rounded-xl shadow-sm overflow-x-auto mb-4">

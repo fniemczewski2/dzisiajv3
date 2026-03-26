@@ -26,7 +26,7 @@ interface Props {
 
 const TaskItem = memo(function TaskItem({ 
   task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId, userOptions 
-}: Props) {
+}: Readonly<Props>) {
   const { supabase } = useAuth();
   const { toast } = useToast();
   const isDone = task.status === "done";

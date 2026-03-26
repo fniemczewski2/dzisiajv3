@@ -28,7 +28,7 @@ const MonthView = memo(function MonthView({
   onSelectDate,
   moods,
   DEFAULT_MOODS,
-}: Props) {
+}: Readonly<Props>) {
   const isMobile = useResponsive();
 
   const { calendarStart, calendarEnd, rangeStart, rangeEnd } = useMemo(() => {

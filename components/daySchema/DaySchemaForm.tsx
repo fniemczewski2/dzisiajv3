@@ -6,8 +6,7 @@ import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import LoadingState from "../LoadingState";
-import { AddButton, SaveButton, CancelButton, DeleteButton, FormButtons } from "../CommonButtons";
+import { DeleteButton, FormButtons } from "../CommonButtons";
 
 export interface DaySchemaEntry {
   time: string;
@@ -33,7 +32,7 @@ export default function DaySchemaForm({
   initialSchema = null,
   onSchemaSaved,
   onCancel,
-}: DaySchemaFormProps) {
+}: Readonly<DaySchemaFormProps>) {
   const { addSchema, updateSchema } = useDaySchemas();
   const { toast } = useToast();
   const { user } = useAuth();

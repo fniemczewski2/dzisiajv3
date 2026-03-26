@@ -18,7 +18,7 @@ interface TaskFormProps {
   loading: boolean;
 }
 
-export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate }: TaskFormProps) {
+export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate }: Readonly<TaskFormProps>) {
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();

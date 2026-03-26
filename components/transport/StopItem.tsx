@@ -22,7 +22,7 @@ const getStatusColor = (dep: Departure) => {
     : "text-textSecondary font-semibold";
 };
 
-export default function StopItem({ stopName, distance, departures, isLoading, onRemove, onAddFavorite, many, zone_id }: StopItemProps) {
+export default function StopItem({ stopName, distance, departures, isLoading, onRemove, onAddFavorite, many, zone_id }: Readonly<StopItemProps>) {
 
   const displayDepartures = React.useMemo(() => {
     if (!departures) return [];

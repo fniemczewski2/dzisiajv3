@@ -41,7 +41,7 @@ function RecurringBadge() {
   );
 }
 
-export default function BillListGrouped({ year, categoryId, onBillsChange }: BillListProps) {
+export default function BillListGrouped({ year, categoryId, onBillsChange }: Readonly<BillListProps>) {
   const [activeMonths, setActiveMonths] = useState<{ id: number, date: Date, label: string, isCurrentMonth: boolean }[]>([]);
   const { fetchActiveMonths } = useBills(); 
 
