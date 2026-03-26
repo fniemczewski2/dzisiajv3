@@ -23,6 +23,7 @@ import {
 import { getAppDateTime } from "../lib/dateUtils";
 import LoadingState from "../components/LoadingState";
 import NoResultsState from "../components/NoResultsState";
+import { useToast } from "../providers/ToastProvider";
 
 function WeatherIcon({ code }: { code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
@@ -81,6 +82,7 @@ export default function WeatherPage() {
   const [error, setError] = useState<string | null>(null);
   const [forecast, setForecast] = useState<any>(null);
   const [air, setAir] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -135,6 +137,12 @@ export default function WeatherPage() {
     );
   }, []);
 
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (loading) toastId = toast.loading("Ładowanie pogody...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loading, toast]);
+
   return (
     <>
       <Head>
@@ -142,9 +150,7 @@ export default function WeatherPage() {
       </Head>
       <Layout>
         <h2 className="text-xl mb-4 font-semibold text-text">Pogoda</h2>
-        {loading ? (
-          <LoadingState fullScreen/>
-        ) : error ? (
+        {error ? (
           <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>
         ) : forecast && air ? (
           <>

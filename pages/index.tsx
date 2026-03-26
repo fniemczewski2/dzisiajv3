@@ -29,7 +29,6 @@ export default function IndexPage() {
     return <LoadingState fullScreen />;
   }
 
-  // Auth resolved, no user → null while redirect fires
   if (!user) return null;
 
   const homepageStructuredData = {

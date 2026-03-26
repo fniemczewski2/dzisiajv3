@@ -140,7 +140,6 @@ export default function PlacesPage() {
           </button>
         )}
       </div>
-      {loading && <LoadingState fullScreen/>}
 
       {showImport && (
         <ImportPlaces 

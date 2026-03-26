@@ -4,14 +4,12 @@ import React, { useState } from "react";
 import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../providers/ToastProvider";
 import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon } from "lucide-react";
-import LoadingState from "../LoadingState";
 
 export default function NotificationPreferences() {
-  const { settings, updateSettings, loading } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
 
-  if (loading) return <LoadingState />;
   if (!settings) return null;
 
   const handleToggle = async (key: string, currentValue: boolean) => {

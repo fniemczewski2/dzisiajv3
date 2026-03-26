@@ -11,7 +11,7 @@ interface WaterTrackerProps {
 export default function WaterTracker({ date }: WaterTrackerProps) {
   const { habits, loading, updateWater } = useDailyHabits(date);
 
-  if (!habits || loading) return <LoadingState />;
+  if (!habits || loading) return null;
 
   const water = habits.water_amount ?? 0;
   const fillPercent = (water / 2) * 100;
