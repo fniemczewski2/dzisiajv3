@@ -68,7 +68,6 @@ const TaskItem = memo(function TaskItem({
   const handleEdit = async () => {
     setIsEditing(true);
     setEditedTask(task);
-    // Fetch the target user's email only if it's assigned to someone other than the current user
     if (task.for_user_id && task.for_user_id !== userId) {
       const { data, error } = await supabase.rpc("get_email_by_user_id", {
         target_uuid: task.for_user_id,
@@ -87,8 +86,6 @@ const TaskItem = memo(function TaskItem({
 
   const handleSaveEdit = async () => {
     try {
-      // Pass the shared_with_email explicitly. The useTasks hook will handle the translation.
-      // If sharedEmail is empty string (""), the hook correctly reverts the task back to the owner.
       await editTask({ 
         ...editedTask, 
         shared_with_email: sharedEmail 
@@ -190,16 +187,26 @@ const TaskItem = memo(function TaskItem({
   }
 
   if (isEditing) {
+    const editPrefix = `edit-task-${task.id}`;
+
     return (
       <div className="p-4 w-full bg-card border border-primary dark:border-primary-dark rounded-xl shadow-lg transition-colors">
         <div className="space-y-3">
           <div>
-            <label className="form-label">Tytuł zadania:</label>
-            <input ref={titleRef} type="text" value={editedTask.title} onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })} className="input-field font-medium" />
+            <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł zadania:</label>
+            <input 
+              id={`${editPrefix}-title`} 
+              ref={titleRef} 
+              type="text" 
+              value={editedTask.title} 
+              onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })} 
+              className="input-field font-medium" 
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="form-label">Priorytet:</label>
+              {/* ZMIANA: Z label na div, ponieważ to niestandardowa kontrolka (brak inputu) */}
+              <div className="form-label">Priorytet:</div>
               <div className="flex items-stretch gap-1.5 mt-1">
                 <button type="button" onClick={decreasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"><Minus size={18} /></button>
                 <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">{editedTask.priority}</div>
@@ -207,8 +214,13 @@ const TaskItem = memo(function TaskItem({
               </div>
             </div>
             <div>
-              <label className="form-label">Kategoria:</label>
-              <select value={editedTask.category} onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} className="input-field py-1.5 h-[38px]">
+              <label htmlFor={`${editPrefix}-category`} className="form-label">Kategoria:</label>
+              <select 
+                id={`${editPrefix}-category`} 
+                value={editedTask.category} 
+                onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} 
+                className="input-field py-1.5 h-[38px]"
+              >
                 {["edukacja","praca","osobiste","aktywizm","przyjaciele","zakupy","podróże","trening","inne"].map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -217,13 +229,24 @@ const TaskItem = memo(function TaskItem({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="form-label">Data wykonania:</label>
-              <input type="date" value={editedTask.due_date} onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })} className="input-field w-full min-w-0 px-1 text-xs h-[38px]" />
+              <label htmlFor={`${editPrefix}-date`} className="form-label">Data wykonania:</label>
+              <input 
+                id={`${editPrefix}-date`} 
+                type="date" 
+                value={editedTask.due_date} 
+                onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })} 
+                className="input-field w-full min-w-0 px-1 text-xs h-[38px]" 
+              />
             </div>
             {userOptions.length > 0 && (
               <div>
-                <label className="form-label">Udostępnij dla:</label>
-                <select value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field py-1.5 h-[38px]">
+                <label htmlFor={`${editPrefix}-share`} className="form-label">Udostępnij dla:</label>
+                <select 
+                  id={`${editPrefix}-share`} 
+                  value={sharedEmail} 
+                  onChange={(e) => setSharedEmail(e.target.value)} 
+                  className="input-field py-1.5 h-[38px]"
+                >
                   <option value="">Tylko dla mnie</option>
                   {userOptions.map((email: string) => (
                     <option key={email} value={email}>{email}</option>
@@ -233,8 +256,14 @@ const TaskItem = memo(function TaskItem({
             )}
           </div>
           <div>
-            <label className="form-label">Opis:</label>
-            <textarea value={editedTask.description || ""} onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })} className="input-field" rows={2} />
+            <label htmlFor={`${editPrefix}-desc`} className="form-label">Opis:</label>
+            <textarea 
+              id={`${editPrefix}-desc`} 
+              value={editedTask.description || ""} 
+              onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })} 
+              className="input-field" 
+              rows={2} 
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
             <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
