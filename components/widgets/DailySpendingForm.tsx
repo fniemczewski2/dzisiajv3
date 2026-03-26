@@ -48,7 +48,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
     setIsEditing(false);
   };
 
-  if (loading || !habits) return <LoadingState />;
+  if (loading || !habits) return null;
 
   return (
     <div className="widget flex justify-between items-center px-4 py-3 gap-3">

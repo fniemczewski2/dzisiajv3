@@ -119,6 +119,13 @@ export default function TransportPage() {
     setSearchResults([]);
   };
 
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");
+      if (loadingFavorites && favoritesGroups.length === 0) toastId = toast.loading("Ładowanie ulubionych...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loadingNearby, loadingFavorites, toast]);
+
   return (
     <>
       <Head>
@@ -143,8 +150,6 @@ export default function TransportPage() {
             <div className="space-y-4">
               {favoriteStops.length === 0 ? (
                 <NoResultsState text="ulubionych przystanków" />
-              ) : loadingFavorites && favoritesGroups.length === 0 ? (
-                <LoadingState/>
               ) : favoritesGroups.length === 0 ? (
                 <NoResultsState text="kursów dla wskazanych przystanków" />
               ) : (
@@ -187,10 +192,6 @@ export default function TransportPage() {
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
             <div className="space-y-4">
-              {loadingNearby && nearbyGroups.length === 0 && 
-                <LoadingState fullScreen/>
-              }
-
               {locationError && (
                 <div className="text-center py-10 w-full" >
                     <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>

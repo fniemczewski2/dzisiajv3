@@ -43,12 +43,10 @@ function RecurringBadge() {
 
 export default function BillListGrouped({ year, categoryId, onBillsChange }: BillListProps) {
   const [activeMonths, setActiveMonths] = useState<{ id: number, date: Date, label: string, isCurrentMonth: boolean }[]>([]);
-  const [isLoadingMonths, setIsLoadingMonths] = useState(true);
   const { fetchActiveMonths } = useBills(); 
 
   useEffect(() => {
     const loadMonths = async () => {
-      setIsLoadingMonths(true);
       const activeIndexes = await fetchActiveMonths(year, categoryId);
       
       const generatedMonths = activeIndexes.map((monthIndex) => {
@@ -62,19 +60,10 @@ export default function BillListGrouped({ year, categoryId, onBillsChange }: Bil
       });
 
       setActiveMonths(generatedMonths);
-      setIsLoadingMonths(false);
     };
 
     loadMonths();
   }, [year, categoryId, fetchActiveMonths]);
-
-  if (isLoadingMonths) {
-    return (
-      <div className="py-8 flex justify-center text-primary">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
 
   if (activeMonths.length === 0) {
     return <NoResultsState text="rachunków w wybranym roku" />;
@@ -200,14 +189,6 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { d
     setPage(next);
     fetchBills(true, next, limit); 
   };
-
-  if (fetching && expenseItems.length === 0 && incomeItems.length === 0) {
-    return (
-      <div className="py-8 flex justify-center text-primary">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
 
   if (expenseItems.length === 0 && incomeItems.length === 0) {
     return <NoResultsState text="wpisów w tym miesiącu" />;

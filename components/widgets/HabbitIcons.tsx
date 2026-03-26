@@ -8,6 +8,8 @@ import { useDailyHabits } from "../../hooks/useDailyHabits";
 import { useSettings } from "../../hooks/useSettings";
 import LoadingState from "../LoadingState";
 import type { HabitKey } from "../../types";
+import { useToast } from "../../providers/ToastProvider";
+import { useEffect } from "react";
 
 const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "pills", Icon: Pill },
@@ -27,10 +29,13 @@ interface HabbitIconsProps {
 export default function HabbitIcons({ date }: HabbitIconsProps) {
   const { habits, loading: habitsLoading, toggleHabit } = useDailyHabits(date);
   const { settings, loading: settingsLoading } = useSettings();
+  const { toast } = useToast();
 
-  if (settingsLoading || habitsLoading || !habits || !settings) {
-    return <LoadingState />;
-  }
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (settingsLoading || habitsLoading || !habits || !settings) toastId = toast.loading("Ładowanie nawyków...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [settingsLoading, habitsLoading, toast]);
 
   const activeItems = items.filter(({ key }) => {
     const settingKey = `habit_${key}` as keyof typeof settings;
@@ -42,7 +47,7 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
   return (
     <div className="flex flex-nowrap justify-between md:justify-start gap-1 sm:gap-2 mb-2 sm:mb-4">
       {activeItems.map(({ key, Icon }) => {
-        const isActive = habits[key];
+        const isActive = habits![key];
         
         return (
           <button
