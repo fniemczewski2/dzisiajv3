@@ -67,9 +67,9 @@ export default function MovieWatchlist({
         m.platform?.toLowerCase().includes(q)
     );
   }, [sortedMovies, searchQuery]);
-
+  
   const suggestions = useMemo(
-    () => Array.from(new Set(movies.map((m) => m.title))).sort(),
+    () => Array.from(new Set(movies.map((m) => m.title))).sort((a, b) => a.localeCompare(b, "pl")),
     [movies]
   );
 

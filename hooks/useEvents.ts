@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Event } from "../types";
 import { expandRepeatingEvents } from "../lib/eventUtils";
 import { useAuth } from "../providers/AuthProvider";
+import { getUserIdByEmail } from "../utils/share";
 
 export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
@@ -81,12 +82,8 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     try {
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
       let targetSharedId = eventData.shared_with_id;
-
-      if (shared_with_email?.includes("@")) {
-        const { data: foundId } = await supabase.rpc("get_user_id_by_email", {
-          email_address: shared_with_email.trim().toLowerCase(),
-        });
-        targetSharedId = foundId || null;
+      if (shared_with_email !== undefined) {
+        targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
       }
 
       const { error } = await supabase
@@ -106,13 +103,8 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       const originalId = event.id.split("_")[0];
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
       let targetSharedId = eventData.shared_with_id;
-
       if (shared_with_email !== undefined) {
-        targetSharedId = shared_with_email?.includes("@")
-          ? (await supabase.rpc("get_user_id_by_email", {
-              email_address: shared_with_email.trim().toLowerCase(),
-            })).data || null
-          : null;
+        targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
       }
 
       const { error } = await supabase

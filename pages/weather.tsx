@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { getAppDateTime } from "../lib/dateUtils";
 import LoadingState from "../components/LoadingState";
+import NoResultsState from "../components/NoResultsState";
 
 function WeatherIcon({ code }: { code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
@@ -151,7 +152,7 @@ export default function WeatherPage() {
               <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
                 <ThermometerSnowflake className="w-5 h-5 text-blue-500" />
                 <span className="text-base font-medium text-text">
-                  Min&nbsp;
+                  {"Min "}
                   <span className="font-semibold">
                     {forecast.daily.temperature_2m_min?.[0]?.toFixed(1) ?? "-"}°C
                   </span>
@@ -161,7 +162,7 @@ export default function WeatherPage() {
               <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
                 <ThermometerSun className="w-5 h-5 text-red-500" />
                 <span className="text-base font-medium text-text">
-                  Max&nbsp;
+                  {"Max "}
                   <span className="font-semibold">
                     {forecast.daily.temperature_2m_max?.[0]?.toFixed(1) ?? "-"}°C
                   </span>
@@ -329,7 +330,7 @@ export default function WeatherPage() {
             </div>
           </>
         ) : (
-          <p className="text-center text-textMuted">Brak danych pogodowych.</p>
+          <NoResultsState text="danych pogodowych"/>
         )}
       </Layout>
     </>

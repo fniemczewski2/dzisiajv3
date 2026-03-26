@@ -32,7 +32,7 @@ export function filterNotes(notes: Note[], query: string): Note[] {
 export function getNoteTitles(notes: Note[]): string[] {
   const titles = notes.map((n) => n.title);
   const uniqueTitles = new Set(titles);
-  return Array.from(uniqueTitles).sort();
+  return Array.from(uniqueTitles).sort((a, b) => a.localeCompare(b, "pl"));
 }
 
 export async function exportNoteToPDF(note: Note): Promise<void> {

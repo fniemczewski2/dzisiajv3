@@ -45,7 +45,7 @@ export default function PlacesPage() {
     places.forEach((place) => {
       (place.tags || []).forEach((tag) => tagSet.add(tag));
     });
-    return Array.from(tagSet).sort();
+    return Array.from(tagSet).sort((a, b) => a.localeCompare(b, "pl"));
   }, [places]);
 
   const filteredPlaces = useMemo(() => {
@@ -111,7 +111,7 @@ export default function PlacesPage() {
       let toastId: string | undefined;
       
       if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie finansów...");
+        toastId = toast.loading("Ładowanie miejsc...");
       }
   
       return () => {

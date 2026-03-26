@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "../types";
 import { useAuth } from "../providers/AuthProvider";
+import { resolveSharedEmails, getUserIdByEmail } from "../utils/share";
 
 const MAX_LISTS = 5;
 
@@ -27,44 +28,15 @@ export function useShoppingLists() {
 
       const fetchedLists = (data || []) as ShoppingList[];
 
-      const neededIds = Array.from(
-        new Set(
-          fetchedLists
-            .map((l) => (l.user_id === userId ? l.shared_with_id : l.user_id))
-            .filter((id): id is string =>
-              typeof id === "string" && id !== userId && !userEmailsRef.current[id]
-            )
-        )
+      // DUPLICATION REMOVED: Leveraging the shared utility
+      const listsWithDisplayInfo = await resolveSharedEmails(
+        fetchedLists,
+        userId,
+        supabase,
+        userEmailsRef
       );
 
-      if (neededIds.length > 0) {
-        const { data: emailData } = await supabase.rpc("get_emails_by_ids", {
-          user_ids: neededIds,
-        });
-        if (emailData) {
-          const newEmails = (emailData as { id: string; email: string }[]).reduce<
-            Record<string, string>
-          >((acc, curr) => { acc[curr.id] = curr.email; return acc; }, {});
-
-          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
-        }
-      }
-
-      const currentEmails = userEmailsRef.current;
-
-      setLists(
-        fetchedLists.map((list) => {
-          const isOwner = list.user_id === userId;
-          const targetId = isOwner ? list.shared_with_id : list.user_id;
-          const email = targetId ? (currentEmails[targetId] ?? "...") : "";
-          return {
-            ...list,
-            display_share_info: isOwner
-              ? list.shared_with_id ? `Udostępniono: ${email}` : null
-              : `Od: ${email}`,
-          };
-        }) as ShoppingList[]
-      );
+      setLists(listsWithDisplayInfo as ShoppingList[]);
     } finally {
       setFetching(false);
     }
@@ -76,20 +48,17 @@ export function useShoppingLists() {
       if (lists.length >= MAX_LISTS) return false;
 
       let sharedWithUuid: string | null = null;
-      if (shared_with_email?.includes("@")) {
-        const { data: foundId } = await supabase.rpc("get_user_id_by_email", {
-          email_address: shared_with_email.trim().toLowerCase(),
-        });
-        sharedWithUuid = foundId || null;
+      if (shared_with_email !== undefined && shared_with_email !== null) {
+        sharedWithUuid = await getUserIdByEmail(shared_with_email, supabase);
       }
+      
       try {
         const { error } = await supabase
           .from("shopping_lists")
           .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }]);
 
         if (error) throw error;
-      }
-      finally {
+      } finally {
         fetchShoppingLists();
         setLoading(false);
       }
@@ -105,15 +74,9 @@ export function useShoppingLists() {
     const { shared_with_email, display_share_info, ...finalUpdates } = updates as any;
 
     if (shared_with_email !== undefined) {
-      if (shared_with_email?.includes("@")) {
-        const { data: foundId } = await supabase.rpc("get_user_id_by_email", {
-          email_address: shared_with_email.trim().toLowerCase(),
-        });
-        finalUpdates.shared_with_id = foundId || null;
-      } else {
-        finalUpdates.shared_with_id = null;
-      }
+      finalUpdates.shared_with_id = await getUserIdByEmail(shared_with_email, supabase);
     }
+    
     try {
       const { error } = await supabase
         .from("shopping_lists")

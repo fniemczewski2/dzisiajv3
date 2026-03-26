@@ -14,7 +14,7 @@ export default function MoviesPage() {
       let toastId: string | undefined;
       
       if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie finansów...");
+        toastId = toast.loading("Ładowanie filmów...");
       }
   
       return () => {

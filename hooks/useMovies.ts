@@ -64,9 +64,9 @@ export function useMovies() {
       if (error) throw error;
       try {
         setRawMovies((prev) => [data, ...prev]);
+        return data;
       } finally {
         setLoading(false);
-        return data;
       }
     },
     [supabase, userId]

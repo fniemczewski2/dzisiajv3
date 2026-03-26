@@ -221,8 +221,6 @@ export default function BudgetCategoriesEditor({
     onCategoriesChange?.();
   };
 
-  if (loading) return <LoadingState />;
-
   return (
     <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">

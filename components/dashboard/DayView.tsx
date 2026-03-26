@@ -139,7 +139,6 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
         
         if (override && override.new_time === null) return;
 
-        // PANCERNA ZMIANA: Niezawodne wyciągnięcie samej godziny nawet ze "slot-14:00"
         const rawTime = override?.new_time || entry.time;
         const timeMatch = rawTime.match(/\d{2}:\d{2}/);
         const timeToUse = timeMatch ? timeMatch[0] : rawTime;
@@ -247,11 +246,10 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
        if (!over) return;
        const schemaId = activeId.replace("plan-schema-", "");
        
-       // PANCERNA ZMIANA: Zawsze wyciągamy tylko samą godzinę! 
        const timeMatch = String(over.id).match(/\d{2}:\d{2}/);
        if (!timeMatch) return;
        
-       const newTime = timeMatch[0]; // To zawsze zwróci "14:00"
+       const newTime = timeMatch[0];
        
        await moveSchema(schemaId, newTime);
        toast.success(`Rutyna przeniesiona na godzinę ${newTime}.`);
@@ -273,8 +271,9 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
     }
   };
 
+  // DEFENSE: Replaced Math.random() with standard browser crypto API to silence PRNG warnings
   const handleAddDraft = (type: "task" | "event") => {
-    setDraftForms((prev) => [...prev, { id: Math.random().toString(), type }]);
+    setDraftForms((prev) => [...prev, { id: crypto.randomUUID(), type }]);
   };
 
   const handleRemoveDraft = (id: string) => {

@@ -19,9 +19,8 @@ export const DailyPlan = React.memo(({
   handleMarkAsDone,
   handleRemoveFromSchedule,
 }: DailyPlanProps) => {
-  
-  // ZMIANA: Wyciągamy tylko te godziny, które przetrwały filtrowanie w DayView i sortujemy je
-  const visibleHours = Object.keys(planByHour).sort();
+
+  const visibleHours = Object.keys(planByHour).sort((a, b) => a.localeCompare(b));
 
   return (
     <section className="lg:col-span-2 card rounded-xl p-4">

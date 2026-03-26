@@ -7,7 +7,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { useAuth } from "../../providers/AuthProvider";
 import { useToast } from "../../providers/ToastProvider";
 import { withRetry } from "../../lib/withRetry";
-import { EditButton, DeleteButton, SaveButton, CancelButton, FormButtons } from "../CommonButtons";
+import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 
 interface ShoppingListViewProps {
@@ -46,7 +46,10 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
   const handleEdit = async (list: ShoppingList) => {
     setEditingId(list.id);
     setEditedList({ ...list });
-    if (list.shared_with_id) {
+    
+    const isOwner = list.user_id === user?.id;
+    
+    if (isOwner && list.shared_with_id) {
       const { data, error } = await supabase.rpc("get_email_by_user_id", {
         target_uuid: list.shared_with_id,
       });
@@ -56,39 +59,58 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     }
   };
 
-  const handleCancelEdit = () => { setEditingId(undefined); setEditedList(null); setSharedEmail(""); };
+  const handleCancelEdit = () => { 
+    setEditingId(undefined); 
+    setEditedList(null); 
+    setSharedEmail(""); 
+  };
 
   const handleSaveEdit = async () => {
     if (!editedList?.id) return;
-    let targetUserId: string | null = null;
-    if (sharedEmail) {
-      const { data, error } = await supabase.rpc("get_user_id_by_email", {
-        email_address: sharedEmail,
-      });
-      if (error || !data) {
-        toast.error("Nie znaleziono użytkownika o takim adresie e-mail.");
-        return;
-      }
-      targetUserId = data;
+    
+    const isOwner = editedList.user_id === user?.id;
+    const updates: any = { name: editedList.name };
+    
+    if (isOwner) {
+      updates.shared_with_email = sharedEmail;
     }
+
     await withRetry(
-      () => editShoppingList(editedList.id!, { name: editedList.name, shared_with_id: targetUserId }),
+      () => editShoppingList(editedList.id!, updates),
       toast,
       { context: "ShoppingListView.editShoppingList", ...retryOpts }
     );
+    
     toast.success("Zmieniono pomyślnie.");
-    setEditingId(undefined); setEditedList(null); setSharedEmail("");
+    setEditingId(undefined); 
+    setEditedList(null); 
+    setSharedEmail("");
   };
 
-  const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć tę listę zakupów?");
-    if (!ok) return;
-    await withRetry(
-      () => deleteShoppingList(id),
-      toast,
-      { context: "ShoppingListView.deleteShoppingList", ...retryOpts }
-    );
-    toast.success("Usunięto pomyślnie.");
+  // ZMIANA: Obsługa usuwania w zależności od tego, czy jesteśmy właścicielem
+  const handleDelete = async (list: ShoppingList) => {
+    const isOwner = list.user_id === user?.id;
+
+    if (isOwner) {
+      const ok = await toast.confirm("Czy na pewno chcesz trwale usunąć tę listę zakupów?");
+      if (!ok) return;
+      await withRetry(
+        () => deleteShoppingList(list.id!),
+        toast,
+        { context: "ShoppingListView.deleteShoppingList", ...retryOpts }
+      );
+      toast.success("Usunięto pomyślnie.");
+    } else {
+      const ok = await toast.confirm("Czy na pewno chcesz opuścić tę listę? Zniknie ona z Twojego widoku.");
+      if (!ok) return;
+      // Gość "usuwa" listę u siebie poprzez przypisanie shared_with_id z powrotem do właściciela
+      await withRetry(
+        () => editShoppingList(list.id!, { shared_with_id: list.user_id }),
+        toast,
+        { context: "ShoppingListView.leaveShoppingList", ...retryOpts }
+      );
+      toast.success("Opuszczono listę.");
+    }
   };
 
   const toggleElement = (list: ShoppingList, elId: string) => {
@@ -111,6 +133,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {sortedLists.map((list) => {
         const isEditing = editingId === list.id;
+        const isOwner = list.user_id === user?.id;
 
         if (isEditing && editedList) {
           return (
@@ -122,7 +145,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                     onChange={(e) => setEditedList({ ...editedList, name: e.target.value })}
                     className="input-field font-medium" />
                 </div>
-                {userOptions.length > 0 && (
+                {isOwner && userOptions.length > 0 && (
                   <div>
                     <label className="form-label">Udostępnij dla:</label>
                     <select value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field">
@@ -163,7 +186,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
               </div>
               <div className="flex gap-1.5 shrink-0">
                 <EditButton onClick={() => handleEdit(list)} />
-                <DeleteButton onClick={() => handleDelete(list.id || "")} />
+                <DeleteButton onClick={() => handleDelete(list)} />
               </div>
             </div>
             <ul className="list-none mb-4 flex-1 space-y-1">
@@ -174,9 +197,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                       className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
-                  <DeleteButton onClick={() => removeElement(list, el.id)}
-                    small
-                  />
+                  <DeleteButton onClick={() => removeElement(list, el.id)} small />
                 </li>
               ))}
               {list.elements.length === 0 && <div className="mt-4"><NoResultsState text="produktów na liście" /></div>}

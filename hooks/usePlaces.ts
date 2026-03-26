@@ -96,22 +96,28 @@ export function usePlaces() {
 
   const extractHours = (dayText: string): string[] => {
     if (!dayText) return [];
-    const match = dayText.match(/:\s*(.+)$/);
+  
+    const safeText = dayText.substring(0, 200);
+    const match = safeText.match(/:\s{0,10}(.+)$/);
     if (!match) return [];
+
     const hours = match[1].trim();
     const lower = hours.toLowerCase();
+    
     if (lower.includes("closed") || lower.includes("nieczynne")) return [];
+
     const converted = hours
-      .replace(/(\d+):(\d+)\s*AM/gi, (_, h, m) => {
-        const hour = parseInt(h);
-        return `${hour === 12 ? "00" : h.padStart(2, "0")}:${m}`;
+      .replace(/(\d{1,2}):(\d{2})\s{0,10}AM/gi, (_, h, m) => {
+        const hour = parseInt(h, 10);
+        return `${hour === 12 ? "00" : String(hour).padStart(2, "0")}:${m}`;
       })
-      .replace(/(\d+):(\d+)\s*PM/gi, (_, h, m) => {
-        const hour = parseInt(h);
+      .replace(/(\d{1,2}):(\d{2})\s{0,10}PM/gi, (_, h, m) => {
+        const hour = parseInt(h, 10);
         return `${hour === 12 ? 12 : hour + 12}:${m}`;
       })
       .replace(/–/g, "-")
-      .replace(/\s+/g, "");
+      .replace(/\s/g, ""); 
+
     return [converted];
   };
 

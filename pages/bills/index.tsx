@@ -129,7 +129,7 @@ export default function BillsPage() {
     let toastId: string | undefined;
     
     if (isLoading && toast.loading) {
-      toastId = toast.loading("Ładowanie...");
+      toastId = toast.loading("Ładowanie rachunków...");
     }
 
     return () => {

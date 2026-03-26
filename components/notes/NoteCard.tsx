@@ -26,13 +26,22 @@ export default function NoteCard({
   colorMap,
 }: NoteCardProps) {
   const renderWithLinks = (text: string) => {
+    if (!text) return null;
 
-    const urlRegex = /(https?:\/\/[^\s]+)|((www\.)?[\w-]+\.[a-z]{2,}[^\s]*)/gi;
+    // DEFENSE: Use a safe, linear regex without overlapping greedy quantifiers.
+    // Wrapped in a single capturing group so .split() includes the matches in the array correctly.
+    const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/gi;
+
+    // Optional: Pre-validate length to prevent regex from running on absurdly large blocks of text
+    if (text.length > 5000) {
+      return <span>{text.substring(0, 5000)}... (Text too long)</span>;
+    }
 
     return text.split(urlRegex).map((part, i) => {
       if (!part) return null;
 
-      if (/^(https?:\/\/)|((www\.)?[\w-]+\.[a-z]{2,})/i.test(part)) {
+      // Check if this specific part is the URL match
+      if (/^(https?:\/\/|www\.)/i.test(part)) {
         const safeHref = sanitizeHref(part);
 
         if (!safeHref) {

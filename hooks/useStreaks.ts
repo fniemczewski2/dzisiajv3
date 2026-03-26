@@ -124,6 +124,8 @@ export function useStreaks() {
     if (days === 0)   return "Dobry start!";
     if (days === 7)   return "Pierwszy tydzień!";
     if (days === 100) return "100 dni!";
+    if (days === 420) return "420 dni!";
+    if (days === 2137)  return "2137 dni!";
     if (days > 0 && days % 100 === 0) return `${days} dni! Kontynuuj!`;
     return "";
   };
