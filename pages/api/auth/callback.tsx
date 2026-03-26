@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient, serializeCookieHeader } from '@supabase/ssr'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,26 +10,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
       {
         cookies: {
-          get(name: string) {
-            return req.cookies[name]
+          getAll() {
+            return Object.keys(req.cookies).map((name) => ({
+              name,
+              value: req.cookies[name] || '',
+            }))
           },
-          set(name: string, value: string, options: CookieOptions) {
-            res.setHeader('Set-Cookie', `${name}=${value}; Path=/; HttpOnly; SameSite=Lax`)
-          },
-          remove(name: string, options: CookieOptions) {
-            res.setHeader('Set-Cookie', `${name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`)
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
+              })
+            } catch (error) {
+            }
           },
         },
       }
     )
     
-    await supabase.auth.exchangeCodeForSession(String(code))
+    const { error } = await supabase.auth.exchangeCodeForSession(String(code))
+    if (error) {
+      console.error('Błąd logowania w callbacku:', error.message)
+    }
   }
 
+  // Dynamiczne wykrywanie hosta (Localhost vs Produkcja)
   const host = req.headers.host || 'localhost:3000'
   const protocol = host.includes('localhost') ? 'http' : 'https'
   
-  const redirectUrl = `${protocol}://${host}${next}`
+  // Bezpieczne przypisanie ścieżki (Next.js query może czasem zwrócić tablicę)
+  const nextPath = Array.isArray(next) ? next[0] : next
+  const redirectUrl = `${protocol}://${host}${nextPath}`
   
   res.redirect(redirectUrl)
 }

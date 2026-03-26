@@ -5,8 +5,7 @@ import { X, Plus } from "lucide-react";
 import { useReports } from "../../hooks/useReports";
 import ReportForm from "../../components/reports/ReportForm";
 import { generateReportPDF } from "../../lib/pdfGenerator";
-import { Report, ReportTask } from "../../types";
-import LoadingState from "../../components/LoadingState";
+import { Report } from "../../types";
 import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "../../components/CommonButtons";
 import { format } from "date-fns";
 import { useToast } from "../../providers/ToastProvider";
@@ -86,25 +85,27 @@ export default function ReportsPage() {
         <ul className="space-y-4 lg:columns-2 gap-4 block">
           {reports.map((r) => {
             if (editingId === r.id && editedReport) {
+              const editPrefix = `edit-report-${r.id}`;
+              
               return (
                 <li key={r.id} className="p-5 break-inside-avoid bg-card border border-primary rounded-2xl shadow-lg space-y-4 animate-in fade-in mb-4">
                   <div>
-                    <label className="form-label">Temat spotkania:</label>
-                    <input ref={topicRef} type="text" value={editedReport.topic || ""}
+                    <label htmlFor={`${editPrefix}-topic`} className="form-label">Temat spotkania:</label>
+                    <input id={`${editPrefix}-topic`} ref={topicRef} type="text" value={editedReport.topic || ""}
                       onChange={(e) => upd("topic", e.target.value)} className="input-field font-medium" />
                   </div>
                   <div>
-                    <label className="form-label">Data:</label>
-                    <input type="date" value={editedReport.date || ""}
+                    <label htmlFor={`${editPrefix}-date`} className="form-label">Data:</label>
+                    <input id={`${editPrefix}-date`} type="date" value={editedReport.date || ""}
                       onChange={(e) => upd("date", e.target.value)} className="input-field" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="form-label">Agenda:</label>
+                      <div className="form-label">Agenda:</div>
                       <div className="space-y-2 mt-1">
                         {editedReport.agenda?.map((item, i) => (
                           <div key={i} className="flex gap-2 items-center">
-                            <input type="text" value={item} className="input-field py-1.5" placeholder={`Punkt ${i + 1}`}
+                            <input type="text" value={item} className="input-field py-1.5" aria-label={`Punkt agendy ${i + 1}`} placeholder={`Punkt ${i + 1}`}
                               onChange={(e) => { const a = [...(editedReport.agenda || [])]; a[i] = e.target.value; updArr("agenda", a); }} />
                             {(editedReport.agenda?.length || 0) > 1 && (
                               <button type="button" onClick={() => updArr("agenda", editedReport.agenda!.filter((_, j) => j !== i))}
@@ -118,11 +119,11 @@ export default function ReportsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="form-label">Uczestnicy:</label>
+                      <div className="form-label">Uczestnicy:</div>
                       <div className="space-y-2 mt-1">
                         {editedReport.participants?.map((item, i) => (
                           <div key={i} className="flex gap-2 items-center">
-                            <input type="text" value={item} className="input-field py-1.5" placeholder={`Uczestnik ${i + 1}`}
+                            <input type="text" value={item} className="input-field py-1.5" aria-label={`Uczestnik ${i + 1}`} placeholder={`Uczestnik ${i + 1}`}
                               onChange={(e) => { const p = [...(editedReport.participants || [])]; p[i] = e.target.value; updArr("participants", p); }} />
                             {(editedReport.participants?.length || 0) > 1 && (
                               <button type="button" onClick={() => updArr("participants", editedReport.participants!.filter((_, j) => j !== i))}
@@ -137,12 +138,12 @@ export default function ReportsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="form-label">Zadania:</label>
+                    <div className="form-label">Zadania:</div>
                     <div className="space-y-3 mt-1">
                       {editedReport.tasks?.map((task, i) => (
                         <div key={i} className="p-3 card rounded-xl bg-surface space-y-2">
                           <div className="flex gap-2">
-                            <input type="text" value={task.zadanie} placeholder="Zadanie" className="input-field py-1.5 bg-surface"
+                            <input type="text" value={task.zadanie} aria-label="Zadanie" placeholder="Zadanie" className="input-field py-1.5 bg-surface"
                               onChange={(e) => { const t = [...(editedReport.tasks || [])]; t[i] = { ...t[i], zadanie: e.target.value }; updArr("tasks", t); }} />
                             {(editedReport.tasks?.length || 0) > 1 && (
                               <button type="button" onClick={() => updArr("tasks", editedReport.tasks!.filter((_, j) => j !== i))}
@@ -150,9 +151,9 @@ export default function ReportsPage() {
                                 <X className="w-4 h-4" /></button>)}
                           </div>
                           <div className="grid grid-cols-2 gap-2">
-                            <input type="date" value={task.data} className="input-field py-1.5 bg-card"
+                            <input type="date" value={task.data} aria-label="Data zadania" className="input-field py-1.5 bg-card"
                               onChange={(e) => { const t = [...(editedReport.tasks || [])]; t[i] = { ...t[i], data: e.target.value }; updArr("tasks", t); }} />
-                            <input type="text" value={task.osoba} placeholder="Osoba odp." className="input-field py-1.5 bg-card"
+                            <input type="text" value={task.osoba} aria-label="Osoba odpowiedzialna" placeholder="Osoba odp." className="input-field py-1.5 bg-card"
                               onChange={(e) => { const t = [...(editedReport.tasks || [])]; t[i] = { ...t[i], osoba: e.target.value }; updArr("tasks", t); }} />
                           </div>
                         </div>
@@ -163,8 +164,9 @@ export default function ReportsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="form-label">Notatki:</label>
-                    <textarea value={editedReport.notes || ""} className="input-field" rows={4}
+                    {/* CHANGED: Associated Notatki label with its textarea */}
+                    <label htmlFor={`${editPrefix}-notes`} className="form-label">Notatki:</label>
+                    <textarea id={`${editPrefix}-notes`} value={editedReport.notes || ""} className="input-field" rows={4}
                       onChange={(e) => upd("notes", e.target.value)} />
                   </div>
                   <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
