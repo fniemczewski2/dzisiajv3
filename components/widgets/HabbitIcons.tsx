@@ -31,15 +31,15 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
   const { settings, loading: settingsLoading } = useSettings();
   const { toast } = useToast();
 
-  if (habitsLoading || settingsLoading || !habits || !settings) {
-    return null;
-  }
-
   useEffect(() => {
       let toastId: string | undefined;
       if (settingsLoading || habitsLoading || !habits || !settings) toastId = toast.loading("Ładowanie nawyków...");
       return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [settingsLoading, habitsLoading, toast]);
+
+  if (habitsLoading || settingsLoading || !habits || !settings) {
+    return null;
+  }
 
   const activeItems = items.filter(({ key }) => {
     const settingKey = `habit_${key}` as keyof typeof settings;
