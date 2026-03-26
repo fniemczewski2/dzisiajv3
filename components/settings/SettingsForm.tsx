@@ -375,7 +375,7 @@ export default function SettingsForm({
               Instrukcja 
               <Info className="w-4 h-4"/>
             </button>
-            <SaveButton type="submit" loading={saving} />
+            <SaveButton loading={saving} />
         </div>
       </div>
     </form>
