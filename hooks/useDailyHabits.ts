@@ -86,7 +86,7 @@ export function useDailyHabits(date?: string) {
   const updateWater = async (amount: number) => {
     if (!habits || !userId) return;
     setLoading(true);
-    const validAmount = isNaN(amount) ? 0 : amount;
+    const validAmount = Number.isNaN(amount) ? 0 : amount;
     const prevAmount = habits.water_amount;
 
     setHabits((h) => (h ? { ...h, water_amount: validAmount } : h));
@@ -113,7 +113,7 @@ export function useDailyHabits(date?: string) {
   const updateSpending = async (amount: number) => {
     if (!habits || !userId) return;
 
-    const validAmount = isNaN(amount) ? 0 : amount;
+    const validAmount = Number.isNaN(amount) ? 0 : amount;
     const prevAmount = habits.daily_spending;
 
     setHabits((h) => (h ? { ...h, daily_spending: validAmount } : h));

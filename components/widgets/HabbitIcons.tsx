@@ -37,7 +37,7 @@ export default function HabbitIcons({ date }: HabbitIconsProps) {
       return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [settingsLoading, habitsLoading, toast]);
 
-  if (habitsLoading || settingsLoading || !habits || !settings) {
+  if (!habits || !settings) {
     return null;
   }
 
