@@ -57,7 +57,7 @@ export default function BillForm({
     e.preventDefault();
 
     const payload = {
-      amount:          parseFloat(amount) || 0,
+      amount:          Number.parseFloat(amount) || 0,
       description:     description.trim() || null,
       date,
       is_income:       isIncome,

@@ -96,7 +96,7 @@ function AmountEditor({
     e.preventDefault();
     await onSave({
       name:       cat.name.trim(),
-      amount:     parseFloat(amount) || 0,
+      amount:     Number.parseFloat(amount) || 0,
       is_monthly: isMonthly,
     });
   };

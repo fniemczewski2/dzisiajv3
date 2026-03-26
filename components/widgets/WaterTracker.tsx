@@ -39,7 +39,7 @@ export default function WaterTracker({ date }: WaterTrackerProps) {
           step="0.1"
           value={water}
           disabled={loading}
-          onChange={(e) => updateWater(parseFloat(e.target.value))}
+          onChange={(e) => updateWater(Number.parseFloat(e.target.value))}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
       </div>

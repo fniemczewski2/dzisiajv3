@@ -146,7 +146,7 @@ export default function PlaceFilters({
                 <select
                   id="filter-day"
                   value={timeFilter?.day ?? 0}
-                  onChange={(e) => handleTimeFilterChange("day", parseInt(e.target.value))}
+                  onChange={(e) => handleTimeFilterChange("day", Number.parseInt(e.target.value))}
                   className="input-field py-1.5"
                 >
                   {DAYS.map((day, index) => (

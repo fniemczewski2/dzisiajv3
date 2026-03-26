@@ -50,7 +50,7 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: PlaceFor
       tags,
       notes: notes.trim() || null,
       opening_hours: Object.keys(openingHours).length > 0 ? openingHours : null,
-      rating: rating ? parseFloat(rating) : null,
+      rating: rating ? Number.parseFloat(rating) : null,
       phone_number: phoneNumber.trim() || null,
       website: website.trim() || null,
     };

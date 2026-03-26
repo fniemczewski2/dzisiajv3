@@ -51,7 +51,7 @@ export default function MovieCard({
           ...movie,
           title: editForm.title,
           genre: editForm.genre || null,
-          rating: normalizedRating ? parseFloat(normalizedRating) : null,
+          rating: normalizedRating ? Number.parseFloat(normalizedRating) : null,
           platform: editForm.platform || null,
           description: editForm.description || null,
         });

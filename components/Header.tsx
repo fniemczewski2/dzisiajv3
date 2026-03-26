@@ -175,6 +175,7 @@ export default function Header() {
           <div
             onClick={() => router.push("/calendar")}
             className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
+            role="button"
             title="Kliknij, aby zobaczyć kalendarz"
           >
             <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
@@ -204,6 +205,7 @@ export default function Header() {
               onClick={() => router.push("/weather")}
               className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
               title="Kliknij, aby zobaczyć pełną prognozę"
+              role="button"
             >
               <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
                 <WeatherIcon

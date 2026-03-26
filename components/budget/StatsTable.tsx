@@ -41,7 +41,7 @@ export default function BudgetStatsTable({
                       step="0.01"
                       value={rate}
                       onChange={(e) =>
-                        onRateChange(month, parseFloat(e.target.value) || 0)
+                        onRateChange(month, Number.parseFloat(e.target.value) || 0)
                       }
                       className="input-field w-14 sm:w-20 text-right py-0.5 px-1 text-xs sm:text-sm tabular-nums"
                     />

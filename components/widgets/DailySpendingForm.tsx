@@ -31,7 +31,7 @@ export default function DailySpendingForm({ date }: DailySpendingFormProps) {
   }, [habits]);
 
   const handleSave = async () => {
-    const value = parseFloat(inputRef.current?.value || "0");
+    const value = Number.parseFloat(inputRef.current?.value || "0");
     await withRetry(
       () => updateSpending(value),
       toast,

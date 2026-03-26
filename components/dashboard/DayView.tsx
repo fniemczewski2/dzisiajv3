@@ -182,7 +182,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
       const filteredMap: Record<string, any[]> = {};
       
       Object.keys(map).forEach((timeKey) => {
-        const hourNum = parseInt(timeKey.split(":")[0], 10);
+        const hourNum = Number.parseInt(timeKey.split(":")[0], 10);
         
         if (hourNum < currentHour) {
           const shouldKeepPastHour = map[timeKey].some(item => {
@@ -191,7 +191,7 @@ export default function DayView({ date, isMain = false, onBack }: DayViewProps) 
             if (item.type === "event" && item.data?.end_time) {
               const endH = getHourStr(item.data.end_time);
               if (endH !== null) {
-                return parseInt(endH, 10) >= currentHour; 
+                return Number.parseInt(endH, 10) >= currentHour; 
               }
             }
             return false; 

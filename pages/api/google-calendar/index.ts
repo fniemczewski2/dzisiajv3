@@ -109,7 +109,7 @@ const toRFC3339 = (ts: string): string => {
     }).formatToParts(refDate).find((p) => p.type === "timeZoneName")?.value ?? "GMT+1";
     const match = offsetStr.match(/GMT([+-])(\d+)/);
     const sign = match?.[1] ?? "+";
-    const hrs = String(parseInt(match?.[2] ?? "1")).padStart(2, "0");
+    const hrs = String( Number.parseInt(match?.[2] ?? "1")).padStart(2, "0");
     return localStr + sign + hrs + ":00"; 
   } catch {
     return new Date().toISOString();
