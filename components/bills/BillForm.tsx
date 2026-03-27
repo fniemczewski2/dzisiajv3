@@ -180,16 +180,7 @@ export default function BillForm({
         <div className="flex items-center justify-between gap-3">
           <span
             id="cycle-label"
-            role="button"
-            tabIndex={0}
-            className="flex items-center gap-2 text-sm font-medium text-text cursor-pointer rounded-md focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-            onClick={() => setIsRecurring(!isRecurring)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault(); 
-                setIsRecurring(!isRecurring);
-              }
-            }}
+            className="flex items-center gap-2 text-sm font-medium text-text"    
           >
             <RefreshCw className="w-4 h-4 text-primary" />
             Cykliczny (co miesiąc)
