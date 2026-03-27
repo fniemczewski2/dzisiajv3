@@ -22,6 +22,91 @@ interface Props {
 
 const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 
+type PlacedEvent = {
+  event: Event;
+  start: Date;
+  end: Date;
+  col: number;
+  span: number;
+  row: number;
+};
+
+const getSortedEventsForWeek = (events: Event[], weekStart: Date, weekEnd: Date) => {
+  const eventsThisWeek = events.filter((event) => {
+    const start = parseEventDate(event.start_time);
+    const end = parseEventDate(event.end_time);
+    return !(isBefore(end, weekStart) || isAfter(start, weekEnd));
+  });
+
+  return eventsThisWeek.sort((a, b) => {
+    const aStart = parseEventDate(a.start_time);
+    const aEnd = parseEventDate(a.end_time);
+    const bStart = parseEventDate(b.start_time);
+    const bEnd = parseEventDate(b.end_time);
+    const aSpan = differenceInCalendarDays(min([aEnd, weekEnd]), max([aStart, weekStart])) + 1;
+    const bSpan = differenceInCalendarDays(min([bEnd, weekEnd]), max([bStart, weekStart])) + 1;
+    return bSpan - aSpan; // Sort by longest span first
+  });
+};
+
+const tryPlaceEvent = (
+  colIndex: number,
+  span: number,
+  colOccupancy: boolean[][],
+  placeholders: PlacedEvent[],
+  event: Event,
+  segStart: Date,
+  segEnd: Date
+): boolean => {
+  for (let row = 0; row < 3; row++) {
+    let canPlace = true;
+    for (let i = 0; i < span; i++) {
+      if (colIndex + i > 6 || colOccupancy[colIndex + i][row]) {
+        canPlace = false;
+        break;
+      }
+    }
+    if (canPlace) {
+      for (let i = 0; i < span; i++) {
+        if (colIndex + i <= 6) colOccupancy[colIndex + i][row] = true;
+      }
+      placeholders.push({ event, start: segStart, end: segEnd, col: colIndex, span, row });
+      return true;
+    }
+  }
+  return false;
+};
+
+const processWeekLayout = (week: Date[], events: Event[]) => {
+  const weekStart = week[0];
+  const weekEnd = endOfDay(week[6]);
+
+  const sortedEvents = getSortedEventsForWeek(events, weekStart, weekEnd);
+
+  const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => Array(3).fill(false));
+  const limitedEvents: PlacedEvent[] = [];
+  const overflowCounts: number[] = Array(7).fill(0);
+
+  for (const event of sortedEvents) {
+    const start = parseEventDate(event.start_time);
+    const end = parseEventDate(event.end_time);
+    const segStart = max([start, weekStart]);
+    const segEnd = min([end, weekEnd]);
+    const colIndex = differenceInCalendarDays(segStart, weekStart);
+    const span = differenceInCalendarDays(segEnd, segStart) + 1;
+
+    const placed = tryPlaceEvent(colIndex, span, colOccupancy, limitedEvents, event, segStart, segEnd);
+
+    if (!placed) {
+      for (let i = 0; i < span; i++) {
+        if (colIndex + i <= 6) overflowCounts[colIndex + i]++;
+      }
+    }
+  }
+
+  return { week, limitedEvents, overflowCounts };
+};
+
 const MonthView = memo(function MonthView({
   events,
   currentDate,
@@ -62,66 +147,9 @@ const MonthView = memo(function MonthView({
     return result;
   }, [calendarStart, calendarEnd]);
 
+  // REFACTORED: Heavy logic extracted to `processWeekLayout`
   const weekData = useMemo(() => {
-    return weeks.map((week) => {
-      const weekStart = week[0];
-      const weekEnd   = endOfDay(week[6]);
-
-      const eventsThisWeek = events.filter((event) => {
-        const start = parseEventDate(event.start_time);
-        const end   = parseEventDate(event.end_time);
-        return !(isBefore(end, weekStart) || isAfter(start, weekEnd));
-      });
-
-      const sortedEvents = [...eventsThisWeek].sort((a, b) => {
-        const aStart = parseEventDate(a.start_time);
-        const aEnd   = parseEventDate(a.end_time);
-        const bStart = parseEventDate(b.start_time);
-        const bEnd   = parseEventDate(b.end_time);
-        const aSpan = differenceInCalendarDays(min([aEnd, weekEnd]), max([aStart, weekStart])) + 1;
-        const bSpan = differenceInCalendarDays(min([bEnd, weekEnd]), max([bStart, weekStart])) + 1;
-        return bSpan - aSpan;
-      });
-
-      const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => Array(3).fill(false));
-      const limitedEvents: {
-        event: Event; start: Date; end: Date; col: number; span: number; row: number;
-      }[] = [];
-      const overflowCounts: number[] = Array(7).fill(0);
-
-      for (const event of sortedEvents) {
-        const start    = parseEventDate(event.start_time);
-        const end      = parseEventDate(event.end_time);
-        const segStart = max([start, weekStart]);
-        const segEnd   = min([end, weekEnd]);
-        const colIndex = differenceInCalendarDays(segStart, weekStart);
-        const span     = differenceInCalendarDays(segEnd, segStart) + 1;
-        let placed = false;
-
-        for (let row = 0; row < 3; row++) {
-          let canPlace = true;
-          for (let i = 0; i < span; i++) {
-            if (colIndex + i > 6 || colOccupancy[colIndex + i][row]) { canPlace = false; break; }
-          }
-          if (canPlace) {
-            for (let i = 0; i < span; i++) {
-              if (colIndex + i <= 6) colOccupancy[colIndex + i][row] = true;
-            }
-            limitedEvents.push({ event, start: segStart, end: segEnd, col: colIndex, span, row });
-            placed = true;
-            break;
-          }
-        }
-
-        if (!placed) {
-          for (let i = 0; i < span; i++) {
-            if (colIndex + i <= 6) overflowCounts[colIndex + i]++;
-          }
-        }
-      }
-
-      return { week, limitedEvents, overflowCounts };
-    });
+    return weeks.map((week) => processWeekLayout(week, events));
   }, [weeks, events]);
 
   const moodMap = useMemo(() => {
@@ -155,7 +183,7 @@ const MonthView = memo(function MonthView({
       </div>
 
       {weekData.map(({ week, limitedEvents, overflowCounts }, wIdx) => (
-        <div key={wIdx} className="relative">
+        <div key={`week-${wIdx}`} className="relative">
           <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {week.map((day) => {
               const dateStr = format(day, "yyyy-MM-dd");
@@ -179,7 +207,7 @@ const MonthView = memo(function MonthView({
           <div className="absolute top-[32px] sm:top-[38px] left-0 right-0 h-[54px] sm:h-[60px] grid grid-cols-7 grid-rows-3 gap-0.5 sm:gap-2 pointer-events-none">
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
-                key={event.id + start.toISOString()}
+                key={`${event.id}-${start.toISOString()}`}
                 className="bg-primary opacity-90 text-white text-[10px] sm:text-xs rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
                 style={{ gridColumnStart: col + 1, gridColumnEnd: `span ${span}`, gridRowStart: row + 1 }}
                 title={event.title}

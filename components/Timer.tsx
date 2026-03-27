@@ -12,6 +12,13 @@ import {
   Save,
 } from "lucide-react";
 
+interface TimerControlButtonsProps {
+  controls: TimerControls;
+  running: boolean;
+  paused: boolean;
+  isMultiPhase: boolean;
+}
+
 export type TimerPhase = {
   id?: string;
   label: string;
@@ -56,6 +63,99 @@ function defaultFormatTime(rawSeconds: number): string {
   return `${two(minutes)}:${two(seconds)}`;
 }
 
+function getPhaseIcon(label: string, isMultiPhase: boolean) {
+  const lower = label.toLowerCase();
+  if (lower.includes("przerwa") || lower.includes("rest") || lower.includes("break"))
+    return <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />;
+  if (lower.includes("ćwiczenia") || lower.includes("cwiczenia") || lower.includes("exercise"))
+    return <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />;
+  if (isMultiPhase)
+    return <Repeat className="w-5 h-5 sm:w-6 sm:h-6 text-textMuted" />;
+
+  return <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />;
+}
+
+function TimerControlButtons({
+  controls,
+  running,
+  paused,
+  isMultiPhase,
+}: Readonly<TimerControlButtonsProps>) {
+  return (
+    <div className="w-full flex gap-1.5 sm:gap-2 justify-center items-stretch mt-2">
+      {controls.prev && (
+        <button
+          onClick={controls.prev}
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
+          title="Cofnij"
+        >
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Cofnij</span>
+        </button>
+      )}
+
+      {controls.cancel && (
+        <button
+          onClick={controls.cancel}
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-500 rounded-xl transition-colors border hover:border-red-200 dark:hover:border-red-900/30"
+          title="Anuluj"
+        >
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Anuluj</span>
+        </button>
+      )}
+
+      {running ? (
+        <button
+          onClick={controls.pause}
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 bg-primary hover:bg-secondary border-transparent"
+          title={paused ? "Wznów" : "Pauza"}
+        >
+          {paused ? <Play className="w-5 h-5 sm:w-6 sm:h-6" /> : <Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{paused ? "Wznów" : "Pauza"}</span>
+        </button>
+      ) : (
+        <button
+          onClick={controls.start}
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-primary hover:bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
+          title="Start"
+        >
+          <Play className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Start</span>
+        </button>
+      )}
+
+      {controls.stop && (
+        <button
+          onClick={controls.stop}
+          className={`flex flex-1 flex-col items-center justify-center bg-surface gap-1 py-2 sm:py-3 rounded-xl transition-colors text-textMuted border ${
+            isMultiPhase
+              ? "hover:border-red-600/30 hover:dark:border-red-400/30 hover:text-red-600 hover:dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
+              : "hover:border-green-600/30 hover:dark:border-green-400/30 hover:text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40"
+          }`}
+          title={isMultiPhase ? "Zakończ" : "Zapisz do notatki"}
+        >
+          {isMultiPhase ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Save className="w-4 h-4 sm:w-5 sm:h-5" />}
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
+            {isMultiPhase ? "Stop" : "Zapisz"}
+          </span>
+        </button>
+      )}
+
+      {controls.next && (
+        <button
+          onClick={controls.next}
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
+          title="Dalej"
+        >
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Dalej</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function UniversalTimer({
   secondsLeft,
   running,
@@ -69,23 +169,11 @@ export default function UniversalTimer({
   formatTime = defaultFormatTime,
 }: Readonly<UniversalTimerProps>) {
   
-  const isMultiPhase = phases && phases.length > 0;
-  const currentPhase = isMultiPhase ? phases[phaseIndex] : null;
-  const nextPhase = isMultiPhase ? phases[phaseIndex + 1] : null;
+  const isMultiPhase = !!(phases && phases.length > 0);
+  const currentPhase = isMultiPhase ? phases![phaseIndex] : null;
+  const nextPhase = isMultiPhase ? phases![phaseIndex + 1] : null;
   
   const displayLabel = title || currentPhase?.label || "Timer";
-
-  const getIcon = (label: string) => {
-    const lower = label.toLowerCase();
-    if (lower.includes("przerwa") || lower.includes("rest") || lower.includes("break"))
-      return <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />;
-    if (lower.includes("ćwiczenia") || lower.includes("cwiczenia") || lower.includes("exercise"))
-      return <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />;
-    if (isMultiPhase)
-      return <Repeat className="w-5 h-5 sm:w-6 sm:h-6 text-textMuted" />;
-
-    return <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />;
-  };
 
   return (
     <div 
@@ -93,10 +181,9 @@ export default function UniversalTimer({
         compact ? "p-4 gap-3 sm:gap-4" : "p-6 gap-6"
       }`}
     >
-
       <div className="text-center w-full space-y-1">
         <h2 className={`font-bold flex items-center justify-center gap-2 text-text ${compact ? "text-lg sm:text-xl" : "text-2xl"}`}>
-          {getIcon(displayLabel)}
+          {getPhaseIcon(displayLabel, isMultiPhase)}
           <span className="truncate">{displayLabel}</span>
         </h2>
         
@@ -122,85 +209,19 @@ export default function UniversalTimer({
               Runda {round}
             </span>
             <span className="bg-surface text-textSecondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border border-gray-200 dark:border-gray-700">
-              Faza {phaseIndex + 1} / {phases.length}
+              Faza {phaseIndex + 1} / {phases!.length}
             </span>
           </div>
         )}
       </div>
-        <div className="w-full flex gap-1.5 sm:gap-2 justify-center items-stretch mt-2">
-          
-          {controls.prev && (
-            <button
-              onClick={controls.prev}
-              className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
-              title="Cofnij"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Cofnij</span>
-            </button>
-          )}
 
-          {controls.cancel && (
-            <button
-              onClick={controls.cancel}
-              className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-500 rounded-xl transition-colors border hover:border-red-200 dark:hover:border-red-900/30"
-              title="Anuluj"
-            >
-              <X className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Anuluj</span>
-            </button>
-          )}
-
-          {running ? (
-            <button
-              onClick={controls.pause}
-              className={`flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 bg-primary hover:bg-secondary border-transparent" 
-              }`}
-              title={paused ? "Wznów" : "Pauza"}
-            >
-              {paused ? <Play className="w-5 h-5 sm:w-6 sm:h-6" /> : <Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{paused ? "Wznów" : "Pauza"}</span>
-            </button>
-          ) : (
-            <button
-              onClick={controls.start}
-              className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-primary hover:bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
-              title="Start"
-            >
-              <Play className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Start</span>
-            </button>
-          )}
-
-          {controls.stop && (
-            <button
-              onClick={controls.stop}
-              className={`flex flex-1 flex-col items-center justify-center bg-surface gap-1 py-2 sm:py-3 rounded-xl transition-colors text-textMuted border ${
-                isMultiPhase
-                  ? "hover:border-red-600/30 hover:dark:border-red-400/30 hover:text-red-600 hover:dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
-                  : "hover:border-green-600/30 hover:dark:border-green-400/30 hover:text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40"
-              }`}
-              title={isMultiPhase ? "Zakończ" : "Zapisz do notatki"}
-            >
-              {isMultiPhase ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Save className="w-4 h-4 sm:w-5 sm:h-5" />}
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
-                {isMultiPhase ? "Stop" : "Zapisz"}
-              </span>
-            </button>
-          )}
-
-          {controls.next && (
-            <button
-              onClick={controls.next}
-              className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border rounded-xl transition-all"
-              title="Dalej"
-            >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Dalej</span>
-            </button>
-          )}
-          
-        </div>
+      <TimerControlButtons 
+        controls={controls}
+        running={running}
+        paused={paused}
+        isMultiPhase={isMultiPhase}
+      />
+      
     </div>
   );
 }
