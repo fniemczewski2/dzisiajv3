@@ -134,6 +134,64 @@ function TaskEditForm({
   );
 }
 
+function TaskViewActions({
+  task,
+  userId,
+  isDone,
+  isRescheduling,
+  handleEdit,
+  handleDelete,
+  handleAccept,
+  handleComplete,
+  handleReschedule,
+  setIsTimerActive,
+}: {
+  task: Task;
+  userId: string;
+  isDone: boolean;
+  isRescheduling: boolean;
+  handleEdit: () => void;
+  handleDelete: () => void;
+  handleAccept: () => void;
+  handleComplete: () => void;
+  handleReschedule: (days: number) => void;
+  setIsTimerActive: (val: boolean) => void;
+}) {
+  if (isDone) {
+    return (
+      <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+        <EditButton onClick={handleEdit} />
+        <DeleteButton onClick={handleDelete} />
+      </div>
+    );
+  }
+
+  if (task.user_id !== userId && task.status === "waiting_for_acceptance") {
+    return (
+      <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+        <button onClick={handleAccept} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30">
+          <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+          <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Akceptuj</span>
+        </button>
+        <DeleteButton onClick={handleDelete} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+      <button onClick={handleComplete} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors">
+        <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+        <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
+      </button>
+      <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
+      <TimerButton onClick={() => setIsTimerActive(true)} />
+      <EditButton onClick={handleEdit} />
+      <DeleteButton onClick={handleDelete} />
+    </div>
+  );
+}
+
 function TaskView({
   task,
   userId,
@@ -164,6 +222,7 @@ function TaskView({
   return (
     <div className="card min-w-0 p-4 w-full rounded-2xl hover:border-primary transition-all flex flex-col text-left">
       <div className="space-y-3 flex-1">
+        
         <button 
           type="button" 
           onClick={() => setIsTimerActive(true)} 
@@ -205,33 +264,18 @@ function TaskView({
         )}
       </div>
 
-      <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
-        {isDone ? (
-          <>
-            <EditButton onClick={handleEdit} />
-            <DeleteButton onClick={handleDelete} />
-          </>
-        ) : task.user_id !== userId && task.status === "waiting_for_acceptance" ? (
-          <>
-            <button onClick={handleAccept} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30">
-              <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Akceptuj</span>
-            </button>
-            <DeleteButton onClick={handleDelete} />
-          </>
-        ) : (
-          <>
-            <button onClick={handleComplete} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors">
-              <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
-            </button>
-            <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
-            <TimerButton onClick={() => setIsTimerActive(true)} />
-            <EditButton onClick={handleEdit} />
-            <DeleteButton onClick={handleDelete} />
-          </>
-        )}
-      </div>
+      <TaskViewActions 
+        task={task}
+        userId={userId}
+        isDone={isDone}
+        isRescheduling={isRescheduling}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        handleAccept={handleAccept}
+        handleComplete={handleComplete}
+        handleReschedule={handleReschedule}
+        setIsTimerActive={setIsTimerActive}
+      />
     </div>
   );
 }
