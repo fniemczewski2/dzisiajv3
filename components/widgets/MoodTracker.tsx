@@ -38,7 +38,7 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
         <span className="text-primary mr-3">
           <Smile className="w-5 h-5 sm:w-6 sm:h-6" />
         </span>
-        Nastrój
+        <span>Nastrój</span>
       </h3>
       <div className="flex flex-nowrap gap-1 md:gap-2">
         {options.map((opt) => {

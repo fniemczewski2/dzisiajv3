@@ -156,7 +156,7 @@ export default function PomodoroPage() {
         {open && (
           <div className="mt-2 max-w-md mx-auto transition-all duration-300 overflow-hidden">
             <label className="flex justify-between px-4 py-2 items-center">
-              Focus (min):
+              <span>Focus (min):</span>
               <input
                 type="number"
                 value={focusSeconds / 60}
@@ -166,7 +166,7 @@ export default function PomodoroPage() {
               />
             </label>
             <label className="flex justify-between px-4 py-2 items-center">
-              Break (min):
+              <span>Break (min):</span>
               <input
                 type="number"
                 value={breakSeconds / 60}

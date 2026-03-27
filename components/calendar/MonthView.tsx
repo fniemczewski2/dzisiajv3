@@ -83,9 +83,9 @@ const processWeekLayout = (week: Date[], events: Event[]) => {
 
   const sortedEvents = getSortedEventsForWeek(events, weekStart, weekEnd);
 
-  const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => Array(3).fill(false));
+  const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => new Array(3).fill(false));
   const limitedEvents: PlacedEvent[] = [];
-  const overflowCounts: number[] = Array(7).fill(0);
+  const overflowCounts: number[] = new Array(7).fill(0);
 
   for (const event of sortedEvents) {
     const start = parseEventDate(event.start_time);
