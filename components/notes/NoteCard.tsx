@@ -25,7 +25,7 @@ export default function NoteCard({
   onToggleArchive,
   colorMap,
 }: Readonly<NoteCardProps>) {
-  const renderWithLinks = (text: string) => {
+  const renderWithLinks = (text: string, partPrefix: string) => {
     if (!text) return null;
 
     const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/gi;
@@ -36,12 +36,14 @@ export default function NoteCard({
 
     return text.split(urlRegex).map((part, i) => {
       if (!part) return null;
+      
+      const partKey = `${partPrefix}-p-${part.substring(0, 10)}-${i}`;
 
       if (/^(https?:\/\/|www\.)/i.test(part)) {
         const safeHref = sanitizeHref(part);
 
         if (!safeHref) {
-          return <span key={i}>{part}</span>;
+          return <span key={partKey}>{part}</span>;
         }
 
         const displayText = safeHref
@@ -50,7 +52,7 @@ export default function NoteCard({
 
         return (
           <a
-            key={i}
+            key={partKey}
             href={safeHref}
             target="_blank"
             rel="noopener noreferrer"
@@ -61,7 +63,7 @@ export default function NoteCard({
         );
       }
 
-      return <span key={i}>{part}</span>;
+      return <span key={partKey}>{part}</span>;
     });
   };
 
@@ -94,18 +96,21 @@ export default function NoteCard({
       {!note.archived && (
         note.items.length === 1 ? (
           <p className="text-sm text-textSecondary leading-relaxed my-2">
-            {renderWithLinks(note.items[0])}
+            {renderWithLinks(note.items[0], "single")}
           </p>
         ) : (
           <ul className="list-disc pl-5 my-2 space-y-1.5">
-            {note.items.map((item, i) => (
-              <li
-                key={i}
-                className="text-sm text-textSecondary leading-relaxed marker:text-textMuted"
-              >
-                {renderWithLinks(item)}
-              </li>
-            ))}
+            {note.items.map((item, i) => {
+              const itemKey = `${note.id}-item-${i}`;
+              return (
+                <li
+                  key={itemKey}
+                  className="text-sm text-textSecondary leading-relaxed marker:text-textMuted"
+                >
+                  {renderWithLinks(item, itemKey)}
+                </li>
+              );
+            })}
           </ul>
         )
       )}
