@@ -50,6 +50,7 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: Readonl
     onClick={onClick}
     disabled={loading || disabled}
     className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    aria-label="dodaj"
   >
     Dodaj
     <PlusCircleIcon className="w-5 h-5" />
@@ -62,6 +63,7 @@ export const CloseButton = ({ onClick, loading, disabled, small = false }: Reado
     onClick={onClick}
     disabled={loading || disabled}
     className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+    aria-label="zamknij"
   >
     {!small && "Zamknij"}
     <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
@@ -74,6 +76,7 @@ export const SaveButton = ({ onClick, loading, disabled, small = false }: Readon
     onClick={onClick}
     disabled={loading || disabled}
     className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
+    aria-label="zapisz"
   >
     {!small && "Zapisz"}
     {loading ? <Loader2 className={`${small ? "w-4 h-4" : "w-5 h-5"} animate-spin`} /> : <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />}
@@ -86,6 +89,7 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Read
     onClick={onClick}
     disabled={loading || disabled}
     className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
+    aria-label="anuluj"
   >
     {!small && "Anuluj"}
     <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
@@ -112,7 +116,7 @@ export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; 
     onClick={onClick}
     type="button"
     className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 border border-transparent hover:border-red-600 dark:hover:border-red-400 transition-colors`}
-    aria-label="Usuń"
+    aria-label="usuń"
   >
     <Trash2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
     {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Usuń</span>}
@@ -124,7 +128,7 @@ export const EditButton = ({ onClick, small = false }: { onClick: () => void; sm
     onClick={onClick}
     type="button"
     className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
-    aria-label="Edytuj"
+    aria-label="edytuj"
   >
     <Edit2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
     {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Edytuj</span>}
@@ -136,7 +140,8 @@ export const FavButton = ({ onClick, small = false }: { onClick: () => void; sma
     onClick={onClick}
     type="button"
     className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
-    aria-label="Edytuj"
+    aria-label="dodaj do ulubionych"
+    title="Dodaj do ulubionych"
   >
     <Star className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
     {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Dodaj</span>}
@@ -149,7 +154,7 @@ export const RescheduleButton = ({ onClick, loading }: { onClick: () => void; lo
     type="button"
     disabled={loading}
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-textMuted hover:text-yellow-600 dark:hover:text-yellow-500 border border-transparent hover:border-yellow-600 dark:hover:border-yellow-500 transition-colors disabled:opacity-50"
-    aria-label="Przesuń na jutro"
+    aria-label="przesuń na jutro"
     title="Przesuń na jutro"
   >
     <ChevronsRight className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -164,8 +169,8 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
     onClick={onClick}
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
-    aria-label="Uruchom timer"
-    title="Start Pomodoro"
+    aria-label="uruchom timer"
+    title="Uruchom timer Pomodoro"
   >
     <Timer className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Timer</span>
@@ -177,7 +182,7 @@ export const ShareButton = ({ onClick }: { onClick: () => void }) => (
     onClick={onClick}
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
-    aria-label="Udostępnij"
+    aria-label="udostępnij"
     title="Udostępnij"
   >
     <Share className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -191,6 +196,7 @@ export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
     title={isPinned ? "Odepnij" : "Przypnij"}
+    aria-label={isPinned ? "Odepnij" : "Przypnij"}
   >
     <Pin className={`w-4 h-4 sm:w-5 sm:h-5 mb-1 ${isPinned ? "fill-primary" : ""}`} />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
@@ -205,6 +211,7 @@ export const ArchiveButton = ({ onClick, isArchived }: { onClick: () => void; is
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
     title={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
+    aria-label={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
   >
     <Archive className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
@@ -219,6 +226,7 @@ export const WatchButton = ({ onClick }: { onClick: () => void }) => (
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
     title="Obejrzane"
+    aria-label="Obejrzane"
   >
     <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Obejrzane</span>
@@ -231,6 +239,7 @@ export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
     type="button"
     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
     title="Do obejrzenia"
+    aria-label="Do obejrzenia"
   >
     <Eye className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Obejrzyj</span>
@@ -264,6 +273,7 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router }: 
       }}
     title={title}
     className="group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
+    aria-label={`dodaj ${label}`}
   >        
       <div className="relative top-0 w-5 h-5 sm:h-6 sm:w-6">
         <Icon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />

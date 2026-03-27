@@ -78,9 +78,10 @@ export default function TrainingPage() {
               
               <div className="space-y-4">
                 <div className="flex w-full items-center justify-between">
-                  <label className="font-medium text-textSecondary text-sm">Czas pracy:</label>
+                  <label htmlFor="work_time" className="font-medium text-textSecondary text-sm">Czas pracy:</label>
                   <div className="flex items-center gap-2">
                     <input
+                      id="work_time"
                       type="number"
                       min={1}
                       max={600}
@@ -92,9 +93,10 @@ export default function TrainingPage() {
                   </div>
                 </div>
                 <div className="flex w-full items-center justify-between">
-                  <label className="font-medium text-textSecondary text-sm">Krótka przerwa:</label>
+                  <label htmlFor="short_break" className="font-medium text-textSecondary text-sm">Krótka przerwa:</label>
                   <div className="flex items-center gap-2">
                     <input
+                      id="short_break"
                       type="number"
                       min={0}
                       max={600}
@@ -108,9 +110,14 @@ export default function TrainingPage() {
 
  
                 <div className="flex w-full items-center justify-between">
-                  <label className="font-medium text-textSecondary text-sm">Serie i Cykle:</label>
+                  <span>
+                    <label htmlFor="series" className="font-medium text-textSecondary text-sm">Serie</label>
+                    <span className="font-medium text-textSecondary text-sm"> i </span>
+                    <label htmlFor="cycles" className="font-medium text-textSecondary text-sm">Cykle:</label>
+                  </span>
                   <div className="flex items-center gap-2">
                     <input
+                      id="series"
                       type="number"
                       min={1}
                       max={50}
@@ -121,6 +128,7 @@ export default function TrainingPage() {
                     />
                     <X className="w-4 h-4 text-textMuted" />
                     <input
+                      id="cycles"
                       type="number"
                       min={1}
                       max={20}
@@ -133,9 +141,10 @@ export default function TrainingPage() {
                 </div>
                 {cycles > 1 && (
                   <div className="flex w-full items-center justify-between animate-in fade-in slide-in-from-top-2">
-                    <label className="font-medium text-textSecondary text-sm">Długa przerwa:</label>
+                    <label htmlFor="long_break" className="font-medium text-textSecondary text-sm">Długa przerwa:</label>
                     <div className="flex items-center gap-2">
                       <input
+                        id="long_break"
                         type="number"
                         min={0}
                         max={600}
