@@ -34,7 +34,7 @@ export default function PackingList({ pageTitle, headerTitle, categories, onBack
         <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
-            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4"
+            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="Powrót"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -51,23 +51,26 @@ export default function PackingList({ pageTitle, headerTitle, categories, onBack
                 {cat.title}
               </h3>
               <ul className="flex-1">
-                {cat.items.map((item) => (
-                  <li
-                    key={item}
-                    className={`flex items-start gap-3 my-1 rounded-lg transition-colors hover:bg-surface cursor-pointer ${
-                      checked[item] ? "text-textMuted line-through" : "text-text font-medium"
-                    }`}
-                    onClick={() => toggle(item)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={!!checked[item]}
-                      readOnly 
-                      className="mt-0.5 h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
-                    />
-                    <span className="flex-1 leading-tight select-none pt-0.5">{item}</span>
-                  </li>
-                ))}
+                {cat.items.map((item) => {
+                  const isChecked = !!checked[item];
+                  return (
+                    <li key={item} className="my-1">
+                      <label 
+                        className={`flex items-start gap-3 rounded-lg p-1 -ml-1 transition-colors hover:bg-surface cursor-pointer ${
+                          isChecked ? "text-textMuted line-through" : "text-text font-medium"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggle(item)} 
+                          className="mt-0.5 h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
+                        />
+                        <span className="flex-1 leading-tight select-none pt-0.5">{item}</span>
+                      </label>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

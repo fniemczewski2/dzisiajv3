@@ -176,9 +176,14 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: { dateFrom: str
     toast.success("Opłacono.");
     handleRefresh();
   };
-
+  
   const handleShare = (bill: Bill) => {
-    const shareData = { title: "Rachunek", text: `Hej, oddaj mi proszę ${bill.amount.toFixed(2)} zł${bill.description ? ` za ${bill.description}` : ""}.` };
+    let text = `Hej, oddaj mi proszę ${bill.amount.toFixed(2)} zł`;
+    if (bill.description) {
+      text += ` za ${bill.description}`;
+    }
+    text += ".";
+    const shareData = { title: "Rachunek", text };
     if (navigator.share) {
       navigator.share(shareData).catch(console.error);
     } else {
