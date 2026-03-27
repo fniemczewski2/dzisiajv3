@@ -243,6 +243,35 @@ const getMissingCategories = (transactions: ParsedTransaction[], categories: Bud
   return Array.from(required);
 };
 
+const extractTransactionsFromLines = (
+  lines: string[],
+  startIndex: number,
+  indices: ReturnType<typeof getColumnIndices>,
+  expenseItems: any[]
+) => {
+  const transactions: ParsedTransaction[] = [];
+  let dupes = 0;
+
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const cols = line.split(";").map((c) => c.replace(/^"|"$/g, "").trim());
+    if (cols.length < 3) continue;
+
+    const parsed = parseTransactionLine(cols, indices);
+    if (!parsed) continue;
+
+    if (isDuplicateTransaction(parsed, expenseItems)) {
+      dupes++;
+    } else {
+      transactions.push(parsed);
+    }
+  }
+
+  return { transactions, dupes };
+};
+
 export default function BankCsvImporter({ year }: { year: number }) {
   const { user, supabase } = useAuth(); 
   const { toast } = useToast();
@@ -269,7 +298,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const processCsvText = (text: string) => {
+   const processCsvText = (text: string) => {
     const lines = text.split("\n");
     const headerIdx = lines.findIndex((l) => l.includes("Data operacji") || l.includes("#Data operacji"));
     
@@ -280,26 +309,12 @@ export default function BankCsvImporter({ year }: { year: number }) {
 
     const headers = lines[headerIdx].split(";").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
     const indices = getColumnIndices(headers);
-
-    const transactions: ParsedTransaction[] = [];
-    let dupes = 0;
-
-    for (let i = headerIdx + 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const cols = line.split(";").map((c) => c.replace(/^"|"$/g, "").trim());
-      if (cols.length < 3) continue; 
-
-      const parsed = parseTransactionLine(cols, indices);
-      if (!parsed) continue;
-
-      if (isDuplicateTransaction(parsed, expenseItems)) {
-        dupes++;
-      } else {
-        transactions.push(parsed);
-      }
-    }
+    const { transactions, dupes } = extractTransactionsFromLines(
+      lines, 
+      headerIdx + 1, 
+      indices, 
+      expenseItems
+    );
 
     if (transactions.length === 0) {
       const isDuplicateOnly = dupes > 0;

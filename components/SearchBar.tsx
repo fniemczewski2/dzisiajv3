@@ -161,11 +161,12 @@ export default function SearchBar({
                   Wyczyść
                 </button>
               </div>
-              {history.map((query, index) => (
+              {history.map((query) => (
                 <button
-                  key={`history-${index}`}
+                  key={`history-${query}`}
                   type="button"
                   role="option"
+                  aria-selected={false}
                   onClick={() => handleSuggestionClick(query)}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
                 >
@@ -183,11 +184,12 @@ export default function SearchBar({
                   Sugestie
                 </span>
               </div>
-              {filteredSuggestions.map((suggestion, index) => (
+              {filteredSuggestions.map((suggestion) => (
                 <button
-                  key={`suggestion-${index}`}
+                  key={`suggestion-${suggestion}`}
                   type="button"
                   role="option"
+                  aria-selected={false}
                   onClick={() => handleSuggestionClick(suggestion)}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
                 >
