@@ -5,16 +5,17 @@ import { User, SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '../utils/supabase/client'; 
 
 type AuthContextType = {
-  user: User | null;
-  loadingUser: boolean;
-  supabase: SupabaseClient;
+  readonly user: User | null;
+  readonly loadingUser: boolean;
+  readonly supabase: SupabaseClient;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true); 
+
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -33,8 +34,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [supabase]); 
 
+  const contextValue = useMemo(() => ({
+    user,
+    loadingUser,
+    supabase
+  }), [user, loadingUser, supabase]);
+
   return (
-    <AuthContext.Provider value={{ user, loadingUser, supabase }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

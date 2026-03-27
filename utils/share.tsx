@@ -32,17 +32,23 @@ export async function resolveSharedEmails<T extends { user_id: string; shared_wi
     const targetId = isOwner ? item.shared_with_id : item.user_id;
     const email = targetId ? (currentEmails[targetId] ?? "...") : "";
 
+    let displayShareInfo: string | null = null;
+
+    if (isShared) {
+      displayShareInfo = `Od: ${email}`;
+    } else if (isOwner && item.shared_with_id) {
+      displayShareInfo = `Udostępniono: ${email}`;
+    }
+
     return {
       ...item,
-      display_share_info: isShared ? null : isOwner
-        ? item.shared_with_id ? `Udostępniono: ${email}` : null
-        : `Od: ${email}`,
+      display_share_info: displayShareInfo,
     };
   });
 }
 
 export async function getUserIdByEmail(email: string | null | undefined, supabase: SupabaseClient): Promise<string | null> {
-  if (!email || !email.includes("@")) return null;
+  if (!email?.includes("@")) return null;
   const { data } = await supabase.rpc("get_user_id_by_email", {
     email_address: email.trim().toLowerCase(),
   });

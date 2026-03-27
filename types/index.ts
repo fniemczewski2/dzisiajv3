@@ -141,8 +141,8 @@ export interface DailyHabits {
   housework: boolean;
   plants: boolean;
   duolingo: boolean;
-  water_amount?: number | 0;
-  daily_spending?: number | 0;
+  water_amount?: number;
+  daily_spending?: number;
 }
 
 export type HabitRow = {

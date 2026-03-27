@@ -1,6 +1,6 @@
 // public/custom-sw.js
 
-self.addEventListener('push', function(event) {
+globalThis.addEventListener('push', function(event) {
   if (!event.data) return;
 
   const data = event.data.json();
@@ -28,11 +28,11 @@ self.addEventListener('push', function(event) {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    globalThis.registration.showNotification(data.title, options)
   )
 })
 
-self.addEventListener('notificationclick', function(event) {
+globalThis.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
   if (event.action === 'close') {
@@ -42,11 +42,9 @@ self.addEventListener('notificationclick', function(event) {
   const targetUrl = event.notification.data.url;
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        
-        if (client.url.includes(self.registration.scope) && 'focus' in client) {
+    globalThis.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(globalThis.registration.scope) && 'focus' in client) {
           client.focus(); 
           
           if (client.url !== targetUrl && 'navigate' in client) {
@@ -56,8 +54,8 @@ self.addEventListener('notificationclick', function(event) {
         }
       }
 
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
+      if (globalThis.clients.openWindow) {
+        return globalThis.clients.openWindow(targetUrl);
       }
     })
   );
