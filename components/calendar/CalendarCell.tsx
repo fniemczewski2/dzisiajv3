@@ -19,7 +19,6 @@ interface Props {
   holiday?: string;
 }
 
-
 function areEqual(prev: Props, next: Props): boolean {
   return (
     prev.date.getTime() === next.date.getTime() &&
@@ -59,15 +58,17 @@ const CalendarCell = memo(function CalendarCell({
   }, [dayMood, settings?.mood_options, DEFAULT_MOODS]);
 
   return (
-    <div
+    <button
+      type="button"
       className={clsx(
-        "flex flex-col relative justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200",
+        "flex flex-col relative text-left justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isOutside
           ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface"
           : "card shadow-sm hover:shadow-md",
         isToday && "ring-1 ring-primary"
       )}
       onClick={onClick}
+      aria-label={`Wybierz datę ${date.toLocaleDateString()}`}
     >
       <div className="flex flex-nowrap justify-between items-center w-full">
         <div
@@ -99,7 +100,7 @@ const CalendarCell = memo(function CalendarCell({
               {tCount}
             </div>
           )}
-          {(eCount !=0 && !isMobile) && (
+          {(eCount != 0 && !isMobile) && (
             <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
               <Calendar size={12} />
               +{eCount}
@@ -114,7 +115,7 @@ const CalendarCell = memo(function CalendarCell({
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 },
 areEqual);

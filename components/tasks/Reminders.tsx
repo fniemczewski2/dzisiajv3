@@ -210,20 +210,20 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
           {showForm && (
             <div className="p-4 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
               <div>
-                <label className="form-label">Tytuł zadania:</label>
-                <input type="text" placeholder="np. Wymień filtry do wody"
+                <label htmlFor="title" className="form-label">Tytuł zadania:</label>
+                <input id="title" type="text" placeholder="np. Wymień filtry do wody"
                   className="input-field" value={form.tytul}
                   onChange={(e) => setForm({ ...form, tytul: e.target.value })} />
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="form-label">Data rozpoczęcia:</label>
-                  <input type="date" className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" value={form.data_poczatkowa}
+                  <label htmlFor="start_date" className="form-label">Data rozpoczęcia:</label>
+                  <input id="start_date" type="date" className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" value={form.data_poczatkowa}
                     onChange={(e) => setForm({ ...form, data_poczatkowa: e.target.value })} />
                 </div>
                 <div className="flex-1">
-                  <label className="form-label">Co (dni):</label>
-                  <input type="number" min={1} max={365} className="input-field" value={form.powtarzanie}
+                  <label htmlFor="repeat" className="form-label">Co (dni):</label>
+                  <input id="repeat" type="number" min={1} max={365} className="input-field" value={form.powtarzanie}
                     onChange={(e) => setForm({ ...form, powtarzanie: Number(e.target.value) })} />
                 </div>
               </div>

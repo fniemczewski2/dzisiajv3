@@ -82,7 +82,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="form-label">Priorytet:</label>
+          <div className="form-label">Priorytet:</div>
           <div className="flex items-stretch gap-1.5 mt-1">
             <button type="button" onClick={decreasePriority}
               className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"

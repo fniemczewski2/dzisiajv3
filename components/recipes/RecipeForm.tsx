@@ -88,9 +88,9 @@ export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormPr
         </select>
       </div>
       <div>
-        <label className="form-label">Składniki:</label>
+        <label htmlFor="product" className="form-label">Składniki:</label>
         <div className="flex gap-2">
-          <input value={prodInput} onChange={(e) => setProdInput(e.target.value)}
+          <input id="product" value={prodInput} onChange={(e) => setProdInput(e.target.value)}
             onKeyDown={onProdKeyDown}
             placeholder="np. mąka, jajka, mleko (zatwierdź Enterem)"
             className="input-field" disabled={loading} />

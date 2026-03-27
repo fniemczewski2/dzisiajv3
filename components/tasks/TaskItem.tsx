@@ -236,35 +236,17 @@ function TaskView({
   );
 }
 
-const TaskItem = memo(function TaskItem({ 
-  task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId, userOptions 
-}: Readonly<Props>) {
+function useTaskActions(props: Props) {
+  const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId } = props;
   const { supabase } = useAuth();
   const { toast } = useToast();
-  const isDone = task.status === "done";
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [sharedEmail, setSharedEmail] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
-
-  const titleRef = useRef<HTMLInputElement>(null);
-
   const [isTimerActive, setIsTimerActive] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [timerPaused, setTimerPaused] = useState(false);
-
-  useEffect(() => {
-    if (isEditing && titleRef.current) titleRef.current.focus();
-  }, [isEditing]);
-
-  useEffect(() => {
-    if (!timerRunning || timerPaused) return;
-    const interval = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
-    return () => clearInterval(interval);
-  }, [timerRunning, timerPaused]);
-
+  
   const handleDelete = async () => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie?");
     if (!ok) return;
@@ -298,11 +280,7 @@ const TaskItem = memo(function TaskItem({
 
   const handleSaveEdit = async () => {
     try {
-      await editTask({ 
-        ...editedTask, 
-        shared_with_email: sharedEmail 
-      });
-      
+      await editTask({ ...editedTask, shared_with_email: sharedEmail });
       toast.success("Zmieniono pomyślnie.");
       onTasksChange();
       setIsEditing(false);
@@ -346,9 +324,7 @@ const TaskItem = memo(function TaskItem({
     }
   };
 
-  const stopTimerAndSave = async () => {
-    setTimerRunning(false);
-    setTimerPaused(false);
+  const stopTimerAndSave = async (timerSeconds: number) => {
     setIsTimerActive(false);
     if (timerSeconds >= 60) {
       try {
@@ -362,18 +338,47 @@ const TaskItem = memo(function TaskItem({
         toast.error("Nie udało się zapisać czasu z timera.");
       }
     }
-    setTimerSeconds(0);
   };
 
   const increasePriority = () => setEditedTask((prev) => ({ ...prev, priority: Math.max(1, prev.priority - 1) }));
   const decreasePriority = () => setEditedTask((prev) => ({ ...prev, priority: Math.min(5, prev.priority + 1) }));
+
+  return {
+    isEditing, editedTask, setEditedTask, sharedEmail, setSharedEmail,
+    isRescheduling, isTimerActive, setIsTimerActive,
+    handleDelete, handleEdit, handleCancelEdit, handleSaveEdit,
+    handleComplete, handleReschedule, handleAccept, stopTimerAndSave,
+    increasePriority, decreasePriority
+  };
+}
+
+const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
+  const { task, userId, userOptions } = props;
+  const isDone = task.status === "done";
+  
+  const titleRef = useRef<HTMLInputElement>(null);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerPaused, setTimerPaused] = useState(false);
+
+  const actions = useTaskActions(props);
+
+  useEffect(() => {
+    if (actions.isEditing && titleRef.current) titleRef.current.focus();
+  }, [actions.isEditing]);
+
+  useEffect(() => {
+    if (!timerRunning || timerPaused) return;
+    const interval = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, [timerRunning, timerPaused]);
 
   const dueDate = new Date(task.due_date).toISOString().split("T")[0];
   const today = getAppDate();
   const isOverdue = dueDate < today;
   const isHighPriority = task.priority === 1;
 
-  if (isTimerActive) {
+  if (actions.isTimerActive) {
     return (
       <div className="w-full h-full animate-in fade-in zoom-in duration-300">
         <UniversalTimer
@@ -385,12 +390,17 @@ const TaskItem = memo(function TaskItem({
           controls={{
             start: () => { setTimerRunning(true); setTimerPaused(false); },
             pause: () => setTimerPaused((p) => !p),
-            stop: stopTimerAndSave,
+            stop: () => {
+              setTimerRunning(false);
+              setTimerPaused(false);
+              actions.stopTimerAndSave(timerSeconds);
+              setTimerSeconds(0);
+            },
             cancel: () => {
               setTimerRunning(false);
               setTimerPaused(false);
               setTimerSeconds(0);
-              setIsTimerActive(false);
+              actions.setIsTimerActive(false);
             },
           }}
         />
@@ -398,19 +408,19 @@ const TaskItem = memo(function TaskItem({
     );
   }
 
-  if (isEditing) {
+  if (actions.isEditing) {
     return (
       <TaskEditForm
         task={task}
-        editedTask={editedTask}
-        setEditedTask={setEditedTask}
-        sharedEmail={sharedEmail}
-        setSharedEmail={setSharedEmail}
+        editedTask={actions.editedTask}
+        setEditedTask={actions.setEditedTask}
+        sharedEmail={actions.sharedEmail}
+        setSharedEmail={actions.setSharedEmail}
         userOptions={userOptions}
-        handleSaveEdit={handleSaveEdit}
-        handleCancelEdit={handleCancelEdit}
-        increasePriority={increasePriority}
-        decreasePriority={decreasePriority}
+        handleSaveEdit={actions.handleSaveEdit}
+        handleCancelEdit={actions.handleCancelEdit}
+        increasePriority={actions.increasePriority}
+        decreasePriority={actions.decreasePriority}
         titleRef={titleRef}
       />
     );
@@ -423,13 +433,13 @@ const TaskItem = memo(function TaskItem({
       isDone={isDone}
       isHighPriority={isHighPriority}
       isOverdue={isOverdue}
-      setIsTimerActive={setIsTimerActive}
-      handleEdit={handleEdit}
-      handleDelete={handleDelete}
-      handleAccept={handleAccept}
-      handleComplete={handleComplete}
-      handleReschedule={handleReschedule}
-      isRescheduling={isRescheduling}
+      setIsTimerActive={actions.setIsTimerActive}
+      handleEdit={actions.handleEdit}
+      handleDelete={actions.handleDelete}
+      handleAccept={actions.handleAccept}
+      handleComplete={actions.handleComplete}
+      handleReschedule={actions.handleReschedule}
+      isRescheduling={actions.isRescheduling}
     />
   );
 });
