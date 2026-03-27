@@ -178,6 +178,50 @@ export function usePlaces() {
     return nameMatches?.length ? nameMatches[0] : null;
   };
 
+  const enrichPlaceData = async (
+    name: string, 
+    lat: number, 
+    lng: number, 
+    options: { fetchGoogle: boolean; autoTag: boolean }
+  ) => {
+    let googleDetails = null;
+    let tags: string[] = [];
+
+    if (options.fetchGoogle) {
+      const details = await fetchPlaceDetails(lat, lng, name);
+      if (details) googleDetails = details;
+    }
+
+    if (options.autoTag) {
+      try {
+        tags = await generatePlaceTags(name, googleDetails?.google_data);
+      } catch {
+        tags = [];
+      }
+    }
+
+    return { googleDetails, tags };
+  };
+
+  const savePlaceRecord = async (existing: Place | null, baseData: any, tags: string[]) => {
+    if (existing) {
+      const { error } = await supabase
+        .from("places")
+        .update({
+          ...baseData,
+          tags: tags.length ? tags : existing.tags,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+      return !error ? "updated" : "error";
+    }
+
+    const { error } = await supabase
+      .from("places")
+      .insert([{ ...baseData, tags }]);
+    return !error ? "imported" : "error";
+  };
+
   const importFromGoogleMaps = async (
     jsonData: any,
     fetchGoogleData = true,
@@ -185,69 +229,46 @@ export function usePlaces() {
   ): Promise<number> => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
+
     const features = jsonData.features || [];
-    let importedCount = 0;
-    let updatedCount = 0;
+    const counts = { imported: 0, updated: 0 };
 
     for (let i = 0; i < features.length; i++) {
       const feature = features[i];
-      if (!feature.properties?.location?.name) continue;
+      const name = feature.properties?.location?.name;
+      const [lng, lat] = feature.geometry?.coordinates || [0, 0];
 
-      const [lng, lat] = feature.geometry.coordinates;
-      if (lat === 0 && lng === 0) continue;
+      if (!name || (lat === 0 && lng === 0)) continue;
 
-      const placeName = feature.properties.location.name;
-      setMessage(`Przetwarzanie: ${placeName}…`);
+      setMessage(`Przetwarzanie: ${name}…`);
 
-      const existingPlace = await findExistingPlace(placeName, lat, lng);
-      const baseData: any = {
-        name: placeName,
-        address: feature.properties.location.address || undefined,
+      const existing = await findExistingPlace(name, lat, lng);
+      const { googleDetails, tags } = await enrichPlaceData(name, lat, lng, { 
+        fetchGoogle: fetchGoogleData, 
+        autoTag 
+      });
+
+      const baseData = {
+        name,
         lat,
         lng,
         user_id: userId,
+        address: feature.properties.location.address || undefined,
+        ...(googleDetails ? (({ google_data, ...rest }) => rest)(googleDetails) : {}),
       };
 
-      let googleData = null;
-      if (fetchGoogleData) {
-        const details = await fetchPlaceDetails(lat, lng, placeName);
-        if (details) {
-          googleData = details.google_data;
-          const { google_data, ...rest } = details;
-          Object.assign(baseData, rest);
-        }
-        if (i < features.length - 1) await new Promise((r) => setTimeout(r, 400));
-      }
+      const result = await savePlaceRecord(existing, baseData, tags);
+      if (result !== "error") counts[result as keyof typeof counts]++;
 
-      let tags: string[] = [];
-      if (autoTag) {
-        try {
-          tags = await generatePlaceTags(placeName, googleData);
-        } catch {
-          tags = [];
-        }
-      }
-
-      if (existingPlace) {
-        const { error } = await supabase
-          .from("places")
-          .update({
-            ...baseData,
-            tags: tags.length ? tags : existingPlace.tags,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingPlace.id);
-        if (!error) updatedCount++;
-      } else {
-        const { error } = await supabase.from("places").insert([{ ...baseData, tags }]);
-        if (!error) importedCount++;
+      if (fetchGoogleData && i < features.length - 1) {
+        await new Promise((r) => setTimeout(r, 400));
       }
     }
 
-    setMessage(`Import zakończony. Dodano: ${importedCount}, Zaktualizowano: ${updatedCount}`);
+    setMessage(`Import zakończony. Dodano: ${counts.imported}, Zaktualizowano: ${counts.updated}`);
     setLoading(false);
     await fetchPlaces();
-    return importedCount + updatedCount;
+    return counts.imported + counts.updated;
   };
 
   return {
