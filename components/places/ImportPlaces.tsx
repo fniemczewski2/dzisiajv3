@@ -62,7 +62,7 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
       <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-xl mb-5 overflow-hidden">
         <button
           onClick={() => setShowInstructions(!showInstructions)}
-          className="w-full flex items-center justify-between p-4 hover:bg-surfaceHover transition-colors"
+          className="w-full flex items-center justify-between p-4 hover:bg-surfaceHover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <div className="flex items-center gap-3 text-text">
             <Info className="w-5 h-5 text-primary" />
@@ -110,15 +110,20 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
         <p className="text-xs font-bold text-textMuted uppercase tracking-wider">Opcje skanowania:</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
-            fetchGoogleData ? "border-primary bg-blue-100 dark:bg-blue-900/70" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
-          }`}>
+          <label 
+            htmlFor="fetch-google-data"
+            className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
+              fetchGoogleData ? "border-primary bg-blue-100 dark:bg-blue-900/70" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+            }`}
+          >
             <input
+              id="fetch-google-data"
               type="checkbox"
               checked={fetchGoogleData}
               onChange={(e) => setFetchGoogleData(e.target.checked)}
               className="w-5 h-5 text-primary rounded accent-primary bg-card"
               disabled={isImporting}
+              aria-label="Dociągnij dane z Google Places"
             />
             <div>
               <div className="flex items-center gap-2 font-bold text-text text-sm">
@@ -129,15 +134,20 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
             </div>
           </label>
 
-          <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
-            autoTagEnabled ? "border-primary bg-blue-100 dark:bg-blue-900/70" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
-          }`}>
+          <label 
+            htmlFor="auto-tag-enabled"
+            className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2 transition-all ${
+              autoTagEnabled ? "border-primary bg-blue-100 dark:bg-blue-900/70" : "bg-surface border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+            }`}
+          >
             <input
+              id="auto-tag-enabled"
               type="checkbox"
               checked={autoTagEnabled}
               onChange={(e) => setAutoTagEnabled(e.target.checked)}
               className="w-5 h-5 text-primary rounded accent-primary bg-card"
               disabled={isImporting}
+              aria-label="Włącz automatyczne tagi"
             />
             <div>
               <div className="flex items-center gap-2 font-bold text-text text-sm">
@@ -161,9 +171,12 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
       )}
 
       <div className="flex flex-wrap gap-3">
-        <label className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm ${
-          isImporting ? "bg-surface text-textMuted cursor-not-allowed border border-gray-200 dark:border-gray-700" : "bg-primary hover:bg-secondary text-white cursor-pointer"
-        }`}>
+        <label 
+          htmlFor="file-upload"
+          className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm ${
+            isImporting ? "bg-surface text-textMuted cursor-not-allowed border border-gray-200 dark:border-gray-700" : "bg-primary hover:bg-secondary text-white cursor-pointer"
+          }`}
+        >
           {isImporting ? (
             <>
               Przetwarzanie... <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -172,11 +185,13 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
             <>Wgraj plik JSON <Upload className="w-5 h-5" /></>
           )}
           <input
+            id="file-upload"
             type="file"
             accept=".json"
             onChange={handleFileUpload}
             disabled={isImporting}
             className="hidden"
+            aria-label="Wgraj plik JSON z danymi miejsc z Google Takeout"
           />
         </label>
         

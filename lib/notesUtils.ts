@@ -72,7 +72,7 @@ export async function exportNoteToPDF(note: Note): Promise<void> {
     };
 
     pdfMake.createPdf(docDefinition).download(
-      `${note.title.replace(/\s+/g, "_")}.pdf`
+      `${note.title.replaceAll(/\s+/g, "_")}.pdf`
     );
   } catch (error) {
     throw new Error("Wystąpił błąd podczas eksportu do PDF");

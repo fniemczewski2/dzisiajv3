@@ -3,16 +3,16 @@
  import { format } from "date-fns";
  import { parseEventDate } from "./dateUtils";
  
- export const generateSingleEventICS = (ev: Event) => {
+export const generateSingleEventICS = (ev: Event) => {
 
     function escapeICalText(s?: string) {
         if (!s) return "";
         return s
-            .replace(/\\/g, "\\\\")
-            .replace(/;/g, "\\;")
-            .replace(/,/g, "\\,")
-            .replace(/\r\n/g, "\\n")
-            .replace(/\n/g, "\\n");
+            .replaceAll("\\", "\\\\")
+            .replaceAll(";", "\\;")
+            .replaceAll(",", "\\,")
+            .replaceAll("\r\n", "\\n")
+            .replaceAll("\n", "\\n");
     }
 
     try {

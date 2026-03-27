@@ -105,17 +105,17 @@ export function usePlaces() {
     
     if (lower.includes("closed") || lower.includes("nieczynne")) return [];
 
-    const converted = hours
-      .replace(/(\d{1,2}):(\d{2})\s{0,10}AM/gi, (_, h, m) => {
+  const converted = hours
+      .replaceAll(/(\d{1,2}):(\d{2})\s{0,10}AM/gi, (_, h, m) => {
         const hour = Number.parseInt(h, 10);
         return `${hour === 12 ? "00" : String(hour).padStart(2, "0")}:${m}`;
       })
-      .replace(/(\d{1,2}):(\d{2})\s{0,10}PM/gi, (_, h, m) => {
+      .replaceAll(/(\d{1,2}):(\d{2})\s{0,10}PM/gi, (_, h, m) => {
         const hour = Number.parseInt(h, 10);
         return `${hour === 12 ? 12 : hour + 12}:${m}`;
       })
-      .replace(/–/g, "-")
-      .replace(/\s/g, ""); 
+      .replaceAll("–", "-")
+      .replaceAll(/\s/g, "");
 
     return [converted];
   };

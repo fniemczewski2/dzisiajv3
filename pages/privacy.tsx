@@ -20,7 +20,7 @@ export default function PrivacyPage() {
           <Section title="1. Administrator danych">
             <p>
               Administratorem danych osobowych przetwarzanych w aplikacji <strong>Dzisiaj v3</strong>{" "}
-              (dostępnej pod adresem <a href="https://dzisiajv3.vercel.app" className="text-primary hover:underline">dzisiajv3.vercel.app</a>)
+              (dostępnej pod adresem <a href="https://dzisiajv3.vercel.app" className="text-primary hover:underline">dzisiajv3.vercel.app</a>){" "}
               jest Franciszek Niemczewski. Kontakt: <a href="mailto:f.niemczewski2@gmail.com" className="text-primary hover:underline">f.niemczewski2@gmail.com</a>.
             </p>
           </Section>
@@ -29,23 +29,28 @@ export default function PrivacyPage() {
             <p className="mb-3">Zbieramy wyłącznie dane niezbędne do działania aplikacji:</p>
             <ul className="space-y-2 list-none">
               <Li>
-                <strong>Dane konta Google</strong> – adres e-mail i nazwa użytkownika, pobierane
-                w momencie logowania przez Google OAuth. Nie zbieramy hasła.
+                <strong>Dane konta Google</strong>{" "}
+                <span>
+                  – adres e-mail i nazwa użytkownika, pobierane w momencie logowania przez Google OAuth. Nie zbieramy hasła.
+                </span>
               </Li>
               <Li>
-                <strong>Dane wprowadzone przez użytkownika</strong> – zadania, notatki, wydarzenia
-                kalendarza, rachunki, nawyki, miejsca i inne treści, które samodzielnie dodajesz
-                do aplikacji.
+                <strong>Dane wprowadzone przez użytkownika</strong>{" "}
+                <span>
+                  – zadania, notatki, wydarzenia kalendarza, rachunki, nawyki, miejsca i inne treści, które samodzielnie dodajesz do aplikacji.
+                </span>
               </Li>
               <Li>
-                <strong>Tokeny Google Calendar</strong> – jeśli połączysz aplikację z Google
-                Calendar, przechowujemy token dostępu i token odświeżania umożliwiające
-                synchronizację wydarzeń. Tokeny są przechowywane w zaszyfrowanej bazie danych
-                Supabase i używane wyłącznie do komunikacji z Twoim kalendarzem.
+                <strong>Tokeny Google Calendar</strong>{" "}
+                <span>
+                  – jeśli połączysz aplikację z Google Calendar, przechowujemy token dostępu i token odświeżania umożliwiające synchronizację wydarzeń. Tokeny są przechowywane w zaszyfrowanej bazie danych Supabase i używane wyłącznie do komunikacji z Twoim kalendarzem.
+                </span>
               </Li>
               <Li>
-                <strong>Dane techniczne</strong> – logi błędów aplikacji (bez danych osobowych),
-                niezbędne do diagnozy problemów.
+                <strong>Dane techniczne</strong>{" "}
+                <span>
+                  – logi błędów aplikacji (bez danych osobowych), niezbędne do diagnozy problemów.
+                </span>
               </Li>
             </ul>
           </Section>
@@ -59,7 +64,8 @@ export default function PrivacyPage() {
                 do aplikacji oraz eksport wydarzeń z aplikacji do Google Calendar, wyłącznie
                 na Twoje żądanie.
               </Li>
-              <Li>Udostępnianie treści – jeśli zdecydujesz się udostępnić zadania lub listy
+              <Li>
+                Udostępnianie treści – jeśli zdecydujesz się udostępnić zadania lub listy
                 innym użytkownikom, niezbędne jest powiązanie danych z adresem e-mail.
               </Li>
             </ul>
@@ -70,18 +76,22 @@ export default function PrivacyPage() {
               Korzystanie z API Google Calendar podlega dodatkowemu zobowiązaniu. Potwierdzamy, że:
             </p>
             <ul className="space-y-2 list-none">
-              <Li>Dane z Google Calendar (wydarzenia, tytuły, opisy, daty) są używane
-                <strong> wyłącznie</strong> do wyświetlania i synchronizacji Twoich wydarzeń
-                w ramach aplikacji Dzisiaj v3.
+              <Li>
+                <span>Dane z Google Calendar (wydarzenia, tytuły, opisy, daty) są używane </span>
+                <strong>wyłącznie</strong>
+                <span> do wyświetlania i synchronizacji Twoich wydarzeń w ramach aplikacji Dzisiaj v3.</span>
               </Li>
               <Li>
-                <strong>Nie sprzedajemy, nie wynajmujemy ani nie udostępniamy</strong> danych
-                z Twojego Google Calendar żadnym stronom trzecim.
+                <strong>Nie sprzedajemy, nie wynajmujemy ani nie udostępniamy</strong>
+                <span> danych z Twojego Google Calendar żadnym stronom trzecim.</span>
               </Li>
-              <Li>Dane z Google Calendar <strong>nie są używane</strong> do reklamy, profilowania
-                ani celów innych niż bezpośrednia funkcjonalność synchronizacji kalendarza.
+              <Li>
+                <span>Dane z Google Calendar </span>
+                <strong>nie są używane</strong>
+                <span> do reklamy, profilowania ani celów innych niż bezpośrednia funkcjonalność synchronizacji kalendarza.</span>
               </Li>
-              <Li>Możesz w każdej chwili odłączyć integrację z Google Calendar w ustawieniach
+              <Li>
+                Możesz w każdej chwili odłączyć integrację z Google Calendar w ustawieniach
                 aplikacji (Kalendarz → Google Calendar → Odłącz). Po odłączeniu tokeny są
                 natychmiast usuwane z naszej bazy danych.
               </Li>
@@ -96,34 +106,41 @@ export default function PrivacyPage() {
               >
                 Google API Services User Data Policy
               </a>
-              , w tym z zasadami ograniczonego użycia (Limited Use).
+              <span>, w tym z zasadami ograniczonego użycia (Limited Use).</span>
             </p>
           </Section>
 
           <Section title="5. Podstawa prawna przetwarzania">
             <ul className="space-y-2 list-none">
-              <Li><strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) – przetwarzanie niezbędne
-                do świadczenia usługi, z której korzystasz.
+              <Li>
+                <strong>Umowa</strong>{" "}
+                <span>(art. 6 ust. 1 lit. b RODO) – przetwarzanie niezbędne do świadczenia usługi, z której korzystasz.</span>
               </Li>
-              <Li><strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) – integracja z Google
-                Calendar jest dobrowolna i wymaga Twojej wyraźnej zgody w procesie OAuth.
+              <Li>
+                <strong>Zgoda</strong>{" "}
+                <span>(art. 6 ust. 1 lit. a RODO) – integracja z Google Calendar jest dobrowolna i wymaga Twojej wyraźnej zgody w procesie OAuth.</span>
               </Li>
-              <Li><strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – logi
-                błędów służące bezpieczeństwu i stabilności aplikacji.
+              <Li>
+                <strong>Uzasadniony interes</strong>{" "}
+                <span>(art. 6 ust. 1 lit. f RODO) – logi błędów służące bezpieczeństwu i stabilności aplikacji.</span>
               </Li>
             </ul>
           </Section>
 
           <Section title="6. Przechowywanie i bezpieczeństwo danych">
             <ul className="space-y-2 list-none">
-              <Li>Dane przechowywane są w bazie danych <strong>Supabase</strong> (PostgreSQL)
-                z szyfrowaniem danych w spoczynku i transmisją szyfrowaną TLS/HTTPS.
+              <Li>
+                <span>Dane przechowywane są w bazie danych </span>
+                <strong>Supabase</strong>
+                <span> (PostgreSQL) z szyfrowaniem danych w spoczynku i transmisją szyfrowaną TLS/HTTPS.</span>
               </Li>
-              <Li>Dostęp do danych chroniony jest uwierzytelnianiem Google OAuth oraz
+              <Li>
+                Dostęp do danych chroniony jest uwierzytelnianiem Google OAuth oraz
                 politykami Row Level Security (RLS) w Supabase – każdy użytkownik widzi
                 wyłącznie swoje dane.
               </Li>
-              <Li>Tokeny Google Calendar przechowywane są w osobnej tabeli z RLS
+              <Li>
+                Tokeny Google Calendar przechowywane są w osobnej tabeli z RLS
                 i dostępne wyłącznie dla właściciela konta.
               </Li>
             </ul>
@@ -133,15 +150,16 @@ export default function PrivacyPage() {
             <p className="mb-3">Dane są przekazywane wyłącznie następującym podmiotom:</p>
             <ul className="space-y-2 list-none">
               <Li>
-                <strong>Supabase Inc.</strong> – dostawca bazy danych i uwierzytelniania
-                (USA; dane chronione umową DPA zgodną z RODO).
+                <strong>Supabase Inc.</strong>{" "}
+                <span>– dostawca bazy danych i uwierzytelniania (USA; dane chronione umową DPA zgodną z RODO).</span>
               </Li>
               <Li>
-                <strong>Vercel Inc.</strong> – hosting aplikacji (USA; umowa DPA zgodna z RODO).
+                <strong>Vercel Inc.</strong>{" "}
+                <span>– hosting aplikacji (USA; umowa DPA zgodna z RODO).</span>
               </Li>
               <Li>
-                <strong>Google LLC</strong> – logowanie i (opcjonalnie) synchronizacja kalendarza,
-                wyłącznie gdy wyrazisz na to zgodę.
+                <strong>Google LLC</strong>{" "}
+                <span>– logowanie i (opcjonalnie) synchronizacja kalendarza, wyłącznie gdy wyrazisz na to zgodę.</span>
               </Li>
             </ul>
             <p className="mt-3">
@@ -154,23 +172,26 @@ export default function PrivacyPage() {
             <ul className="space-y-2 list-none">
               <Li><strong>Dostępu</strong> do swoich danych.</Li>
               <Li><strong>Sprostowania</strong> nieprawidłowych danych.</Li>
-              <Li><strong>Usunięcia danych</strong> – możesz usunąć swoje konto i wszystkie
-                dane, kontaktując się z nami na adres e-mail podany w pkt. 1.
+              <Li>
+                <strong>Usunięcia danych</strong>{" "}
+                <span>– możesz usunąć swoje konto i wszystkie dane, kontaktując się z nami na adres e-mail podany w pkt. 1.</span>
               </Li>
               <Li><strong>Ograniczenia przetwarzania</strong> oraz <strong>przeniesienia danych</strong>.</Li>
-              <Li><strong>Cofnięcia zgody</strong> – w każdej chwili, bez wpływu na zgodność
-                z prawem przetwarzania dokonanego przed cofnięciem.
+              <Li>
+                <strong>Cofnięcia zgody</strong>{" "}
+                <span>– w każdej chwili, bez wpływu na zgodność z prawem przetwarzania dokonanego przed cofnięciem.</span>
               </Li>
-              <Li><strong>Wniesienia skargi</strong> do Prezesa Urzędu Ochrony Danych Osobowych
-                (PUODO), jeśli uważasz, że przetwarzamy Twoje dane niezgodnie z prawem.
+              <Li>
+                <strong>Wniesienia skargi</strong>{" "}
+                <span>do Prezesa Urzędu Ochrony Danych Osobowych (PUODO), jeśli uważasz, że przetwarzamy Twoje dane niezgodnie z prawem.</span>
               </Li>
             </ul>
           </Section>
 
           <Section title="9. Okres przechowywania danych">
             <ul className="space-y-2 list-none">
-              <Li>Dane konta i treści użytkownika – przez czas korzystania z aplikacji;
-                usuwane na żądanie lub po usunięciu konta.
+              <Li>
+                Dane konta i treści użytkownika – przez czas korzystania z aplikacji; usuwane na żądanie lub po usunięciu konta.
               </Li>
               <Li>Tokeny Google Calendar – do momentu odłączenia integracji lub usunięcia konta.</Li>
               <Li>Logi błędów – maksymalnie 30 dni.</Li>
@@ -183,10 +204,12 @@ export default function PrivacyPage() {
             </p>
             <ul className="space-y-2 list-none">
               <Li>
-                <strong>Niezbędne pliki cookie (Strictly Necessary Cookies):</strong> Używane przez nasz system uwierzytelniania (Supabase) do bezpiecznego przechowywania tokenów sesji. Dzięki nim nie musisz logować się ponownie przy każdym odświeżeniu strony, a dostęp do Twoich danych prywatnych na serwerze jest chroniony. Zgodnie z prawem, tego typu pliki cookie nie wymagają uprzedniej zgody użytkownika.
+                <strong>Niezbędne pliki cookie (Strictly Necessary Cookies):</strong>{" "}
+                <span>Używane przez nasz system uwierzytelniania (Supabase) do bezpiecznego przechowywania tokenów sesji. Dzięki nim nie musisz logować się ponownie przy każdym odświeżeniu strony, a dostęp do Twoich danych prywatnych na serwerze jest chroniony. Zgodnie z prawem, tego typu pliki cookie nie wymagają uprzedniej zgody użytkownika.</span>
               </Li>
               <Li>
-                <strong>Pamięć lokalna (localStorage):</strong> Wykorzystywana do zapisywania Twoich preferencji interfejsu (np. tryb jasny/ciemny) oraz faktu zapoznania się z informacją o ciasteczkach, aby baner nie pojawiał się przy każdej wizycie.
+                <strong>Pamięć lokalna (localStorage):</strong>{" "}
+                <span>Wykorzystywana do zapisywania Twoich preferencji interfejsu (np. tryb jasny/ciemny) oraz faktu zapoznania się z informacją o ciasteczkach, aby baner nie pojawiał się przy każdej wizycie.</span>
               </Li>
             </ul>
           </Section>
@@ -238,7 +261,7 @@ function Li({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex gap-2 items-start">
       <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-      <span>{children}</span>
+      <span className="flex-1">{children}</span>
     </li>
   );
 }

@@ -318,31 +318,50 @@ export default function SettingsForm({
         </div>
       </div>
 
-      <div className="mt-2">
-        <label className="form-label">Zaufani użytkownicy (Udostępnianie):</label>
-        <div className="space-y-2 max-w-md">
-          {localSettings.users && localSettings.users.map((u: string, idx: number) => (
-            <div key={idx} className="flex items-center gap-2">
-              <input
-                type="email"
-                value={u}
-                placeholder="Email użytkownika"
-                onChange={(e) => {
-                  const newUsers = [...localSettings.users];
-                  newUsers[idx] = e.target.value;
-                  updateLocalField("users", newUsers);
-                }}
-                className="input-field"
-              />
-              <DeleteButton 
-                onClick={() => {
-                  const newUsers = localSettings.users.filter((_: any, i: number) => i !== idx);
-                  updateLocalField("users", newUsers);
-                }}
-                small
-              />
-            </div>
-          ))}
+<div className="mt-2">
+        {/* Wizualny nagłówek dla całej grupy */}
+        <div className="form-label mb-2" id="trusted-users-group">
+          Zaufani użytkownicy (Udostępnianie):
+        </div>
+        
+        {/* Grupujemy inputy i przypisujemy im nadrzędny nagłówek */}
+        <div 
+          className="space-y-2 max-w-md" 
+          role="group" 
+          aria-labelledby="trusted-users-group"
+        >
+          {localSettings.users && localSettings.users.map((u: string, idx: number) => {
+            const inputId = `trusted-user-${idx}`;
+            return (
+              <div key={idx} className="flex items-center gap-2">
+                <label htmlFor={inputId} className="sr-only">
+                  Adres email zaufanego użytkownika {idx + 1}
+                </label>
+                
+                <input
+                  id={inputId}
+                  type="email"
+                  value={u}
+                  placeholder="Email użytkownika"
+                  onChange={(e) => {
+                    const newUsers = [...localSettings.users];
+                    newUsers[idx] = e.target.value;
+                    updateLocalField("users", newUsers);
+                  }}
+                  className="input-field"
+                />
+                
+                <DeleteButton 
+                  onClick={() => {
+                    const newUsers = localSettings.users.filter((_: any, i: number) => i !== idx);
+                    updateLocalField("users", newUsers);
+                  }}
+                  small
+                />
+              </div>
+            );
+          })}
+          
           {(!localSettings.users || localSettings.users.length < 10) && (
             <button
               type="button"
