@@ -52,7 +52,7 @@
 
 @layer components {
   .input-field {
-    @apply w-full px-3 py-2 rounded-md bg-transparent border-2 border-slate-200 dark:border-slate-700 focus:outline-none transition-colors text-text;
+    @apply w-full px-1.5 py-1 md:px-3 md:py-2 text-base rounded-lg bg-transparent border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent text-text transition-all;
   }
 
   .auth-button {
@@ -72,7 +72,7 @@
   }
 
   .input-field {
-    @apply w-full px-1.5 py-1 md:px-3 md:py-2 text-base rounded-lg bg-transparent border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all;
+   
   }
 
   .widget {

@@ -62,7 +62,6 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
   loading: "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
 };
 
-// ZMIANA: Zastąpienie stałej obiektowej na funkcję zwracającą nowe elementy (żeby animacje CSS się resetowały)
 function ToastIcon({ variant }: { variant: ToastVariant }) {
   switch (variant) {
     case "success": return <CheckCircle className="w-4 h-4 shrink-0" />;

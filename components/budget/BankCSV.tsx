@@ -121,7 +121,7 @@ const BOILERPLATE_REGEXES = [
   /PRZELEW WEWNĘTRZNY PRZYCHODZĄCY/gi,
   /PRZELEW ŚRODKÓW/gi,
   /\d{2}\.\d{2}\.\d{4}/g,
-  /\d{2}-\d{3}\s+[A-Za-zęóąśłżźćńĘÓĄŚŁŻŹĆŃ]+/gi,
+  /\d{2}-\d{3}\s+[a-zęóąśłżźćń]+/gi,
   /\d{26}/g 
 ];
 
@@ -131,7 +131,7 @@ const cleanDescription = (rawDesc: string): string => {
   const mapped = DESCRIPTION_MAPPINGS.find(m => 
     m.match.some(key => {
       if (m.exactWord) {
-        const regex = new RegExp(`\\b${key}\\b`);
+        const regex = new RegExp(String.raw`\b${key}\b`);
         return regex.test(descUpper);
       }
       return descUpper.includes(key);
@@ -185,7 +185,7 @@ const extractAmountAndCategory = (cols: string[], indices: any) => {
   if (indices.amountIdx !== -1 && cols[indices.amountIdx]) {
     return {
       kwotaStr: cols[indices.amountIdx],
-      catRaw: indices.catIdx !== -1 ? cols[indices.catIdx] : ""
+      catRaw: indices.catIdx === -1 ? "" : cols[indices.catIdx]
     };
   }
   for (let j = 2; j < cols.length; j++) {
@@ -272,7 +272,7 @@ const extractTransactionsFromLines = (
   return { transactions, dupes };
 };
 
-export default function BankCsvImporter({ year }: { year: number }) {
+export default function BankCsvImporter({ year }: { readonly year: number }) {
   const { user, supabase } = useAuth(); 
   const { toast } = useToast();
   const { categories, addCategory } = useBudgetCategories(year);
@@ -334,7 +334,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
     let updatedCategories = [...categories];
     for (const missingCat of missing) {
       const targetName = missingCat.toLowerCase().trim();
-      if (updatedCategories.find(c => c.name.toLowerCase().trim() === targetName)) continue;
+      if (updatedCategories.some(c => c.name.toLowerCase().trim() === targetName)) continue;
       
       try {
         const isMonthly = missingCat === "Opłaty stałe";
@@ -363,7 +363,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
       const catTarget = t.mappedCategory.trim().toLowerCase();
       const categoryObj = availableCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
       
-      if (!categoryObj || !categoryObj.id) {
+      if (!categoryObj?.id) {
         console.warn("Pominięto operację - brak prawidłowego ID kategorii", t);
         continue;
       }
