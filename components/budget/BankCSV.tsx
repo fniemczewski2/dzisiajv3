@@ -125,7 +125,7 @@ const BOILERPLATE_REGEXES = [
   /\d{26}/g 
 ];
 
- const cleanDescription = (rawDesc: string): string => {
+const cleanDescription = (rawDesc: string): string => {
   const descUpper = rawDesc.toUpperCase();
 
   const mapped = DESCRIPTION_MAPPINGS.find(m => 
@@ -156,7 +156,6 @@ interface ParsedTransaction {
   mappedCategory: string;
 }
 
-// 2. REFACTOR: Extract parsing logic into pure functions
 const readFileAsText = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -175,49 +174,49 @@ const getColumnIndices = (headers: string[]) => {
   };
 };
 
+const formatDateStr = (dateStr: string): string | null => {
+  if (dateStr.includes("-")) return dateStr;
+  const dateParts = dateStr.split(".");
+  if (dateParts.length !== 3) return null;
+  return `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+};
+
+const extractAmountAndCategory = (cols: string[], indices: any) => {
+  if (indices.amountIdx !== -1 && cols[indices.amountIdx]) {
+    return {
+      kwotaStr: cols[indices.amountIdx],
+      catRaw: indices.catIdx !== -1 ? cols[indices.catIdx] : ""
+    };
+  }
+  for (let j = 2; j < cols.length; j++) {
+    if (/(?:^-?\s*\d[\d\s]*,\d{2})|(?:^-?\d+\.\d{2})/.test(cols[j])) {
+      return { kwotaStr: cols[j], catRaw: cols[j-1] || "" };
+    }
+  }
+  return { kwotaStr: "0", catRaw: "" };
+};
+
+const isExcludedTransaction = (rawDesc: string, catRaw: string): boolean => {
+  const rawLower = rawDesc.toLowerCase();
+  const catLower = catRaw.toLowerCase();
+  const keywords = ["przelew", "bankomat", "bankomacie", "wpłata", "wpłatomat"];
+  return keywords.some(kw => rawLower.includes(kw) || catLower.includes(kw));
+};
+
 const parseTransactionLine = (cols: string[], indices: any): ParsedTransaction | null => {
   const dateStr = cols[indices.dateIdx] || "";
   const rawDesc = cols[indices.descIdx] || "";
   
-  let kwotaStr = "0";
-  let catRaw = "";
+  const { kwotaStr, catRaw } = extractAmountAndCategory(cols, indices);
 
-  if (indices.amountIdx !== -1 && cols[indices.amountIdx]) {
-    kwotaStr = cols[indices.amountIdx];
-    catRaw = indices.catIdx !== -1 ? cols[indices.catIdx] : "";
-  } else {
-    for (let j = 2; j < cols.length; j++) {
-      if (/(?:^-?\s*\d[\d\s]*,\d{2})|(?:^-?\d+\.\d{2})/.test(cols[j])) {
-        kwotaStr = cols[j];
-        catRaw = cols[j-1] || "";
-        break; 
-      }
-    }
-  }
+  const formattedDate = formatDateStr(dateStr);
+  if (!formattedDate) return null;
 
-  let formattedDate = "";
-  if (dateStr.includes("-")) {
-      formattedDate = dateStr;
-  } else {
-      const dateParts = dateStr.split(".");
-      if (dateParts.length !== 3) return null;
-      const [dd, mm, yyyy] = dateParts;
-      formattedDate = `${yyyy}-${mm}-${dd}`;
-  }
-
-  const cleanKwota = kwotaStr.replace(/[\s\u00A0]/g, "").replace(/(zł|pln)/gi, "").replace(",", ".");         
+  const cleanKwota = kwotaStr.replace(/[\s\u00A0]/g, "").replace(/(zł|pln)/gi, "").replace(",", ".");        
   const amount = Number.parseFloat(cleanKwota);
 
   if (Number.isNaN(amount) || amount >= 0) return null;
-  
-  const rawLower = rawDesc.toLowerCase();
-  const catLower = catRaw.toLowerCase();
-  
-  if (rawLower.includes("przelew") || catLower.includes("przelew")) return null; 
-  if (rawLower.includes("bankomat") || catLower.includes("bankomat")) return null;
-  if (rawLower.includes("bankomacie") || catLower.includes("bankomacie")) return null;
-  if (rawLower.includes("wpłata") || catLower.includes("wpłata")) return null; 
-  if (rawLower.includes("wpłatomat")) return null;
+  if (isExcludedTransaction(rawDesc, catRaw)) return null;
 
   return {
     date: formattedDate,
@@ -227,6 +226,22 @@ const parseTransactionLine = (cols: string[], indices: any): ParsedTransaction |
   };
 };
 
+const isDuplicateTransaction = (parsed: ParsedTransaction, expenseItems: any[]) => {
+  return expenseItems.some(
+    (b) => b.amount === parsed.amount && b.date === parsed.date && 
+    (b.description === parsed.description || b.description?.includes(parsed.description.substring(0, 10)))
+  );
+};
+
+const getMissingCategories = (transactions: ParsedTransaction[], categories: BudgetCategory[]) => {
+  const required = new Set<string>();
+  transactions.forEach((t) => {
+    const targetName = t.mappedCategory.trim().toLowerCase();
+    const exists = categories.some((c) => c.name.trim().toLowerCase() === targetName);
+    if (!exists) required.add(t.mappedCategory.trim());
+  });
+  return Array.from(required);
+};
 
 export default function BankCsvImporter({ year }: { year: number }) {
   const { user, supabase } = useAuth(); 
@@ -240,7 +255,6 @@ export default function BankCsvImporter({ year }: { year: number }) {
   const [duplicatesCount, setDuplicatesCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // 3. REFACTOR: Removed deep nesting by separating file reading and text processing
   const handleFileParse = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -280,34 +294,27 @@ export default function BankCsvImporter({ year }: { year: number }) {
       const parsed = parseTransactionLine(cols, indices);
       if (!parsed) continue;
 
-      const isDuplicate = expenseItems.some(
-        (b) => b.amount === parsed.amount && b.date === parsed.date && 
-        (b.description === parsed.description || b.description?.includes(parsed.description.substring(0, 10)))
-      );
-
-      if (isDuplicate) dupes++;
-      else transactions.push(parsed);
+      if (isDuplicateTransaction(parsed, expenseItems)) {
+        dupes++;
+      } else {
+        transactions.push(parsed);
+      }
     }
 
     if (transactions.length === 0) {
-      toast[dupes > 0 ? "info" : "error"](
-        dupes > 0 ? `Wszystkie transakcje z pliku (${dupes}) zostały już zaimportowane.` : "W pliku nie znaleziono żadnych nowych wydatków."
+      const isDuplicateOnly = dupes > 0;
+      toast[isDuplicateOnly ? "info" : "error"](
+        isDuplicateOnly 
+          ? `Wszystkie transakcje z pliku (${dupes}) zostały już zaimportowane.` 
+          : "W pliku nie znaleziono żadnych nowych wydatków."
       );
     }
 
-    const requiredToCreate = new Set<string>();
-    transactions.forEach((t) => {
-      const targetName = t.mappedCategory.trim().toLowerCase();
-      const exists = categories.some((c) => c.name.trim().toLowerCase() === targetName);
-      if (!exists) requiredToCreate.add(t.mappedCategory.trim());
-    });
-
     setParsedData(transactions);
     setDuplicatesCount(dupes);
-    setMissingCategories(Array.from(requiredToCreate));
+    setMissingCategories(getMissingCategories(transactions, categories));
   };
 
-  // 4. REFACTOR: Abstracted category creation loop out of handleImport
   const ensureCategoriesExist = async (missing: string[]): Promise<BudgetCategory[]> => {
     let updatedCategories = [...categories];
     for (const missingCat of missing) {
@@ -336,7 +343,6 @@ export default function BankCsvImporter({ year }: { year: number }) {
     return updatedCategories;
   };
 
-  // 4. REFACTOR: Abstracted bill insertion loop out of handleImport
   const insertBills = async (transactions: ParsedTransaction[], availableCategories: BudgetCategory[]) => {
     for (const t of transactions) {
       const catTarget = t.mappedCategory.trim().toLowerCase();
@@ -365,7 +371,6 @@ export default function BankCsvImporter({ year }: { year: number }) {
     }
   };
 
-  // 4. REFACTOR: Flattened handleImport main function
   const handleImport = async () => {
     if (parsedData.length === 0) return;
     setLoading(true);
