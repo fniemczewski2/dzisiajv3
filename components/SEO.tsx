@@ -2,7 +2,7 @@
 import Head from "next/head";
 import { sanitizeJsonLd } from "../lib/sanitize";
 
-interface SEOProps {
+interface SeoProps {
   title?: string;
   description?: string;
   canonical?: string;
@@ -18,7 +18,7 @@ interface SEOProps {
   modifiedTime?: string;
 }
 
-export default function SEO({
+export default function Seo({
   title = "Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
   description = "Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.",
   canonical = "https://dzisiajv3.vercel.app",
@@ -32,7 +32,7 @@ export default function SEO({
   author = "Dzisiaj v3",
   publishedTime,
   modifiedTime,
-}: Readonly<SEOProps>) {
+}: Readonly<SeoProps>) {
   const fullTitle = title.includes("Dzisiaj") ? title : `${title} - Dzisiaj v3`;
   const robotsContent = `${noindex ? "noindex" : "index"},${nofollow ? "nofollow" : "follow"}`;
 

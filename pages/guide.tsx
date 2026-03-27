@@ -1,6 +1,6 @@
 import React from 'react';
 import Layout from '../components/Layout';
-import SEO from '../components/SEO';
+import Seo from '../components/SEO';
 import { BookOpen } from 'lucide-react';
 import { guideSections } from '../config/guideData';
 
@@ -14,7 +14,7 @@ export default function GuidePage() {
 
   return (
     <>
-      <SEO title="Przewodnik - Dzisiaj v3" structuredData={structuredData} />
+      <Seo title="Przewodnik - Dzisiaj v3" structuredData={structuredData} />
       <Layout>
         <div className="max-w-4xl mx-auto space-y-6 px-2 sm:px-0 mb-10">
           

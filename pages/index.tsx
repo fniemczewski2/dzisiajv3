@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Layout from "../components/Layout";
-import SEO from "../components/SEO";
+import Seo from "../components/SEO";
 import { useSettings } from "../hooks/useSettings";
 import { useAuth } from "../providers/AuthProvider";
 
@@ -41,7 +41,7 @@ export default function IndexPage() {
 
   return (
     <>
-      <SEO
+      <Seo
         title="Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem"
         structuredData={homepageStructuredData}
       />
@@ -52,14 +52,14 @@ export default function IndexPage() {
           case "day_view":{
             return (
             <>
-              <SEO title="Dzisiaj v3 - Twój główny pulpit" />
+              <Seo title="Dzisiaj v3 - Twój główny pulpit" />
               <Layout>
                 <DayView date={todayDate} isMain />
               </Layout>
             </>)
           }
           default:{
-            return (<CalendarPage isMain />)
+            return (<CalendarPage />)
           }
         }})()} 
     </>

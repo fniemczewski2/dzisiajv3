@@ -123,7 +123,7 @@ export const PRICE_LEVEL_TO_TAGS: Record<number, string[]> = {
 export const RATING_TO_TAGS = (rating: number): string[] => {
   const tags: string[] = [];
   if (rating >= 4.5) tags.push("kultowe");
-  if (rating >= 4.0) tags.push("polecane");
+  if (rating >= 4) tags.push("polecane");
   return tags;
 };
 

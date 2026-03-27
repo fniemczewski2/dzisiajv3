@@ -28,8 +28,8 @@ function WeatherIcon({
   code,
   className = "",
 }: {
-  code: number;
-  className?: string;
+  readonly code: number;
+  readonly className?: string;
 }) {
   if (code <= 1) return <Sun className={className} />;
   if (code === 2) return <CloudSun className={className} />;

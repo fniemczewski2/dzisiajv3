@@ -7,7 +7,6 @@ import { useEvents } from "../hooks/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
-import { useTasks } from "../hooks/useTasks";
 import { AddButton } from "../components/CommonButtons";
 import { useQuickAction } from "../hooks/useQuickAction";
 import { useMoods } from "../hooks/useMoods";
@@ -19,7 +18,7 @@ const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   ssr: false,
 });
 
-export default function CalendarPage({isMain}: {isMain: boolean}) {
+export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -31,7 +30,6 @@ export default function CalendarPage({isMain}: {isMain: boolean}) {
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
-  const { tasks } = useTasks(selectedDateStr ?? undefined, selectedDateStr ?? undefined);
   const { moods } = useMoods();
   const { toast } = useToast();
 
@@ -72,12 +70,10 @@ export default function CalendarPage({isMain}: {isMain: boolean}) {
       <Layout>      
         
         {selectedDateStr ? (
-          <>
           <CalendarDayDetails
             selectedDate={selectedDateStr}
             onBack={() => setSelectedDate(null)}
           />
-          </>
         ) : (
         <>
           <div className="flex justify-between items-center mb-6 gap-2">

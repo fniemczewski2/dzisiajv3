@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useDroppable } from '@dnd-kit/core';
-import { Plus } from "lucide-react";
 
 export function DroppableHourSlot({ time, children }: { time: string, children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({

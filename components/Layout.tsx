@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 import Link from "next/link";
 import LoveCat from "./LoveCat";
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { readonly children: ReactNode }) {
   return (
     <div className="flex flex-col items-center">
       <Header />
