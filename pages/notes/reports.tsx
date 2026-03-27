@@ -129,7 +129,7 @@ function ReportEditRow({
           <div className="form-label">Agenda:</div>
           <div className="space-y-2 mt-1">
             {editedReport.agenda?.map((item, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={`agenda-item-${i}`} className="flex gap-2 items-center">
                 <input type="text" value={item} className="input-field py-1.5" aria-label={`Punkt agendy ${i + 1}`} placeholder={`Punkt ${i + 1}`}
                   onChange={(e) => updateAgenda(i, e.target.value)} />
                 {(editedReport.agenda?.length || 0) > 1 && (
@@ -150,7 +150,7 @@ function ReportEditRow({
           <div className="form-label">Uczestnicy:</div>
           <div className="space-y-2 mt-1">
             {editedReport.participants?.map((item, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={`participant-${i}`} className="flex gap-2 items-center">
                 <input type="text" value={item} className="input-field py-1.5" aria-label={`Uczestnik ${i + 1}`} placeholder={`Uczestnik ${i + 1}`}
                   onChange={(e) => updateParticipant(i, e.target.value)} />
                 {(editedReport.participants?.length || 0) > 1 && (
@@ -172,7 +172,7 @@ function ReportEditRow({
         <div className="form-label">Zadania:</div>
         <div className="space-y-3 mt-1">
           {editedReport.tasks?.map((task, i) => (
-            <div key={i} className="p-3 card rounded-xl bg-surface space-y-2">
+            <div key={`edit-task-${i}`} className="p-3 card rounded-xl bg-surface space-y-2">
               <div className="flex gap-2">
                 <input type="text" value={task.zadanie} aria-label="Zadanie" placeholder="Zadanie" className="input-field py-1.5 bg-surface"
                   onChange={(e) => updateTask(i, "zadanie", e.target.value)} />

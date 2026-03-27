@@ -2,19 +2,18 @@
  import { Event } from "../types";
  import { format } from "date-fns";
  import { parseEventDate } from "./dateUtils";
+
+function escapeICalText(s?: string) {
+  if (!s) return "";
+    return s
+      .replaceAll("\\", "\\\\")
+      .replaceAll(";", "\\;")
+      .replaceAll(",", "\\,")
+      .replaceAll("\r\n", "\\n")
+      .replaceAll("\n", "\\n");
+}
  
 export const generateSingleEventICS = (ev: Event) => {
-
-    function escapeICalText(s?: string) {
-        if (!s) return "";
-        return s
-            .replaceAll("\\", "\\\\")
-            .replaceAll(";", "\\;")
-            .replaceAll(",", "\\,")
-            .replaceAll("\r\n", "\\n")
-            .replaceAll("\n", "\\n");
-    }
-
     try {
       const vcalendar = new ICAL.Component(["vcalendar", [], []]);
       vcalendar.updatePropertyWithValue("prodid", "-//Dzisiajv3//PL");

@@ -69,6 +69,8 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
     setEditedIcon(streak.icon || "flame");
   };
 
+  const dayLabel = days === 1 ? "dzień" : "dni";
+
   return (
     <div className="card rounded-2xl shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
       <div className="flex items-start justify-between mb-4">
@@ -161,7 +163,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
               {days}
             </div>
             <div className="text-[11px] font-medium uppercase tracking-widest text-textSecondary mt-1">
-              {days === 0 ? "dni" : days === 1 ? "dzień" : "dni"} z rzędu
+              {dayLabel} z rzędu
             </div>
           </div>
         )}

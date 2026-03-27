@@ -17,10 +17,13 @@ function getRedirectUri(req: NextApiRequest): string {
 }
 
 function getServiceSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    throw new Error("Brak zmiennych środowiskowych Supabase!");
+  }
+
+  return createClient(url, key);
 }
 
 async function getUserFromBearer(req: NextApiRequest) {

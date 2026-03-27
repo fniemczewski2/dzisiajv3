@@ -105,11 +105,9 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     }
     if (nextDate <= todayDate) nextDate = getAppDateTime();
 
-    // ZMIANA: Bezpieczne formatowanie daty unikające błędu stref czasowych
     const pad = (n: number) => String(n).padStart(2, '0');
     const localDateString = `${nextDate.getFullYear()}-${pad(nextDate.getMonth() + 1)}-${pad(nextDate.getDate())}`;
 
-    // ZMIANA: Usunięto 'id: ""', baza wygeneruje je sama
     const newTask = {
       title: reminder.tytul,
       for_user_id: userId,
@@ -128,15 +126,18 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
         { context: "Reminders.addTask", userId }
       );
       
-      // ZMIANA: Po dodaniu zadania oznaczamy od razu przypomnienie jako wykonane w danym cyklu
       await completeReminder(reminder.id);
       
       toast.success("Utworzono zadanie na podstawie przypomnienia.");
       onTasksChange?.();
-    } catch (e) {
-      // Obsługa błędu jest realizowana w withRetry i toastach.
+    } catch (e: any) {
+      throw new Error(e.message)
     }
   };
+
+  const toggleOpen = () => {
+    setOpen(!open)
+  }
 
   return (
     <div className="card rounded-xl shadow-sm my-4 overflow-hidden transition-colors">
@@ -148,9 +149,9 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
           Zadania cykliczne
           <span className="ml-2 text-primary font-bold">{remindersToShow.length}</span>
         </h3>
-        <div className="text-textMuted">
+        <button onClick={toggleOpen} className="text-textMuted">
           {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </div>
+        </button>
       </div>
 
       {open && (

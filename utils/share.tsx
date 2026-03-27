@@ -28,17 +28,16 @@ export async function resolveSharedEmails<T extends { user_id: string; shared_wi
 
   return items.map((item) => {
     const isOwner = item.user_id === userId;
-    const isShared = (item.user_id === item.shared_with_id)
+    const isPrivate = item.user_id === item.shared_with_id;
+    if (isPrivate) {
+      return { ...item, display_share_info: null };
+    }
+
     const targetId = isOwner ? item.shared_with_id : item.user_id;
     const email = targetId ? (currentEmails[targetId] ?? "...") : "";
-
-    let displayShareInfo: string | null = null;
-
-    if (isShared) {
-      displayShareInfo = `Od: ${email}`;
-    } else if (isOwner && item.shared_with_id) {
-      displayShareInfo = `Udostępniono: ${email}`;
-    }
+    const displayShareInfo = isOwner 
+      ? `Udostępniono: ${email}` 
+      : `Od: ${email}`;
 
     return {
       ...item,
