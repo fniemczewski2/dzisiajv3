@@ -113,7 +113,7 @@ export default function TasksPage({isMain}: {isMain?: boolean}) {
       <Layout>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text flex items-center gap-3">
-            Zadania
+            <span>Zadania</span>
             <span className="text-sm font-bold bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/70 px-2.5 py-1 rounded-lg">
               {todayDone}/{todayTotal}
             </span>

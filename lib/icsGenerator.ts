@@ -23,7 +23,7 @@ export const generateSingleEventICS = (ev: Event) => {
       vcalendar.updatePropertyWithValue("method", "PUBLISH");
 
       const vevent = new ICAL.Component("vevent");
-      const uid = ev.id ? ev.id.replace(/\s+/g, "_") : `evt-${Date.now()}`;
+      const uid = ev.id ? ev.id.replaceAll(/\s+/g, "_") : `evt-${Date.now()}`;
 
       const dtStart = parseEventDate(ev.start_time);
       const dtEnd = parseEventDate(ev.end_time);
