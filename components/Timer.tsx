@@ -170,8 +170,8 @@ export default function UniversalTimer({
 }: Readonly<UniversalTimerProps>) {
   
   const isMultiPhase = !!(phases && phases.length > 0);
-  const currentPhase = isMultiPhase ? phases![phaseIndex] : null;
-  const nextPhase = isMultiPhase ? phases![phaseIndex + 1] : null;
+  const currentPhase = isMultiPhase ? phases[phaseIndex] : null;
+  const nextPhase = isMultiPhase ? phases[phaseIndex + 1] : null;
   
   const displayLabel = title || currentPhase?.label || "Timer";
 
@@ -209,7 +209,7 @@ export default function UniversalTimer({
               Runda {round}
             </span>
             <span className="bg-surface text-textSecondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border border-gray-200 dark:border-gray-700">
-              Faza {phaseIndex + 1} / {phases!.length}
+              Faza {phaseIndex + 1} / {phases.length}
             </span>
           </div>
         )}

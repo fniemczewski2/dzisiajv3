@@ -18,10 +18,17 @@ interface BillListProps {
 }
 
 interface MonthAccordionProps {
- monthData: any;
- onBillsChange?: () => void;
- year: number 
+  monthData: any;
+  onBillsChange?: () => void;
+  year: number 
 } 
+
+interface MonthContent {
+  dateFrom: string;
+  dateTo: string;
+  onBillsChange?: () => void;
+  year: number
+}
 
 function CategoryBadge({ category }: { readonly category?: BudgetCategory | null }) {
   if (!category) {
@@ -117,7 +124,7 @@ function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccord
   );
 }
 
-function MonthContent({ dateFrom, dateTo, onBillsChange, year }: { dateFrom: string, dateTo: string, onBillsChange?: () => void, year: number }) {
+function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContent>) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [page, setPage] = useState(1);

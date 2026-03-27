@@ -1,4 +1,4 @@
-const { text } = require("stream/consumers");
+const { text } = require("node:stream/consumers");
 
 module.exports = {
   darkMode: 'class', 
