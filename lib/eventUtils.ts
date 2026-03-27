@@ -8,13 +8,71 @@ import {
 import { Event } from "../types";
 import { getAppDate, parseEventDate, dateToTimestamp } from "./dateUtils";
 
+// HELPER: Determine the next date based on the repeat interval
+const getNextDate = (currentDate: Date, repeat: string): Date => {
+  switch (repeat) {
+    case "weekly":
+      return addDays(currentDate, 7);
+    case "monthly":
+      return addMonths(currentDate, 1);
+    case "yearly":
+      return addYears(currentDate, 1);
+    default:
+      return addDays(currentDate, 1);
+  }
+};
+
+// HELPER: Fast-forward a repeating event's start date until it falls within the viewing range
+const getFirstInstanceInRange = (start: Date, rangeStart: Date, repeat: string): Date => {
+  let currentStart = new Date(start);
+  while (currentStart < rangeStart) {
+    currentStart = getNextDate(currentStart, repeat);
+  }
+  return currentStart;
+};
+
+// HELPER: Process a single repeating event and generate all its instances within the range
+const generateRepeatingInstances = (
+  event: Event,
+  originalStart: Date,
+  originalEnd: Date,
+  rangeStart: Date,
+  rangeEnd: Date
+): Event[] => {
+  const instances: Event[] = [];
+  const repeat = event.repeat || "none";
+  
+  let currentStart = getFirstInstanceInRange(originalStart, rangeStart, repeat);
+  const durationInDays = differenceInCalendarDays(originalEnd, originalStart);
+
+  while (currentStart <= rangeEnd) {
+    const instanceStart = new Date(currentStart);
+    const instanceEnd = addDays(instanceStart, durationInDays);
+
+    const dateString = instanceStart.toISOString().split("T")[0];
+    const instanceId = `${event.id}_${dateString}`;
+
+    instances.push({
+      ...event,
+      id: instanceId,
+      start_time: dateToTimestamp(instanceStart),
+      end_time: dateToTimestamp(instanceEnd),
+    });
+
+    currentStart = getNextDate(currentStart, repeat);
+  }
+
+  return instances;
+};
+
+// REFACTORED MAIN FUNCTION: Cognitive complexity greatly reduced
 export function expandRepeatingEvents(
   events: Event[],
   start?: Date,
   end?: Date
 ): Event[] {
-  const rangeStart = start ?? new Date(getAppDate() + "T00:00:00");
-  const rangeEnd = end ?? new Date(getAppDate() + "T23:59:59");
+  const rangeStart = start ?? new Date(`${getAppDate()}T00:00:00`);
+  const rangeEnd = end ?? new Date(`${getAppDate()}T23:59:59`);
 
   const result: Event[] = [];
 
@@ -28,44 +86,14 @@ export function expandRepeatingEvents(
         result.push(event);
       }
     } else {
-      let currentStart = new Date(originalStart);
-
-      while (currentStart < rangeStart) {
-        currentStart =
-          repeat === "weekly"
-            ? addDays(currentStart, 7)
-            : repeat === "monthly"
-            ? addMonths(currentStart, 1)
-            : repeat === "yearly"
-            ? addYears(currentStart, 1)
-            : addDays(currentStart, 1);
-      }
-
-      while (currentStart <= rangeEnd) {
-        const duration = differenceInCalendarDays(originalEnd, originalStart);
-        const instanceStart = new Date(currentStart);
-        const instanceEnd = addDays(instanceStart, duration);
-
-        const instanceId = `${event.id}_${instanceStart
-          .toISOString()
-          .split("T")[0]}`;
-
-        result.push({
-          ...event,
-          id: instanceId,
-          start_time: dateToTimestamp(instanceStart),
-          end_time: dateToTimestamp(instanceEnd),
-        });
-
-        currentStart =
-          repeat === "weekly"
-            ? addDays(currentStart, 7)
-            : repeat === "monthly"
-            ? addMonths(currentStart, 1)
-            : repeat === "yearly"
-            ? addYears(currentStart, 1)
-            : addDays(currentStart, 1);
-      }
+      const repeatingInstances = generateRepeatingInstances(
+        event,
+        originalStart,
+        originalEnd,
+        rangeStart,
+        rangeEnd
+      );
+      result.push(...repeatingInstances);
     }
   }
 

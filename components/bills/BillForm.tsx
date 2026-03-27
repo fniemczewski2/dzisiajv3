@@ -142,7 +142,6 @@ export default function BillForm({
         />
       </div>
 
-      {/* ZMIANA: Usunięto warunek `!isIncome &&`, kategoria jest zawsze widoczna */}
       <div>
         <label className="form-label" htmlFor="category">Kategoria:</label>
         <select
@@ -177,58 +176,60 @@ export default function BillForm({
         />
       </div>
 
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 space-y-3 bg-surface">
-          <label htmlFor="cycle" className="flex items-center justify-between gap-3 cursor-pointer">
-            <span id="cycle" className="flex items-center gap-2 text-sm font-medium text-text">
-              <RefreshCw className="w-4 h-4 text-primary" />
-              Cykliczny (co miesiąc)
-            </span>
-                        <button
-              type="button"
-              onClick={() => setIsRecurring(!isRecurring)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                isRecurring ? "bg-primary" : "bg-gray-300 dark:bg-gray-700"
+      <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 space-y-3 bg-surface">
+        <div className="flex items-center justify-between gap-3">
+          <span id="cycle-label" className="flex items-center gap-2 text-sm font-medium text-text cursor-pointer" onClick={() => setIsRecurring(!isRecurring)}>
+            <RefreshCw className="w-4 h-4 text-primary" />
+            Cykliczny (co miesiąc)
+          </span>
+          <button
+            type="button"
+            aria-labelledby="cycle-label"
+            onClick={() => setIsRecurring(!isRecurring)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+              isRecurring ? "bg-primary" : "bg-gray-300 dark:bg-gray-700"
+            }`}
+            role="switch"
+            aria-checked={isRecurring}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ${
+                isRecurring ? "translate-x-5" : "translate-x-0"
               }`}
-              role="switch"
-              aria-checked={isRecurring}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ${
-                  isRecurring ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </label>
-            <div>
-              <label className="form-label" htmlFor="until">
-                Powtarzaj do:
-              </label>
-              <input
-                id="until"
-                type="date"
-                value={recurringUntil}
-                min={date}
-                max={`${new Date().getFullYear()}-12-31`}
-                onChange={(e) => setRecurringUntil(e.target.value)}
-                className="input-field w-full min-w-0 px-1 text-xs"
-                disabled={loading}
-              />
-            </div>
-          
-
-          {isEdit && initial?.is_recurring && (
-            <label className="flex items-center gap-2 text-sm text-text cursor-pointer">
-              <input
-                type="checkbox"
-                checked={updateFuture}
-                onChange={(e) => setUpdateFuture(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary"
-              />
-              Zastosuj zmiany do przyszłych powtórzeń
-            </label>
-          )}
+            />
+          </button>
         </div>
-        <FormButtons onClickClose={onCancel} loading={loading}/>
+
+        <div>
+          <label className="form-label" htmlFor="until">
+            Powtarzaj do:
+          </label>
+          <input
+            id="until"
+            type="date"
+            value={recurringUntil}
+            min={date}
+            max={`${new Date().getFullYear()}-12-31`}
+            onChange={(e) => setRecurringUntil(e.target.value)}
+            className="input-field w-full min-w-0 px-1 text-xs"
+            disabled={loading || !isRecurring}
+          />
+        </div>
+
+        {isEdit && initial?.is_recurring && (
+          <label className="flex items-center gap-2 text-sm text-text cursor-pointer">
+            <input
+              type="checkbox"
+              checked={updateFuture}
+              onChange={(e) => setUpdateFuture(e.target.checked)}
+              className="h-4 w-4 rounded accent-primary shrink-0"
+            />
+            <span>Zastosuj zmiany do przyszłych powtórzeń</span>
+          </label>
+        )}
+      </div>
+
+      <FormButtons onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

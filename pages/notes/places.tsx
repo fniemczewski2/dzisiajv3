@@ -20,6 +20,38 @@ interface TimeFilter {
   endTime: string;
 }
 
+const matchesSearchQuery = (place: Place, query: string): boolean => {
+  if (!query) return true;
+  const lowerQuery = query.toLowerCase();
+  const matchesName = place.name.toLowerCase().includes(lowerQuery);
+  const matchesAddress = place.address?.toLowerCase().includes(lowerQuery);
+  return matchesName || !!matchesAddress;
+};
+
+const matchesTags = (place: Place, selectedTags: string[]): boolean => {
+  if (selectedTags.length === 0) return true;
+  return selectedTags.some((tag) => place.tags?.includes(tag));
+};
+
+const matchesTimeFilter = (place: Place, timeFilter: TimeFilter | null): boolean => {
+  if (!timeFilter) return true;
+  if (!place.opening_hours) return false;
+
+  const dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const dayName = dayNames[timeFilter.day];
+  const hours = place.opening_hours[dayName];
+
+  if (!hours || !Array.isArray(hours) || hours.length === 0) return false;
+
+  const match = hours[0].match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
+  if (!match) return false;
+
+  const [, openTime, closeTime] = match;
+  const { startTime, endTime } = timeFilter;
+
+  return openTime <= startTime && closeTime >= endTime && startTime < endTime;
+};
+
 export default function PlacesPage() {
   const {
     places,
@@ -48,35 +80,9 @@ export default function PlacesPage() {
 
   const filteredPlaces = useMemo(() => {
     return places.filter((place) => {
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesName = place.name.toLowerCase().includes(query);
-        const matchesAddress = place.address?.toLowerCase().includes(query);
-        if (!matchesName && !matchesAddress) return false;
-      }
-
-      if (selectedTags.length > 0) {
-        const hasTag = selectedTags.some((tag) => place.tags?.includes(tag));
-        if (!hasTag) return false;
-      }
-      
-      if (timeFilter && place.opening_hours) {
-        const dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-        const dayName = dayNames[timeFilter.day];
-        const hours = place.opening_hours[dayName];
-
-        if (!hours || !Array.isArray(hours) || hours.length === 0) return false;
-
-        const match = hours[0].match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
-        if (!match) return false;
-
-        const [, openTime, closeTime] = match;
-        const requestStart = timeFilter.startTime;
-        const requestEnd = timeFilter.endTime;
-
-        if (!(openTime <= requestStart && closeTime >= requestEnd && requestStart < requestEnd)) return false;
-      }
-
+      if (!matchesSearchQuery(place, searchQuery)) return false;
+      if (!matchesTags(place, selectedTags)) return false;
+      if (!matchesTimeFilter(place, timeFilter)) return false;
       return true;
     });
   }, [places, searchQuery, selectedTags, timeFilter]);
@@ -125,8 +131,6 @@ export default function PlacesPage() {
       <title>Miejsca - Dzisiaj</title>
     </Head>
     <Layout>
-      
-      
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-text">Miejsca</h2>
         {!showImport && (

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Download, Upload, Link2Off, ChevronDown, ChevronUp,
-  Check, Loader2, AlertCircle,
+  Loader2, AlertCircle,
   Link,
 } from "lucide-react";
 import { useGoogleCalendar } from "../../hooks/useGoogleCalendar";

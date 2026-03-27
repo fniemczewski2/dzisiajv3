@@ -93,7 +93,7 @@ export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormPr
           />
         </div>
         <div>
-          <label className="form-label mb-2">Ikona:</label>
+          <div className="form-label mb-2">Ikona:</div>
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
             {ICONS.map(({ name: iName, icon: IconComponent }) => (
               <button
