@@ -1,7 +1,6 @@
 import React from "react";
 import { useRouter } from "next/router";
 import { NAVIGATION_CATEGORIES, QUICK_ACTIONS } from "../../config/navigation";
-import { Plus } from "lucide-react";
 import { AddSpecificButton } from "../CommonButtons";
 
 export default function MenuGrid() {
@@ -22,6 +21,7 @@ export default function MenuGrid() {
                 Icon={action.icon}
                 label={action.label}
                 router={router}
+                key={action.label}
               />
             );
           })}

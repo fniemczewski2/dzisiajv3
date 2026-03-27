@@ -89,15 +89,15 @@ export default function DaySchemaForm({
   return (
     <form onSubmit={handleSubmit} className="form-card max-w-lg">
       <div>
-        <label className="form-label">Nazwa schematu:</label>
-        <input type="text" value={schemaName}
+        <label htmlFor="name" className="form-label">Nazwa schematu:</label>
+        <input id="name" type="text" value={schemaName}
           onChange={(e) => setSchemaName(e.target.value)}
           className="input-field" required />
       </div>
 
       <div>
-        <label className="form-label">Dni tygodnia:</label>
-        <div className="flex flex-wrap gap-2">
+        <label htmlFor="weekdays" className="form-label">Dni tygodnia:</label>
+        <div id="weekdays" className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
             <button key={i} type="button" onClick={() => toggleDay(i)}
               className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
@@ -112,14 +112,16 @@ export default function DaySchemaForm({
       </div>
 
       <div>
-        <label className="form-label">Wpisy:</label>
+        <div className="form-label">Wpisy:</div>
         <div className="space-y-2">
           {entries.map((entry, i) => (
             <div key={i} className="flex w-full gap-2 items-center">
-              <input type="time" value={entry.time}
+              <label htmlFor="time" className="sr-only">Godzina</label>
+              <input id="time" type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
                 className="input-field w-[80px]" required />
-              <input type="text" value={entry.label} placeholder="Etykieta"
+              <label htmlFor="label" className="sr-only">Etykieta</label>
+              <input id="label" type="text" value={entry.label} placeholder="Etykieta"
                 onChange={(e) => handleEntryChange(i, "label", e.target.value)}
                 className="input-field w-full" required />
               <DeleteButton onClick={() => removeEntry(i)} small />
