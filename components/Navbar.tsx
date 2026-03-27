@@ -5,6 +5,13 @@ import { Settings } from "../types";
 import { useEffect, useState } from "react";
 import { useSettings } from "../hooks/useSettings";
 
+interface NavLinkProps {
+  href: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  currentPath: string;
+}
+
 export default function Navbar() {
   const router = useRouter();
   const { settings: dbSettings, DEFAULT_SETTINGS } = useSettings();
@@ -85,12 +92,7 @@ function NavLink({
   Icon,
   label,
   currentPath,
-}: {
-  href: string;
-  Icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  currentPath: string;
-}) {
+}: Readonly<NavLinkProps>) {
   const isActive =
     currentPath === href ||
     (href !== "/" && currentPath.startsWith(href));

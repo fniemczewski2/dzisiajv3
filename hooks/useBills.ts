@@ -65,8 +65,6 @@ export function useBills(options: FetchOptions = {}) {
             query = query.eq("category_id", options.categoryId);
           }
         }
-
-        // PAGINACJA W SUPABASE
         const from = (page - 1) * limit;
         const to = from + limit - 1;
         query = query.range(from, to);

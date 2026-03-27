@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import Layout from "../components/Layout";
-import SEO from "../components/SEO";
+import Seo from "../components/SEO";
 import { FEATURE_GROUPS } from "../config/features";
 
 export default function Home() {
@@ -40,17 +39,17 @@ export default function Home() {
     inLanguage: "pl-PL",
   };
 
-  // NOWA FUNKCJA: Przechwytuje kliknięcie i przekazuje parametry URL (w tym ?next=...)
+  
   const handleStartClick = () => {
     router.push({
       pathname: "/login",
-      query: router.query // To automatycznie dołącza wszystkie parametry z obecnego paska adresu
+      query: router.query 
     });
   };
 
   return (
     <>
-      <SEO
+      <Seo
         title="Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem"
         description="Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania z technikami Pomodoro i Eisenhower, twórz notatki, śledź rachunki i planuj w kalendarzu. Wszystko w jednym miejscu, offline i online."
         canonical="https://dzisiajv3.vercel.app"

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../../components/Layout";
-import SEO from "../../components/SEO";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEuroRate } from "../../hooks/useEuroRate";
@@ -172,8 +171,6 @@ export default function BillCalculator() {
 
   return (
     <Layout>
-      <SEO title="Kalkulator Podziału - Dzisiaj" />
-
       <div className="max-w-4xl mx-auto space-y-6">
         
         <div className="flex justify-between gap-3 items-center mb-6">

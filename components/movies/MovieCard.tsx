@@ -230,10 +230,10 @@ export default function MovieCard({
               </div>
             )}
             <div className="flex justify-between w-full gap-1 pt-1 mt-auto">
-              {!movie.watched ? (
-                <WatchButton onClick={onToggleWatched} />
-              ) : (
+              {movie.watched ? (
                 <UnwatchButton onClick={onToggleWatched} />
+              ) : (
+                <WatchButton onClick={onToggleWatched} />
               )}
               <EditButton onClick={() => setIsEditing(true)} />
               <DeleteButton onClick={handleDelete} />

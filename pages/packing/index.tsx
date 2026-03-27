@@ -1,7 +1,7 @@
 import React from "react";
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { ChevronLeft, Backpack, ShieldAlert, Briefcase, Siren } from "lucide-react";
+import { Backpack, Briefcase, Siren } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function PackingMenuPage() {

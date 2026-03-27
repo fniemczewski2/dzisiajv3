@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { Settings } from "../types";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
-import { useRouter } from "next/router";
 
 type GeoCoords = { lat: number; lng: number };
 

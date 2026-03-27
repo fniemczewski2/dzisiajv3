@@ -1,4 +1,4 @@
-import { differenceInDays, differenceInCalendarDays, isPast, isFuture, isToday, parseISO } from 'date-fns';
+import { differenceInCalendarDays, isPast, isFuture, isToday, parseISO } from 'date-fns';
 import { Calendar, Check, ChevronsRight, Clock, Siren } from 'lucide-react';
 import type { LucideIcon } from "lucide-react";
 

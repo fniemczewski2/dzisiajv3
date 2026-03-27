@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Coins, Save, X } from "lucide-react";
+import { Coins } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useDailyHabits } from "../../hooks/useDailyHabits";

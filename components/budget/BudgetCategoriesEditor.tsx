@@ -12,9 +12,22 @@ import {
 } from "../CommonButtons";
 import type { BudgetCategory } from "../../types";
 
+interface AmountEditorProps {
+  cat: BudgetCategory;
+  onSave: (updates: Pick<BudgetCategory, "name" | "amount" | "is_monthly">) => Promise<void>;
+  onCancel: () => void;
+  saving: boolean;
+}
+
+interface AddCategoryFormProps {
+  onAdd: (name: string) => Promise<void>;
+  saving: boolean;
+  onCancel: () => void;
+}
+
 type ViewMode = "year" | "month";
 
-function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
+function ViewToggle({ view, onChange }: { readonly view: ViewMode; readonly onChange: (v: ViewMode) => void }) {
   return (
     <div className="flex gap-1 bg-surface rounded-xl p-1 border border-gray-200 dark:border-gray-700">
       {(["year", "month"] as ViewMode[]).map((v) => {
@@ -41,11 +54,7 @@ function AddCategoryForm({
   onAdd,
   saving,
   onCancel,
-}: {
-  onAdd: (name: string) => Promise<void>;
-  saving: boolean;
-  onCancel: () => void;
-}) {
+}: Readonly<AddCategoryFormProps>) {
   const [name, setName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -80,12 +89,7 @@ function AmountEditor({
   onSave,
   onCancel,
   saving,
-}: {
-  cat: BudgetCategory;
-  onSave: (updates: Pick<BudgetCategory, "name" | "amount" | "is_monthly">) => Promise<void>;
-  onCancel: () => void;
-  saving: boolean;
-}) {
+}: Readonly<AmountEditorProps>) {
   const [amount,    setAmount]    = useState(cat.amount > 0 ? String(cat.amount) : "");
   const [isMonthly, setIsMonthly] = useState(cat.is_monthly);
   const inputRef = useRef<HTMLInputElement>(null);

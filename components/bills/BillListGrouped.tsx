@@ -14,11 +14,16 @@ import NoResultsState from "../NoResultsState";
 
 interface BillListProps {
   year: number;
-  categoryId: string;
   onBillsChange?: () => void;
 }
 
-function CategoryBadge({ category }: { category?: BudgetCategory | null }) {
+interface MonthAccordionProps {
+ monthData: any;
+ onBillsChange?: () => void;
+ year: number 
+} 
+
+function CategoryBadge({ category }: { readonly category?: BudgetCategory | null }) {
   if (!category) {
     return (
       <span className="text-[10px] font-bold uppercase tracking-wider text-textMuted bg-surface border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded">
@@ -41,13 +46,13 @@ function RecurringBadge() {
   );
 }
 
-export default function BillListGrouped({ year, categoryId, onBillsChange }: Readonly<BillListProps>) {
+export default function BillListGrouped({ year, onBillsChange }: Readonly<BillListProps>) {
   const [activeMonths, setActiveMonths] = useState<{ id: number, date: Date, label: string, isCurrentMonth: boolean }[]>([]);
   const { fetchActiveMonths } = useBills(); 
 
   useEffect(() => {
     const loadMonths = async () => {
-      const activeIndexes = await fetchActiveMonths(year, categoryId);
+      const activeIndexes = await fetchActiveMonths(year);
       
       const generatedMonths = activeIndexes.map((monthIndex) => {
         const date = new Date(year, monthIndex, 1);
@@ -63,7 +68,7 @@ export default function BillListGrouped({ year, categoryId, onBillsChange }: Rea
     };
 
     loadMonths();
-  }, [year, categoryId, fetchActiveMonths]);
+  }, [year, fetchActiveMonths]);
 
   if (activeMonths.length === 0) {
     return <NoResultsState text="rachunków w wybranym roku" />;
@@ -75,16 +80,15 @@ export default function BillListGrouped({ year, categoryId, onBillsChange }: Rea
         <MonthAccordion
           key={m.id}
           monthData={m}
-          categoryId={categoryId}
           onBillsChange={onBillsChange}
-          year={year} // Przekazujemy rok, by móc poprawnie pobrać kategorie wewnątrz miesiąca
+          year={year} 
         />
       ))}
     </div>
   );
 }
 
-function MonthAccordion({ monthData, categoryId, onBillsChange, year }: { monthData: any, categoryId: string, onBillsChange?: () => void, year: number }) {
+function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccordionProps>) {
   const [isOpen, setIsOpen] = useState(monthData.isCurrentMonth);
 
   return (
@@ -104,7 +108,6 @@ function MonthAccordion({ monthData, categoryId, onBillsChange, year }: { monthD
           <MonthContent
             dateFrom={format(startOfMonth(monthData.date), "yyyy-MM-dd")}
             dateTo={format(endOfMonth(monthData.date), "yyyy-MM-dd")}
-            categoryId={categoryId}
             onBillsChange={onBillsChange}
             year={year}
           />
@@ -114,7 +117,7 @@ function MonthAccordion({ monthData, categoryId, onBillsChange, year }: { monthD
   );
 }
 
-function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { dateFrom: string, dateTo: string, categoryId: string, onBillsChange?: () => void, year: number }) {
+function MonthContent({ dateFrom, dateTo, onBillsChange, year }: { dateFrom: string, dateTo: string, onBillsChange?: () => void, year: number }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [page, setPage] = useState(1);
@@ -123,7 +126,6 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { d
   const { incomeItems, expenseItems, fetching, hasMore, fetchBills, deleteBill, editBill, markAsDone } = useBills({
     dateFrom,
     dateTo,
-    categoryId,
     includeRecurringChildren: true,
   });
 
@@ -229,8 +231,6 @@ function MonthContent({ dateFrom, dateTo, categoryId, onBillsChange, year }: { d
                 />
               </div>
             </div>
-            
-            {/* ZMIANA: Zawsze widoczne pole edycji kategorii */}
             <div>
               <label className="form-label" htmlFor={`category-${b.id}`}>Kategoria:</label>
               <select
