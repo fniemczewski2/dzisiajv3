@@ -65,27 +65,27 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
     <form onSubmit={handleSubmit} className="form-card flex flex-col max-w-2xl gap-2 md:gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <div>
-          <label className="form-label">Temat spotkania:</label>
-          <input ref={topicRef} className="input-field" required disabled={loading} placeholder="np. Tygodniowy status" />
+          <label htmlFor="report-topic" className="form-label">Temat spotkania:</label>
+          <input id="report-topic" ref={topicRef} className="input-field" required disabled={loading} placeholder="np. Tygodniowy status" />
         </div>
         <div>
-          <label className="form-label">Data:</label>
-          <input ref={dateRef} type="date" defaultValue={getAppDate()}
+          <label htmlFor="report-date" className="form-label">Data:</label>
+          <input id="report-date" ref={dateRef} type="date" defaultValue={getAppDate()}
             className="input-field w-full min-w-0 px-1 text-xs" required disabled={loading} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <div>
-          <label className="form-label">Agenda:</label>
+          <div className="form-label">Agenda:</div>
           <div className="space-y-2 md:space-y-4">
             {agenda.map((a, i) => (
               <div key={i} className="flex gap-2">
-                <input className="input-field" value={a}
+                <input className="input-field" value={a} aria-label={`Punkt agendy ${i + 1}`}
                   onChange={(e) => { const c = [...agenda]; c[i] = e.target.value; setAgenda(c); }}
                   placeholder={`Punkt agendy ${i + 1}`} disabled={loading} />
                 {agenda.length > 1 && (
-                  <button type="button" onClick={() => removeItem(agenda, setAgenda, i)} className="text-textMuted hover:text-red-500">
+                  <button type="button" onClick={() => removeItem(agenda, setAgenda, i)} className="text-textMuted hover:text-red-500 shrink-0">
                     <X className="w-5 h-5" />
                   </button>
                 )}
@@ -98,15 +98,15 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
           </button>
         </div>
         <div>
-          <label className="form-label">Uczestnicy:</label>
+          <div className="form-label">Uczestnicy:</div>
           <div className="space-y-2 md:space-y-4">
             {participants.map((p, i) => (
               <div key={i} className="flex gap-2">
-                <input className="input-field" value={p}
+                <input className="input-field" value={p} aria-label={`Uczestnik ${i + 1}`}
                   onChange={(e) => { const c = [...participants]; c[i] = e.target.value; setParticipants(c); }}
                   placeholder={`Uczestnik ${i + 1}`} disabled={loading} />
                 {participants.length > 1 && (
-                  <button type="button" onClick={() => removeItem(participants, setParticipants, i)} className="text-textMuted hover:text-red-500">
+                  <button type="button" onClick={() => removeItem(participants, setParticipants, i)} className="text-textMuted hover:text-red-500 shrink-0">
                     <X className="w-5 h-5" />
                   </button>
                 )}
@@ -121,12 +121,12 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
       </div>
 
       <div>
-        <label className="form-label">Zadania po spotkaniu:</label>
+        <div className="form-label">Zadania po spotkaniu:</div>
         <div className="space-y-2 md:space-y-4">
           {tasks.map((t, i) => (
             <div key={i} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-surface space-y-3">
               <div className="flex gap-2">
-                <input placeholder="Treść zadania" className="input-field bg-card" value={t.zadanie}
+                <input placeholder="Treść zadania" aria-label="Treść zadania" className="input-field bg-card" value={t.zadanie}
                   onChange={(e) => { const c = [...tasks]; c[i].zadanie = e.target.value; setTasks(c); }}
                   disabled={loading} />
                 {tasks.length > 1 && (
@@ -136,9 +136,9 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input type="date" className="input-field bg-card w-full min-w-0 px-1 text-xs" value={t.data}
+                <input type="date" aria-label="Data wykonania zadania" className="input-field bg-card w-full min-w-0 px-1 text-xs" value={t.data}
                   onChange={(e) => { const c = [...tasks]; c[i].data = e.target.value; setTasks(c); }} disabled={loading} />
-                <input placeholder="Osoba odpowiedzialna" className="input-field bg-card" value={t.osoba}
+                <input placeholder="Osoba odpowiedzialna" aria-label="Osoba odpowiedzialna za zadanie" className="input-field bg-card" value={t.osoba}
                   onChange={(e) => { const c = [...tasks]; c[i].osoba = e.target.value; setTasks(c); }} disabled={loading} />
               </div>
             </div>
@@ -151,8 +151,9 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
       </div>
 
       <div>
-        <label className="form-label">Notatki ze spotkania:</label>
-        <textarea ref={notesRef} className="input-field" rows={5}
+        {/* ZMIANA: Dodano htmlFor i id */}
+        <label htmlFor="report-notes" className="form-label">Notatki ze spotkania:</label>
+        <textarea id="report-notes" ref={notesRef} className="input-field" rows={5}
           placeholder="Podsumowanie, wnioski..." disabled={loading} />
       </div>
 

@@ -1,36 +1,107 @@
+"use client";
+
 import React, { useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { useToast } from "../../providers/ToastProvider";
 import NotificationPreferences from "./NotificationPreferencesForm";
 
-export default function PushNotificationManager({ userId }: { userId: string | undefined }) {
+interface PushNotificationManagerProps {
+  readonly userId?: string;
+}
+
+const getPlatform = (): string => {
+  if (typeof globalThis === "undefined" || !globalThis.navigator) return "desktop";
+  const ua = globalThis.navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) return "ios";
+  if (/android/.test(ua)) return "android";
+  return "desktop";
+};
+
+const checkIsStandalone = (): boolean => {
+  if (typeof globalThis === "undefined") return false;
+  const matchMediaMatches = typeof globalThis.matchMedia === "function" && globalThis.matchMedia("(display-mode: standalone)").matches;
+  const navigatorStandalone = (globalThis.navigator as any)?.standalone === true;
+  return matchMediaMatches || navigatorStandalone;
+};
+
+const checkIsSupported = (): boolean => {
+  return (
+    typeof globalThis !== "undefined" &&
+    globalThis.navigator !== undefined &&
+    "serviceWorker" in globalThis.navigator &&
+    "PushManager" in globalThis &&
+    "Notification" in globalThis
+  );
+};
+
+function DetailRow({ label, value, ok, warn = false }: { readonly label: string; readonly value: string; readonly ok: boolean; readonly warn?: boolean }) {
+  const colorClass = ok 
+    ? "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30"
+    : warn 
+    ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 border-yellow-200 dark:border-yellow-700/50"
+    : "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50";
+
+  return (
+    <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
+      <span className="font-semibold text-textSecondary">{label}</span>
+      <span className={`px-2 py-1 rounded font-bold uppercase tracking-wide border ${colorClass}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function TechDetailsInfo({
+  platform,
+  isStandalone,
+  isSupported,
+  permission,
+  isSubscribed
+}: {
+  readonly platform: string;
+  readonly isStandalone: boolean;
+  readonly isSupported: boolean;
+  readonly permission: NotificationPermission;
+  readonly isSubscribed: boolean;
+}) {
+  const permissionText = permission === "granted" ? "Przyznane" : permission === "denied" ? "Odrzucone" : "Pytaj";
+
+  return (
+    <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 space-y-3">
+      <div className="flex items-center justify-between text-xs sm:text-sm">
+        <span className="font-semibold text-textSecondary">Platforma:</span>
+        <div className="flex gap-2">
+          <span className="px-2 py-1 rounded card text-text font-medium uppercase">
+            {platform === "ios" ? "iOS" : platform === "android" ? "Android" : "Desktop"}
+          </span>
+          {isStandalone && (
+            <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold border border-green-200 dark:border-green-500/30 uppercase">
+              PWA
+            </span>
+          )}
+        </div>
+      </div>
+      
+      <DetailRow label="Przeglądarka:" value={isSupported ? "Wspierane" : "Brak"} ok={isSupported} />
+      <DetailRow label="Uprawnienia:" value={permissionText} ok={permission === "granted"} warn={permission === "default"} />
+      <DetailRow label="Subskrypcja:" value={isSubscribed ? "Aktywna" : "Brak"} ok={isSubscribed} />
+    </div>
+  );
+}
+
+export default function PushNotificationManager({ userId }: PushNotificationManagerProps) {
   const { isSubscribed, loading, subscribeToPush, unsubscribeFromPush } = usePushNotifications(userId);
   const { toast } = useToast();
 
   const [showDetails, setShowDetails] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>(
-    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "default"
+    typeof globalThis !== "undefined" && "Notification" in globalThis ? Notification.permission : "default"
   );
 
-  const getPlatform = () => {
-    if (typeof window === "undefined") return "desktop";
-    const ua = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(ua)) return "ios";
-    if (/android/.test(ua)) return "android";
-    return "desktop";
-  };
-
   const platform = getPlatform();
-  const isStandalone =
-    typeof window !== "undefined" &&
-    (window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true);
-  const isSupported =
-    typeof window !== "undefined" &&
-    "serviceWorker" in navigator &&
-    "PushManager" in window &&
-    "Notification" in window;
+  const isStandalone = checkIsStandalone();
+  const isSupported = checkIsSupported();
 
   const handleRequestPermission = async () => {
     if (!isSupported) {
@@ -67,7 +138,7 @@ export default function PushNotificationManager({ userId }: { userId: string | u
   const handleTestNotification = async () => {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY; // Zmiana na PUBLISHABLE_KEY
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
       if (!supabaseUrl || !supabaseKey) throw new Error("Błąd konfiguracji Supabase");
 
       const response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
@@ -110,39 +181,13 @@ export default function PushNotificationManager({ userId }: { userId: string | u
       </div>
 
       {showDetails && (
-        <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 space-y-3">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="font-semibold text-textSecondary">Platforma:</span>
-            <div className="flex gap-2">
-              <span className="px-2 py-1 rounded card text-text font-medium uppercase">
-                {platform === "ios" ? "iOS" : platform === "android" ? "Android" : "Desktop"}
-              </span>
-              {isStandalone && (
-                <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold border border-green-200 dark:border-green-500/30 uppercase">
-                  PWA
-                </span>
-              )}
-            </div>
-          </div>
-          {[
-            { label: "Przeglądarka:", value: isSupported ? "Wspierane" : "Brak", ok: isSupported },
-            { label: "Uprawnienia:",
-              value: permission === "granted" ? "Przyznane" : permission === "denied" ? "Odrzucone" : "Pytaj",
-              ok: permission === "granted", warn: permission === "default" },
-            { label: "Subskrypcja:", value: isSubscribed ? "Aktywna" : "Brak", ok: isSubscribed },
-          ].map(({ label, value, ok, warn }) => (
-            <div key={label} className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
-              <span className="font-semibold text-textSecondary">{label}</span>
-              <span className={`px-2 py-1 rounded font-bold uppercase tracking-wide border ${
-                ok ? "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30"
-                : warn ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 border-yellow-200 dark:border-yellow-700/50"
-                : "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50"
-              }`}>
-                {value}
-              </span>
-            </div>
-          ))}
-        </div>
+        <TechDetailsInfo 
+          platform={platform} 
+          isStandalone={isStandalone} 
+          isSupported={isSupported} 
+          permission={permission} 
+          isSubscribed={isSubscribed} 
+        />
       )}
 
       <NotificationPreferences />

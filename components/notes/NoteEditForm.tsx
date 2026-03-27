@@ -61,9 +61,10 @@ export default function NoteEditForm({
     >
       <div className="space-y-4">
         <div>
-          <label className="form-label">Tytuł notatki:</label>
-          <input
-            ref={titleRef}
+        <label className="form-label" htmlFor="title">Tytuł:</label>
+        <input 
+            id="title" 
+            ref={titleRef} 
             type="text"
             value={note.title}
             onChange={(e) => onChange({ ...note, title: e.target.value })}
@@ -71,8 +72,9 @@ export default function NoteEditForm({
           />
         </div>
         <div>
-          <label className="form-label">Treść (jeden element na linię):</label>
-          <textarea
+          <label className="form-label" htmlFor="desc">Treść:</label>
+          <textarea 
+            id="desc" 
             ref={itemsRef}
             defaultValue={note.items.join("\n")}
             placeholder="Wpisz listę rzeczy..."

@@ -183,11 +183,12 @@ export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) 
             <div className="space-y-4">
               {calendars.length > 0 && (
                 <div>
-                  <label className="form-label">Kalendarz Google:</label>
+                  <label htmlFor="calendar" className="form-label">Kalendarz Google:</label>
                   <select
                     value={selectedCalendar}
                     onChange={(e) => setSelectedCalendar(e.target.value)}
                     className="input-field py-1.5"
+                    id="calendar"
                   >
                     {calendars.map((cal) => (
                       <option key={cal.id} value={cal.id}>
@@ -198,7 +199,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) 
                 </div>
               )}
               <div>
-                <label className="form-label">Zakres importu:</label>
+                <div className="form-label">Zakres importu:</div>
                 <div className="flex gap-2 flex-wrap">
                   {([
                     { key: "all",       label: "±1 rok" },

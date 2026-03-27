@@ -16,6 +16,14 @@ import LoadingState from "./LoadingState";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
 import { useToast } from "../providers/ToastProvider";
 
+interface WeatherdetailsProps {
+  currentTemp: number | null;
+  dailyMin: number | null;
+  dailyMax: number | null;
+  weatherCode: number | null;
+  airQuality: string | null;
+}
+
 function WeatherIcon({
   code,
   className = "",
@@ -41,6 +49,51 @@ const StableBirthdayIndicator = memo(function StableBirthdayIndicator({
 }) {
   return <BirthdayIndicator date={date} />;
 });
+
+function WeatherDetails({
+  currentTemp,
+  dailyMin,
+  dailyMax,
+  weatherCode,
+  airQuality,
+}: 
+  Readonly<WeatherdetailsProps>
+) {
+  const router = useRouter();
+
+  if (
+    currentTemp != null &&
+    dailyMin != null &&
+    dailyMax != null &&
+    weatherCode != null
+  ) {
+    return (
+      <button
+        onClick={() => router.push("/weather")}
+        className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
+        title="Kliknij, aby zobaczyć pełną prognozę"
+      >
+        <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
+          <WeatherIcon
+            code={weatherCode}
+            className="w-5 h-5 sm:w-6 sm:h-6"
+          />
+          <span className="font-bold leading-none">{currentTemp}°C</span>
+        </div>
+        <span className="whitespace-nowrap text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
+          min {dailyMin}° · max {dailyMax}°
+        </span>
+        {airQuality && (
+          <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider">
+            {airQuality}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  return null;
+}
 
 export default function Header() {
   const [loading, setLoading] = useState(true);
@@ -84,7 +137,7 @@ export default function Header() {
       setCurrentTime(tick.toLocaleTimeString("pl-PL"));
 
       const newDateStr = `${tick.getFullYear()}-${String(tick.getMonth() + 1).padStart(2, "0")}-${String(tick.getDate()).padStart(2, "0")}`;
-      setTodayDateString((prev) => (prev !== newDateStr ? newDateStr : prev));
+      setTodayDateString((prev) => (prev === newDateStr ? newDateStr : prev));
     }, 1000);
 
     if (!navigator.geolocation) {
@@ -165,7 +218,7 @@ export default function Header() {
       clearInterval(timer);
       controller.abort();
     };
-  }, []);
+  }, [toast]);
 
   return (
     <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full max-w-[1600px] flex justify-center">
@@ -196,33 +249,15 @@ export default function Header() {
         <div className="shrink-0 flex flex-1 justify-end items-center">
           {loading ? (
             <LoadingState />
-          ) : currentTemp != null &&
-            dailyMin != null &&
-            dailyMax != null &&
-            weatherCode != null ? (
-            <button
-              onClick={() => router.push("/weather")}
-              className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
-              title="Kliknij, aby zobaczyć pełną prognozę"
-              role="button"
-            >
-              <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
-                <WeatherIcon
-                  code={weatherCode}
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                />
-                <span className="font-bold leading-none">{currentTemp}°C</span>
-              </div>
-              <span className="whitespace-nowrap text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
-                min {dailyMin}° · max {dailyMax}°
-              </span>
-              {airQuality && (
-                <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider">
-                  {airQuality}
-                </span>
-              )}
-            </button>
-          ) : null}
+          ) : (
+            <WeatherDetails 
+              currentTemp={currentTemp} 
+              dailyMin={dailyMin} 
+              dailyMax={dailyMax} 
+              weatherCode={weatherCode} 
+              airQuality={airQuality} 
+            />
+          )}
         </div>
       </span>
     </header>
