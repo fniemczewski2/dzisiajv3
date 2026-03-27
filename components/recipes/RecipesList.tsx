@@ -237,7 +237,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
 
           return (
             <li key={r.id} className="card rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
-              <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => toggleOpen(r.id)}>
+              <div className="flex items-center justify-between p-4">
                 <div className="flex-1 pr-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
                   {r.category && (

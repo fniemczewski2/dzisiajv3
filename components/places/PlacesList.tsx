@@ -94,7 +94,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
         return (
           <div key={place.id}
             className="card rounded-xl shadow-sm transition-all duration-200 hover:border-primary group overflow-hidden">
-            <div className="p-4 cursor-pointer" onClick={() => toggleExpand(place.id)}>
+            <div className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1 pr-2 min-w-0">
                   <h3 className="font-bold text-lg text-text leading-tight truncate">{place.name}</h3>
