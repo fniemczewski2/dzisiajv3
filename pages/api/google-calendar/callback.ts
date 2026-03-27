@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
   
   const { data: { user }, error: authErr } = await supabaseVerify.auth.getUser(supabaseToken);
-  if (authErr || !user || user.id !== userId) {
+  if (authErr || user?.id !== userId) {
     console.error("[Google OAuth callback] Supabase token invalid:", authErr?.message);
     return res.redirect("/calendar?google_error=session_expired");
   }

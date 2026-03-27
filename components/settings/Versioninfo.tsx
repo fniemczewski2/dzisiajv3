@@ -3,6 +3,29 @@ import { useVersion } from "../../hooks/useVersion";
 
 export default function VersionInfo() {
   const { version, commitDate, loading, error } = useVersion();
+  const statusContent = error ? (
+    <div className="text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
+      Błąd: {error}
+    </div>
+  ) : (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-xs sm:text-sm">
+        <span className="font-semibold text-textSecondary">Wersja aplikacji:</span>
+        <span className="px-2.5 py-1 font-mono font-bold rounded-md bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/50">
+          {version}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-3">
+        <span className="font-semibold text-textSecondary">Data aktualizacji:</span>
+        <span className="px-2.5 py-1 font-mono font-medium rounded-md bg-card text-text border border-gray-200 dark:border-gray-700">
+          {commitDate}
+        </span>
+      </div>
+    </div>
+  );
+
+
 
   return (
     <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
@@ -15,27 +38,7 @@ export default function VersionInfo() {
 
       {loading ? (
         <div className="text-sm font-medium text-textMuted animate-pulse">Pobieranie informacji o wersji...</div>
-      ) : error ? (
-        <div className="text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
-          Błąd: {error}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="font-semibold text-textSecondary">Wersja aplikacji:</span>
-            <span className="px-2.5 py-1 font-mono font-bold rounded-md bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/50">
-              {version}
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-3">
-            <span className="font-semibold text-textSecondary">Data aktualizacji:</span>
-            <span className="px-2.5 py-1 font-mono font-medium rounded-md bg-ard text-text border border-gray-200 dark:border-gray-700">
-              {commitDate}
-            </span>
-          </div>
-        </div>
-      )}
+      ) : statusContent}
     </div>
   );
 }
