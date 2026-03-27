@@ -140,15 +140,15 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
             <li key={list.id} className="p-5 break-inside-avoid card rounded-2xl shadow-lg space-y-4 animate-in fade-in">
               <div className="space-y-4">
                 <div>
-                  <label className="form-label">Nazwa listy:</label>
-                  <input ref={nameRef} type="text" value={editedList.name}
+                  <label htmlFor="name" className="form-label">Nazwa listy:</label>
+                  <input id="name" ref={nameRef} type="text" value={editedList.name}
                     onChange={(e) => setEditedList({ ...editedList, name: e.target.value })}
                     className="input-field font-medium" />
                 </div>
                 {isOwner && userOptions.length > 0 && (
                   <div>
-                    <label className="form-label">Udostępnij dla:</label>
-                    <select value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field">
+                    <label htmlFor="share" className="form-label">Udostępnij dla:</label>
+                    <select id="share" value={sharedEmail} onChange={(e) => setSharedEmail(e.target.value)} className="input-field">
                       <option value="">Tylko dla mnie</option>
                       {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
                     </select>

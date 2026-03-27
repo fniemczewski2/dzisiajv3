@@ -142,10 +142,10 @@ const cleanDescription = (rawDesc: string): string => {
 
   let desc = rawDesc;
   for (const regex of BOILERPLATE_REGEXES) {
-    desc = desc.replace(regex, "");
+    desc = desc.replaceAll(regex, "");
   }
 
-  const cleaned = desc.replace(/\s+/g, ' ').trim();
+  const cleaned = desc.replaceAll(/\s+/g, ' ').trim();
   return cleaned || "Płatność niezidentyfikowana"; 
 };
 
@@ -212,7 +212,7 @@ const parseTransactionLine = (cols: string[], indices: any): ParsedTransaction |
   const formattedDate = formatDateStr(dateStr);
   if (!formattedDate) return null;
 
-  const cleanKwota = kwotaStr.replace(/[\s\u00A0]/g, "").replace(/(zł|pln)/gi, "").replace(",", ".");        
+  const cleanKwota = kwotaStr.replaceAll(/[\s\u00A0]/g, "").replaceAll(/(zł|pln)/gi, "").replaceAll(",", ".");        
   const amount = Number.parseFloat(cleanKwota);
 
   if (Number.isNaN(amount) || amount >= 0) return null;
@@ -256,7 +256,7 @@ const extractTransactionsFromLines = (
     const line = lines[i].trim();
     if (!line) continue;
 
-    const cols = line.split(";").map((c) => c.replace(/^"|"$/g, "").trim());
+    const cols = line.split(";").map((c) => c.replaceAll(/^"|"$/g, "").trim());
     if (cols.length < 3) continue;
 
     const parsed = parseTransactionLine(cols, indices);
@@ -307,7 +307,7 @@ export default function BankCsvImporter({ year }: { year: number }) {
       return;
     }
 
-    const headers = lines[headerIdx].split(";").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
+    const headers = lines[headerIdx].split(";").map(h => h.replaceAll(/^"|"$/g, "").trim().toLowerCase());
     const indices = getColumnIndices(headers);
     const { transactions, dupes } = extractTransactionsFromLines(
       lines, 

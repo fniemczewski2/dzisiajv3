@@ -17,6 +17,56 @@ function getRecurringDates(startDate: string, recurringUntil: string): string[] 
   return dates;
 }
 
+function buildFetchBillsQuery(supabase: any, userId: string, options: FetchOptions) {
+  let query = supabase
+    .from("bills")
+    .select(`*, category:budget_categories(*)`, { count: "exact" })
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .order("description", { ascending: true })
+    .order("amount", { ascending: false })
+    .order("id", { ascending: true });
+
+  if (options.dateFrom) query = query.gte("date", options.dateFrom);
+  if (options.dateTo) query = query.lte("date", options.dateTo);
+
+  if (!options.includeRecurringChildren) {
+    query = query.is("parent_bill_id", null);
+  }
+
+  if (options.categoryId && options.categoryId !== "all") {
+    if (options.categoryId === "none") {
+      query = query.is("category_id", null);
+    } else {
+      query = query.eq("category_id", options.categoryId);
+    }
+  }
+
+  return query;
+}
+
+function buildActiveMonthsQuery(supabase: any, userId: string, year: number, categoryId: string) {
+  const startDate = `${year}-01-01`;
+  const endDate = `${year}-12-31`;
+
+  let query = supabase
+    .from("bills")
+    .select("date")
+    .eq("user_id", userId)
+    .gte("date", startDate)
+    .lte("date", endDate);
+
+  if (categoryId && categoryId !== "all") {
+    if (categoryId === "none") {
+      query = query.is("category_id", null);
+    } else {
+      query = query.eq("category_id", categoryId);
+    }
+  }
+
+  return query;
+}
+
 interface FetchOptions {
   dateFrom?: string;
   dateTo?: string;
@@ -39,35 +89,11 @@ export function useBills(options: FetchOptions = {}) {
     async (append = false, page = 1, limit = 20) => {
       if (!userId || settings == null) return;
       setFetching(true);
+      
       try {
-        let query = supabase
-          .from("bills")
-          .select(`*, category:budget_categories(*)`, { count: "exact" })
-          .eq("user_id", userId)
-          // ZMIANA: Dodano wielopoziomowe sortowanie gwarantujące stałą kolejność
-          .order("date", { ascending: false })        // 1. Data (najnowsze u góry)
-          .order("description", { ascending: true })  // 2. Nazwa (alfabetycznie)
-          .order("amount", { ascending: false })      // 3. Kwota (od największej)
-          .order("id", { ascending: true });          // 4. ID (zabezpieczenie stabilności paginacji)
-
-
-        if (options.dateFrom) query = query.gte("date", options.dateFrom);
-        if (options.dateTo) query = query.lte("date", options.dateTo);
-        
-        if (!options.includeRecurringChildren) {
-          query = query.is("parent_bill_id", null);
-        }
-
-        if (options.categoryId && options.categoryId !== "all") {
-          if (options.categoryId === "none") {
-            query = query.is("category_id", null);
-          } else {
-            query = query.eq("category_id", options.categoryId);
-          }
-        }
         const from = (page - 1) * limit;
         const to = from + limit - 1;
-        query = query.range(from, to);
+        const query = buildFetchBillsQuery(supabase, userId, options).range(from, to);
 
         const { data, error, count } = await query;
         if (error) throw error;
@@ -76,13 +102,12 @@ export function useBills(options: FetchOptions = {}) {
         const incomes = bills.filter((b) => b.is_income);
         const expenses = bills.filter((b) => !b.is_income);
 
-        if (append) {
-          setIncomeItems((prev) => [...prev, ...incomes]);
-          if (settings.show_budget_items) setExpenseItems((prev) => [...prev, ...expenses]);
+        setIncomeItems((prev) => append ? [...prev, ...incomes] : incomes);
+        
+        if (settings.show_budget_items) {
+          setExpenseItems((prev) => append ? [...prev, ...expenses] : expenses);
         } else {
-          setIncomeItems(incomes);
-          if (settings.show_budget_items) setExpenseItems(expenses);
-          else setExpenseItems([]);
+          setExpenseItems([]);
         }
 
         if (count !== null) {
@@ -103,6 +128,7 @@ export function useBills(options: FetchOptions = {}) {
     async (bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">): Promise<Bill> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
+      
       try {
         const { data, error } = await supabase
           .from("bills")
@@ -141,9 +167,10 @@ export function useBills(options: FetchOptions = {}) {
   );
 
   const editBill = useCallback(
-    async (bill: Bill, options: { updateFutureRecurring?: boolean } = {}): Promise<Bill> => {
+    async (bill: Bill, editOptions: { updateFutureRecurring?: boolean } = {}): Promise<Bill> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
+      
       try {
         const { data, error } = await supabase
           .from("bills")
@@ -163,7 +190,8 @@ export function useBills(options: FetchOptions = {}) {
           .single();
 
         if (error) throw error;
-        if (options.updateFutureRecurring) {
+        
+        if (editOptions.updateFutureRecurring) {
           const today = format(new Date(), "yyyy-MM-dd");
           await supabase
             .from("bills")
@@ -183,6 +211,7 @@ export function useBills(options: FetchOptions = {}) {
     async (id: string, deleteFutureRecurring = false): Promise<void> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
+      
       try {
         if (deleteFutureRecurring) {
           const today = format(new Date(), "yyyy-MM-dd");
@@ -201,6 +230,7 @@ export function useBills(options: FetchOptions = {}) {
     async (id: string): Promise<void> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
+      
       try {
         const { error } = await supabase.from("bills").update({ done: true }).eq("id", id).eq("user_id", userId);
         if (error) throw error;
@@ -218,29 +248,13 @@ export function useBills(options: FetchOptions = {}) {
     async (year: number, categoryId: string = "all"): Promise<number[]> => {
       if (!userId) return [];
       
-      const startDate = `${year}-01-01`;
-      const endDate = `${year}-12-31`;
-
-      let query = supabase
-        .from("bills")
-        .select("date")
-        .eq("user_id", userId)
-        .gte("date", startDate)
-        .lte("date", endDate);
-
-      if (categoryId && categoryId !== "all") {
-        if (categoryId === "none") {
-          query = query.is("category_id", null);
-        } else {
-          query = query.eq("category_id", categoryId);
-        }
-      }
-
+      const query = buildActiveMonthsQuery(supabase, userId, year, categoryId);
       const { data, error } = await query;
+      
       if (error || !data) return [];
 
       const activeMonthIndexes = new Set<number>();
-      data.forEach(item => {
+      data.forEach((item: { date: string }) => {
         const month = parseISO(item.date).getMonth();
         activeMonthIndexes.add(month);
       });
