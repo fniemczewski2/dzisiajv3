@@ -1,23 +1,23 @@
 "use client";
-import React, { createContext, useCallback, useContext, useReducer, useRef } from "react";
+import React, { createContext, useCallback, useContext, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 
 type ToastVariant = "success" | "error" | "info" | "loading";
 
 interface NotificationToast {
-  kind: "notification";
-  id: string;
-  message: string;
-  variant: ToastVariant;
+  readonly kind: "notification";
+  readonly id: string;
+  readonly message: string;
+  readonly variant: ToastVariant;
 }
 
 interface ConfirmToast {
-  kind: "confirm";
-  id: string;
-  message: string;
-  confirmLabel: string;
-  cancelLabel: string;
-  resolve: (value: boolean) => void;
+  readonly kind: "confirm";
+  readonly id: string;
+  readonly message: string;
+  readonly confirmLabel: string;
+  readonly cancelLabel: string;
+  readonly resolve: (value: boolean) => void;
 }
 
 type ToastItem = NotificationToast | ConfirmToast;
@@ -27,18 +27,18 @@ type ToastAction =
   | { type: "REMOVE"; id: string };
 
 export interface ConfirmOptions {
-  confirmLabel?: string;
-  cancelLabel?: string;
+  readonly confirmLabel?: string;
+  readonly cancelLabel?: string;
 }
 
 interface ToastContextValue {
-  toast: {
-    success: (message: string) => void;
-    error:   (message: string) => void;
-    info:    (message: string) => void;
-    loading: (message?: string) => string;
-    dismiss: (id: string) => void;
-    confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
+  readonly toast: {
+    readonly success: (message: string) => void;
+    readonly error:   (message: string) => void;
+    readonly info:    (message: string) => void;
+    readonly loading: (message?: string) => string;
+    readonly dismiss: (id: string) => void;
+    readonly confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
   };
 }
 
@@ -62,7 +62,7 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
   loading: "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
 };
 
-function ToastIcon({ variant }: { variant: ToastVariant }) {
+function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
   switch (variant) {
     case "success": return <CheckCircle className="w-4 h-4 shrink-0" />;
     case "error":   return <XCircle className="w-4 h-4 shrink-0" />;
@@ -72,14 +72,13 @@ function ToastIcon({ variant }: { variant: ToastVariant }) {
   }
 }
 
-function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove: (id: string) => void }) {
+function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; onRemove: (id: string) => void }>) {
   return (
     <div
       role="alert"
       aria-live="assertive"
       className={`flex items-start gap-3 w-full px-4 py-3 rounded-xl border shadow-lg text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`}
     >
-      {/* ZMIANA: Wywołanie ikony jako komponentu */}
       <ToastIcon variant={item.variant} />
       <span className="flex-1 leading-snug">{item.message}</span>
       <button
@@ -93,7 +92,7 @@ function NotificationEl({ item, onRemove }: { item: NotificationToast; onRemove:
   );
 }
 
-function ConfirmEl({ item, onRemove }: { item: ConfirmToast; onRemove: (id: string) => void }) {
+function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: (id: string) => void }>) {
   const answer = (value: boolean) => {
     item.resolve(value);
     onRemove(item.id);
@@ -129,7 +128,7 @@ function ConfirmEl({ item, onRemove }: { item: ConfirmToast; onRemove: (id: stri
 
 const AUTO_DISMISS_MS = 4000;
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+export function ToastProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [toasts, dispatch] = useReducer(toastReducer, []);
   const counter = useRef(0);
 
@@ -171,17 +170,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const toast = {
-    success: (m: string) => { addNotification(m, "success"); },
-    error:   (m: string) => { addNotification(m, "error"); },
-    info:    (m: string) => { addNotification(m, "info"); },
-    loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
-    dismiss: (id: string) => remove(id),
-    confirm,
-  };
+  const value = useMemo(() => ({
+    toast: {
+      success: (m: string) => { addNotification(m, "success"); },
+      error:   (m: string) => { addNotification(m, "error"); },
+      info:    (m: string) => { addNotification(m, "info"); },
+      loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
+      dismiss: (id: string) => remove(id),
+      confirm,
+    }
+  }), [addNotification, remove, confirm]);
 
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div
         aria-label="Powiadomienia"

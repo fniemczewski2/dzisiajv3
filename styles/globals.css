@@ -71,10 +71,6 @@
     @apply block text-[11px] md:text-sm font-medium text-textSecondary mb-0.5 md:mb-1.5;
   }
 
-  .input-field {
-   
-  }
-
   .widget {
     @apply mb-2 sm:mb-4 bg-card border border-gray-200 dark:border-gray-700 overflow-hidden rounded-xl shadow transition;
   }
