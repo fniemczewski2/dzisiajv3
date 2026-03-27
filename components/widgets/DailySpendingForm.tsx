@@ -78,12 +78,12 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
           <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading} small/>
         </div>
       ) : (
-        <div onClick={() => setIsEditing(true)}
+        <button onClick={() => setIsEditing(true)}
           className="max-h-[24px] cursor-pointer text-sm sm:text-base font-bold text-text hover:text-primary transition-colors flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-lg shrink-0"
           title="Kliknij, aby edytować">
           {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"}
           <span className="text-[10px] sm:text-xs font-medium text-textMuted uppercase tracking-wider">PLN</span>
-        </div>
+        </button>
       )}
     </div>
   );

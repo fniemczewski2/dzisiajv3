@@ -192,6 +192,47 @@ function TaskViewActions({
   );
 }
 
+const getPriorityColors = (priority: number) => {
+  switch (priority) {
+    case 1: return { backgroundColor: "#fca5a5", color: "#B91C1C" };
+    case 2: return { backgroundColor: "#fdba74", color: "#B91C1C" };
+    case 3: return { backgroundColor: "#fde68a", color: "#A16207" };
+    case 4: return { backgroundColor: "#a7f3d0", color: "#15803D" };
+    default: return { backgroundColor: "#bbf7d0", color: "#15803D" };
+  }
+};
+
+const getTitleClasses = (isDone: boolean, isHighPriority: boolean, isOverdue: boolean) => {
+  if (isDone) return "text-textMuted line-through";
+  if (isHighPriority || isOverdue) return "text-red-600 dark:text-red-400";
+  return "text-text";
+};
+
+function TaskDetails({ task }: { task: Task }) {
+  const hasDescription = !!task.description;
+  const showShareInfo = !!(
+    task.display_share_info && 
+    ["accepted", "waiting_for_acceptance", "pending"].includes(task.status)
+  );
+
+  if (!hasDescription && !showShareInfo) return null;
+
+  return (
+    <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface border border-gray-100 dark:border-gray-800 p-3">
+      {hasDescription && (
+        <span className="text-xs text-textSecondary whitespace-pre-wrap leading-relaxed">
+          {task.description}
+        </span>
+      )}
+      {showShareInfo && (
+        <span className="text-xs font-medium text-primary truncate mt-1">
+          {task.display_share_info}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function TaskView({
   task,
   userId,
@@ -230,15 +271,12 @@ function TaskView({
         >
           <span
             className="w-6 h-6 shrink-0 mt-0.5 text-xs font-bold rounded-md flex items-center justify-center shadow-sm"
-            style={{
-              backgroundColor: task.priority === 1 ? "#fca5a5" : task.priority === 2 ? "#fdba74" : task.priority === 3 ? "#fde68a" : task.priority === 4 ? "#a7f3d0" : "#bbf7d0",
-              color: task.priority === 3 ? "#A16207" : task.priority >= 3 ? "#15803D" : "#B91C1C",
-            }}
+            style={getPriorityColors(task.priority)}
             title={`Priorytet ${task.priority}`}
           >
             {task.priority}
           </span>
-          <h3 className={`text-lg sm:text-xl font-bold break-words leading-tight ${isDone ? "text-textMuted line-through" : isHighPriority || isOverdue ? "text-red-600 dark:text-red-400" : "text-text"}`}>
+          <h3 className={`text-lg sm:text-xl font-bold break-words leading-tight ${getTitleClasses(isDone, isHighPriority, isOverdue)}`}>
             {task.title}
           </h3>
         </button>
@@ -252,16 +290,9 @@ function TaskView({
           )}
         </div>
 
-        {(task.description || task.display_share_info) && (
-          <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface border border-gray-100 dark:border-gray-800 p-3">
-            {task.description && (
-              <span className="text-xs text-textSecondary whitespace-pre-wrap leading-relaxed">{task.description}</span>
-            )}
-            {task.display_share_info && ["accepted","waiting_for_acceptance","pending"].includes(task.status) && (
-              <span className="text-xs font-medium text-primary truncate mt-1">{task.display_share_info}</span>
-            )}
-          </div>
-        )}
+        {/* Złożona logika wyświetlania opisu przeniesiona do sub-komponentu */}
+        <TaskDetails task={task} />
+
       </div>
 
       <TaskViewActions 

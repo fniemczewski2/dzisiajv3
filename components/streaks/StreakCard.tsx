@@ -73,13 +73,13 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
     <div className="card rounded-2xl shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 flex-1 relative">
-          <div 
+          <button
             className={`flex-shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
             title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
           >
             <Icon className="w-7 h-7 sm:w-8 sm:h-8" />
-          </div>
+          </button>
 
           {showIconPicker && (
             <div className="absolute top-[3.5rem] left-0 mt-2 card rounded-xl shadow-lg p-2 z-50 w-[220px] grid grid-cols-5 gap-2">
