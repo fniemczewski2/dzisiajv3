@@ -190,10 +190,6 @@ export function analyzeNameForTags(name: string): string[] {
     }
   });
   
-  if (!lowerName.match(/mcdonald|kfc|burger king|starbucks|costa|subway/)) {
-    tags.add("lokalne");
-  }
-  
   return Array.from(tags).filter(tag => tag.length > 0);
 }
 

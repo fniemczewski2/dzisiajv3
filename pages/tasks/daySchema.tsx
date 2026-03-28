@@ -142,8 +142,8 @@ function CurrentTimeLine({
   entries,
   currentTime,
 }: {
-  entries: ScheduleItem[];
-  currentTime: string;
+  readonly entries: ScheduleItem[];
+  readonly currentTime: string;
 }) {
   const slotHeight = 36;
   const index = entries.findIndex((entry) => entry.time >= currentTime);

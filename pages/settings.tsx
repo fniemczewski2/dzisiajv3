@@ -33,7 +33,7 @@ export default function SettingsPage() {
 
   const handleSave = async (updatedData: Settings) => {
     const { error } = await updateSettings(updatedData);
-    if (!error) {
+    if (error) {
       toast.error("Wystąpił błąd podczas zapisywania.");
     } else {
       toast.success("Zapisano ustawienia!");

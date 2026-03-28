@@ -39,12 +39,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect("/calendar?google_error=invalid_state");
   }
 
-  const supabaseVerify = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // Zamiana ANON na PUBLISHABLE
-    { global: { headers: { Authorization: `Bearer ${supabaseToken}` } } }
-  );
-  
+  const supabaseVerify = (() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!url || !key) {
+      throw new Error("Brak zmiennych środowiskowych Supabase!");
+    }
+
+    return createClient(url, key, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${supabaseToken}`,
+        },
+      },
+    });
+  })();
+
   const { data: { user }, error: authErr } = await supabaseVerify.auth.getUser(supabaseToken);
   if (authErr || user?.id !== userId) {
     console.error("[Google OAuth callback] Supabase token invalid:", authErr?.message);
@@ -76,13 +87,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect("/calendar?google_error=no_access_token");
   }
 
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! 
-  );
+  const supabaseAdmin = (() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SECRET_KEY; // Uwaga: klucz SECRET powinien być tylko po stronie serwera!
+
+    if (!url || !key) {
+      throw new Error("Brak kluczy administracyjnych Supabase (URL lub SECRET_KEY)!");
+    }
+
+    return createClient(url, key);
+  })();
 
   const { error: upsertErr } = await supabaseAdmin.rpc("upsert_google_token", {
-    p_user_id:       userId,
+    p_user_id:      userId,
     p_access_token:  tokens.access_token,
     p_refresh_token: tokens.refresh_token ?? null,   
     p_expires_at:    new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000).toISOString(),
