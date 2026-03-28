@@ -104,6 +104,14 @@ export default function EventItem({
     setEditedEvent(null);
   };
 
+  const isSameDay = event.start_time.slice(0, 10) === event.end_time.slice(0, 10);
+
+  const renderedTime = isSameDay ? (
+    <>{formatTime(event.start_time)} – {formatTime(event.end_time)}</>
+  ) : (
+    <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
+  );
+
   if (isEditing && editedEvent) {
     const editPrefix = `edit-event-${event.id}`;
     
@@ -208,13 +216,7 @@ export default function EventItem({
       <div className="space-y-2.5 mb-4">
         <div className="flex items-center text-sm font-medium text-textSecondary">
           <Clock className="w-4 h-4 mr-2 text-primary" />
-          {formatTime(event.start_time) === formatTime(event.end_time) ? (
-            <>{formatTime(event.start_time)}</>
-          ) : event.start_time.slice(0, 10) === event.end_time.slice(0, 10) ? (
-            <>{formatTime(event.start_time)} – {formatTime(event.end_time)}</>
-          ) : (
-            <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
-          )}
+          {renderedTime}
         </div>
         {event.place && (
           <div className="flex items-center text-sm font-medium text-textSecondary">

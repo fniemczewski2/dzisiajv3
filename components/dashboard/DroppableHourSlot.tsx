@@ -3,7 +3,7 @@
 import React from "react";
 import { useDroppable } from '@dnd-kit/core';
 
-export function DroppableHourSlot({ time, children }: { time: string, children: React.ReactNode }) {
+export function DroppableHourSlot({ time, children }: Readonly<{ time: string, children: React.ReactNode }>) {
   const { isOver, setNodeRef } = useDroppable({
     id: `slot-${time}`,
     data: { time }

@@ -99,7 +99,7 @@ export default function DaySchemaForm({
         <label htmlFor="weekdays" className="form-label">Dni tygodnia:</label>
         <div id="weekdays" className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
-            <button key={i} type="button" onClick={() => toggleDay(i)}
+            <button key={label} type="button" onClick={() => toggleDay(i)}
               className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
                 days.includes(i)
                   ? "bg-primary border-primary text-white"
@@ -115,7 +115,7 @@ export default function DaySchemaForm({
         <div className="form-label">Wpisy:</div>
         <div className="space-y-2">
           {entries.map((entry, i) => (
-            <div key={i} className="flex w-full gap-2 items-center">
+            <div key={`${entry.time}-${entry.label}`} className="flex w-full gap-2 items-center">
               <label htmlFor="time" className="sr-only">Godzina</label>
               <input id="time" type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}

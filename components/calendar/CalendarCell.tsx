@@ -77,9 +77,9 @@ const CalendarCell = memo(function CalendarCell({
             isToday ? "bg-primary text-white" : "text-text",
             isOutside && !isToday && "text-textMuted",
             holiday &&
-              (!isToday
-                ? "text-red-600 dark:text-red-400"
-                : "bg-red-600 dark:bg-red-400/80")
+              (isToday
+                ? "bg-red-600 dark:bg-red-400/80" 
+                : "text-red-600 dark:text-red-400")
           )}
         >
           {date.getDate()}

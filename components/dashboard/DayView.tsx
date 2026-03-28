@@ -51,8 +51,8 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
         return hour.padStart(2, "0");
       }
     }
-  } catch (e) {
-    console.error("Błąd parsowania godziny:", dateStr);
+  } catch (e: any) {
+    throw new Error(`Błąd parsowania godziny: ${e.message}`);
   }
   return null;
 };
@@ -137,7 +137,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
         const schemaId = `schema-${idx}`;
         const override = overrides.find(o => o.schema_id === schemaId);
         
-        if (override && override.new_time === null) return;
+        if (override?.new_time === null) return;
 
         const rawTime = override?.new_time || entry.time;
         const timeMatch = rawTime.match(/\d{2}:\d{2}/);
@@ -246,7 +246,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
        if (!over) return;
        const schemaId = activeId.replace("plan-schema-", "");
        
-       const timeMatch = String(over.id).match(/\d{2}:\d{2}/);
+       const timeMatch = /\d{2}:\d{2}/.exec(String(over.id));
        if (!timeMatch) return;
        
        const newTime = timeMatch[0];
@@ -271,7 +271,6 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
     }
   };
 
-  // DEFENSE: Replaced Math.random() with standard browser crypto API to silence PRNG warnings
   const handleAddDraft = (type: "task" | "event") => {
     setDraftForms((prev) => [...prev, { id: crypto.randomUUID(), type }]);
   };
@@ -279,6 +278,22 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
   const handleRemoveDraft = (id: string) => {
     setDraftForms((prev) => prev.filter((f) => f.id !== id));
   };
+
+  const dragPreview = (() => {
+    if (draggedTask) {
+      return <DraggingTaskItem title={draggedTask.title} />;
+    }
+    
+    if (draggedEventTitle) {
+      return <DraggingEventItem title={draggedEventTitle} />;
+    }
+    
+    if (draggedSchemaTitle) {
+      return <DraggingTaskItem title={draggedSchemaTitle} />;
+    }
+    
+    return null;
+  })();
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStartCustom} onDragEnd={handleDragEndCustom}>
@@ -434,10 +449,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
       </div>
 
       <DragOverlay style={{ touchAction: "none" }} dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: "0.5" } } }) }}>
-        {draggedTask ? <DraggingTaskItem title={draggedTask.title} /> 
-         : draggedEventTitle ? <DraggingEventItem title={draggedEventTitle} /> 
-         : draggedSchemaTitle ? <DraggingTaskItem title={draggedSchemaTitle} /> 
-         : null}
+        {dragPreview}
       </DragOverlay>
     </DndContext>
   );
