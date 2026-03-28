@@ -17,8 +17,10 @@ export function useIntervalTraining(cfg: IntervalConfig) {
   const phases = useMemo<TimerPhase[]>(() => {
     const p: TimerPhase[] = [];
     for (let s = 0; s < cfg.sets; s++) {
-      p.push({ label: `Ćwiczenia ${s + 1}`, seconds: cfg.workSeconds });
-      p.push({ label: `Przerwa ${s + 1}`,   seconds: cfg.restSeconds });
+      p.push(
+        { label: `Ćwiczenia ${s + 1}`, seconds: cfg.workSeconds },
+        { label: `Przerwa ${s + 1}`,   seconds: cfg.restSeconds }
+      );
     }
     if (cfg.longRestSeconds && cfg.longRestAfterCycles) {
       p.push({ label: "Długa przerwa", seconds: cfg.longRestSeconds });

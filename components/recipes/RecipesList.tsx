@@ -246,7 +246,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
                     </span>
                   )}
                 </div>
-                <button className="p-2 bg-surface text-textSecondary rounded-lg transition-colors group-hover:bg-blue-100 dark:hover:bg-blue-900 group-hover:text-primary shrink-0">
+                <button className="p-2 bg-surface text-textSecondary rounded-lg transition-colors group-hover:bg-blue-100 dark:hover:bg-blue-900 group-hover:text-primary shrink-0" onClick={() => toggleOpen(r.id)}>
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                 </button>
               </div>

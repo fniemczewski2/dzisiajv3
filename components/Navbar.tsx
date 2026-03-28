@@ -29,8 +29,8 @@ export default function Navbar() {
       }
     };
 
-    window.addEventListener("settingsUpdated", handleSettingsChange);
-    return () => window.removeEventListener("settingsUpdated", handleSettingsChange);
+    globalThis.addEventListener("settingsUpdated", handleSettingsChange);
+    return () => globalThis.removeEventListener("settingsUpdated", handleSettingsChange);
   }, []);
 
   const renderMenuItems = (): React.ReactNode => {

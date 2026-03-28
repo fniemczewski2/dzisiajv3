@@ -30,6 +30,14 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
     return departures.slice(0, limit);
   }, [departures, many]);
 
+  let locationLabel = "Poznań"; 
+
+  if (typeof distance === "number") {
+    locationLabel = `${Math.round(distance)}m`;
+  } else if (zone_id === "S") {
+    locationLabel = "Szczecin";
+  }
+
   return (
     <div className="p-4 bg-transparent transition-colors hover:bg-surfaceHover">
 
@@ -41,7 +49,7 @@ export default function StopItem({ stopName, distance, departures, isLoading, on
           
           <div className="flex items-center gap-1 text-xs font-bold tracking-wider uppercase text-textSecondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md">
             <MapPin className="w-3 h-3" />
-            {distance !== undefined ? `${Math.round(distance)}m` : zone_id === "S" ? "Szczecin" : "Poznań"}
+            {locationLabel}
           </div>
 
           {onAddFavorite && zone_id !== undefined && zone_id !== "" && (

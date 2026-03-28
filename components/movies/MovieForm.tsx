@@ -24,7 +24,7 @@ async function tmdbFetch<T = unknown>(
   path: string,
   params: Record<string, string> = {}
 ): Promise<T> {
-  const url = new URL("/api/tmdb", window.location.origin);
+  const url = new URL("/api/tmdb", globalThis.location?.origin);
   url.searchParams.set("path", path);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   const res = await fetch(url.toString());
