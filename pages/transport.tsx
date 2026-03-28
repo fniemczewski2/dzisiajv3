@@ -45,8 +45,8 @@ export default function TransportPage() {
     try {
       const stops = JSON.parse(favoritesJSON);
       fetchFavorites(stops);
-    } catch (e) {
-      toast.error("Wystąpił błąd pobierania ulubionych przystanków");
+    } catch (e: any) {
+      toast.error(`Wystąpił błąd pobierania ${e.message}`);
     }
   }, [favoritesJSON, fetchFavorites, settingsLoading]);
 

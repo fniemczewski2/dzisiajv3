@@ -75,8 +75,15 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
       updates.shared_with_email = sharedEmail;
     }
 
+    const listId = editedList.id;
+
+    if (!listId) {
+      toast.error("Błąd: Brak identyfikatora listy.");
+      return;
+    }
+
     await withRetry(
-      () => editShoppingList(editedList.id!, updates),
+      () => editShoppingList(listId, updates), 
       toast,
       { context: "ShoppingListView.editShoppingList", ...retryOpts }
     );
@@ -87,7 +94,6 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     setSharedEmail("");
   };
 
-  // ZMIANA: Obsługa usuwania w zależności od tego, czy jesteśmy właścicielem
   const handleDelete = async (list: ShoppingList) => {
     const isOwner = list.user_id === user?.id;
 
