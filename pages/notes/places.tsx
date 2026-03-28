@@ -43,7 +43,7 @@ const matchesTimeFilter = (place: Place, timeFilter: TimeFilter | null): boolean
 
   if (!hours || !Array.isArray(hours) || hours.length === 0) return false;
 
-  const match = hours[0].match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
+  const match = /(\d{2}:\d{2})-(\d{2}:\d{2})/.exec(hours[0]);
   if (!match) return false;
 
   const [, openTime, closeTime] = match;

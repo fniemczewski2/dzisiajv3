@@ -16,7 +16,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
-    if (typeof globalThis.window === "undefined" || mapLoaded) return;
+    if (globalThis.window === undefined || mapLoaded) return;
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -79,7 +79,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   useEffect(() => {
     if (!mapInstance || !mapLoaded) return;
 
-    const L = (window as any).L;
+    const L = (globalThis as any).L;
     if (!L) return;
 
     markersRef.current.forEach((marker) => marker?.remove());

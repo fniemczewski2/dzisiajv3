@@ -62,7 +62,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
       if (aEmpty && !bEmpty) return 1;
       if (!aEmpty && bEmpty) return -1;
       const byCat = (a.category ?? "~").toLowerCase().localeCompare((b.category ?? "~").toLowerCase(), "pl");
-      return byCat !== 0 ? byCat : a.name.localeCompare(b.name, "pl");
+      return byCat === 0 ? a.name.localeCompare(b.name, "pl") : byCat;
     });
   }, [recipes, qText, prodFilter, settings?.sort_recipes]);
 

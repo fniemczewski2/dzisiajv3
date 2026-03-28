@@ -29,7 +29,8 @@ export function createServerSupabase(
             cookiesToSet.forEach(({ name, value, options }) => {
               res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
             })
-          } catch (error) {
+          } catch (error: any) {
+            throw new Error(`Wystąpił błąd ${error.message}`)
           }
         },
       },

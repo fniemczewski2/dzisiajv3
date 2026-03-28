@@ -116,19 +116,16 @@ export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) 
     toast.success("Odłączono Google Calendar.");
   };
 
-  const statusMap = {
-    loading: "Sprawdzanie...",
-    connected: "Połączony",
-    disconnected: "Niepołączony",
-  };
-
-  const currentStatus = connected === null 
-    ? "loading" 
-    : connected 
-      ? "connected" 
-      : "disconnected";
-
-  const statusLabel = statusMap[currentStatus];
+  const currentStatus = (connected: boolean | null) => {
+    switch (connected) {
+      case true:
+      return "connected"
+      case false:
+        return "disconnected"
+      default: 
+        return "Sprawdzanie..."
+    }
+ }
 
   return (
     <div className="card rounded-xl shadow-sm overflow-hidden mt-6 b-6 transition-all">
@@ -146,7 +143,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) 
           <div className="text-left">
             <p className="font-bold text-text text-sm">Kalendarz Google</p>
             <p className="text-[10px] font-medium uppercase tracking-wider text-textMuted">
-              {statusLabel} 
+              {currentStatus(connected)} 
             </p>
             <p className="text-[10px] font-medium uppercase tracking-wider text-textMuted">
               wersja testowa
