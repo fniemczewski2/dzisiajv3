@@ -1,6 +1,7 @@
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import React, { useState } from "react";
 import { CloseButton } from "../CommonButtons";
+import { useToast } from "../../providers/ToastProvider";
 
 interface ImportPlacesProps {
   onImport: (jsonData: any, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;
@@ -16,13 +17,14 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
     type: "success" | "error" | "info" | null;
     message: string;
   }>({ type: null, message: "" });
+  const { toast } = useToast();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsImporting(true);
-    setImportStatus({ type: null, message: "" });
+    let toastId: string | undefined;
 
     try {
       const text = await file.text();
@@ -32,24 +34,17 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
         throw new Error("Nieprawidłowy format pliku JSON");
       }
 
-      setImportStatus({
-        type: "info",
-        message: `Importowanie ${jsonData.features.length} miejsc...`,
-      });
+      toastId = toast.loading(`Importowanie ${jsonData.features.length} miejsc...`);
 
       const count = await onImport(jsonData, fetchGoogleData, autoTagEnabled);
 
-      setImportStatus({
-        type: "success",
-        message: `Pomyślnie zaimportowano ${count} miejsc.`,
-      });
+      if (toastId && toast.dismiss) toast.dismiss(toastId);
+      toast.success(`Pomyślnie zaimportowano ${count} miejsc.`);
 
       e.target.value = "";
     } catch (error: any) {
-      setImportStatus({
-        type: "error",
-        message: error.message || "Błąd podczas importu",
-      });
+      if (toastId && toast.dismiss) toast.dismiss(toastId);
+      toast.error(error.message || "Błąd podczas importu");
     } finally {
       setIsImporting(false);
     }
@@ -159,16 +154,6 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
           </label>
         </div>
       </div>
-
-      {importStatus.type && (
-        <div className={`p-4 mb-5 rounded-xl text-sm font-bold flex items-center justify-center ${
-          importStatus.type === "success" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-          importStatus.type === "error" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
-          "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-        }`}>
-          {importStatus.message}
-        </div>
-      )}
 
       <div className="flex flex-wrap gap-3">
         <label 

@@ -213,13 +213,13 @@ export function usePlaces() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
-      return !error ? "updated" : "error";
+      return error ?  "error" : "updated";
     }
 
     const { error } = await supabase
       .from("places")
       .insert([{ ...baseData, tags }]);
-    return !error ? "imported" : "error";
+    return error ? "error" : "imported";
   };
 
   const importFromGoogleMaps = async (
@@ -258,7 +258,7 @@ export function usePlaces() {
       };
 
       const result = await savePlaceRecord(existing, baseData, tags);
-      if (result !== "error") counts[result as keyof typeof counts]++;
+      if (result !== "error") counts[result]++;
 
       if (fetchGoogleData && i < features.length - 1) {
         await new Promise((r) => setTimeout(r, 400));

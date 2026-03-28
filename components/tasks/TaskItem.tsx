@@ -36,7 +36,7 @@ function TaskEditForm({
   increasePriority,
   decreasePriority,
   titleRef
-}: {
+}: Readonly<{
   task: Task;
   editedTask: Task;
   setEditedTask: React.Dispatch<React.SetStateAction<Task>>;
@@ -48,7 +48,7 @@ function TaskEditForm({
   increasePriority: () => void;
   decreasePriority: () => void;
   titleRef: React.RefObject<HTMLInputElement | null>;
-}) {
+}>) {
   const editPrefix = `edit-task-${task.id}`;
 
   return (
@@ -145,7 +145,7 @@ function TaskViewActions({
   handleComplete,
   handleReschedule,
   setIsTimerActive,
-}: {
+}: Readonly<{
   task: Task;
   userId: string;
   isDone: boolean;
@@ -156,7 +156,7 @@ function TaskViewActions({
   handleComplete: () => void;
   handleReschedule: (days: number) => void;
   setIsTimerActive: (val: boolean) => void;
-}) {
+}>) {
   if (isDone) {
     return (
       <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
@@ -208,7 +208,7 @@ const getTitleClasses = (isDone: boolean, isHighPriority: boolean, isOverdue: bo
   return "text-text";
 };
 
-function TaskDetails({ task }: { task: Task }) {
+function TaskDetails({ task }: { readonly task: Task }) {
   const hasDescription = !!task.description;
   const showShareInfo = !!(
     task.display_share_info && 
@@ -246,7 +246,7 @@ function TaskView({
   handleComplete,
   handleReschedule,
   isRescheduling
-}: {
+}: Readonly<{
   task: Task;
   userId: string;
   isDone: boolean;
@@ -259,7 +259,7 @@ function TaskView({
   handleComplete: () => void;
   handleReschedule: (days: number) => void;
   isRescheduling: boolean;
-}) {
+}>) {
   return (
     <div className="card min-w-0 p-4 w-full rounded-2xl hover:border-primary transition-all flex flex-col text-left">
       <div className="space-y-3 flex-1">

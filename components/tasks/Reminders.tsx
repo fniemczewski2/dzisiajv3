@@ -42,12 +42,12 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     }
     try {
       await addReminder(form.tytul, form.data_poczatkowa, form.powtarzanie);
-      toast.success("Dodano przypomnienie pomyślnie.");
+      toast.success("Dodano pomyślnie.");
       setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
       setShowForm(false);
-    } catch (error) {
-      toast.error("Wystąpił błąd podczas dodawania przypomnienia.");
-      console.error(error);
+    } catch (e: any) {
+      toast.error("Wystąpił błąd podczas dodawania.");
+      throw new Error(e.message)
     }
   };
 
@@ -55,8 +55,9 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     try {
       await completeReminder(id);
       toast.success("Oznaczono jako wykonane.");
-    } catch (error) {
+    } catch (e: any) {
       toast.error("Wystąpił błąd podczas aktualizacji.");
+      throw new Error(e.message)
     }
   };
 
@@ -64,20 +65,22 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     try {
       await postponeReminder(id, powtarzanie);
       toast.success("Zadanie odłożone na później.");
-    } catch (error) {
+    } catch (e: any) {
       toast.error("Wystąpił błąd.");
+      throw new Error(e.message)
     }
   };
 
   const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz trwale usunąć to zadanie cykliczne?");
+    const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie cykliczne?");
     if (!ok) return;
 
     try {
       await deleteReminder(id);
       toast.success("Usunięto pomyślnie.");
-    } catch (error) {
+    } catch (e: any) {
       toast.error("Wystąpił błąd podczas usuwania.");
+      throw new Error(e.message)
     }
   };
 
@@ -128,7 +131,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
       
       await completeReminder(reminder.id);
       
-      toast.success("Utworzono zadanie na podstawie przypomnienia.");
+      toast.success("Utworzono zadanie.");
       onTasksChange?.();
     } catch (e: any) {
       throw new Error(e.message)

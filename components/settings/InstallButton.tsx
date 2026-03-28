@@ -29,7 +29,7 @@ export default function InstallPromptButton() {
     }
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
+      globalThis.removeEventListener("beforeinstallprompt", handler);
     };
   }, []);
 

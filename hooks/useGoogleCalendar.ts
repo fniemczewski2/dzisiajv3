@@ -90,7 +90,7 @@ export function useGoogleCalendar() {
         throw new Error(d.error || `HTTP ${res.status}`);
       }
       const { url } = await res.json();
-      window.location.href = url;
+      globalThis.location.href = url;
     } catch (e: any) {
       setError(`Nie udało się rozpocząć autoryzacji: ${e.message}`);
       setLoading(false);

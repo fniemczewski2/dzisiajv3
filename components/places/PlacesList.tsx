@@ -91,6 +91,12 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
         const isExpanded = expandedId === place.id;
         const distanceText = getDistanceText(place.lat, place.lng);
 
+        const searchQuery = place.address ? `${place.name}, ${place.address}` : place.name;
+
+        const mapsUrl = place.google_place_id
+          ? `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=$${place.google_place_id}`
+          : `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(searchQuery)}`;
+
         return (
           <div key={place.id}
             className="card rounded-xl shadow-sm transition-all duration-200 hover:border-primary group overflow-hidden">
@@ -186,11 +192,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
 
                 <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-4 border-t border-gray-100 dark:border-gray-800">
                   <a
-                    href={
-                      place.google_place_id
-                        ? `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${place.google_place_id}`
-                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}${place.address ? ", " + place.address : ""}`)}`
-                    }
+                    href={mapsUrl}
                     target="_blank" rel="noopener noreferrer"
                     className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
                     onClick={(e) => e.stopPropagation()}>

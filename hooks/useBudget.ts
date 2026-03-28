@@ -59,13 +59,13 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     const monthData = getEmptyMonthData();
 
     (bills as any[])?.forEach(({ amount, is_income, description, done: isDone }) => {
-      if (!is_income) {
-        monthData.income += amount;
-      } else {
+      if (is_income) {
         if (description === "Bieżące") monthData.budget += amount;
         monthData.sum += amount;
         if (isDone) monthData.doneExpense += amount;
         else monthData.plannedExpense += amount;
+      } else {
+        monthData.income += amount;
       } 
     });
 
