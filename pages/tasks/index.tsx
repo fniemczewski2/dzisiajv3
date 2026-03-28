@@ -32,7 +32,7 @@ const FILTER_OPTIONS = [
 
 type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 
-export default function TasksPage({isMain}: {isMain?: boolean}) {
+export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   
@@ -71,10 +71,10 @@ export default function TasksPage({isMain}: {isMain?: boolean}) {
   const filteredTasks = useMemo(() => {
     if (!filterDate) return tasks;
     
-    const allowedStatuses = ["pending", "waiting_for_acceptance", "accepted"];
+    const allowedStatuses = new Set(["pending", "waiting_for_acceptance", "accepted"]);
     if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) { 
       return tasks.filter(
-        (t) => t.due_date <= filterDate && allowedStatuses.includes(t.status)
+        (t) => t.due_date <= filterDate && allowedStatuses.has(t.status)
       );
     } else {
        return tasks.filter((t) => t.due_date === filterDate);

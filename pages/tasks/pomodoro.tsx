@@ -43,11 +43,9 @@ export default function PomodoroPage() {
       intervalRef.current = setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+    } else if (intervalRef.current) { 
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
     
     return () => {

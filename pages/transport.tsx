@@ -167,7 +167,7 @@ export default function TransportPage() {
                           </span>
                           <div className="mt-1">
                             {bollard.departures.map((dep: any, idx: number) => (
-                              <div key={idx} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                              <div key={`${dep.line}-${dep.direction}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
                                 <span className="font-medium w-8">{dep.line}</span>
                                 <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
                                 <span className={dep.is_realtime ? "text-primary font-bold" : ""}>
@@ -219,11 +219,11 @@ export default function TransportPage() {
                     {group.bollards?.map((bollard: any) => (
                       <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg">
                         <span className="text-[10px] uppercase text-textSecondary font-mono">
-                          Słupek: {bollard.bollard_code}
+                          {bollard.bollard_code}
                         </span>
                         <div className="mt-1">
-                          {bollard.departures.map((dep: any, idx: number) => (
-                            <div key={idx} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                          {bollard.departures.map((dep: any) => (
+                            <div key={`${dep.line}-${dep.direction}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
                               <span className="font-medium w-8">{dep.line}</span>
                               <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
                               <span className={dep.is_realtime <= 5 ? "text-primary font-bold" : ""}>

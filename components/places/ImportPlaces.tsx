@@ -13,10 +13,6 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
   const [autoTagEnabled, setAutoTagEnabled] = useState(true);
   const [fetchGoogleData, setFetchGoogleData] = useState(true);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [importStatus, setImportStatus] = useState<{
-    type: "success" | "error" | "info" | null;
-    message: string;
-  }>({ type: null, message: "" });
   const { toast } = useToast();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
