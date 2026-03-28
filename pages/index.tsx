@@ -47,7 +47,7 @@ export default function IndexPage() {
       />
         {(() => {switch(settings.main_view){
           case "tasks":{
-            return (<TasksPage isMain />)
+            return (<TasksPage />)
           }
           case "day_view":{
             return (
