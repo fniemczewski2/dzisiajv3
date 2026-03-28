@@ -93,7 +93,6 @@ export default function PlaceFilters({
         {availableTags.length > 0 && (
           <div className="card rounded-xl p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              {/* CHANGED: label -> div because it's a section heading, not a form control label */}
               <div className="text-xs font-bold uppercase tracking-wider text-textSecondary">
                 Tagi
               </div>
@@ -126,7 +125,6 @@ export default function PlaceFilters({
         )}
         <div className="card rounded-xl p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            {/* CHANGED: label -> div because it's a section heading */}
             <div className="text-xs font-bold uppercase tracking-wider text-textSecondary">
               Godziny otwarcia
             </div>
@@ -141,7 +139,6 @@ export default function PlaceFilters({
           {showTimeFilter && (
             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-3">
               <div>
-                {/* CHANGED: Added htmlFor and id */}
                 <label htmlFor="filter-day" className="form-label">Dzień tygodnia:</label>
                 <select
                   id="filter-day"
@@ -150,14 +147,13 @@ export default function PlaceFilters({
                   className="input-field py-1.5"
                 >
                   {DAYS.map((day, index) => (
-                    <option key={index} value={index}>{day}</option>
+                    <option key={day} value={index}>{day}</option>
                   ))}
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="min-w-0 max-w-[100%]">
-                  {/* CHANGED: Added htmlFor and id */}
                   <label htmlFor="filter-start-time" className="form-label">Od godziny:</label>
                   <input
                     id="filter-start-time"
@@ -168,7 +164,6 @@ export default function PlaceFilters({
                   />
                 </div>
                 <div className="min-w-0 max-w-[100%]">
-                  {/* CHANGED: Added htmlFor and id */}
                   <label htmlFor="filter-end-time" className="form-label">Do godziny:</label>
                   <input
                     id="filter-end-time"

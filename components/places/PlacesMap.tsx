@@ -16,7 +16,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || mapLoaded) return;
+    if (typeof globalThis.window === "undefined" || mapLoaded) return;
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -60,7 +60,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || mapInstance) return;
 
-    const L = (window as any).L;
+    const L = (globalThis as any).L;
     const center =
       places.length > 0 ? [places[0].lat, places[0].lng] : [52.406, 16.925];
     const map = L.map(mapRef.current).setView(center, 13);
@@ -91,7 +91,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
       if (place && onPlaceClick) onPlaceClick(place);
     };
 
-    window.addEventListener("placeClick", handlePlaceClick as EventListener);
+    globalThis.addEventListener("placeClick", handlePlaceClick as EventListener);
 
     const newMarkers = places
       .map((place) => {
@@ -157,7 +157,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
     }
 
     return () => {
-      window.removeEventListener("placeClick", handlePlaceClick as EventListener);
+      globalThis.removeEventListener("placeClick", handlePlaceClick as EventListener);
     };
   }, [places, mapInstance, mapLoaded, onPlaceClick]);
 

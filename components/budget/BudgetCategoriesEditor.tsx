@@ -146,9 +146,13 @@ function AmountEditor({
 
 function formatAmount(cat: BudgetCategory, view: ViewMode): string {
   if (cat.amount === 0) return "—";
-  const val = cat.is_monthly
-    ? view === "month" ? cat.amount : cat.amount * 12
-    : view === "month" ? cat.amount / 12 : cat.amount;
+  const getBaseValue = () => {
+    if (cat.is_monthly && view === "year") return cat.amount * 12;
+    if (!cat.is_monthly && view === "month") return cat.amount / 12;
+    return cat.amount;
+  };
+
+  const val = getBaseValue();
   return `${Math.round(val).toLocaleString("pl-PL")} zł`;
 }
 
@@ -161,8 +165,8 @@ export default function BudgetCategoriesEditor({
   year,
   onCategoriesChange,
 }: {
-  year: number;
-  onCategoriesChange?: () => void;
+  readonly year: number;
+  readonly onCategoriesChange?: () => void;
 }) {
   const { toast } = useToast();
   const {

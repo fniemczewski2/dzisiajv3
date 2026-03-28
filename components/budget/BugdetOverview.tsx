@@ -9,28 +9,34 @@ interface Props {
   loading: boolean;
 }
 
+interface ProgressBarProps {
+  spent: number; 
+  planned: number; 
+  max: number; 
+  danger?: boolean 
+}
+
 type View = "year" | "month";
 
-function ProgressBar({ spent, planned, max, danger }: { spent: number; planned: number; max: number; danger?: boolean }) {
+const getStatusColor = (isOver: boolean, isDanger: boolean, percentage: number) => {
+  if (isOver || isDanger) return "bg-red-500";
+  if (percentage > 80) return "bg-amber-500";
+  return "bg-primary";
+};
+
+function ProgressBar({ spent, planned, max, danger = false }: Readonly<ProgressBarProps>) {
   const total = spent + planned;
   const pctSpent = max > 0 ? Math.min((spent / max) * 100, 100) : 0;
   const pctPlanned = max > 0 ? Math.min((planned / max) * 100, 100 - pctSpent) : 0;
-  
   const over = max > 0 && total > max;
-
+  const barColor = getStatusColor(over, danger, pctSpent);
   return (
     <div className="relative h-2 bg-surface rounded-full overflow-hidden border border-gray-100 dark:border-gray-800 flex">
       <div
-        className={`h-full transition-all duration-500 ${
-          over || danger
-            ? "bg-red-500"
-            : pctSpent > 80
-            ? "bg-amber-500"
-            : "bg-primary"
+        className={`h-full transition-all duration-500 ${barColor}
         }`}
         style={{ width: `${pctSpent}%` }}
       />
-      {/* Pasek wydatków zaplanowanych (lekko przezroczysty i doklejony do głównego) */}
       <div
         className={`h-full transition-all duration-500 ${
           over || danger 
