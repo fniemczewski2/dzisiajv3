@@ -6,9 +6,14 @@ export async function middleware(request: NextRequest) {
     request: { headers: request.headers },
   })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!url || !key) {
+    throw new Error("Brak zmiennych środowiskowych Supabase!");
+  }
+
+  const supabase = createServerClient(url, key, 
     {
       cookies: {
         getAll() { return request.cookies.getAll() },

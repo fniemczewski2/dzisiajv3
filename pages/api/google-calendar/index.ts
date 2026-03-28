@@ -110,7 +110,7 @@ const toRFC3339 = (ts: string): string => {
       timeZone: "Europe/Warsaw",
       timeZoneName: "shortOffset",
     }).formatToParts(refDate).find((p) => p.type === "timeZoneName")?.value ?? "GMT+1";
-    const match = offsetStr.match(/GMT([+-])(\d+)/);
+    const match = /GMT([+-])(\d+)/.exec(offsetStr);
     const sign = match?.[1] ?? "+";
     const hrs = String( Number.parseInt(match?.[2] ?? "1")).padStart(2, "0");
     return localStr + sign + hrs + ":00"; 
@@ -235,12 +235,12 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
       shared_with_id: null,
     });
 
-    if (!error) {
-      imported++;
-    } else {
+    if (error) {
       console.error("[gcal import] insert error:", error.message);
       skipped++;
-    }
+    } else {
+      imported++;
+    } 
   }
 
   return res.json({ imported, skipped, total: items.length });

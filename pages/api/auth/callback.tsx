@@ -5,9 +5,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, next = '/' } = req.query
 
   if (code) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!url || !key) {
+      throw new Error("Brak zmiennych środowiskowych Supabase!");
+    }
+    const supabase = createServerClient(url, key,
       {
         cookies: {
           getAll() {
@@ -16,14 +20,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               value: req.cookies[name] || '',
             }))
           },
-          // POPRAWKA: Dodano jawne typowanie dla tablicy cookiesToSet
           setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
             try {
               cookiesToSet.forEach(({ name, value, options }) => {
                 res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
               })
             } catch (error) {
-              // Ignorujemy błędy, bo obiekt res wyśle nagłówki
+              throw new Error("Błąd autoryzacji.")
             }
           },
         },

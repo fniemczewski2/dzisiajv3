@@ -93,7 +93,7 @@ function ReportEditRow({
     a[i] = val;
     updArr("agenda", a);
   };
-  const removeAgenda = (i: number) => updArr("agenda", editedReport.agenda!.filter((_, j) => j !== i));
+  const removeAgenda = (i: number) => updArr("agenda", editedReport.agenda.filter((_, j) => j !== i));
   const addAgenda = () => updArr("agenda", [...(editedReport.agenda || []), ""]);
 
   const updateParticipant = (i: number, val: string) => {
@@ -101,7 +101,7 @@ function ReportEditRow({
     p[i] = val;
     updArr("participants", p);
   };
-  const removeParticipant = (i: number) => updArr("participants", editedReport.participants!.filter((_, j) => j !== i));
+  const removeParticipant = (i: number) => updArr("participants", editedReport.participants.filter((_, j) => j !== i));
   const addParticipant = () => updArr("participants", [...(editedReport.participants || []), ""]);
 
   const updateTask = (i: number, field: keyof ReportTask, val: string) => {
@@ -109,7 +109,7 @@ function ReportEditRow({
     t[i] = { ...t[i], [field]: val };
     updArr("tasks", t);
   };
-  const removeTask = (i: number) => updArr("tasks", editedReport.tasks!.filter((_, j) => j !== i));
+  const removeTask = (i: number) => updArr("tasks", editedReport.tasks.filter((_, j) => j !== i));
   const addTask = () => updArr("tasks", [...(editedReport.tasks || []), { zadanie: "", data: "", osoba: "" }]);
 
   return (

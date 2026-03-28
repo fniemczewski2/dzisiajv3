@@ -248,7 +248,7 @@ export default function PrivacyPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { readonly title: string; readonly children: React.ReactNode }) {
   return (
     <section className="mb-8">
       <h2 className="text-lg font-bold text-text mb-3">{title}</h2>
@@ -257,7 +257,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Li({ children }: { children: React.ReactNode }) {
+function Li({ children }: { readonly children: React.ReactNode }) {
   return (
     <li className="flex gap-2 items-start">
       <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />

@@ -98,17 +98,14 @@ export default function TransportPage() {
     return () => clearTimeout(debounce);
   }, [searchQuery, supabase]);
 
-  const handleSuggestionClick = (value: string | any) => {
-    const strValue = typeof value === 'string' ? value : value?.target?.innerText || "";
-    if (!strValue) return;
-
-    const selectedStop = searchResults.find((s) => s.displayString === strValue);
+  const handleSuggestionClick = (value: string) => {
+    const selectedStop = searchResults.find((s) => s.displayString === value);
     
     if (selectedStop) {
       addFavoriteStop(selectedStop.name, selectedStop.zone_id);
       toast.success(`Dodano do ulubionych: ${selectedStop.name}`);
     } else {
-      const fallbackName = strValue.split(" (")[0];
+      const fallbackName = value.split(" (")[0];
       addFavoriteStop(fallbackName, "AUTO");
       toast.success(`Dodano do ulubionych: ${fallbackName}`);
     }

@@ -24,7 +24,7 @@ import { getAppDateTime } from "../lib/dateUtils";
 import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
 
-function WeatherIcon({ code }: { code: number }) {
+function WeatherIcon({ code }: { readonly code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
   if (code === 2) return <CloudSun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
   if (code <= 3) return <Cloud className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
@@ -116,7 +116,7 @@ export default function WeatherPage() {
             fetch(airUrl.toString()),
           ]);
 
-          if (!forecastRes.ok || !airRes.ok) throw new Error();
+          if (!forecastRes.ok || !airRes.ok) throw new Error("Brak danych pogodowych!");
 
           const forecastJson = await forecastRes.json();
           const airJson = await airRes.json();

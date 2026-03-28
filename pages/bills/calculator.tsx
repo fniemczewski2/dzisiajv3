@@ -161,9 +161,10 @@ export default function BillCalculator() {
   };
 
   const getCurrencySymbol = (curr: string) => {
-    switch(curr) {
-        case "EUR": return "€";
-        default: return "zł";
+    if(curr === "EUR") {
+      return "€";
+    } else {
+      return "zł";
     }
   }
 
