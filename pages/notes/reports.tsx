@@ -52,7 +52,7 @@ function ReportViewRow({
             <span className="font-bold text-textMuted uppercase tracking-wider text-[10px] block mb-1.5">Zadania:</span>
             <ul className="list-none space-y-1 text-sm text-textSecondary">
               {report.tasks.map((task, i) => (
-                <li key={`task-${task}-${i}`} className="flex gap-2">
+                <li key={`task-${task.zadanie}-${i}`} className="flex gap-2">
                   <span className="text-primary">•</span>
                   <span>
                     <span className="font-medium text-text">{task.zadanie}</span>
@@ -172,7 +172,7 @@ function ReportEditRow({
         <div className="form-label">Zadania:</div>
         <div className="space-y-3 mt-1">
           {editedReport.tasks?.map((task, i) => (
-            <div key={`${task}-${i}`} className="p-3 card rounded-xl bg-surface space-y-2">
+            <div key={`${task.zadanie}-${i}`} className="p-3 card rounded-xl bg-surface space-y-2">
               <div className="flex gap-2">
                 <input type="text" value={task.zadanie} aria-label="Zadanie" placeholder="Zadanie" className="input-field py-1.5 bg-surface"
                   onChange={(e) => updateTask(i, "zadanie", e.target.value)} />

@@ -67,9 +67,16 @@ export default function PomodoroPage() {
     }
   }, [secondsLeft, running, isBreak, focusSeconds, breakSeconds]);
 
-  const controls: TimerControls = {
+const controls: TimerControls = {
     start: () => {
-      setSecondsLeft((s) => s > 0 ? s : (isBreak ? breakSeconds : focusSeconds));
+      const defaultSeconds = isBreak ? breakSeconds : focusSeconds;
+      setSecondsLeft((currentSeconds) => {
+        if (currentSeconds > 0) {
+          return currentSeconds; 
+        }
+        return defaultSeconds; 
+      });
+
       setRunning(true);
       setPaused(false);
     },

@@ -1,7 +1,7 @@
 import { Report } from "../types";
 
 export const generateReportPDF = async (report: Report) => {
-  if (typeof globalThis.window === "undefined") return;
+  if (globalThis.window === undefined) return;
 
   const pdfMakeModule = await import("pdfmake/build/pdfmake");
   const pdfFontsModule = await import("pdfmake/build/vfs_fonts");

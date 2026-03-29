@@ -183,7 +183,7 @@ const MonthView = memo(function MonthView({
       </div>
 
       {weekData.map(({ week, limitedEvents, overflowCounts }, wIdx) => (
-        <div key={`week-${wIdx}`} className="relative">
+        <div key={`week-${week}`} className="relative">
           <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {week.map((day) => {
               const dateStr = format(day, "yyyy-MM-dd");

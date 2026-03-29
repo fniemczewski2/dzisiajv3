@@ -165,7 +165,7 @@ export function useSettings() {
 
     const updated = { ...settingsRef.current, ...partialSettings };
     setSettings(updated);
-    window.dispatchEvent(new CustomEvent('settingsUpdated', { detail: updated }));
+    globalThis.dispatchEvent(new CustomEvent('settingsUpdated', { detail: updated }));
     
     const { error } = await supabase
       .from("settings")
@@ -236,12 +236,14 @@ export function useSettings() {
         setLocationStatus(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         onSuccess?.({ lat: latitude, lng: longitude });
       },
-      (err) => {
-        const msg =
-          err.code === err.PERMISSION_DENIED   ? "Odmowa dostępu do lokalizacji."
-          : err.code === err.POSITION_UNAVAILABLE ? "Lokalizacja niedostępna."
-          : err.code === err.TIMEOUT            ? "Przekroczono czas oczekiwania."
-          : "Nieznany błąd lokalizacji.";
+      (e) => {
+        const errorMessages: Record<number, string> = {
+          [e.PERMISSION_DENIED]: "Odmowa dostępu do lokalizacji.",
+          [e.POSITION_UNAVAILABLE]: "Lokalizacja niedostępna.",
+          [e.TIMEOUT]: "Przekroczono czas oczekiwania.",
+        };
+
+        const msg = errorMessages[e.code] || "Nieznany błąd lokalizacji.";
         setLocationStatus(msg);
       }
     );

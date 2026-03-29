@@ -24,7 +24,7 @@ export function getGitHubHeaders(): HeadersInit {
 }
 
 export function extractVersion(commitMessage: string): string | null {
-  const versionMatch = commitMessage.match(/Ver\s*(\d+\.\d+\.\d+)/i);
+  const versionMatch = /Ver\s*(\d+\.\d+\.\d+)/i.exec(commitMessage);
   return versionMatch ? versionMatch[1] : null;
 }
 

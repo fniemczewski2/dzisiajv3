@@ -6,11 +6,11 @@
 function escapeICalText(s?: string) {
   if (!s) return "";
     return s
-      .replaceAll("\\", "\\\\")
-      .replaceAll(";", "\\;")
-      .replaceAll(",", "\\,")
-      .replaceAll("\r\n", "\\n")
-      .replaceAll("\n", "\\n");
+      .replaceAll("\\", String.raw`\\`) 
+      .replaceAll(";", String.raw`\;`)
+      .replaceAll(",", String.raw`\,`)
+      .replaceAll("\r\n", String.raw`\n`)
+      .replaceAll("\n", String.raw`\n`);
 }
  
 export const generateSingleEventICS = (ev: Event) => {
@@ -70,7 +70,7 @@ export const generateSingleEventICS = (ev: Event) => {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch (err) {
-      throw new Error("Nie udało się wygenerować pliku .ics dla tego wydarzenia.");
+    } catch (e: any) {
+      throw new Error("Nie udało się wygenerować pliku .ics." + e.message);
     }
   };
