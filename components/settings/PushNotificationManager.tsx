@@ -77,7 +77,7 @@ function TechDetailsInfo({
     ios: "iOS",
     android: "Android",
   };
-  const platformLabel = platformMap[platform as string] || "Desktop";
+  const platformLabel = platformMap[platform] || "Desktop";
 
   return (
     <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 space-y-3">
