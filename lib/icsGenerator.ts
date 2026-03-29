@@ -5,12 +5,12 @@
 
 function escapeICalText(s?: string) {
   if (!s) return "";
-    return s
-      .replaceAll("\\", String.raw`\\`) 
-      .replaceAll(";", String.raw`\;`)
-      .replaceAll(",", String.raw`\,`)
-      .replaceAll("\r\n", String.raw`\n`)
-      .replaceAll("\n", String.raw`\n`);
+  return s
+    .replaceAll("\\", String.raw`\\`) 
+    .replaceAll(";", String.raw`\;`)
+    .replaceAll(",", String.raw`\,`)
+    .replaceAll("\r\n", String.raw`\n`)
+    .replaceAll("\n", String.raw`\n`);
 }
  
 export const generateSingleEventICS = (ev: Event) => {

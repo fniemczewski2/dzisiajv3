@@ -28,7 +28,6 @@ export function useShoppingLists() {
 
       const fetchedLists = (data || []) as ShoppingList[];
 
-      // DUPLICATION REMOVED: Leveraging the shared utility
       const listsWithDisplayInfo = await resolveSharedEmails(
         fetchedLists,
         userId,
@@ -59,7 +58,7 @@ export function useShoppingLists() {
 
         if (error) throw error;
       } finally {
-        fetchShoppingLists();
+        await fetchShoppingLists();
         setLoading(false);
       }
       return true;
@@ -71,6 +70,7 @@ export function useShoppingLists() {
     id: string,
     updates: Partial<ShoppingList> & { shared_with_email?: string }
   ) => {
+    setLoading(true);
     const { shared_with_email, display_share_info, ...finalUpdates } = updates as any;
 
     if (shared_with_email !== undefined) {
@@ -85,18 +85,19 @@ export function useShoppingLists() {
 
       if (error) throw error;  
     } finally {
-      fetchShoppingLists();
+      await fetchShoppingLists();
       setLoading(false);
     }
   };
 
   const deleteShoppingList = async (id: string) => {
+    setLoading(true);
     try {
       const { error } = await supabase.from("shopping_lists").delete().eq("id", id);
       if (error) throw error;
       setLists((prev) => prev.filter((l) => l.id !== id));
     } finally {
-      fetchShoppingLists();
+      await fetchShoppingLists();
       setLoading(false);
     }
   };

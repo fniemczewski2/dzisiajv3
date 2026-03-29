@@ -1,9 +1,8 @@
-// hooks/useEvents.ts
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Event } from "../types";
 import { expandRepeatingEvents } from "../lib/eventUtils";
 import { useAuth } from "../providers/AuthProvider";
-import { getUserIdByEmail } from "../utils/share";
+import { resolveSharedEmails, getUserIdByEmail } from "../utils/share"; // Zaktualizowany import
 
 export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
@@ -27,51 +26,22 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
 
       const fetchedEvents = (data || []) as Event[];
 
-      const neededIds = Array.from(
-        new Set(
-          fetchedEvents
-            .map((ev) => (ev.user_id === userId ? ev.shared_with_id : ev.user_id))
-            .filter(
-              (id): id is string =>
-                typeof id === "string" && id !== userId && !userEmailsRef.current[id]
-            )
-        )
+      // ZMIANA: Usunięto całą logikę wyciągania e-maili i zastąpiono jednym wywołaniem
+      const eventsWithDisplayInfo = await resolveSharedEmails(
+        fetchedEvents,
+        userId,
+        supabase,
+        userEmailsRef
       );
-
-      if (neededIds.length > 0) {
-        const { data: emailData } = await supabase.rpc("get_emails_by_ids", {
-          user_ids: neededIds,
-        });
-        if (emailData) {
-          const newEmails = (emailData as { id: string; email: string }[]).reduce<
-            Record<string, string>
-          >((acc, curr) => { acc[curr.id] = curr.email; return acc; }, {});
-
-          userEmailsRef.current = { ...userEmailsRef.current, ...newEmails };
-        }
-      }
-
-      const currentEmails = userEmailsRef.current;
-
-      const eventsWithDisplayInfo = fetchedEvents.map((event) => {
-        const isOwner = event.user_id === userId;
-        const targetId = isOwner ? event.shared_with_id : event.user_id;
-        const email = targetId ? (currentEmails[targetId] ?? "...") : "";
-        return {
-          ...event,
-          display_share_info: isOwner
-            ? event.shared_with_id ? `Udostępniono: ${email}` : null
-            : `Od: ${email}`,
-        };
-      });
 
       const start = new Date(rangeStart + "T00:00:00");
       const end   = new Date(rangeEnd   + "T23:59:59");
-      setEvents(expandRepeatingEvents(eventsWithDisplayInfo, start, end));
+      
+      // Rzutujemy na Event[], ponieważ resolveSharedEmails dodaje display_share_info
+      setEvents(expandRepeatingEvents(eventsWithDisplayInfo as Event[], start, end));
     } finally {
       setFetching(false);
     }
-
   }, [supabase, userId, rangeStart, rangeEnd]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
@@ -82,6 +52,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     try {
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
       let targetSharedId = eventData.shared_with_id;
+      
       if (shared_with_email !== undefined) {
         targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
       }
@@ -90,6 +61,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         .from("events")
         .insert({ ...eventData, user_id: userId, shared_with_id: targetSharedId });
       if (error) throw error;
+      
       await fetchEvents();
     } finally {
       setLoading(false);
@@ -103,6 +75,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       const originalId = event.id.split("_")[0];
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
       let targetSharedId = eventData.shared_with_id;
+      
       if (shared_with_email !== undefined) {
         targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
       }
@@ -112,6 +85,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         .update({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
         .eq("id", originalId);
       if (error) throw error;
+      
       await fetchEvents();
     } finally {
       setLoading(false);
