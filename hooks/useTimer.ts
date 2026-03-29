@@ -76,7 +76,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
 
   useEffect(() => {
     if (running && !paused) {
-      intervalRef.current = window.setInterval(() => {
+      intervalRef.current = globalThis.window.setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
     }
