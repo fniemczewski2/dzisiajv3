@@ -51,8 +51,8 @@ export function useRecipes() {
 
       if (error) throw error;
       return (data || []) as Recipe[];
-    } catch (error) {
-      throw new Error("Wystąpił błąd pobierania");
+    } catch (e: any) {
+      throw new Error("Wystąpił błąd pobierania" + e.message);
     } finally {
       setFetching(false);
     }
@@ -68,8 +68,8 @@ export function useRecipes() {
         .order("name", { ascending: true });
       if (error) throw error;
       return ((data ?? []) as { name: string }[]).map((p) => p.name);
-    } catch (error) {
-      throw new Error("Wystąpił błąd pobierania");
+    } catch (e: any) {
+      throw new Error("Wystąpił błąd pobierania" + e.message);
     } finally {
       setFetching(false);
     }

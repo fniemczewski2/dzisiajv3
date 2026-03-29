@@ -1,15 +1,15 @@
 import { Report } from "../types";
 
 export const generateReportPDF = async (report: Report) => {
-  if (typeof window === "undefined") return;
+  if (typeof globalThis.window === "undefined") return;
 
   const pdfMakeModule = await import("pdfmake/build/pdfmake");
   const pdfFontsModule = await import("pdfmake/build/vfs_fonts");
 
-  const pdfMake = (pdfMakeModule as any).default || pdfMakeModule;
-  const pdfFonts = (pdfFontsModule as any).default || pdfFontsModule;
+  const pdfMake = (pdfMakeModule).default || pdfMakeModule;
+  const pdfFonts = (pdfFontsModule).default || pdfFontsModule;
 
-  (pdfMake as any).vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
+  (pdfMake).vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
 
   const agendaList = Array.from({ length: 12 }, (_, i) => report.agenda?.[i] || "");
   const participantList = Array.from({ length: 12 }, (_, i) => {

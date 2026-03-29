@@ -151,7 +151,6 @@ export function useSettings() {
     if (!userId) return { error: "No user" };
     setSaving(true);
     
-    // Używamy po prostu settingsRef.current
     const { error } = await supabase
       .from("settings")
       .upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" });
@@ -255,7 +254,7 @@ export function useSettings() {
     } catch (err) {
       console.error("Błąd podczas wylogowywania:", err);
     } finally {
-      window.location.href = "/start";
+      globalThis.location.href = "/start";
     }
   };
 

@@ -219,7 +219,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
   );
 }
 
-function AddElementForm({ onAdd }: { onAdd: (text: string) => void }) {
+function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) {
   const [text, setText] = useState("");
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();

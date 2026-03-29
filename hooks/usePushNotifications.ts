@@ -41,13 +41,16 @@ export function usePushNotifications(userId: string | undefined) {
         throw new Error('Włącz powiadomienia w ustawieniach przeglądarki')
       }
 
-      const registration = await navigator.serviceWorker.ready
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) {
+        throw new Error("Błąd: Brak klucza VAPID w zmiennych środowiskowych.");
+      }
+
+      const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-        ),
-      })
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
 
       const subscriptionJSON = subscription.toJSON()
       const endpoint = subscriptionJSON.endpoint
