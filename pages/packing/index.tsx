@@ -1,8 +1,7 @@
 import React from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { Backpack, Briefcase, Siren } from "lucide-react";
 import { useRouter } from "next/router";
+import Seo from "../../components/SEO";
 
 export default function PackingMenuPage() {
   const router = useRouter();
@@ -15,10 +14,12 @@ export default function PackingMenuPage() {
 
   return (
     <>
-      <Head>
-        <title>Listy Pakowania – Dzisiaj</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Pakowanie - Dzisiaj v3"
+        description="Zaplanuj swój bagaż przed podróżą. Generuj wygodne listy rzeczy do spakowania."
+        canonical="https://dzisiajv3.vercel.app/packing"
+        keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"
+      />
         <div className="w-full flex items-center mb-6">
           <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
             Wybierz listę
@@ -44,7 +45,6 @@ export default function PackingMenuPage() {
             );
           })}
         </div>
-      </Layout>
     </>
   );
 }

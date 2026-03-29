@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import Layout from "../../components/Layout";
-import Head from "next/head";
 import { useRouter } from "next/router";
 import UniversalTimer, { TimerPhase, TimerControls } from "../../components/Timer";
 import { ChevronLeft, Settings, X } from "lucide-react";
+import Seo from "../../components/SEO";
 
 export default function PomodoroPage() {
   const DEFAULT_FOCUS = 25 * 60;
@@ -122,10 +121,12 @@ const controls: TimerControls = {
 
   return (
     <>
-      <Head>
-        <title>Pomodoro – Dzisiajv3</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Pomodoro - Dzisiaj v3"
+        description="Skup się na pracy wykorzystując technikę Pomodoro. Ustawiaj czas głębokiej pracy i optymalizuj przerwy."
+        canonical="https://dzisiajv3.vercel.app/tasks/pomodoro"
+        keywords="pomodoro, technika pomodoro, skupienie, focus, timer, praca głęboka"
+      />
         <div className="flex justify-start gap-3 items-center mb-4 relative">
           <button
             onClick={handleBack}
@@ -182,7 +183,6 @@ const controls: TimerControls = {
             </label>
           </div>
         )}
-      </Layout>
     </>
   );
 }

@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { X, Plus } from "lucide-react";
 import { useReports } from "../../hooks/useReports";
 import ReportForm from "../../components/reports/ReportForm";
@@ -9,6 +7,7 @@ import { Report, ReportTask } from "../../types";
 import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "../../components/CommonButtons";
 import { format } from "date-fns";
 import { useToast } from "../../providers/ToastProvider";
+import Seo from "../../components/SEO";
 
 interface ReportViewRowProps {
   report: Report;
@@ -263,8 +262,12 @@ export default function ReportsPage() {
 
   return (
     <>
-      <Head><title>Sprawozdania – Dzisiaj</title></Head>
-      <Layout>
+      <Seo
+        title="Sprawozdania - Dzisiaj v3"
+        description="Twórz i przeglądaj sprawozdania ze swoich spotkań."
+        canonical="https://dzisiajv3.vercel.app/notes/reports"
+        keywords="raporty, podsumowania, spotkania, sprawozdania"
+      />
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text">Sprawozdania</h2>
           {!showForm && <AddButton onClick={() => setShowForm(true)}/>}
@@ -305,7 +308,6 @@ export default function ReportsPage() {
             );
           })}
         </ul>
-      </Layout>
     </>
   );
 }

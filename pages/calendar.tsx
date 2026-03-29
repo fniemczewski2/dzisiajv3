@@ -1,6 +1,4 @@
 import dynamic from "next/dynamic";
-import Head from "next/head";
-import Layout from "../components/Layout";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
@@ -13,6 +11,7 @@ import { useMoods } from "../hooks/useMoods";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
 import GoogleCalendarSync from "../components/calendar/GoogleCalendarSync";
 import { useToast } from "../providers/ToastProvider";
+import Seo from "../components/SEO";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   ssr: false,
@@ -64,10 +63,12 @@ export default function CalendarPage() {
 
   return (
     <>
-      <Head>
-        <title>Kalendarz - Dzisiaj</title>
-      </Head>
-      <Layout>      
+      <Seo
+        title="Kalendarz - Dzisiaj v3"
+        description="Planuj nadchodzące wydarzenia, monitoruj terminy i synchronizuj swoje plany z Kalendarzem Google."
+        canonical="https://dzisiajv3.vercel.app/calendar"
+        keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google"
+      />   
         
         {selectedDateStr ? (
           <CalendarDayDetails
@@ -114,7 +115,6 @@ export default function CalendarPage() {
         {!selectedDate && (
           <GoogleCalendarSync onSyncComplete={fetchEvents} />
         )}
-      </Layout>
     </>
   );
 }

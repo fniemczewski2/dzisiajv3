@@ -9,8 +9,6 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import TaskForm from "../../components/tasks/TaskForm";
 import TaskList from "../../components/tasks/TaskList";
 import { useTasks } from "../../hooks/useTasks";
@@ -21,6 +19,7 @@ import Reminders from "../../components/tasks/Reminders";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { useSettings } from "../../hooks/useSettings";
+import Seo from "../../components/SEO";
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -101,16 +100,12 @@ export default function TasksPage() {
 
   return (
     <>
-      <Head>
-        <title>Zadania – Dzisiaj</title>
-        <meta
-          name="description"
-          content="Zarządzaj swoimi zadaniami: dodawaj, edytuj i usuwaj w aplikacji Dzisiaj."
-        />
-        <link rel="canonical" href="https://dzisiajv3.vercel.app/tasks" />
-      </Head>
-
-      <Layout>
+      <Seo
+        title="Zadania - Dzisiaj v3"
+        description="Organizuj swoje zadania, używaj priorytetów i grupuj projekty. Zwiększ skuteczność dzięki zaawansowanej liście To-Do."
+        canonical="https://dzisiajv3.vercel.app/tasks"
+        keywords="zadania, lista to-do, projekty, priorytety, zarządzanie projektami"
+      />
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text flex items-center gap-3">
             <span>Zadania</span>
@@ -168,7 +163,6 @@ export default function TasksPage() {
             />
             <Reminders onTasksChange={fetchTasks} addTask={addTask} />
           </div>
-      </Layout>
     </>
   );
 }

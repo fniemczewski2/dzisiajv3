@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               cookiesToSet.forEach(({ name, value, options }) => {
                 res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
               })
-            } catch (error: any) {
-              throw new Error("Błąd autoryzacji." + error.message)
+            } catch {
+              throw new Error("Wystąpił błąd autoryzacji.")
             }
           },
         },

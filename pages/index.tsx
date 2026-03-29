@@ -1,7 +1,6 @@
 // pages/index.tsx
 
 import React, { useEffect } from "react";
-import Layout from "../components/Layout";
 import Seo from "../components/SEO";
 import { useSettings } from "../hooks/useSettings";
 import { useAuth } from "../providers/AuthProvider";
@@ -31,32 +30,24 @@ export default function IndexPage() {
 
   if (!user) return null;
 
-  const homepageStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "Dzisiaj v3",
-    description: "Kompleksowa aplikacja do zarządzania czasem i produktywnością.",
-    url: "https://dzisiajv3.vercel.app",
-  };
-
   return (
     <>
-      <Seo
-        title="Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem"
-        structuredData={homepageStructuredData}
-      />
         {(() => {switch(settings.main_view){
           case "tasks":{
             return (<TasksPage />)
           }
           case "day_view":{
             return (
-            <>
-              <Seo title="Dzisiaj v3 - Twój główny pulpit" />
-              <Layout>
+              <>
+                <Seo 
+                  title="Twój Plan Dnia - Dzisiaj v3"
+                  description="Zarządzaj dzisiejszymi zadaniami, nawykami i planem dnia w jednym miejscu. Sprawdź postępy i zoptymalizuj swoją produktywność."
+                  canonical="https://dzisiajv3.vercel.app/"
+                  keywords="planner, plan dnia, produktywność, dashboard, zarządzanie czasem"
+                />
                 <DayView date={todayDate} isMain />
-              </Layout>
-            </>)
+              </>
+            )
           }
           default:{
             return (<CalendarPage />)

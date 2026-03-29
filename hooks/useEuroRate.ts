@@ -32,8 +32,8 @@ export function useEuroRate() {
         }
 
         setRate(currentRate);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Nieznany błąd");
+      } catch  {
+        setError("Wystąpił błąd pobierania kursu.");
       } finally {
         setLoading(false);
       }

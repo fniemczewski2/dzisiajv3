@@ -146,8 +146,8 @@ export function usePlaces() {
         google_place_id: result.place_id,
         google_data: result,
       };
-    } catch (err) {
-      console.warn("[usePlaces] fetchPlaceDetails failed:", err);
+    } catch {
+      console.warn("Wystąpił błąd pobierania szczegółów.");
       return null;
     }
   };

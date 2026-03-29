@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Head from "next/head";
-import Layout from "../components/Layout";
 import {
   Sun,
   CloudSun,
@@ -23,6 +21,7 @@ import {
 import { getAppDateTime } from "../lib/dateUtils";
 import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
+import Seo from "../components/SEO";
 
 interface HourlyRow {
   time: string;
@@ -361,13 +360,14 @@ export default function WeatherPage() {
   // 3. Ultra-czysty główny Return
   return (
     <>
-      <Head>
-        <title>Pogoda – Dzisiaj</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Pogoda - Dzisiaj v3"
+        description="Bądź na bieżąco. Sprawdź aktualną prognozę pogody, by idealnie zaplanować swój dzień."
+        canonical="https://dzisiajv3.vercel.app/weather"
+        keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
+      />
         <h2 className="text-xl mb-4 font-semibold text-text">Pogoda</h2>
         {content}
-      </Layout>
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { TimerPhase } from "../components/Timer";
+import { useToast } from "../providers/ToastProvider";
 
 export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = false) {
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -12,6 +13,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   const intervalRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     audioRef.current = new Audio("/KBING.mp3");
@@ -28,8 +30,8 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
         if ("wakeLock" in navigator && running && !paused) {
           wakeLockRef.current = await navigator.wakeLock.request("screen");
         }
-      } catch (err) {
-        console.warn("[useTimerEngine] WakeLock unavailable:", err);
+      } catch {
+        toast.info("WakeLock niedostępny");
       }
     };
 

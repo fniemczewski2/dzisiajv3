@@ -135,8 +135,8 @@ export function useSettings() {
             main_view: data.main_view ?? "calendar"
           });
         }
-      } catch (err) {
-        console.error("[useSettings] Unexpected error:", err);
+      } catch {
+        console.error("Wystąpił błąd ustawień.")
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -253,8 +253,8 @@ export function useSettings() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-    } catch (err) {
-      console.error("Błąd podczas wylogowywania:", err);
+    } catch {
+      console.error("Wystąpił błąd wylogowywania.");
     } finally {
       globalThis.location.href = "/start";
     }

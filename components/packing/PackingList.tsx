@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import Head from "next/head";
-import Layout from "../Layout";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/router";
 
@@ -27,10 +25,6 @@ export default function PackingList({ pageTitle, headerTitle, categories, onBack
 
   return (
     <>
-      <Head>
-        <title>{pageTitle}</title>
-      </Head>
-      <Layout>
         <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
@@ -75,7 +69,6 @@ export default function PackingList({ pageTitle, headerTitle, categories, onBack
             </div>
           ))}
         </div>
-      </Layout>
     </>
   );
 }

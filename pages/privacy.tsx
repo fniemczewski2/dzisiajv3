@@ -1,16 +1,15 @@
 // pages/privacy.tsx
-import Head from "next/head";
-import Layout from "../components/Layout";
+import Seo from "../components/SEO";
 
 export default function PrivacyPage() {
   return (
     <>
-      <Head>
-        <title>Polityka Prywatności – Dzisiaj v3</title>
-        <meta name="description" content="Polityka prywatności aplikacji Dzisiaj v3" />
-        <link rel="canonical" href="https://dzisiajv3.vercel.app/privacy" />
-      </Head>
-      <Layout>
+      <Seo
+        title="Prywatność - Dzisiaj v3"
+        description="Przeczytaj naszą Politykę Prywatności, by dowiedzieć się, jak chronimy Twoje dane osobowe."
+        canonical="https://dzisiajv3.vercel.app/privacy"
+        keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności"
+      />
         <div className="max-w-2xl mx-auto py-8 px-2">
           <h1 className="text-3xl font-bold text-text mb-2">Polityka Prywatności</h1>
           <p className="text-sm text-textMuted mb-10">
@@ -243,7 +242,6 @@ export default function PrivacyPage() {
             Ostatnia aktualizacja: 1 stycznia 2025 r.
           </div>
         </div>
-      </Layout>
     </>
   );
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { getAppDate } from "../lib/dateUtils";
 import { DailyHabits, HabitKey } from "../types";
 import { useAuth } from "../providers/AuthProvider";
+import { useToast } from "../providers/ToastProvider";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
   date: new Date(date),
@@ -22,6 +23,7 @@ const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
 export function useDailyHabits(date?: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
+  const { toast } = useToast();
 
   const today = getAppDate();
   const targetDate = date ?? today;
@@ -50,6 +52,7 @@ export function useDailyHabits(date?: string) {
       );
     } catch {
       setHabits(getDefaultHabits(targetDate, userId));
+      toast.error('Błąd ładowania nawyków');
     } finally {
       setFetching(false);
     }
@@ -75,9 +78,8 @@ export function useDailyHabits(date?: string) {
         { onConflict: "date,user_id" }
       );
       if (error) throw error;
-    } catch (err) {
+    } catch {
       setHabits((h) => (h ? { ...h, [key]: prevValue } : h));
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -102,9 +104,8 @@ export function useDailyHabits(date?: string) {
         { onConflict: "date,user_id" }
       );
       if (error) throw error;
-    } catch (err) {
+    } catch {
       setHabits((h) => (h ? { ...h, water_amount: prevAmount } : h));
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -129,9 +130,8 @@ export function useDailyHabits(date?: string) {
         { onConflict: "date,user_id" }
       );
       if (error) throw error;
-    } catch (err) {
+    } catch {
       setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
-      throw err;
     }
   };
 

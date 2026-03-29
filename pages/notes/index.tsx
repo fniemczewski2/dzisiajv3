@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { Clapperboard, MapPin } from "lucide-react";
 import { useNotes } from "../../hooks/useNotes";
 import NoteForm from "../../components/notes/NoteForm";
@@ -11,6 +9,7 @@ import { useRouter } from "next/router";
 import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 import { useToast } from "../../providers/ToastProvider";
+import Seo from "../../components/SEO";
 
 export default function NotesPage() {
   const { notes, fetching, fetchNotes } = useNotes();
@@ -42,17 +41,12 @@ export default function NotesPage() {
 
   return (
     <>
-      <Head>
-        <title>Notatki - Dzisiaj</title>
-        <meta name="description" content="Twórz i zarządzaj notatkami." />
-        <link rel="canonical" href="https://dzisiajv3.vercel.app/notes" />
-        <meta property="og:title" content="Notatki - Dzisiaj" />
-        <meta
-          property="og:description"
-          content="Twórz i zarządzaj notatkami."
-        />
-      </Head>
-      <Layout>
+      <Seo
+        title="Notatki - Dzisiaj v3"
+        description="Twórz szybkie zapiski, gromadź ważne informacje i buduj swoją podręczną bazę wiedzy."
+        canonical="https://dzisiajv3.vercel.app/notes"
+        keywords="notatki, second brain, baza wiedzy, zapiski, notatnik online"
+      />
         <div className="flex justify-between items-center mb-6 gap-2">
           <div className="flex flex-row items-center gap-3 sm:gap-4">
             <h2 className="text-2xl font-bold text-text">
@@ -95,7 +89,6 @@ export default function NotesPage() {
           notes={notes}
           onNotesChange={fetchNotes}
         />
-      </Layout>
     </>
   );
 }

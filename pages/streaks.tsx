@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Head from "next/head";
-import Layout from "../components/Layout";
 import StreakCard from "../components/streaks/StreakCard";
 import StreakForm from "../components/streaks/StreakForm";
 import { useStreaks } from "../hooks/useStreaks";
@@ -10,6 +8,7 @@ import { Streak } from "../types";
 import { AddButton } from "../components/CommonButtons";
 import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
+import Seo from "../components/SEO";
 
 export default function StreaksPage() {
   const { toast } = useToast();
@@ -62,14 +61,12 @@ export default function StreaksPage() {
 
   return (
     <>
-      <Head>
-        <title>Cele - Dzisiaj</title>
-        <meta name="description" content="Twórz i zarządzaj celami." />
-        <link rel="canonical" href="https://dzisiajv3.vercel.app/streaks" />
-        <meta property="og:title" content="Cele - Dzisiaj" />
-        <meta property="og:description" content="Twórz i zarządzaj celami." />
-      </Head>
-      <Layout>
+    <Seo
+      title="Cele - Dzisiaj v3"
+      description="Zbuduj żelazną dyscyplinę, śledź swoje cele i przedłużaj swoje pasma sukcesów."
+      canonical="https://dzisiajv3.vercel.app/streaks"
+      keywords="nawyki, cele, pasma, streaks, dyscyplina"
+    />
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
             Cele
@@ -99,7 +96,6 @@ export default function StreaksPage() {
         ) : (
           <NoResultsState text="celów" />
         )}
-      </Layout>
     </>
   );
 }

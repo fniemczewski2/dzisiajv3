@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { format } from "date-fns";
 import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { Schema, ScheduleItem } from "../../types";
@@ -11,6 +9,7 @@ import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
 import { AddButton, EditButton, DeleteButton } from "../../components/CommonButtons";
 import NoResultsState from "../../components/NoResultsState";
 import { useToast } from "../../providers/ToastProvider";
+import Seo from "../../components/SEO";
 
 export default function DaySchemaPage() {
   const { schemas, loading, fetching, fetchSchemas, deleteSchema } = useDaySchemas();
@@ -72,15 +71,12 @@ export default function DaySchemaPage() {
 
   return (
     <>
-      <Head>
-        <title>Plan dnia – Dzisiaj</title>
-        <meta name="description" content="Zarządzaj swoimi codziennymi schematami." />
-        <link rel="canonical" href="https://dzisiajv3.vercel.app/notes/daySchema" />
-        <meta property="og:title" content="Plan dnia – Dzisiaj" />
-        <meta property="og:description" content="Zarządzaj swoimi codziennymi schematami." />
-      </Head>
-
-      <Layout>
+        <Seo
+          title="Schemat Dnia - Dzisiaj v3"
+          description="Zbuduj i zautomatyzuj swój idealny schemat dnia oraz poranne lub wieczorne rutyny."
+          canonical="https://dzisiajv3.vercel.app/tasks/daySchema"
+          keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
+        />
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text">Plan dnia</h2>
           {!showForm && <AddButton onClick={openNew} />}
@@ -133,7 +129,6 @@ export default function DaySchemaPage() {
             <p className="text-textMuted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
           )}
         </div>
-      </Layout>
     </>
   );
 }

@@ -23,6 +23,8 @@ import {
   Target,
   Timer, 
   UsersRound,
+  Calculator,
+  Bus,
   LucideIcon
 } from "lucide-react";
 
@@ -57,7 +59,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Zadania",
-        description: "Organizuj zadania z\u00A0priorytetami, datami i\u00A0kategoriami. Filtruj i\u00A0sortuj.",
+        description: "Organizuj zadania z priorytetami i datami. Przeciągaj je bezpośrednio na oś czasu (Drag & Drop).",
         icon: ListTodo,
         category: "Produktywność",
         path: "/tasks",
@@ -65,14 +67,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Pomodoro",
-        description: "Zwiększ produktywność z\u00A0techniką Pomodoro i\u00A0timerem.",
+        description: "Zwiększ produktywność pracując w pełnym skupieniu z wbudowanym timerem Pomodoro.",
         icon: Timer,
         category: "Produktywność",
         path: "/tasks/pomodoro",
       },
       {
         title: "Harmonogram Dnia",
-        description: "Zadbaj o\u00A0regularność, stwórz własny plan dnia.",
+        description: "Automatyzuj swoje rutyny. Twórz schematy dni, które same pojawią się w Twoim planie.",
         icon: Logs,
         category: "Produktywność",
         path: "/tasks/daySchema",
@@ -85,7 +87,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Kalendarz",
-        description: "Planuj wydarzenia, spotkania i\u00A0terminy. Eksportuj jako .ics.",
+        description: "Planuj wydarzenia z pełną dwukierunkową synchronizacją z Google Calendar.",
         icon: Calendar,
         category: "Organizacja",
         path: "/calendar",
@@ -93,42 +95,42 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Notatki",
-        description: "Twórz notatki, listy zakupów, przepisy i\u00A0plany podróży.",
+        description: "Twórz szybkie zapiski listowe, oznaczaj je kolorami i buduj swoją bazę wiedzy.",
         icon: Pen,
         category: "Organizacja",
         path: "/notes",
       },
       {
         title: "Sprawozdania",
-        description: "Twórz sprawozdania ze\u00A0spotkań z\u00A0agendą, uczestnikami i\u00A0zadaniami.",
+        description: "Protokołuj spotkania z agendą i uczestnikami, a na koniec eksportuj je do PDF.",
         icon: FileText,
         category: "Organizacja",
         path: "/notes/reports",
       },
       {
         title: "Przypomnienia",
-        description: "Ustaw cykliczne przypomnienia o\u00A0ważnych rzeczach.",
+        description: "Ustaw cykliczne przypomnienia, które automatycznie zamienią się w zadania we właściwym czasie.",
         icon: Bell,
         category: "Organizacja",
         badge: "Nowe",
       },
       {
         title: "Plecak",
-        description: "Autorska lista wyposażenia plecaka lub torebki.",
+        description: "Autorska lista wyposażenia plecaka lub torebki (codzienne EDC).",
         icon: Backpack,
         category: "Organizacja",
         path: "/packing/backpack",
       },
       {
         title: "Walizka Podróżna",
-        description: "Uniwersalna lista rzeczy na\u00A0wyjazd: odzież, dokumenty, elektronika.",
+        description: "Inteligentna lista rzeczy na wyjazd. Podzielona na kategorie pakowania.",
         icon: Luggage,
         category: "Organizacja",
         path: "/packing/suitcase",
       },
       {
         title: "Plecak Bezpieczeństwa",
-        description: "Pełna lista niezbędnych rzeczy na\u00A0wypadek kryzysu.",
+        description: "Pełna gotowa lista niezbędnych rzeczy na wypadek kryzysu lub ewakuacji.",
         icon: Shield,
         category: "Organizacja",
         path: "/packing/safety",
@@ -141,7 +143,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Rachunki",
-        description: "Monitoruj swoje wydatki, planuj budżet i\u00A0śledź statystyki.",
+        description: "Monitoruj swoje wydatki, odznaczaj opłacone faktury i miej pełną kontrolę nad budżetem.",
         icon: Coins,
         category: "Finanse",
         path: "/bills",
@@ -149,21 +151,29 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Budżet Roczny",
-        description: "Analizuj wydatki i\u00A0przychody miesięczne. Obliczaj godziny pracy.",
+        description: "Analizuj wydatki i zarządzaj kategoriami. Importuj wyciągi CSV z mBanku i PKO BP.",
         icon: ChartColumnBig,
         category: "Finanse",
         path: "/bills/budget",
       },
       {
+        title: "Kalkulator Rachunków",
+        description: "Sprawiedliwie podziel koszty życia z partnerem na podstawie dochodów (Algorytm hybrydowy).",
+        icon: Calculator,
+        category: "Finanse",
+        path: "/bills/calculator",
+        badge: "Nowe",
+      },
+      {
         title: "Listy Zakupów",
-        description: "Twórz i\u00A0udostępniaj listy zakupów z\u00A0możliwością odznaczania.",
+        description: "Twórz listy zakupów z możliwością odznaczania w czasie rzeczywistym z bliskimi.",
         icon: ShoppingCart,
         category: "Finanse",
         path: "/notes/shopping",
       },
       {
         title: "Przepisy",
-        description: "Zarządzaj przepisami kulinarnymi z\u00A0listą produktów i\u00A0kategoryzacją.",
+        description: "Książka kucharska z inteligentnym filtrowaniem po dodanych składnikach.",
         icon: CookingPot,
         category: "Finanse",
         path: "/notes/recipes",
@@ -176,32 +186,39 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Nawyki",
-        description: "Śledź codzienne nawyki: tabletki, trening, woda i\u00A0więcej.",
+        description: "Śledź codzienne nawyki: leki, higiena cyfrowa, tracker wody i śledzenie nastroju.",
         icon: CheckCircle,
         category: "Styl życia",
         badge: "Popularne",
       },
       {
-        title: "Cele",
-        description: "Wyznaczaj i\u00A0śledź długoterminowe cele z\u00A0seriami dni.",
+        title: "Cele i Pasma",
+        description: "Utrzymuj dyscyplinę (streaks). Algorytm pogratuluje Ci okrągłych kamieni milowych.",
         icon: Target,
         category: "Styl życia",
         path: "/streaks",
-        badge: "Nowe",
       },
       {
-        title: "Trening",
-        description: "Planuj treningi, zapisuj ćwiczenia i\u00A0śledź swoje postępy.",
+        title: "Trening Interwałowy",
+        description: "Zaawansowany stoper do treningów HIIT / Tabata z funkcją Wake-Lock.",
         icon: Dumbbell,
         category: "Styl życia",
         path: "/training",
       },
       {
         title: "Pogoda",
-        description: "Sprawdzaj aktualną pogodę i\u00A0prognozę dla swojej lokalizacji.",
+        description: "Godzinowe prognozy pogody i autorski wskaźnik samopoczucia z alertami Smogowymi.",
         icon: Sun,
         category: "Styl życia",
         path: "/weather",
+      },
+      {
+        title: "Transport Miejski",
+        description: "Tablice odjazdów autobusów i tramwajów na żywo. Odczyt po GPS lub ulubione.",
+        icon: Bus,
+        category: "Styl życia",
+        path: "/transport",
+        badge: "Nowe",
       },
     ],
   },
@@ -210,15 +227,15 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     color: "pink",
     features: [
       {
-        title: "Miejsca",
-        description: "Zapisuj i\u00A0kataloguj ciekawe miejsca z\u00A0mapą i\u00A0tagami.",
+        title: "Miejsca i Mapa",
+        description: "Importuj miejsca z Google Maps. Przeglądaj je na mapie i filtruj po godzinach otwarcia.",
         icon: MapPin,
         category: "Rozrywka",
         path: "/notes/places",
       },
       {
-        title: "Filmy",
-        description: "Twórz listy filmów do obejrzenia i\u00A0już obejrzanych.",
+        title: "Filmy i Seriale",
+        description: "Kataloguj produkcje integrując się z bazą TMDB. Sprawdzaj dostępność VOD (Netflix, HBO).",
         icon: Clapperboard,
         category: "Rozrywka",
         path: "/notes/movies",
@@ -231,14 +248,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Udostępnianie",
-        description: "Udostępniaj zadania, wydarzenia i\u00A0listy innym użytkownikom.",
+        description: "Zbuduj listę Zaufanych Użytkowników by współdzielić z nimi zadania, kalendarz i listy.",
         icon: UsersRound,
         category: "Narzędzia",
         badge: "Beta",
       },
       {
-        title: "Ustawienia",
-        description: "Dostosuj preferencje aplikacji do\u00A0swoich potrzeb.",
+        title: "Ustawienia Systemowe",
+        description: "Zarządzaj powiadomieniami Push, motywami oraz bazą danych na swoim koncie PWA.",
         icon: Settings,
         category: "Narzędzia",
         path: "/settings",
@@ -251,7 +268,7 @@ export const features: Feature[] = FEATURE_GROUPS.flatMap(group => group.feature
 
 features.push({
   title: "Wiele więcej...",
-  description: "Aplikacja jest rozwijana i\u00A0pojawiają się nowe funkcje.",
+  description: "Aplikacja stale się rozwija, regularnie dodajemy nowe, innowacyjne funkcje.",
   icon: Star,
   category: "Narzędzia",
 });
