@@ -324,16 +324,14 @@ export default function SettingsForm({
           Zaufani użytkownicy (Udostępnianie):
         </div>
         
-        {/* Grupujemy inputy i przypisujemy im nadrzędny nagłówek */}
-        <div 
-          className="space-y-2 max-w-md" 
-          role="group" 
+        <fieldset
+          className="space-y-2 max-w-md border-none p-0 m-0 min-w-0" 
           aria-labelledby="trusted-users-group"
         >
-          {localSettings.users && localSettings.users.map((u: string, idx: number) => {
-            const inputId = `trusted-user-${idx}`;
+          {localSettings?.users.map((u: string, idx: number) => {
+            const inputId = `trusted-user-${u}`;
             return (
-              <div key={idx} className="flex items-center gap-2">
+              <div key={inputId} className="flex items-center gap-2">
                 <label htmlFor={inputId} className="sr-only">
                   Adres email zaufanego użytkownika {idx + 1}
                 </label>
@@ -371,7 +369,7 @@ export default function SettingsForm({
               <PlusCircle className="w-4 h-4 mr-1.5" /> Dodaj użytkownika
             </button>
           )}
-        </div>
+        </fieldset>
       </div>
 
       <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">  
