@@ -11,7 +11,7 @@ interface PushNotificationManagerProps {
 }
 
 const getPlatform = (): string => {
-  if (globalThis === undefined || !globalThis.navigator) return "desktop";
+  if (globalThis?.navigator) return "desktop";
   const ua = globalThis.navigator.userAgent.toLowerCase();
   if (/iphone|ipad|ipod/.test(ua)) return "ios";
   if (/android/.test(ua)) return "android";
@@ -36,11 +36,13 @@ const checkIsSupported = (): boolean => {
 };
 
 function DetailRow({ label, value, ok, warn = false }: { readonly label: string; readonly value: string; readonly ok: boolean; readonly warn?: boolean }) {
-  const colorClass = ok 
-    ? "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30"
-    : warn 
-    ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 border-yellow-200 dark:border-yellow-700/50"
-    : "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50";
+  let colorClass = "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50";
+
+  if (ok) {
+    colorClass = "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30";
+  } else if (warn) {
+    colorClass = "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 border-yellow-200 dark:border-yellow-700/50";
+  }
 
   return (
     <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
@@ -65,7 +67,17 @@ function TechDetailsInfo({
   readonly permission: NotificationPermission;
   readonly isSubscribed: boolean;
 }) {
-  const permissionText = permission === "granted" ? "Przyznane" : permission === "denied" ? "Odrzucone" : "Pytaj";
+  const permissionMap: Record<string, string> = {
+    granted: "Przyznane",
+    denied: "Odrzucone",
+  };
+  const permissionText = permissionMap[permission as string] || "Pytaj";
+
+  const platformMap: Record<string, string> = {
+    ios: "iOS",
+    android: "Android",
+  };
+  const platformLabel = platformMap[platform as string] || "Desktop";
 
   return (
     <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 space-y-3">
@@ -73,7 +85,7 @@ function TechDetailsInfo({
         <span className="font-semibold text-textSecondary">Platforma:</span>
         <div className="flex gap-2">
           <span className="px-2 py-1 rounded card text-text font-medium uppercase">
-            {platform === "ios" ? "iOS" : platform === "android" ? "Android" : "Desktop"}
+            {platformLabel}
           </span>
           {isStandalone && (
             <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold border border-green-200 dark:border-green-500/30 uppercase">
@@ -166,6 +178,24 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
       toast.error(err instanceof Error ? err.message : "Nie udało się wysłać powiadomienia testowego.");
     }
   };
+  let buttonContent;
+  if (loading) {
+    buttonContent = "Czekaj...";
+  } else if (isSubscribed) {
+    buttonContent = (
+      <>
+        <span>Wyłącz</span>
+        <BellOff className="w-5 h-5" />
+      </>
+    );
+  } else {
+    buttonContent = (
+      <>
+        <span>Aktywuj</span>
+        <Bell className="w-5 h-5" />
+      </>
+    );
+  }
 
   return (
     <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
@@ -207,7 +237,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
                 ? "bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50"
                 : "bg-primary hover:bg-secondary text-white"
             }`}>
-            {loading ? "Czekaj..." : isSubscribed ? <><span>Wyłącz</span><BellOff className="w-5 h-5" /></> : <><span>Aktywuj</span><Bell className="w-5 h-5" /></>}
+            {buttonContent}
           </button>
         )}
         {isSubscribed && (
