@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { useShoppingLists } from "../../hooks/useShoppingLists";
 import ShoppingForm from "../../components/shopping/ShoppingForm";
 import ShoppingListView from "../../components/shopping/ShoppingListView";
 import { AddButton } from "../../components/CommonButtons";
 import { useToast } from "../../providers/ToastProvider";
+import Seo from "../../components/SEO";
 
 export default function ShoppingPage() {
 
@@ -34,15 +33,12 @@ export default function ShoppingPage() {
 
   return (
     <>
-      <Head>
-        <title>Zakupy – Dzisiaj</title>
-        <meta name="description" content="Twórz i zarządzaj listami zakupów." />
-        <link rel="canonical" href="https://dzisiajv3.vercel.app/shopping" />
-        <meta property="og:title" content="Zakupy – Dzisiaj" />
-        <meta property="og:description" content="Twórz i zarządzaj listami zakupów." />
-      </Head>
-
-      <Layout>
+      <Seo
+        title="Listy Zakupów - Dzisiaj v3"
+        description="Kategoryzuj niezbędne produkty i twórz inteligentne listy zakupów."
+        canonical="https://dzisiajv3.vercel.app/notes/shopping"
+        keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
+      />
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-text">
             Listy zakupów
@@ -67,7 +63,6 @@ export default function ShoppingPage() {
           editShoppingList={editShoppingList}
           deleteShoppingList={deleteShoppingList}
         />
-      </Layout>
     </>
   );
 }

@@ -241,24 +241,24 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
                 <div className="flex-1 pr-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
                   {r.category && (
-                    <span className="inline-block mt-1.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
+                    <span className="inline-block mt-2 px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold uppercase tracking-wider">
                       {r.category}
                     </span>
                   )}
                 </div>
-                <button className="p-2 bg-surface text-textSecondary rounded-lg transition-colors group-hover:bg-blue-100 dark:hover:bg-blue-900 group-hover:text-primary shrink-0" onClick={() => toggleOpen(r.id)}>
+                <button className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0" onClick={() => toggleOpen(r.id)}>
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                 </button>
               </div>
               {open && (
-                <div className="px-4 pb-4 pt-1 bg-surface border-t border-gray-100 dark:border-gray-800 space-y-4">
+                <div className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
                   {r.description && (
                     <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap pt-3">{r.description}</p>
                   )}
                   {r.products && r.products.length > 0 && (
                     <div>
                       <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Składniki:</span>
-                      <div className="flex flex-wrap gap-1.5 bg-surface p-2.5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                      <div className="flex flex-wrap gap-1.5">
                         {r.products.map((p) => (
                           <span key={p} className="text-xs px-2 py-1 rounded-lg card text-text font-medium">{p}</span>
                         ))}

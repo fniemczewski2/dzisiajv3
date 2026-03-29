@@ -1,8 +1,6 @@
 // pages/bills/index.tsx
 
 import React, { useState, useEffect } from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { Calculator, ChartColumnBig } from "lucide-react";
 import { useBills } from "../../hooks/useBills";
 import { useBudgetCategories } from "../../hooks/useBudgetCategories";
@@ -16,6 +14,7 @@ import { useQuickAction } from "../../hooks/useQuickAction";
 import type { Bill } from "../../types";
 import BankCsvImporter from "../../components/budget/BankCSV";
 import BillListGrouped from "../../components/bills/BillListGrouped";
+import Seo from "../../components/SEO";
 
 const currentYear = getYear(new Date());
 
@@ -51,10 +50,12 @@ export default function BillsPage() {
 
   return (
     <>
-      <Head>
-        <title>Finanse – Dzisiaj</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Rachunki - Dzisiaj v3"
+        description="Miej pełną kontrolę nad stałymi opłatami, śledź terminy płatności i unikaj opóźnień."
+        canonical="https://dzisiajv3.vercel.app/bills"
+        keywords="rachunki, płatności, opłaty stałe, finanse osobiste, przypomnienia finansowe"
+      />
         <div className="flex justify-between items-center mb-6 gap-2">
           <div className="flex flex-row items-center gap-2 sm:gap-4">
             <h2 className="text-2xl font-bold text-text">Finanse</h2>
@@ -103,7 +104,6 @@ export default function BillsPage() {
         <BankCsvImporter year={currentYear} />
 
         <BillListGrouped year={currentYear} />
-      </Layout>
     </>
   );
 }

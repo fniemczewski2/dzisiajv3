@@ -26,8 +26,8 @@ export function useCalendarData(rangeStart: string, rangeEnd: string) {
         tMap[due_date] = (tMap[due_date] || 0) + 1;
       });
       setTasksCount(tMap);
-    } catch (err) {
-      console.error("[useCalendarData] fetchData failed:", err);
+    } catch {
+      console.error("Błąd pobierania wydarzeń");
     } finally {
       setFetching(false);
     }

@@ -38,9 +38,9 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
       toast.success(`Pomyślnie zaimportowano ${count} miejsc.`);
 
       e.target.value = "";
-    } catch (error: any) {
+    } catch {
       if (toastId && toast.dismiss) toast.dismiss(toastId);
-      toast.error(error.message || "Błąd podczas importu");
+      toast.error("Błąd podczas importu");
     } finally {
       setIsImporting(false);
     }

@@ -71,10 +71,7 @@ export default async function handler(
 
     res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=60");
     return res.status(200).json(data);
-  } catch (err: unknown) {
-    if (err instanceof Error && err.name === "TimeoutError") {
-      return res.status(504).json({ error: "Wystąpił błąd timeout podczas żądania do TMDB" });
-    }
-    return res.status(500).json({ error: "Wystąpił nieoczekiwany błąd serwera" });
+  } catch {
+    throw new Error("Wystąpił błąd  TMDB");
   }
 }

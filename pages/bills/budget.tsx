@@ -1,8 +1,6 @@
 // pages/bills/budget.tsx
 
 import React, { useEffect, useMemo, useState } from "react";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "../../lib/dateUtils";
@@ -15,6 +13,7 @@ import SummaryTable from "../../components/budget/SummaryTable";
 import { useBudgetData } from "../../hooks/useBudget";
 import BudgetControls from "../../components/budget/BudgetControls";
 import { useToast } from "../../providers/ToastProvider";
+import Seo from "../../components/SEO";
 
 export default function BudgetPage() {
   const currentYear = getAppDateTime().getFullYear();
@@ -89,10 +88,12 @@ export default function BudgetPage() {
 
   return (
     <>
-      <Head>
-        <title>Budżet – {year}</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Budżet - Dzisiaj v3"
+        description="Analizuj swoje wydatki, przeglądaj statystyki finansowe i mądrze zaplanuj domowy budżet."
+        canonical="https://dzisiajv3.vercel.app/bills/budget"
+        keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
+      />
         <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
@@ -153,7 +154,6 @@ export default function BudgetPage() {
             <BudgetStatsTable rows={rows} isEditing={isEditing} onRateChange={updateRate} />
             <SummaryTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
         </div>
-      </Layout>
     </>
   );
 }

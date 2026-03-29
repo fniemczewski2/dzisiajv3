@@ -142,8 +142,8 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
         await subscribeToPush();
         toast.success("Powiadomienia włączone.");
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Błąd powiadomień.");
+    } catch {
+      toast.error("Błąd powiadomień.");
     }
   };
 
@@ -174,8 +174,8 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
 
       const data = await response.json();
       toast.success(`Powiadomienie wysłano (${data.sent || 0} / ${data.total || 0})`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nie udało się wysłać powiadomienia testowego.");
+    } catch {
+      toast.error("Nie udało się wysłać powiadomienia testowego.");
     }
   };
   let buttonContent;

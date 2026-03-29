@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Coffee,
   Target,
-  Repeat,
   Dumbbell,
   Save,
 } from "lucide-react";
@@ -63,14 +62,12 @@ function defaultFormatTime(rawSeconds: number): string {
   return `${two(minutes)}:${two(seconds)}`;
 }
 
-function getPhaseIcon(label: string, isMultiPhase: boolean) {
+function getPhaseIcon(label: string) {
   const lower = label.toLowerCase();
   if (lower.includes("przerwa") || lower.includes("rest") || lower.includes("break"))
     return <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />;
   if (lower.includes("ćwiczenia") || lower.includes("cwiczenia") || lower.includes("exercise"))
     return <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />;
-  if (isMultiPhase)
-    return <Repeat className="w-5 h-5 sm:w-6 sm:h-6 text-textMuted" />;
 
   return <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />;
 }
@@ -183,7 +180,7 @@ export default function UniversalTimer({
     >
       <div className="text-center w-full space-y-1">
         <h2 className={`font-bold flex items-center justify-center gap-2 text-text ${compact ? "text-lg sm:text-xl" : "text-2xl"}`}>
-          {getPhaseIcon(displayLabel, isMultiPhase)}
+          {getPhaseIcon(displayLabel)}
           <span className="truncate">{displayLabel}</span>
         </h2>
         

@@ -27,15 +27,7 @@ interface HabbitIconsProps {
 
 export default function HabbitIcons({ date }: Readonly<HabbitIconsProps>) {
   const { habits, loading: habitsLoading, toggleHabit } = useDailyHabits(date);
-  const { settings, loading: settingsLoading } = useSettings();
-  const { toast } = useToast();
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (settingsLoading || habitsLoading || !habits || !settings) toastId = toast.loading("Ładowanie nawyków...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [settingsLoading, habitsLoading, toast]);
-
+  const { settings } = useSettings();
   if (!habits || !settings) {
     return null;
   }

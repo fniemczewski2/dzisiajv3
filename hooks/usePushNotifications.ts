@@ -27,8 +27,8 @@ export function usePushNotifications(userId: string | undefined) {
       const registration = await navigator.serviceWorker.ready
       const subscription = await registration.pushManager.getSubscription()
       setIsSubscribed(!!subscription)
-    } catch (err) {
-      console.warn('[usePushNotifications] checkSubscription failed:', err)
+    } catch  {
+      console.warn('Wystąpił błąd weryfikacji subskrypcji.')
     }
   }
 

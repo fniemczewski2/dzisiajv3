@@ -51,8 +51,8 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
         return hour.padStart(2, "0");
       }
     }
-  } catch (e: any) {
-    throw new Error(`Błąd parsowania godziny: ${e.message}`);
+  } catch {
+    throw new Error(`Wystąpił błąd pobierania godziny.`);
   }
   return null;
 };

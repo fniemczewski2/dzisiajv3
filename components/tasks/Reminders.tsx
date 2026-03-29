@@ -45,9 +45,8 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
       toast.success("Dodano pomyślnie.");
       setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
       setShowForm(false);
-    } catch (e: any) {
+    } catch {
       toast.error("Wystąpił błąd podczas dodawania.");
-      throw new Error(e.message)
     }
   };
 
@@ -55,9 +54,8 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     try {
       await completeReminder(id);
       toast.success("Oznaczono jako wykonane.");
-    } catch (e: any) {
+    } catch {
       toast.error("Wystąpił błąd podczas aktualizacji.");
-      throw new Error(e.message)
     }
   };
 
@@ -65,9 +63,8 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     try {
       await postponeReminder(id, powtarzanie);
       toast.success("Zadanie odłożone na później.");
-    } catch (e: any) {
+    } catch {
       toast.error("Wystąpił błąd.");
-      throw new Error(e.message)
     }
   };
 
@@ -78,9 +75,8 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     try {
       await deleteReminder(id);
       toast.success("Usunięto pomyślnie.");
-    } catch (e: any) {
+    } catch {
       toast.error("Wystąpił błąd podczas usuwania.");
-      throw new Error(e.message)
     }
   };
 
@@ -133,8 +129,8 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
       
       toast.success("Utworzono zadanie.");
       onTasksChange?.();
-    } catch (e: any) {
-      throw new Error(e.message)
+    } catch {
+      toast.success("Wystąpił błąd dodawania zadania.");
     }
   };
 

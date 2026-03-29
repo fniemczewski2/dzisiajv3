@@ -65,8 +65,7 @@ export function useGoogleCalendar() {
       const data = await res.json();
       setConnected(data.connected ?? false);
       setCalendars(data.calendars ?? []);
-    } catch (e) {
-      console.error("[useGoogleCalendar] checkConnection:", e);
+    } catch {
       setError("Nie udało się sprawdzić połączenia z Google Calendar.");
       setConnected(false);
     } finally {
@@ -91,8 +90,8 @@ export function useGoogleCalendar() {
       }
       const { url } = await res.json();
       globalThis.location.href = url;
-    } catch (e: any) {
-      setError(`Nie udało się rozpocząć autoryzacji: ${e.message}`);
+    } catch {
+      setError("Nie udało się rozpocząć autoryzacji");
       setLoading(false);
     }
   }, [getHeaders]);
@@ -106,8 +105,7 @@ export function useGoogleCalendar() {
       await fetch("/api/google-calendar?action=disconnect", { method: "DELETE", headers });
       setConnected(false);
       setCalendars([]);
-    } catch (e) {
-      console.error("[useGoogleCalendar] disconnect:", e);
+    } catch {
       setError("Nie udało się rozłączyć.");
     } finally {
       setLoading(false);
@@ -131,10 +129,9 @@ export function useGoogleCalendar() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
         return data;
-      } catch (e: any) {
-        const msg = `Import nie powiódł się: ${e.message}`;
-        setError(msg);
-        return { error: msg };
+      } catch {
+        setError("Wystąpił błąd importu.");
+        return { error: "Import error"};
       } finally {
         setLoading(false);
       }
@@ -159,10 +156,9 @@ export function useGoogleCalendar() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
         return data;
-      } catch (e: any) {
-        const msg = `Eksport nie powiódł się: ${e.message}`;
-        setError(msg);
-        return { error: msg };
+      } catch {
+        setError("Wystąpił błąd eksportu.");
+        return { error: "Export error" };
       } finally {
         setLoading(false);
       }

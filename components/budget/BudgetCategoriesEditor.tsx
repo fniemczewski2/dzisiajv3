@@ -185,8 +185,8 @@ export default function BudgetCategoriesEditor({
       toast.success(`Dodano "${name}". Kliknij Edytuj, by ustawić limit.`);
       setShowAddForm(false);
       onCategoriesChange?.();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Błąd");
+    } catch {
+      toast.error("Wystąpił błąd dodawania.");
     }
   };
 

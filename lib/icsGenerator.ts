@@ -70,7 +70,7 @@ export const generateSingleEventICS = (ev: Event) => {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch (e: any) {
-      throw new Error("Nie udało się wygenerować pliku .ics." + e.message);
+    } catch  {
+      throw new Error("Nie udało się wygenerować pliku .ics.");
     }
   };

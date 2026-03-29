@@ -113,11 +113,7 @@ export default async function handler(
 
     res.setHeader('Cache-Control', 'private, max-age=3600'); 
     return res.status(200).json({ ...detailsData, auto_tags: autoTags });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[google-places] Unexpected error:', message);
-    return res
-      .status(500)
-      .json({ error: 'Failed to fetch place details', message });
+  } catch {
+    throw new Error("Wystąpił błąd Google places");
   }
 }

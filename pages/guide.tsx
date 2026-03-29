@@ -1,21 +1,18 @@
 import React from 'react';
-import Layout from '../components/Layout';
 import Seo from '../components/SEO';
 import { BookOpen } from 'lucide-react';
 import { guideSections } from '../config/guideData';
 
 export default function GuidePage() {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: "Instrukcja Obsługi - Dzisiaj v3",
-    description: "Przewodnik po funkcjach i możliwościach aplikacji Dzisiaj v3.",
-  };
 
   return (
     <>
-      <Seo title="Przewodnik - Dzisiaj v3" structuredData={structuredData} />
-      <Layout>
+     <Seo
+        title="Przewodnik - Dzisiaj v3"
+        description="Instrukcje, porady i wskazówki, jak w pełni wykorzystać potencjał aplikacji Dzisiaj v3."
+        canonical="https://dzisiajv3.vercel.app/guide"
+        keywords="przewodnik, pomoc, instrukcja obsługi, tutorial, faq"
+      />
         <div className="max-w-4xl mx-auto space-y-6 px-2 sm:px-0 mb-10">
           
           <div className="mb-8 text-center sm:text-left mt-4">
@@ -44,7 +41,6 @@ export default function GuidePage() {
           ))}
 
         </div>
-      </Layout>
     </>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Layout from "../../components/Layout";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEuroRate } from "../../hooks/useEuroRate";
 import LoadingState from "../../components/LoadingState";
+import Seo from "../../components/SEO";
 
 const InputField = ({
   label,
@@ -171,7 +171,13 @@ export default function BillCalculator() {
   const showExchangeRate = currency1 === "EUR" || currency2 === "EUR";
 
   return (
-    <Layout>
+    <>
+    <Seo
+      title="Kalkulator - Dzisiaj v3"
+      description="Szybki kalkulator wspierający zarządzanie Twoimi codziennymi wydatkami i wyliczeniami."
+      canonical="https://dzisiajv3.vercel.app/bills/calculator"
+      keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
+    />
       <div className="max-w-4xl mx-auto space-y-6">
         
         <div className="flex justify-between gap-3 items-center mb-6">
@@ -375,6 +381,6 @@ export default function BillCalculator() {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 }

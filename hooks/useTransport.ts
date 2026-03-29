@@ -81,12 +81,11 @@ export function useTransport(autoRefresh = false) {
         setNearbyGroups(parsed.success);
         setLocationError(null);
       }
-    } catch (err) {
+    } catch {
       if (controller.signal.aborted) return;
       setLocationError("Problem z pobieraniem odjazdów w pobliżu.");
-      console.error("[useTransport] fetchNearbyData:", err);
     } finally {
-      if (!controller.signal.aborted) setLoadingNearby(false);
+      setLoadingNearby(false);
     }
   }, [supabase]);
 
@@ -139,17 +138,14 @@ export function useTransport(autoRefresh = false) {
         body: { stopNames: stops, lat: lastCoords.current?.lat, lon: lastCoords.current?.lng },
         signal: controller.signal
       });
-      console.log(data)
       
       if (error) throw error;
       setFavoritesGroups(data?.success || []);
       lastFetchTime.current[cacheKey] = now;
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-         toast.error(`Błąd pobierania odjazdów.`);
-      }
+    } catch {
+      toast.error(`Błąd pobierania odjazdów.`);
     } finally {
-      if (!controller.signal.aborted) setLoadingFavorites(false);
+      setLoadingFavorites(false)
     }
   }, [supabase, toast]);
 
@@ -170,8 +166,7 @@ export function useTransport(autoRefresh = false) {
         if (error) return [];
         const parsed = typeof data === "string" ? JSON.parse(data) : data;
         return parsed?.success ?? [];
-      } catch (err) {
-        console.error("[useTransport] searchStops:", err);
+      } catch {
         return [];
       }
     },

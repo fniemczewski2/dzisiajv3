@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Head from "next/head";
-import Layout from "../components/Layout";
 import SearchBar from "../components/SearchBar";
 import { useTransport } from "../hooks/useTransport";
 import { useSettings } from "../hooks/useSettings";
@@ -8,6 +6,7 @@ import { useAuth } from "../providers/AuthProvider";
 import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
 import { DeleteButton, FavButton } from "../components/CommonButtons";
+import Seo from "../components/SEO";
 
 interface LocalSearchResult {
   name: string;
@@ -43,8 +42,8 @@ export default function TransportPage() {
     try {
       const stops = JSON.parse(favoritesJSON);
       fetchFavorites(stops);
-    } catch (e: any) {
-      toast.error(`Wystąpił błąd pobierania ${e.message}`);
+    } catch {
+      toast.error("Wystąpił błąd pobierania przystanków");
     }
   }, [favoritesJSON, fetchFavorites, settingsLoading]);
 
@@ -115,10 +114,15 @@ export default function TransportPage() {
 
   useEffect(() => {
       let toastId: string | undefined;
-      if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");
       if (loadingFavorites && favoritesGroups.length === 0) toastId = toast.loading("Ładowanie ulubionych...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loadingNearby, loadingFavorites, toast]);
+      return () => { if (toastId) toast.dismiss(toastId); };
+  }, [loadingFavorites, toast]);
+  
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");
+      return () => { if (toastId) toast.dismiss(toastId); };
+  }, [loadingNearby, toast]);
 
   let favoritesContent;
 
@@ -211,10 +215,12 @@ export default function TransportPage() {
 
   return (
     <>
-      <Head>
-        <title>Transport – Dzisiajv3</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Transport Miejski - Dzisiaj v3"
+        description="Sprawdzaj rzeczywiste odjazdy komunikacji miejskiej i zarządzaj swoimi ulubionymi przystankami."
+        canonical="https://dzisiajv3.vercel.app/transport"
+        keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
+      />
         <div className="flex items-center mb-4">
           <h2 className="text-2xl font-semibold text-foreground">Transport</h2>
         </div>
@@ -242,7 +248,6 @@ export default function TransportPage() {
             </div>
           </section>
         </div>
-      </Layout>
     </>
   );
 }

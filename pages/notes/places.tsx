@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
-import Layout from "../../components/Layout";
 import { usePlaces } from "../../hooks/usePlaces";
 import ImportPlaces from "../../components/places/ImportPlaces";
 import PlaceFilters from "../../components/places/PlaceFilters";
@@ -10,7 +9,7 @@ import PlaceForm from "../../components/places/PlaceForm";
 import { Place } from "../../types";
 import { Upload } from "lucide-react";
 import { useToast } from "../../providers/ToastProvider";
-import Head from "next/head";
+import Seo from "../../components/SEO";
 
 type ViewMode = "list" | "map";
 
@@ -127,10 +126,12 @@ export default function PlacesPage() {
 
   return (
     <>
-    <Head>
-      <title>Miejsca - Dzisiaj</title>
-    </Head>
-    <Layout>
+      <Seo
+        title="Miejsca - Dzisiaj v3"
+        description="Zapisuj restauracje, atrakcje i lokalizacje warte odwiedzenia wraz ze współrzędnymi."
+        canonical="https://dzisiajv3.vercel.app/notes/places"
+        keywords="miejsca, lokalizacje, restauracje do odwiedzenia, mapa, podróże"
+      />
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-text">Miejsca</h2>
         {!showImport && (
@@ -187,7 +188,6 @@ export default function PlacesPage() {
           loading={loading}
         />
       )}
-    </Layout>
     </>
   );
 }

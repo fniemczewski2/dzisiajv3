@@ -1,10 +1,9 @@
 import dynamic from "next/dynamic";
-import Head from "next/head";
-import Layout from "../../components/Layout";
 import { useState, useCallback, useEffect } from "react";
 import { AddButton } from "../../components/CommonButtons";
 import { useToast } from "../../providers/ToastProvider";
 import { useRecipes } from "../../hooks/useRecipes";
+import Seo from "../../components/SEO";
 
 const RecipeForm = dynamic(() => import("../../components/recipes/RecipeForm"), { ssr: false });
 const RecipesList = dynamic(() => import("../../components/recipes/RecipesList"), { ssr: false });
@@ -32,8 +31,12 @@ export default function RecipesPage() {
   
   return (
     <>
-      <Head><title>Przepisy – Dzisiaj</title></Head>
-      <Layout>
+      <Seo
+        title="Przepisy - Dzisiaj v3"
+        description="Zbieraj swoje ulubione przepisy kulinarne w jednej, prostej w użyciu książce kucharskiej."
+        canonical="https://dzisiajv3.vercel.app/notes/recipes"
+        keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"
+      />
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-text">Przepisy</h2>
           {!showForm && <AddButton onClick={() => setShowForm(true)} />}
@@ -54,7 +57,6 @@ export default function RecipesPage() {
         <section>
           <RecipesList refreshToken={refreshToken} />
         </section>
-      </Layout>
     </>
   );
 }

@@ -103,9 +103,7 @@ export default function NoteEditForm({
             ))}
           </div>
         </div>
-        <div className="flex justify-end gap-3 pt-2">
           <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} />
-        </div>
       </div>
     </li>
   );

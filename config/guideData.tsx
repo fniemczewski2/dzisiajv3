@@ -313,6 +313,12 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki</em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie "bieżące".
       </>,
+      <>
+        <K>Import wyciągów bankowych.</K> Nowa funkcja "Wczytaj CSV" pozwala wgrać plik z mBanku. Algorytm automatycznie kategoryzuje wydatki i dodaje je do tabeli rachunków.
+      </>,
+      <>
+        <K>Edytor kategorii.</K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w "Kategorie", aby dodać własne.
+      </>,
     ],
   },
 
@@ -506,7 +512,7 @@ export const guideSections: GuideSection[] = [
         <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach aktywuje Wake Lock — ekran nie będzie gasł podczas treningu.
       </>,
       <>
-        <K>Konfiguracja tylko przed startem.</K> Panel ustawień jest dostępny wyłącznie gdy timer jest zatrzymany, co zapobiega przypadkowym zmianom w trakcie wysiłku.
+        <K>Konfiguracja.</K> Panel ustawień jest dostępny. Można w nim dowolnie modysikować długość ćwiczeń, przerw, a także ilość powtórzeń. 
       </>,
     ],
   },

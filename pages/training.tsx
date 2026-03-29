@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import UniversalTimer from "../components/Timer";
 import { useIntervalTraining } from "../hooks/useIntervalTraining";
-import Layout from "../components/Layout";
-import Head from "next/head";
 import { X, Settings2 } from "lucide-react";
+import Seo from "../components/SEO";
 
 export default function TrainingPage() {
   const [workSec, setWorkSec] = useState(30);
@@ -50,10 +49,12 @@ export default function TrainingPage() {
 
   return (
     <>
-      <Head>
-        <title>Trening – Dzisiaj</title>
-      </Head>
-      <Layout>
+      <Seo
+        title="Trening Interwałowy - Dzisiaj v3"
+        description="Ćwicz z wbudowanym stoperem. Skonfiguruj własne czasy pracy i przerw do treningów HIIT i Tabata."
+        canonical="https://dzisiajv3.vercel.app/training"
+        keywords="trening, interwały, stoper, hiit, tabata, fitness"
+      />
         <div className="max-w-2xl mx-auto space-y-6">
           <h2 className="text-2xl font-bold text-text mb-6">Trening</h2>
 
@@ -160,7 +161,6 @@ export default function TrainingPage() {
             </div>
           )}
         </div>
-      </Layout>
     </>
   );
 }

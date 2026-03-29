@@ -199,8 +199,7 @@ export default function Header() {
                 : `${airJson.hourly.pm10[0]} µg/m³ PM10`
             );
           }
-        } catch (error) {
-          if (error instanceof Error && error.name === "AbortError") return;
+        } catch {
           toast.error("Wystąpił błąd pobierania danych pogodowych");
         } finally {
           if (isMounted) setLoading(false);

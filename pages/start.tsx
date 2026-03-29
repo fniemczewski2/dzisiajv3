@@ -1,45 +1,10 @@
 import { useRouter } from "next/router";
-import Layout from "../components/Layout";
 import Seo from "../components/SEO";
 import { FEATURE_GROUPS } from "../config/features";
 
 export default function Home() {
   const router = useRouter();
-  
-  const homepageStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "Dzisiaj v3",
-    description: "Kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki i kalendarz w jednym miejscu.",
-    url: "https://dzisiajv3.vercel.app",
-    applicationCategory: "ProductivityApplication",
-    operatingSystem: "Web Browser, iOS, Android",
-    browserRequirements: "Requires JavaScript. Requires HTML5.",
-    softwareVersion: "3.0",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "PLN",
-    },
-    featureList: [
-      "Zarządzanie zadaniami z priorytetami",
-      "Kalendarz wydarzeń",
-      "Notatki i listy",
-      "Śledzenie rachunków i budżetu",
-      "Technika Pomodoro",
-      "Macierz Eisenhowera",
-      "Tryb offline (PWA)",
-      "Synchronizacja w chmurze",
-    ],
-    screenshot: "https://dzisiajv3.vercel.app/screenshot.png",
-    author: {
-      "@type": "Organization",
-      name: "Dzisiaj v3",
-    },
-    inLanguage: "pl-PL",
-  };
-
-  
+   
   const handleStartClick = () => {
     router.push({
       pathname: "/login",
@@ -50,15 +15,11 @@ export default function Home() {
   return (
     <>
       <Seo
-        title="Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem"
-        description="Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania z technikami Pomodoro i Eisenhower, twórz notatki, śledź rachunki i planuj w kalendarzu. Wszystko w jednym miejscu, offline i online."
-        canonical="https://dzisiajv3.vercel.app"
-        ogType="website"
-        keywords="zarządzanie zadaniami, produktywność, notatki, kalendarz, pomodoro, eisenhower matrix, organizacja czasu, todo list, planner, budżet domowy, rachunki, pwa"
-        structuredData={homepageStructuredData}
+        title="Rozpocznij - Dzisiaj v3"
+        description="Poznaj Dzisiaj v3 - kompleksową aplikację, która pomoże Ci uporządkować i zorganizować każdy dzień."
+        canonical="https://dzisiajv3.vercel.app/start"
+        keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />
-
-      <Layout>
         <main id="main-content" className="max-w-4xl mx-auto">
           {/* POPRAWKA: Usunięto literówkę "line-" z className */}
           <section className="text-center sm:py-12 px-4">
@@ -107,7 +68,6 @@ export default function Home() {
             </div>
           </section>
         </main>
-      </Layout>
     </>
   );
 }

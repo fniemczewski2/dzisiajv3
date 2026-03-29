@@ -1,7 +1,5 @@
 // pages/settings.tsx
 import React from "react";
-import Head from "next/head";
-import Layout from "../components/Layout";
 import InstallButton from "../components/settings/InstallButton";
 import LoadingState from "../components/LoadingState";
 import VersionInfo from "../components/settings/Versioninfo";
@@ -15,6 +13,7 @@ import LoveButton from "../components/settings/LoveButton";
 import { useAuth } from "../providers/AuthProvider";
 import { useToast } from "../providers/ToastProvider";
 import { Settings } from "../types"; 
+import Seo from "../components/SEO";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -53,11 +52,13 @@ export default function SettingsPage() {
 
   return (
     <>
-      <Head>
-        <title>Menu - Dzisiaj</title>
-        <meta name="description" content="Zmień swoje ustawienia aplikacji" />
-      </Head>
-      <Layout>
+      <Seo
+        title="Ustawienia - Dzisiaj v3"
+        description="Dostosuj działanie aplikacji Dzisiaj v3. Zmień preferencje, powiadomienia i wygląd interfejsu."
+        canonical="https://dzisiajv3.vercel.app/settings"
+        keywords="ustawienia, konfiguracja, personalizacja, profil, motyw"
+        noindex={true} 
+      />
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">
             Menu&nbsp;&nbsp;
@@ -94,7 +95,6 @@ export default function SettingsPage() {
           <VersionInfo />
         </>
       )}
-      </Layout>
     </>
   );
 }

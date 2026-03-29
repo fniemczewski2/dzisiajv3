@@ -396,9 +396,8 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
 
       toast.success(`Zaimportowano ${parsedData.length} transakcji.`);
       handleCancel();
-    } catch (error: any) {
-      toast.error(error?.message || "Wystąpił błąd podczas importu danych.");
-      console.error(error);
+    } catch {
+      toast.error("Wystąpił błąd podczas importu danych.");
     } finally {
       setLoading(false);
     }
