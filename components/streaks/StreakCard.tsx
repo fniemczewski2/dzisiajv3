@@ -98,7 +98,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                     }}
                     className={`p-2 rounded-lg transition-colors flex justify-center items-center ${
                       editedIcon === item.name
-                        ? 'bg-primary text-white shadow-sm'
+                        ? 'bg-secondary text-white shadow-sm'
                         : 'hover:bg-surface text-textSecondary hover:text-text'
                     }`}
                   >

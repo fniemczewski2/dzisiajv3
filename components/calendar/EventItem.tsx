@@ -226,7 +226,7 @@ export default function EventItem({
         )}
         {event.display_share_info && (
           <div className="flex items-center text-sm font-medium text-textSecondary">
-            <User className="w-4 h-4 mr-2 text-blue-500" />
+            <User className="w-4 h-4 mr-2 text-primary" />
             <span className="truncate">{event.display_share_info}</span>
           </div>
         )}

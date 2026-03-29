@@ -105,7 +105,7 @@ function TimerControlButtons({
       {running ? (
         <button
           onClick={controls.pause}
-          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 bg-primary hover:bg-secondary border-transparent"
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 hover:bg-primary bg-secondary border-transparent"
           title={paused ? "Wznów" : "Pauza"}
         >
           {paused ? <Play className="w-5 h-5 sm:w-6 sm:h-6" /> : <Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
@@ -114,7 +114,7 @@ function TimerControlButtons({
       ) : (
         <button
           onClick={controls.start}
-          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-primary hover:bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 hover:bg-primary bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
           title="Start"
         >
           <Play className="w-5 h-5 sm:w-6 sm:h-6" />

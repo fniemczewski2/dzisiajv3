@@ -40,7 +40,6 @@ export function useDailyOverrides(dateStr: string) {
       return [...prev, { schema_id: schemaId, new_time: null }];
     });
 
-    // NIEZAWODNA METODA ZAPISU DO BAZY (zamiast upsert)
     const { data: existing } = await supabase
       .from('daily_overrides')
       .select('id')
@@ -75,7 +74,6 @@ export function useDailyOverrides(dateStr: string) {
       return [...prev, { schema_id: schemaId, new_time: newTime }];
     });
 
-    // NIEZAWODNA METODA ZAPISU DO BAZY (zamiast upsert)
     const { data: existing } = await supabase
       .from('daily_overrides')
       .select('id')

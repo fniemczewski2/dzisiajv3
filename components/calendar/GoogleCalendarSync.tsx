@@ -224,7 +224,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) 
                       onClick={() => setImportRange(key)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
                         importRange === key
-                          ? "bg-primary text-white border-primary"
+                          ? "bg-secondary text-white border-primary"
                           : "bg-card text-textSecondary border-gray-200 dark:border-gray-700 hover:bg-surface"
                       }`}
                     >
@@ -237,7 +237,7 @@ export default function GoogleCalendarSync({ onSyncComplete }: Readonly<Props>) 
                 <button
                   onClick={handleImport}
                   disabled={loading || !selectedCalendar}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-secondary text-white font-bold rounded-lg transition-colors disabled:opacity-50 shadow-sm"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-primary bg-secondary text-white font-bold rounded-lg transition-colors disabled:opacity-50 shadow-sm"
                 >
                   Importuj
                   {loading ? (

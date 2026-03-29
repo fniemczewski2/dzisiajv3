@@ -4,7 +4,6 @@ import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "../components/calendar/CalendarHeader";
-import CalendarDayDetails from "../components/calendar/CalendarDayDetails";
 import { AddButton } from "../components/CommonButtons";
 import { useQuickAction } from "../hooks/useQuickAction";
 import { useMoods } from "../hooks/useMoods";
@@ -14,6 +13,9 @@ import { useToast } from "../providers/ToastProvider";
 import Seo from "../components/SEO";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
+  ssr: false,
+});
+const CalendarDayDetails = dynamic(() => import("../components/calendar/CalendarDayDetails"), {
   ssr: false,
 });
 

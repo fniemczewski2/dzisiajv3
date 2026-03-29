@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   List,
   ChevronLeft,
@@ -9,7 +10,6 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
-import TaskForm from "../../components/tasks/TaskForm";
 import TaskList from "../../components/tasks/TaskList";
 import { useTasks } from "../../hooks/useTasks";
 import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
@@ -20,6 +20,10 @@ import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { useSettings } from "../../hooks/useSettings";
 import Seo from "../../components/SEO";
+
+const TaskForm = dynamic(() => import("../../components/tasks/TaskForm"), {
+  ssr: false, // Formularz nie potrzebuje SSR, co dodatkowo zdejmuje obciążenie z serwera
+});
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },

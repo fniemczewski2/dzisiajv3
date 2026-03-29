@@ -102,7 +102,7 @@ export default function DaySchemaForm({
             <button key={label} type="button" onClick={() => toggleDay(i)}
               className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
                 days.includes(i)
-                  ? "bg-primary border-primary text-white"
+                  ? "bg-secondary border-primary text-white"
                   : "bg-surface border-gray-200 dark:border-gray-700 text-textSecondary hover:bg-surfaceHover"
               }`}>
               {label}

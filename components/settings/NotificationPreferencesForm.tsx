@@ -24,17 +24,17 @@ export default function NotificationPreferences() {
   };
 
   const notifOptions = [
-    { key: "notif_morning_brief", label: "Poranny Brief",            description: "Zaplanuj dzień o 07:00",                              icon: Sun,         color: "text-amber-500"  },
-    { key: "notif_tasks",         label: "Nadchodzące zadania",       description: "5 minut przed zadaniem na planie dnia",               icon: Clock,       color: "text-blue-500"   },
-    { key: "notif_events",        label: "Wydarzenia z kalendarza",   description: "5 min, 1 dzień i 7 dni przed wydarzeniem",            icon: Calendar,    color: "text-purple-500" },
-    { key: "notif_water",         label: "Nawodnienie",               description: "Powiadomienia o 10:00, 14:00 i 18:00",               icon: Droplet,     color: "text-cyan-500"   },
-    { key: "notif_habits",        label: "Codzienne nawyki",          description: "Przypomnienie o nawykach",                           icon: CheckSquare, color: "text-green-500"  },
-    { key: "notif_evening",       label: "Wieczorny audyt",           description: "Podsumowanie dnia o 21:00",                          icon: Moon,        color: "text-indigo-500" },
+    { key: "notif_morning_brief", label: "Poranny Brief",            description: "Zaplanuj dzień o 07:00",                              icon: Sun},
+    { key: "notif_tasks",         label: "Nadchodzące zadania",       description: "5 minut przed zadaniem na planie dnia",              icon: Clock},
+    { key: "notif_events",        label: "Wydarzenia z kalendarza",   description: "5 min, 1 dzień i 7 dni przed wydarzeniem",           icon: Calendar},
+    { key: "notif_water",         label: "Nawodnienie",               description: "Powiadomienia o 10:00, 14:00 i 18:00",               icon: Droplet},
+    { key: "notif_habits",        label: "Codzienne nawyki",          description: "Przypomnienie o nawykach",                           icon: CheckSquare},
+    { key: "notif_evening",       label: "Wieczorny audyt",           description: "Podsumowanie dnia o 21:00",                          icon: Moon},
   ];
 
   return (
     <div className="space-y-2">
-      {notifOptions.map(({ key, label, description, icon: Icon, color }) => {
+      {notifOptions.map(({ key, label, description, icon: Icon}) => {
         const isActive = settings[key as keyof typeof settings] !== false;
         return (
           <div key={key} className="flex items-center justify-between gap-4 p-3 rounded-xl transition-colors">
@@ -52,7 +52,7 @@ export default function NotificationPreferences() {
               disabled={isUpdating}
               onClick={() => handleToggle(key, isActive)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isActive ? "bg-primary" : "bg-gray-300 dark:bg-gray-700"
+                isActive ? "bg-secondary" : "bg-gray-300 dark:bg-gray-700"
               } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
               role="switch"
               aria-checked={isActive}

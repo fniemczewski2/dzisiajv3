@@ -11,7 +11,6 @@ interface Props {
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
-  // ZMIANA: Otrzymywane z DayView
   userId: string;
   userOptions: string[];
 }
@@ -36,7 +35,6 @@ export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEvent
               onEditEvent={onEditEvent}
               onDeleteEvent={onDeleteEvent}
               onEventsChange={onEventsChange}
-              // ZMIANA: Przekazanie w dół
               userId={userId}
               userOptions={userOptions}
             />

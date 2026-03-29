@@ -148,7 +148,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
         if (shared_with_email !== undefined) {
           const fetchedId = await getUserIdByEmail(shared_with_email, supabase);
-          finalForUserId = fetchedId || userId; // fallback to userId if clearing
+          finalForUserId = fetchedId || userId; 
         }
 
         const { error: updateError } = await supabase

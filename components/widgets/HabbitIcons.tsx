@@ -7,8 +7,6 @@ import {
 import { useDailyHabits } from "../../hooks/useDailyHabits";
 import { useSettings } from "../../hooks/useSettings";
 import type { HabitKey } from "../../types";
-import { useToast } from "../../providers/ToastProvider";
-import { useEffect } from "react";
 
 const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "pills", Icon: Pill },

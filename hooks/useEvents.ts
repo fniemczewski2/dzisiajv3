@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Event } from "../types";
 import { expandRepeatingEvents } from "../lib/eventUtils";
 import { useAuth } from "../providers/AuthProvider";
-import { resolveSharedEmails, getUserIdByEmail } from "../utils/share"; // Zaktualizowany import
+import { resolveSharedEmails, getUserIdByEmail } from "../utils/share"; 
 
 export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
@@ -26,7 +26,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
 
       const fetchedEvents = (data || []) as Event[];
 
-      // ZMIANA: Usunięto całą logikę wyciągania e-maili i zastąpiono jednym wywołaniem
       const eventsWithDisplayInfo = await resolveSharedEmails(
         fetchedEvents,
         userId,
@@ -37,31 +36,34 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       const start = new Date(rangeStart + "T00:00:00");
       const end   = new Date(rangeEnd   + "T23:59:59");
       
-      // Rzutujemy na Event[], ponieważ resolveSharedEmails dodaje display_share_info
       setEvents(expandRepeatingEvents(eventsWithDisplayInfo as Event[], start, end));
+    } catch (error) {
+      console.error("Błąd pobierania wydarzeń:", error);
     } finally {
       setFetching(false);
     }
   }, [supabase, userId, rangeStart, rangeEnd]);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => { 
+    fetchEvents(); 
+  }, [fetchEvents]);
 
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
     try {
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
-      let targetSharedId = eventData.shared_with_id;
+      let targetSharedId = eventData.shared_with_id || null;
       
-      if (shared_with_email !== undefined) {
+      if (shared_with_email) {
         targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
       }
 
       const { error } = await supabase
         .from("events")
         .insert({ ...eventData, user_id: userId, shared_with_id: targetSharedId });
-      if (error) throw error;
       
+      if (error) throw error;
       await fetchEvents();
     } finally {
       setLoading(false);
@@ -74,18 +76,22 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     try {
       const originalId = event.id.split("_")[0];
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
-      let targetSharedId = eventData.shared_with_id;
+      let targetSharedId = eventData.shared_with_id || null;
       
       if (shared_with_email !== undefined) {
-        targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
+        if (shared_with_email.trim() === "") {
+          targetSharedId = null; 
+        } else {
+          targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
+        }
       }
 
       const { error } = await supabase
         .from("events")
         .update({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
         .eq("id", originalId);
-      if (error) throw error;
       
+      if (error) throw error;
       await fetchEvents();
     } finally {
       setLoading(false);

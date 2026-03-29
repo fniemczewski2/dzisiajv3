@@ -62,7 +62,7 @@ export default function SettingsForm({
           type="button"
           onClick={() => updateLocalField(id, !isChecked)}
           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-            isChecked ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'
+            isChecked ? 'bg-secondary' : 'bg-gray-300 dark:bg-gray-700'
           }`}
           role="switch"
           aria-checked={isChecked}
@@ -121,7 +121,7 @@ export default function SettingsForm({
             type="button"
             onClick={() => updateLocalField("show_mood_tracker", !moodEnabled)}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              moodEnabled ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'
+              moodEnabled ? 'bg-secondary' : 'bg-gray-300 dark:bg-gray-700'
             }`}
             role="switch"
             aria-checked={moodEnabled}
@@ -318,8 +318,7 @@ export default function SettingsForm({
         </div>
       </div>
 
-<div className="mt-2">
-        {/* Wizualny nagłówek dla całej grupy */}
+      <div className="mt-2">
         <div className="form-label mb-2" id="trusted-users-group">
           Zaufani użytkownicy (Udostępnianie):
         </div>

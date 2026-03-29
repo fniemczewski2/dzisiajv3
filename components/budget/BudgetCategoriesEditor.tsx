@@ -38,7 +38,7 @@ function ViewToggle({ view, onChange }: { readonly view: ViewMode; readonly onCh
             onClick={() => onChange(v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
               view === v
-                ? "bg-primary text-white shadow-sm"
+                ? "bg-secondary text-white shadow-sm"
                 : "text-textMuted hover:text-text"
             }`}
           >
@@ -132,7 +132,7 @@ function AmountEditor({
         onClick={() => setIsMonthly((m) => !m)}
         className={`shrink-0 text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-colors ${
           isMonthly
-            ? "bg-primary text-white border-primary"
+            ? "bg-secondary text-white border-primary"
             : "bg-surface text-textSecondary border-gray-200 dark:border-gray-700 hover:border-gray-400"
         }`}
         title="Przełącz: miesięczny / roczny"

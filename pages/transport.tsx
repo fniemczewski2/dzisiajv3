@@ -51,7 +51,7 @@ export default function TransportPage() {
     const loadSuggestions = async () => {
       if (!searchQuery || searchQuery.trim().length < 2) {
         setSuggestions([]);
-        searchResults.length > 0 && setSearchResults([]); // Unikamy niepotrzebnego rerenderowania
+        searchResults.length > 0 && setSearchResults([]); 
         return;
       }
 
@@ -117,7 +117,7 @@ export default function TransportPage() {
       if (loadingFavorites && favoritesGroups.length === 0) toastId = toast.loading("Ładowanie ulubionych...");
       return () => { if (toastId) toast.dismiss(toastId); };
   }, [loadingFavorites, toast]);
-  
+
   useEffect(() => {
       let toastId: string | undefined;
       if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");

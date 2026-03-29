@@ -1,5 +1,6 @@
 // components/dashboard/DayView.tsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Calendar, ListTodo, SaveAll, Trophy, X } from "lucide-react";
@@ -17,9 +18,6 @@ import { useDashboardDnd } from "../../hooks/useDashboardDnd";
 import { useDailyOverrides } from "../../hooks/useDailyOverrides";
 import { getPolishHolidays } from "../../lib/holidays";
 import { useToast } from "../../providers/ToastProvider";
-
-import EventForm from "../calendar/EventForm";
-import TaskForm from "../tasks/TaskForm";
 import { DayEvents } from "./DayEvents";
 import { DailyPlan } from "./DailyPlan";
 import { DayTasks } from "./DayTasks";
@@ -27,6 +25,9 @@ import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { DashboardWidgets } from "../widgets/DashboardWidgets";
 import { AddButton, AddSpecificButton } from "../CommonButtons";
+
+const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
+const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });
 
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
 
@@ -324,7 +325,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
           <div className="mb-6 space-y-4 multi-draft-container [&_.dzisiaj-save-btn]:!hidden">
             {draftForms.map((draft, idx) => (
               <div key={draft.id} className="relative w-full md:w-fit">
-                <div className="absolute -left-2 -top-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10 shadow">
+                <div className="absolute -left-2 -top-2 bg-secondary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10 shadow">
                   {idx + 1}
                 </div>
                 {draft.type === "event" ? (
@@ -360,7 +361,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
                     }
                   });
                 }}
-                className="w-full py-3 bg-primary hover:bg-secondary text-white rounded-lg font-bold text-sm shadow-md flex justify-center items-center gap-2 transition-colors"
+                className="w-full py-3 hover:bg-primary bg-secondary text-white rounded-lg font-bold text-sm shadow-md flex justify-center items-center gap-2 transition-colors"
               >
                 ZAPISZ WSZYSTKIE {draftForms.length}
                 <SaveAll className="w-5 h-5" />

@@ -290,7 +290,6 @@ function TaskView({
           )}
         </div>
 
-        {/* Złożona logika wyświetlania opisu przeniesiona do sub-komponentu */}
         <TaskDetails task={task} />
 
       </div>

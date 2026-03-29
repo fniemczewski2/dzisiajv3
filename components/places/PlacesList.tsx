@@ -153,7 +153,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
                   )}
                   {place.website && (
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-surface rounded-md text-blue-500"><Globe className="w-3.5 h-3.5" /></div>
+                      <div className="p-1.5 bg-surface rounded-md text-primary"><Globe className="w-3.5 h-3.5" /></div>
                       <a href={place.website} target="_blank" rel="noopener noreferrer"
                         className="text-sm font-medium text-primary hover:underline truncate"
                         onClick={(e) => e.stopPropagation()}>

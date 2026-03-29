@@ -8,7 +8,7 @@ export interface Departure {
   minutes: number;
   time: string;
   is_realtime: boolean;
-  delay?: number; // Opcjonalne
+  delay?: number;
 }
 
 export interface Bollard {

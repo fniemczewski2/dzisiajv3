@@ -96,7 +96,7 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly
               <button
                 type="button"
                 onClick={addTag}
-                className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors shrink-0"
+                className="px-3 py-2 bg-secondary text-white rounded-lg hover:bg-primary transition-colors shrink-0"
               >
                 <PlusCircle className="w-5 h-5"/>
               </button>

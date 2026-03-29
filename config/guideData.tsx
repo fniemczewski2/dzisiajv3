@@ -44,7 +44,7 @@ export const guideSections: GuideSection[] = [
     id: 'dashboard',
     title: 'Kokpit główny (Dzisiaj)',
     mainIcon: <LayoutDashboard className="w-6 h-6" />,
-    iconColorClass: 'text-blue-500',
+    iconColorClass: 'text-primary',
     listItems: [
       <>
         <K>Centrum dowodzenia.</K> Widok główny zbiera w jednym miejscu wszystko, co istotne na dziś: plan dnia, listę zadań, wydarzenia z kalendarza, widgety nawyków, wody i nastroju oraz kamienie milowe z celów.
@@ -347,7 +347,7 @@ export const guideSections: GuideSection[] = [
     id: 'calculator',
     title: 'Kalkulator podziału rachunków',
     mainIcon: <Calculator className="w-6 h-6" />,
-    iconColorClass: 'text-blue-500',
+    iconColorClass: 'text-primary',
     listItems: [
       <>
         <K>Do czego służy.</K> Narzędzie do sprawiedliwego podziału wspólnych kosztów mieszkania (wynajem, czynsz, media) między dwie osoby z uwzględnieniem różnicy w dochodach.
@@ -428,7 +428,7 @@ export const guideSections: GuideSection[] = [
     id: 'transport',
     title: 'Transport miejski',
     mainIcon: <Bus className="w-6 h-6" />,
-    iconColorClass: 'text-blue-500',
+    iconColorClass: 'text-primary',
     listItems: [
       <>
         <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską na całym świecie. Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
