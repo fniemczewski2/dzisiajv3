@@ -258,7 +258,7 @@ function Section({ title, children }: { readonly title: string; readonly childre
 function Li({ children }: { readonly children: React.ReactNode }) {
   return (
     <li className="flex gap-2 items-start">
-      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-secondary shrink-0" />
       <span className="flex-1">{children}</span>
     </li>
   );

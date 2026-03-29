@@ -45,7 +45,7 @@ const getSortedEventsForWeek = (events: Event[], weekStart: Date, weekEnd: Date)
     const bEnd = parseEventDate(b.end_time);
     const aSpan = differenceInCalendarDays(min([aEnd, weekEnd]), max([aStart, weekStart])) + 1;
     const bSpan = differenceInCalendarDays(min([bEnd, weekEnd]), max([bStart, weekStart])) + 1;
-    return bSpan - aSpan; // Sort by longest span first
+    return bSpan - aSpan; 
   });
 };
 
@@ -147,7 +147,6 @@ const MonthView = memo(function MonthView({
     return result;
   }, [calendarStart, calendarEnd]);
 
-  // REFACTORED: Heavy logic extracted to `processWeekLayout`
   const weekData = useMemo(() => {
     return weeks.map((week) => processWeekLayout(week, events));
   }, [weeks, events]);
@@ -208,7 +207,7 @@ const MonthView = memo(function MonthView({
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={`${event.id}-${start.toISOString()}`}
-                className="bg-primary opacity-90 text-white text-[10px] sm:text-xs rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
+                className="bg-secondary opacity-90 text-white text-[10px] sm:text-xs rounded-sm truncate h-[16px] sm:h-[18px] px-1 flex items-center shadow-sm"
                 style={{ gridColumnStart: col + 1, gridColumnEnd: `span ${span}`, gridRowStart: row + 1 }}
                 title={event.title}
               >

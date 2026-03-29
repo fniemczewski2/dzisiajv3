@@ -49,7 +49,7 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: Readonl
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    className="px-4 py-2 hover:bg-primary bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     aria-label="dodaj"
   >
     Dodaj
@@ -75,7 +75,7 @@ export const SaveButton = ({ onClick, loading, disabled, small = false }: Readon
     type="submit"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-primary hover:bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
+    className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 hover:bg-primary bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
     aria-label="zapisz"
   >
     {!small && "Zapisz"}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import UniversalTimer, { TimerPhase, TimerControls } from "../../components/Timer";
-import { ChevronLeft, Settings, X } from "lucide-react";
+import { ListTodo, Settings, X } from "lucide-react";
 import Seo from "../../components/SEO";
 
 export default function PomodoroPage() {
@@ -130,10 +130,10 @@ const controls: TimerControls = {
         <div className="flex justify-start gap-3 items-center mb-4 relative">
           <button
             onClick={handleBack}
-            className="p-2 flex items-center bg-primary hover:bg-secondary text-white rounded-lg shadow"
+            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
             aria-label="Wróć"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ListTodo className="w-4 h-4" />
           </button>
           <h2 className="text-xl font-semibold">Pomodoro</h2>
         </div>

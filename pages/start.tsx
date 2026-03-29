@@ -21,7 +21,6 @@ export default function Home() {
         keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />
         <main id="main-content" className="max-w-4xl mx-auto">
-          {/* POPRAWKA: Usunięto literówkę "line-" z className */}
           <section className="text-center sm:py-12 px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-text leading-snug">
               Organizuj swój&nbsp;dzień z&nbsp;<span className="text-primary leading-snug">Dzisiaj&nbsp;v3</span>
@@ -33,7 +32,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleStartClick}
-                className="bg-primary hover:bg-secondary text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
+                className="hover:bg-primary bg-secondary text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
               >
                 Rozpocznij
               </button>

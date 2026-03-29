@@ -1,15 +1,26 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { usePlaces } from "../../hooks/usePlaces";
-import ImportPlaces from "../../components/places/ImportPlaces";
 import PlaceFilters from "../../components/places/PlaceFilters";
 import PlacesList from "../../components/places/PlacesList";
-import PlacesMap from "../../components/places/PlacesMap";
-import PlaceForm from "../../components/places/PlaceForm";
 import { Place } from "../../types";
 import { Upload } from "lucide-react";
 import { useToast } from "../../providers/ToastProvider";
 import Seo from "../../components/SEO";
+
+const ImportPlaces = dynamic(() => import("../../components/places/ImportPlaces"), { 
+  ssr: false 
+});
+
+const PlaceForm = dynamic(() => import("../../components/places/PlaceForm"), { 
+  ssr: false 
+});
+
+const PlacesMap = dynamic(() => import("../../components/places/PlacesMap"), { 
+  ssr: false,
+  loading: () => <div className="w-full h-64 bg-surface animate-pulse rounded-xl" /> 
+});
 
 type ViewMode = "list" | "map";
 
@@ -137,7 +148,7 @@ export default function PlacesPage() {
         {!showImport && (
           <button
             onClick={() => setShowImport(true)}
-            className="px-4 py-2 bg-primary hover:bg-secondary text-white font-medium rounded-xl flex items-center gap-2 transition-colors shadow-sm"
+            className="px-4 py-2 bg-secondary hover:bg-secondary text-white font-medium rounded-xl flex items-center gap-2 transition-colors shadow-sm"
           >
             Importuj <Upload className="w-5 h-5" />
           </button>

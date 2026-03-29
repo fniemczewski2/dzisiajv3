@@ -21,7 +21,7 @@ type View = "year" | "month";
 const getStatusColor = (isOver: boolean, isDanger: boolean, percentage: number) => {
   if (isOver || isDanger) return "bg-red-500";
   if (percentage > 80) return "bg-amber-500";
-  return "bg-primary";
+  return "bg-secondary";
 };
 
 function ProgressBar({ spent, planned, max, danger = false }: Readonly<ProgressBarProps>) {
@@ -88,7 +88,7 @@ export default function BudgetOverview({
               onClick={() => setView(v)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
                 view === v
-                  ? "bg-primary text-white shadow-sm"
+                  ? "bg-secondary text-white shadow-sm"
                   : "text-textMuted hover:text-text"
               }`}
             >
@@ -162,8 +162,6 @@ export default function BudgetOverview({
             </div>
           );
         })}
-
-        {/* Obsługa transakcji nieskategoryzowanych (Inne) */}
         {((isYear ? uncategorised.ySpent : uncategorised.mSpent) > 0 || (isYear ? uncategorised.yPlan : uncategorised.mPlan) > 0) && (
           <div>
             <div className="flex justify-between text-sm mb-1">

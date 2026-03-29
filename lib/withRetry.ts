@@ -48,7 +48,7 @@ async function logErrorToEdgeFunction(
       headers: {
         "Content-Type":  "application/json",
         "Authorization": `Bearer ${jwt}`,
-        "apikey":        publishableKey, // Przekazujemy nowy klucz publishable
+        "apikey":        publishableKey,
       },
       body: JSON.stringify({
         context,

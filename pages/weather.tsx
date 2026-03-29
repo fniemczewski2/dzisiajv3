@@ -88,7 +88,6 @@ export default function WeatherPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Uniwersalne odwołanie do obiektu navigator
     const nav = globalThis.navigator;
 
     if (!nav?.geolocation) {
@@ -149,7 +148,6 @@ export default function WeatherPage() {
       return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [loading, toast]);
 
-  // 1. Obliczenia wyciągnięte poza Render (Brak IIFE w JSX)
   const hourlyData: HourlyRow[] = (() => {
     if (!forecast?.hourly) return [];
     const now = getAppDateTime();
@@ -169,7 +167,6 @@ export default function WeatherPage() {
 
   const biomet = forecast ? evaluateBiomet(forecast) : null;
 
-  // 2. Rozwiązanie problemu "Nested Ternary" za pomocą czystej instrukcji warunkowej
   let content;
 
   if (error) {
@@ -266,7 +263,6 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          {/* Czyste wywołanie biometu */}
           {biomet && (
             <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
               <Gauge className={`w-5 h-5 ${biomet.color}`} />
@@ -357,7 +353,6 @@ export default function WeatherPage() {
     content = <NoResultsState text="danych pogodowych" />;
   }
 
-  // 3. Ultra-czysty główny Return
   return (
     <>
       <Seo

@@ -4,8 +4,6 @@ import { DroppableHourSlot } from "./DroppableHourSlot";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import { PlanItem } from "./PlanItem";
 
-// USUNIĘTO stałą HOURS
-
 interface DailyPlanProps {
   planByHour: Record<string, any[]>;
   handleMarkAsDone: (id: string) => void;

@@ -82,7 +82,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 justify-center">
               <button
                 onClick={this.handleReset}
-                className="flex w-full items-center justify-center px-4 py-2 bg-primary hover:bg-secondary text-white rounded-lg gap-2 transition"
+                className="flex w-full items-center justify-center px-4 py-2 hover:bg-primary bg-secondary text-white rounded-lg gap-2 transition"
               >
                 <RefreshCw className="w-5 h-5" />
                 Odśwież

@@ -27,8 +27,9 @@ export async function resolveSharedEmails<T extends { user_id: string; shared_wi
   const currentEmails = emailCacheRef.current;
 
   return items.map((item) => {
+
     const isOwner = item.user_id === userId;
-    const isPrivate = item.user_id === item.shared_with_id;
+    const isPrivate = item.user_id === item.shared_with_id || item.shared_with_id === null;
     if (isPrivate) {
       return { ...item, display_share_info: null };
     }
@@ -38,7 +39,6 @@ export async function resolveSharedEmails<T extends { user_id: string; shared_wi
     const displayShareInfo = isOwner 
       ? `Udostępniono: ${email}` 
       : `Od: ${email}`;
-
     return {
       ...item,
       display_share_info: displayShareInfo,

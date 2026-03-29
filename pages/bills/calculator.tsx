@@ -232,7 +232,7 @@ export default function BillCalculator() {
                     onChange={calculate} 
                   />
                   {fetchedEuroRate && (
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500 mt-2 ml-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-primary mt-2 ml-1">
                           Aktualny kurs z NBP: {fetchedEuroRate} zł
                       </p>
                   )}

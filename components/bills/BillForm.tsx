@@ -190,7 +190,7 @@ export default function BillForm({
             aria-labelledby="cycle-label"
             onClick={() => setIsRecurring(!isRecurring)}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-              isRecurring ? "bg-primary" : "bg-gray-300 dark:bg-gray-700"
+              isRecurring ? "bg-secondary" : "bg-gray-300 dark:bg-gray-700"
             }`}
             role="switch"
             aria-checked={isRecurring}

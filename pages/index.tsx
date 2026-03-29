@@ -2,15 +2,23 @@
 
 import React, { useEffect } from "react";
 import Seo from "../components/SEO";
+import dynamic from "next/dynamic";
 import { useSettings } from "../hooks/useSettings";
 import { useAuth } from "../providers/AuthProvider";
 
 import LoadingState from "../components/LoadingState";
 import { useRouter } from "next/router";
-import CalendarPage from "./calendar";
-import TasksPage from "./tasks";
 import { getAppDateTime } from "../lib/dateUtils";
-import DayView from "../components/dashboard/DayView";
+
+const TasksPage = dynamic(() => import("./tasks"), {
+  loading: () => <LoadingState fullScreen />,
+});
+const CalendarPage = dynamic(() => import("./calendar"), {
+  loading: () => <LoadingState fullScreen />,
+});
+const DayView = dynamic(() => import("../components/dashboard/DayView"), {
+  loading: () => <LoadingState fullScreen />,
+});
 
 export default function IndexPage() {
   const { user, loadingUser } = useAuth();

@@ -1,6 +1,7 @@
 // pages/bills/index.tsx
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Calculator, ChartColumnBig } from "lucide-react";
 import { useBills } from "../../hooks/useBills";
 import { useBudgetCategories } from "../../hooks/useBudgetCategories";
@@ -8,13 +9,18 @@ import { useRouter } from "next/router";
 import { useToast } from "../../providers/ToastProvider";
 import { getYear } from "date-fns";
 import DailySpendingForm from "../../components/widgets/DailySpendingForm";
-import BillForm from "../../components/bills/BillForm";
 import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 import type { Bill } from "../../types";
-import BankCsvImporter from "../../components/budget/BankCSV";
 import BillListGrouped from "../../components/bills/BillListGrouped";
 import Seo from "../../components/SEO";
+
+const BillForm = dynamic(() => import("../../components/bills/BillForm"), {
+  ssr: false,
+});
+const BankCsvImporter = dynamic(() => import("../../components/budget/BankCSV"), {
+  ssr: false, 
+});
 
 const currentYear = getYear(new Date());
 

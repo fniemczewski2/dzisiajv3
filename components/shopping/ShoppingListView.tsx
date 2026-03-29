@@ -109,7 +109,6 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     } else {
       const ok = await toast.confirm("Czy na pewno chcesz opuścić tę listę? Zniknie ona z Twojego widoku.");
       if (!ok) return;
-      // Gość "usuwa" listę u siebie poprzez przypisanie shared_with_id z powrotem do właściciela
       await withRetry(
         () => editShoppingList(list.id!, { shared_with_id: list.user_id }),
         toast,
@@ -185,7 +184,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                 <h3 className="font-bold text-lg text-text leading-tight truncate">{list.name}</h3>
                 {list.display_share_info && (
                   <div className="flex items-center text-sm font-medium text-textSecondary mt-2">
-                    <User className="w-4 h-4 mr-1.5 text-blue-500" />
+                    <User className="w-4 h-4 mr-1.5 text-primary" />
                     <span className="truncate">{list.display_share_info}</span>
                   </div>
                 )}
@@ -229,7 +228,7 @@ function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) 
     <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
       <input type="text" placeholder="Nowy produkt..." value={text}
         onChange={(e) => setText(e.target.value)} className="input-field py-2 flex-1 min-w-0" />
-      <button className="flex items-center justify-center px-4 bg-primary text-white font-bold rounded-xl hover:bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt">
+      <button className="flex items-center justify-center px-4 hover:bg-primary text-white font-bold rounded-xl bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt">
         <Plus className="w-5 h-5" />
       </button>
     </form>

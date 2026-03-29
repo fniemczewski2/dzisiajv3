@@ -155,7 +155,7 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
         <label 
           htmlFor="file-upload"
           className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm ${
-            isImporting ? "bg-surface text-textMuted cursor-not-allowed border border-gray-200 dark:border-gray-700" : "bg-primary hover:bg-secondary text-white cursor-pointer"
+            isImporting ? "bg-surface text-textMuted cursor-not-allowed border border-gray-200 dark:border-gray-700" : "hover:bg-primary bg-secondary text-white cursor-pointer"
           }`}
         >
           {isImporting ? (

@@ -25,7 +25,7 @@ export default function BudgetControls({
           <button
             onClick={onSave}
             disabled={saving}
-            className="p-2 bg-primary rounded-lg hover:bg-secondary text-white transition-colors disabled:opacity-50 flex items-center justify-center"
+            className="p-2 hover:bg-primary rounded-lg bg-secondary text-white transition-colors disabled:opacity-50 flex items-center justify-center"
             title="Zapisz"
           >
             {saving ? <LoadingState /> : <Save className="w-4 h-4" />}

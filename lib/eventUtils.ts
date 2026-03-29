@@ -8,7 +8,6 @@ import {
 import { Event } from "../types";
 import { getAppDate, parseEventDate, dateToTimestamp } from "./dateUtils";
 
-// HELPER: Determine the next date based on the repeat interval
 const getNextDate = (currentDate: Date, repeat: string): Date => {
   switch (repeat) {
     case "weekly":
@@ -22,7 +21,6 @@ const getNextDate = (currentDate: Date, repeat: string): Date => {
   }
 };
 
-// HELPER: Fast-forward a repeating event's start date until it falls within the viewing range
 const getFirstInstanceInRange = (start: Date, rangeStart: Date, repeat: string): Date => {
   let currentStart = new Date(start);
   while (currentStart < rangeStart) {
@@ -31,7 +29,6 @@ const getFirstInstanceInRange = (start: Date, rangeStart: Date, repeat: string):
   return currentStart;
 };
 
-// HELPER: Process a single repeating event and generate all its instances within the range
 const generateRepeatingInstances = (
   event: Event,
   originalStart: Date,
@@ -65,7 +62,6 @@ const generateRepeatingInstances = (
   return instances;
 };
 
-// REFACTORED MAIN FUNCTION: Cognitive complexity greatly reduced
 export function expandRepeatingEvents(
   events: Event[],
   start?: Date,

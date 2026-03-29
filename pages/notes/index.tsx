@@ -1,15 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { Clapperboard, MapPin } from "lucide-react";
 import { useNotes } from "../../hooks/useNotes";
-import NoteForm from "../../components/notes/NoteForm";
 import NoteList from "../../components/notes/NoteList";
 import { useRouter } from "next/router";
 import { AddButton } from "../../components/CommonButtons";
 import { useQuickAction } from "../../hooks/useQuickAction";
 import { useToast } from "../../providers/ToastProvider";
-import Seo from "../../components/SEO";
+import Seo from "../../components/SEO"
+const NoteForm = dynamic(() => import("../../components/notes/NoteForm"), {
+  ssr: false,
+});
 
 export default function NotesPage() {
   const { notes, fetching, fetchNotes } = useNotes();

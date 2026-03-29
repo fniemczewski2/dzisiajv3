@@ -74,7 +74,7 @@ const CalendarCell = memo(function CalendarCell({
         <div
           className={clsx(
             "text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors",
-            isToday ? "bg-primary text-white" : "text-text",
+            isToday ? "bg-secondary text-white" : "text-text",
             isOutside && !isToday && "text-textMuted",
             holiday &&
               (isToday

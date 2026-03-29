@@ -79,7 +79,7 @@ export default function PlaceFilters({
          />
          <button
            onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
-           className="px-4 py-2 rounded-xl transition-colors bg-primary hover:bg-secondary text-white flex items-center justify-center gap-2 h-[42px] min-w-[90px] font-medium"
+           className="px-4 py-2 rounded-xl transition-colors hover:bg-primary bg-secondary text-white flex items-center justify-center gap-2 h-[42px] min-w-[90px] font-medium"
          >
            {viewMode === "map" ? (
              <>Lista <List className="w-5 h-5"/></>
@@ -112,7 +112,7 @@ export default function PlaceFilters({
                     onClick={() => toggleTag(tag)}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
                       selectedTags.includes(tag)
-                        ? "bg-primary text-white border-primary"
+                        ? "bg-secondary text-white border-primary"
                         : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
                     }`}
                   >

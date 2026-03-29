@@ -137,7 +137,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
             {products.map((p) => (
               <button key={p} onClick={() => toggleProd(p)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
-                  prodFilter.includes(p) ? "bg-primary text-white border-primary shadow-sm" : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
+                  prodFilter.includes(p) ? "bg-secondary text-white border-primary shadow-sm" : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
                 }`}>{p}</button>
             ))}
           </div>
@@ -152,7 +152,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
         {filteredAndSorted.map((r) => {
           const open = openId === r.id;
           const isEditing = editingId === r.id;
-          const editPrefix = `edit-recipe-${r.id}`; // Prefix for unique IDs
+          const editPrefix = `edit-recipe-${r.id}`; 
 
           if (isEditing && editedRecipe) {
             return (
@@ -192,7 +192,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
                         className="input-field flex-1" 
                       />
                       <button type="button" onClick={() => commitProduct(prodInput)}
-                        className="px-4 bg-primary text-white hover:bg-secondary rounded-xl transition-colors shadow-sm shrink-0">
+                        className="px-4 bg-secondary text-white hover:bg-secondary rounded-xl transition-colors shadow-sm shrink-0">
                         <PlusCircleIcon className="w-5 h-5" />
                       </button>
                     </div>

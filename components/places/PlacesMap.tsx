@@ -50,7 +50,6 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
 
     const script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    // Added SRI Hash for Leaflet 1.9.4 JS
     script.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
     script.crossOrigin = "anonymous";
     script.onload = () => setMapLoaded(true);
