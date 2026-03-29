@@ -11,7 +11,7 @@ interface PushNotificationManagerProps {
 }
 
 const getPlatform = (): string => {
-  if (typeof globalThis === "undefined" || !globalThis.navigator) return "desktop";
+  if (globalThis === undefined || !globalThis.navigator) return "desktop";
   const ua = globalThis.navigator.userAgent.toLowerCase();
   if (/iphone|ipad|ipod/.test(ua)) return "ios";
   if (/android/.test(ua)) return "android";
@@ -19,7 +19,7 @@ const getPlatform = (): string => {
 };
 
 const checkIsStandalone = (): boolean => {
-  if (typeof globalThis === "undefined") return false;
+  if (globalThis === undefined) return false;
   const matchMediaMatches = typeof globalThis.matchMedia === "function" && globalThis.matchMedia("(display-mode: standalone)").matches;
   const navigatorStandalone = (globalThis.navigator as any)?.standalone === true;
   return matchMediaMatches || navigatorStandalone;

@@ -28,8 +28,6 @@ export default function TransportPage() {
     fetchFavorites,
   } = useTransport(true);
 
-  console.log(favoritesGroups)
-
   const { settings, addFavoriteStop, removeFavoriteStop, loading: settingsLoading } = useSettings();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,7 +52,7 @@ export default function TransportPage() {
     const loadSuggestions = async () => {
       if (!searchQuery || searchQuery.trim().length < 2) {
         setSuggestions([]);
-        setSearchResults([]);
+        searchResults.length > 0 && setSearchResults([]); // Unikamy niepotrzebnego rerenderowania
         return;
       }
 
@@ -122,6 +120,95 @@ export default function TransportPage() {
       return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [loadingNearby, loadingFavorites, toast]);
 
+  let favoritesContent;
+
+  if (favoriteStops.length === 0) {
+    favoritesContent = <NoResultsState text="ulubionych przystanków" />;
+  } else if (favoritesGroups.length === 0) {
+    favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
+  } else {
+    favoritesContent = favoritesGroups.map((group) => (
+      <div key={`group_${group.stop_name}`} className="card rounded-xl p-4">
+        <div className="flex justify-between items-center mb-2 border-b pb-2">
+          <h4 className="font-bold text-primary">{group.stop_name}</h4>
+          <DeleteButton onClick={() => removeFavoriteStop(group.stop_name)} small />
+        </div>
+        
+        <div className="grid gap-3">
+          {group.bollards?.map((bollard: any) => (
+            <div key={bollard.bollard_code} className="">
+              <span className="text-[10px] uppercase text-textSecondary font-mono">
+                {bollard.bollard_code}
+              </span>
+              <div className="mt-1">
+                {bollard.departures.map((dep: any, idx: number) => (
+                  <div key={`${dep.line}-${dep.direction}-${idx}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                    <span className="font-medium w-8">{dep.line}</span>
+                    <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
+                    <span className={dep.is_realtime ? "text-primary font-bold" : ""}>
+                      {dep.minutes} min
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ));
+  }
+
+  let nearbyContent;
+
+  if (locationError) {
+    nearbyContent = (
+      <div className="text-center py-10 w-full" >
+          <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
+          <p className="text-textSecondary">{locationError}</p>
+      </div>
+    );
+  } else if (!loadingNearby && nearbyGroups.length === 0) {
+    nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
+  } else {
+    nearbyContent = nearbyGroups.map((group: any) => (
+      <div key={`nearby_group_${group.stop_name}`} className="card rounded-xl p-4">
+        <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
+          <h4 className="font-bold text-primary">{group.stop_name}</h4>
+          <div className="flex items-center gap-3">
+            {group.distance && <span className="text-xs text-textSecondary">{group.distance} m</span>}
+            <FavButton
+              onClick={() => {
+                addFavoriteStop(group.stop_name, group.zone_id || "AUTO");
+                toast.success(`Dodano do ulubionych: ${group.stop_name}`);
+              }}
+              small/>
+          </div>
+        </div>
+        
+        <div className="grid gap-3">
+          {group.bollards?.map((bollard: any) => (
+            <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg">
+              <span className="text-[10px] uppercase text-textSecondary font-mono">
+                {bollard.bollard_code}
+              </span>
+              <div className="mt-1">
+                {bollard.departures.map((dep: any, idx: number) => (
+                  <div key={`${dep.line}-${dep.direction}-${idx}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                    <span className="font-medium w-8">{dep.line}</span>
+                    <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
+                    <span className={dep.minutes <= 5 ? "text-primary font-bold" : ""}>
+                      {dep.minutes} min
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ));
+  }
+
   return (
     <>
       <Head>
@@ -144,99 +231,14 @@ export default function TransportPage() {
           <section>
             <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
             <div className="space-y-4">
-              {favoriteStops.length === 0 ? (
-                <NoResultsState text="ulubionych przystanków" />
-              ) : favoritesGroups.length === 0 ? (
-                <NoResultsState text="kursów dla wskazanych przystanków" />
-              ) : (
-                favoritesGroups.map((group) => (
-                  <div key={`group_${group.stop_name}`} className="card rounded-xl p-4">
-                    <div className="flex justify-between items-center mb-2 border-b pb-2">
-                      <h4 className="font-bold text-primary">{group.stop_name}</h4>
-                      <DeleteButton
-                        onClick={() => removeFavoriteStop(group.stop_name)}
-                        small
-                      />
-                    </div>
-                    
-                    <div className="grid gap-3">
-                      {group.bollards?.map((bollard: any) => (
-                        <div key={bollard.bollard_code} className="">
-                          <span className="text-[10px] uppercase text-textSecondary font-mono">
-                            {bollard.bollard_code}
-                          </span>
-                          <div className="mt-1">
-                            {bollard.departures.map((dep: any, idx: number) => (
-                              <div key={`${dep.line}-${dep.direction}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
-                                <span className="font-medium w-8">{dep.line}</span>
-                                <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
-                                <span className={dep.is_realtime ? "text-primary font-bold" : ""}>
-                                  {dep.minutes} min
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
+              {favoritesContent}
             </div>
           </section>
           
           <section>
             <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
             <div className="space-y-4">
-              {locationError && (
-                <div className="text-center py-10 w-full" >
-                    <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
-                    <p className="text-textSecondary">{locationError}</p>
-                </div>
-              )}
-
-              {!loadingNearby && !locationError && nearbyGroups.length === 0 && (
-                <NoResultsState text="przystanków w pobliżu" />
-              )}
-
-              {nearbyGroups.map((group: any) => (
-                <div key={`nearby_group_${group.stop_name}`} className="card rounded-xl p-4">
-                  <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
-                    <h4 className="font-bold text-primary">{group.stop_name}</h4>
-                    <div className="flex items-center gap-3">
-                      {group.distance && <span className="text-xs text-textSecondary">{group.distance} m</span>}
-                      <FavButton
-                        onClick={() => {
-                          addFavoriteStop(group.stop_name, group.zone_id || "AUTO");
-                          toast.success(`Dodano do ulubionych: ${group.stop_name}`);
-                        }}
-                        small/>
-
-                    </div>
-                  </div>
-                  
-                  <div className="grid gap-3">
-                    {group.bollards?.map((bollard: any) => (
-                      <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg">
-                        <span className="text-[10px] uppercase text-textSecondary font-mono">
-                          {bollard.bollard_code}
-                        </span>
-                        <div className="mt-1">
-                          {bollard.departures.map((dep: any) => (
-                            <div key={`${dep.line}-${dep.direction}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
-                              <span className="font-medium w-8">{dep.line}</span>
-                              <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
-                              <span className={dep.is_realtime <= 5 ? "text-primary font-bold" : ""}>
-                                {dep.minutes} min
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+               {nearbyContent}
             </div>
           </section>
         </div>
