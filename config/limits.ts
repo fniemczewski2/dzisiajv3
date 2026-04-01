@@ -1,2 +1,9 @@
-export const MAX_SHOPING_LISTS = 5;
+export const MAX_SHOPPING_LISTS = 5;
 export const MAX_FAVORITE_STOPS = 10;
+export const MAX_CATEGORIES = 20;
+export const MAX_HISTORY = 5;
+export const MAX_SEARCH_SUGGESTIONS = 5;
+export const MAX_TRUSTED_USERS = 10;
+export const BILLS_PAGE_LIMIT = 20;
+export const TRANSPORT_API_LIMIT = 30;
+export const TRANSPORT_SUGGESTIONS_LIMIT = 10;

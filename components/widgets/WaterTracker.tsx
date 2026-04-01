@@ -27,9 +27,11 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
     setLocalWater(Number.parseFloat(e.target.value));
   };
 
-  const handleSliderRelease = () => {
-    if (localWater !== null && localWater !== habits.water_amount) {
-      updateWater(Number(localWater.toFixed(1)));
+  const handleSliderRelease = (e: React.SyntheticEvent<HTMLInputElement>) => {
+    const finalWater = Number.parseFloat(e.currentTarget.value);
+    
+    if (habits && finalWater !== habits.water_amount) {
+      updateWater(Number(finalWater.toFixed(1)));
     }
   };
 
@@ -58,6 +60,7 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
           disabled={loading && localWater === null}
           onChange={handleSliderChange}
           onPointerUp={handleSliderRelease} 
+          onKeyUp={handleSliderRelease} // ZMIANA: Dodano zapis po puszczeniu klawisza (np. strzałki)
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 touch-none"
         />
       </div>

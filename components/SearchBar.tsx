@@ -3,8 +3,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Clock, X } from "lucide-react";
-
-const MAX_HISTORY = 5;
+import { MAX_HISTORY, MAX_SEARCH_SUGGESTIONS } from "../config/limits";
 
 function useSessionHistory() {
   const [history, setHistory] = useState<string[]>([]);
@@ -98,7 +97,7 @@ export default function SearchBar({
   const filteredSuggestions = value
     ? suggestions
         .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
-        .slice(0, 5)
+        .slice(0, MAX_SEARCH_SUGGESTIONS)
     : [];
 
   const showDropdown =

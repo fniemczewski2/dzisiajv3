@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { Settings } from "../types";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
+import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "../config/limits";
 
 type GeoCoords = { lat: number; lng: number };
 
@@ -179,7 +180,7 @@ export function useSettings() {
   const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
     const stops = settingsRef.current.favorite_stops;
     if (stops.some((s: any) => (s.name || s) === name)) return true;
-    if (stops.length >= 10) return false;
+    if (stops.length >= MAX_FAVORITE_STOPS) return false;
 
     const updated = [...stops, { name, zone_id }];
     setSettings((prev) => ({ ...prev, favorite_stops: updated }));
@@ -212,7 +213,7 @@ export function useSettings() {
   };
 
   const addUser = () => {
-    if (settings.users.length < 10)
+    if (settings.users.length < MAX_TRUSTED_USERS)
       setSettings((s) => ({ ...s, users: [...s.users, ""] }));
   };
 

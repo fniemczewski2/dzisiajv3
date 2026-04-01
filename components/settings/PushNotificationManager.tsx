@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import { useToast } from "../../providers/ToastProvider";
@@ -103,6 +103,12 @@ function TechDetailsInfo({
 }
 
 export default function PushNotificationManager({ userId }: PushNotificationManagerProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { isSubscribed, loading, subscribeToPush, unsubscribeFromPush } = usePushNotifications(userId);
   const { toast } = useToast();
 
@@ -110,6 +116,10 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
   const [permission, setPermission] = useState<NotificationPermission>(
     typeof globalThis !== "undefined" && "Notification" in globalThis ? Notification.permission : "default"
   );
+
+  if (!mounted) {
+    return null; 
+  }
 
   const platform = getPlatform();
   const isStandalone = checkIsStandalone();

@@ -127,9 +127,7 @@ export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormPr
         <textarea id="rf-desc" value={description} onChange={(e) => setDescription(e.target.value)}
           className="input-field" rows={4} placeholder="Krótki opis lub kroki przygotowania…" disabled={loading} />
       </div>
-      <div className="flex gap-3 items-center pt-2">
-        <FormButtons disabled={!canSave} onClickClose={onCancel} loading={loading} />
-      </div>
+      <FormButtons disabled={!canSave} onClickClose={onCancel} loading={loading} />
     </form>
   );
 }

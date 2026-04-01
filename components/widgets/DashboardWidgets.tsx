@@ -11,6 +11,7 @@ interface DashboardWidgetsProps {
 
 export const DashboardWidgets = React.memo(({ settings }: Readonly<DashboardWidgetsProps>) => {
   const today = getAppDate();
+  if (!settings) return null; 
   return (
     <div className="flex flex-col">
       {settings?.show_habits && <TaskIcons />}

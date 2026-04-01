@@ -11,7 +11,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
     /app-path-react-loadable-manifest\.json$/,
     /build-manifest\.json$/,
     /react-loadable-manifest\.json$/,
-    /dynamic-css-manifest\.json$/,
+    /.*dynamic-css-manifest\.json$/,
     /\.map$/,
   ],
   runtimeCaching: [

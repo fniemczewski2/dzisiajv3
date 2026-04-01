@@ -1,137 +1,42 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import SearchBar from "../components/SearchBar";
 import { useTransport } from "../hooks/useTransport";
-import { useSettings } from "../hooks/useSettings";
-import { useAuth } from "../providers/AuthProvider";
 import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
 import { DeleteButton, FavButton } from "../components/CommonButtons";
 import Seo from "../components/SEO";
 
-interface LocalSearchResult {
-  name: string;
-  zone_id: string;
-  displayString: string;
-}
-
 export default function TransportPage() {
-  const { supabase } = useAuth(); 
   const { toast } = useToast();
   
+  // Pobieramy wszystko prosto z naszego ujednoliconego hooka transportowego
   const {
     nearbyGroups,
     favoritesGroups,
-    loadingNearby,
-    loadingFavorites,
     locationError, 
-    fetchFavorites,
+    searchQuery,
+    setSearchQuery,
+    suggestions,
+    handleSuggestionClick,
+    favoriteStops,
+    addFavoriteStop,
+    removeFavoriteStop
   } = useTransport(true);
 
-  const { settings, addFavoriteStop, removeFavoriteStop, loading: settingsLoading } = useSettings();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<LocalSearchResult[]>([]);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-
-  const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
-  const favoritesJSON = JSON.stringify(favoriteStops);
-  
-  useEffect(() => {
-    if (settingsLoading) return;
-
-    try {
-      const stops = JSON.parse(favoritesJSON);
-      fetchFavorites(stops);
-    } catch {
-      toast.error("Wystąpił błąd pobierania przystanków");
-    }
-  }, [favoritesJSON, fetchFavorites, settingsLoading]);
-
-  useEffect(() => {
-    const loadSuggestions = async () => {
-      if (!searchQuery || searchQuery.trim().length < 2) {
-        setSuggestions([]);
-        searchResults.length > 0 && setSearchResults([]); 
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("stops")
-        .select("stop_name, zone_id")
-        .ilike("stop_name", `%${searchQuery}%`)
-        .limit(30);
-
-      if (error || !data) {
-        console.error("Błąd wyszukiwania przystanków:", error);
-        setSuggestions([]);
-        setSearchResults([]);
-        return;
-      }
-
-      const uniqueStops = new Map<string, LocalSearchResult>();
-
-      (data as any[]).forEach((stop) => {
-        if (!stop.stop_name) return;
-
-        if (!uniqueStops.has(stop.stop_name)) {
-          const isSzczecin = stop.zone_id === "S";
-          const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id || ""}`;
-          const displayString = `${stop.stop_name} (${cityName})`.trim();
-
-          uniqueStops.set(stop.stop_name, {
-            name: stop.stop_name,
-            zone_id: stop.zone_id || "AUTO",
-            displayString: displayString,
-          });
-        }
-      });
-
-      const resultsArray = Array.from(uniqueStops.values()).slice(0, 10);
-      setSearchResults(resultsArray);
-      setSuggestions(resultsArray.map((r) => r.displayString));
-    };
-
-    const debounce = setTimeout(loadSuggestions, 300);
-    return () => clearTimeout(debounce);
-  }, [searchQuery, supabase]);
-
-  const handleSuggestionClick = (value: string) => {
-    const selectedStop = searchResults.find((s) => s.displayString === value);
-    
-    if (selectedStop) {
-      addFavoriteStop(selectedStop.name, selectedStop.zone_id);
-      toast.success(`Dodano do ulubionych: ${selectedStop.name}`);
-    } else {
-      const fallbackName = value.split(" (")[0];
-      addFavoriteStop(fallbackName, "AUTO");
-      toast.success(`Dodano do ulubionych: ${fallbackName}`);
-    }
-    
-    setSearchQuery("");
-    setSuggestions([]);
-    setSearchResults([]);
-  };
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (loadingFavorites && favoritesGroups.length === 0) toastId = toast.loading("Ładowanie ulubionych...");
-      return () => { if (toastId) toast.dismiss(toastId); };
-  }, [loadingFavorites, toast]);
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");
-      return () => { if (toastId) toast.dismiss(toastId); };
-  }, [loadingNearby, toast]);
+  // ZMIANA: Optymistyczny UI. Pokaż tylko te grupy, które nadal fizycznie znajdują się w ulubionych.
+  // Dzięki temu znikają z ekranu od razu po wciśnięciu Delete.
+  const visibleFavorites = favoritesGroups.filter((group) => 
+    favoriteStops.some((stop: any) => stop.name === group.stop_name)
+  );
 
   let favoritesContent;
 
   if (favoriteStops.length === 0) {
     favoritesContent = <NoResultsState text="ulubionych przystanków" />;
-  } else if (favoritesGroups.length === 0) {
+  } else if (visibleFavorites.length === 0) {
     favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
   } else {
-    favoritesContent = favoritesGroups.map((group) => (
+    favoritesContent = visibleFavorites.map((group) => (
       <div key={`group_${group.stop_name}`} className="card rounded-xl p-4">
         <div className="flex justify-between items-center mb-2 border-b pb-2">
           <h4 className="font-bold text-primary">{group.stop_name}</h4>
@@ -171,7 +76,7 @@ export default function TransportPage() {
           <p className="text-textSecondary">{locationError}</p>
       </div>
     );
-  } else if (!loadingNearby && nearbyGroups.length === 0) {
+  } else if (nearbyGroups.length === 0) {
     nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
   } else {
     nearbyContent = nearbyGroups.map((group: any) => (

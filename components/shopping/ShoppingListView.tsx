@@ -159,9 +159,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                     </select>
                   </div>
                 )}
-                <div className="flex justify-end gap-2 pt-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                   <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
-                </div>
               </div>
               <ul className="list-none space-y-2.5 opacity-60 pointer-events-none grayscale-[0.5]">
                 {list.elements.map((el) => (
