@@ -2,8 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "../types";
 import { useAuth } from "../providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "../utils/share";
-
-const MAX_LISTS = 5;
+import { MAX_SHOPPING_LISTS } from "../config/limits";
 
 export function useShoppingLists() {
   const { user, supabase } = useAuth();
@@ -22,7 +21,7 @@ export function useShoppingLists() {
         .from("shopping_lists")
         .select("*")
         .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
-        .limit(MAX_LISTS);
+        .limit(MAX_SHOPPING_LISTS);
 
       if (error) throw error;
 
@@ -44,7 +43,7 @@ export function useShoppingLists() {
   const addShoppingList = useCallback(
     async (name: string, shared_with_email: string | null): Promise<boolean> => {
       setLoading(true);
-      if (lists.length >= MAX_LISTS) return false;
+      if (lists.length >= MAX_SHOPPING_LISTS) return false;
 
       let sharedWithUuid: string | null = null;
       if (shared_with_email !== undefined && shared_with_email !== null) {
@@ -110,7 +109,7 @@ export function useShoppingLists() {
     lists,
     loading,
     fetching,
-    maxLists: MAX_LISTS,
+    maxLists: MAX_SHOPPING_LISTS,
     fetchShoppingLists,
     addShoppingList,
     editShoppingList,

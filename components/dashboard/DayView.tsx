@@ -72,6 +72,9 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
   const [draftForms, setDraftForms] = useState<DraftForm[]>([]);
   const [draggedSchemaTitle, setDraggedSchemaTitle] = useState<string | null>(null);
 
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showEventForm, setShowEventForm] = useState(false);
+
   const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, acceptTask } = useTasks(dateStr, dateStr);
   const { events, fetchEvents, addEvent, deleteEvent, editEvent, loading: loadingEvents } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage } = useStreaks();
@@ -402,8 +405,21 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
                   <ListTodo className="text-primary w-5 h-5" />Zadania
                 </h2>
-                <AddButton onClick={() => handleAddDraft('task')} small />
+                {!showTaskForm && <AddButton onClick={() => setShowTaskForm(true)} small />}
               </div>
+              
+              {showTaskForm && (
+                <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+                  <TaskForm 
+                    selectedDate={dateStr}
+                    addTask={addTask}
+                    onTasksChange={() => { fetchTasks(); setShowTaskForm(false); }} 
+                    onCancel={() => setShowTaskForm(false)} 
+                    loading={loadingTasks}
+                  />
+                </div>
+              )}
+
               <DayTasks 
                 tasks={unscheduledTasks} 
                 acceptTask={acceptTask} 
@@ -422,8 +438,22 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
                   <Calendar className="text-primary w-5 h-5" /> Wydarzenia
                 </h2>
-                <AddButton onClick={() => handleAddDraft('event')} small />
+                {!showEventForm && <AddButton onClick={() => setShowEventForm(true)} small />}
               </div>
+              
+              {showEventForm && (
+                <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+                  <EventForm 
+                    currentDate={date} 
+                    selectedDate={date} 
+                    onEventsChange={() => { fetchEvents(); setShowEventForm(false); }} 
+                    addEvent={addEvent}
+                    onCancel={() => setShowEventForm(false)} 
+                    loading={loadingEvents}
+                  />
+                </div>
+              )}
+
               <DayEvents 
                 events={events} 
                 loading={tasksLoading} 

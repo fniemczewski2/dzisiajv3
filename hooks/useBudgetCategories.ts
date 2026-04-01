@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import type { BudgetCategory } from "../types";
-
-const MAX_CATEGORIES = 10;
+import { MAX_CATEGORIES } from "../config/limits";
 
 export function useBudgetCategories(year: number) {
   const { user, supabase } = useAuth();

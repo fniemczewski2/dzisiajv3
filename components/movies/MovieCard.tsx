@@ -162,9 +162,7 @@ export default function MovieCard({
               placeholder="Krótki opis..." 
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-            <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
-          </div>
+          <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
         </div>
       ) : (
         <div className="flex flex-col h-full">

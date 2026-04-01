@@ -140,9 +140,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                     required
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                   <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading}/>
-                </div> 
               </div>
             ) : (
               <>

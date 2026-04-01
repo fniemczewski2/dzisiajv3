@@ -118,7 +118,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
                     <div className="flex flex-wrap gap-1.5 mt-2.5">
                       {place.tags.map((tag) => (
                         <span key={tag}
-                          className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/70 text-primary border border-primary text-[10px] font-bold uppercase tracking-wider rounded-md">
+                          className="px-2 py-0.5 bg-blue-50 dark:bg-blue-950 text-primary border border-primary text-[10px] font-bold uppercase tracking-wider rounded-md">
                           {tag}
                         </span>
                       ))}
@@ -126,7 +126,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
                   )}
                 </div>
                 <button
-                  className="p-2 bg-surface text-textSecondary rounded-lg transition-colors group-hover:bg-blue-100 dark:hover:bg-blue-900 group-hover:text-primary shrink-0"
+                  className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0"
                   onClick={(e) => { e.stopPropagation(); toggleExpand(place.id); }}>
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
                 </button>

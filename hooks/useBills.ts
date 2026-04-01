@@ -4,6 +4,7 @@ import { useAuth } from "../providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import type { Bill } from "../types";
 import { addMonths, format, parseISO, isAfter } from "date-fns";
+import { BILLS_PAGE_LIMIT } from "../config/limits";
 
 function getRecurringDates(startDate: string, recurringUntil: string): string[] {
   const dates: string[] = [];
@@ -86,7 +87,7 @@ export function useBills(options: FetchOptions = {}) {
   const [hasMore, setHasMore] = useState(false);
 
   const fetchBills = useCallback(
-    async (append = false, page = 1, limit = 20) => {
+    async (append = false, page = 1, limit = BILLS_PAGE_LIMIT) => {
       if (!userId || settings == null) return;
       setFetching(true);
       
@@ -121,7 +122,7 @@ export function useBills(options: FetchOptions = {}) {
   );
 
   useEffect(() => {
-    fetchBills(false, 1, 20);
+    fetchBills(false, 1, BILLS_PAGE_LIMIT);
   }, [fetchBills]);
 
   const addBill = useCallback(

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import { useToast } from "../providers/ToastProvider";
+import { useSettings } from "./useSettings";
+import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "../config/limits";
 
 export interface Departure {
   line: string;
@@ -23,20 +25,26 @@ export interface StopGroup {
   bollards: Bollard[]; 
 }
 
-export interface SearchResult {
+export interface LocalSearchResult {
   name: string;
   zone_id: string;
+  displayString: string;
 }
 
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();
   const { toast } = useToast();
+  const { settings, addFavoriteStop, removeFavoriteStop, loading: settingsLoading } = useSettings();
 
   const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
   const [favoritesGroups, setFavoritesGroups] = useState<StopGroup[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<LocalSearchResult[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   
   const lastFetchTime = useRef<Record<string, number>>({});
   const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
@@ -88,7 +96,6 @@ export function useTransport(autoRefresh = false) {
       setLoadingNearby(false);
     }
   }, [supabase]);
-
 
   const initLocationAndFetch = useCallback(() => {
     if (!navigator.geolocation) {
@@ -149,29 +156,95 @@ export function useTransport(autoRefresh = false) {
     }
   }, [supabase, toast]);
 
-  const searchStops = useCallback(
-    async (query: string): Promise<SearchResult[]> => {
-      if (query.length < 3) return [];
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "get-transitland-times",
-          {
-            body: {
-              search: query,
-              lat: lastCoords.current?.lat,
-              lon: lastCoords.current?.lng,
-            },
-          }
-        );
-        if (error) return [];
-        const parsed = typeof data === "string" ? JSON.parse(data) : data;
-        return parsed?.success ?? [];
-      } catch {
-        return [];
+  const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
+  const favoritesJSON = JSON.stringify(favoriteStops);
+  
+  useEffect(() => {
+    if (settingsLoading) return;
+    try {
+      const stops = JSON.parse(favoritesJSON);
+      fetchFavorites(stops);
+    } catch {
+      toast.error("Wystąpił błąd pobierania przystanków");
+    }
+  }, [favoritesJSON, fetchFavorites, settingsLoading, toast]);
+
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      if (!searchQuery || searchQuery.trim().length < 2) {
+        setSuggestions([]);
+        searchResults.length > 0 && setSearchResults([]); 
+        return;
       }
-    },
-    [supabase]
-  );
+
+      const { data, error } = await supabase
+        .from("stops")
+        .select("stop_name, zone_id")
+        .ilike("stop_name", `%${searchQuery}%`)
+        .limit(TRANSPORT_API_LIMIT);
+
+      if (error || !data) {
+        console.error("Błąd wyszukiwania przystanków:", error);
+        setSuggestions([]);
+        setSearchResults([]);
+        return;
+      }
+
+      const uniqueStops = new Map<string, LocalSearchResult>();
+
+      (data as any[]).forEach((stop) => {
+        if (!stop.stop_name) return;
+
+        if (!uniqueStops.has(stop.stop_name)) {
+          const isSzczecin = stop.zone_id === "S";
+          const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id || ""}`;
+          const displayString = `${stop.stop_name} (${cityName})`.trim();
+
+          uniqueStops.set(stop.stop_name, {
+            name: stop.stop_name,
+            zone_id: stop.zone_id || "AUTO",
+            displayString: displayString,
+          });
+        }
+      });
+
+      const resultsArray = Array.from(uniqueStops.values()).slice(0, TRANSPORT_SUGGESTIONS_LIMIT);
+      setSearchResults(resultsArray);
+      setSuggestions(resultsArray.map((r) => r.displayString));
+    };
+
+    const debounce = setTimeout(loadSuggestions, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery, supabase, searchResults.length]);
+
+  const handleSuggestionClick = (value: string) => {
+    const selectedStop = searchResults.find((s) => s.displayString === value);
+    
+    if (selectedStop) {
+      addFavoriteStop(selectedStop.name, selectedStop.zone_id);
+      toast.success(`Dodano do ulubionych: ${selectedStop.name}`);
+    } else {
+      const fallbackName = value.split(" (")[0];
+      addFavoriteStop(fallbackName, "AUTO");
+      toast.success(`Dodano do ulubionych: ${fallbackName}`);
+    }
+    
+    setSearchQuery("");
+    setSuggestions([]);
+    setSearchResults([]);
+  };
+
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (loadingFavorites && favoritesGroups.length === 0) toastId = toast.loading("Ładowanie ulubionych...");
+      return () => { if (toastId) toast.dismiss(toastId); };
+  }, [loadingFavorites, toast, favoritesGroups.length]);
+
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");
+      return () => { if (toastId) toast.dismiss(toastId); };
+  }, [loadingNearby, toast, nearbyGroups.length]);
 
   useEffect(() => {
     initLocationAndFetch();
@@ -194,11 +267,14 @@ export function useTransport(autoRefresh = false) {
   return {
     nearbyGroups,
     favoritesGroups,
-    loadingNearby,
-    loadingFavorites,
     locationError,
-    searchStops,
-    fetchFavorites,
+    searchQuery,
+    setSearchQuery,
+    suggestions,
+    handleSuggestionClick,
     initLocationAndFetch,
+    favoriteStops,
+    addFavoriteStop,
+    removeFavoriteStop
   };
 }
