@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../providers/AuthProvider";
 import type { BudgetCategory } from "../types";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { calculateExpectedYearlyLimit } from "../lib/budgetUtils";
 
 interface RawBillRow {
   amount: number;
@@ -13,7 +14,7 @@ interface RawBillRow {
   done: boolean;
 }
 
-export function useBudgetSummary(year: number, categories: BudgetCategory[]) {
+export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [summary, setSummary] = useState<any[]>([]);
@@ -22,7 +23,15 @@ export function useBudgetSummary(year: number, categories: BudgetCategory[]) {
   const [loading, setLoading] = useState(true);
 
   const compute = useCallback(async () => {
-    if (!userId || categories.length === 0) {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    if (categories.length === 0) {
+      setSummary([]);
+      setUncategorised({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
+      setTotalIncome(0);
       setLoading(false);
       return;
     }
@@ -31,9 +40,12 @@ export function useBudgetSummary(year: number, categories: BudgetCategory[]) {
     try {
       const yearStart = `${year}-01-01`;
       const yearEnd   = `${year}-12-31`;
-      const now       = new Date();
-      const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
-      const monthEnd   = format(endOfMonth(now),   "yyyy-MM-dd");
+      
+      const targetDateForMonth = new Date(year, monthIndex, 1);
+      
+      const monthStart = format(startOfMonth(targetDateForMonth), "yyyy-MM-dd");
+      const monthEnd   = format(endOfMonth(targetDateForMonth),   "yyyy-MM-dd");
+      
       const { data, error } = await supabase
         .from("bills")
         .select("amount, date, category_id, is_income, done")
@@ -72,8 +84,10 @@ export function useBudgetSummary(year: number, categories: BudgetCategory[]) {
         const mSpent   = spendMap[cat.id]?.mSpent  ?? 0;
         const mPlanned = spendMap[cat.id]?.mPlan   ?? 0;
         
-        const limit  = cat.is_monthly ? cat.amount * 12 : cat.amount;
-        const mLimit = cat.is_monthly ? cat.amount : cat.amount / 12;
+        const limit  = calculateExpectedYearlyLimit(cat, monthIndex, year);
+        const mLimit = cat.is_monthly 
+          ? (cat.monthly_amounts?.[monthIndex] || 0) 
+          : (cat.monthly_amounts?.[0] || 0) / 12;
 
         return {
           category:           cat,
@@ -93,7 +107,7 @@ export function useBudgetSummary(year: number, categories: BudgetCategory[]) {
     } finally {
       setLoading(false);
     }
-  }, [supabase, userId, year, categories]);
+  }, [supabase, userId, year, monthIndex, categories]);
 
   useEffect(() => { compute(); }, [compute]);
 

@@ -22,7 +22,7 @@ import { useSettings } from "../../hooks/useSettings";
 import Seo from "../../components/SEO";
 
 const TaskForm = dynamic(() => import("../../components/tasks/TaskForm"), {
-  ssr: false, // Formularz nie potrzebuje SSR, co dodatkowo zdejmuje obciążenie z serwera
+  ssr: false, 
 });
 
 const FILTER_OPTIONS = [

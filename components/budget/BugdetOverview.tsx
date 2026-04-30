@@ -1,12 +1,31 @@
 "use client";
 
 import React, { useState } from "react";
+import type { BudgetCategory } from "../../types";
+
+interface SummaryItem {
+  category: BudgetCategory;
+  spent: number; 
+  planned: number; 
+  limit: number; 
+  remaining: number; 
+  thisMonthSpent: number;
+  thisMonthPlanned: number;
+  thisMonthLimit: number; 
+  thisMonthRemaining: number;
+}
 
 interface Props {
-  summary: any[];
-  uncategorised: any;
+  summary: SummaryItem[];
+  uncategorised: {
+    ySpent: number;
+    yPlan: number;
+    mSpent: number;
+    mPlan: number;
+  };
   totalIncome: number;
   loading: boolean;
+  selectedMonth?: number; 
 }
 
 interface ProgressBarProps {
@@ -30,11 +49,11 @@ function ProgressBar({ spent, planned, max, danger = false }: Readonly<ProgressB
   const pctPlanned = max > 0 ? Math.min((planned / max) * 100, 100 - pctSpent) : 0;
   const over = max > 0 && total > max;
   const barColor = getStatusColor(over, danger, pctSpent);
+  
   return (
     <div className="relative h-2 bg-surface rounded-full overflow-hidden border border-gray-100 dark:border-gray-800 flex">
       <div
-        className={`h-full transition-all duration-500 ${barColor}
-        }`}
+        className={`h-full transition-all duration-500 ${barColor}`}
         style={{ width: `${pctSpent}%` }}
       />
       <div
@@ -55,18 +74,18 @@ export default function BudgetOverview({
   totalIncome,
   loading,
 }: Readonly<Props>) {
-  const [view, setView] = useState<View>("year");
+  const [view, setView] = useState<View>("month");
   const isYear = view === "year";
 
   const totalSpent = summary.reduce(
     (s, c) => s + (isYear ? c.spent : c.thisMonthSpent),
     0
-  ) + (isYear ? (uncategorised.ySpent || 0) : (uncategorised.mSpent || 0));
+  ) + (isYear ? (uncategorised?.ySpent || 0) : (uncategorised?.mSpent || 0));
 
   const totalPlanned = summary.reduce(
     (s, c) => s + (isYear ? c.planned : c.thisMonthPlanned),
     0
-  ) + (isYear ? (uncategorised.yPlan || 0) : (uncategorised.mPlan || 0));
+  ) + (isYear ? (uncategorised?.yPlan || 0) : (uncategorised?.mPlan || 0));
 
   const totalLimit = summary.reduce(
     (s, c) => s + (isYear ? c.limit : c.thisMonthLimit),
@@ -119,16 +138,22 @@ export default function BudgetOverview({
             Przychody: {totalIncome.toFixed(0)} zł · Saldo: {(totalIncome - totalSpent - totalPlanned).toFixed(0)} zł
           </p>
         )}
+        {!isYear && (
+          <p className="text-xs text-textMuted mt-1.5 text-right">
+             Wyświetlane są dane i limity dla wybranego miesiąca
+          </p>
+        )}
       </div>
 
       <div className="space-y-3">
         {summary.map((item) => {
-          const s       = isYear ? item.spent : item.thisMonthSpent;
-          const p       = isYear ? item.planned : item.thisMonthPlanned;
-          const l       = isYear ? item.limit : item.thisMonthLimit;
-          const r       = isYear ? item.remaining : item.thisMonthRemaining;
+          const s = isYear ? item.spent : item.thisMonthSpent;
+          const p = isYear ? item.planned : item.thisMonthPlanned;
 
-          const over    = l > 0 && (s + p) > l;
+          const l = isYear ? item.limit : item.thisMonthLimit;
+          const r = isYear ? item.remaining : item.thisMonthRemaining;
+
+          const over = l > 0 && (s + p) > l;
 
           return (
             <div key={item.category.id}>
@@ -136,7 +161,7 @@ export default function BudgetOverview({
                 <span className="font-medium text-text flex items-center gap-1.5">
                   {item.category.name}
                   {item.category.is_monthly && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded" title="Kategoria limitowana co miesiąc">
                       mies.
                     </span>
                   )}
@@ -145,10 +170,10 @@ export default function BudgetOverview({
                   {s.toFixed(0)} 
                   {p > 0 && <span className="text-[11px] font-normal opacity-70 ml-0.5">+{p.toFixed(0)}</span>} 
                   {l > 0 && ` / ${l.toFixed(0)}`} zł
-                  
                 </span>
               </div>
               <ProgressBar spent={s} planned={p} max={l} danger={over} />
+              
               {(!over && l > 0) && (
                 <p className="text-right text-[10px] text-textMuted mt-0.5">
                   Zostało: {r.toFixed(0)} zł
@@ -162,7 +187,8 @@ export default function BudgetOverview({
             </div>
           );
         })}
-        {((isYear ? uncategorised.ySpent : uncategorised.mSpent) > 0 || (isYear ? uncategorised.yPlan : uncategorised.mPlan) > 0) && (
+
+        {((isYear ? uncategorised?.ySpent : uncategorised?.mSpent) > 0 || (isYear ? uncategorised?.yPlan : uncategorised?.mPlan) > 0) && (
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="font-medium text-textMuted italic">Inne</span>

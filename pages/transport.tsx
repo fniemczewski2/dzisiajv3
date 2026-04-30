@@ -8,8 +8,7 @@ import Seo from "../components/SEO";
 
 export default function TransportPage() {
   const { toast } = useToast();
-  
-  // Pobieramy wszystko prosto z naszego ujednoliconego hooka transportowego
+
   const {
     nearbyGroups,
     favoritesGroups,
@@ -23,8 +22,6 @@ export default function TransportPage() {
     removeFavoriteStop
   } = useTransport(true);
 
-  // ZMIANA: Optymistyczny UI. Pokaż tylko te grupy, które nadal fizycznie znajdują się w ulubionych.
-  // Dzięki temu znikają z ekranu od razu po wciśnięciu Delete.
   const visibleFavorites = favoritesGroups.filter((group) => 
     favoriteStops.some((stop: any) => stop.name === group.stop_name)
   );
