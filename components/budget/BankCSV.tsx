@@ -15,8 +15,9 @@ const REQUIRED_CATEGORIES = [
   "Odzież",
   "Jedzenie",
   "Elektronika",
-  "Transport",
-  "Wakacje",
+  "Gastronomia",
+  "Podróże",
+  "Wakacje"
 ];
 
 const mapCategory = (mbankCat: string, desc: string): string => {
@@ -26,9 +27,10 @@ const mapCategory = (mbankCat: string, desc: string): string => {
   if (c.includes("tv") || c.includes("internet") || c.includes("telefon") || c.includes("ubezpiecz") || d.includes("ubezpieczenie")) return "Opłaty stałe";
   if (c.includes("rozrywka") || c.includes("multimedia") || c.includes("książki") || c.includes("prasa") || c.includes("sport") || c.includes("hobby") || c.includes("edukacja") || c.includes("kino") || d.includes("kino") || c.includes("teatr")) return "Rozrywka";
   if (c.includes("odzież") || c.includes("obuwie") || d.includes("ubrania")) return "Odzież";
-  if (c.includes("żywność") || c.includes("chemia") || c.includes("zdrowie") || c.includes("uroda") || c.includes("supermarket") || c.includes("apteki")) return "Jedzenie";
+  if (c.includes("żywność") || c.includes("chemia")|| c.includes("zdrowie") || c.includes("uroda") || c.includes("supermarket") || c.includes("apteki")) return "Jedzenie";
+  if (c.includes("gastronomia") || c.includes("restauracja") || c.includes("kawiarnia") || c.includes("fast food") || d.includes("mcdonald") || d.includes("kfc") || d.includes("burger king") || d.includes("starbucks") || d.includes("pyszne") || d.includes("glovo") || d.includes("wolt") || c.includes("jedzenie")) return "Gastronomia";
   if (c.includes("elektronika") || c.includes("rtv") || c.includes("agd")) return "Elektronika";
-  if (c.includes("transport") || c.includes("przejazdy") || c.includes("paliwo") || c.includes("komunikacja") || d.includes("ztm") || d.includes("mpk") || d.includes("pkp") || d.includes("regiojet")) return "Transport";
+  if (c.includes("transport") || c.includes("przejazdy") || c.includes("paliwo") || c.includes("komunikacja") || d.includes("ztm") || d.includes("mpk") || d.includes("pkp") || d.includes("regiojet")) return "Podróże";
   if (c.includes("podróże") || c.includes("wakacje") || c.includes("hotel") || c.includes("loty") || d.includes("ryanair") || d.includes("wizzair")) return "Wakacje";
   
   return "Inne"; 
