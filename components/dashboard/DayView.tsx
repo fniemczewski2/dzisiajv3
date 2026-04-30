@@ -75,7 +75,11 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
 
-  const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, acceptTask } = useTasks(dateStr, dateStr);
+  const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, acceptTask } = 
+    useTasks(
+      isMain ? undefined : dateStr, 
+      isMain ? undefined : dateStr,
+    );
   const { events, fetchEvents, addEvent, deleteEvent, editEvent, loading: loadingEvents } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage } = useStreaks();
   const { schemas } = useDaySchemas();

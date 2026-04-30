@@ -1,53 +1,30 @@
 "use client";
-// components/bills/BudgetCategoriesEditor.tsx
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown, PlusCircle } from "lucide-react";
 import { useBudgetCategories } from "../../hooks/useBudgetCategories";
 import { useToast } from "../../providers/ToastProvider";
+import { propagateMonthlyLimits } from "../../lib/budgetUtils";
 import {
   EditButton,
   DeleteButton,
   FormButtons,
 } from "../CommonButtons";
 import type { BudgetCategory } from "../../types";
+import { MAX_CATEGORIES } from "../../config/limits";
 
 interface AmountEditorProps {
   cat: BudgetCategory;
-  onSave: (updates: Pick<BudgetCategory, "name" | "amount" | "is_monthly">) => Promise<void>;
+  onSave: (updates: Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly">) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
+  selectedMonth: number;
 }
 
 interface AddCategoryFormProps {
   onAdd: (name: string) => Promise<void>;
   saving: boolean;
   onCancel: () => void;
-}
-
-type ViewMode = "year" | "month";
-
-function ViewToggle({ view, onChange }: { readonly view: ViewMode; readonly onChange: (v: ViewMode) => void }) {
-  return (
-    <div className="flex gap-1 bg-surface rounded-xl p-1 border border-gray-200 dark:border-gray-700">
-      {(["year", "month"] as ViewMode[]).map((v) => {
-        return (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
-              view === v
-                ? "bg-secondary text-white shadow-sm"
-                : "text-textMuted hover:text-text"
-            }`}
-          >
-            {v === "year" ? "Rok" : "Miesiąc"}
-          </button>
-        );
-      })}
-    </div>
-  );
 }
 
 function AddCategoryForm({
@@ -89,17 +66,32 @@ function AmountEditor({
   onSave,
   onCancel,
   saving,
+  selectedMonth
 }: Readonly<AmountEditorProps>) {
-  const [amount,    setAmount]    = useState(cat.amount > 0 ? String(cat.amount) : "");
+  const currentVal = cat.is_monthly 
+    ? (cat.monthly_amounts?.[selectedMonth] || 0)
+    : (cat.monthly_amounts?.[0] || 0);
+
+  const [amount, setAmount] = useState(currentVal > 0 ? String(currentVal) : "");
   const [isMonthly, setIsMonthly] = useState(cat.is_monthly);
+  
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const numAmount = Number.parseFloat(amount) || 0;
+    
+    const newMonthlyAmounts = propagateMonthlyLimits(
+      cat.monthly_amounts || new Array(12).fill(0), 
+      selectedMonth, 
+      numAmount, 
+      isMonthly
+    );
+
     await onSave({
-      name:       cat.name.trim(),
-      amount:     Number.parseFloat(amount) || 0,
+      name: cat.name.trim(),
+      monthly_amounts: newMonthlyAmounts,
       is_monthly: isMonthly,
     });
   };
@@ -109,8 +101,7 @@ function AmountEditor({
       onSubmit={handleSubmit}
       className="flex flex-nowrap items-center gap-2 min-w-0"
     >
-
-      <div className="">
+      <div className="relative">
         <input
           ref={inputRef}
           type="number"
@@ -144,28 +135,30 @@ function AmountEditor({
   );
 }
 
-function formatAmount(cat: BudgetCategory, view: ViewMode): string {
-  if (cat.amount === 0) return "—";
-  const getBaseValue = () => {
-    if (cat.is_monthly && view === "year") return cat.amount * 12;
-    if (!cat.is_monthly && view === "month") return cat.amount / 12;
-    return cat.amount;
-  };
+function formatAmount(cat: BudgetCategory, selectedMonth: number): string {
+  const limits = cat.monthly_amounts || new Array(12).fill(0);
+  
+  if (!cat.is_monthly) {
+    if (limits[0] === 0) return "—";
+    return `${Math.round(limits[0]).toLocaleString("pl-PL")} zł`;
+  }
 
-  const val = getBaseValue();
+  const val = limits[selectedMonth] || 0;
+  if (val === 0) return "—";
   return `${Math.round(val).toLocaleString("pl-PL")} zł`;
 }
 
-function formatSuffix(cat: BudgetCategory, view: ViewMode): string {
-  if (cat.is_monthly) return view === "month" ? "/ mies." : "/ rok (×12)";
-  return view === "month" ? "/ mies. (÷12)" : "/ rok";
+function formatSuffix(cat: BudgetCategory): string {
+  return cat.is_monthly ? "/ mies." : "/ rok";
 }
 
 export default function BudgetCategoriesEditor({
   year,
+  selectedMonth,
   onCategoriesChange,
 }: {
   readonly year: number;
+  readonly selectedMonth: number;
   readonly onCategoriesChange?: () => void;
 }) {
   const { toast } = useToast();
@@ -175,13 +168,16 @@ export default function BudgetCategoriesEditor({
     reorderCategories
   } = useBudgetCategories(year);
 
-  const [view,        setView]        = useState<ViewMode>("year");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId,   setEditingId]   = useState<string | null>(null);
 
   const handleAdd = async (name: string) => {
     try {
-      await addCategory({ name, amount: 0, is_monthly: false });
+      await addCategory({ 
+        name, 
+        monthly_amounts: new Array(12).fill(0), 
+        is_monthly: false 
+      });
       toast.success(`Dodano "${name}". Kliknij Edytuj, by ustawić limit.`);
       setShowAddForm(false);
       onCategoriesChange?.();
@@ -192,7 +188,7 @@ export default function BudgetCategoriesEditor({
 
   const handleSaveEdit = async (
     id: string,
-    updates: Pick<BudgetCategory, "name" | "amount" | "is_monthly">
+    updates: Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly">
   ) => {
     try {
       await updateCategory(id, updates);
@@ -218,7 +214,6 @@ export default function BudgetCategoriesEditor({
     }
   };
 
-
   const move = async (index: number, direction: -1 | 1) => {
     const next = [...categories];
     const target = index + direction;
@@ -236,13 +231,10 @@ export default function BudgetCategoriesEditor({
           <span className="text-textMuted font-normal">{year}</span>
           {categories.length > 0 && (
             <span className="ml-2 text-xs text-textMuted font-normal tabular-nums">
-              ({categories.length}/10)
+              ({categories.length}/{MAX_CATEGORIES})
             </span>
           )}
         </h3>
-        {categories.length > 0 && (
-          <ViewToggle view={view} onChange={setView} />
-        )}
       </div>
 
       {categories.length > 0 && (
@@ -262,6 +254,7 @@ export default function BudgetCategoriesEditor({
                   onSave={(u) => handleSaveEdit(cat.id, u)}
                   onCancel={() => setEditingId(null)}
                   saving={loading}
+                  selectedMonth={selectedMonth}
                 />
               ) : (
                 <>
@@ -269,7 +262,7 @@ export default function BudgetCategoriesEditor({
                     <span className="font-medium text-sm text-text truncate">
                       {cat.name}
                     </span>
-                    {cat.amount === 0 && (
+                    {(!cat.monthly_amounts || (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) === 0) && (
                       <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
                         brak limitu
                       </span>
@@ -277,10 +270,10 @@ export default function BudgetCategoriesEditor({
                   </div>
 
                   <span className="text-sm font-bold tabular-nums text-text shrink-0">
-                    {formatAmount(cat, view)}{" "}
-                    {cat.amount > 0 && (
+                    {formatAmount(cat, selectedMonth)}{" "}
+                    {(cat.monthly_amounts && (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) > 0) && (
                       <span className="text-xs font-normal text-textMuted">
-                        {formatSuffix(cat, view)}
+                        {formatSuffix(cat)}
                       </span>
                     )}
                   </span>
@@ -319,7 +312,6 @@ export default function BudgetCategoriesEditor({
         />
       )}
 
-
       {!showAddForm && (
         <div
           className={`flex gap-2 flex-wrap ${
@@ -331,7 +323,6 @@ export default function BudgetCategoriesEditor({
           {maxReached ? (
             <p className="text-sm text-textMuted">Osiągnięto limit 10 kategorii.</p>
           ) : (
-
             <button
               type="button"
               onClick={() => {

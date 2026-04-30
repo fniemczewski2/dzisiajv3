@@ -19,7 +19,7 @@ export interface BudgetCategory {
   user_id: string;
   year: number;
   name: string;
-  amount: number;        
+  monthly_amounts: number[];        
   is_monthly: boolean;   
   sort_order: number;
   created_at?: string;

@@ -36,7 +36,7 @@ export function useBudgetCategories(year: number) {
   const addCategory = useCallback(
     async (payload: {
       name: string;
-      amount: number;
+      monthly_amounts: number[];
       is_monthly: boolean;
     }): Promise<BudgetCategory> => {
       if (!userId) throw new Error("Musisz być zalogowany");
@@ -45,13 +45,14 @@ export function useBudgetCategories(year: number) {
       }
       setLoading(true);
       try {
+        
         const { data, error } = await supabase
           .from("budget_categories")
           .insert({
             user_id:    userId,
             year,
             name:       payload.name.trim(),
-            amount:     payload.amount,
+            monthly_amounts: payload.monthly_amounts,
             is_monthly: payload.is_monthly,
             sort_order: categories.length,
           })
@@ -72,7 +73,7 @@ export function useBudgetCategories(year: number) {
   const updateCategory = useCallback(
     async (
       id: string,
-      updates: Partial<Pick<BudgetCategory, "name" | "amount" | "is_monthly" | "sort_order">>
+      updates: Partial<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">> 
     ): Promise<void> => {
       setLoading(true);
       try {
@@ -135,7 +136,7 @@ export function useBudgetCategories(year: number) {
 
   const seedDefaults = useCallback(
     async (
-      defaults: Array<{ name: string; amount: number; is_monthly: boolean }>
+      defaults: Array<{ name: string; monthly_amounts: number[]; is_monthly: boolean }> 
     ): Promise<void> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
@@ -144,7 +145,7 @@ export function useBudgetCategories(year: number) {
           user_id:    userId,
           year,
           name:       d.name,
-          amount:     d.amount,
+          monthly_amounts: d.monthly_amounts, 
           is_monthly: d.is_monthly,
           sort_order: i,
         }));

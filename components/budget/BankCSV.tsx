@@ -341,7 +341,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
     setMissingCategories(getMissingCategories(transactions, categories));
   };
 
-  const ensureCategoriesExist = async (missing: string[]): Promise<BudgetCategory[]> => {
+const ensureCategoriesExist = async (missing: string[]): Promise<BudgetCategory[]> => {
     let updatedCategories = [...categories];
     for (const missingCat of missing) {
       const targetName = missingCat.toLowerCase().trim();
@@ -349,7 +349,11 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       
       try {
         const isMonthly = missingCat === "Opłaty stałe";
-        const newCat = await addCategory({ name: missingCat, amount: 0, is_monthly: isMonthly });
+        const newCat = await addCategory({ 
+          name: missingCat, 
+          monthly_amounts: new Array(12).fill(0), 
+          is_monthly: isMonthly 
+        });
         updatedCategories.push(newCat);
       } catch (error: any) {
         if (error?.code === "23505" || error?.message?.includes("duplicate key")) {

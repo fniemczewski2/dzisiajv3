@@ -1,5 +1,4 @@
 "use client";
-// components/bills/BillForm.tsx
 
 import React, { useEffect, useState, SyntheticEvent } from "react";
 import { Minus, Plus, RefreshCw } from "lucide-react";
@@ -155,9 +154,6 @@ export default function BillForm({
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
-              {cat.is_monthly
-                ? ` (${cat.amount.toFixed(0)} zł/mies.)`
-                : ` (${cat.amount.toFixed(0)} zł/rok)`}
             </option>
           ))}
         </select>
