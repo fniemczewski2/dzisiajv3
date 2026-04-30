@@ -17,7 +17,8 @@ const REQUIRED_CATEGORIES = [
   "Elektronika",
   "Gastronomia",
   "Podróże",
-  "Wakacje"
+  "Wakacje",
+  "Inne"
 ];
 
 const mapCategory = (mbankCat: string, desc: string): string => {
@@ -237,11 +238,19 @@ const isDuplicateTransaction = (parsed: ParsedTransaction, expenseItems: any[]) 
 
 const getMissingCategories = (transactions: ParsedTransaction[], categories: BudgetCategory[]) => {
   const required = new Set<string>();
+  
   transactions.forEach((t) => {
-    const targetName = t.mappedCategory.trim().toLowerCase();
+    const mappedName = t.mappedCategory.trim();
+    const targetName = mappedName.toLowerCase();
     const exists = categories.some((c) => c.name.trim().toLowerCase() === targetName);
-    if (!exists) required.add(t.mappedCategory.trim());
+    const isRequiredCategory = REQUIRED_CATEGORIES.some(
+      (rc) => rc.toLowerCase() === targetName
+    );
+    if (!exists && isRequiredCategory) {
+      required.add(mappedName);
+    }
   });
+  
   return Array.from(required);
 };
 
