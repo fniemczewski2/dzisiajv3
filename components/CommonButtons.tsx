@@ -16,7 +16,9 @@ import {
   Plus,
   LucideIcon,
   Star,
-  Loader2
+  Loader2,
+  Bell,
+  BellOff
 } from "lucide-react";
 import { NextRouter } from "next/router";
 
@@ -120,6 +122,22 @@ export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; 
   >
     <Trash2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
     {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Usuń</span>}
+  </button>
+);
+
+export const NotifyButton = ({ onClick, small = false, disabled = false }: { onClick: () => void; small?: boolean; disabled?: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
+    aria-label="powiadom"
+  >
+    {disabled ? (
+      <Bell className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+    ) : (
+      <BellOff className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+    )}
+    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Powiadom</span>}
   </button>
 );
 
