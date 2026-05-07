@@ -197,6 +197,7 @@ export interface Product {
 export interface ScheduleItem {
   time: string;
   label: string;
+  notify?: boolean;
 }
 
 export interface Schema {

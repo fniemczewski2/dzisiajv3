@@ -6,22 +6,12 @@ import { useDaySchemas } from "../../hooks/useDaySchemas";
 import { useToast } from "../../providers/ToastProvider";
 import { useAuth } from "../../providers/AuthProvider";
 import { withRetry } from "../../lib/withRetry";
-import { DeleteButton, FormButtons } from "../CommonButtons";
+import { DeleteButton, FormButtons, NotifyButton } from "../CommonButtons";
 
-export interface DaySchemaEntry {
-  time: string;
-  label: string;
-}
-
-export interface DaySchema {
-  id?: string;
-  name: string;
-  days: number[];
-  entries: DaySchemaEntry[];
-}
+import type { ScheduleItem, Schema } from "../../types";
 
 interface DaySchemaFormProps {
-  initialSchema?: DaySchema | null;
+  initialSchema?: Schema | null;
   onSchemaSaved: () => void;
   onCancel?: () => void;
 }
@@ -40,7 +30,7 @@ export default function DaySchemaForm({
 
   const [schemaName, setSchemaName] = useState("");
   const [days, setDays] = useState<number[]>([]);
-  const [entries, setEntries] = useState<DaySchemaEntry[]>([]);
+  const [entries, setEntries] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -77,9 +67,13 @@ export default function DaySchemaForm({
   const toggleDay = (day: number) =>
     setDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
 
-  const handleEntryChange = (index: number, field: keyof DaySchemaEntry, value: string) => {
+  const handleEntryChange = <K extends keyof ScheduleItem>(
+    index: number,
+    field: K,
+    value: ScheduleItem[K]
+  ) => {
     const updated = [...entries];
-    updated[index][field] = value;
+    updated[index] = { ...updated[index], [field]: value };
     setEntries(updated);
   };
 
@@ -115,15 +109,23 @@ export default function DaySchemaForm({
         <div className="form-label">Wpisy:</div>
         <div className="space-y-2">
           {entries.map((entry, i) => (
-            <div key={`${entry.time}-${entry.label}`} className="flex w-full gap-2 items-center">
-              <label htmlFor="time" className="sr-only">Godzina</label>
-              <input id="time" type="time" value={entry.time}
+            // Klucz zmieniony na unikalny, aby uniknąć błędów gdy mamy kilka pustych wpisów
+            <div key={`${entry.time}-${entry.label}-${i}`} className="flex w-full gap-2 items-center">
+              <label htmlFor={`time-${i}`} className="sr-only">Godzina</label>
+              <input id={`time-${i}`} type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
                 className="input-field w-[80px]" required />
-              <label htmlFor="label" className="sr-only">Etykieta</label>
-              <input id="label" type="text" value={entry.label} placeholder="Etykieta"
+              
+              <label htmlFor={`label-${i}`} className="sr-only">Etykieta</label>
+              <input id={`label-${i}`} type="text" value={entry.label} placeholder="Etykieta"
                 onChange={(e) => handleEntryChange(i, "label", e.target.value)}
                 className="input-field w-full" required />
+              
+              <NotifyButton 
+                onClick={() => handleEntryChange(i, "notify", !entry.notify)} 
+                small 
+                disabled={!!entry.notify} 
+              />
               <DeleteButton onClick={() => removeEntry(i)} small />
             </div>
           ))}
