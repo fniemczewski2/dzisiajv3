@@ -195,6 +195,7 @@ export interface Product {
 }
 
 export interface ScheduleItem {
+  id?: string;
   time: string;
   label: string;
   notify?: boolean;

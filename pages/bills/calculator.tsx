@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useEuroRate } from "../../hooks/useEuroRate";
 import LoadingState from "../../components/LoadingState";
 import Seo from "../../components/SEO";
+import { FLAT_RENTAL_DEFAULT, FLAT_FEE_DEFAULT, TAX_DEFAULT, ZUS_DEFAULT} from "../../config/limits";
 
 const InputField = ({
   label,
@@ -202,8 +203,8 @@ export default function BillCalculator() {
                 Miesięczne Opłaty
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <InputField label="Wynajem" inputRef={baseRentRef} defaultValue={2000} onChange={calculate} />
-                <InputField label="Czynsz" inputRef={communityRef} defaultValue={585} onChange={calculate} />
+                <InputField label="Wynajem" inputRef={baseRentRef} defaultValue={FLAT_RENTAL_DEFAULT} onChange={calculate} />
+                <InputField label="Czynsz" inputRef={communityRef} defaultValue={FLAT_FEE_DEFAULT} onChange={calculate} />
                 <InputField label="Woda" inputRef={waterRef} onChange={calculate} />
                 <InputField label="Prąd" inputRef={electricityRef} onChange={calculate} />
                 <InputField label="Gaz" inputRef={gasRef} onChange={calculate} />
@@ -273,7 +274,7 @@ export default function BillCalculator() {
                       <InputField 
                         label="Zaliczka PIT" 
                         inputRef={pit1Ref} 
-                        defaultValue={12} 
+                        defaultValue={TAX_DEFAULT} 
                         suffix="%"
                         step={1}
                         onChange={calculate}
@@ -284,7 +285,7 @@ export default function BillCalculator() {
                       </div>
                     </div>
                     <div className="flex-1 min-h-[90px]">
-                      <InputField label="Składka ZUS" inputRef={zus1Ref} defaultValue={498} icon={<Minus size={16} />} onChange={calculate} />
+                      <InputField label="Składka ZUS" inputRef={zus1Ref} defaultValue={ZUS_DEFAULT} icon={<Minus size={16} />} onChange={calculate} />
                     </div>
                   </div>
                   <div className="text-right mt-5 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">

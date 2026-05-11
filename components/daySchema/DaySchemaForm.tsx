@@ -77,7 +77,7 @@ export default function DaySchemaForm({
     setEntries(updated);
   };
 
-  const addEntry = () => setEntries([...entries, { time: "", label: "" }]);
+  const addEntry = () => setEntries([...entries, { id: crypto.randomUUID(), time: "", label: "" }]);
   const removeEntry = (index: number) => setEntries(entries.filter((_, i) => i !== index));
 
   return (
@@ -109,8 +109,8 @@ export default function DaySchemaForm({
         <div className="form-label">Wpisy:</div>
         <div className="space-y-2">
           {entries.map((entry, i) => (
-            // Klucz zmieniony na unikalny, aby uniknąć błędów gdy mamy kilka pustych wpisów
-            <div key={`${entry.time}-${entry.label}-${i}`} className="flex w-full gap-2 items-center">
+           
+            <div key={entry.id} className="flex w-full gap-2 items-center">
               <label htmlFor={`time-${i}`} className="sr-only">Godzina</label>
               <input id={`time-${i}`} type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
