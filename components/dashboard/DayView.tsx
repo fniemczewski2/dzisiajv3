@@ -326,7 +326,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
           </div>
         </div>
 
-        <DashboardWidgets settings={settings}/>
+        <DashboardWidgets settings={settings} date={dateStr}/>
         
         {draftForms.length > 0 && (
           <div className="mb-6 space-y-4 multi-draft-container [&_.dzisiaj-save-btn]:!hidden">

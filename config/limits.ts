@@ -7,3 +7,7 @@ export const MAX_TRUSTED_USERS = 10;
 export const BILLS_PAGE_LIMIT = 20;
 export const TRANSPORT_API_LIMIT = 30;
 export const TRANSPORT_SUGGESTIONS_LIMIT = 10;
+export const FLAT_RENTAL_DEFAULT = 2000;
+export const FLAT_FEE_DEFAULT = 630;
+export const TAX_DEFAULT = 8.5;
+export const ZUS_DEFAULT = 798;
