@@ -3,10 +3,10 @@ import { createServerSupabase } from '../../../utils/supabase/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;
-  if (!code || !state) return res.status(400).redirect('/settings?error=missing_params');
+  if (!code || !state) return res.status(400).redirect('/calendar?error=missing_params');
 
   try {
-    const decodedState = JSON.parse(Buffer.from(state as string, 'base64').toString());
+    const decodedState = JSON.parse(Buffer.from(state as string, 'base64url').toString());
     const userId = decodedState.userId;
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -40,8 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       expires_at: expiresAt,
     }, { onConflict: 'user_id, account_email' });
 
-    res.redirect('/settings?sync=success');
+    res.redirect('/calendar?sync=success');
   } catch (error) {
-    res.redirect('/settings?error=auth_failed');
+    res.redirect('/calendar?error=auth_failed');
   }
 }

@@ -2,16 +2,16 @@ import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
+import { useUnifiedEvents } from "../hooks/useUnifiedEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import { AddButton } from "../components/CommonButtons";
 import { useQuickAction } from "../hooks/useQuickAction";
 import { useMoods } from "../hooks/useMoods";
 import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
-import GoogleCalendarSync from "../components/calendar/GoogleCalendarSync";
+import ConnectedCalendars from "../components/calendar/ConnectedCalendars";
 import { useToast } from "../providers/ToastProvider";
 import Seo from "../components/SEO";
-import ConnectedCalendars from "../components/calendar/ConnectedCalendars";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   ssr: false,
@@ -24,11 +24,13 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { events, loading, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
+  const { loading: localLoading, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
+  const { events: unifiedEvents, loading: unifiedLoading } = useUnifiedEvents(startOfMonth(currentDate), endOfMonth(currentDate), refreshCounter);
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
@@ -42,6 +44,7 @@ export default function CalendarPage() {
 
   const handleAfterAdd = useCallback(() => {
     fetchEvents();
+    setRefreshCounter(prev => prev + 1);
   }, [fetchEvents]);
 
   const handleCancelForm = useCallback(() => {
@@ -50,27 +53,25 @@ export default function CalendarPage() {
 
   useQuickAction({ onActionAdd: () => setShowForm(true) });
     
-    useEffect(() => {
-        let toastId: string | undefined;
-        
-        if (fetching && toast.loading) {
-          toastId = toast.loading("Ładowanie wydarzeń...");
+  useEffect(() => {
+      let toastId: string | undefined;
+      if ((fetching || unifiedLoading) && toast.loading) {
+        toastId = toast.loading("Ładowanie wydarzeń...");
+      }
+      return () => {
+        if (toastId && toast.dismiss) {
+          toast.dismiss(toastId);
         }
-    
-        return () => {
-          if (toastId && toast.dismiss) {
-            toast.dismiss(toastId);
-          }
-        };
-    }, [fetching, toast]);
+      };
+  }, [fetching, unifiedLoading, toast]);
 
   return (
     <>
       <Seo
         title="Kalendarz - Dzisiaj v3"
-        description="Planuj nadchodzące wydarzenia, monitoruj terminy i synchronizuj swoje plany z Kalendarzem Google."
+        description="Planuj nadchodzące wydarzenia, monitoruj terminy i synchronizuj swoje plany z Kalendarzem Google oraz Outlookiem."
         canonical="https://dzisiajv3.vercel.app/calendar"
-        keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google"
+        keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google, outlook"
       />   
         
         {selectedDateStr ? (
@@ -93,7 +94,7 @@ export default function CalendarPage() {
                 selectedDate={selectedDate}
                 onEventsChange={handleAfterAdd}
                 onCancel={handleCancelForm}
-                loading={loading}
+                loading={localLoading}
               />
             </div>
           )}
@@ -108,7 +109,7 @@ export default function CalendarPage() {
 
           <MonthView
             currentDate={currentDate}
-            events={events}
+            events={unifiedEvents}
             onSelectDate={(date) => setSelectedDate(date)}
             moods={moods}
             DEFAULT_MOODS={DEFAULT_MOODS}
@@ -116,7 +117,9 @@ export default function CalendarPage() {
         </>
         )}
         {!selectedDate && (
-          <ConnectedCalendars />
+          <div className="mt-8">
+            <ConnectedCalendars />
+          </div>
         )}
     </>
   );
