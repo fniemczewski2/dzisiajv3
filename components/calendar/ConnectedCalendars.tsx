@@ -47,8 +47,31 @@ export default function ConnectedCalendars() {
     setLoading(false);
   };
 
-  const handleConnectGoogle = () => {
-    window.location.href = `/api/google-calendar?userId=${user?.id}`;
+  const handleConnectGoogle = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        toast.error("Brak autoryzacji. Zaloguj się ponownie.");
+        return;
+      }
+      const res = await fetch('/api/google-calendar?action=auth-url', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Błąd podczas pobierania linku autoryzacyjnego");
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      toast.error("Nie udało się rozpocząć logowania do Google");
+      console.error("[Google Auth Error]:", error);
+    }
   };
 
   const handleConnectOutlook = () => {
