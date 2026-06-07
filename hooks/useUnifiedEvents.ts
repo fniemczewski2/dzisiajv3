@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UnifiedEvent } from '../lib/calendarAggregator';
 
-export function useUnifiedEvents(timeMin: Date, timeMax: Date) {
+export function useUnifiedEvents(timeMin: Date, timeMax: Date, refreshTrigger?: any) {
   const [events, setEvents] = useState<UnifiedEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,12 +15,13 @@ export function useUnifiedEvents(timeMin: Date, timeMax: Date) {
           setEvents(data);
         }
       } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
     fetchEvents();
-  }, [timeMin, timeMax]);
+  }, [timeMin, timeMax, refreshTrigger]);
 
   return { events, loading };
 }
