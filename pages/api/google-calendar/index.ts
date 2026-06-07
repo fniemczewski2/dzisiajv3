@@ -1,4 +1,3 @@
-// pages/api/google-calendar/index.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 
@@ -59,13 +58,19 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
   return d.access_token ?? null;
 }
 
-async function getValidGoogleToken(userId: string): Promise<string | null> {
+async function getValidGoogleToken(userId: string, accountId?: string): Promise<string | null> {
   const sb = getServiceSupabase();
-  const { data } = await sb
-    .from("google_calendar_tokens")
-    .select("access_token, refresh_token, expires_at")
+  let query = sb
+    .from("connected_calendars")
+    .select("id, access_token, refresh_token, expires_at")
     .eq("user_id", userId)
-    .maybeSingle();
+    .eq("provider", "google");
+
+  if (accountId) {
+    query = query.eq("id", accountId);
+  }
+
+  const { data } = await query.limit(1).maybeSingle();
 
   if (!data) return null;
 
@@ -78,9 +83,12 @@ async function getValidGoogleToken(userId: string): Promise<string | null> {
   if (!fresh) return null;
 
   await sb
-    .from("google_calendar_tokens")
-    .update({ access_token: fresh, expires_at: new Date(Date.now() + 3_600_000).toISOString() })
-    .eq("user_id", userId);
+    .from("connected_calendars")
+    .update({ 
+      access_token: fresh, 
+      expires_at: new Date(Date.now() + 3_600_000).toISOString() 
+    })
+    .eq("id", data.id);
 
   return fresh;
 }
@@ -131,7 +139,8 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: Au
     "https://www.googleapis.com/auth/calendar.events",
     "https://www.googleapis.com/auth/calendar.events.owned",
     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
-    "https://www.googleapis.com/auth/calendar.events.readonly"
+    "https://www.googleapis.com/auth/calendar.events.readonly",
+    "https://www.googleapis.com/auth/userinfo.email" 
   ].join(" ");
 
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -140,7 +149,7 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: Au
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", scopes);
   url.searchParams.set("access_type", "offline");
-  url.searchParams.set("prompt", "consent");
+  url.searchParams.set("prompt", "consent select_account"); 
   url.searchParams.set("state", state);
 
   return res.json({ url: url.toString() });
@@ -148,36 +157,44 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: Au
 
 async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const sb = getServiceSupabase();
-  const { data: row } = await sb
-    .from("google_calendar_tokens")
-    .select("user_id")
+  const { data: accounts } = await sb
+    .from("connected_calendars")
+    .select("id, account_email")
     .eq("user_id", auth.user.id)
-    .maybeSingle();
+    .eq("provider", "google");
 
-  if (!row) return res.json({ connected: false });
+  if (!accounts || accounts.length === 0) return res.json({ connected: false, accounts: [] });
 
-  const accessToken = await getValidGoogleToken(auth.user.id);
-  if (!accessToken) return res.json({ connected: false });
+  const accountsWithCalendars = [];
 
-  const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  for (const acc of accounts) {
+    const accessToken = await getValidGoogleToken(auth.user.id, acc.id);
+    if (!accessToken) continue;
 
-  if (r.status === 401) {
-    await sb.from("google_calendar_tokens").delete().eq("user_id", auth.user.id);
-    return res.json({ connected: false });
+    const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (r.ok) {
+      const data = await r.json();
+      accountsWithCalendars.push({
+        accountId: acc.id,
+        email: acc.account_email,
+        calendars: data.items ?? []
+      });
+    } else if (r.status === 401) {
+      await sb.from("connected_calendars").delete().eq("id", acc.id);
+    }
   }
-  if (!r.ok) return res.status(r.status).json({ error: "Google Calendar API error" });
 
-  const data = await r.json();
-  return res.json({ connected: true, calendars: data.items ?? [] });
+  return res.json({ connected: accountsWithCalendars.length > 0, accounts: accountsWithCalendars });
 }
 
 async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
-  const { calendarId, timeMin, timeMax } = req.body ?? {};
+  const { calendarId, timeMin, timeMax, accountId } = req.body ?? {};
   if (!calendarId) return res.status(400).json({ error: "calendarId required" });
 
-  const accessToken = await getValidGoogleToken(auth.user.id);
+  const accessToken = await getValidGoogleToken(auth.user.id, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
   const defaultTimeMin = new Date(Date.now() - 365 * 86_400_000).toISOString();
@@ -247,10 +264,10 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
 }
 
 async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
-  const { calendarId, eventIds } = req.body ?? {};
+  const { calendarId, eventIds, accountId } = req.body ?? {};
   if (!calendarId) return res.status(400).json({ error: "calendarId required" });
 
-  const accessToken = await getValidGoogleToken(auth.user.id);
+  const accessToken = await getValidGoogleToken(auth.user.id, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
   const sb = getServiceSupabase();
@@ -317,10 +334,22 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
 }
 
 async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
-  await getServiceSupabase()
-    .from("google_calendar_tokens")
-    .delete()
-    .eq("user_id", auth.user.id);
+  const { accountId } = req.query;
+  const sb = getServiceSupabase();
+  
+  if (accountId) {
+    await sb
+      .from("connected_calendars")
+      .delete()
+      .eq("id", accountId)
+      .eq("user_id", auth.user.id);
+  } else {
+    await sb
+      .from("connected_calendars")
+      .delete()
+      .eq("provider", "google")
+      .eq("user_id", auth.user.id);
+  }
 
   return res.json({ ok: true });
 }

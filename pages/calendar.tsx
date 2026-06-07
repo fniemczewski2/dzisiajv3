@@ -11,6 +11,7 @@ import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
 import GoogleCalendarSync from "../components/calendar/GoogleCalendarSync";
 import { useToast } from "../providers/ToastProvider";
 import Seo from "../components/SEO";
+import ConnectedCalendars from "../components/calendar/ConnectedCalendars";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
   ssr: false,
@@ -115,7 +116,7 @@ export default function CalendarPage() {
         </>
         )}
         {!selectedDate && (
-          <GoogleCalendarSync onSyncComplete={fetchEvents} />
+          <ConnectedCalendars />
         )}
     </>
   );
