@@ -61,7 +61,9 @@ const DEFAULT_SETTINGS: Settings = {
   habit_plants: true,
   habit_duolingo: true,
   mood_options: DEFAULT_MOODS,
-  main_view: "calendar"
+  main_view: "calendar",
+  sort_people: "alphabetical",
+  hide_priority_5: false
 };
 
 export function useSettings() {
@@ -133,7 +135,9 @@ export function useSettings() {
             habit_plants: data.habit_plants ?? true,
             habit_duolingo: data.habit_duolingo ?? true,
             mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
-            main_view: data.main_view ?? "calendar"
+            main_view: data.main_view ?? "calendar",
+            sort_people: data.sort_people ?? "alphabetical",
+            hide_priority_5: data.hide_priority_5 ?? false
           });
         }
       } catch {
