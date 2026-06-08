@@ -195,7 +195,7 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export const ShareButton = ({ onClick }: { onClick: () => void }) => (
+export const ShareButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
@@ -203,8 +203,8 @@ export const ShareButton = ({ onClick }: { onClick: () => void }) => (
     aria-label="udostępnij"
     title="Udostępnij"
   >
-    <Share className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyślij</span>
+    <Share className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyślij</span>}
   </button>
 );
 

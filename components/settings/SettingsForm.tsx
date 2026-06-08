@@ -111,6 +111,7 @@ export default function SettingsForm({
         {renderSwitch("show_notifications", "Pokaż zadania cykliczne")}
         {renderSwitch("show_budget_items", "Pokaż planowane wydatki")}
         {renderSwitch("show_habits", "Pokaż sekcję nawyków")}
+        {renderSwitch("hide_priority_5", "Ukryj priorytet 5 (Ludzie)")}
 
         <div className="flex items-center justify-between py-2">
           <label htmlFor="show_mood_tracker" className="text-sm font-medium text-text cursor-pointer select-none">
@@ -313,6 +314,18 @@ export default function SettingsForm({
             >
               <option value="alphabetical">Alfabetycznie A→Z</option>
               <option value="distance">Odległość (najbliższe)</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="sort_people" className="form-label text-xs">Ludzie:</label>
+            <select
+              id="sort_people"
+              value={localSettings.sort_people || "alphabetical"}
+              onChange={(e) => updateLocalField("sort_people", e.target.value)}
+              className="input-field"
+            >
+              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="priority">Priorytet 0→5</option>
             </select>
           </div>
         </div>

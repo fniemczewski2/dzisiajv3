@@ -5,6 +5,9 @@ import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
 import { DeleteButton, FavButton } from "../components/CommonButtons";
 import Seo from "../components/SEO";
+import { useTrains } from "../hooks/useTrains";
+import AddTrainWidget from "../components/transport/AddTrainWidget"; 
+import { TrackedTrainCard } from "../components/transport/TrackedTrainCard";
 
 export default function TransportPage() {
   const { toast } = useToast();
@@ -21,6 +24,8 @@ export default function TransportPage() {
     addFavoriteStop,
     removeFavoriteStop
   } = useTransport(true);
+
+  const { trains, addTrain, deleteTrain } = useTrains();
 
   const visibleFavorites = favoritesGroups.filter((group) => 
     favoriteStops.some((stop: any) => stop.name === group.stop_name)
@@ -150,6 +155,32 @@ export default function TransportPage() {
             </div>
           </section>
         </div>
+        <section>
+          <div className="flex items-center justify-between mb-3">
+             <h3 className="text-lg font-semibold flex items-center gap-2">
+                Twoje pociągi
+             </h3>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            <div className="space-y-4">
+              {trains.length === 0 ? (
+                <div className="text-sm text-textSecondary italic py-4">
+                  Brak zaplanowanych podróży kolejowych.
+                </div>
+              ) : (
+                trains.map((train) => (
+                  <TrackedTrainCard 
+                    key={train.id} 
+                    train={train} 
+                  />
+                ))
+              )}
+            </div>
+            <div className="sticky top-4">
+              <AddTrainWidget onTrainAdded={addTrain} />
+            </div>
+          </div>
+        </section>
     </>
   );
 }

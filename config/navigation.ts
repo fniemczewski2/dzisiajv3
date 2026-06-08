@@ -22,6 +22,7 @@ import {
   Calculator,
   LayoutDashboard,
   BusFront,
+  User,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -57,6 +58,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
       { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
       { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
+    
     ],
   },
     {
@@ -85,6 +87,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
       { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
       { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
+      { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
     ],
   },
 ];
