@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UnifiedEvent } from '../lib/calendarAggregator';
 
-export function useUnifiedEvents(timeMin: Date, timeMax: Date, refreshTrigger?: any) {
+export function useUnifiedEvents(timeMin: string, timeMax: string, refreshTrigger?: any) {
   const [events, setEvents] = useState<UnifiedEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -9,7 +9,7 @@ export function useUnifiedEvents(timeMin: Date, timeMax: Date, refreshTrigger?: 
     const fetchEvents = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/calendar/events?timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}`);
+        const res = await fetch(`/api/calendar/events?timeMin=${timeMin}&timeMax=${timeMax}`);
         if (res.ok) {
           const data = await res.json();
           setEvents(data);
@@ -20,8 +20,9 @@ export function useUnifiedEvents(timeMin: Date, timeMax: Date, refreshTrigger?: 
         setLoading(false);
       }
     };
+    
     fetchEvents();
-  }, [timeMin, timeMax, refreshTrigger]);
+  }, [timeMin, timeMax, refreshTrigger]); 
 
   return { events, loading };
 }

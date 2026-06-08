@@ -118,6 +118,9 @@ export type Settings = {
 
   mood_options?: MoodOption[];
   main_view: string;
+
+  sort_people: string;
+  hide_priority_5: boolean;
 };
 
 export type HabitKey =
@@ -386,6 +389,8 @@ export interface SettingsRow {
   habit_plants: boolean | null;
   habit_duolingo: boolean | null;
   mood_options: MoodOption[] | null;
+  sort_people: string | null;
+  hide_priority_5: boolean | null;
 }
 
 export interface StopRow {
@@ -409,7 +414,6 @@ export interface BudgetRow {
   dec_rate: number;
 }
 
-
 export interface DailyHabitsRow {
   date: string;
   user_id: string;
@@ -424,3 +428,21 @@ export interface DailyHabitsRow {
   water_amount: number | null;
   daily_spending: number | null;
 }
+
+export interface Person {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  relationship: string;
+  priority: number; // 0, 1, 2, 3, 4, 5
+  birthday?: string | null;
+  phones: string[];
+  emails: string[];
+  notes?: string;
+  last_contact_date?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type PersonInsert = Omit<Person, "id" | "created_at" | "updated_at">;

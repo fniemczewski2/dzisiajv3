@@ -30,7 +30,11 @@ export default function CalendarPage() {
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
   const { loading: localLoading, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
-  const { events: unifiedEvents, loading: unifiedLoading } = useUnifiedEvents(startOfMonth(currentDate), endOfMonth(currentDate), refreshCounter);
+  const { events: unifiedEvents, loading: unifiedLoading } = useUnifiedEvents(
+    startOfMonth(currentDate).toISOString(),
+    endOfMonth(currentDate).toISOString(),
+    refreshCounter
+  );
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
