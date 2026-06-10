@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import SearchBar from "../components/SearchBar";
 import { useTransport } from "../hooks/useTransport";
 import NoResultsState from "../components/NoResultsState";
 import { useToast } from "../providers/ToastProvider";
-import { DeleteButton, FavButton } from "../components/CommonButtons";
+import { AddButton, DeleteButton, FavButton } from "../components/CommonButtons";
 import Seo from "../components/SEO";
 import { useTrains } from "../hooks/useTrains";
-import AddTrainWidget from "../components/transport/AddTrainWidget"; 
+import AddTrainForm from "../components/transport/AddTrainWidget"; 
 import { TrackedTrainCard } from "../components/transport/TrackedTrainCard";
+import StationBoardWidget from "../components/transport/StationBoard";
 
 export default function TransportPage() {
   const { toast } = useToast();
+  const [expanded, setExpanded] = useState(false);
 
   const {
     nearbyGroups,
@@ -123,7 +125,7 @@ export default function TransportPage() {
   return (
     <>
       <Seo
-        title="Transport Miejski - Dzisiaj v3"
+        title="Transport - Dzisiaj v3"
         description="Sprawdzaj rzeczywiste odjazdy komunikacji miejskiej i zarządzaj swoimi ulubionymi przystankami."
         canonical="https://dzisiajv3.vercel.app/transport"
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
@@ -154,14 +156,20 @@ export default function TransportPage() {
                {nearbyContent}
             </div>
           </section>
-        </div>
         <section>
           <div className="flex items-center justify-between mb-3">
-             <h3 className="text-lg font-semibold flex items-center gap-2">
+             <h3 className="text-lg font-semibold">
                 Twoje pociągi
              </h3>
+              {!expanded && (
+                <AddButton
+                  onClick={() => setExpanded((p) => !p)}
+                />
+              )}
           </div>
-          <div className="grid md:grid-cols-2 gap-6 items-start">
+          <AddTrainForm onTrainAdded={addTrain} expanded={expanded} setExpanded={setExpanded}/>
+          <StationBoardWidget /> 
+          <div className="grid md:grid-cols-2 gap-6 items-start mt-4">
             <div className="space-y-4">
               {trains.length === 0 ? (
                 <div className="text-sm text-textSecondary italic py-4">
@@ -176,11 +184,9 @@ export default function TransportPage() {
                 ))
               )}
             </div>
-            <div className="sticky top-4">
-              <AddTrainWidget onTrainAdded={addTrain} />
-            </div>
           </div>
         </section>
+        </div>
     </>
   );
 }
