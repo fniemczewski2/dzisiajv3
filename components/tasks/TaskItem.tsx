@@ -52,7 +52,7 @@ function TaskEditForm({
   const editPrefix = `edit-task-${task.id}`;
 
   return (
-    <div className="p-4 w-full bg-card border border-primary dark:border-primary-dark rounded-xl shadow-lg transition-colors">
+    <div className="p-4 w-full card rounded-xl">
       <div className="space-y-3">
         <div>
           <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł zadania:</label>

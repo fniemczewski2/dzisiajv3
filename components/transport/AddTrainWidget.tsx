@@ -1,22 +1,23 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Train, Upload, Loader2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useToast } from '../../providers/ToastProvider';
-import { SaveButton } from '../CommonButtons';
+import { CancelButton, SaveButton } from '../CommonButtons';
 
 interface AddTrainWidgetProps {
   onTrainAdded: (train: any) => void;
+  expanded: boolean;
+  setExpanded: (expanded: boolean) => void;
 }
 
-export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidgetProps>) {
+export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Readonly<AddTrainWidgetProps>) {
   const { toast } = useToast();
-  const [expanded, setExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Stan formularza dla ręcznej edycji lub danych zaciągniętych z PDF
   const [formData, setFormData] = useState({
     trainNumber: '',
+    trainName: '',
     date: '',
     departureTime: '',
     from: '',
@@ -30,7 +31,6 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
     if (!file) return;
 
     setIsLoading(true);
-    // Zakładam, że Twój useToast obsługuje loading i dismiss, podobnie jak w ImportPlaces.tsx
     let toastId: string | undefined;
 
     try {
@@ -54,6 +54,7 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
 
         setFormData({
           trainNumber: data.trainNumber || '',
+          trainName: data.trainName || '',
           date: data.date ? data.date.split('.').reverse().join('-') : '', // Format dla <input type="date">
           departureTime: data.departureTime || '',
           from: stations[0] || '',
@@ -73,7 +74,6 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
       toast.error('Błąd połączenia z serwerem');
     } finally {
       setIsLoading(false);
-      // Reset inputa, by można było wgrać ten sam plik ponownie
       e.target.value = ''; 
     }
   };
@@ -84,52 +84,39 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
     toast.success('Pociąg dodany do śledzenia!');
     
     // Czyszczenie formularza
-    setFormData({ trainNumber: '', date: '', departureTime: '', from: '', to: '', wagon: '', seat: ''});
+    setFormData({ trainNumber: '', trainName: '', date: '', departureTime: '', from: '', to: '', wagon: '', seat: ''});
     setExpanded(false);
   };
 
   return (
-    <div className="card rounded-xl shadow-sm overflow-hidden transition-all mt-2">
-      {/* Nagłówek Akordeonu - Wzorowany na ConnectedCalendars.tsx */}
-      <button
-        onClick={() => setExpanded((p) => !p)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-surface dark:bg-zinc-800 text-primary">
-            <Train className="w-4 h-4" />
-          </div>
-          <div className="text-left">
-            <p className="font-bold text-text text-sm">Dodaj pociąg</p>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-textMuted">
-              Import z PDF lub ręcznie
-            </p>
-          </div>
-        </div>
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-textMuted shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-textMuted shrink-0" />
-        )}
-      </button>
-
-      {/* Rozwinięta zawartość */}
+    <>
       {expanded && (
-        <div className="border-t border-gray-100 dark:border-gray-800 bg-card px-4 py-4 space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="form-card">
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Nr pociągu (np. IC 7204)</label>
+                <label className="form-label">Nr pociągu</label>
                 <input 
                   type="text" 
                   value={formData.trainNumber}
                   onChange={e => setFormData({...formData, trainNumber: e.target.value})}
                   className="input-field py-1.5 w-full" 
                   required 
-                  placeholder="IC 7204"
+                  placeholder="2137"
                 />
               </div>
+              <div>
+                <label className="form-label">Nazwa pociągu</label>
+                <input 
+                  type="text" 
+                  value={formData.trainName}
+                  onChange={e => setFormData({...formData, trainName: e.target.value})}
+                  className="input-field py-1.5 w-full" 
+                  required 
+                  placeholder="Przemyślanin"
+                />
+              </div>
+            </div>
               <div>
                 <label className="form-label">Data i czas</label>
                 <div className="flex gap-2">
@@ -149,7 +136,6 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
                   />
                 </div>
               </div>
-            </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -198,17 +184,13 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
             </div>
 
             {/* Przyciski Akcji na dole - Wzorowane na GoogleCalendarSync.tsx */}
-            <div className="grid grid-cols-2 gap-3 pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-              
+            <div className="flex flex-col md:flex-row items-center justify-end gap-3 mt-2 border-t border-gray-100 dark:border-gray-800">
+              <CancelButton onClick={() => setExpanded(false)} />
               <label 
-                className={`flex items-center justify-center gap-2 px-4 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm cursor-pointer ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`px-4 py-2 w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
               >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Upload className="w-4 h-4 text-textSecondary" />
-                )}
-                Importuj PDF
+                .pdf
+                <Upload className="w-4 h-4 text-textSecondary" />
                 <input 
                   type="file" 
                   accept="application/pdf"
@@ -217,13 +199,12 @@ export default function AddTrainWidget({ onTrainAdded }: Readonly<AddTrainWidget
                   className="hidden" 
                 />
               </label>
-
-              <SaveButton disabled={isLoading} small/>
+            
+              <SaveButton disabled={isLoading} />
             </div>
 
           </form>
-        </div>
       )}
-    </div>
+    </>
   );
 }
