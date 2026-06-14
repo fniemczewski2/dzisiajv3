@@ -72,9 +72,11 @@ export const TrackedTrainCard = ({ train }: TrackedTrainProps) => {
             <h4 className="font-bold text-text text-lg leading-tight">
               {train.trainNumber}
             </h4>
+            {train.trainName && (
             <p className="text-[10px] text-textMuted font-medium uppercase tracking-wider">
-              {train.trainName || 'PKP Intercity'}
+              {train.trainName}
             </p>
+            )}
           </div>
         </div>
         
@@ -82,8 +84,7 @@ export const TrackedTrainCard = ({ train }: TrackedTrainProps) => {
           <DeleteButton onClick={handleDelete} />
         </div>
       </div>
-
-      {/* Relacja Od - Do */}
+      
       <div className="flex items-center justify-between text-sm text-text mb-4 px-1">
         <span className="font-medium truncate max-w-[40%]" title={train.from}>{train.from}</span>
         <div className="flex-1 border-t-2 border-dashed border-gray-200 dark:border-gray-700 mx-3 relative">
@@ -92,7 +93,7 @@ export const TrackedTrainCard = ({ train }: TrackedTrainProps) => {
         <span className="font-medium truncate max-w-[40%] text-right" title={train.to}>{train.to}</span>
       </div>
 
-      { (train.wagon && train.seat) && (
+      {(train.wagon && train.seat) && (
         <div className="flex gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 mt-2">
           <div className="flex-1 bg-surface rounded-lg p-2 text-center border border-gray-100 dark:border-gray-800">
             <p className="text-[10px] uppercase tracking-wider text-textMuted font-semibold">Wagon</p>

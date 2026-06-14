@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const schedulesData = await schedulesRes.json();
 
-    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true`, { headers });
+    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers });
     if (!operationsRes.ok) throw new Error('Błąd pobierania danych czasu rzeczywistego');
     const operationsData = await operationsRes.json();
 
@@ -89,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const rawTime = plannedStation.departureTime || plannedStation.arrivalTime || '00:00:00';
       const plannedTime = rawTime.substring(0, 5);
-
+      
       const sortedStations = [...(route.stations || [])].sort((a: any, b: any) => a.orderNumber - b.orderNumber);
       const originName = sortedStations.length > 0 ? getStationName(sortedStations[0].stationId) : '-';
       const destinationName = sortedStations.length > 0 ? getStationName(sortedStations[sortedStations.length - 1].stationId) : '-';

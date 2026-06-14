@@ -21,6 +21,8 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         .from("events")
         .select("*")
         .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`);
+      
+      console.log(data)
 
       if (error) throw error;
 

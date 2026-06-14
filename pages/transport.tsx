@@ -172,9 +172,7 @@ export default function TransportPage() {
           <div className="grid md:grid-cols-2 gap-6 items-start mt-4">
             <div className="space-y-4">
               {trains.length === 0 ? (
-                <div className="text-sm text-textSecondary italic py-4">
-                  Brak zaplanowanych podróży kolejowych.
-                </div>
+                <NoResultsState text="zaplanowanych podróży kolejowych" />
               ) : (
                 trains.map((train) => (
                   <TrackedTrainCard 
