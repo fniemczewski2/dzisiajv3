@@ -34,11 +34,10 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
-  // Dodaliśmy path.startsWith('/.well-known') na końcu tej listy:
   const isPublicRoute = 
     path === '/start' || 
     path.startsWith('/login') || 
-    path.startsWith('/api/auth') || 
+    path.startsWith('/api') || 
     path.startsWith('/auth') || 
     path === '/privacy' ||
     path.startsWith('/.well-known')

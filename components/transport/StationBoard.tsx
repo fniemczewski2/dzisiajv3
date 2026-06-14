@@ -5,6 +5,7 @@ import { Search, Trash2, RefreshCw, Plus, Loader2, Train, AlertCircle } from 'lu
 import { useTrains } from '../../hooks/useTrains';
 import { useToast } from '../../providers/ToastProvider';
 import { AddButton } from '../CommonButtons';
+import NoResultsState from '../NoResultsState';
 
 export default function StationBoardWidget() {
   const { addTrain } = useTrains();
@@ -174,9 +175,7 @@ export default function StationBoardWidget() {
                     <AlertCircle className="w-4 h-4" /> {board.error}
                   </div>
                 ) : !board.loading && board.items.length === 0 ? (
-                  <div className="p-8 text-center text-sm text-textMuted">
-                    Brak zaplanowanych pociągów w najbliższym czasie na tej stacji.
-                  </div>
+                  <NoResultsState text="odjazdów" />
                 ) : (
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
@@ -210,7 +209,7 @@ export default function StationBoardWidget() {
                             </td>
                             <td className="py-1 px-1.5">
                               <div className="font-bold text-text leading-tight">{item.trainOperator} {item.trainNumber}</div>
-                              {item.trainName && <div className="text-[10px] text-textMuted truncate max-w-[60px]">{item.trainName}</div>}
+                              {item.trainName && <div className="text-[10px] text-textMuted truncate max-w-[60px] md:max-w-[120px]">{item.trainName}</div>}
                             </td>
                             <td className="py-1 px-1.5 text-text font-semibold truncate max-w-[140px]" title={item.to}>
                               {item.to}

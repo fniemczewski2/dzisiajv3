@@ -2,7 +2,6 @@ import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "../components/calendar/MonthView";
 import { useEvents } from "../hooks/useEvents";
-import { useUnifiedEvents } from "../hooks/useUnifiedEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "../components/calendar/CalendarHeader";
 import { AddButton } from "../components/CommonButtons";
@@ -13,61 +12,40 @@ import ConnectedCalendars from "../components/calendar/ConnectedCalendars";
 import { useToast } from "../providers/ToastProvider";
 import Seo from "../components/SEO";
 
-const EventForm = dynamic(() => import("../components/calendar/EventForm"), {
-  ssr: false,
-});
-const CalendarDayDetails = dynamic(() => import("../components/calendar/CalendarDayDetails"), {
-  ssr: false,
-});
+const EventForm = dynamic(() => import("../components/calendar/EventForm"), { ssr: false });
+const CalendarDayDetails = dynamic(() => import("../components/calendar/CalendarDayDetails"), { ssr: false });
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [refreshCounter, setRefreshCounter] = useState(0);
 
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
-  const { loading: localLoading, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
-  const { events: unifiedEvents, loading: unifiedLoading } = useUnifiedEvents(
-    startOfMonth(currentDate).toISOString(),
-    endOfMonth(currentDate).toISOString(),
-    refreshCounter
-  );
+  const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
   const { moods } = useMoods();
   const { toast } = useToast();
 
-  const goToPrevMonth = () =>
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  const goToNextMonth = () =>
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const goToPrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const goToNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
   const handleAfterAdd = useCallback(() => {
     fetchEvents();
-    setRefreshCounter(prev => prev + 1);
   }, [fetchEvents]);
 
-  const handleCancelForm = useCallback(() => {
-    setShowForm(false);
-  }, []);
+  const handleCancelForm = useCallback(() => setShowForm(false), []);
 
   useQuickAction({ onActionAdd: () => setShowForm(true) });
     
   useEffect(() => {
       let toastId: string | undefined;
-      if ((fetching || unifiedLoading) && toast.loading) {
-        toastId = toast.loading("Ładowanie wydarzeń...");
-      }
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching, unifiedLoading, toast]);
+      if (fetching && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   return (
     <>
@@ -79,10 +57,7 @@ export default function CalendarPage() {
       />   
         
         {selectedDateStr ? (
-          <CalendarDayDetails
-            selectedDate={selectedDateStr}
-            onBack={() => setSelectedDate(null)}
-          />
+          <CalendarDayDetails selectedDate={selectedDateStr} onBack={() => setSelectedDate(null)} />
         ) : (
         <>
           <div className="flex justify-between items-center mb-6 gap-2">
@@ -92,36 +67,17 @@ export default function CalendarPage() {
 
           {showForm && (
             <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-              <EventForm
-                addEvent={addEvent}
-                currentDate={currentDate}
-                selectedDate={selectedDate}
-                onEventsChange={handleAfterAdd}
-                onCancel={handleCancelForm}
-                loading={localLoading}
-              />
+              <EventForm addEvent={addEvent} currentDate={currentDate} selectedDate={selectedDate} onEventsChange={handleAfterAdd} onCancel={handleCancelForm} loading={fetching} />
             </div>
           )}
 
-          {!selectedDate && (
-            <CalendarHeader
-              currentDate={currentDate}
-              onPrev={goToPrevMonth}
-              onNext={goToNextMonth}
-            />
-          )}
+          {!selectedDate && <CalendarHeader currentDate={currentDate} onPrev={goToPrevMonth} onNext={goToNextMonth} />}
 
-          <MonthView
-            currentDate={currentDate}
-            events={unifiedEvents}
-            onSelectDate={(date) => setSelectedDate(date)}
-            moods={moods}
-            DEFAULT_MOODS={DEFAULT_MOODS}
-          />
+          <MonthView currentDate={currentDate} events={events} onSelectDate={(date) => setSelectedDate(date)} moods={moods} DEFAULT_MOODS={DEFAULT_MOODS} />
         </>
         )}
         {!selectedDate && (
-          <div className="mt-8">
+          <div className="mt-8 space-y-4">
             <ConnectedCalendars />
           </div>
         )}

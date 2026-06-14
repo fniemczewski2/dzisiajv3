@@ -196,12 +196,11 @@ export function useTrains() {
               if (!response.ok) throw new Error('Błąd pobierania statusu');
               
               const result = await response.json();
-              
               if (isMounted) {
                 setData({
                     delay: result.delay || 0,
                     platform: result.platform || '-',
-                    status: result.status || 'Brak',
+                    status: result.status || '',
                     loading: false,
                     estimatedArrival: result.estimatedArrival || '',
                     hide: result.hide || false

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { trainNumber, date, from, to, trainName } = req.query;
+  const { trainNumber, from, to, trainName } = req.query;
   const apiKey = process.env.PLK_API_KEY || '';
   try {
     const headers = {
