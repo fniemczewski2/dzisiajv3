@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Link2Off, Loader2, Link as LinkIcon, Download } from 'lucide-react';
+import { ChevronDown, ChevronUp, Link2Off, Loader2, Link as LinkIcon } from 'lucide-react';
 import { createClient } from '../../utils/supabase/client';
 import { useAuth } from '../../providers/AuthProvider';
 import { useToast } from '../../providers/ToastProvider';
@@ -33,7 +33,7 @@ export default function ConnectedCalendars() {
   
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [importing, setImporting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && expanded) {
@@ -71,7 +71,6 @@ export default function ConnectedCalendars() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
 
-      // Szukamy wiersza autoryzacyjnego albo jakiegokolwiek kalendarza z tego konta, żeby pobrać listę API
       const primaryGoogleAccount = fetchedAccounts.find(acc => acc.provider === 'google' && acc.google_calendar_id === '@account_connection') || fetchedAccounts.find(acc => acc.provider === 'google');
       
       if (primaryGoogleAccount) {
@@ -83,10 +82,8 @@ export default function ConnectedCalendars() {
           const data = await res.json();
           if (data.calendars) {
             const apiCalendars = data.calendars.map((cal: any) => {
-              // Szukamy konta głównego (rodzica) dla tego kalendarza (zwracanego przez backend)
               const parentAcc = fetchedAccounts.find(a => a.id === cal.primaryAccountId);
               
-              // Sprawdzamy, czy ten konkretny sub-kalendarz jest już u nas w bazie
               const dbMatch = parentAcc 
                 ? fetchedAccounts.find(acc => acc.account_email === parentAcc.account_email && acc.google_calendar_id === cal.id) 
                 : undefined;
@@ -102,9 +99,10 @@ export default function ConnectedCalendars() {
 
             setCalendars(apiCalendars);
             
-            // Automatycznie zaznacz te kalendarze, które już są zapisane w bazie danych
-            const alreadySavedIds = apiCalendars.filter((c: any) => c.accountId).map((c: any) => c.id);
-            setSelectedCalendars(alreadySavedIds);
+            const alreadySavedKeys = apiCalendars
+              .filter((c: any) => c.accountId)
+              .map((c: any) => `${c.primaryAccountId}:::${c.id}`);
+            setSelectedCalendars(alreadySavedKeys);
           }
         }
       }
@@ -115,107 +113,70 @@ export default function ConnectedCalendars() {
     }
   };
 
-  const handleImportSelected = async (currentAccount: ConnectedAccount) => {
-    const fullPrimaryAcc = accounts.find(a => a.account_email === currentAccount.account_email && (a as any).google_calendar_id === '@account_connection') || accounts.find(a => a.account_email === currentAccount.account_email)!;
-    if (!fullPrimaryAcc) return;
-
-    const calsToProcess = calendars.filter(c => selectedCalendars.includes(c.id) && c.primaryAccountId === fullPrimaryAcc.id);
-    if (calsToProcess.length === 0) return;
-
-    setImporting(true);
-    let totalImported = 0;
+  const handleToggleCalendar = async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {
+    const key = `${primaryAccountForEmail.id}:::${cal.id}`;
+    setTogglingId(cal.id);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Brak sesji");
 
-      for (const cal of calsToProcess) {
-        let currentDbId = cal.accountId;
-
-        // KROK A: Jeśli kalendarz nie ma jeszcze wiersza w bazie, tworzymy go jako nowy wpis connected_calendars!
-        if (!currentDbId) {
-          const { data: newAcc, error: insertErr } = await supabase
-            .from('connected_calendars')
-            .insert({
-              user_id: user?.id,
-              provider: 'google',
-              account_email: fullPrimaryAcc.account_email,
-              access_token: (fullPrimaryAcc as any).access_token,
-              refresh_token: (fullPrimaryAcc as any).refresh_token,
-              expires_at: (fullPrimaryAcc as any).expires_at,
-              google_calendar_id: cal.id, // ID sub-kalendarza
-              calendar_name: cal.summary   // Nazwa sub-kalendarza
-            })
-            .select('id')
-            .single();
-
-          if (insertErr) {
-            console.error("Błąd tworzenia sub-kalendarza w bazie:", insertErr);
-            continue;
-          }
-          currentDbId = newAcc.id;
+      if (isCurrentlyOn) {
+        // WYŁĄCZANIE (USUWANIE)
+        if (cal.accountId) {
+          const res = await fetch(`/api/google-calendar?action=disconnect&subCalendarId=${cal.accountId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${session.access_token}` }
+          });
+          if (!res.ok) throw new Error("Błąd usuwania");
         }
+        
+        setSelectedCalendars(prev => prev.filter(id => id !== key));
+        toast.success(`Odłączono kalendarz: ${cal.summary}`);
+        
+        // WYMUSZENIE ODŚWIEŻENIA KALENDARZA GŁÓWNEGO
+        window.dispatchEvent(new Event("refreshEvents"));
+      } else {
+        // WŁĄCZANIE (DODAWANIE)
+        const { data: newAcc, error: insertErr } = await supabase
+          .from('connected_calendars')
+          .insert({
+            user_id: user?.id,
+            provider: 'google',
+            account_email: primaryAccountForEmail.account_email,
+            google_calendar_id: cal.id,
+            calendar_name: cal.summary   
+          })
+          .select('id')
+          .single();
 
-        // KROK B: Wywołanie istniejącego API importu przekazując ID nowo utworzonego/istniejącego rekordu
+        if (insertErr) throw insertErr;
+
         const res = await fetch(`/api/google-calendar?action=import`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ 
-            calendarId: cal.id,      // e.g. 'primary' lub ID grupy
-            accountId: currentDbId    // UUID nowego wiersza z connected_calendars
-          })
+          body: JSON.stringify({ calendarId: cal.id, accountId: newAcc.id })
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          totalImported += data.imported || 0;
-        }
+        if (!res.ok) throw new Error("Błąd podczas importu");
+        
+        const data = await res.json();
+        setSelectedCalendars(prev => [...prev, key]);
+        toast.success(`Zsynchronizowano kalendarz: ${cal.summary}. Pobrano ${data.imported || 0} wydarzeń.`);
+        
+        // WYMUSZENIE ODŚWIEŻENIA KALENDARZA GŁÓWNEGO
+        window.dispatchEvent(new Event("refreshEvents"));
       }
-
-      toast.success(`Zapisano konfigurację kalendarzy i pobrano ${totalImported} wydarzeń.`);
-      await fetchAccountsAndCalendars(); // Odśwież widok
-    } catch (err) {
-      toast.error("Wystąpił błąd podczas przetwarzania.");
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const handleConnectGoogle = async () => {
-    try {
-      // Bezpieczniejsze pobranie samej sesji do autoryzacji zapytań
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError || !session?.access_token) {
-        toast.error("Brak aktywnej sesji. Zaloguj się ponownie.");
-        console.error("Session Error:", sessionError);
-        return;
-      }
-
-      const res = await fetch('/api/google-calendar?action=auth-url', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(`Błąd HTTP ${res.status}: ${errorData.error || 'Nieznany błąd'}`);
-      }
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      toast.error("Nie udało się rozpocząć logowania do Google");
-      console.error("[Google Auth Error]:", error.message || error);
+      await fetchAccountsAndCalendars();
+    } catch (err: any) {
+      toast.error(err.message || "Wystąpił błąd podczas przetwarzania.");
+    } finally {
+      setTogglingId(null);
     }
-  };
-
-  const handleConnectOutlook = () => {
-    window.location.href = `/api/outlook-calendar?action=auth-url&userId=${user?.id}`;
   };
 
   const handleDisconnect = async (id: string, email: string) => {
@@ -234,42 +195,54 @@ export default function ConnectedCalendars() {
 
       const res = await fetch(`/api/google-calendar?action=disconnect&email=${encodeURIComponent(email)}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Błąd serwera");
-      }
+      if (!res.ok) throw new Error("Błąd serwera");
 
       toast.success(`Odłączono konto ${email} oraz usunięto powiązane wydarzenia.`);
+      setSelectedCalendars(prev => prev.filter(key => !key.startsWith(`${id}:::`)));
       
-      // Czyszczenie stanu lokalnego zaznaczonych pozycji
-      setSelectedCalendars(prev => prev.filter(calId => 
-        !calendars.find(c => c.id === calId && c.accountId === id)
-      ));
-      
+      // WYMUSZENIE ODŚWIEŻENIA KALENDARZA GŁÓWNEGO PO USUNIĘCIU CAŁEGO KONTA
+      window.dispatchEvent(new Event("refreshEvents"));
+
       await fetchAccountsAndCalendars();
     } catch (error: any) {
       toast.error(error.message || 'Błąd podczas odłączania konta');
-      console.error("[Disconnect Error]:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleCalendarSelection = (calendarId: string) => {
-    setSelectedCalendars(prev => 
-      prev.includes(calendarId) 
-        ? prev.filter(id => id !== calendarId)
-        : [...prev, calendarId]
-    );
+  const handleConnectGoogle = async () => {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        toast.error("Brak aktywnej sesji. Zaloguj się ponownie.");
+        return;
+      }
+
+      const res = await fetch('/api/google-calendar?action=auth-url', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (!res.ok) throw new Error(`Błąd HTTP`);
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      toast.error("Nie udało się rozpocząć logowania do Google");
+    }
+  };
+
+  const handleConnectOutlook = () => {
+    window.location.href = `/api/outlook-calendar?action=auth-url&userId=${user?.id}`;
   };
 
   const currentStatus = () => {
-    // Liczymy tylko unikalne adresy e-mail (ignorujemy nadmiarowe wiersze poszczególnych kalendarzy i wiersz techniczny)
     const uniqueEmails = new Set(accounts.map(a => a.account_email)).size;
     if (loading && uniqueEmails === 0) return "Sprawdzanie...";
     if (uniqueEmails === 0) return "Brak połączeń";
@@ -311,11 +284,7 @@ export default function ConnectedCalendars() {
                   
                   {Array.from(new Set(accounts.map(a => a.account_email))).map(email => {
                     const primaryAccountForEmail = accounts.find(a => a.account_email === email && (a as any).google_calendar_id === '@account_connection') || accounts.find(a => a.account_email === email)!;
-                    console.log(accounts)
-                    console.log(primaryAccountForEmail)
-                    console.log(calendars)
                     const accountCalendars = calendars.filter(c => (c as any).primaryAccountId === primaryAccountForEmail.id);
-                    const selectedForThisAccount = accountCalendars.filter(c => selectedCalendars.includes(c.id));
 
                     return (
                       <div key={primaryAccountForEmail.id} className="border border-gray-200 dark:border-gray-700 rounded-xl bg-surface overflow-hidden">
@@ -338,38 +307,47 @@ export default function ConnectedCalendars() {
                           </button>
                         </div>
 
-                        <div className="p-3 space-y-2">
+                        <div className="p-2 space-y-1">
                           {accountCalendars.length === 0 ? (
-                            <p className="text-xs text-textMuted pl-2">Brak kalendarzy do wyświetlenia.</p>
+                            <p className="text-xs text-textMuted p-2">Brak kalendarzy do wyświetlenia.</p>
                           ) : (
-                            accountCalendars.map(cal => (
-                              <label key={cal.id} className="flex items-center gap-3 p-2 hover:bg-surfaceHover rounded-lg cursor-pointer transition-colors">
-                                <input 
-                                  type="checkbox" 
-                                  checked={selectedCalendars.includes(cal.id)}
-                                  onChange={() => toggleCalendarSelection(cal.id)}
-                                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                                />
-                                <span className="text-sm text-text font-medium truncate">
-                                  {cal.summary} {cal.primary && <span className="text-xs text-textMuted ml-1">(Główny)</span>}
-                                </span>
-                              </label>
-                            ))
-                          )}
+                            accountCalendars.map(cal => {
+                              const isCurrentlyOn = selectedCalendars.includes(`${primaryAccountForEmail.id}:::${cal.id}`);
+                              const isToggling = togglingId === cal.id;
 
-                          {accountCalendars.length > 0 && (
-                            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800">
-                              <button
-                                onClick={() => handleImportSelected(primaryAccountForEmail)}
-                                disabled={selectedForThisAccount.length === 0 || importing}
-                                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white font-bold text-sm rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                {importing 
-                                  ? "Importowanie..." 
-                                  : `Pobierz wydarzenia z zaznaczonych (${selectedForThisAccount.length})`}
-                              </button>
-                            </div>
+                              return (
+                                <div key={cal.id} className="flex items-center justify-between p-2 hover:bg-surfaceHover rounded-lg transition-colors">
+                                  <div className="flex items-center gap-3 overflow-hidden pr-4">
+                                    <span className="text-sm text-text font-medium truncate">
+                                      {cal.summary} {cal.primary && <span className="text-xs text-textMuted ml-1">(Główny)</span>}
+                                    </span>
+                                  </div>
+                                  
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={isCurrentlyOn}
+                                    onClick={() => handleToggleCalendar(primaryAccountForEmail, cal, isCurrentlyOn)}
+                                    disabled={isToggling}
+                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                      isCurrentlyOn ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+                                    } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  >
+                                    {isToggling && (
+                                      <div className="absolute inset-0 flex items-center justify-center z-10">
+                                        <Loader2 className="w-3 h-3 text-white animate-spin" />
+                                      </div>
+                                    )}
+                                    <span
+                                      aria-hidden="true"
+                                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                        isCurrentlyOn ? 'translate-x-4' : 'translate-x-0'
+                                      } ${isToggling ? 'opacity-0' : 'opacity-100'}`}
+                                    />
+                                  </button>
+                                </div>
+                              );
+                            })
                           )}
                         </div>
                       </div>

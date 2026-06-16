@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Clock, MapPin, User, Download } from "lucide-react";
+import { Clock, MapPin, User, Download, Globe } from "lucide-react";
 import { Event } from "../../types";
 import { useAuth } from "../../providers/AuthProvider";
 import { useToast } from "../../providers/ToastProvider";
@@ -112,6 +112,20 @@ export default function EventItem({
     <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
   );
 
+  const fixedPlace = event.place?.startsWith("https://") ? 
+  ( 
+    <div className="flex items-center text-sm font-medium text-textSecondary truncate underline">
+      <Globe className="w-4 h-4 mr-2 text-primary" />
+      <a href={event.place} rel="noreferrer" target="_blank">Link</a>
+    </div>
+
+  ) : (
+    <div className="flex items-center text-sm font-medium text-textSecondary truncate">
+      <MapPin className="w-4 h-4 mr-2 text-primary" />
+      {event.place}
+    </div>
+  )
+
   if (isEditing && editedEvent) {
     const editPrefix = `edit-event-${event.id}`;
     
@@ -218,21 +232,16 @@ export default function EventItem({
           <Clock className="w-4 h-4 mr-2 text-primary" />
           {renderedTime}
         </div>
-        {event.place && (
-          <div className="flex items-center text-sm font-medium text-textSecondary">
-            <MapPin className="w-4 h-4 mr-2 text-green-500" />
-            {event.place}
-          </div>
-        )}
+        {fixedPlace}
         {event.display_share_info && (
-          <div className="flex items-center text-sm font-medium text-textSecondary">
+          <div className="flex items-center text-sm font-medium text-textSecondary truncate">
             <User className="w-4 h-4 mr-2 text-primary" />
             <span className="truncate">{event.display_share_info}</span>
           </div>
         )}
       </div>
       {event.description && (
-        <p className="text-sm text-textSecondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 whitespace-pre-wrap">
+        <p className="text-sm text-textSecondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 break-words whitespace-pre-wrap">
           {event.description}
         </p>
       )}

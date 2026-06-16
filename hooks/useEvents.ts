@@ -22,8 +22,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         .select("*")
         .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`);
       
-      console.log(data)
-
       if (error) throw error;
 
       const fetchedEvents = (data || []) as Event[];
@@ -46,8 +44,22 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     }
   }, [supabase, userId, rangeStart, rangeEnd]);
 
+  // Standardowe pobieranie po zmianie zakresu dat
   useEffect(() => { 
     fetchEvents(); 
+  }, [fetchEvents]);
+
+  // NOWE: Nasłuchiwanie na globalne zdarzenie z innych komponentów (np. ConnectedCalendars)
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchEvents();
+    };
+
+    window.addEventListener("refreshEvents", handleRefresh);
+
+    return () => {
+      window.removeEventListener("refreshEvents", handleRefresh);
+    };
   }, [fetchEvents]);
 
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
