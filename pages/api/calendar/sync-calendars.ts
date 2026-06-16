@@ -57,7 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // 1. Pobierz absolutnie wszystkie konta Google z bazy danych
     const { data: accounts, error: dbError } = await supabaseService
       .from("connected_calendars")
       .select("*")
@@ -67,61 +66,94 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!accounts || accounts.length === 0) return res.json({ message: "Brak kont do synchronizacji" });
 
     let totalImported = 0;
+    const tokenCache: Record<string, string> = {}; 
 
     for (const acc of accounts) {
-      if (!acc.refresh_token) continue;
+      // Ignorujemy wiersz autoryzacyjny podczas samego pobierania wydarzeń (to nie jest kalendarz)
       if (acc.google_calendar_id === '@account_connection') continue; 
 
-      const accessToken = await refreshGoogleToken(acc.refresh_token);
+      // Znajdź główny rekord autoryzacyjny dla TEGO konkretnego maila, żeby wziąć z niego token odświeżania
+      const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection');
+      if (!mainAcc || !mainAcc.refresh_token) continue;
 
-      // Definiujemy okno czasowe synchronizacji (np. od dziś do 30 dni w przód)
-      const timeMin = new Date().toISOString();
-      const timeMax = new Date(Date.now() + 30 * 86_400_000).toISOString();
-      // POPRAWIONE: dynamiczny calendar ID zamiast sztywnego 'primary'
-      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(acc.google_calendar_id || 'primary')}/events`);
-      url.searchParams.set("timeMin", timeMin);
-      url.searchParams.set("timeMax", timeMax);
-      url.searchParams.set("singleEvents", "true");
-
-      const googleRes = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!googleRes.ok) continue;
-      const { items = [] } = await googleRes.json();
-
-      for (const ev of items) {
-        if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
-
-        // POPRAWIONE: sprawdzanie po konkretnym kalendarzu
-        const { data: dup } = await supabaseService
-          .from("events")
-          .select("id")
-          .eq("google_event_id", ev.id)
-          .eq("calendar_id", acc.id) 
-          .maybeSingle();
-
-        if (dup) continue;
-
-        await supabaseService.from("events").insert({
-          user_id: acc.user_id,
-          calendar_id: acc.id, // POPRAWIONE: dodana właściwa relacja
-          title: ev.summary || "(bez tytułu)",
-          description: ev.description || "",
-          start_time: toSupabaseTime(ev.start),
-          end_time: toSupabaseTime(ev.end, true),
-          place: ev.location || "",
-          repeat: "none",
-          google_event_id: ev.id,
-          shared_with_id: null,
-        });
-
-        totalImported++;
+      let accessToken = tokenCache[acc.account_email];
+      if (!accessToken) {
+        accessToken = (await refreshGoogleToken(mainAcc.refresh_token)) || '';
+        if (accessToken) tokenCache[acc.account_email] = accessToken;
       }
       
+      if (!accessToken) continue;
+
+      const timeMin = new Date();
+      timeMin.setMonth(timeMin.getMonth() - 1);
+      const timeMax = new Date();
+      timeMax.setFullYear(timeMax.getFullYear() + 1);
+
+      const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
+      const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
+
+      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
+      url.searchParams.set("timeMin", timeMin.toISOString());
+      url.searchParams.set("timeMax", timeMax.toISOString());
+      url.searchParams.set("singleEvents", "true");
+      url.searchParams.set("maxResults", "2500");
+
+      if (isBirthdayVirtual) {
+        url.searchParams.set("eventTypes", "birthday");
+      }
+
+      let pageToken: string | undefined = undefined;
+
+      do {
+        const fetchUrl = new URL(url.toString());
+        if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
+
+        const googleRes = await fetch(fetchUrl.toString(), {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!googleRes.ok) break;
+        const data = await googleRes.json();
+        pageToken = data.nextPageToken;
+
+        const items = data.items || [];
+        for (const ev of items) {
+          if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
+
+          const isBirthdayEvent = ev.eventType === "birthday";
+          if (isBirthdayVirtual && !isBirthdayEvent) continue;
+          if (!isBirthdayVirtual && isBirthdayEvent) continue;
+
+          const { data: dup } = await supabaseService
+            .from("events")
+            .select("id")
+            .eq("google_event_id", ev.id)
+            .eq("calendar_id", acc.id) 
+            .maybeSingle();
+
+          if (dup) continue;
+
+          await supabaseService.from("events").insert({
+            user_id: acc.user_id,
+            calendar_id: acc.id,
+            title: ev.summary || "(bez tytułu)",
+            description: ev.description || "",
+            start_time: toSupabaseTime(ev.start),
+            end_time: toSupabaseTime(ev.end, true),
+            place: ev.location || "",
+            repeat: "none",
+            google_event_id: ev.id,
+            shared_with_id: null,
+          });
+
+          totalImported++;
+        }
+      } while (pageToken);
+      
+      // Zapisujemy nowy czas życia tokena w GŁÓWNYM wierszu powiązanym z emailem
       await supabaseService.from("connected_calendars")
         .update({ access_token: accessToken, expires_at: new Date(Date.now() + 3600000).toISOString() })
-        .eq("id", acc.id);
+        .eq("id", mainAcc.id);
     }
 
     return res.json({ success: true, imported: totalImported });

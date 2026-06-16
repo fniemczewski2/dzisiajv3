@@ -48,10 +48,35 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
   return d.access_token ?? null;
 }
 
+// ZMODYFIKOWANA FUNKCJA: Pobiera tokeny tylko z wierszy technicznych
 async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promise<string | null> {
   const sb = getServiceSupabase(auth.token);
-  let query = sb.from("connected_calendars").select("id, access_token, refresh_token, expires_at").eq("user_id", auth.user.id).eq("provider", "google");
-  if (accountId) query = query.eq("id", accountId);
+  let targetEmail: string | null = null;
+
+  // Jeżeli dostaliśmy accountId (które może być nowym sub-kalendarzem bez tokenu), 
+  // najpierw ustalamy, jakiego adresu e-mail dotyczy.
+  if (accountId) {
+    const { data: calInfo } = await sb.from("connected_calendars")
+      .select("account_email")
+      .eq("id", accountId)
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+    
+    if (calInfo) targetEmail = calInfo.account_email;
+  }
+
+  // Zawsze szukamy TOKENÓW w wierszu technicznym użytkownika
+  let query = sb.from("connected_calendars")
+    .select("id, access_token, refresh_token, expires_at")
+    .eq("user_id", auth.user.id)
+    .eq("provider", "google")
+    .eq("google_calendar_id", "@account_connection");
+
+  // Jeżeli znamy email (bo podano accountId i go znaleźliśmy), zawężamy do tego konkretnego konta
+  if (targetEmail) {
+    query = query.eq("account_email", targetEmail);
+  }
+
   const { data } = await query.limit(1).maybeSingle();
 
   if (!data) return null;
@@ -61,7 +86,11 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
   const fresh = await refreshGoogleToken(data.refresh_token);
   if (!fresh) return null;
 
-  await sb.from("connected_calendars").update({ access_token: fresh, expires_at: new Date(Date.now() + 3_600_000).toISOString() }).eq("id", data.id);
+  // Odświeżony token zapisujemy DOKŁADNIE w tym wierszu technicznym (data.id)
+  await sb.from("connected_calendars")
+    .update({ access_token: fresh, expires_at: new Date(Date.now() + 3_600_000).toISOString() })
+    .eq("id", data.id);
+    
   return fresh;
 }
 
@@ -69,8 +98,7 @@ const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined, is
   if (!dt) return new Date().toISOString().slice(0, 19);
   
   if (dt.dateTime) {
-    const localTimeRaw = dt.dateTime.split(/[+-Z]/)[0];
-    return localTimeRaw.slice(0, 19);
+    return dt.dateTime.slice(0, 19) + "+00:00";
   }
   
   if (dt.date) {
@@ -129,27 +157,39 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: Au
   return res.json({ url: url.toString() });
 }
 
+// ZMODYFIKOWANA FUNKCJA: Pobiera listę kalendarzy korzystając wyłącznie z technicznych połączeń
 async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const sb = getServiceSupabase(auth.token);
-  const { data: accounts } = await sb.from("connected_calendars")
+  // Pobieramy TYLKO główne wiersze techniczne kont, żeby pominąć ewentualne sub-kalendarze
+  const { data: mainAccounts } = await sb.from("connected_calendars")
     .select("id, account_email")
     .eq("user_id", auth.user.id)
-    .eq("provider", "google"); 
+    .eq("provider", "google")
+    .eq("google_calendar_id", "@account_connection"); 
 
-  if (!accounts || accounts.length === 0) return res.json({ connected: false, calendars: [] });
+  if (!mainAccounts || mainAccounts.length === 0) return res.json({ connected: false, calendars: [] });
 
-  const uniqueAccounts = Array.from(new Map(accounts.map(a => [a.account_email, a])).values());
   const allCalendars: any[] = [];
 
-  for (const acc of uniqueAccounts) {
-    const accessToken = await getValidGoogleToken(auth, acc.id);
+  for (const mainAcc of mainAccounts) {
+    const accessToken = await getValidGoogleToken(auth, mainAcc.id);
     if (!accessToken) continue;
 
     const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", { headers: { Authorization: `Bearer ${accessToken}` } });
 
     if (r.ok) {
       const data = await r.json();
-      data.items?.forEach((c: any) => allCalendars.push({ ...c, primaryAccountId: acc.id }));
+      
+      const items = data.items?.filter((c: any) => !c.id.includes("addressbook#birthdays")) || [];
+      // Przypisujemy kalendarze do GŁÓWNEGO id wiersza technicznego
+      items.forEach((c: any) => allCalendars.push({ ...c, primaryAccountId: mainAcc.id }));
+
+      allCalendars.push({
+        id: "google_birthdays",
+        summary: "Urodziny (Google Contacts)",
+        primary: false,
+        primaryAccountId: mainAcc.id
+      });
     }
   }
   return res.json({ connected: allCalendars.length > 0, calendars: allCalendars });
@@ -159,25 +199,56 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const { calendarId, accountId } = req.body ?? {};
   if (!calendarId || !accountId) return res.status(400).json({ error: "Missing params" });
 
+  // Token zostanie automatycznie wydobyty z wiersza technicznego dzięki poprawce w getValidGoogleToken
   const accessToken = await getValidGoogleToken(auth, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
-  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`);
+  const timeMin = new Date();
+  timeMin.setMonth(timeMin.getMonth() - 1);
+  const timeMax = new Date();
+  timeMax.setFullYear(timeMax.getFullYear() + 1);
+
+  const isBirthdayVirtual = calendarId === "google_birthdays";
+  const targetCalendarId = isBirthdayVirtual ? "primary" : calendarId;
+
+  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
   url.searchParams.set("singleEvents", "true");
-  url.searchParams.set("maxResults", "250");
+  url.searchParams.set("maxResults", "2500");
+  url.searchParams.set("timeMin", timeMin.toISOString());
+  url.searchParams.set("timeMax", timeMax.toISOString());
 
-  const r = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (isBirthdayVirtual) {
+    url.searchParams.set("eventTypes", "birthday");
+  } else {
+    url.searchParams.set("eventTypes", "default");
+  }
 
-  console.log(r)
-  if (!r.ok) return res.status(r.status).json({ error: "Failed to fetch from Google" });
+  let allItems: any[] = [];
+  let pageToken: string | undefined = undefined;
 
-  const { items = [] } = await r.json();
+  do {
+    const fetchUrl = new URL(url.toString());
+    if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
+
+    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+
+    if (!r.ok) return res.status(r.status).json({ error: "Failed to fetch from Google" });
+
+    const data = await r.json();
+    allItems.push(...(data.items || []));
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
   const sb = getServiceSupabase(auth.token);
   let imported = 0, skipped = 0;
 
-  for (const ev of items as any[]) {
+  for (const ev of allItems) {
     if (ev.status === "cancelled" || !ev.start || !ev.end) { skipped++; continue; }
     
+    const isBirthdayEvent = ev.eventType === "birthday";
+    if (isBirthdayVirtual && !isBirthdayEvent) { skipped++; continue; }
+    if (!isBirthdayVirtual && isBirthdayEvent) { skipped++; continue; }
+
     const { data: dup } = await sb.from("events")
       .select("id")
       .eq("google_event_id", ev.id)
@@ -204,10 +275,48 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   return res.json({ imported, skipped });
 }
 
+async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const { accountId, email, subCalendarId } = req.query;
+  const sb = getServiceSupabase(auth.token);
+  
+  if (subCalendarId) {
+    const { data: cal } = await sb.from("connected_calendars")
+      .select("id")
+      .eq("id", subCalendarId as string)
+      .eq("user_id", auth.user.id)
+      .single();
+
+    if (cal) {
+      await sb.from("events").delete().eq("calendar_id", cal.id); 
+      await sb.from("connected_calendars").delete().eq("id", cal.id);
+    }
+  } 
+  else if (email) {
+    const { data: cals } = await sb.from("connected_calendars")
+      .select("id")
+      .eq("account_email", email as string)
+      .eq("user_id", auth.user.id);
+      
+    if (cals && cals.length > 0) {
+      const ids = cals.map(c => c.id);
+      await sb.from("events").delete().in("calendar_id", ids);
+      await sb.from("connected_calendars").delete().in("id", ids);
+    }
+  } 
+  else if (accountId) {
+    await sb.from("events").delete().eq("calendar_id", accountId as string);
+    await sb.from("connected_calendars").delete().eq("id", accountId as string).eq("user_id", auth.user.id);
+  } else {
+    await sb.from("connected_calendars").delete().eq("provider", "google").eq("user_id", auth.user.id);
+  }
+  return res.json({ ok: true });
+}
+
 async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, eventIds, accountId } = req.body ?? {};
   if (!calendarId) return res.status(400).json({ error: "calendarId required" });
 
+  // To również zadziała idealnie - znajdzie główny token dzięki zaktualizowanej metodzie
   const accessToken = await getValidGoogleToken(auth, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
@@ -238,20 +347,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
     } else skipped++;
   }
   return res.json({ exported, skipped });
-}
-
-async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
-  const { accountId, email } = req.query;
-  const sb = getServiceSupabase(auth.token);
-  
-  if (email) {
-    await sb.from("connected_calendars").delete().eq("account_email", email).eq("user_id", auth.user.id);
-  } else if (accountId) {
-    await sb.from("connected_calendars").delete().eq("id", accountId).eq("user_id", auth.user.id);
-  } else {
-    await sb.from("connected_calendars").delete().eq("provider", "google").eq("user_id", auth.user.id);
-  }
-  return res.json({ ok: true });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
