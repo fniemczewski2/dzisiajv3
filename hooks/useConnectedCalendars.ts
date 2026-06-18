@@ -193,8 +193,8 @@ export function useConnectedCalendars(expanded: boolean) {
       }
       
       await fetchAccountsAndCalendars();
-    } catch (err: any) {
-      toast.error(err.message || "Wystąpił błąd podczas przetwarzania.");
+    } catch {
+      toast.error("Wystąpił błąd podczas przetwarzania.");
     } finally {
       setTogglingId(null);
     }
@@ -227,8 +227,8 @@ export function useConnectedCalendars(expanded: boolean) {
       globalThis.dispatchEvent(new Event("refreshEvents"));
 
       await fetchAccountsAndCalendars();
-    } catch (error: any) {
-      toast.error(error.message || 'Błąd podczas odłączania konta');
+    } catch {
+      toast.error('Błąd podczas odłączania konta');
     } finally {
       setLoading(false);
     }
@@ -247,7 +247,7 @@ export function useConnectedCalendars(expanded: boolean) {
       if (!res.ok) throw new Error(`Błąd HTTP`);
       const data = await res.json();
       if (data.url) globalThis.location.href = data.url;
-    } catch (error: any) {
+    } catch {
       toast.error("Nie udało się rozpocząć logowania do Google");
     }
   };
@@ -261,7 +261,7 @@ export function useConnectedCalendars(expanded: boolean) {
         return;
       }
       globalThis.location.href = `/api/outlook-calendar?action=auth-url&userId=${user.id}`;
-    } catch (error: any) {
+    } catch {
       toast.error("Nie udało się rozpocząć logowania do Outlook");
     }
   };

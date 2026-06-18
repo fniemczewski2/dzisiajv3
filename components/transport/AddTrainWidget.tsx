@@ -68,7 +68,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
         if (toastId && toast.dismiss) toast.dismiss(toastId);
         toast.error(data.error || 'Nie udało się odczytać biletu');
       }
-    } catch (err) {
+    } catch {
       if (toastId && toast.dismiss) toast.dismiss(toastId);
       toast.error('Błąd połączenia z serwerem');
     } finally {

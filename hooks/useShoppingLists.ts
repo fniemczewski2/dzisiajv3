@@ -34,7 +34,7 @@ export function useShoppingLists() {
         userEmailsRef
       );
 
-      setLists(listsWithDisplayInfo as ShoppingList[]);
+      setLists(listsWithDisplayInfo);
     } finally {
       setFetching(false);
     }

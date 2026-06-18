@@ -36,7 +36,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       const start = new Date(rangeStart + "T00:00:00");
       const end   = new Date(rangeEnd   + "T23:59:59");
       
-      setEvents(expandRepeatingEvents(eventsWithDisplayInfo as Event[], start, end));
+      setEvents(expandRepeatingEvents(eventsWithDisplayInfo, start, end));
     } catch (error) {
       console.error("Błąd pobierania wydarzeń:", error);
     } finally {
@@ -55,10 +55,10 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       fetchEvents();
     };
 
-    window.addEventListener("refreshEvents", handleRefresh);
+    globalThis.addEventListener("refreshEvents", handleRefresh);
 
     return () => {
-      window.removeEventListener("refreshEvents", handleRefresh);
+      globalThis.removeEventListener("refreshEvents", handleRefresh);
     };
   }, [fetchEvents]);
 
