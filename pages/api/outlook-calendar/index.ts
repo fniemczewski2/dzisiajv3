@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (isExpired && mainAcc.refresh_token) {
         const tokenData = await refreshOutlookToken(mainAcc.refresh_token);
-        if (tokenData && tokenData.access_token) {
+        if (tokenData?.access_token) {
           accessToken = tokenData.access_token;
           await supabase.from('connected_calendars').update({
             access_token: accessToken,

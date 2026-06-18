@@ -213,7 +213,7 @@ export function useTrainStatus(train: { trainNumber: string; date: string; from:
                   hide: result.hide || false
               });
             }
-        } catch (error) {
+        } catch {
             if (isMounted) setData({ 
                 delay: 0, 
                 platform: 'Brak', 
