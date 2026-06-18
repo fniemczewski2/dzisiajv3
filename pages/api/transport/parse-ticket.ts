@@ -48,23 +48,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const cleanText = pdfItems.map(item => item.text).join(' ').replaceAll(/\s+/g, ' ');
 
-const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?\s*(.{0,100}?)\s*Wagon/);
+      const trainMatch = /Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?\s*(.{0,100}?)\s*Wagon/.exec(cleanText);
       const trainNumber = trainMatch ? trainMatch[1].trim() : '';
       const trainName = trainMatch ? trainMatch[2].trim() : '';
 
-      const dateMatch = cleanText.match(/Data odjazdu.{0,100}?(\d{2}\.\d{2}\.\d{4})/);
+      const dateMatch = /Data odjazdu.{0,100}?(\d{2}\.\d{2}\.\d{4})/.exec(cleanText);
       const date = dateMatch ? dateMatch[1] : ''; 
 
-      const timeMatch = cleanText.match(/Godzina odjazdu.{0,100}?(\d{2}:\d{2})/);
+      const timeMatch = /Godzina odjazdu.{0,100}?(\d{2}:\d{2})/.exec(cleanText);
       const departureTime = timeMatch ? timeMatch[1] : '';
 
-      const wagonMatch = cleanText.match(/Wagon:\s*(\d{1,10})/);
+      const wagonMatch = /Wagon:\s*(\d{1,10})/.exec(cleanText);
       const wagon = wagonMatch ? wagonMatch[1] : '';
 
-      const seatMatch = cleanText.match(/Miejsca:\s*(\d{1,10})/);
+      const seatMatch = /Miejsca:\s*(\d{1,10})/.exec(cleanText);
       const seat = seatMatch ? seatMatch[1] : '';
 
-      const routeMatch = cleanText.match(/KOD\s+\d{1,20}\s+(.{1,200}?)\s+Data odjazdu/);
+      const routeMatch = /KOD\s+\d{1,20}\s+(.{1,200}?)\s+Data odjazdu/.exec(cleanText);
       let route = routeMatch ? routeMatch[1].trim() : '';
 
       if (route.toLowerCase().includes('podróżny')) {
@@ -107,7 +107,7 @@ const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*
         to = stationsList.slice(1).join(' ') || '';
       }
       if (from && to) {
-        route = from.replaceAll(/ /g, '\xA0') + ' ' + to.replaceAll(/ /g, '\xA0');
+        route = from.replaceAll(' ', '\xA0') + ' ' + to.replaceAll(' ', '\xA0');
       }
 
       return res.status(200).json({
@@ -118,15 +118,15 @@ const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*
         wagon,
         seat,
         route,
-        from: from.replaceAll(/\xA0/g, ' '), 
-        to: to.replaceAll(/\xA0/g, ' ')
+        from: from.replaceAll('\xA0', ' '), 
+        to: to.replaceAll('\xA0', ' ')
       });
 
     } catch (error) {
       console.error('[PDF Extract Error]:', error);
       return res.status(500).json({ error: 'Błąd wczytywania PDF' });
     } finally {
-      if (file && file.filepath) {
+      if (file?.filepath) {
         fs.unlink(file.filepath, (unlinkErr) => {
           if (unlinkErr) console.error('[Cleanup Error]: Nie udało się usunąć pliku tymczasowego', unlinkErr);
         });

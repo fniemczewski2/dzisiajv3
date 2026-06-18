@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import { usePeople } from '../hooks/usePeople';
 import { PersonCard } from '../components/people/PersonCard';
@@ -7,7 +6,7 @@ import { PersonForm } from '../components/people/PersonForm';
 import { ImportPeople } from '../components/people/ImportPeople';
 import { ExportPeople } from '../components/people/ExportPeople';
 import { AddButton } from '../components/CommonButtons';
-import SearchBar from '../components/SearchBar'; // Upewnij się, że ścieżka do SearchBar jest poprawna
+import SearchBar from '../components/SearchBar'; 
 import { Person, PersonInsert } from '../types';
 import LoadingState from '../components/LoadingState';
 import NoResultsState from '../components/NoResultsState';
@@ -21,9 +20,9 @@ export default function PeoplePage() {
 
   const handleSave = async (data: PersonInsert | Person) => {
     if (editingPerson) {
-      await editPerson(editingPerson.id, data as Partial<Person>);
+      await editPerson(editingPerson.id, data);
     } else {
-      await addPerson(data as PersonInsert);
+      await addPerson(data);
     }
     setIsFormOpen(false);
     setEditingPerson(null);
@@ -118,7 +117,7 @@ export default function PeoplePage() {
                     person={person}
                     onEdit={() => setEditingPerson(person)}
                     onDelete={() => {
-                      if(window.confirm('Na pewno chcesz usunąć ten kontakt?')) {
+                      if(globalThis.confirm('Na pewno chcesz usunąć ten kontakt?')) {
                         deletePerson(person.id);
                       }
                     }}

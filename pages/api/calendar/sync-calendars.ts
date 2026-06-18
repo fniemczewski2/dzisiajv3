@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (acc.google_calendar_id === '@account_connection') continue; 
 
       const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
-      if (!mainAcc || !mainAcc.refresh_token) continue;
+      if (!mainAcc?.refresh_token) continue;
 
       const cacheKey = `${acc.provider}-${mainAcc.account_email}`;
       let accessToken = tokenCache[cacheKey];

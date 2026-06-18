@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
         code: code as string,
-        redirect_uri: `${appUrl}/api/google-calendar/callback`, // Ujednolicony adres
+        redirect_uri: `${appUrl}/api/google-calendar/callback`, 
         grant_type: 'authorization_code',
       }),
     });
@@ -31,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const profile = await profileResponse.json();
     const email = profile.email;
 
-    // Użycie klienta z Bearer Tokenem (poprawna autoryzacja po stronie backendu)
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -47,8 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token || '', 
       expires_at: expiresAt,
-      google_calendar_id: '@account_connection',  // <--- ZMIANA: techniczny wpis autoryzacyjny
-      calendar_name: 'Połączenie Google'          // <--- ZMIANA: nazwa
+      google_calendar_id: '@account_connection',  
+      calendar_name: 'Połączenie Google'         
     }, { onConflict: 'user_id, account_email, google_calendar_id' });
 
     if (error) {
@@ -56,8 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     res.redirect('/calendar?sync=success');
-  } catch (error) {
-    console.error("[gcal] Callback error:", error);
+  } catch {
     res.redirect('/calendar?error=auth_failed');
   }
 }
