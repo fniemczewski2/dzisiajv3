@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           <div className="p-5 my-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
             <p className="font-semibold text-text mb-2">Klauzula Google (Google API Services User Data Policy):</p>
             <p className="text-sm">
-              Wykorzystanie przez aplikację "Dzisiaj v3" informacji otrzymanych z interfejsów API Google oraz ich przekazywanie do innych aplikacji będzie w pełni zgodne z <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">Zasadami dotyczącymi danych użytkownika usług interfejsu API Google</a>, w tym z wymogami ograniczonego użytkowania (Limited Use requirements). 
+              Wykorzystanie przez aplikację &quot;Dzisiaj v3&quot; informacji otrzymanych z interfejsów API Google oraz ich przekazywanie do innych aplikacji będzie w pełni zgodne z <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">Zasadami dotyczącymi danych użytkownika usług interfejsu API Google</a>, w tym z wymogami ograniczonego użytkowania (Limited Use requirements). 
             </p>
             <ul className="mt-3 space-y-1 text-sm list-disc pl-4">
               <li>Dane używane są <strong>wyłącznie</strong> do funkcji kalendarza.</li>
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
           <p className="mb-3">Zgodnie z przepisami prawa (m.in. RODO), przysługuje Ci prawo do:</p>
           <ul className="space-y-2 list-none">
             <Li><strong>Dostępu</strong> do swoich danych oraz <strong>sprostowania</strong> danych nieprawidłowych.</Li>
-            <Li><strong>Usunięcia danych ("prawo do bycia zapomnianym")</strong> – w każdej chwili możesz zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.</Li>
+            <Li><strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong> – w każdej chwili możesz zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.</Li>
             <Li><strong>Ograniczenia przetwarzania</strong> oraz <strong>przenoszenia danych</strong>.</Li>
             <Li><strong>Cofnięcia zgody</strong> na integracje zewnętrzne bez wpływu na zgodność z prawem przetwarzania przed jej cofnięciem.</Li>
             <Li><strong>Wniesienia skargi</strong> do Prezesa Urzędu Ochrony Danych Osobowych (PUODO).</Li>
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
         </Section>
         
         <p className="text-sm mt-12 text-textMuted pt-4">
-          W razie wprowadzenia istotnych zmian do Polityki Prywatności, zaktualizowana zostanie data "Obowiązuje od" na górze dokumentu.
+          W razie wprowadzenia istotnych zmian do Polityki Prywatności, zaktualizowana zostanie data &quot;Obowiązuje od&quot; na górze dokumentu.
         </p>
       </main>
     </div>

@@ -39,11 +39,6 @@ Thumbs.db
 # Coverage
 coverage/
 
-# Optional lock files
-package-lock.json
-yarn.lock
-.pnpm-lock.yaml
-
 # Optional editor-specific files
 *.sublime-workspace
 *.sublime-project
@@ -55,3 +50,4 @@ public/workbox-cb477421.js
 public/workbox-c2c0676f.js
 next-env.d.ts
 next-env.d.ts
+public/workbox-f1770938.js

@@ -50,7 +50,7 @@ export default function BillForm({
       setIsRecurring(initial.is_recurring ?? false);
       setRecurringUntil(initial.recurring_until ?? yearEnd);
     }
-  }, [initial]);
+  }, [initial, yearEnd]);
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
