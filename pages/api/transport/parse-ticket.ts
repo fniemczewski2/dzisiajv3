@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const dataBuffer = fs.readFileSync(file.filepath);
-      const textChunks: string[] = [];
+      const pdfItems: any[] = [];
 
       // Oczekujemy na zakończenie asynchronicznego parsowania całego dokumentu
       await new Promise<void>((resolve, reject) => {
@@ -29,16 +29,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           } else if (!item) {
             resolve(); // Koniec pliku
           } else if (item.text) {
-            textChunks.push(item.text);
+            pdfItems.push(item);
           }
         });
       });
 
-      // Spłaszczamy tekst PDF do jednej długiej linii, oddzielając elementy spacjami
-      // Uodparnia to nas na błędy, w których ucięta linijka (np. na długich stacjach) psuła odczyt
-      const cleanText = textChunks.join(' ').replace(/\s+/g, ' ');
+      // Sortowanie elementów po pozycji Y (góra-dół), a następnie X (lewo-prawo)
+      pdfItems.sort((a, b) => {
+        if (Math.abs(a.y - b.y) < 0.5) {
+          return a.x - b.x; 
+        }
+        return a.y - b.y; 
+      });
 
-      // Bezpieczne Regexy dla biletów PKP Intercity dostosowane do jednolitych odstępów
+      // Spłaszczamy tekst PDF do jednej długiej linii
+      const cleanText = pdfItems.map(item => item.text).join(' ').replace(/\s+/g, ' ');
+
       const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]*\s*\d+)(?:\s*\/\s*\d+)?\s*(.*?)\s*Wagon/);
       const trainNumber = trainMatch ? trainMatch[1].trim() : '';
       const trainName = trainMatch ? trainMatch[2].trim() : '';
@@ -55,9 +61,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const seatMatch = cleanText.match(/Miejsca:\s*(\d+)/);
       const seat = seatMatch ? seatMatch[1] : '';
 
-      // Wyciągamy stacje bazując na tym, że znajdują się pomiędzy kodem sprawdzającym a napisem "Data odjazdu"
+      // Wyciągamy stacje z sekcji KOD
       const routeMatch = cleanText.match(/KOD\s+\d+\s+(.*?)\s+Data odjazdu/);
-      const route = routeMatch ? routeMatch[1].trim() : '';
+      let route = routeMatch ? routeMatch[1].trim() : '';
+
+      // Usunięcie niechcianego dopisku z imieniem jeśli się przypałęta
+      if (route.toLowerCase().includes('podróżny')) {
+          route = route.replace(/PODRÓŻNY.*?(\s|$)/ig, '').trim();
+      }
+
+      // --- INTELIGENTNY PODZIAŁ STACJI ---
+      let from = '';
+      let to = '';
+      
+      const words = route.split(/\s+/).filter(Boolean);
+      // Słownik popularnych członów, które nie powinny być odrywane od nazwy miasta
+      const suffixes = [
+        'gł.', 'główny', 'główna', 'centr.', 'centralna', 'centralny', 
+        'wsch.', 'wschodni', 'wschodnia', 'zach.', 'zachodni', 'zachodnia', 
+        'płn.', 'północ', 'północny', 'płd.', 'południe', 'południowy', 
+        'zdrój', 'miasto', 'przedmieście', 'lotnisko', 'wlkp.', 'śl.', 'maz.', 'kuj.', 'pomorski'
+      ];
+      
+      if (words.length === 2) {
+        from = words[0];
+        to = words[1];
+      } else if (words.length === 4) {
+        // Idealny podział dla typowych tras 4-członowych (np. "Poznań Gł. Wrocław Gł.")
+        from = words[0] + ' ' + words[1];
+        to = words[2] + ' ' + words[3];
+      } else if (words.length > 0) {
+        // Grupowanie na podstawie przyrostków dla nietypowej liczby słów
+        const stationsList: string[] = [];
+        let current = words[0] || '';
+        for (let i = 1; i < words.length; i++) {
+          const word = words[i];
+          const isSuffix = suffixes.includes(word.toLowerCase()) || word.endsWith('.');
+          if (isSuffix) {
+            current += ' ' + word;
+          } else {
+            stationsList.push(current);
+            current = word;
+          }
+        }
+        if (current) stationsList.push(current);
+
+        from = stationsList[0] || '';
+        to = stationsList.slice(1).join(' ') || '';
+      }
+      if (from && to) {
+        route = from.replace(/ /g, '\xA0') + ' ' + to.replace(/ /g, '\xA0');
+      }
 
       return res.status(200).json({
         trainNumber,
@@ -67,6 +121,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         wagon,
         seat,
         route,
+        // Zwracamy też czyste stacje na przyszłość (opcjonalnie do wykorzystania)
+        from: from.replace(/\xA0/g, ' '), 
+        to: to.replace(/\xA0/g, ' ')
       });
 
     } catch (error) {

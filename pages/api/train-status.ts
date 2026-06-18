@@ -12,7 +12,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const matchStation = (stations: any[], search: string) => {
         if (!stations || stations.length === 0) return null;
         const s = search.toLowerCase().replace('gł.', 'główny').trim();
-        
         const exact = stations.find((st: any) => st.name.toLowerCase() === s);
         if (exact) return exact;
         
@@ -24,18 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const fromSearch = (from as string).split(',')[0].trim();
     const toSearch = (to as string).split(',')[0].trim();
-    const [fromRes, toRes] = await Promise.all([
-      fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(fromSearch)}&pageSize=20`, { headers }),
-      fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(toSearch)}&pageSize=20`, { headers })
-    ]);
+    const stationsDictRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations&pageSize=1000`, { headers })
 
-    if (fromRes.status === 429 || toRes.status === 429) { return res.status(200).json({ delay: 0, platform: '-', status: 'Spróbuj ponownie później', estimatedArrival: '', hide: false }); }
-    else { if (!fromRes.ok || !toRes.ok) throw new Error('Błąd słownika stacji');}
+    if (stationsDictRes.status === 429) { return res.status(200).json({ delay: 0, platform: '-', status: 'Spróbuj ponownie później', estimatedArrival: '', hide: false }); }
+    else { if (!stationsDictRes.ok) throw new Error('Błąd słownika stacji');}
 
-    const [fromData, toData] = await Promise.all([fromRes.json(), toRes.json()]);
-
-    const fromStation = matchStation(fromData.stations, fromSearch);
-    const toStation = matchStation(toData.stations, toSearch);
+    const dictData = await stationsDictRes.json();
+    const fromStation = matchStation(dictData.stations, fromSearch);
+    const toStation = matchStation(dictData.stations, toSearch);
 
     if (!fromStation || !toStation) {
       return res.status(200).json({ delay: 0, platform: '-', status: 'Nie zidentyfikowano stacji', estimatedArrival: '', hide: false });
@@ -67,46 +62,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const platform = schedulesData?.routes.find((train: any) => train.nationalNumber === pureNumber || (train.nationalNumber?.startsWith(baseNumber) && (train.name?.toLowerCase() === (trainName as string)?.toLowerCase()))).stations?.find((s: any) => s.stationId === fromStationId).departurePlatform || '-';
     let delay = 0;
 
-    if (operationsRes.ok) {
-      
+    if (operationsRes.ok && trainData) {
       const opStationFrom = trainData.stations?.find((s: any) => s.stationId === fromStationId);
       const opStationTo = trainData.stations?.find((s: any) => s.stationId === toStationId);
+      
       const nowPlString = new Date().toLocaleString("en-US", { 
         timeZone: "Europe/Warsaw",
         hour12: false
       });
       const nowPl = new Date(nowPlString);
-      const actualDepartureDate = new Date(opStationTo.actualDeparture);
-      const actualArrivalDate = new Date(opStationFrom.actualArrival);
+      const hasDepartedFrom = opStationFrom?.actualDeparture && (nowPl.getTime() > new Date(opStationFrom.actualDeparture).getTime());
 
-      delay = opStationTo?.departureDelayMinutes || 0;
+      if (hasDepartedFrom) {
+        delay = opStationTo?.arrivalDelayMinutes ?? 0;
+      } else {
+        delay = opStationFrom?.departureDelayMinutes ?? opStationFrom?.arrivalDelayMinutes ?? 0;
+      }
 
-      if (opStationTo && opStationTo.actualDeparture) {
-        if (nowPl.getTime() > actualDepartureDate.getTime()) {
+      const isCancelled = operationsData.trainStatus === 'X' || trainData.trainStatus === 'X' || opStationFrom?.isCancelled || opStationTo?.isCancelled;
+      if (isCancelled) {
+        return res.status(200).json({ delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false });
+      }
+
+      if (opStationTo) {
+        const toActualTime = opStationTo.actualArrival || opStationTo.actualDeparture;
+        if (toActualTime && nowPl.getTime() > new Date(toActualTime).getTime()) {
           return res.status(200).json({ delay: 0, platform: '-', status: '', estimatedArrival: '', hide: true });
         }
       }
 
-      if (opStationFrom && opStationFrom.actualDeparture) {
-        if (nowPl.getTime() > actualArrivalDate.getTime()) {
-          return res.status(200).json({ delay, platform, status: 'W trasie', estimatedArrival: opStationFrom.actualArrival, hide: false });
-        }
+      if (hasDepartedFrom) {
+        return res.status(200).json({ 
+            delay, 
+            platform, 
+            status: 'W trasie', 
+            estimatedArrival: opStationTo?.actualArrival || '', 
+            hide: false 
+        });
       }
-
-      const isCancelled = operationsData.trainStatus === 'X' || opStationFrom?.isCancelled || opStationTo?.isCancelled;
-      if (isCancelled) {
-        return res.status(200).json({ delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false });
-      }
-      
     } 
-      return res.status(200).json({
-        delay: 0,
-        platform: platform || '-',
-        status: 'Planowy',
-        estimatedArrival: '',
-        hide: false
-      });
-    
+      
+    return res.status(200).json({
+      delay: delay,
+      platform: platform || '-',
+      status: delay > 0 ? 'Opóźniony' : 'Planowy',
+      estimatedArrival: '',
+      hide: false
+    });    
 
   } catch (error: any) {
     return res.status(200).json({ delay: 0, platform: '-', status: 'Brak danych live', estimatedArrival: '', hide: false });
