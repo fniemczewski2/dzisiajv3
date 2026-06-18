@@ -60,7 +60,7 @@ export function useTrains() {
       }));
 
       setTrains(mappedData);
-    } catch (err: any) {
+    } catch {
       toast.error('Nie udało się pobrać listy pociągów');
     } finally {
       setLoading(false);
@@ -134,7 +134,7 @@ export function useTrains() {
       });
 
       return true;
-    } catch (err: any) {
+    } catch {
       toast.error('Wystąpił błąd podczas zapisywania pociągu');
       return false;
     }
@@ -156,8 +156,7 @@ export function useTrains() {
       setTrains((prev) => prev.filter((t) => t.id !== id));
       toast.success('Pociąg został usunięty z listy');
       return true;
-    } catch (err: any) {
-      console.error('[Delete Train Error]:', err);
+    } catch {
       toast.error('Nie udało się usunąć pociągu');
       return false;
     }
