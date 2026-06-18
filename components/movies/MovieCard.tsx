@@ -44,7 +44,7 @@ export default function MovieCard({
   const retryOpts = { userId: user?.id };
 
   const handleSaveEdit = async () => {
-    const normalizedRating = editForm.rating.replace(",", ".");
+    const normalizedRating = editForm.rating.replaceAll(",", ".");
     await withRetry(
       async () => {
         await onUpdate({

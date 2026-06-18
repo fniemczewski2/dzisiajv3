@@ -135,7 +135,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       () => onSubmit({
         title: formData.title.trim(),
         genre: formData.genre.trim() || null,
-        rating: formData.rating ? Number.parseFloat(formData.rating.replace(",", ".")) : null,
+        rating: formData.rating ? Number.parseFloat(formData.rating.replaceAll(",", ".")) : null,
         platform: formData.platform.trim() || null,
         description: formData.description.trim() || null,
       }),

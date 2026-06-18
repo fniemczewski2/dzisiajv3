@@ -128,11 +128,11 @@ export default function EventForm({
             })
           });
 
-          if (!res.ok) {
-            toast.error("Utworzono lokalnie, ale wystąpił błąd podczas dodawania do Google Calendar.");
-          } else {
+          if (res.ok) {
             toast.success("Dodano do wybranego kalendarza zewnętrznego.");
-          }
+          } else {
+            toast.error("Utworzono lokalnie, ale wystąpił błąd podczas dodawania do Google Calendar.");
+          } 
         } catch (err) {
           console.error("Błąd eksportu:", err);
           toast.error("Błąd sieci podczas eksportu wydarzenia.");

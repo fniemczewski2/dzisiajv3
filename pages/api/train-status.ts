@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const matchStation = (stations: any[], search: string) => {
         if (!stations || stations.length === 0) return null;
-        const s = search.toLowerCase().replace('gł.', 'główny').trim();
+        const s = search.toLowerCase().replaceAll('gł.', 'główny').trim();
         const exact = stations.find((st: any) => st.name.toLowerCase() === s);
         if (exact) return exact;
         
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!schedulesRes.ok) throw new Error(`Błąd rozkładu ${schedulesRes.status}`);
     const schedulesData = await schedulesRes.json();
 
-    const pureNumber = (trainNumber as string).replace(/\D/g, '');
+    const pureNumber = (trainNumber as string).replaceAll(/\D/g, '');
     const baseNumber = pureNumber.length > 1 ? pureNumber.slice(0, -1) : pureNumber;
     
     const plannedRoute = schedulesData.routes?.find((train: any) => {

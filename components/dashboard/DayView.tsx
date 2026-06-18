@@ -45,7 +45,7 @@ type DraftForm = {
 const getHourStr = (dateStr: string | null | undefined): string | null => {
   if (!dateStr) return null;
   try {
-    const timePart = dateStr.replace(" ", "T").split("T")[1];
+    const timePart = dateStr.replaceAll(" ", "T").split("T")[1];
     if (timePart) {
       const hour = timePart.split(":")[0];
       if (hour && !Number.isNaN(Number(hour))) {
@@ -233,7 +233,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
     const activeId = String(active.id);
     
     if (activeId.startsWith("plan-schema-")) {
-      const schemaId = activeId.replace("plan-schema-", "");
+      const schemaId = activeId.replaceAll("plan-schema-", "");
       let title = "Rutyna";
       for (const hour of Object.keys(planByHour)) {
          const found = planByHour[hour].find(i => i.id === schemaId);
@@ -252,7 +252,7 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
     const activeId = String(active.id);
     if (activeId.startsWith("plan-schema-")) {
        if (!over) return;
-       const schemaId = activeId.replace("plan-schema-", "");
+       const schemaId = activeId.replaceAll("plan-schema-", "");
        
        const timeMatch = /\d{2}:\d{2}/.exec(String(over.id));
        if (!timeMatch) return;

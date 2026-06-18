@@ -47,8 +47,8 @@ export default function NoteCard({
         }
 
         const displayText = safeHref
-          .replace(/^https?:\/\//, "")
-          .replace(/^www\./, "");
+          .replaceAll(/^https?:\/\//, "")
+          .replaceAll(/^www\./, "");
 
         return (
           <a

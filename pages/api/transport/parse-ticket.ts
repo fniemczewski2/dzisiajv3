@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return a.y - b.y; 
       });
 
-      const cleanText = pdfItems.map(item => item.text).join(' ').replace(/\s+/g, ' ');
+      const cleanText = pdfItems.map(item => item.text).join(' ').replaceAll(/\s+/g, ' ');
 
 const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?\s*(.{0,100}?)\s*Wagon/);
       const trainNumber = trainMatch ? trainMatch[1].trim() : '';
@@ -68,7 +68,7 @@ const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*
       let route = routeMatch ? routeMatch[1].trim() : '';
 
       if (route.toLowerCase().includes('podróżny')) {
-          route = route.replace(/PODRÓŻNY.*?(\s|$)/ig, '').trim();
+          route = route.replaceAll(/PODRÓŻNY.*?(\s|$)/ig, '').trim();
       }
 
       let from = '';
@@ -107,7 +107,7 @@ const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*
         to = stationsList.slice(1).join(' ') || '';
       }
       if (from && to) {
-        route = from.replace(/ /g, '\xA0') + ' ' + to.replace(/ /g, '\xA0');
+        route = from.replaceAll(/ /g, '\xA0') + ' ' + to.replaceAll(/ /g, '\xA0');
       }
 
       return res.status(200).json({
@@ -118,8 +118,8 @@ const trainMatch = cleanText.match(/Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*
         wagon,
         seat,
         route,
-        from: from.replace(/\xA0/g, ' '), 
-        to: to.replace(/\xA0/g, ' ')
+        from: from.replaceAll(/\xA0/g, ' '), 
+        to: to.replaceAll(/\xA0/g, ' ')
       });
 
     } catch (error) {

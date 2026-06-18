@@ -157,7 +157,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
                       <a href={place.website} target="_blank" rel="noopener noreferrer"
                         className="text-sm font-medium text-primary hover:underline truncate"
                         onClick={(e) => e.stopPropagation()}>
-                        {place.website.replace(/^https?:\/\/(www\.)?/, "")}
+                        {place.website.replaceAll(/^https?:\/\/(www\.)?/, "")}
                       </a>
                     </div>
                   )}

@@ -160,7 +160,7 @@ export function useConnectedCalendars(expanded: boolean) {
         
         setSelectedCalendars(prev => prev.filter(id => id !== key));
         toast.success(`Odłączono kalendarz: ${cal.summary}`);
-        window.dispatchEvent(new Event("refreshEvents"));
+        globalThis.dispatchEvent(new Event("refreshEvents"));
       } else {
         const { data: newAcc, error: insertErr } = await supabase
           .from('connected_calendars')
@@ -189,7 +189,7 @@ export function useConnectedCalendars(expanded: boolean) {
         
         setSelectedCalendars(prev => [...prev, key]);
         toast.success(`Zsynchronizowano kalendarz: ${cal.summary}.`);
-        window.dispatchEvent(new Event("refreshEvents"));
+        globalThis.dispatchEvent(new Event("refreshEvents"));
       }
       
       await fetchAccountsAndCalendars();
@@ -224,7 +224,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
       toast.success(`Odłączono konto ${email} oraz usunięto powiązane wydarzenia.`);
       setSelectedCalendars(prev => prev.filter(key => !key.startsWith(`${id}:::`)));
-      window.dispatchEvent(new Event("refreshEvents"));
+      globalThis.dispatchEvent(new Event("refreshEvents"));
 
       await fetchAccountsAndCalendars();
     } catch (error: any) {
@@ -246,7 +246,7 @@ export function useConnectedCalendars(expanded: boolean) {
       });
       if (!res.ok) throw new Error(`Błąd HTTP`);
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) globalThis.location.href = data.url;
     } catch (error: any) {
       toast.error("Nie udało się rozpocząć logowania do Google");
     }
@@ -260,7 +260,7 @@ export function useConnectedCalendars(expanded: boolean) {
         toast.error("Brak aktywnej sesji. Zaloguj się ponownie.");
         return;
       }
-      window.location.href = `/api/outlook-calendar?action=auth-url&userId=${user.id}`;
+      globalThis.location.href = `/api/outlook-calendar?action=auth-url&userId=${user.id}`;
     } catch (error: any) {
       toast.error("Nie udało się rozpocząć logowania do Outlook");
     }
