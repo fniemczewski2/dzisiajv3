@@ -52,24 +52,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const pureNumber = (trainNumber as string).replace(/\D/g, '');
     const baseNumber = pureNumber.length > 1 ? pureNumber.slice(0, -1) : pureNumber;
     
-    const potentialRoutes = schedulesData.routes?.filter((train: any) => {
-      if (train.nationalNumber === pureNumber || (train.nationalNumber?.startsWith(baseNumber) && (train.name?.toLowerCase() === (trainName as string)?.toLowerCase()))) {
-        return true;
-      }  
-      return false;
-    }) || [];
+    const plannedRoute = schedulesData.routes?.find((train: any) => {
+      return train.nationalNumber === pureNumber || 
+             (train.nationalNumber?.startsWith(baseNumber) && (train.name?.toLowerCase() === (trainName as string)?.toLowerCase()));
+    });
 
-    if (potentialRoutes.length === 0) {
+    if (!plannedRoute) {
       return res.status(200).json({ delay: 0, platform: '-', status: 'Brak danych', estimatedArrival: '', hide: false });
     }
 
-    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?withPlanned=true&fullRoutes=true&pageSize=10000`, {headers});
+    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${fromStationId}&withPlanned=true&fullRoutes=true&pageSize=10000`, {headers});
     const operationsData = await operationsRes.json();
-    const trainData =  operationsData.trains?.find((t: any) => t.orderId === potentialRoutes[0]?.orderId );
+    const trainData =  operationsData.trains?.find((t: any) => t.orderId === plannedRoute.orderId );
     const platform = schedulesData?.routes.find((train: any) => train.nationalNumber === pureNumber || (train.nationalNumber?.startsWith(baseNumber) && (train.name?.toLowerCase() === (trainName as string)?.toLowerCase()))).stations?.find((s: any) => s.stationId === fromStationId).departurePlatform || '-';
     let delay = 0;
-    let status = '';
-    let estimatedArrival = '';
 
     if (operationsRes.ok) {
       
@@ -83,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const actualDepartureDate = new Date(opStationTo.actualDeparture);
       const actualArrivalDate = new Date(opStationFrom.actualArrival);
 
-      delay = opStationFrom?.departureDelayMinutes || 0;
+      delay = opStationTo?.departureDelayMinutes || 0;
 
       if (opStationTo && opStationTo.actualDeparture) {
         if (nowPl.getTime() > actualDepartureDate.getTime()) {
@@ -93,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (opStationFrom && opStationFrom.actualDeparture) {
         if (nowPl.getTime() > actualArrivalDate.getTime()) {
-          return res.status(200).json({ delay, platform, status: 'W drodze', estimatedArrival: opStationFrom.actualArrival, hide: false });
+          return res.status(200).json({ delay, platform, status: 'W trasie', estimatedArrival: opStationFrom.actualArrival, hide: false });
         }
       }
 
@@ -102,17 +98,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false });
       }
       
-      return res.status(200).json({ delay, platform, status, estimatedArrival, hide: false });
-
-    } else {
+    } 
       return res.status(200).json({
         delay: 0,
-        platform: '-',
+        platform: platform || '-',
         status: 'Planowy',
         estimatedArrival: '',
         hide: false
       });
-    }
+    
 
   } catch (error: any) {
     return res.status(200).json({ delay: 0, platform: '-', status: 'Brak danych live', estimatedArrival: '', hide: false });

@@ -1,253 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Link2Off, Loader2, Link as LinkIcon } from 'lucide-react';
-import { createClient } from '../../utils/supabase/client';
-import { useAuth } from '../../providers/AuthProvider';
-import { useToast } from '../../providers/ToastProvider';
-
-interface ConnectedAccount {
-  id: string;
-  provider: 'google' | 'outlook';
-  account_email: string;
-  google_calendar_id?: string;
-}
-
-interface ExternalCalendar {
-  id: string;
-  summary: string;
-  accountId?: string;
-  primary?: boolean;
-  primaryAccountId?: string;
-}
-
-const supabase = createClient();
+import { useConnectedCalendars } from '../../hooks/useConnectedCalendars';
 
 export default function ConnectedCalendars() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  
-  const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
-  const [calendars, setCalendars] = useState<ExternalCalendar[]>([]);
-  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
-  
   const [expanded, setExpanded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user && expanded) {
-      fetchAccountsAndCalendars();
-    }
-  }, [user, expanded]);
-
-  useEffect(() => {
-    if (user) fetchAccountsAndCalendars(true); 
-  }, [user]);
-
-  const fetchAccountsAndCalendars = async (onlyAccounts = false) => {
-    setLoading(true);
-    
-    const { data: accountsData, error } = await supabase
-      .from('connected_calendars')
-      .select('*')
-      .eq('user_id', user?.id);
-      
-    if (error) {
-      toast.error('Nie udało się pobrać połączonych kont');
-      setLoading(false);
-      return;
-    }
-
-    const fetchedAccounts = accountsData as any[];
-    setAccounts(fetchedAccounts);
-
-    if (onlyAccounts || fetchedAccounts.length === 0) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
-
-      const primaryGoogleAccount = fetchedAccounts.find(acc => acc.provider === 'google' && acc.google_calendar_id === '@account_connection') || fetchedAccounts.find(acc => acc.provider === 'google');
-      
-      if (primaryGoogleAccount) {
-        const res = await fetch('/api/google-calendar?action=list-calendars', {
-          headers: { Authorization: `Bearer ${session.access_token}` }
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data.calendars) {
-            const apiCalendars = data.calendars.map((cal: any) => {
-              const parentAcc = fetchedAccounts.find(a => a.id === cal.primaryAccountId);
-              
-              const dbMatch = parentAcc 
-                ? fetchedAccounts.find(acc => acc.account_email === parentAcc.account_email && acc.google_calendar_id === cal.id) 
-                : undefined;
-
-              return {
-                id: cal.id,
-                summary: cal.summary,
-                primary: cal.primary,
-                accountId: dbMatch ? dbMatch.id : undefined,
-                primaryAccountId: cal.primaryAccountId 
-              };
-            });
-
-            setCalendars(apiCalendars);
-            
-            const alreadySavedKeys = apiCalendars
-              .filter((c: any) => c.accountId)
-              .map((c: any) => `${c.primaryAccountId}:::${c.id}`);
-            setSelectedCalendars(alreadySavedKeys);
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Błąd podczas pobierania list kalendarzy:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleCalendar = async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {
-    const key = `${primaryAccountForEmail.id}:::${cal.id}`;
-    setTogglingId(cal.id);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Brak sesji");
-
-      if (isCurrentlyOn) {
-        // WYŁĄCZANIE (USUWANIE)
-        if (cal.accountId) {
-          const res = await fetch(`/api/google-calendar?action=disconnect&subCalendarId=${cal.accountId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${session.access_token}` }
-          });
-          if (!res.ok) throw new Error("Błąd usuwania");
-        }
-        
-        setSelectedCalendars(prev => prev.filter(id => id !== key));
-        toast.success(`Odłączono kalendarz: ${cal.summary}`);
-        
-        // WYMUSZENIE ODŚWIEŻENIA KALENDARZA GŁÓWNEGO
-        window.dispatchEvent(new Event("refreshEvents"));
-      } else {
-        // WŁĄCZANIE (DODAWANIE)
-        const { data: newAcc, error: insertErr } = await supabase
-          .from('connected_calendars')
-          .insert({
-            user_id: user?.id,
-            provider: 'google',
-            account_email: primaryAccountForEmail.account_email,
-            google_calendar_id: cal.id,
-            calendar_name: cal.summary   
-          })
-          .select('id')
-          .single();
-
-        if (insertErr) throw insertErr;
-
-        const res = await fetch(`/api/google-calendar?action=import`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({ calendarId: cal.id, accountId: newAcc.id })
-        });
-
-        if (!res.ok) throw new Error("Błąd podczas importu");
-        
-        const data = await res.json();
-        setSelectedCalendars(prev => [...prev, key]);
-        toast.success(`Zsynchronizowano kalendarz: ${cal.summary}. Pobrano ${data.imported || 0} wydarzeń.`);
-        
-        // WYMUSZENIE ODŚWIEŻENIA KALENDARZA GŁÓWNEGO
-        window.dispatchEvent(new Event("refreshEvents"));
-      }
-      
-      await fetchAccountsAndCalendars();
-    } catch (err: any) {
-      toast.error(err.message || "Wystąpił błąd podczas przetwarzania.");
-    } finally {
-      setTogglingId(null);
-    }
-  };
-
-  const handleDisconnect = async (id: string, email: string) => {
-    const ok = await toast.confirm(
-      `Czy na pewno chcesz odłączyć konto ${email}? Spowoduje to również usunięcie wszystkich zaimportowanych z niego wydarzeń.`
-    );
-    if (!ok) return;
-
-    setLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        toast.error("Brak autoryzacji. Zaloguj się ponownie.");
-        return;
-      }
-
-      const res = await fetch(`/api/google-calendar?action=disconnect&email=${encodeURIComponent(email)}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-
-      if (!res.ok) throw new Error("Błąd serwera");
-
-      toast.success(`Odłączono konto ${email} oraz usunięto powiązane wydarzenia.`);
-      setSelectedCalendars(prev => prev.filter(key => !key.startsWith(`${id}:::`)));
-      
-      // WYMUSZENIE ODŚWIEŻENIA KALENDARZA GŁÓWNEGO PO USUNIĘCIU CAŁEGO KONTA
-      window.dispatchEvent(new Event("refreshEvents"));
-
-      await fetchAccountsAndCalendars();
-    } catch (error: any) {
-      toast.error(error.message || 'Błąd podczas odłączania konta');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleConnectGoogle = async () => {
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session?.access_token) {
-        toast.error("Brak aktywnej sesji. Zaloguj się ponownie.");
-        return;
-      }
-
-      const res = await fetch('/api/google-calendar?action=auth-url', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-
-      if (!res.ok) throw new Error(`Błąd HTTP`);
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      toast.error("Nie udało się rozpocząć logowania do Google");
-    }
-  };
-
-  const handleConnectOutlook = () => {
-    window.location.href = `/api/outlook-calendar?action=auth-url&userId=${user?.id}`;
-  };
+  
+  const {
+    accounts,
+    calendars,
+    selectedCalendars,
+    loading,
+    togglingId,
+    handleToggleCalendar,
+    handleDisconnect,
+    handleConnectGoogle,
+    handleConnectOutlook
+  } = useConnectedCalendars(expanded);
 
   const currentStatus = () => {
-    const uniqueEmails = new Set(accounts.map(a => a.account_email)).size;
-    if (loading && uniqueEmails === 0) return "Sprawdzanie...";
-    if (uniqueEmails === 0) return "Brak połączeń";
-    return `${uniqueEmails} połączon${uniqueEmails === 1 ? 'e' : uniqueEmails < 5 ? 'e' : 'ych'} kont${uniqueEmails === 1 ? 'o' : 'a'}`;
+    const rootAccounts = accounts.filter(a => a.google_calendar_id === '@account_connection');
+    if (loading && rootAccounts.length === 0) return "Sprawdzanie...";
+    if (rootAccounts.length === 0) return "Brak połączeń";
+    return `${rootAccounts.length} połączon${rootAccounts.length === 1 ? 'e' : rootAccounts.length < 5 ? 'e' : 'ych'} kont${rootAccounts.length === 1 ? 'o' : 'a'}`;
   };
+
+  const mainAccounts = accounts.filter(a => a.google_calendar_id === '@account_connection');
 
   return (
     <div className="card rounded-xl shadow-sm overflow-hidden transition-all mt-2">
@@ -278,28 +57,27 @@ export default function ConnectedCalendars() {
             </div>
           ) : (
             <div className="space-y-6">
-              {accounts.length > 0 && (
+              {mainAccounts.length > 0 && (
                 <div className="space-y-4">
                   <div className="form-label text-sm font-bold">Połączone konta i kalendarze:</div>
                   
-                  {Array.from(new Set(accounts.map(a => a.account_email))).map(email => {
-                    const primaryAccountForEmail = accounts.find(a => a.account_email === email && (a as any).google_calendar_id === '@account_connection') || accounts.find(a => a.account_email === email)!;
-                    const accountCalendars = calendars.filter(c => (c as any).primaryAccountId === primaryAccountForEmail.id);
+                  {mainAccounts.map(account => {
+                    const accountCalendars = calendars.filter(c => c.primaryAccountId === account.id);
 
                     return (
-                      <div key={primaryAccountForEmail.id} className="border border-gray-200 dark:border-gray-700 rounded-xl bg-surface overflow-hidden">
+                      <div key={account.id} className="border border-gray-200 dark:border-gray-700 rounded-xl bg-surface overflow-hidden">
                         <div className="flex justify-between items-center p-3 bg-card border-b border-gray-200 dark:border-gray-700">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                              {primaryAccountForEmail.provider === 'google' ? <GoogleIcon /> : <MicrosoftIcon />}
+                              {account.provider === 'google' ? <GoogleIcon /> : <MicrosoftIcon />}
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-text capitalize">{primaryAccountForEmail.provider}</div>
-                              <div className="text-xs text-textSecondary">{email}</div>
+                              <div className="text-sm font-bold text-text capitalize">{account.provider}</div>
+                              <div className="text-xs text-textSecondary">{account.account_email}</div>
                             </div>
                           </div>
                           <button 
-                            onClick={() => handleDisconnect(primaryAccountForEmail.id, email)} 
+                            onClick={() => handleDisconnect(account.id, account.account_email, account.provider)} 
                             className="text-red-500 hover:text-red-600 transition-colors p-2"
                             title="Odłącz całe konto"
                           >
@@ -312,7 +90,7 @@ export default function ConnectedCalendars() {
                             <p className="text-xs text-textMuted p-2">Brak kalendarzy do wyświetlenia.</p>
                           ) : (
                             accountCalendars.map(cal => {
-                              const isCurrentlyOn = selectedCalendars.includes(`${primaryAccountForEmail.id}:::${cal.id}`);
+                              const isCurrentlyOn = selectedCalendars.includes(`${account.id}:::${cal.id}`);
                               const isToggling = togglingId === cal.id;
 
                               return (
@@ -327,7 +105,7 @@ export default function ConnectedCalendars() {
                                     type="button"
                                     role="switch"
                                     aria-checked={isCurrentlyOn}
-                                    onClick={() => handleToggleCalendar(primaryAccountForEmail, cal, isCurrentlyOn)}
+                                    onClick={() => handleToggleCalendar(account, cal, isCurrentlyOn)}
                                     disabled={isToggling}
                                     className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                                       isCurrentlyOn ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'

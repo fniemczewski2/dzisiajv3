@@ -31,14 +31,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const supabase = createServerSupabase(req, res);
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-    await supabase.from('connected_calendars').upsert({
+    const { data: existingAccount, error: searchError } = await supabase
+      .from('connected_calendars')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('provider', 'outlook')
+      .eq('account_email', email)
+      .eq('google_calendar_id', '@account_connection')
+      .maybeSingle();
+
+    if (searchError) throw searchError;
+
+    const payload = {
       user_id: userId,
       provider: 'outlook',
       account_email: email,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_at: expiresAt,
-    }, { onConflict: 'user_id, account_email' });
+      google_calendar_id: '@account_connection',
+      calendar_name: 'Główne konto Outlook'
+    };
+
+    if (existingAccount) {
+      const { error: updateError } = await supabase
+        .from('connected_calendars')
+        .update(payload)
+        .eq('id', existingAccount.id);
+
+      if (updateError) throw updateError;
+    } else {
+      const { error: insertError } = await supabase
+        .from('connected_calendars')
+        .insert(payload);
+
+      if (insertError) throw insertError;
+    }
 
     res.redirect('/calendar?sync=success');
   } catch (error) {

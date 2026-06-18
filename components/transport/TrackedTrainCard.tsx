@@ -15,13 +15,14 @@ interface TrackedTrainProps {
     wagon: string;
     seat: string;
   };
+  onDelete: (id: string) => void;
 }
 
-export const TrackedTrainCard = ({ train }: TrackedTrainProps) => {
-  const { getTrainStatus, deleteTrain } = useTrains();
+export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
+  const { getTrainStatus } = useTrains();
   const { delay, platform, status, loading, estimatedArrival, hide } = getTrainStatus(train);
   const handleDelete = async () => {
-    await deleteTrain(train.id); 
+    await onDelete(train.id); 
   };
 
   if (hide) return null;

@@ -21,8 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const searchWord = (stationName as string);
     const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(searchWord)}&pageSize=10`, { headers });
     if(stationsRes.status === 429) {
-        return res.status(200).json({
-            items: "Spróbuj ponownie później"
+        return res.status(429).json({
+            error: "Spróbuj ponownie później"
         });
     }
     if (!stationsRes.ok) throw new Error('Błąd pobierania słownika stacji');
@@ -43,11 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const nowPl = new Date(nowPlString);
     const date = `${nowPl.getFullYear()}-${String(nowPl.getMonth() + 1).padStart(2, '0')}-${String(nowPl.getDate()).padStart(2, '0')}`;
 
-    const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}&dictionaries=true`, { headers });
+    const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`, { headers });
     if(schedulesRes.status === 429) {
-        return res.status(200).json({
-            station: actualStationName,
-            items: "Spróbuj ponownie później"
+        return res.status(429).json({
+            error: "Spróbuj ponownie później"
         });
     }
     if (!schedulesRes.ok) throw new Error('Błąd pobierania rozkładu planowanego');
@@ -55,11 +54,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const schedulesData = await schedulesRes.json();
 
     const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers });
+    if(operationsRes.status === 429) {
+        return res.status(429).json({
+            error: "Spróbuj ponownie później"
+        });
+    }
+    
     if (!operationsRes.ok) throw new Error('Błąd pobierania danych czasu rzeczywistego');
     const operationsData = await operationsRes.json();
+    const stationsDict = operationsData.stations || {};
 
-    const stationsDict = schedulesData.dictionaries?.stations || {};
-    const getStationName = (id: number) => stationsDict[id]?.name || `Stacja ID ${id}`;
+    const getStationName = (id: number) => stationsDict[id];
 
     const boardItems: any[] = [];
 
@@ -68,8 +73,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!plannedStation) return; 
 
       const liveTrain = operationsData.trains?.find((t: any) => t.scheduleId === route.scheduleId && t.orderId === route.orderId);
+      
       const opStation = liveTrain?.stations?.find((s: any) => s.stationId === stationId);
-
+      const destinationStationId = liveTrain?.stations?.[liveTrain.stations.length - 1].stationId;
+      const destinationName = destinationStationId ? getStationName(destinationStationId) : '-';
+      
       let status = 'Planowy';
       if (liveTrain) {
         const statusMap: Record<string, string> = {
@@ -81,7 +89,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
         status = statusMap[liveTrain.trainStatus] || 'W trasie';
         if (opStation?.isCancelled) status = 'Odwołany';
-        else if (opStation?.actualDeparture) status = 'Odjechał';
       }
 
       const platform = opStation?.departurePlatform || plannedStation.departurePlatform || opStation?.arrivalPlatform || plannedStation.arrivalPlatform || '-';
@@ -89,10 +96,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const rawTime = plannedStation.departureTime || plannedStation.arrivalTime || '00:00:00';
       const plannedTime = rawTime.substring(0, 5);
-      
-      const sortedStations = [...(route.stations || [])].sort((a: any, b: any) => a.orderNumber - b.orderNumber);
-      const originName = sortedStations.length > 0 ? getStationName(sortedStations[0].stationId) : '-';
-      const destinationName = sortedStations.length > 0 ? getStationName(sortedStations[sortedStations.length - 1].stationId) : '-';
 
       boardItems.push({
         trainOperator: route.carrierCode || '',
@@ -103,7 +106,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         delay,
         platform,
         status,
-        from: originName,
         to: destinationName,
         currentStation: actualStationName,
         date,
@@ -115,7 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const currentHourMinutes = nowPl.getHours() * 60 + nowPl.getMinutes();
 
-    const filteredItems = boardItems.filter(item => {
+    const finalItems = boardItems.filter(item => {
       let itemTotalMinutes;
 
       if (item.actualDeparture) {
@@ -127,13 +129,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
          itemTotalMinutes = h * 60 + m + item.delay;
       }
 
-      let diff = currentHourMinutes - itemTotalMinutes;
-      if (diff > 720) diff -= 1440;
-      if (diff < -720) diff += 1440;
+      const diff = currentHourMinutes - itemTotalMinutes;
       return diff <= 5;
     }).slice(0, 10);
-
-    const finalItems = filteredItems.length > 0 ? filteredItems : boardItems.slice(0, 10);
 
     return res.status(200).json({
       station: actualStationName,
