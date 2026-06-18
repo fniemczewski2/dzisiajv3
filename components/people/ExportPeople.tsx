@@ -25,7 +25,7 @@ export const ExportPeople = ({ people }: ExportProps) => {
       if (!str) return '';
       const stringified = String(str);
       if (stringified.includes(',') || stringified.includes('"') || stringified.includes('\n')) {
-        return `"${stringified.replaceAll(/"/g, '""')}"`;
+        return `"${stringified.replaceAll('"', '""')}"`;
       }
       return stringified;
     };

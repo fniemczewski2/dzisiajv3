@@ -112,7 +112,7 @@ export default function EventForm({
     // ZMIANA: Logika eksportująca nowo utworzone wydarzenie do zewnętrznego API, jeśli wybrano z listy
     if (createdEvent && selectedCalendar !== "local") {
       const cal = calendars.find(c => c.id === selectedCalendar);
-      if (cal && cal.provider === "google") {
+      if (cal?.provider === "google") {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           const res = await fetch("/api/google-calendar?action=export", {

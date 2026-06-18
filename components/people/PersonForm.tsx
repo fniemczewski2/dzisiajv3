@@ -42,28 +42,28 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-surface p-4 rounded-xl shadow border border-gray-200 dark:border-gray-800">
       <div className="grid grid-cols-2 gap-4">
         <label className="flex flex-col text-sm font-medium">
-          Imię *
+          {"Imię *"}
           <input required value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
         </label>
         <label className="flex flex-col text-sm font-medium">
-          Nazwisko
+          {"Nazwisko"}
           <input value={formData.last_name || ''} onChange={e => setFormData({...formData, last_name: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
         </label>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <label className="flex flex-col text-sm font-medium">
-          Relacja
+          {"Relacja"}
           <input placeholder="np. Mama, Kolega" value={formData.relationship || ''} onChange={e => setFormData({...formData, relationship: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
         </label>
         <label className="flex flex-col text-sm font-medium">
-          Data urodzin
+          {"Data urodzin"}
           <input type="date" value={formData.birthday || ''} onChange={e => setFormData({...formData, birthday: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
         </label>
       </div>
 
       <label className="flex flex-col text-sm font-medium">
-        Priorytet kontaktu
+        {"Priorytet kontaktu"}
         <select value={formData.priority} onChange={e => setFormData({...formData, priority: Number.parseInt(e.target.value)})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
           <option value={0}>0 - Brak przypomnienia</option>
           <option value={1}>1 - Raz na 2 tygodnie</option>
@@ -78,7 +78,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">Telefony</span>
         {formData.phones?.map((p, i) => (
-          <div key={i} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+          <div key={p} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
             {p} <X className="w-4 h-4 cursor-pointer text-red-500" onClick={() => setFormData(prev => ({...prev, phones: prev.phones?.filter((_, index) => index !== i)}))} />
           </div>
         ))}
@@ -92,7 +92,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">Emaile</span>
         {formData.emails?.map((e, i) => (
-          <div key={i} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+          <div key={e} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
             {e} <X className="w-4 h-4 cursor-pointer text-red-500" onClick={() => setFormData(prev => ({...prev, emails: prev.emails?.filter((_, index) => index !== i)}))} />
           </div>
         ))}

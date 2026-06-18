@@ -28,72 +28,78 @@ const parseCSVRow = (str: string) => {
   return result;
 };
 
+// Extracted logic to keep nesting shallow and readable
+const processCSVText = (text: string) => {
+  const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+  if (lines.length < 2) return [];
+
+  const headers = parseCSVRow(lines[0]);
+  const getIndex = (name: string) => headers.indexOf(name);
+
+  // Podstawowe dane
+  const idxFirstName = getIndex('First Name');
+  const idxLastName = getIndex('Last Name');
+  const idxNamePrefix = getIndex('Name Prefix');       
+  const idxOrganization = getIndex('Organization Name'); 
+  const idxNotes = getIndex('Notes');      
+  
+  const phoneIndices = headers.map((h, i) => h.startsWith('Phone') && h.endsWith('Value') ? i : -1).filter(i => i !== -1);
+  const emailIndices = headers.map((h, i) => h.startsWith('E-mail') && h.endsWith('Value') ? i : -1).filter(i => i !== -1);
+
+  return lines.slice(1).map(line => {
+    const row = parseCSVRow(line);
+    
+    const first_name = idxFirstName !== -1 && row[idxFirstName] ? row[idxFirstName] : '';
+    const last_name = idxLastName !== -1 && row[idxLastName] ? row[idxLastName] : '';
+    const relationship = idxNamePrefix !== -1 && row[idxNamePrefix] ? row[idxNamePrefix] : '';
+    
+    let notes = '';
+    if (idxOrganization !== -1 && row[idxOrganization]) {
+      notes = row[idxOrganization];
+    }
+    if (idxNotes !== -1 && row[idxNotes]) {
+      notes += notes ? ` | ${row[idxNotes]}` : row[idxNotes];
+    }
+    
+    const phones = phoneIndices.map(idx => row[idx]).filter(Boolean);
+    const emails = emailIndices.map(idx => row[idx]).filter(Boolean);
+
+    return {
+      first_name,
+      last_name,
+      relationship,
+      notes,
+      phones,
+      emails,
+      priority: 0,
+      birthday: null
+    };
+  }).filter(c => c.first_name); 
+};
+
 export const ImportPeople = ({ onImport }: ImportProps) => {
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+    try {
+      // Use Blob#text() via file.text() instead of FileReader callbacks
+      const text = await file.text();
+      const newContacts = processCSVText(text);
       
-      if (lines.length < 2) return;
-
-      const headers = parseCSVRow(lines[0]);
-      
-      const getIndex = (name: string) => headers.indexOf(name);
-      
-      // Podstawowe dane
-      const idxFirstName = getIndex('First Name');
-      const idxLastName = getIndex('Last Name');
-      
-      const idxNamePrefix = getIndex('Name Prefix');       
-      const idxOrganization = getIndex('Organization Name'); 
-      const idxNotes = getIndex('Notes');      
-      
-      const phoneIndices = headers.map((h, i) => h.startsWith('Phone') && h.endsWith('Value') ? i : -1).filter(i => i !== -1);
-      const emailIndices = headers.map((h, i) => h.startsWith('E-mail') && h.endsWith('Value') ? i : -1).filter(i => i !== -1);
-
-      const newContacts = lines.slice(1).map(line => {
-        const row = parseCSVRow(line);
-        
-        const first_name = idxFirstName !== -1 && row[idxFirstName] ? row[idxFirstName] : '';
-        const last_name = idxLastName !== -1 && row[idxLastName] ? row[idxLastName] : '';
-        const relationship = idxNamePrefix !== -1 && row[idxNamePrefix] ? row[idxNamePrefix] : '';
-        
-        let notes = '';
-        if (idxOrganization !== -1 && row[idxOrganization]) {
-          notes = row[idxOrganization];
-        }
-        if (idxNotes !== -1 && row[idxNotes]) {
-          notes += notes ? ` | ${row[idxNotes]}` : row[idxNotes];
-        }
-        
-        const phones = phoneIndices.map(idx => row[idx]).filter(Boolean);
-        const emails = emailIndices.map(idx => row[idx]).filter(Boolean);
-
-        return {
-          first_name,
-          last_name,
-          relationship,
-          notes,
-          phones,
-          emails,
-          priority: 0,
-          birthday: null
-        };
-      }).filter(c => c.first_name); 
-
-      onImport(newContacts);
-      
+      if (newContacts.length > 0) {
+        onImport(newContacts);
+      }
+    } catch (error) {
+      console.error("Failed to parse CSV file:", error);
+    } finally {
+      // Clean up the input so the same file can be uploaded again if needed
       if (fileRef.current) {
         fileRef.current.value = '';
       }
-    };
-    reader.readAsText(file);
+    }
   };
 
   return (
