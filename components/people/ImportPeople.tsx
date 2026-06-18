@@ -44,7 +44,7 @@ export const ImportPeople = ({ onImport }: ImportProps) => {
 
       const headers = parseCSVRow(lines[0]);
       
-      const getIndex = (name: string) => headers.findIndex(h => h === name);
+      const getIndex = (name: string) => headers.indexOf(name);
       
       // Podstawowe dane
       const idxFirstName = getIndex('First Name');

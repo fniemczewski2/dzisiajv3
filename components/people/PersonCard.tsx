@@ -34,18 +34,17 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
     
         <div 
           className="flex justify-between items-center cursor-pointer select-none"
-          onClick={() => setIsExpanded(!isExpanded)}
         >
         <div className="flex flex-col">
           <h3 className="text-lg font-bold text-textPrimary">
-            {person.first_name} {person.last_name} {person.priority === 0 ? <span className='text-red-600'>!!</span> : person.priority}
+            {person.first_name} {person.last_name}
           </h3>
           {isExpanded && person.relationship && (<p className="text-sm text-primary">{person.relationship}</p>)}
         </div>
           
-          <div className="text-textSecondary">
+          <button className="text-textSecondary" type='button' onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
             {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-          </div>
+          </button>
         </div>
 
         {isExpanded && (
