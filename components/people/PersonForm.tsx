@@ -64,7 +64,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
 
       <label className="flex flex-col text-sm font-medium">
         Priorytet kontaktu
-        <select value={formData.priority} onChange={e => setFormData({...formData, priority: parseInt(e.target.value)})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        <select value={formData.priority} onChange={e => setFormData({...formData, priority: Number.parseInt(e.target.value)})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
           <option value={0}>0 - Brak przypomnienia</option>
           <option value={1}>1 - Raz na 2 tygodnie</option>
           <option value={2}>2 - Raz na miesiąc</option>

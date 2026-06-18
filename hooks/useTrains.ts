@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { useToast } from '../providers/ToastProvider';
 
@@ -163,74 +163,73 @@ export function useTrains() {
     }
   };
 
-  const getTrainStatus = (train: { trainNumber: string; date: string; from: string; to: string; departureTime: string; trainName: string; }) => {
-    const [data, setData] = useState({ 
-        delay: 0, 
-        platform: '...', 
-        status: '', 
-        loading: true, 
-        estimatedArrival: '', 
-        hide: false 
-    });
-
-    useEffect(() => {
-        let isMounted = true;
-        
-        const fetchStatus = async () => {
-          if (!train.trainNumber || !train.date || !train.from || !train.to) {
-             if (isMounted) setData(prev => ({ ...prev, loading: false }));
-             return;
-          }
-
-          try {
-              const params = new URLSearchParams({
-                  trainNumber: train.trainNumber,
-                  trainName: train.trainName,
-                  date: train.date,
-                  from: train.from,
-                  to: train.to, 
-                  departureTime: train.departureTime
-              });
-
-              const response = await fetch(`/api/train-status?${params.toString()}`);
-              if (!response.ok) throw new Error('Błąd pobierania statusu');
-              
-              const result = await response.json();
-              if (isMounted) {
-                setData({
-                    delay: result.delay || 0,
-                    platform: result.platform || '-',
-                    status: result.status || '',
-                    loading: false,
-                    estimatedArrival: result.estimatedArrival || '',
-                    hide: result.hide || false
-                });
-              }
-          } catch (error) {
-              if (isMounted) setData({ 
-                  delay: 0, 
-                  platform: 'Brak', 
-                  status: 'Błąd połączenia', 
-                  loading: false,
-                  estimatedArrival: '',
-                  hide: false
-              });
-          }
-        };
-
-        fetchStatus();
-        
-        return () => { isMounted = false; };
-    }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName]);
-
-    return data;
-  };
-
   return {
     trains,
     refresh: fetchTrains,
     addTrain,
-    deleteTrain,
-    getTrainStatus
+    deleteTrain
   };
+}
+
+export function useTrainStatus(train: { trainNumber: string; date: string; from: string; to: string; departureTime: string; trainName: string; }) {
+  const [data, setData] = useState({ 
+      delay: 0, 
+      platform: '...', 
+      status: '', 
+      loading: true, 
+      estimatedArrival: '', 
+      hide: false 
+  });
+
+  useEffect(() => {
+      let isMounted = true;
+      
+      const fetchStatus = async () => {
+        if (!train.trainNumber || !train.date || !train.from || !train.to) {
+           if (isMounted) setData(prev => ({ ...prev, loading: false }));
+           return;
+        }
+
+        try {
+            const params = new URLSearchParams({
+                trainNumber: train.trainNumber,
+                trainName: train.trainName,
+                date: train.date,
+                from: train.from,
+                to: train.to, 
+                departureTime: train.departureTime
+            });
+
+            const response = await fetch(`/api/train-status?${params.toString()}`);
+            if (!response.ok) throw new Error('Błąd pobierania statusu');
+            
+            const result = await response.json();
+            if (isMounted) {
+              setData({
+                  delay: result.delay || 0,
+                  platform: result.platform || '-',
+                  status: result.status || '',
+                  loading: false,
+                  estimatedArrival: result.estimatedArrival || '',
+                  hide: result.hide || false
+              });
+            }
+        } catch (error) {
+            if (isMounted) setData({ 
+                delay: 0, 
+                platform: 'Brak', 
+                status: 'Błąd połączenia', 
+                loading: false,
+                estimatedArrival: '',
+                hide: false
+            });
+        }
+      };
+
+      fetchStatus();
+      
+      return () => { isMounted = false; };
+  }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName]);
+
+  return data;
 }
