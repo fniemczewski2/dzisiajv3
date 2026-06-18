@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Loader2, AlertTriangle, Clock } from 'lucide-react';
-import { useTrains } from '../../hooks/useTrains';
+import { useTrainStatus } from '../../hooks/useTrains';
 import { DeleteButton } from '../CommonButtons';
 
 interface TrackedTrainProps {
@@ -19,8 +19,7 @@ interface TrackedTrainProps {
 }
 
 export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
-  const { getTrainStatus } = useTrains();
-  const { delay, platform, status, loading, estimatedArrival, hide } = getTrainStatus(train);
+  const { delay, platform, status, loading, hide } = useTrainStatus(train);
   const handleDelete = async () => {
     await onDelete(train.id); 
   };
