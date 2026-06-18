@@ -1,9 +1,9 @@
 {
   "name": "dzisiaj-v3",
-  "version": "1.17.0",
+  "version": "1.33.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
