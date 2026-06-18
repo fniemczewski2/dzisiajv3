@@ -6,8 +6,13 @@ import { useTrains } from '../../hooks/useTrains';
 import { useToast } from '../../providers/ToastProvider';
 import { AddButton } from '../CommonButtons';
 import NoResultsState from '../NoResultsState';
+import LoadingState from '../LoadingState';
 
-export default function StationBoardWidget() {
+interface StationBoardProps {
+  onTrainAdded?: () => void;
+}
+
+export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) {
   const { addTrain } = useTrains();
   const { toast } = useToast();
   
@@ -110,6 +115,7 @@ export default function StationBoardWidget() {
     const success = await addTrain(trainData); 
     if (success) {
       toast.success(`Dodano pociąg ${item.trainNumber}!`);
+      if (onTrainAdded) onTrainAdded(); 
     }
   };
 
@@ -140,7 +146,6 @@ export default function StationBoardWidget() {
       <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">
         {selectedStations.map(station => {
           const board = boardsData[station] || { items: [], loading: true, error: '' };
-
           return (
             <div key={station} className="card rounded-xl border border-gray-100 dark:border-gray-800 bg-card shadow-sm overflow-hidden flex flex-col">
               <div className="bg-surface px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
@@ -168,13 +173,16 @@ export default function StationBoardWidget() {
                 </div>
               </div>
 
-              {/* Zawartość / Tabela połączeń */}
               <div className="p-2 overflow-x-auto flex-1">
                 {board.error ? (
                   <div className="p-6 text-center text-sm text-red-500 flex items-center justify-center gap-2">
                     <AlertCircle className="w-4 h-4" /> {board.error}
                   </div>
-                ) : !board.loading && board.items.length === 0 ? (
+                ) : board.loading ? (
+                  <div className='flex items-center justify-center w-full'>
+                    <LoadingState/>
+                  </div>
+                ) : board.items.length === 0 ? (
                   <NoResultsState text="odjazdów" />
                 ) : (
                   <table className="w-full text-left text-xs border-collapse">
@@ -189,8 +197,7 @@ export default function StationBoardWidget() {
                       </tr>
                     </thead>
                     <tbody>
-                      {board.items[0] === "Spróbuj ponownie później" ? <span>Spróbuj ponownie później</span> :
-                      board.items?.map((item, index) => {
+                      {board.items?.map((item, index) => {
                         const isDelayed = item.delay > 0;
                         const isCancelled = item.status === 'Odwołany';
 

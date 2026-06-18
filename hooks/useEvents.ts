@@ -62,6 +62,8 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     };
   }, [fetchEvents]);
 
+// hooks/useEvents.ts (fragment)
+
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
@@ -73,12 +75,17 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         targetSharedId = await getUserIdByEmail(shared_with_email, supabase);
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("events")
-        .insert({ ...eventData, user_id: userId, shared_with_id: targetSharedId });
+        .insert({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
+        .select()
+        .single();
       
       if (error) throw error;
       await fetchEvents();
+      
+      // ZMIANA: Zwracamy dodane wydarzenie, aby mieć dostęp do jego ID w formularzu
+      return data;
     } finally {
       setLoading(false);
     }

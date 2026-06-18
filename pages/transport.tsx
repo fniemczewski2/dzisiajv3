@@ -27,7 +27,7 @@ export default function TransportPage() {
     removeFavoriteStop
   } = useTransport(true);
 
-  const { trains, addTrain, deleteTrain } = useTrains();
+  const { trains, addTrain, deleteTrain, refresh } = useTrains();
 
   const visibleFavorites = favoritesGroups.filter((group) => 
     favoriteStops.some((stop: any) => stop.name === group.stop_name)
@@ -168,7 +168,7 @@ export default function TransportPage() {
               )}
           </div>
           <AddTrainForm onTrainAdded={addTrain} expanded={expanded} setExpanded={setExpanded}/>
-          <StationBoardWidget /> 
+          <StationBoardWidget onTrainAdded={refresh} /> 
           <div className="grid md:grid-cols-2 gap-6 items-start mt-4">
             <div className="space-y-4">
               {trains.length === 0 ? (
@@ -178,6 +178,7 @@ export default function TransportPage() {
                   <TrackedTrainCard 
                     key={train.id} 
                     train={train} 
+                    onDelete={deleteTrain}
                   />
                 ))
               )}

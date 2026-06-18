@@ -186,7 +186,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
 
       allCalendars.push({
         id: "google_birthdays",
-        summary: "Urodziny (Google Contacts)",
+        summary: "Urodziny",
         primary: false,
         primaryAccountId: mainAcc.id
       });

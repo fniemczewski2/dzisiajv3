@@ -1,3 +1,4 @@
+// components/calendar/EventForm.tsx
 "use client";
 
 import React, { useState, SyntheticEvent, useEffect } from "react";
@@ -10,11 +11,14 @@ import { withRetry } from "../../lib/withRetry";
 import { format } from "date-fns";
 import ICAL from "ical.js";
 import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
-import {FormButtons } from "../CommonButtons";
+import { FormButtons } from "../CommonButtons";
+// ZMIANA: Importowanie createClient aby pobrać połączone kalendarze 
+import { createClient } from "../../utils/supabase/client";
 
 interface EventsFormProps {
   onEventsChange: () => void;
-  addEvent: (event: Event & { shared_with_email?: string }) => Promise<void>;
+  // ZMIANA: Zaktualizowanie sygnatury addEvent aby akceptowała zwracany obiekt (opcjonalnie)
+  addEvent: (event: Event & { shared_with_email?: string }) => Promise<any>;
   onCancel?: () => void;
   currentDate: Date | null;
   selectedDate: Date | null;
@@ -34,6 +38,7 @@ export default function EventForm({
   const { settings } = useSettings();
   const { toast } = useToast();
   const userOptions = settings?.users ?? [];
+  const supabase = createClient();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -44,6 +49,27 @@ export default function EventForm({
   const [share, setShare] = useState("null");
   const [repeat, setRepeat] = useState<Event["repeat"]>("none");
 
+  // ZMIANA: Stany dla wyboru zewnętrznego kalendarza
+  const [calendars, setCalendars] = useState<any[]>([]);
+  const [selectedCalendar, setSelectedCalendar] = useState("local");
+
+  // ZMIANA: Pobranie zadeklarowanych kalendarzy
+  useEffect(() => {
+    if (!userId) return;
+    const fetchCalendars = async () => {
+      const { data } = await supabase
+        .from("connected_calendars")
+        .select("id, calendar_name, google_calendar_id, provider")
+        .eq("user_id", userId)
+        .neq("google_calendar_id", "@account_connection"); // pomijamy same konta-matki
+
+      if (data) {
+        setCalendars(data);
+      }
+    };
+    fetchCalendars();
+  }, [userId, supabase]);
+
   useEffect(() => {
     const ref = selectedDate ?? currentDate;
     const fmt = allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm";
@@ -53,7 +79,8 @@ export default function EventForm({
 
   const resetForm = () => {
     setTitle(""); setDescription(""); setStart(""); setEnd("");
-    setPlace(""); setShare("null"); setRepeat("none");
+    setPlace(""); setShare("null"); setRepeat("none"); 
+    setSelectedCalendar("local"); // ZMIANA: reset wyboru
   };
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -63,28 +90,65 @@ export default function EventForm({
       return;
     }
 
+    let createdEvent: any = null;
+
     await withRetry(
-      () => addEvent({
-        title: title.trim(),
-        description: description.trim(),
-        start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
-        end_time:   allDay ? localDateTimeToISO(end   + "T23:59") : localDateTimeToISO(end),
-        place: place.trim(),
-        shared_with_email: share === "null" ? "" : share,
-        repeat,
-        user_id: userId,
-      } as any),
+      async () => {
+        createdEvent = await addEvent({
+          title: title.trim(),
+          description: description.trim(),
+          start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
+          end_time:   allDay ? localDateTimeToISO(end   + "T23:59") : localDateTimeToISO(end),
+          place: place.trim(),
+          shared_with_email: share === "null" ? "" : share,
+          repeat,
+          user_id: userId,
+        } as any);
+      },
       toast,
       { context: "EventForm.addEvent", userId }
     );
 
-    toast.success("Dodano pomyślnie.");
+    // ZMIANA: Logika eksportująca nowo utworzone wydarzenie do zewnętrznego API, jeśli wybrano z listy
+    if (createdEvent && selectedCalendar !== "local") {
+      const cal = calendars.find(c => c.id === selectedCalendar);
+      if (cal && cal.provider === "google") {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const res = await fetch("/api/google-calendar?action=export", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`
+            },
+            body: JSON.stringify({
+              calendarId: cal.google_calendar_id, // ID kalendarza u Providera 
+              accountId: cal.id,                  // ID połączenia w bazie Supabase
+              eventIds: [createdEvent.id]         // ID lokalnego nowo powstałego eventu
+            })
+          });
+
+          if (!res.ok) {
+            toast.error("Utworzono lokalnie, ale wystąpił błąd podczas dodawania do Google Calendar.");
+          } else {
+            toast.success("Dodano do wybranego kalendarza zewnętrznego.");
+          }
+        } catch (err) {
+          console.error("Błąd eksportu:", err);
+          toast.error("Błąd sieci podczas eksportu wydarzenia.");
+        }
+      }
+    } else {
+      toast.success("Dodano pomyślnie.");
+    }
+
     resetForm();
     onEventsChange();
     onCancel?.();
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ... [oryginalny kod bez zmian] ...
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -153,12 +217,30 @@ export default function EventForm({
             className="input-field text-xs w-full min-w-0 px-1" required disabled={loading} />
         </div>
       </div>
-      <div>
-        <label htmlFor="place" className="form-label">Miejsce:</label>
-        <input id="place" type="text" value={place}
-          onChange={(e) => setPlace(e.target.value)}
-          className="input-field" disabled={loading} />
+      
+      {/* ZMIANA: Miejsce i Dodaj do: w gridzie */}
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
+        <div>
+          <label htmlFor="place" className="form-label">Miejsce:</label>
+          <input id="place" type="text" value={place}
+            onChange={(e) => setPlace(e.target.value)}
+            className="input-field" disabled={loading} />
+        </div>
+        <div>
+          <label htmlFor="calendar" className="form-label">Dodaj do:</label>
+          <select id="calendar" value={selectedCalendar}
+            onChange={(e) => setSelectedCalendar(e.target.value)}
+            className="input-field" disabled={loading}>
+            <option value="local">Aplikacja - kalendarz domyślny</option>
+            {calendars.map((cal) => (
+              <option key={cal.id} value={cal.id}>
+                {cal.provider === 'google' ? 'Google: ' : ''}{cal.calendar_name || cal.google_calendar_id}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
       <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>
           <label htmlFor="share" className="form-label">Udostępnij:</label>
@@ -180,7 +262,6 @@ export default function EventForm({
             <option value="yearly">Co rok</option>
           </select>
         </div>
-
       </div>
       <div>
         <label htmlFor="desc" className="form-label">Opis:</label>
