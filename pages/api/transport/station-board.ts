@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!stationsRes.ok) throw new Error('Błąd pobierania słownika stacji');
     const stationsData = await stationsRes.json();
     
-    const normalizedInput = (stationName as string).toLowerCase().replace('gł.', 'główny');
+    const normalizedInput = (stationName as string).toLowerCase().replaceAll('gł.', 'główny');
     const station = stationsData.stations?.find((s: any) => 
       s.name.toLowerCase().includes(normalizedInput) || normalizedInput.includes(s.name.toLowerCase())
     ) || stationsData.stations?.[0];

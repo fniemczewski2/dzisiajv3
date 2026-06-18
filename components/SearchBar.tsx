@@ -83,8 +83,9 @@ export default function SearchBar({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !inputRef.current?.contains(event.target as Node)
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target) &&
+        !inputRef.current?.contains(event.target)
       ) {
         setIsFocused(false);
       }
