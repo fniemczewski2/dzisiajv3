@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEuroRate } from "../../hooks/useEuroRate";
@@ -92,7 +92,7 @@ export default function BillCalculator() {
     grossPln2: 0,
   });
 
-  const calculate = () => {
+  const calculate = useCallback(() => { 
     const baseRent = Number(baseRentRef.current?.value) || 0;
     const community = Number(communityRef.current?.value) || 0;
     const water = Number(waterRef.current?.value) || 0;
@@ -142,18 +142,18 @@ export default function BillCalculator() {
       grossPln1: grossPln1,
       grossPln2: grossPln2,
     });
-  };
+  }, [currency1, currency2]);
 
   useEffect(() => {
     calculate();
-  }, [currency1, currency2]);
+  }, [currency1, currency2, calculate]);
 
   useEffect(() => {
     if (fetchedEuroRate && exchangeRateRef.current) {
         exchangeRateRef.current.value = fetchedEuroRate.toString();
         calculate();
     }
-  }, [fetchedEuroRate]);
+  }, [fetchedEuroRate, calculate]);
 
   const router = useRouter();
   const handleBack = () => {

@@ -21,7 +21,7 @@ interface TrackedTrainProps {
 export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
   const { delay, platform, status, loading, hide } = useTrainStatus(train);
   const handleDelete = async () => {
-    await onDelete(train.id); 
+    onDelete(train.id); 
   };
 
   if (hide) return null;

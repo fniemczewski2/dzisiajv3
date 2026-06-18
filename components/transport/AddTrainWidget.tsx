@@ -55,7 +55,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
         setFormData({
           trainNumber: data.trainNumber || '',
           trainName: data.trainName || '',
-          date: data.date ? data.date.split('.').reverse().join('-') : '', // Format dla <input type="date">
+          date: data.date ? data.date.split('.').reverse().join('-') : '', 
           departureTime: data.departureTime || '',
           from: stations[0] || '',
           to: stations[1] || '',
@@ -63,7 +63,6 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
           seat: data.seat || ''
         });
         
-        // Upewniamy się, że akordeon jest rozwinięty, aby użytkownik widział dane
         setExpanded(true); 
       } else {
         if (toastId && toast.dismiss) toast.dismiss(toastId);
@@ -95,8 +94,9 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Nr pociągu</label>
+                <label htmlFor="trainNumber" className="form-label">Nr pociągu</label>
                 <input 
+                  id="trainNumber"
                   type="text" 
                   value={formData.trainNumber}
                   onChange={e => setFormData({...formData, trainNumber: e.target.value})}
@@ -106,8 +106,9 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                 />
               </div>
               <div>
-                <label className="form-label">Nazwa pociągu</label>
+                <label htmlFor="trainName" className="form-label">Nazwa pociągu</label>
                 <input 
+                  id="trainName"
                   type="text" 
                   value={formData.trainName}
                   onChange={e => setFormData({...formData, trainName: e.target.value})}
@@ -118,17 +119,20 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
               </div>
             </div>
               <div>
-                <label className="form-label">Data i czas</label>
+                <label htmlFor="trainDate" className="form-label">Data i czas</label>
                 <div className="flex gap-2">
                   <input 
+                    id="trainDate"
                     type="date" 
                     value={formData.date}
                     onChange={e => setFormData({...formData, date: e.target.value})}
                     className="input-field py-1.5 w-full" 
                     required 
                   />
+                  {/* Czas nie ma osobnego labela widocznego, więc używamy aria-label dla czytników */}
                   <input 
                     type="time" 
+                    aria-label="Godzina odjazdu"
                     value={formData.departureTime}
                     onChange={e => setFormData({...formData, departureTime: e.target.value})}
                     className="input-field py-1.5 w-24" 
@@ -139,8 +143,9 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Stacja początkowa</label>
+                <label htmlFor="stationFrom" className="form-label">Stacja początkowa</label>
                 <input 
+                  id="stationFrom"
                   type="text" 
                   value={formData.from}
                   onChange={e => setFormData({...formData, from: e.target.value})}
@@ -149,8 +154,9 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                 />
               </div>
               <div>
-                <label className="form-label">Stacja końcowa</label>
+                <label htmlFor="stationTo" className="form-label">Stacja końcowa</label>
                 <input 
+                  id="stationTo"
                   type="text" 
                   value={formData.to}
                   onChange={e => setFormData({...formData, to: e.target.value})}
@@ -162,8 +168,9 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Wagon</label>
+                <label htmlFor="trainWagon" className="form-label">Wagon</label>
                 <input 
+                  id="trainWagon"
                   type="text" 
                   value={formData.wagon}
                   onChange={e => setFormData({...formData, wagon: e.target.value})}
@@ -172,8 +179,9 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                 />
               </div>
               <div>
-                <label className="form-label">Miejsce</label>
+                <label htmlFor="trainSeat" className="form-label">Miejsce</label>
                 <input 
+                  id="trainSeat"
                   type="text" 
                   value={formData.seat}
                   onChange={e => setFormData({...formData, seat: e.target.value})}
