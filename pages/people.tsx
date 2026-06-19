@@ -10,6 +10,7 @@ import SearchBar from '../components/SearchBar';
 import { Person, PersonInsert } from '../types';
 import LoadingState from '../components/LoadingState';
 import NoResultsState from '../components/NoResultsState';
+import Seo from '../components/SEO';
 
 export default function PeoplePage() {
   const { people, loading, addPerson, editPerson, deletePerson, logContact } = usePeople();
@@ -66,7 +67,7 @@ export default function PeoplePage() {
 
   return (
     <>
-      <SEO title="Osoby | Dzisiaj" description="Zarządzaj kontaktami i pamiętaj o swoich bliskich." />
+      <Seo title="Osoby | Dzisiaj" description="Zarządzaj kontaktami i pamiętaj o swoich bliskich." />
 
       <div className="max-w-4xl mx-auto p-4 flex flex-col gap-6 pb-24">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
