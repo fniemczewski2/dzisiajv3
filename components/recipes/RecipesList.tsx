@@ -57,7 +57,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
     return list.sort((a, b) => {
       if (sortType === "alphabetical") return a.name.localeCompare(b.name, "pl");
       if (sortType === "created_desc")
-        return new Date((b as any).created_at || 0).getTime() - new Date((a as any).created_at || 0).getTime();
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
       const aEmpty = !a.category?.trim(), bEmpty = !b.category?.trim();
       if (aEmpty && !bEmpty) return 1;
       if (!aEmpty && bEmpty) return -1;

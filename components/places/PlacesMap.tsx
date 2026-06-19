@@ -59,7 +59,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || mapInstance) return;
 
-    const L = (globalThis as any).L;
+    const L = (window as any).L;
     const center =
       places.length > 0 && [places[0].lat, places[0].lng];
     const map = L.map(mapRef.current).setView(center, 13);
@@ -78,7 +78,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   useEffect(() => {
     if (!mapInstance || !mapLoaded) return;
 
-    const L = (globalThis as any).L;
+    const L = (window as any).L;
     if (!L) return;
 
     markersRef.current.forEach((marker) => marker?.remove());

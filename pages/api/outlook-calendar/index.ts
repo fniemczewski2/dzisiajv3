@@ -72,8 +72,8 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
     }));
 
     return res.status(200).json({ calendars });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch {
+    return res.status(500).json({ error: "Błąd pobierania listy kalendarzy" });
   }
 }
 
@@ -149,8 +149,8 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
     }
 
     return res.status(200).json({ success: true, imported });
-  } catch (e: any) {
-    return res.status(500).json({ error: e.message });
+  } catch {
+    return res.status(500).json({ error: "Błąd pobierania wydarzeń z kalendarza Outlook" });
   }
 }
 
@@ -163,8 +163,8 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supab
       await supabase.from('connected_calendars').delete().eq('account_email', email).eq('provider', 'outlook').eq('user_id', user.id);
     }
     return res.status(200).json({ success: true });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch {
+    return res.status(500).json({ error: "Błąd odłączenia kalendarza Outlook" });
   }
 }
 

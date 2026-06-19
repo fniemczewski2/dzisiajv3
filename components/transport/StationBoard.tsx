@@ -66,10 +66,10 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
         ...prev,
         [stationName]: { items: data.items || [], loading: false, error: '' }
       }));
-    } catch (err: any) {
+    } catch {
       setBoardsData(prev => ({
         ...prev,
-        [stationName]: { items: [], loading: false, error: err.message || 'Błąd połączenia' }
+        [stationName]: { items: [], loading: false, error: 'Błąd połączenia' }
       }));
     }
   }, []);

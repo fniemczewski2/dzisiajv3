@@ -142,8 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       items: finalItems
     });
 
-  } catch (error: any) {
-    console.error('[Station Board API Error]:', error);
+  } catch {
     return res.status(500).json({ error: 'Nie udało się wygenerować tablicy stacji' });
   }
 }

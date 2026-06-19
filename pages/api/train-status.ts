@@ -3,11 +3,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { trainNumber, from, to, trainName } = req.query;
   const apiKey = process.env.PLK_API_KEY || '';
-  
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-  
   try {
     const headers = {
       'X-API-Key': apiKey,
@@ -16,40 +11,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const matchStation = (stations: any[], search: string) => {
         if (!stations || stations.length === 0) return null;
-        const s = search.toLowerCase().replaceAll('gł.', 'główny').trim();
-        const exact = stations.find((st: any) => st.name.toLowerCase() === s);
+        const s = search.toLowerCase().replace('gł.', 'główny');
+        const exact = stations.find(st => st.name.toLowerCase() === s)?.id;
         if (exact) return exact;
-        
-        const startsWith = stations.find((st: any) => st.name.toLowerCase().startsWith(s));
+        const startsWith = stations.find((st: any) => st.name.toLowerCase().startsWith(s))?.id;
         if (startsWith) return startsWith;
         
-        return stations.find((st: any) => st.name.toLowerCase().includes(s)) || stations[0];
+        return stations.find((st: any) => st.name.toLowerCase().includes(s))?.id;
     };
 
     const fromSearch = (from as string).split(',')[0].trim();
     const toSearch = (to as string).split(',')[0].trim();
-    const stationsDictRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations&pageSize=1000`, { headers })
+    const stationsDictRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?pageSize=10000`, { headers })
 
     if (stationsDictRes.status === 429) { return res.status(200).json({ delay: 0, platform: '-', status: 'Spróbuj ponownie później', estimatedArrival: '', hide: false }); }
     if (!stationsDictRes.ok) throw new Error('Błąd słownika stacji');
 
     const dictData = await stationsDictRes.json();
-    const fromStation = matchStation(dictData.stations, fromSearch);
-    const toStation = matchStation(dictData.stations, toSearch);
+    const fromStationId = matchStation(dictData.stations, fromSearch);
+    const toStationId = matchStation(dictData.stations, toSearch);
 
-    if (!fromStation || !toStation) {
+    if (!fromStationId || !toStationId) {
       return res.status(200).json({ delay: 0, platform: '-', status: 'Nie zidentyfikowano stacji', estimatedArrival: '', hide: false });
     }
-
-    const fromStationId = fromStation.id;
-    const toStationId = toStation.id;
 
     const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${fromStationId}`, { headers });
     if (schedulesRes.status === 429) return res.status(200).json({ delay: 0, platform: '-', status: '429', estimatedArrival: '', hide: false });
     if (!schedulesRes.ok) throw new Error(`Błąd rozkładu ${schedulesRes.status}`);
     const schedulesData = await schedulesRes.json();
 
-    const pureNumber = (trainNumber as string).replaceAll(/\D/g, '');
+    const pureNumber = (trainNumber as string).replace(/\D/g, '');
     const baseNumber = pureNumber.length > 1 ? pureNumber.slice(0, -1) : pureNumber;
     
     const plannedRoute = schedulesData.routes?.find((train: any) => {
@@ -115,7 +106,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       hide: false
     });    
 
-  } catch {
+  } catch (error: any) {
+    console.error(error)
     return res.status(200).json({ delay: 0, platform: '-', status: 'Brak danych live', estimatedArrival: '', hide: false });
   }
 }
