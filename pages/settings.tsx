@@ -1,19 +1,19 @@
 // pages/settings.tsx
 import React from "react";
-import InstallButton from "../components/settings/InstallButton";
-import LoadingState from "../components/LoadingState";
-import VersionInfo from "../components/settings/Versioninfo";
-import MenuGrid from "../components/settings/MenuGrid";
-import SettingsForm from "../components/settings/SettingsForm";
-import LocationSection from "../components/settings/LocationSection";
-import UserSection from "../components/settings/UserSection";
-import { useSettings } from "../hooks/useSettings";
-import PushNotificationManager from '../components/settings/PushNotificationManager';
-import LoveButton from "../components/settings/LoveButton";
-import { useAuth } from "../providers/AuthProvider";
-import { useToast } from "../providers/ToastProvider";
-import { Settings } from "../types"; 
-import Seo from "../components/SEO";
+import InstallButton from "@/components/settings/InstallButton";
+import LoadingState from "@/components/LoadingState";
+import VersionInfo from "@/components/settings/Versioninfo";
+import MenuGrid from "@/components/settings/MenuGrid";
+import SettingsForm from "@/components/settings/SettingsForm";
+import LocationSection from "@/components/settings/LocationSection";
+import UserSection from "@/components/settings/UserSection";
+import { useSettings } from "@/hooks/useSettings";
+import PushNotificationManager from '@/components/settings/PushNotificationManager';
+import LoveButton from "@/components/settings/LoveButton";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
+import { Settings } from "@/types"; 
+import Seo from "@/components/SEO";
 
 export default function SettingsPage() {
   const { user } = useAuth();

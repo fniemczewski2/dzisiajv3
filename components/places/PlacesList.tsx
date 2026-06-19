@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Place } from "../../types";
+import { Place } from "@/types";
 import { ChevronDown, Globe, MapPin, Phone, Star, Navigation } from "lucide-react";
 import { EditButton, DeleteButton } from "../CommonButtons";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import NoResultsState from "../NoResultsState";
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {

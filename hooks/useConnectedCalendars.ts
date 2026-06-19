@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '../utils/supabase/client';
-import { useAuth } from '../providers/AuthProvider';
-import { useToast } from '../providers/ToastProvider';
+import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/providers/AuthProvider';
+import { useToast } from '@/providers/ToastProvider';
 
 export interface ConnectedAccount {
   id: string;

@@ -3,12 +3,12 @@ import {
   RefreshCw, ChevronDown, ChevronUp, Plus, Check,
   Trash2, ChevronsRight, List, ListPlus,
 } from "lucide-react";
-import { useReminders } from "../../hooks/useReminders";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
-import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
-import { Task } from "../../types";
+import { useReminders } from "@/hooks/useReminders";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
+import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
+import { Task } from "@/types";
 import NoResultsState from "../NoResultsState";
 import { FormButtons } from "../CommonButtons";
 
@@ -130,7 +130,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
       toast.success("Utworzono zadanie.");
       onTasksChange?.();
     } catch {
-      toast.success("Wystąpił błąd dodawania zadania.");
+      toast.error("Wystąpił błąd dodawania zadania.");
     }
   };
 

@@ -1,9 +1,9 @@
 // hooks/useDailyHabits.ts
 import { useState, useEffect } from "react";
-import { getAppDate } from "../lib/dateUtils";
-import { DailyHabits, HabitKey } from "../types";
-import { useAuth } from "../providers/AuthProvider";
-import { useToast } from "../providers/ToastProvider";
+import { getAppDate } from "@/lib/dateUtils";
+import { DailyHabits, HabitKey } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
   date: new Date(date),

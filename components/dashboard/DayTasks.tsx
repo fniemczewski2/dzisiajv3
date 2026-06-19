@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import NoResultsState from "../NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 
-import { Task } from "../../types";
-import { useToast } from "../../providers/ToastProvider";
+import { Task } from "@/types";
+import { useToast } from "@/providers/ToastProvider";
 
 interface DayTasksProps {
   tasksLoading: boolean;

@@ -5,7 +5,7 @@ import {
   getGitHubHeaders,
   extractVersion,
   GITHUB_CONFIG,
-} from "../config/github";
+} from "@/config/github";
 
 interface VersionInfo {
   version: string;

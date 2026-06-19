@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { useEvents } from "../../hooks/useEvents";
+import { useEvents } from "@/hooks/useEvents";
 import { format } from "date-fns";
-import { eventSpansDate, getAppDate } from "../../lib/dateUtils";
+import { eventSpansDate, getAppDate } from "@/lib/dateUtils";
 import { Cake, Star } from "lucide-react";
-import { getPolishHolidays } from "../../lib/holidays"; 
+import { getPolishHolidays } from "@/lib/holidays"; 
 
 interface Props {
   date?: string; 

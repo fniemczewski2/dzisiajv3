@@ -2,16 +2,16 @@
 
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { AddButton } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
 import MovieCard from "./MovieCard";
 import NoResultsState from "../NoResultsState";
-import type { Movie, MovieInsert } from "../../types";
+import type { Movie, MovieInsert } from "@/types";
 
 interface MoviesProps {
   movies: Movie[];

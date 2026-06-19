@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import SearchBar from "../components/SearchBar";
-import { useTransport } from "../hooks/useTransport";
-import NoResultsState from "../components/NoResultsState";
-import { useToast } from "../providers/ToastProvider";
-import { AddButton, DeleteButton, FavButton } from "../components/CommonButtons";
-import Seo from "../components/SEO";
-import { useTrains } from "../hooks/useTrains";
-import AddTrainForm from "../components/transport/AddTrainWidget"; 
-import { TrackedTrainCard } from "../components/transport/TrackedTrainCard";
-import StationBoardWidget from "../components/transport/StationBoard";
+import SearchBar from "@/components/SearchBar";
+import { useTransport } from "@/hooks/useTransport";
+import NoResultsState from "@/components/NoResultsState";
+import { useToast } from "@/providers/ToastProvider";
+import { AddButton, DeleteButton, FavButton } from "@/components/CommonButtons";
+import Seo from "@/components/SEO";
+import { useTrains } from "@/hooks/useTrains";
+import AddTrainForm from "@/components/transport/AddTrainWidget"; 
+import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
+import StationBoardWidget from "@/components/transport/StationBoard";
 
 export default function TransportPage() {
   const { toast } = useToast();

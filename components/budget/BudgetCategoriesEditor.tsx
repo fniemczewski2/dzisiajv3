@@ -2,16 +2,16 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown, PlusCircle } from "lucide-react";
-import { useBudgetCategories } from "../../hooks/useBudgetCategories";
-import { useToast } from "../../providers/ToastProvider";
-import { propagateMonthlyLimits } from "../../lib/budgetUtils";
+import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { useToast } from "@/providers/ToastProvider";
+import { propagateMonthlyLimits } from "@/lib/budgetUtils";
 import {
   EditButton,
   DeleteButton,
   FormButtons,
 } from "../CommonButtons";
-import type { BudgetCategory } from "../../types";
-import { MAX_CATEGORIES } from "../../config/limits";
+import type { BudgetCategory } from "@/types";
+import { MAX_CATEGORIES } from "@/config/limits";
 
 interface AmountEditorProps {
   cat: BudgetCategory;

@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import { FormButtons } from "../CommonButtons";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 
 interface MovieAddFormProps {
   onSubmit: (movie: NewMovieData) => Promise<void>;

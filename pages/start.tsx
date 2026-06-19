@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
-import Seo from "../components/SEO";
-import { FEATURE_GROUPS } from "../config/features";
+import Seo from "@/components/SEO";
+import { FEATURE_GROUPS } from "@/config/features";
 
 export default function Home() {
   const router = useRouter();

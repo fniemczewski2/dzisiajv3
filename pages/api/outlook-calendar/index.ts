@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createServerSupabase } from '../../../utils/supabase/server';
+import { createServerSupabase } from '@/utils/supabase/server';
 
 async function refreshOutlookToken(refreshToken: string) {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {

@@ -2,12 +2,12 @@
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
-import type { Recipe, RecipeCategory } from "../../types";
-import { useRecipes } from "../../hooks/useRecipes";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import type { Recipe, RecipeCategory } from "@/types";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
 import SearchBar from "../SearchBar";
 import NoResultsState from "../NoResultsState";

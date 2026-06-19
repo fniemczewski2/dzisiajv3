@@ -1,8 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createServerSupabase } from '../../../utils/supabase/server';
+import { createServerSupabase } from '@/utils/supabase/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;
+
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   if (!code || !state) return res.status(400).redirect('/calendar?error=missing_params');
 
   try {

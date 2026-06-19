@@ -2,12 +2,12 @@
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Plus, X } from "lucide-react";
-import { Report } from "../../types";
-import { useReports } from "../../hooks/useReports";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
-import { getAppDate } from "../../lib/dateUtils";
+import { Report } from "@/types";
+import { useReports } from "@/hooks/useReports";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
+import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../CommonButtons";
 
 interface ReportFormProps {

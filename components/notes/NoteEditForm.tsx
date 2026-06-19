@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useEffect } from "react";
 import clsx from "clsx";
-import { Note } from "../../types";
+import { Note } from "@/types";
 import { FormButtons } from "../CommonButtons";
 
 interface NoteEditFormProps {

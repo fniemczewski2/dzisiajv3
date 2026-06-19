@@ -2,14 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
-import { useDaySchemas } from "../../hooks/useDaySchemas";
-import { Schema, ScheduleItem } from "../../types";
-import { getAppDateTime } from "../../lib/dateUtils";
-import DaySchemaForm from "../../components/daySchema/DaySchemaForm";
-import { AddButton, EditButton, DeleteButton } from "../../components/CommonButtons";
-import NoResultsState from "../../components/NoResultsState";
-import { useToast } from "../../providers/ToastProvider";
-import Seo from "../../components/SEO";
+import { useDaySchemas } from "@/hooks/useDaySchemas";
+import { Schema, ScheduleItem } from "@/types";
+import { getAppDateTime } from "@/lib/dateUtils";
+import DaySchemaForm from "@/components/daySchema/DaySchemaForm";
+import { AddButton, EditButton, DeleteButton } from "@/components/CommonButtons";
+import NoResultsState from "@/components/NoResultsState";
+import { useToast } from "@/providers/ToastProvider";
+import Seo from "@/components/SEO";
 
 export default function DaySchemaPage() {
   const { schemas, loading, fetching, fetchSchemas, deleteSchema } = useDaySchemas();

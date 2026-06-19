@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import UniversalTimer from "../components/Timer";
-import { useIntervalTraining } from "../hooks/useIntervalTraining";
+import UniversalTimer from "@/components/Timer";
+import { useIntervalTraining } from "@/hooks/useIntervalTraining";
 import { X, Settings2 } from "lucide-react";
-import Seo from "../components/SEO";
+import Seo from "@/components/SEO";
 
 export default function TrainingPage() {
   const [workSec, setWorkSec] = useState(30);

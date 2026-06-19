@@ -8,16 +8,16 @@ import {
   DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
 } from "@dnd-kit/core";
 
-import { useAuth } from "../../providers/AuthProvider";
-import { useSettings } from "../../hooks/useSettings";
-import { useTasks } from "../../hooks/useTasks";
-import { useEvents } from "../../hooks/useEvents";
-import { useStreaks } from "../../hooks/useStreaks";
-import { useDaySchemas } from "../../hooks/useDaySchemas";
-import { useDashboardDnd } from "../../hooks/useDashboardDnd";
-import { useDailyOverrides } from "../../hooks/useDailyOverrides";
-import { getPolishHolidays } from "../../lib/holidays";
-import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { useSettings } from "@/hooks/useSettings";
+import { useTasks } from "@/hooks/useTasks";
+import { useEvents } from "@/hooks/useEvents";
+import { useStreaks } from "@/hooks/useStreaks";
+import { useDaySchemas } from "@/hooks/useDaySchemas";
+import { useDashboardDnd } from "@/hooks/useDashboardDnd";
+import { useDailyOverrides } from "@/hooks/useDailyOverrides";
+import { getPolishHolidays } from "@/lib/holidays";
+import { useToast } from "@/providers/ToastProvider";
 import { DayEvents } from "./DayEvents";
 import { DailyPlan } from "./DailyPlan";
 import { DayTasks } from "./DayTasks";

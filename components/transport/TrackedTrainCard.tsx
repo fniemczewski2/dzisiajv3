@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Loader2, AlertTriangle, Clock } from 'lucide-react';
-import { useTrainStatus } from '../../hooks/useTrains';
+import { useTrainStatus } from '@/hooks/useTrains';
 import { DeleteButton } from '../CommonButtons';
 
 interface TrackedTrainProps {

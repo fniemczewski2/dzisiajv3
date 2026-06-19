@@ -1,10 +1,10 @@
 // hooks/useBills.ts
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../providers/AuthProvider";
+import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
-import type { Bill } from "../types";
+import type { Bill } from "@/types";
 import { addMonths, format, parseISO, isAfter } from "date-fns";
-import { BILLS_PAGE_LIMIT } from "../config/limits";
+import { BILLS_PAGE_LIMIT } from "@/config/limits";
 
 function getRecurringDates(startDate: string, recurringUntil: string): string[] {
   const dates: string[] = [];

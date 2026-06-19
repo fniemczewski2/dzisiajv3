@@ -10,16 +10,16 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
-import TaskList from "../../components/tasks/TaskList";
-import { useTasks } from "../../hooks/useTasks";
-import { getAppDate, getAppDateTime } from "../../lib/dateUtils";
-import { AddButton } from "../../components/CommonButtons";
-import { useQuickAction } from "../../hooks/useQuickAction";
-import Reminders from "../../components/tasks/Reminders";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { useSettings } from "../../hooks/useSettings";
-import Seo from "../../components/SEO";
+import TaskList from "@/components/tasks/TaskList";
+import { useTasks } from "@/hooks/useTasks";
+import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
+import { AddButton } from "@/components/CommonButtons";
+import { useQuickAction } from "@/hooks/useQuickAction";
+import Reminders from "@/components/tasks/Reminders";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { useSettings } from "@/hooks/useSettings";
+import Seo from "@/components/SEO";
 
 const TaskForm = dynamic(() => import("../../components/tasks/TaskForm"), {
   ssr: false, 

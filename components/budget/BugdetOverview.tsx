@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { BudgetCategory } from "../../types";
+import type { BudgetCategory } from "@/types";
 
 interface SummaryItem {
   category: BudgetCategory;

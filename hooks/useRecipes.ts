@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import type { Recipe, RecipeCategory } from "../types";
-import { useAuth } from "../providers/AuthProvider";
+import type { Recipe, RecipeCategory } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 
 type NewRecipe = {

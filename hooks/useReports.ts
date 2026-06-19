@@ -1,8 +1,8 @@
 // hooks/useReports.ts
 
 import { useEffect, useState, useCallback } from "react";
-import { Report } from "../types";
-import { useAuth } from "../providers/AuthProvider";
+import { Report } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function useReports() {
   const { user, supabase } = useAuth();

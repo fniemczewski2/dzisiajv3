@@ -1,8 +1,8 @@
 // hooks/useTimerEngine.ts
 
 import { useEffect, useRef, useState } from "react";
-import type { TimerPhase } from "../components/Timer";
-import { useToast } from "../providers/ToastProvider";
+import type { TimerPhase } from "@/components/Timer";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = false) {
   const [phaseIndex, setPhaseIndex] = useState(0);

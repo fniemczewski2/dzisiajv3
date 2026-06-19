@@ -62,8 +62,6 @@ async function refreshOutlookToken(refreshToken: string) {
   return await r.json();
 }
 
-// --- WYDZIELONE FUNKCJE POMOCNICZE ---
-
 async function getAccessToken(acc: any, accounts: any[], tokenCache: Record<string, string>, mainAccountsCache: Record<string, any>): Promise<string | null> {
   const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
   if (!mainAcc?.refresh_token) return null;
@@ -191,10 +189,13 @@ async function updateMainTokens(tokenCache: Record<string, string>, mainAccounts
   }
 }
 
-// --- GŁÓWNY HANDLER API ---
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authHeader = req.headers.authorization;
+
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: "Nieautoryzowane wywołanie" });
   }

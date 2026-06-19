@@ -4,6 +4,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { stationName } = req.query;
   const apiKey = process.env.PLK_API_KEY;
 
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   if (!stationName) {
     return res.status(400).json({ error: 'Brak parametru stationName' });
   }

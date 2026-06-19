@@ -1,10 +1,10 @@
 // hooks/useSettings.ts
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useAuth } from "../providers/AuthProvider";
-import { Settings } from "../types";
-import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
-import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "../config/limits";
+import { useAuth } from "@/providers/AuthProvider";
+import { Settings } from "@/types";
+import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
+import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "@/config/limits";
 
 type GeoCoords = { lat: number; lng: number };
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
-import { useToast } from '../../providers/ToastProvider';
+import { useToast } from '@/providers/ToastProvider';
 import { CancelButton, SaveButton } from '../CommonButtons';
 
 interface AddTrainWidgetProps {

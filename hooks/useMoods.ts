@@ -1,8 +1,8 @@
 // hooks/useMoods.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../providers/AuthProvider";
-import { MoodEntry } from "../types";
+import { useAuth } from "@/providers/AuthProvider";
+import { MoodEntry } from "@/types";
 
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();

@@ -1,9 +1,9 @@
 // hooks/useBudgetCategories.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../providers/AuthProvider";
-import type { BudgetCategory } from "../types";
-import { MAX_CATEGORIES } from "../config/limits";
+import { useAuth } from "@/providers/AuthProvider";
+import type { BudgetCategory } from "@/types";
+import { MAX_CATEGORIES } from "@/config/limits";
 
 export function useBudgetCategories(year: number) {
   const { user, supabase } = useAuth();

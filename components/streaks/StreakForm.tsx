@@ -5,11 +5,11 @@ import {
   Flame, Trophy, Target, Heart, Cigarette, Beer,
   UtensilsCrossed, Dumbbell, PiggyBank, BriefcaseMedical,
 } from "lucide-react";
-import { useStreaks } from "../../hooks/useStreaks";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
-import { getAppDate } from "../../lib/dateUtils";
+import { useStreaks } from "@/hooks/useStreaks";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
+import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../CommonButtons";
 
 interface StreakFormProps {

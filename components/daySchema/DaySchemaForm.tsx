@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { PlusCircle } from "lucide-react";
-import { useDaySchemas } from "../../hooks/useDaySchemas";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { useDaySchemas } from "@/hooks/useDaySchemas";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { DeleteButton, FormButtons, NotifyButton } from "../CommonButtons";
 
-import type { ScheduleItem, Schema } from "../../types";
+import type { ScheduleItem, Schema } from "@/types";
 
 interface DaySchemaFormProps {
   initialSchema?: Schema | null;

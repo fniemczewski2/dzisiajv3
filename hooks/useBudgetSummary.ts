@@ -1,10 +1,10 @@
 // hooks/useBudgetSummary.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../providers/AuthProvider";
-import type { BudgetCategory } from "../types";
+import { useAuth } from "@/providers/AuthProvider";
+import type { BudgetCategory } from "@/types";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import { calculateExpectedYearlyLimit } from "../lib/budgetUtils";
+import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 
 interface RawBillRow {
   amount: number;

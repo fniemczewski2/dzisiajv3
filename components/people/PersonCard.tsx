@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Phone, Mail, Calendar, CheckCircle2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react'; 
-import { Person } from '../../types';
+import { Person } from '@/types';
 import { EditButton, DeleteButton, ShareButton, CloseButton } from '../CommonButtons';
 
 interface PersonCardProps {

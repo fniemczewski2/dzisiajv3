@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Event } from "../types";
-import { expandRepeatingEvents } from "../lib/eventUtils";
-import { useAuth } from "../providers/AuthProvider";
-import { resolveSharedEmails, getUserIdByEmail } from "../utils/share"; 
+import { Event } from "@/types";
+import { expandRepeatingEvents } from "@/lib/eventUtils";
+import { useAuth } from "@/providers/AuthProvider";
+import { resolveSharedEmails, getUserIdByEmail } from "@/utils/share"; 
 
 export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();

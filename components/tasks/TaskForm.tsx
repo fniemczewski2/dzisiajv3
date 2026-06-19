@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useRef, useState, SyntheticEvent } from "react";
-import { Task } from "../../types";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
-import { getAppDate } from "../../lib/dateUtils";
+import { Task } from "@/types";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
+import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../CommonButtons";
 import { Minus, Plus } from "lucide-react";
 

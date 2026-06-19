@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import type { Movie, MovieInsert } from "../types";
-import { useAuth } from "../providers/AuthProvider";
+import type { Movie, MovieInsert } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 
 export function useMovies() {

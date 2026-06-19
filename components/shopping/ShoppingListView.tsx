@@ -2,11 +2,11 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, User } from "lucide-react";
-import { ShoppingList } from "../../types";
-import { useSettings } from "../../hooks/useSettings";
-import { useAuth } from "../../providers/AuthProvider";
-import { useToast } from "../../providers/ToastProvider";
-import { withRetry } from "../../lib/withRetry";
+import { ShoppingList } from "@/types";
+import { useSettings } from "@/hooks/useSettings";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
+import { withRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
 import NoResultsState from "../NoResultsState";
 

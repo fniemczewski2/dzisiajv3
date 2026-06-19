@@ -1,6 +1,6 @@
 // hooks/useBudget.ts
 import { useState, useEffect } from "react";
-import { useAuth } from "../providers/AuthProvider";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface MonthData {
   sum: number;

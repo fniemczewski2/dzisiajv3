@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useAuth } from "../providers/AuthProvider";
-import { useToast } from "../providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 import { useSettings } from "./useSettings";
-import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "../config/limits";
+import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 
 export interface Departure {
   line: string;

@@ -1,6 +1,6 @@
 // hooks/useDailyOverrides.ts
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '@/providers/AuthProvider';
 
 export type DailyOverride = {
   schema_id: string;

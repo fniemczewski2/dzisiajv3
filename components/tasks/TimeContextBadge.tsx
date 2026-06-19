@@ -1,4 +1,4 @@
-import { getTimeContext } from '../../lib/timeContext';
+import { getTimeContext } from '@/lib/timeContext';
 
 interface TimeContextBadgeProps {
   dueDate: string;

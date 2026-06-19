@@ -1,7 +1,7 @@
 // hooks/usePeople.ts
 import { useState, useEffect, useCallback } from "react";
-import { Person, PersonInsert } from "../types";
-import { useAuth } from "../providers/AuthProvider";
+import { Person, PersonInsert } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function usePeople() {
   const { user, supabase } = useAuth();

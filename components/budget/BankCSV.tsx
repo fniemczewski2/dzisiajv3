@@ -2,12 +2,12 @@
 
 import React, { useState, useRef } from "react";
 import { Upload, AlertCircle, CheckCircle2, FileText } from "lucide-react";
-import { useBudgetCategories } from "../../hooks/useBudgetCategories";
-import { useBills } from "../../hooks/useBills";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
+import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { useBills } from "@/hooks/useBills";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
 import { FormButtons } from "../CommonButtons";
-import { BudgetCategory } from "../../types";
+import { BudgetCategory } from "@/types";
 
 const REQUIRED_CATEGORIES = [
   "Opłaty stałe",
