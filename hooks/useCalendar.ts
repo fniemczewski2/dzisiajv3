@@ -1,6 +1,6 @@
 // hooks/useCalendarData.ts
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../providers/AuthProvider";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function useCalendarData(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();

@@ -1,12 +1,12 @@
 "use client";
 
 import { SyntheticEvent, useState } from "react";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { FormButtons } from "../CommonButtons";
-import { ShoppingList } from "../../types";
+import { ShoppingList } from "@/types";
 
 interface ShoppingFormProps {
   onChange: () => void;

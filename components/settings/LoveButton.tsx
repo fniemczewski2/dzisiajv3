@@ -2,8 +2,8 @@
 
 import { Heart } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "../../providers/AuthProvider";
-import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 export default function LoveButton() {
   const { user, supabase } = useAuth();

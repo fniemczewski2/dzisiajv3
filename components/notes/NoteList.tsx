@@ -2,16 +2,16 @@
 
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { Note } from "../../types";
-import { useNotes } from "../../hooks/useNotes";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { Note } from "@/types";
+import { useNotes } from "@/hooks/useNotes";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import SearchBar from "../SearchBar";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
-import { filterNotes, getNoteTitles } from "../../lib/notesUtils";
+import { filterNotes, getNoteTitles } from "@/lib/notesUtils";
 import NoResultsState from "../NoResultsState";
 
 interface NoteListProps {

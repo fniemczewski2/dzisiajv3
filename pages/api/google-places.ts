@@ -1,8 +1,8 @@
 // pages/api/google-places.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { generatePlaceTags } from '../../lib/placeTagging';
-import { createServerSupabase } from '../../utils/supabase/server'; 
+import { generatePlaceTags } from '@/lib/placeTagging';
+import { createServerSupabase } from '@/utils/supabase/server'; 
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 

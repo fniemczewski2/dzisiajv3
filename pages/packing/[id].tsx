@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
-import PackingList from "../../components/packing/PackingList";
-import { BACKPACK, SAFETY, SUITCASE } from "../../config/packing";
+import PackingList from "@/components/packing/PackingList";
+import { BACKPACK, SAFETY, SUITCASE } from "@/config/packing";
 
 export default function DynamicPackingPage() {
   const router = useRouter();

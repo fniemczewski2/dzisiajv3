@@ -1,16 +1,16 @@
 import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
-import MonthView from "../components/calendar/MonthView";
-import { useEvents } from "../hooks/useEvents";
+import MonthView from "@/components/calendar/MonthView";
+import { useEvents } from "@/hooks/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import CalendarHeader from "../components/calendar/CalendarHeader";
-import { AddButton } from "../components/CommonButtons";
-import { useQuickAction } from "../hooks/useQuickAction";
-import { useMoods } from "../hooks/useMoods";
-import { DEFAULT_MOODS } from "../components/widgets/MoodTracker";
-import ConnectedCalendars from "../components/calendar/ConnectedCalendars";
-import { useToast } from "../providers/ToastProvider";
-import Seo from "../components/SEO";
+import CalendarHeader from "@/components/calendar/CalendarHeader";
+import { AddButton } from "@/components/CommonButtons";
+import { useQuickAction } from "@/hooks/useQuickAction";
+import { useMoods } from "@/hooks/useMoods";
+import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
+import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
+import { useToast } from "@/providers/ToastProvider";
+import Seo from "@/components/SEO";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), { ssr: false });
 const CalendarDayDetails = dynamic(() => import("../components/calendar/CalendarDayDetails"), { ssr: false });

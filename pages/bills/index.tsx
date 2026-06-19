@@ -3,17 +3,17 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Calculator, ChartColumnBig } from "lucide-react";
-import { useBills } from "../../hooks/useBills";
-import { useBudgetCategories } from "../../hooks/useBudgetCategories";
+import { useBills } from "@/hooks/useBills";
+import { useBudgetCategories } from "@/hooks/useBudgetCategories";
 import { useRouter } from "next/router";
-import { useToast } from "../../providers/ToastProvider";
+import { useToast } from "@/providers/ToastProvider";
 import { getYear } from "date-fns";
-import DailySpendingForm from "../../components/widgets/DailySpendingForm";
-import { AddButton } from "../../components/CommonButtons";
-import { useQuickAction } from "../../hooks/useQuickAction";
-import type { Bill } from "../../types";
-import BillListGrouped from "../../components/bills/BillListGrouped";
-import Seo from "../../components/SEO";
+import DailySpendingForm from "@/components/widgets/DailySpendingForm";
+import { AddButton } from "@/components/CommonButtons";
+import { useQuickAction } from "@/hooks/useQuickAction";
+import type { Bill } from "@/types";
+import BillListGrouped from "@/components/bills/BillListGrouped";
+import Seo from "@/components/SEO";
 
 const BillForm = dynamic(() => import("../../components/bills/BillForm"), {
   ssr: false,

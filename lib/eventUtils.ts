@@ -5,7 +5,7 @@ import {
   addYears,
   differenceInCalendarDays,
 } from "date-fns";
-import { Event } from "../types";
+import { Event } from "@/types";
 import { getAppDate, parseEventDate, dateToTimestamp } from "./dateUtils";
 
 const getNextDate = (currentDate: Date, repeat: string): Date => {

@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";
-import type { Movie } from "../../types";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import type { Movie } from "@/types";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../CommonButtons";
 
 interface MovieCardProps {

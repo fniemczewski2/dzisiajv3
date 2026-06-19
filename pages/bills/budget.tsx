@@ -3,17 +3,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useRouter } from "next/router";
-import { getAppDateTime } from "../../lib/dateUtils";
-import { useBudgetCategories } from "../../hooks/useBudgetCategories";
-import { useBudgetSummary } from "../../hooks/useBudgetSummary";
-import BudgetCategoriesEditor from "../../components/budget/BudgetCategoriesEditor";
-import BudgetOverview from "../../components/budget/BugdetOverview";
-import BudgetStatsTable from "../../components/budget/StatsTable";
-import SummaryTable from "../../components/budget/SummaryTable";
-import { useBudgetData } from "../../hooks/useBudget";
-import BudgetControls from "../../components/budget/BudgetControls";
-import { useToast } from "../../providers/ToastProvider";
-import Seo from "../../components/SEO";
+import { getAppDateTime } from "@/lib/dateUtils";
+import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { useBudgetSummary } from "@/hooks/useBudgetSummary";
+import BudgetCategoriesEditor from "@/components/budget/BudgetCategoriesEditor";
+import BudgetOverview from "@/components/budget/BugdetOverview";
+import BudgetStatsTable from "@/components/budget/StatsTable";
+import SummaryTable from "@/components/budget/SummaryTable";
+import { useBudgetData } from "@/hooks/useBudget";
+import BudgetControls from "@/components/budget/BudgetControls";
+import { useToast } from "@/providers/ToastProvider";
+import Seo from "@/components/SEO";
 
 const MONTH_NAMES = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
 

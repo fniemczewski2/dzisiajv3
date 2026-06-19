@@ -1,9 +1,9 @@
 // hooks/useReminders.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { Reminder } from "../types";
-import { getAppDate, getAppDateTime } from "../lib/dateUtils";
-import { useAuth } from "../providers/AuthProvider";
+import { Reminder } from "@/types";
+import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function useReminders() {
   const { user, supabase } = useAuth();

@@ -1,7 +1,7 @@
 import React from "react";
 import { Backpack, Briefcase, Siren } from "lucide-react";
 import { useRouter } from "next/router";
-import Seo from "../../components/SEO";
+import Seo from "@/components/SEO";
 
 export default function PackingMenuPage() {
   const router = useRouter();

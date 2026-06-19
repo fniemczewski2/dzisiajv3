@@ -1,8 +1,8 @@
 // hooks/useDashboardDnd.ts
 import { useState, useCallback } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
-import { Task } from "../types";
-import { dateToTimestamp } from "../lib/dateUtils";
+import { Task } from "@/types";
+import { dateToTimestamp } from "@/lib/dateUtils";
 
 interface UseDashboardDndProps {
   tasks: Task[];

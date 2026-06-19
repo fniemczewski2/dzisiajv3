@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { Event } from "../../types";
-import { useToast } from "../../providers/ToastProvider"; 
+import { Event } from "@/types";
+import { useToast } from "@/providers/ToastProvider"; 
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import NoResultsState from "../NoResultsState";
 import EventItem from "../calendar/EventItem";

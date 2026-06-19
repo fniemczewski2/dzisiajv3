@@ -2,11 +2,11 @@
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
-import { Note } from "../../types";
-import { useNotes } from "../../hooks/useNotes";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { Note } from "@/types";
+import { useNotes } from "@/hooks/useNotes";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { FormButtons } from "../CommonButtons";
 
 interface NoteFormProps {

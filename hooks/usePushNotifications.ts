@@ -2,8 +2,8 @@
 
 'use client'
 import { useEffect, useState } from 'react'
-import { useAuth } from '../providers/AuthProvider'
-import urlBase64ToUint8Array from '../utils/urlBase64ToUint8Array'
+import { useAuth } from '@/providers/AuthProvider'
+import urlBase64ToUint8Array from '@/utils/urlBase64ToUint8Array'
 
 export function usePushNotifications(userId: string | undefined) {
   const { supabase } = useAuth()

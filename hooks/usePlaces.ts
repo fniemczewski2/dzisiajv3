@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Place, PlaceInsert, OpeningHours } from "../types";
-import { generatePlaceTags } from "../lib/placeTagging";
-import { useAuth } from "../providers/AuthProvider";
+import { Place, PlaceInsert, OpeningHours } from "@/types";
+import { generatePlaceTags } from "@/lib/placeTagging";
+import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 
 export function usePlaces() {

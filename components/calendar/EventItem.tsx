@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Clock, MapPin, User, Download, Globe } from "lucide-react";
-import { Event } from "../../types";
-import { useAuth } from "../../providers/AuthProvider";
-import { useToast } from "../../providers/ToastProvider";
-import { withRetry } from "../../lib/withRetry";
-import { formatTime, localDateTimeToISO } from "../../lib/dateUtils";
-import { generateSingleEventICS } from "../../lib/icsGenerator";
+import { Event } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
+import { withRetry } from "@/lib/withRetry";
+import { formatTime, localDateTimeToISO } from "@/lib/dateUtils";
+import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
 
 interface EventItemProps {

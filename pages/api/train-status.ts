@@ -3,6 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { trainNumber, from, to, trainName } = req.query;
   const apiKey = process.env.PLK_API_KEY || '';
+  
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+  
   try {
     const headers = {
       'X-API-Key': apiKey,

@@ -1,8 +1,8 @@
 // hooks/useDaySchemas.ts
 
 import { useEffect, useState, useCallback } from "react";
-import { Schema } from "../types";
-import { useAuth } from "../providers/AuthProvider";
+import { Schema } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function useDaySchemas() {
   const { user, supabase } = useAuth();

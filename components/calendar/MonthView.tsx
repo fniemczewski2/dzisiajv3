@@ -1,16 +1,16 @@
 // components/calendar/MonthView.tsx
 
 import React, { useMemo, memo } from "react";
-import { Event, MoodEntry, MoodOption } from "../../types";
+import { Event, MoodEntry, MoodOption } from "@/types";
 import {
   startOfMonth, endOfMonth, addDays, startOfWeek, endOfWeek,
   isBefore, isAfter, max, min, differenceInCalendarDays, format, endOfDay,
 } from "date-fns";
 import CalendarCell from "./CalendarCell";
-import { useCalendarData } from "../../hooks/useCalendar";
-import { useResponsive } from "../../hooks/useResponsive";
-import { getPolishHolidays } from "../../lib/holidays";
-import { parseEventDate } from "../../lib/dateUtils";
+import { useCalendarData } from "@/hooks/useCalendar";
+import { useResponsive } from "@/hooks/useResponsive";
+import { getPolishHolidays } from "@/lib/holidays";
+import { parseEventDate } from "@/lib/dateUtils";
 
 interface Props {
   events: Event[];

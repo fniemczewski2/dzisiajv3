@@ -1,7 +1,7 @@
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import React, { useState } from "react";
 import { CloseButton } from "../CommonButtons";
-import { useToast } from "../../providers/ToastProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ImportPlacesProps {
   onImport: (jsonData: any, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;

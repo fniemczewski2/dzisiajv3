@@ -48,13 +48,10 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
   return d.access_token ?? null;
 }
 
-// ZMODYFIKOWANA FUNKCJA: Pobiera tokeny tylko z wierszy technicznych
 async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promise<string | null> {
   const sb = getServiceSupabase(auth.token);
   let targetEmail: string | null = null;
 
-  // Jeżeli dostaliśmy accountId (które może być nowym sub-kalendarzem bez tokenu), 
-  // najpierw ustalamy, jakiego adresu e-mail dotyczy.
   if (accountId) {
     const { data: calInfo } = await sb.from("connected_calendars")
       .select("account_email")
@@ -65,14 +62,12 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
     if (calInfo) targetEmail = calInfo.account_email;
   }
 
-  // Zawsze szukamy TOKENÓW w wierszu technicznym użytkownika
   let query = sb.from("connected_calendars")
     .select("id, access_token, refresh_token, expires_at")
     .eq("user_id", auth.user.id)
     .eq("provider", "google")
     .eq("google_calendar_id", "@account_connection");
 
-  // Jeżeli znamy email (bo podano accountId i go znaleźliśmy), zawężamy do tego konkretnego konta
   if (targetEmail) {
     query = query.eq("account_email", targetEmail);
   }
@@ -86,7 +81,6 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
   const fresh = await refreshGoogleToken(data.refresh_token);
   if (!fresh) return null;
 
-  // Odświeżony token zapisujemy DOKŁADNIE w tym wierszu technicznym (data.id)
   await sb.from("connected_calendars")
     .update({ access_token: fresh, expires_at: new Date(Date.now() + 3_600_000).toISOString() })
     .eq("id", data.id);
@@ -157,10 +151,8 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: Au
   return res.json({ url: url.toString() });
 }
 
-// ZMODYFIKOWANA FUNKCJA: Pobiera listę kalendarzy korzystając wyłącznie z technicznych połączeń
 async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const sb = getServiceSupabase(auth.token);
-  // Pobieramy TYLKO główne wiersze techniczne kont, żeby pominąć ewentualne sub-kalendarze
   const { data: mainAccounts } = await sb.from("connected_calendars")
     .select("id, account_email")
     .eq("user_id", auth.user.id)
@@ -181,7 +173,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
       const data = await r.json();
       
       const items = data.items?.filter((c: any) => !c.id.includes("addressbook#birthdays")) || [];
-      // Przypisujemy kalendarze do GŁÓWNEGO id wiersza technicznego
+
       items.forEach((c: any) => allCalendars.push({ ...c, primaryAccountId: mainAcc.id }));
 
       allCalendars.push({
@@ -199,7 +191,6 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const { calendarId, accountId } = req.body ?? {};
   if (!calendarId || !accountId) return res.status(400).json({ error: "Missing params" });
 
-  // Token zostanie automatycznie wydobyty z wiersza technicznego dzięki poprawce w getValidGoogleToken
   const accessToken = await getValidGoogleToken(auth, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 
@@ -316,7 +307,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const { calendarId, eventIds, accountId } = req.body ?? {};
   if (!calendarId) return res.status(400).json({ error: "calendarId required" });
 
-  // To również zadziała idealnie - znajdzie główny token dzięki zaktualizowanej metodzie
   const accessToken = await getValidGoogleToken(auth, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
 

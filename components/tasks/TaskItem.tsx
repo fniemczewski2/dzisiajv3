@@ -3,15 +3,15 @@
 import React, { useState, useRef, useEffect, memo } from "react";
 import { format, parseISO, addDays } from "date-fns";
 import { Check, Minus, Plus } from "lucide-react";
-import { Task } from "../../types";
-import { getAppDate } from "../../lib/dateUtils";
+import { Task } from "@/types";
+import { getAppDate } from "@/lib/dateUtils";
 import TimeContextBadge from "./TimeContextBadge";
 import UniversalTimer from "../Timer";
 import {
   EditButton, DeleteButton, RescheduleButton, TimerButton, FormButtons,
 } from "../CommonButtons";
-import { useAuth } from "../../providers/AuthProvider";
-import { useToast } from "../../providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 interface Props {
   task: Task;

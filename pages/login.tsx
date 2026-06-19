@@ -1,8 +1,8 @@
 // pages/login.tsx
 "use client";
 
-import LoginForm from "../components/LoginForm";
-import Seo from "../components/SEO";
+import LoginForm from "@/components/LoginForm";
+import Seo from "@/components/SEO";
 
 export default function LoginPage() {
   return (

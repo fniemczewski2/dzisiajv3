@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, RefreshCw, Plus, Train, AlertCircle } from 'lucide-react';
-import { useTrains } from '../../hooks/useTrains';
-import { useToast } from '../../providers/ToastProvider';
+import { useTrains } from '@/hooks/useTrains';
+import { useToast } from '@/providers/ToastProvider';
 import { AddButton } from '../CommonButtons';
 import NoResultsState from '../NoResultsState';
 import LoadingState from '../LoadingState';

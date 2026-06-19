@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Task } from "../types";
+import { Task } from "@/types";
 import { useSettings } from "./useSettings";
-import { useAuth } from "../providers/AuthProvider";
-import { resolveSharedEmails, getUserIdByEmail } from "../utils/share";
+import { useAuth } from "@/providers/AuthProvider";
+import { resolveSharedEmails, getUserIdByEmail } from "@/utils/share";
 
 const createSortFunction = (
   sortOrder: string,

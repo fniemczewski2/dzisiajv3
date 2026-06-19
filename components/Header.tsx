@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/router";
 import LoadingState from "./LoadingState";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
+import { useWeather } from "../hooks/useWeather";
 import { useToast } from "../providers/ToastProvider";
 
 interface WeatherdetailsProps {
@@ -41,14 +42,6 @@ function WeatherIcon({
   if (code <= 86) return <CloudSnow className={className} />;
   return <CloudLightning className={className} />;
 }
-
-const StableBirthdayIndicator = memo(function StableBirthdayIndicator({
-  date,
-}: {
-  date: string;
-}) {
-  return <BirthdayIndicator date={date} />;
-});
 
 function WeatherDetails({
   currentTemp,
@@ -97,42 +90,48 @@ function WeatherDetails({
 
 export default function Header() {
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
   const [todayDateString, setTodayDateString] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
-  const [currentTime, setCurrentTime] = useState("");
-  const [currentTemp, setCurrentTemp] = useState<number | null>(null);
-  const [dailyMin, setDailyMin] = useState<number | null>(null);
-  const [dailyMax, setDailyMax] = useState<number | null>(null);
-  const [airQuality, setAirQuality] = useState<string | null>(null);
-  const [weatherCode, setWeatherCode] = useState<number | null>(null);
-  const router = useRouter();
-  const { toast } = useToast();
+  
+  const { forecast, air, loading: weatherLoading, error: weatherError } = useWeather();
+
+  useEffect(() => {
+    if (weatherError) {
+      toast.error(weatherError);
+    }
+  }, [weatherError, toast]);
+
+  const currentTemp = forecast?.current_weather?.temperature ?? null;
+  const weatherCode = forecast?.current_weather?.weathercode ?? null;
+  const dailyMin = forecast?.daily?.apparent_temperature_min?.[0] ?? null;
+  const dailyMax = forecast?.daily?.apparent_temperature_max?.[0] ?? null;
+  
+  let airQuality = null;
+  if (air?.hourly && (air.hourly.pm10[0] > 45 || air.hourly.pm2_5[0] > 15)) {
+    airQuality = air.hourly.pm2_5[0] - 15 > air.hourly.pm10[0] - 45
+      ? `${air.hourly.pm2_5[0]} µg/m³ PM2.5`
+      : `${air.hourly.pm10[0]} µg/m³ PM10`;
+  }
 
   useEffect(() => {
     let isMounted = true;
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    setLoading(true);
-
     const now = new Date();
 
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
-        weekday: "short",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+        weekday: "short", year: "numeric", month: "long", day: "numeric",
       })
     );
     setCurrentTime(now.toLocaleTimeString("pl-PL"));
 
     const timer = setInterval(() => {
       if (!isMounted) return;
-
       const tick = new Date();
       setCurrentTime(tick.toLocaleTimeString("pl-PL"));
 
@@ -140,84 +139,11 @@ export default function Header() {
       setTodayDateString((prev) => (prev === newDateStr ? newDateStr : prev));
     }, 1000);
 
-    if (!navigator.geolocation) {
-      setLoading(false);
-      return () => {
-        isMounted = false;
-        clearInterval(timer);
-      };
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const weatherUrl = new URL("https://api.open-meteo.com/v1/forecast");
-          weatherUrl.searchParams.set("latitude", coords.latitude.toString());
-          weatherUrl.searchParams.set("longitude", coords.longitude.toString());
-          weatherUrl.searchParams.set("current_weather", "true");
-          weatherUrl.searchParams.set(
-            "daily",
-            "apparent_temperature_min,apparent_temperature_max"
-          );
-          weatherUrl.searchParams.set("timezone", "auto");
-
-          const weatherRes = await fetch(weatherUrl.toString(), { signal });
-          if (!isMounted) return;
-          const weatherJson = await weatherRes.json();
-
-          if (isMounted) {
-            setCurrentTemp(weatherJson.current_weather.temperature);
-            setWeatherCode(weatherJson.current_weather.weathercode);
-            setDailyMin(
-              Math.min(...weatherJson.daily.apparent_temperature_min)
-            );
-            setDailyMax(
-              Math.max(...weatherJson.daily.apparent_temperature_max)
-            );
-          }
-
-          const airUrl = new URL(
-            "https://air-quality-api.open-meteo.com/v1/air-quality"
-          );
-          airUrl.searchParams.set("latitude", coords.latitude.toString());
-          airUrl.searchParams.set("longitude", coords.longitude.toString());
-          airUrl.searchParams.set("hourly", "pm10,pm2_5");
-          airUrl.searchParams.set("timezone", "auto");
-
-          const airRes = await fetch(airUrl.toString(), { signal });
-          if (!isMounted) return;
-          const airJson = await airRes.json();
-
-          if (
-            isMounted &&
-            airJson.hourly &&
-            (airJson.hourly.pm10[0] > 45 || airJson.hourly.pm2_5[0] > 15)
-          ) {
-            setAirQuality(
-              airJson.hourly.pm2_5[0] - 15 > airJson.hourly.pm10[0] - 45
-                ? `${airJson.hourly.pm2_5[0]} µg/m³ PM2.5`
-                : `${airJson.hourly.pm10[0]} µg/m³ PM10`
-            );
-          }
-        } catch {
-          toast.error("Wystąpił błąd pobierania danych pogodowych");
-        } finally {
-          if (isMounted) setLoading(false);
-        }
-      },
-      () => {
-        toast.error("Wystąpił błąd lokalizacji.");
-        if (isMounted) setLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-
     return () => {
       isMounted = false;
       clearInterval(timer);
-      controller.abort();
     };
-  }, [toast]);
+  }, []);
 
   return (
     <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full max-w-[1600px] flex justify-center">
@@ -235,7 +161,7 @@ export default function Header() {
             <span className="text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
               {currentDate}
             </span>
-            <StableBirthdayIndicator date={todayDateString} />
+            <BirthdayIndicator date={todayDateString} />
           </button>
         </div>
 
@@ -246,7 +172,7 @@ export default function Header() {
         </div>
 
         <div className="shrink-0 flex flex-1 justify-end items-center">
-          {loading ? (
+          {weatherLoading ? (
             <LoadingState />
           ) : (
             <WeatherDetails 

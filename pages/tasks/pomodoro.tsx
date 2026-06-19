@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
-import UniversalTimer, { TimerPhase, TimerControls } from "../../components/Timer";
+import UniversalTimer, { TimerPhase, TimerControls } from "@/components/Timer";
 import { ListTodo, Settings, X } from "lucide-react";
-import Seo from "../../components/SEO";
+import Seo from "@/components/SEO";
 
 export default function PomodoroPage() {
   const DEFAULT_FOCUS = 25 * 60;

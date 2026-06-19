@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../providers/AuthProvider';
-import { useToast } from '../providers/ToastProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { useToast } from '@/providers/ToastProvider';
 
 export interface TrainInput {
   trainNumber: string;

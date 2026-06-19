@@ -4,9 +4,9 @@ import {
   Pill, Bath, Dumbbell, Users,
   Briefcase, Home, Leaf, Languages,
 } from "lucide-react";
-import { useDailyHabits } from "../../hooks/useDailyHabits";
-import { useSettings } from "../../hooks/useSettings";
-import type { HabitKey } from "../../types";
+import { useDailyHabits } from "@/hooks/useDailyHabits";
+import { useSettings } from "@/hooks/useSettings";
+import type { HabitKey } from "@/types";
 
 const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "pills", Icon: Pill },

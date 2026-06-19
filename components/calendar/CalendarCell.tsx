@@ -3,9 +3,9 @@ import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
 import { Calendar, ListTodo } from "lucide-react";
 import React, { memo, useMemo } from "react";
-import { getAppDate } from "../../lib/dateUtils";
-import { useSettings } from "../../hooks/useSettings";
-import { MoodEntry, MoodOption } from "../../types";
+import { getAppDate } from "@/lib/dateUtils";
+import { useSettings } from "@/hooks/useSettings";
+import { MoodEntry, MoodOption } from "@/types";
 
 interface Props {
   date: Date;

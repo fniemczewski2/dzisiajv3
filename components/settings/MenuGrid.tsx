@@ -1,6 +1,6 @@
 import React from "react";
 import { useRouter } from "next/router";
-import { NAVIGATION_CATEGORIES, QUICK_ACTIONS } from "../../config/navigation";
+import { NAVIGATION_CATEGORIES, QUICK_ACTIONS } from "@/config/navigation";
 import { AddSpecificButton } from "../CommonButtons";
 
 export default function MenuGrid() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Sun,
   CloudSun,
@@ -18,10 +18,11 @@ import {
   Sunrise,
   Sunset,
 } from "lucide-react";
-import { getAppDateTime } from "../lib/dateUtils";
-import NoResultsState from "../components/NoResultsState";
-import { useToast } from "../providers/ToastProvider";
-import Seo from "../components/SEO";
+import { getAppDateTime } from "@/lib/dateUtils";
+import NoResultsState from "@/components/NoResultsState";
+import { useToast } from "@/providers/ToastProvider";
+import Seo from "@/components/SEO";
+import { useWeather } from "@/hooks/useWeather";
 
 interface HourlyRow {
   time: string;
@@ -81,66 +82,9 @@ function evaluateBiomet(forecast: any) {
 }
 
 export default function WeatherPage() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [forecast, setForecast] = useState<any>(null);
-  const [air, setAir] = useState<any>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const nav = globalThis.navigator;
-
-    if (!nav?.geolocation) {
-      setError("Geolokalizacja nie jest wspierana.");
-      setLoading(false);
-      return;
-    }
-
-    nav.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const { latitude, longitude } = coords;
-          const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
-          forecastUrl.searchParams.set("latitude", latitude.toString());
-          forecastUrl.searchParams.set("longitude", longitude.toString());
-          forecastUrl.searchParams.set(
-            "hourly",
-            "temperature_2m,precipitation,windspeed_10m,uv_index,weathercode,pressure_msl,relative_humidity_2m,winddirection_10m"
-          );
-          forecastUrl.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,weathercode,uv_index_max,sunrise,sunset,precipitation_sum");
-          forecastUrl.searchParams.set("timezone", "auto");
-          forecastUrl.searchParams.set("forecast_days", "6");
-
-          const airUrl = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
-          airUrl.searchParams.set("latitude", latitude.toString());
-          airUrl.searchParams.set("longitude", longitude.toString());
-          airUrl.searchParams.set("hourly", "pm10,pm2_5");
-          airUrl.searchParams.set("timezone", "auto");
-
-          const [forecastRes, airRes] = await Promise.all([
-            fetch(forecastUrl.toString()),
-            fetch(airUrl.toString()),
-          ]);
-
-          if (!forecastRes.ok || !airRes.ok) throw new Error("Brak danych pogodowych!");
-
-          const forecastJson = await forecastRes.json();
-          const airJson = await airRes.json();
-
-          setForecast(forecastJson);
-          setAir(airJson);
-        } catch {
-          setError("Błąd pobierania danych pogodowych lub jakości powietrza.");
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => {
-        setError("Nie można uzyskać lokalizacji.");
-        setLoading(false);
-      }
-    );
-  }, []);
+  const { forecast, air, loading, error } = useWeather();
 
   useEffect(() => {
       let toastId: string | undefined;

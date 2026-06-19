@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { useMoods } from "../../hooks/useMoods";
+import { useMoods } from "@/hooks/useMoods";
 import { Check, Smile } from "lucide-react";
-import { useSettings } from "../../hooks/useSettings";
+import { useSettings } from "@/hooks/useSettings";
 
 export const DEFAULT_MOODS = [
   { id: "m1", label: "Spokojnie", color: "#22c55e" },

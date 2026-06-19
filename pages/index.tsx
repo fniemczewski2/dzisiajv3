@@ -1,14 +1,14 @@
 // pages/index.tsx
 
 import React, { useEffect } from "react";
-import Seo from "../components/SEO";
+import Seo from "@/components/SEO";
 import dynamic from "next/dynamic";
-import { useSettings } from "../hooks/useSettings";
-import { useAuth } from "../providers/AuthProvider";
+import { useSettings } from "@/hooks/useSettings";
+import { useAuth } from "@/providers/AuthProvider";
 
-import LoadingState from "../components/LoadingState";
+import LoadingState from "@/components/LoadingState";
 import { useRouter } from "next/router";
-import { getAppDateTime } from "../lib/dateUtils";
+import { getAppDateTime } from "@/lib/dateUtils";
 
 const TasksPage = dynamic(() => import("./tasks"), {
   loading: () => <LoadingState fullScreen />,

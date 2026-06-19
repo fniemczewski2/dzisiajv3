@@ -1,8 +1,8 @@
 // hooks/useStreaks.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { Streak } from "../types";
-import { useAuth } from "../providers/AuthProvider";
+import { Streak } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 
 const getMonthsLabel = (m: number) => {
   const d = m % 10, td = m % 100;

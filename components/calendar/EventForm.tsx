@@ -3,21 +3,19 @@
 
 import React, { useState, SyntheticEvent, useEffect } from "react";
 import { Upload } from "lucide-react";
-import { Event } from "../../types";
-import { useSettings } from "../../hooks/useSettings";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import { Event } from "@/types";
+import { useSettings } from "@/hooks/useSettings";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { format } from "date-fns";
 import ICAL from "ical.js";
-import { getAppDateTime, localDateTimeToISO } from "../../lib/dateUtils";
+import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../CommonButtons";
-// ZMIANA: Importowanie createClient aby pobrać połączone kalendarze 
-import { createClient } from "../../utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 
 interface EventsFormProps {
   onEventsChange: () => void;
-  // ZMIANA: Zaktualizowanie sygnatury addEvent aby akceptowała zwracany obiekt (opcjonalnie)
   addEvent: (event: Event & { shared_with_email?: string }) => Promise<any>;
   onCancel?: () => void;
   currentDate: Date | null;

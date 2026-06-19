@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { usePlaces } from "../../hooks/usePlaces";
-import PlaceFilters from "../../components/places/PlaceFilters";
-import PlacesList from "../../components/places/PlacesList";
-import { Place } from "../../types";
+import { usePlaces } from "@/hooks/usePlaces";
+import PlaceFilters from "@/components/places/PlaceFilters";
+import PlacesList from "@/components/places/PlacesList";
+import { Place } from "@/types";
 import { Upload } from "lucide-react";
-import { useToast } from "../../providers/ToastProvider";
-import Seo from "../../components/SEO";
+import { useToast } from "@/providers/ToastProvider";
+import Seo from "@/components/SEO";
 
 const ImportPlaces = dynamic(() => import("../../components/places/ImportPlaces"), { 
   ssr: false 

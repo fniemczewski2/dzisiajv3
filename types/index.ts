@@ -1,6 +1,6 @@
 // types/index.ts
 
-export type Task = {
+export interface Task {
   id: string;
   title: string;
   for_user_id?: string | null;
@@ -12,7 +12,7 @@ export type Task = {
   status: string;
   scheduled_time?: string | null;
   user_id: string;
-};
+}
 
 export interface BudgetCategory {
   id: string;
@@ -57,7 +57,7 @@ export interface UncategorisedSummary {
   spent: number;        
 }
 
-export type Note = {
+export interface Note {
   id: string;
   title: string;
   items: string[];
@@ -66,9 +66,9 @@ export type Note = {
   pinned?: boolean;
   archived?: boolean;
   updated_at?: string;
-};
+}
 
-export type Event = {
+export interface Event {
   id: string;
   title: string;
   description?: string;
@@ -80,9 +80,9 @@ export type Event = {
   shared_with_email?: string;
   display_share_info?: string | null;
   repeat: "none" | "weekly" | "monthly" | "yearly";
-};
+}
 
-export type Settings = {
+export interface Settings {
   sort_order: string;
   show_completed: boolean;
   show_habits: boolean;
@@ -121,7 +121,7 @@ export type Settings = {
 
   sort_people: string;
   hide_priority_5: boolean;
-};
+}
 
 export type HabitKey =
   | "pills"
@@ -148,7 +148,7 @@ export interface DailyHabits {
   daily_spending?: number;
 }
 
-export type HabitRow = {
+export interface HabitRow {
   date: string;
   pills: boolean;
   bath: boolean;
@@ -158,19 +158,26 @@ export type HabitRow = {
   housework: boolean;
   plants: boolean;
   duolingo: boolean;
-};
+}
 
-export type Reminder = {
+export interface Reminder {
   id: string;
   user_id: string;
   tytul: string;
   data_poczatkowa: string;
   powtarzanie: number;
   done: string | null;
-};
+}
 
-export type WaterRow = { date: string; amount: number };
-export type MoneyRow = { date: string; daily_spending: number };
+export interface WaterRow {
+  date: string;
+  amount: number;
+}
+
+export interface MoneyRow {
+  date: string;
+  daily_spending: number;
+}
 
 export type RecipeCategory =
   | "śniadanie"

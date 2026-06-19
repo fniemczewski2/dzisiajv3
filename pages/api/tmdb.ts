@@ -1,6 +1,6 @@
 // pages/api/tmdb.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabase } from "../../utils/supabase/server";
+import { createServerSupabase } from "@/utils/supabase/server";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -64,7 +64,7 @@ export default async function handler(
     });
 
     if (!tmdbRes.ok) {
-      return res.status(tmdbRes.status).json({ error: "Wystąpił bład po stronie API TMDB" });
+      return res.status(tmdbRes.status).json({ error: "Wystąpił błąd API TMDB" });
     }
 
     const data = await tmdbRes.json();

@@ -1,7 +1,7 @@
 "use client";
 
 import { Droplet } from "lucide-react";
-import { useDailyHabits } from "../../hooks/useDailyHabits";
+import { useDailyHabits } from "@/hooks/useDailyHabits";
 import { useEffect, useState } from "react";
 
 interface WaterTrackerProps {

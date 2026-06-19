@@ -1,9 +1,9 @@
 import React from 'react';
-import TaskIcons from "../widgets/HabbitIcons";
-import WaterTracker from "../widgets/WaterTracker";
-import DailySpendingForm from "../widgets/DailySpendingForm";
+import TaskIcons from "./HabbitIcons";
+import WaterTracker from "./WaterTracker";
+import DailySpendingForm from "./DailySpendingForm";
 import MoodWidget from './MoodTracker';
-import { getAppDate } from '../../lib/dateUtils';
+import { getAppDate } from '@/lib/dateUtils';
 
 interface DashboardWidgetsProps {
   settings: any;

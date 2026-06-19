@@ -2,11 +2,11 @@
 
 import React, { useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";
-import type { RecipeCategory } from "../../types";
-import { useRecipes } from "../../hooks/useRecipes";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
+import type { RecipeCategory } from "@/types";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
 import { FormButtons } from "../CommonButtons";
 
 interface RecipeFormProps {

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { usePeople } from '../hooks/usePeople';
-import { PersonCard } from '../components/people/PersonCard';
-import { PersonForm } from '../components/people/PersonForm';
-import { ImportPeople } from '../components/people/ImportPeople';
-import { ExportPeople } from '../components/people/ExportPeople';
-import { AddButton } from '../components/CommonButtons';
-import SearchBar from '../components/SearchBar'; 
-import { Person, PersonInsert } from '../types';
-import LoadingState from '../components/LoadingState';
-import NoResultsState from '../components/NoResultsState';
-import Seo from '../components/SEO';
-import { useToast } from '../providers/ToastProvider';
+import { usePeople } from '@/hooks/usePeople';
+import { PersonCard } from '@/components/people/PersonCard';
+import { PersonForm } from '@/components/people/PersonForm';
+import { ImportPeople } from '@/components/people/ImportPeople';
+import { ExportPeople } from '@/components/people/ExportPeople';
+import { AddButton } from '@/components/CommonButtons';
+import SearchBar from '@/components/SearchBar'; 
+import { Person, PersonInsert } from '@/types';
+import LoadingState from '@/components/LoadingState';
+import NoResultsState from '@/components/NoResultsState';
+import Seo from '@/components/SEO';
+import { useToast } from '@/providers/ToastProvider';
 
 export default function PeoplePage() {
   const { people, loading, addPerson, editPerson, deletePerson, logContact } = usePeople();

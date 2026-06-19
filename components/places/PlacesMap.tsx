@@ -1,7 +1,7 @@
 // components/places/PlacesMap.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { Place } from "../../types";
-import { escapeHtml, validateUuid } from "../../lib/sanitize";
+import { Place } from "@/types";
+import { escapeHtml, validateUuid } from "@/lib/sanitize";
 import NoResultsState from "../NoResultsState";
 
 interface PlacesMapProps {
@@ -61,7 +61,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
 
     const L = (globalThis as any).L;
     const center =
-      places.length > 0 ? [places[0].lat, places[0].lng] : [52.406, 16.925];
+      places.length > 0 && [places[0].lat, places[0].lng];
     const map = L.map(mapRef.current).setView(center, 13);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

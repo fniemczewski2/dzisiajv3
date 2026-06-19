@@ -2,11 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { Coins } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { useDailyHabits } from "../../hooks/useDailyHabits";
-import { useToast } from "../../providers/ToastProvider";
-import { useAuth } from "../../providers/AuthProvider";
-import { withRetry } from "../../lib/withRetry";
-import { getAppDate } from "../../lib/dateUtils";
+import { useDailyHabits } from "@/hooks/useDailyHabits";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
+import { withRetry } from "@/lib/withRetry";
+import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../CommonButtons";
 
 interface DailySpendingFormProps {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Note } from "../types";
-import { getAppDateTime } from "../lib/dateUtils";
-import { useAuth } from "../providers/AuthProvider";
+import { Note } from "@/types";
+import { getAppDateTime } from "@/lib/dateUtils";
+import { useAuth } from "@/providers/AuthProvider";
 
 export function useNotes() {
   const { user, supabase } = useAuth();
