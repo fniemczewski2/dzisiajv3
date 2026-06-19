@@ -71,8 +71,7 @@ export function useWeather() {
               error: null,
             });
           }
-        } catch (err: any) {
-          if (err.name === 'AbortError') return;
+        } catch {
           if (isMounted) {
             setState(prev => ({
               ...prev,

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";
-import type { RecipeCategory } from "@/types";
+import type { Recipe, RecipeCategory } from "@/types";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
@@ -63,7 +63,7 @@ export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormPr
         category,
         products: picked.map((p) => p.trim()),
         description: description.trim(),
-      } as any),
+      } as Recipe),
       toast,
       { context: "RecipeForm.addRecipe", userId: user?.id }
     );
