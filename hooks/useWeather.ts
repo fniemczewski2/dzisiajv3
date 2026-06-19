@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
 export interface WeatherState {
-  forecast: any | null;
-  air: any | null;
+  forecast: any;
+  air: any;
   loading: boolean;
   error: string | null;
 }
