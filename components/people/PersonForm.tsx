@@ -103,7 +103,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
       </div>
 
       <label className="flex flex-col text-sm font-medium">
-        Notatki
+        {"Notatki"}
         <textarea rows={3} value={formData.notes || ''} onChange={e => setFormData({...formData, notes: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
       </label>
 

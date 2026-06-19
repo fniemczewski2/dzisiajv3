@@ -62,6 +62,137 @@ async function refreshOutlookToken(refreshToken: string) {
   return await r.json();
 }
 
+// --- WYDZIELONE FUNKCJE POMOCNICZE ---
+
+async function getAccessToken(acc: any, accounts: any[], tokenCache: Record<string, string>, mainAccountsCache: Record<string, any>): Promise<string | null> {
+  const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
+  if (!mainAcc?.refresh_token) return null;
+
+  const cacheKey = `${acc.provider}-${mainAcc.account_email}`;
+  if (tokenCache[cacheKey]) return tokenCache[cacheKey];
+
+  let accessToken = '';
+  if (acc.provider === 'google') {
+    accessToken = (await refreshGoogleToken(mainAcc.refresh_token)) || '';
+  } else if (acc.provider === 'outlook') {
+    const tokenData = await refreshOutlookToken(mainAcc.refresh_token);
+    accessToken = tokenData ? tokenData.access_token : '';
+  }
+  
+  if (accessToken) {
+    tokenCache[cacheKey] = accessToken;
+    mainAccountsCache[cacheKey] = mainAcc;
+  }
+  return accessToken || null;
+}
+
+async function syncGoogleCalendar(acc: any, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
+  let importedCount = 0;
+  const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
+  const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
+
+  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
+  url.searchParams.set("timeMin", timeMin.toISOString());
+  url.searchParams.set("timeMax", timeMax.toISOString());
+  url.searchParams.set("singleEvents", "true");
+  url.searchParams.set("maxResults", "2500");
+  if (isBirthdayVirtual) url.searchParams.set("eventTypes", "birthday");
+
+  let pageToken: string | undefined = undefined;
+
+  do {
+    const fetchUrl = new URL(url.toString());
+    if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
+
+    const googleRes = await fetch(fetchUrl.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!googleRes.ok) break;
+    const data = await googleRes.json();
+    pageToken = data.nextPageToken;
+
+    for (const ev of data.items || []) {
+      if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
+      const isBirthdayEvent = ev.eventType === "birthday";
+      if (isBirthdayVirtual && !isBirthdayEvent) continue;
+      if (!isBirthdayVirtual && isBirthdayEvent) continue;
+
+      const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
+      if (dup) continue;
+
+      await supabaseService.from("events").insert({
+        user_id: acc.user_id,
+        calendar_id: acc.id,
+        title: ev.summary || "(bez tytułu)",
+        description: ev.description || "",
+        start_time: toSupabaseTime(ev.start),
+        end_time: toSupabaseTime(ev.end, true),
+        place: ev.location || "",
+        repeat: "none",
+        google_event_id: ev.id,
+        shared_with_id: null,
+      });
+      importedCount++;
+    }
+  } while (pageToken);
+
+  return importedCount;
+}
+
+async function syncOutlookCalendar(acc: any, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
+  let importedCount = 0;
+  let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
+  
+  while (fetchUrl) {
+    const msRes: Response = await fetch(fetchUrl, {
+      headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
+    });
+    
+    if (!msRes.ok) break;
+    const data: any = await msRes.json();
+    
+    for (const ev of data.value || []) {
+      if (ev.isCancelled) continue;
+      const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
+      if (dup) continue;
+
+      const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
+      const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
+
+      await supabaseService.from("events").insert({
+        user_id: acc.user_id,
+        calendar_id: acc.id,
+        title: ev.subject || "(bez tytułu)",
+        description: ev.bodyPreview || "",
+        start_time: startTime,
+        end_time: endTime,
+        place: ev.location?.displayName || "",
+        repeat: "none",
+        google_event_id: ev.id,
+        shared_with_id: null,
+      });
+      importedCount++;
+    }
+    fetchUrl = data['@odata.nextLink'];
+  }
+
+  return importedCount;
+}
+
+async function updateMainTokens(tokenCache: Record<string, string>, mainAccountsCache: Record<string, any>) {
+  for (const [key, token] of Object.entries(tokenCache)) {
+    const mainAcc = mainAccountsCache[key];
+    if (mainAcc) {
+       await supabaseService.from("connected_calendars")
+        .update({ access_token: token, expires_at: new Date(Date.now() + 3600000).toISOString() })
+        .eq("id", mainAcc.id);
+    }
+  }
+}
+
+// --- GŁÓWNY HANDLER API ---
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const authHeader = req.headers.authorization;
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -69,9 +200,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { data: accounts, error: dbError } = await supabaseService
-      .from("connected_calendars")
-      .select("*"); // Usuwamy ograniczenie tylko na google
+    const { data: accounts, error: dbError } = await supabaseService.from("connected_calendars").select("*");
 
     if (dbError) throw dbError;
     if (!accounts || accounts.length === 0) return res.json({ message: "Brak kont do synchronizacji" });
@@ -80,132 +209,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const tokenCache: Record<string, string> = {}; 
     const mainAccountsCache: Record<string, any> = {};
 
+    const timeMin = new Date();
+    timeMin.setMonth(timeMin.getMonth() - 1);
+    const timeMax = new Date();
+    timeMax.setFullYear(timeMax.getFullYear() + 1);
+
     for (const acc of accounts) {
       if (acc.google_calendar_id === '@account_connection') continue; 
 
-      const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
-      if (!mainAcc?.refresh_token) continue;
-
-      const cacheKey = `${acc.provider}-${mainAcc.account_email}`;
-      let accessToken = tokenCache[cacheKey];
-
-      if (!accessToken) {
-        if (acc.provider === 'google') {
-          accessToken = (await refreshGoogleToken(mainAcc.refresh_token)) || '';
-        } else if (acc.provider === 'outlook') {
-          const tokenData = await refreshOutlookToken(mainAcc.refresh_token);
-          accessToken = tokenData ? tokenData.access_token : '';
-        }
-        
-        if (accessToken) {
-            tokenCache[cacheKey] = accessToken;
-            mainAccountsCache[cacheKey] = mainAcc;
-        }
-      }
-      
+      const accessToken = await getAccessToken(acc, accounts, tokenCache, mainAccountsCache);
       if (!accessToken) continue;
 
-      const timeMin = new Date();
-      timeMin.setMonth(timeMin.getMonth() - 1);
-      const timeMax = new Date();
-      timeMax.setFullYear(timeMax.getFullYear() + 1);
-
       if (acc.provider === 'google') {
-          const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
-          const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
-
-          const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
-          url.searchParams.set("timeMin", timeMin.toISOString());
-          url.searchParams.set("timeMax", timeMax.toISOString());
-          url.searchParams.set("singleEvents", "true");
-          url.searchParams.set("maxResults", "2500");
-          if (isBirthdayVirtual) url.searchParams.set("eventTypes", "birthday");
-
-          let pageToken: string | undefined = undefined;
-
-          do {
-            const fetchUrl = new URL(url.toString());
-            if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
-
-            const googleRes = await fetch(fetchUrl.toString(), {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-
-            if (!googleRes.ok) break;
-            const data = await googleRes.json();
-            pageToken = data.nextPageToken;
-
-            for (const ev of data.items || []) {
-              if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
-              const isBirthdayEvent = ev.eventType === "birthday";
-              if (isBirthdayVirtual && !isBirthdayEvent) continue;
-              if (!isBirthdayVirtual && isBirthdayEvent) continue;
-
-              const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
-              if (dup) continue;
-
-              await supabaseService.from("events").insert({
-                user_id: acc.user_id,
-                calendar_id: acc.id,
-                title: ev.summary || "(bez tytułu)",
-                description: ev.description || "",
-                start_time: toSupabaseTime(ev.start),
-                end_time: toSupabaseTime(ev.end, true),
-                place: ev.location || "",
-                repeat: "none",
-                google_event_id: ev.id,
-                shared_with_id: null,
-              });
-              totalImported++;
-            }
-          } while (pageToken);
-
+        totalImported += await syncGoogleCalendar(acc, accessToken, timeMin, timeMax);
       } else if (acc.provider === 'outlook') {
-          let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
-          while (fetchUrl) {
-            const msRes: Response = await fetch(fetchUrl, {
-              headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
-            });
-            
-            if (!msRes.ok) break;
-            const data: any = await msRes.json();
-            
-            for (const ev of data.value || []) {
-              if (ev.isCancelled) continue;
-              const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
-              if (dup) continue;
-
-              const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
-              const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
-
-              await supabaseService.from("events").insert({
-                user_id: acc.user_id,
-                calendar_id: acc.id,
-                title: ev.subject || "(bez tytułu)",
-                description: ev.bodyPreview || "",
-                start_time: startTime,
-                end_time: endTime,
-                place: ev.location?.displayName || "",
-                repeat: "none",
-                google_event_id: ev.id,
-                shared_with_id: null,
-              });
-              totalImported++;
-            }
-            fetchUrl = data['@odata.nextLink']; // Obsługa paginacji i przekraczania 100 wpisów
-          }
+        totalImported += await syncOutlookCalendar(acc, accessToken, timeMin, timeMax);
       }
     }
 
-    // Aktualizacja czasu życia tokenów dla kont głównych w bazie
-    for (const [key, token] of Object.entries(tokenCache)) {
-      const mainAcc = mainAccountsCache[key];
-      if (mainAcc) {
-         await supabaseService.from("connected_calendars")
-          .update({ access_token: token, expires_at: new Date(Date.now() + 3600000).toISOString() })
-          .eq("id", mainAcc.id);
-      }
-    }
+    await updateMainTokens(tokenCache, mainAccountsCache);
 
     return res.json({ success: true, imported: totalImported });
   } catch (error: any) {
