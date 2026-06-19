@@ -56,7 +56,7 @@ export const ExportPeople = ({ people }: ExportProps) => {
     link.setAttribute('download', `dzisiaj_kontakty_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   return (

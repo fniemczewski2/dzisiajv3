@@ -140,8 +140,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
       try {
-        const { shared_with_email, display_share_info, ...taskData } =
-          task as Task & { shared_with_email?: string };
+        const { shared_with_email, display_share_info, ...taskData } = task
         
         let finalForUserId = (taskData as any).for_user_id;
 
