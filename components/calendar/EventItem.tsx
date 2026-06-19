@@ -112,7 +112,7 @@ export default function EventItem({
     <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
   );
 
-  const fixedPlace = event.place?.startsWith("https://") ? 
+  const fixedPlace = event?.place?.startsWith("https://") ? 
   ( 
     <div className="flex items-center text-sm font-medium text-textSecondary truncate underline">
       <Globe className="w-4 h-4 mr-2 text-primary" />
@@ -232,7 +232,7 @@ export default function EventItem({
           <Clock className="w-4 h-4 mr-2 text-primary" />
           {renderedTime}
         </div>
-        {fixedPlace}
+        {event.place && fixedPlace}
         {event.display_share_info && (
           <div className="flex items-center text-sm font-medium text-textSecondary truncate">
             <User className="w-4 h-4 mr-2 text-primary" />

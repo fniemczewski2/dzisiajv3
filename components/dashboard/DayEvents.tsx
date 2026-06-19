@@ -27,8 +27,6 @@ export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEvent
   return (
     <div className="grid grid-cols-1 gap-3">
       {events.map((event) => (
-        <DraggablePlanItem key={event.id} id={`side-event-${event.id}`} type="event">
-          <div className="w-full list-none">
             <EventItem
               event={event}
               loading={loading}
@@ -38,8 +36,6 @@ export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEvent
               userId={userId}
               userOptions={userOptions}
             />
-          </div>
-        </DraggablePlanItem>
       ))}
       {!loading && events.length === 0 && <NoResultsState text="wydarzeń" />}
     </div>
