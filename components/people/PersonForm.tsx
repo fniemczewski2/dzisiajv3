@@ -31,12 +31,47 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
     }
   };
 
+  const handleRemovePhone = (phoneToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      phones: prev.phones?.filter(p => p !== phoneToRemove)
+    }));
+  };
+
   const handleAddEmail = () => {
     if (newEmail) {
       setFormData(prev => ({ ...prev, emails: [...(prev.emails || []), newEmail] }));
       setNewEmail('');
     }
   };
+
+  const handleRemoveEmail = (emailToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      emails: prev.emails?.filter(e => e !== emailToRemove)
+    }));
+  };
+
+  // Wydzielone funkcje renderujące (rozwiązuje problem > 4 poziomów zagnieżdżeń)
+  const renderPhoneItem = (p: string) => (
+    <div key={p} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+      {p} 
+      <X 
+        className="w-4 h-4 cursor-pointer text-red-500" 
+        onClick={() => handleRemovePhone(p)} 
+      />
+    </div>
+  );
+
+  const renderEmailItem = (e: string) => (
+    <div key={e} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
+      {e} 
+      <X 
+        className="w-4 h-4 cursor-pointer text-red-500" 
+        onClick={() => handleRemoveEmail(e)} 
+      />
+    </div>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-surface p-4 rounded-xl shadow border border-gray-200 dark:border-gray-800">
@@ -64,7 +99,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
 
       <label className="flex flex-col text-sm font-medium">
         {"Priorytet kontaktu"}
-        <select value={formData.priority} onChange={e => setFormData({...formData, priority: Number.parseInt(e.target.value)})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        <select value={formData.priority} onChange={e => setFormData({...formData, priority: parseInt(e.target.value, 10)})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
           <option value={0}>0 - Brak przypomnienia</option>
           <option value={1}>1 - Raz na 2 tygodnie</option>
           <option value={2}>2 - Raz na miesiąc</option>
@@ -77,11 +112,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
       {/* Numery Telefonu */}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">Telefony</span>
-        {formData.phones?.map((p, i) => (
-          <div key={p} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-            {p} <X className="w-4 h-4 cursor-pointer text-red-500" onClick={() => setFormData(prev => ({...prev, phones: prev.phones?.filter((_, index) => index !== i)}))} />
-          </div>
-        ))}
+        {formData.phones?.map(renderPhoneItem)}
         <div className="flex gap-2">
           <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="Nowy numer" className="flex-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm" />
           <button type="button" onClick={handleAddPhone} className="p-2 bg-secondary text-white rounded-md"><Plus className="w-4 h-4"/></button>
@@ -91,11 +122,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) =
       {/* Adresy Email */}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">Emaile</span>
-        {formData.emails?.map((e, i) => (
-          <div key={e} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-            {e} <X className="w-4 h-4 cursor-pointer text-red-500" onClick={() => setFormData(prev => ({...prev, emails: prev.emails?.filter((_, index) => index !== i)}))} />
-          </div>
-        ))}
+        {formData.emails?.map(renderEmailItem)}
         <div className="flex gap-2">
           <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Nowy email" className="flex-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm" />
           <button type="button" onClick={handleAddEmail} className="p-2 bg-secondary text-white rounded-md"><Plus className="w-4 h-4"/></button>
