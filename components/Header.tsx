@@ -1,6 +1,6 @@
 // components/Header.tsx
 
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import {
   Sun,
   Cloud,
@@ -89,7 +89,6 @@ function WeatherDetails({
 }
 
 export default function Header() {
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
