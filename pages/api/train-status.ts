@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stationsDictRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations&pageSize=1000`, { headers })
 
     if (stationsDictRes.status === 429) { return res.status(200).json({ delay: 0, platform: '-', status: 'Spróbuj ponownie później', estimatedArrival: '', hide: false }); }
-    else { if (!stationsDictRes.ok) throw new Error('Błąd słownika stacji');}
+    if (!stationsDictRes.ok) throw new Error('Błąd słownika stacji');
 
     const dictData = await stationsDictRes.json();
     const fromStation = matchStation(dictData.stations, fromSearch);

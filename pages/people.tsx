@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import SEO from '../components/SEO';
 import { usePeople } from '../hooks/usePeople';
 import { PersonCard } from '../components/people/PersonCard';
 import { PersonForm } from '../components/people/PersonForm';
