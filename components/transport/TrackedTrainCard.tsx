@@ -30,32 +30,51 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
   const isDepartedFromStart = status?.toLowerCase().includes('odjechał');
   const isDelayed = delay > 0;
 
-  return (
-    <div className="p-4 pt-10 w-full card rounded-xl relative overflow-hidden transition-all">
+  const renderStatusBanner = () => {
 
-      {loading ? (
+    if (loading) {
+      return (
         <div className="absolute top-0 left-0 w-full bg-surface text-textMuted text-xs font-bold text-center py-1.5 shadow-sm flex items-center justify-center gap-2">
           <Loader2 className="w-3 h-3 animate-spin" /> Aktualizacja statusu...
         </div>
-      ) : isCancelled ? (
+      )
+    }
+
+    if (isCancelled) {
+      return (
         <div className="absolute top-0 left-0 w-full bg-red-600 text-white text-xs font-bold text-center py-1.5 flex justify-center items-center gap-1 shadow-sm animate-pulse">
           <AlertTriangle className="w-3 h-3" /> Pociąg odwołany
         </div>
-      ) : isDepartedFromStart ? (
+      );
+    }
+
+    if (isDepartedFromStart) {
+      return (
         <div className="absolute top-0 left-0 w-full bg-indigo-600 text-white text-xs font-bold text-center py-1.5 shadow-sm flex justify-center items-center gap-1">
           <Clock className="w-3 h-3" /> W trasie
         </div>
-      ) : isDelayed ? (
+      );
+    }
+
+    if (isDelayed) {
+      return (
         <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-xs font-bold text-center py-1.5 shadow-sm">
           Opóźnienie: {delay} min
         </div>
-      ) : (
-        <div className="absolute top-0 left-0 w-full bg-emerald-500 text-white text-xs font-bold text-center py-1.5 shadow-sm opacity-90">
-          {status}
-        </div>
-      )}
+      );
+    }
 
-      {/* Górna sekcja informacyjna karty */}
+    return (
+      <div className="absolute top-0 left-0 w-full bg-emerald-500 text-white text-xs font-bold text-center py-1.5 shadow-sm opacity-90">
+        {status}
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-4 pt-10 w-full card rounded-xl relative overflow-hidden transition-all">
+
+      {renderStatusBanner()}
       <div className="flex justify-between items-start mb-4">
         <div className="flex flex-col gap-2">
           <p className="text-2xl font-bold text-text leading-none">

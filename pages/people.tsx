@@ -10,6 +10,7 @@ import { Person, PersonInsert } from '../types';
 import LoadingState from '../components/LoadingState';
 import NoResultsState from '../components/NoResultsState';
 import Seo from '../components/SEO';
+import { useToast } from '../providers/ToastProvider';
 
 export default function PeoplePage() {
   const { people, loading, addPerson, editPerson, deletePerson, logContact } = usePeople();
@@ -17,6 +18,8 @@ export default function PeoplePage() {
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { toast } = useToast();
 
   const handleSave = async (data: PersonInsert | Person) => {
     if (editingPerson) {
@@ -64,6 +67,30 @@ export default function PeoplePage() {
       return nameA.localeCompare(nameB);
     });
 
+    const renderPeopleList = () => {
+      if (loading) return (<LoadingState/>)
+
+      if (filteredAndSortedPeople.length === 0) {
+        return ( <NoResultsState text="kontaktów" isSearch={!!searchQuery} />)
+      } else {
+        return(
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredAndSortedPeople.map((person) => (
+              <PersonCard
+                key={person.id}
+                person={person}
+                onEdit={() => setEditingPerson(person)}
+                onDelete={() => {
+                  const ok = toast.confirm('Na pewno chcesz usunąć ten kontakt?'); 
+                  if(!!ok) {deletePerson(person.id);}
+                }}
+                onLogContact={() => logContact(person.id)}
+              />
+            ))}
+          </div>
+       )}
+    }
+
   return (
     <>
       <Seo title="Osoby | Dzisiaj" description="Zarządzaj kontaktami i pamiętaj o swoich bliskich." />
@@ -101,33 +128,7 @@ export default function PeoplePage() {
           />
         ) : null}
 
-        {!isFormOpen && !editingPerson && (
-          <>
-            {loading ? (
-              <LoadingState/>
-            ) : filteredAndSortedPeople.length === 0 ? (
-              <NoResultsState
-                text="kontaktów" isSearch={!!searchQuery}
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredAndSortedPeople.map((person) => (
-                  <PersonCard
-                    key={person.id}
-                    person={person}
-                    onEdit={() => setEditingPerson(person)}
-                    onDelete={() => {
-                      if(globalThis.confirm('Na pewno chcesz usunąć ten kontakt?')) {
-                        deletePerson(person.id);
-                      }
-                    }}
-                    onLogContact={() => logContact(person.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        {!isFormOpen && !editingPerson && renderPeopleList()}
       </div>
     </>
   );

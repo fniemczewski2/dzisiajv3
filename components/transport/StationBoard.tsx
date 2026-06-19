@@ -9,8 +9,21 @@ import NoResultsState from '../NoResultsState';
 import LoadingState from '../LoadingState';
 
 interface StationBoardProps {
- readonly onTrainAdded?: () => void;
+  readonly onTrainAdded?: () => void;
 }
+
+const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: boolean) => {
+  if (isCancelled) {
+    return 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400';
+  }
+  if (isDelayed) {
+    return 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400';
+  }
+  if (status === 'Odjechał') {
+    return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+  }
+  return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400';
+};
 
 export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) {
   const { addTrain } = useTrains();
@@ -119,6 +132,91 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
     }
   };
 
+  const renderBoardState = (board: { items: any[]; loading: boolean; error: string }) => {
+    if (board.error) {
+      return (
+        <div className="p-6 text-center text-sm text-red-500 flex items-center justify-center gap-2">
+          <AlertCircle className="w-4 h-4" /> {board.error}
+        </div>
+      );
+    }
+
+    if (board.loading) {
+      return (
+        <div className='flex items-center justify-center w-full'>
+          <LoadingState/>
+        </div>
+      );
+    }
+
+    if (board.items.length === 0) {
+      return <NoResultsState text="odjazdów" />;
+    }
+
+    return (
+      <table className="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr className="border-b border-gray-100 dark:border-gray-800 text-textMuted font-semibold">
+            <th className="py-2 px-3">Godzina</th>
+            <th className="py-2 px-2">Pociąg</th>
+            <th className="py-2 px-2">Kierunek</th>
+            <th className="py-2 px-2 text-center">Peron</th>
+            <th className="py-2 px-2">Status</th>
+            <th className="py-2 px-3 text-right"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {board.items?.map((item, index) => {
+            const isDelayed = item.delay > 0;
+            const isCancelled = item.status === 'Odwołany';
+            const statusClasses = getStatusBadgeClasses(item.status, isCancelled, isDelayed);
+
+            return (
+              <tr 
+                key={`${item.trainNumber}-${index}`}
+                className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface/40 transition-colors font-medium"
+              >
+                <td className="py-1 px-2 whitespace-nowrap">
+                  <span className="text-text font-bold text-sm">{item.plannedTime}</span>
+                  {isDelayed && (
+                    <span className="ml-1.5 text-red-500 font-bold text-[12px]">
+                      +{item.delay}
+                    </span>
+                  )}
+                </td>
+                <td className="py-1 px-1.5">
+                  <div className="font-bold text-text leading-tight">{item.trainOperator} {item.trainNumber}</div>
+                  {item.trainName && <div className="text-[10px] text-textMuted truncate max-w-[60px] md:max-w-[120px]">{item.trainName}</div>}
+                </td>
+                <td className="py-1 px-1.5 text-text font-semibold truncate max-w-[140px]" title={item.to}>
+                  {item.to}
+                </td>
+                <td className="py-1 px-1.5 text-center font-bold text-text">
+                    {item.platform}
+                </td>
+                <td className="py-1 px-1.5">
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusClasses}`}>
+                    {item.status}
+                  </span>
+                </td>
+                <td className="py-1 px-1.5 text-right">
+                  <button
+                    onClick={() => handleTrackTrain(item)}
+                    className="inline-flex items-center gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
+                    title="Dodaj ten pociąg do Moich Pociągów"
+                    disabled={isCancelled}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    );
+  };
+
   return (
     <div className="space-y-6 mt-6">
       <div className="card rounded-xl border border-gray-100 dark:border-gray-800 p-4 bg-card shadow-sm">
@@ -174,82 +272,7 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
               </div>
 
               <div className="p-2 overflow-x-auto flex-1">
-                {board.error ? (
-                  <div className="p-6 text-center text-sm text-red-500 flex items-center justify-center gap-2">
-                    <AlertCircle className="w-4 h-4" /> {board.error}
-                  </div>
-                ) : board.loading ? (
-                  <div className='flex items-center justify-center w-full'>
-                    <LoadingState/>
-                  </div>
-                ) : board.items.length === 0 ? (
-                  <NoResultsState text="odjazdów" />
-                ) : (
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 dark:border-gray-800 text-textMuted font-semibold">
-                        <th className="py-2 px-3">Godzina</th>
-                        <th className="py-2 px-2">Pociąg</th>
-                        <th className="py-2 px-2">Kierunek</th>
-                        <th className="py-2 px-2 text-center">Peron</th>
-                        <th className="py-2 px-2">Status</th>
-                        <th className="py-2 px-3 text-right"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {board.items?.map((item, index) => {
-                        const isDelayed = item.delay > 0;
-                        const isCancelled = item.status === 'Odwołany';
-
-                        return (
-                          <tr 
-                            key={`${item.trainNumber}-${index}`}
-                            className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface/40 transition-colors font-medium"
-                          >
-                            <td className="py-1 px-2 whitespace-nowrap">
-                              <span className="text-text font-bold text-sm">{item.plannedTime}</span>
-                              {isDelayed && (
-                                <span className="ml-1.5 text-red-500 font-bold text-[12px]">
-                                  +{item.delay}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-1 px-1.5">
-                              <div className="font-bold text-text leading-tight">{item.trainOperator} {item.trainNumber}</div>
-                              {item.trainName && <div className="text-[10px] text-textMuted truncate max-w-[60px] md:max-w-[120px]">{item.trainName}</div>}
-                            </td>
-                            <td className="py-1 px-1.5 text-text font-semibold truncate max-w-[140px]" title={item.to}>
-                              {item.to}
-                            </td>
-                            <td className="py-1 px-1.5 text-center font-bold text-text">
-                                {item.platform}
-                            </td>
-                            <td className="py-1 px-1.5">
-                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                isCancelled ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' :
-                                isDelayed ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400' :
-                                item.status === 'Odjechał' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
-                                'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                              }`}>
-                                {item.status}
-                              </span>
-                            </td>
-                            <td className="py-1 px-1.5 text-right">
-                              <button
-                                onClick={() => handleTrackTrain(item)}
-                                className="inline-flex items-center gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
-                                title="Dodaj ten pociąg do Moich Pociągów"
-                                disabled={isCancelled}
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
+                {renderBoardState(board)}
               </div>
             </div>
           );
