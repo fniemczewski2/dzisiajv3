@@ -22,8 +22,11 @@ export default function ConnectedCalendars() {
   const currentStatus = () => {
     const rootAccounts = accounts.filter(a => a.google_calendar_id === '@account_connection');
     if (loading && rootAccounts.length === 0) return "Sprawdzanie...";
-    if (rootAccounts.length === 0) return "Brak połączeń";
-    return `${rootAccounts.length} połączon${rootAccounts.length === 1 ? 'e' : rootAccounts.length < 5 ? 'e' : 'ych'} kont${rootAccounts.length === 1 ? 'o' : 'a'}`;
+    const count = rootAccounts.length;
+    if (count === 0) return "Brak połączeń";
+    if (count === 1) return "1 połączone konto";
+    if (count > 1 && count < 5) return `${count} połączone konta`;
+    return `${count} połączonych kont`;
   };
 
   const mainAccounts = accounts.filter(a => a.google_calendar_id === '@account_connection');

@@ -80,9 +80,9 @@ export default function PeoplePage() {
                 key={person.id}
                 person={person}
                 onEdit={() => setEditingPerson(person)}
-                onDelete={() => {
-                  const ok = toast.confirm('Na pewno chcesz usunąć ten kontakt?'); 
-                  if(!!ok) {deletePerson(person.id);}
+                onDelete={async () => {
+                  const ok = await toast.confirm('Na pewno chcesz usunąć ten kontakt?'); 
+                  if(ok) {deletePerson(person.id);}
                 }}
                 onLogContact={() => logContact(person.id)}
               />
