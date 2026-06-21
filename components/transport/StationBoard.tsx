@@ -7,48 +7,61 @@ import { useToast } from '@/providers/ToastProvider';
 import { AddButton } from '../CommonButtons';
 import NoResultsState from '../NoResultsState';
 import LoadingState from '../LoadingState';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface StationBoardProps {
   readonly onTrainAdded?: () => void;
 }
 
-const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: boolean) => {
-  if (isCancelled) {
-    return 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400';
+const renderStatusInfo = (status: string, statusClasses: string, isSmallScreen: boolean) => {
+  if(isSmallScreen) return (<span className={`inline-block h-2 w-2 rounded-full ${statusClasses}`}/>)
+  else {
+    return (
+      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusClasses}`}>
+        {status}
+      </span>
+    )
   }
-  if (isDelayed) {
-    return 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400';
+}
+
+const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: boolean, isSmallScreen: boolean) => {
+
+  if (isSmallScreen) {
+      if (isCancelled) {
+      return 'bg-red-600 dark:bg-red-400';
+    }
+    if (isDelayed) {
+      return 'bg-orange-600 dark:bg-orange-400';
+    }
+    if (status === 'Odjechał') {
+      return 'bg-gray-600 dark:bg-gray-400';
+    }
+    return 'bg-green-500';
   }
-  if (status === 'Odjechał') {
-    return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+  else {
+    if (isCancelled) {
+      return 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400';
+    }
+    if (isDelayed) {
+      return 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400';
+    }
+    if (status === 'Odjechał') {
+      return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+    }
+    return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400';
   }
-  return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400';
 };
 
 export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) {
   const { addTrain } = useTrains();
   const { toast } = useToast();
+  const isSmallScreen = useResponsive(721);
   
   const [selectedStations, setSelectedStations] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [boardsData, setBoardsData] = useState<Record<string, { items: any[]; loading: boolean; error: string }>>({});
 
-  useEffect(() => {
-    const saved = localStorage.getItem('tracked_station_boards');
-    if (saved) {
-      try {
-        setSelectedStations(JSON.parse(saved));
-      } catch {
-        setSelectedStations([]);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('tracked_station_boards', JSON.stringify(selectedStations));
-  }, [selectedStations]);
-
-  const fetchBoard = useCallback(async (stationName: string) => {
+    const fetchBoard = useCallback(async (stationName: string) => {
     setBoardsData(prev => ({
       ...prev,
       [stationName]: { ...(prev[stationName] || { items: [] }), loading: true, error: '' }
@@ -56,6 +69,12 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
 
     try {
       const res = await fetch(`/api/transport/station-board?stationName=${encodeURIComponent(stationName)}`);
+      if (res.status === 429) {
+        setBoardsData(prev => ({
+        ...prev,
+        [stationName]: { items: [], loading: false, error: 'Spróbuj ponownie później' }
+      }));
+      }
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.error || 'Błąd pobierania tablicy');
@@ -74,11 +93,25 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
     }
   }, []);
 
-  const refreshAllBoards = useCallback(() => {
-    selectedStations.forEach(station => {
-      fetchBoard(station);
-    });
-  }, [selectedStations, fetchBoard]);
+  useEffect(() => {
+    const saved = localStorage.getItem('tracked_station_boards');
+    if (saved) {
+      try {
+        const parsedStations = JSON.parse(saved);
+        setSelectedStations(parsedStations);
+        
+        parsedStations.forEach((station: string) => {
+          fetchBoard(station);
+        });
+      } catch {
+        setSelectedStations([]);
+      }
+    }
+  }, [fetchBoard]);
+
+  useEffect(() => {
+    localStorage.setItem('tracked_station_boards', JSON.stringify(selectedStations));
+  }, [selectedStations]);
 
   const handleAddStation = () => {
     const trimmed = searchInput.trim();
@@ -151,49 +184,45 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
       <table className="w-full text-left text-xs border-collapse">
         <thead>
           <tr className="border-b border-gray-100 dark:border-gray-800 text-textMuted font-semibold">
-            <th className="py-2 px-3">Godzina</th>
+            <th className="py-2 px-2">Godz.</th>
             <th className="py-2 px-2">Pociąg</th>
             <th className="py-2 px-2">Kierunek</th>
-            <th className="py-2 px-2 text-center">Peron</th>
-            <th className="py-2 px-2">Status</th>
-            <th className="py-2 px-3 text-right"></th>
+            <th className="py-2 px-2 text-center">{!isSmallScreen && "Peron"}</th>
+            <th className="py-2 px-2">{!isSmallScreen && "Status"}</th>
+            <th className="py-2 px-2 text-right"></th>
           </tr>
         </thead>
         <tbody>
           {board.items?.map((item, index) => {
             const isDelayed = item.delay > 0;
             const isCancelled = item.status === 'Odwołany';
-            const statusClasses = getStatusBadgeClasses(item.status, isCancelled, isDelayed);
+            const statusClasses = getStatusBadgeClasses(item.status, isCancelled, isDelayed, isSmallScreen);
 
             return (
               <tr 
                 key={`${item.trainNumber}-${index}`}
-                className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface/40 transition-colors font-medium"
+                className="h-[40px] border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface transition-colors font-medium"
               >
-                <td className="py-1 px-2 whitespace-nowrap">
-                  <span className="text-text font-bold text-sm">{item.plannedTime}</span>
+                <td className={`px-1 py-1 leading-tight whitespace-nowrap w-min ${isSmallScreen && "flex flex-col"}`}>
+                  <span className="text-text font-bold text-[14px] sm:text-sm">{item.plannedTime}</span>
                   {isDelayed && (
-                    <span className="ml-1.5 text-red-500 font-bold text-[12px]">
+                    <span className="ml-1 text-red-600 text-[10px] text-semibold text-right">
                       +{item.delay}
                     </span>
                   )}
                 </td>
-                <td className="py-1 px-1.5">
-                  <div className="font-bold text-text leading-tight">{item.trainOperator} {item.trainNumber}</div>
-                  {item.trainName && <div className="text-[10px] text-textMuted truncate max-w-[60px] md:max-w-[120px]">{item.trainName}</div>}
+                <td className='px-1 leading-tight'>
+                  <div className="text-text leading-tight text-[12px] sm:text-sm">{item.trainOperator} {item.trainNumber}</div>
+                  {item.trainName && <div className="text-[8px] sm:text-[11px] text-textMuted truncate max-w-[60px] md:max-w-[120px]">{item.trainName}</div>}
                 </td>
-                <td className="py-1 px-1.5 text-text font-semibold truncate max-w-[140px]" title={item.to}>
+                <td className="px-1 leading-tight text-text font-semibold truncate max-w-[90px] md:max-w-[160px]" title={item.to}>
                   {item.to}
                 </td>
-                <td className="py-1 px-1.5 text-center font-bold text-text">
+                <td className="py-1 px-1.5 my-auto leading-tight text-center font-bold text-text">
                     {item.platform}
                 </td>
-                <td className="py-1 px-1.5">
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusClasses}`}>
-                    {item.status}
-                  </span>
-                </td>
-                <td className="py-1 px-1.5 text-right">
+                <td className="py-1 px-1.5 my-auto">{renderStatusInfo(item.status, statusClasses, isSmallScreen)}</td>
+                <td className="py-1 px-1.5 my-auto">
                   <button
                     onClick={() => handleTrackTrain(item)}
                     className="inline-flex items-center gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
@@ -213,10 +242,8 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
 
   return (
     <div className="space-y-6 mt-6">
-      <div className="card rounded-xl border border-gray-100 dark:border-gray-800 p-4 bg-card shadow-sm">
-        <h3 className="font-bold text-text text-base mb-2 flex items-center gap-2">
-          <Train className="w-5 h-5 text-primary" /> Tablice stacji ({selectedStations.length}/3)
-        </h3>
+      
+        <h3 className="text-lg font-semibold mb-3">Twoje stacje</h3>
         
         <form onSubmit={handleAddStation} className="flex gap-2">
           <div className="relative flex-1">
@@ -233,7 +260,6 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
           <AddButton onClick={() => handleAddStation()} 
             disabled={selectedStations.length >= 3 || !searchInput.trim()} small/>
         </form>
-      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">
         {selectedStations.map(station => {

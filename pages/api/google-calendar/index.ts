@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 function getRedirectUri(req: NextApiRequest): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -15,9 +17,6 @@ function getRedirectUri(req: NextApiRequest): string {
 }
 
 function getServiceSupabase(token?: string) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) throw new Error("Brak zmiennych środowiskowych Supabase!");
   return createClient(url, key, token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : undefined);
 }
 

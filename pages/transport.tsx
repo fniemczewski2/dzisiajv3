@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SearchBar from "@/components/SearchBar";
 import { useTransport } from "@/hooks/useTransport";
 import NoResultsState from "@/components/NoResultsState";
@@ -24,10 +24,37 @@ export default function TransportPage() {
     handleSuggestionClick,
     favoriteStops,
     addFavoriteStop,
-    removeFavoriteStop
+    removeFavoriteStop,
+    loadingNearby,
+    loadingFavorites,
+    transportError
   } = useTransport(true);
 
-  const { trains, addTrain, deleteTrain, refresh } = useTrains();
+  const { trains, addTrain, deleteTrain, refresh, loading: trainsLoading } = useTrains();
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        await refresh();
+      } catch (error: any) {
+        toast.error(error.message || "Nie udało się pobrać pociągów");
+      }
+    };
+    fetchAll();
+  }, [refresh, toast]);
+
+  const loading = trainsLoading || loadingNearby || loadingFavorites;
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (loading) toastId = toast.loading("Ładowanie...");
+    return () => { if (toastId) toast.dismiss(toastId); };
+  }, [loading, toast]);
+
+  useEffect(() => {
+    if (transportError) {
+      toast.error(transportError);
+    }
+  }, [transportError, toast]);
 
   const visibleFavorites = favoritesGroups.filter((group) => 
     favoriteStops.some((stop: any) => stop.name === group.stop_name)
@@ -156,6 +183,7 @@ export default function TransportPage() {
                {nearbyContent}
             </div>
           </section>
+        <StationBoardWidget onTrainAdded={refresh} /> 
         <section>
           <div className="flex items-center justify-between mb-3">
              <h3 className="text-lg font-semibold">
@@ -168,7 +196,6 @@ export default function TransportPage() {
               )}
           </div>
           <AddTrainForm onTrainAdded={addTrain} expanded={expanded} setExpanded={setExpanded}/>
-          <StationBoardWidget onTrainAdded={refresh} /> 
           <div className="grid md:grid-cols-2 gap-6 items-start mt-4">
             <div className="space-y-4">
               {trains.length === 0 ? (

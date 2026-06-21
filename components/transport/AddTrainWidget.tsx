@@ -79,12 +79,15 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
     onTrainAdded(formData);
     toast.success('Pociąg dodany do śledzenia!');
     
-    // Czyszczenie formularza
     setFormData({ trainNumber: '', trainName: '', date: '', departureTime: '', from: '', to: '', wagon: '', seat: ''});
     setExpanded(false);
+    } catch {
+      toast.error("Wystąpił błąd podczas dodawania pociągu");
+    }
   };
 
   return (
@@ -210,7 +213,6 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
             
               <SaveButton disabled={isLoading} />
             </div>
-
           </form>
       )}
     </>

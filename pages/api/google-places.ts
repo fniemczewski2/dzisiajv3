@@ -114,6 +114,6 @@ export default async function handler(
     res.setHeader('Cache-Control', 'private, max-age=3600'); 
     return res.status(200).json({ ...detailsData, auto_tags: autoTags });
   } catch {
-    throw new Error("Wystąpił błąd Google places");
+    return res.status(500).json({ error: "Wystąpił błąd Google Places" });
   }
 }

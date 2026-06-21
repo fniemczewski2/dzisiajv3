@@ -61,7 +61,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
       headers: { Authorization: `Bearer ${accessToken}` }
     });
 
-    if (!response.ok) throw new Error('Błąd Microsoft Graph');
+    if (!response.ok) { return res.status(500).json({ error: "Wystąpił błąd Microsoft" });}
     const data = await response.json();
     
     const calendars = (data.value || []).map((cal: any) => ({
@@ -91,7 +91,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
       .eq('google_calendar_id', '@account_connection')
       .maybeSingle();
 
-    if (!mainAcc) throw new Error("Brak podłączonego konta Microsoft");
+    if (!mainAcc) return res.status(500).json({ error: "Brak podłączonego konta Microsoft" });
 
     let accessToken = mainAcc.access_token;
     const timeMin = new Date();

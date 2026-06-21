@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
 import { useSettings } from "./useSettings";
 import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 
@@ -22,6 +21,7 @@ export interface StopGroup {
   stop_name: string;
   zone_id: string;
   distance?: number;
+  bollds?: Bollard[]; 
   bollards: Bollard[]; 
 }
 
@@ -33,7 +33,6 @@ export interface LocalSearchResult {
 
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();
-  const { toast } = useToast();
   const { settings, addFavoriteStop, removeFavoriteStop, loading: settingsLoading } = useSettings();
 
   const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
@@ -41,6 +40,7 @@ export function useTransport(autoRefresh = false) {
   const [loadingNearby, setLoadingNearby] = useState(false);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [transportError, setTransportError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LocalSearchResult[]>([]);
@@ -140,6 +140,7 @@ export function useTransport(autoRefresh = false) {
     favoritesAbortRef.current = controller;
 
     setLoadingFavorites(true);
+    setTransportError(null);
     try {
       const { data, error } = await supabase.functions.invoke("get-transitland-times", {
         body: { stopNames: stops, lat: lastCoords.current?.lat, lon: lastCoords.current?.lng },
@@ -150,11 +151,11 @@ export function useTransport(autoRefresh = false) {
       setFavoritesGroups(data?.success || []);
       lastFetchTime.current[cacheKey] = now;
     } catch {
-      toast.error(`Błąd pobierania odjazdów.`);
+      setTransportError(`Błąd pobierania ulubionych odjazdów.`);
     } finally {
       setLoadingFavorites(false)
     }
-  }, [supabase, toast]);
+  }, [supabase]);
 
   const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
   const favoritesJSON = JSON.stringify(favoriteStops);
@@ -165,9 +166,9 @@ export function useTransport(autoRefresh = false) {
       const stops = JSON.parse(favoritesJSON);
       fetchFavorites(stops);
     } catch {
-      toast.error("Wystąpił błąd pobierania przystanków");
+      setTransportError("Wystąpił błąd parsowania przystanków");
     }
-  }, [favoritesJSON, fetchFavorites, settingsLoading, toast]);
+  }, [favoritesJSON, fetchFavorites, settingsLoading]);
 
   useEffect(() => {
     const loadSuggestions = async () => {
@@ -222,29 +223,12 @@ export function useTransport(autoRefresh = false) {
     
     if (selectedStop) {
       addFavoriteStop(selectedStop.name, selectedStop.zone_id);
-      toast.success(`Dodano do ulubionych: ${selectedStop.name}`);
-    } else {
-      const fallbackName = value.split(" (")[0];
-      addFavoriteStop(fallbackName, "AUTO");
-      toast.success(`Dodano do ulubionych: ${fallbackName}`);
-    }
+    } 
     
     setSearchQuery("");
     setSuggestions([]);
     setSearchResults([]);
   };
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (loadingFavorites && favoritesGroups.length === 0) toastId = toast.loading("Ładowanie ulubionych...");
-      return () => { if (toastId) toast.dismiss(toastId); };
-  }, [loadingFavorites, toast, favoritesGroups.length]);
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (loadingNearby && nearbyGroups.length === 0) toastId = toast.loading("Ładowanie przystanków...");
-      return () => { if (toastId) toast.dismiss(toastId); };
-  }, [loadingNearby, toast, nearbyGroups.length]);
 
   useEffect(() => {
     initLocationAndFetch();
@@ -275,6 +259,9 @@ export function useTransport(autoRefresh = false) {
     initLocationAndFetch,
     favoriteStops,
     addFavoriteStop,
-    removeFavoriteStop
+    removeFavoriteStop,
+    loadingNearby,
+    loadingFavorites,
+    transportError
   };
 }
