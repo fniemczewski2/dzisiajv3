@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import ICAL from "ical.js";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../CommonButtons";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 interface EventsFormProps {
   onEventsChange: () => void;

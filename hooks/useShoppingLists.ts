@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
-import { resolveSharedEmails, getUserIdByEmail } from "@/utils/share";
+import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
 
 export function useShoppingLists() {

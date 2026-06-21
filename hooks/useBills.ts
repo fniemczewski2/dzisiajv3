@@ -140,6 +140,12 @@ export function useBills(options: FetchOptions = {}) {
         if (error) throw error;
         const parent = data as Bill;
 
+        if (parent.is_income) {
+           setIncomeItems(prev => [parent, ...prev]);
+        } else {
+           setExpenseItems(prev => [parent, ...prev]);
+        }
+
         if (bill.is_recurring && bill.recurring_until) {
           const childDates = getRecurringDates(bill.date, bill.recurring_until);
           if (childDates.length > 0) {
@@ -171,6 +177,9 @@ export function useBills(options: FetchOptions = {}) {
     async (bill: Bill, editOptions: { updateFutureRecurring?: boolean } = {}): Promise<Bill> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
+
+      setIncomeItems((prev) => prev.map((b) => b.id === bill.id ? { ...b, ...bill } : b));
+      setExpenseItems((prev) => prev.map((b) => b.id === bill.id ? { ...b, ...bill } : b));
       
       try {
         const { data, error } = await supabase
@@ -212,6 +221,9 @@ export function useBills(options: FetchOptions = {}) {
     async (id: string, deleteFutureRecurring = false): Promise<void> => {
       if (!userId) throw new Error("Musisz być zalogowany");
       setLoading(true);
+
+      setIncomeItems((prev) => prev.filter((b) => b.id !== id));
+      setExpenseItems((prev) => prev.filter((b) => b.id !== id));
       
       try {
         if (deleteFutureRecurring) {

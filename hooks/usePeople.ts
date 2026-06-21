@@ -34,30 +34,41 @@ export function usePeople() {
 
   const addPerson = async (person: PersonInsert) => {
     if (!userId) return;
-    const { error } = await supabase.from("people").insert({ ...person, user_id: userId });
+    const { data, error } = await supabase.from("people").insert({ ...person, user_id: userId }).select().single();
+
     if (error) throw error;
-    await fetchPeople();
+
+    setPeople((prev) => [...prev, data].sort((a, b) => a.first_name.localeCompare(b.first_name)));
   };
 
   const editPerson = async (id: string, updates: Partial<Person>) => {
     if (!userId) return;
+
+    setPeople((prev) => prev.map((p) => p.id === id ? { ...p, ...updates } : p));
+
     const { error } = await supabase.from("people").update(updates).eq("id", id);
-    if (error) throw error;
-    await fetchPeople();
+    if (error) {
+      fetchPeople(); 
+      throw error;
+    }
   };
 
   const deletePerson = async (id: string) => {
     if (!userId) return;
+
+    setPeople((prev) => prev.filter((p) => p.id !== id));
+
     const { error } = await supabase.from("people").delete().eq("id", id);
-    if (error) throw error;
-    await fetchPeople();
+    if (error) {
+      fetchPeople(); 
+      throw error;
+    }
   };
 
   const logContact = async (id: string) => {
     await editPerson(id, { last_contact_date: new Date().toISOString() });
   };
 
-  // Logika powiadomień
   const getPeopleToContact = () => {
     const now = new Date();
     return people.filter(p => {

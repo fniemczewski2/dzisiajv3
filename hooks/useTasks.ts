@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Task } from "@/types";
 import { useSettings } from "./useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { resolveSharedEmails, getUserIdByEmail } from "@/utils/share";
+import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 
 const createSortFunction = (
   sortOrder: string,
@@ -112,7 +112,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setLoading(true);
       try {
         const { shared_with_email, display_share_info, ...taskData } = task;
-        
         let finalForUserId: string = (taskData as any).for_user_id || userId;
 
         if (shared_with_email !== undefined) {
@@ -120,14 +119,21 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           if (fetchedId) finalForUserId = fetchedId;
         }
 
-        const { error: insertError } = await supabase.from("tasks").insert({
+        // WAŻNE: Dodajemy .select().single(), aby baza zwróciła nam utworzony obiekt (wraz z wygenerowanym ID)
+        const { data, error: insertError } = await supabase.from("tasks").insert({
           ...taskData,
           user_id: userId,
           for_user_id: finalForUserId,
           due_date: formatDate((taskData as any).due_date),
-        });
+        }).select().single();
+        
         if (insertError) throw insertError;
-        await fetchTasks();
+        
+        // Optimistic UI Update: Natychmiast dodajemy zadanie do stanu
+        setRawTasks(prev => [...prev, data as Task]);
+      } catch (error) {
+        fetchTasks(); // W razie błędu pobieramy listę ponownie
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -138,10 +144,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const editTask = useCallback(
     async (task: Task & { shared_with_email?: string }) => {
       if (!userId) throw new Error("Musisz być zalogowany");
-      setLoading(true);
+      
+      // Optimistic UI Update: Zmieniamy zadanie w locie
+      setRawTasks(prev => prev.map(t => t.id === task.id ? { ...t, ...task } : t));
+
       try {
-        const { shared_with_email, display_share_info, ...taskData } = task
-        
+        const { shared_with_email, display_share_info, ...taskData } = task;
         let finalForUserId = (taskData as any).for_user_id;
 
         if (shared_with_email !== undefined) {
@@ -158,10 +166,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             due_date: formatDate((taskData as any).due_date),
           })
           .eq("id", task.id);
+          
         if (updateError) throw updateError;
-        await fetchTasks();
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        fetchTasks(); // Rollback
+        throw error;
       }
     },
     [supabase, userId, fetchTasks]
@@ -170,13 +179,16 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) throw new Error("Musisz być zalogowany");
-      setLoading(true);
+      
+      // Optimistic UI Update: Ukrywamy zadanie z listy
+      setRawTasks(prev => prev.filter(t => t.id !== id));
+
       try {
         const { error: deleteError } = await supabase.from("tasks").delete().eq("id", id);
         if (deleteError) throw deleteError;
-        await fetchTasks();
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        fetchTasks(); // Rollback
+        throw error;
       }
     },
     [supabase, userId, fetchTasks]
@@ -185,17 +197,13 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const acceptTask = useCallback(
     async (id: string) => {
       if (!userId) throw new Error("Musisz być zalogowany");
-      setLoading(true);
+      
+      setRawTasks(prev => prev.map(t => t.id === id ? { ...t, status: "accepted" } : t));
+
       try {
-        const { error: updateError } = await supabase
-          .from("tasks")
-          .update({ status: "accepted" })
-          .eq("id", id);
+        const { error: updateError } = await supabase.from("tasks").update({ status: "accepted" }).eq("id", id);
         if (updateError) throw updateError;
-        await fetchTasks();
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { fetchTasks(); throw error; }
     },
     [supabase, userId, fetchTasks]
   );
@@ -203,32 +211,31 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const setDoneTask = useCallback(
     async (id: string) => {
       if (!userId) throw new Error("Musisz być zalogowany");
-      setLoading(true);
+      
+      setRawTasks(prev => prev.map(t => t.id === id ? { ...t, status: "done" } : t));
+
       try {
-        const { error: updateError } = await supabase
-          .from("tasks")
-          .update({ status: "done" })
-          .eq("id", id);
+        const { error: updateError } = await supabase.from("tasks").update({ status: "done" }).eq("id", id);
         if (updateError) throw updateError;
-        await fetchTasks();
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { fetchTasks(); throw error; }
     },
     [supabase, userId, fetchTasks]
   );
 
   const rescheduleTask = useCallback(
     async (taskId: string, newDate: string) => {
-      const { data, error: updateError } = await supabase
-        .from("tasks")
-        .update({ due_date: newDate })
-        .eq("id", taskId)
-        .select()
-        .single();
-      if (updateError) throw updateError;
-      await fetchTasks();
-      return data;
+      setRawTasks(prev => prev.map(t => t.id === taskId ? { ...t, due_date: newDate } : t));
+
+      try {
+        const { data, error: updateError } = await supabase
+          .from("tasks")
+          .update({ due_date: newDate })
+          .eq("id", taskId)
+          .select()
+          .single();
+        if (updateError) throw updateError;
+        return data;
+      } catch (error) { fetchTasks(); throw error; }
     },
     [supabase, fetchTasks]
   );

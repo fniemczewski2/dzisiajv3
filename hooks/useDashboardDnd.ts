@@ -68,7 +68,6 @@ export function useDashboardDnd({
         scheduledDateTime.setHours(hours, minutes || 0, 0, 0);
 
         await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
-        await fetchTasks();
         return;
       }
 
@@ -91,7 +90,6 @@ export function useDashboardDnd({
           start_time: dateToTimestamp(newStart),
           end_time: dateToTimestamp(newEnd),
         });
-        await fetchEvents();
       }
     },
     [userId, tasks, events, date, editTask, editEvent, fetchTasks, fetchEvents]

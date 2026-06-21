@@ -38,14 +38,18 @@ export function useDaySchemas() {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
     try {
-      const { error } = await supabase.from("day_schemas").insert({
+      const { data, error } = await supabase.from("day_schemas").insert({
         user_id: userId,
         name: schema.name,
         days: schema.days,
         entries: schema.entries,
-      });
+      }).select().single();
       if (error) throw error;
-      await fetchSchemas();
+      setSchemas((prev) => [...prev, {
+        ...data,
+        days: typeof data.days === "string" ? JSON.parse(data.days) : data.days,
+        entries: typeof data.entries === "string" ? JSON.parse(data.entries) : data.entries,
+      }]);
     } finally {
       setLoading(false);
     }
@@ -53,13 +57,18 @@ export function useDaySchemas() {
 
   const updateSchema = async (id: string, payload: Omit<Schema, "id">) => {
     setLoading(true);
+
+    setSchemas((prev) => prev.map(s => s.id === id ? { ...s, ...payload } : s));
+
     try {
       const { error } = await supabase
         .from("day_schemas")
         .update({ name: payload.name, days: payload.days, entries: payload.entries })
         .eq("id", id);
-      if (error) throw error;
+      if (error) {
       await fetchSchemas();
+      throw error;
+      }
     } finally {
       setLoading(false);
     }
@@ -68,10 +77,15 @@ export function useDaySchemas() {
   const deleteSchema = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
+
+    setSchemas((prev) => prev.filter(s => s.id !== id));
+
     try {
       const { error } = await supabase.from("day_schemas").delete().eq("id", id);
-      if (error) throw error;
-      await fetchSchemas();
+      if (error) {
+         fetchSchemas(); 
+         throw error;
+      }
     } finally {
       setLoading(false);
     }
