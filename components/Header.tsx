@@ -150,7 +150,7 @@ export default function Header() {
 
         <div className="shrink-0 flex flex-1 items-center">
           <button
-            onClick={() => router.push("/calendar")}
+            onClick={() => router.push("/calendar?reset=true")}
             className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
             title="Kliknij, aby zobaczyć kalendarz"
           >

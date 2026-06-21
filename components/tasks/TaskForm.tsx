@@ -16,9 +16,11 @@ interface TaskFormProps {
   onCancel?: () => void;
   selectedDate?: string;
   loading: boolean;
+  addMany?: boolean;
+  addAnother?: (type: "task" | "event") => void;
 }
 
-export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate }: Readonly<TaskFormProps>) {
+export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate, addMany = false, addAnother }: Readonly<TaskFormProps>) {
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
@@ -130,7 +132,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
           placeholder="Dodatkowe informacje..." />
       </div>
 
-      <FormButtons onClickClose={onCancel} loading={loading}/>
+      <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother && addAnother('task')}/>
     </form>
   );
 }

@@ -2,7 +2,6 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
-import { pl } from "date-fns/locale";
 import { Calendar, ListTodo, SaveAll, Trophy, X } from "lucide-react";
 import {
   DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
@@ -16,15 +15,14 @@ import { useStreaks } from "@/hooks/useStreaks";
 import { useDaySchemas } from "@/hooks/useDaySchemas";
 import { useDashboardDnd } from "@/hooks/useDashboardDnd";
 import { useDailyOverrides } from "@/hooks/useDailyOverrides";
-import { getPolishHolidays } from "@/lib/holidays";
 import { useToast } from "@/providers/ToastProvider";
 import { DayEvents } from "./DayEvents";
 import { DailyPlan } from "./DailyPlan";
 import { DayTasks } from "./DayTasks";
 import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
-import { DashboardWidgets } from "../widgets/DashboardWidgets";
-import { AddButton, AddSpecificButton } from "../CommonButtons";
+import { AddButton } from "../CommonButtons";
+import DayHeader from "./DayHeader";
 
 const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
 const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });
@@ -33,8 +31,8 @@ const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
 
 interface DayViewProps {
   date: Date;
-  isMain?: boolean;
   onBack?: () => void;
+  onDateChange?: (newDate: Date) => void;
 }
 
 type DraftForm = {
@@ -58,7 +56,7 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
   return null;
 };
 
-export default function DayView({ date, isMain = false, onBack }: Readonly<DayViewProps>) {
+export default function DayView({ date, onBack, onDateChange }: Readonly<DayViewProps>) {
   const { user } = useAuth();
   const userId = user!.id;
   const { settings } = useSettings();
@@ -69,6 +67,22 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
   const userOptions = settings?.users ?? [];
   const isToday = useMemo(() => dateStr === format(new Date(), "yyyy-MM-dd"), [dateStr]);
 
+  const handlePrevDay = () => {
+    if (onDateChange) {
+      const prev = new Date(date);
+      prev.setDate(prev.getDate() - 1);
+      onDateChange(prev);
+    }
+  };
+
+  const handleNextDay = () => {
+    if (onDateChange) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + 1);
+      onDateChange(next);
+    }
+  };
+
   const [draftForms, setDraftForms] = useState<DraftForm[]>([]);
   const [draggedSchemaTitle, setDraggedSchemaTitle] = useState<string | null>(null);
 
@@ -77,19 +91,14 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
 
   const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, acceptTask } = 
     useTasks(
-      isMain ? undefined : dateStr, 
-      isMain ? undefined : dateStr,
+      dateStr, 
+      dateStr,
     );
   const { events, fetchEvents, addEvent, deleteEvent, editEvent, loading: loadingEvents } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage } = useStreaks();
   const { schemas } = useDaySchemas();
   
   const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
-
-  const holiday = useMemo(() => {
-    const map = getPolishHolidays(date.getFullYear());
-    return map[dateStr] ?? null;
-  }, [dateStr, date]);
 
   const { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd } = useDashboardDnd({
     tasks, events, userId, date, editTask, editEvent, fetchTasks, fetchEvents,
@@ -306,30 +315,17 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStartCustom} onDragEnd={handleDragEndCustom}>
       <div className="space-y-4 sm:space-y-6 mx-auto w-full">
-        
-        <div className="flex items-center justify-between relative">
-          {onBack && (
-            <button onClick={onBack} className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-lg transition-colors shrink-0">
-              <Calendar className="w-5 h-5" />
-            </button>
-          )}
-
-          <div className="flex flex-col items-center flex-1">
-            <h3 className="font-bold text-base sm:text-2xl text-text text-center flex items-center justify-center">
-              {format(date, "d MMMM yyyy", { locale: pl })}
-            </h3>
-            {holiday && <span className="text-red-600 dark:text-red-400 text-xs font-medium uppercase tracking-wider mt-1">{holiday}</span>}
-          </div>
-          <div className="flex min-w-[140px] items-center gap-2">
-            <AddSpecificButton Icon={ListTodo} title={"Dodaj zadanie"} label={"zadanie"} action={() => handleAddDraft('task')}/>
-            <AddSpecificButton Icon={Calendar} title={"Dodaj wydarzenie"} label={"wydarzenie"} action={() => handleAddDraft('event')}/>
-          </div>
-        </div>
-
-        <DashboardWidgets settings={settings} date={dateStr}/>
+        <DayHeader 
+          date={date} 
+          dateStr={dateStr} 
+          onPrev={handlePrevDay} 
+          onNext={handleNextDay} 
+          handleAddDraft={handleAddDraft} 
+          settings={settings} 
+        />
         
         {draftForms.length > 0 && (
-          <div className="mb-6 space-y-4 multi-draft-container [&_.dzisiaj-save-btn]:!hidden">
+          <div className="mb-6 space-y-4 multi-draft-container">
             {draftForms.map((draft, idx) => (
               <div key={draft.id} className="relative w-full md:w-fit">
                 <div className="absolute -left-2 -top-2 bg-secondary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10 shadow">
@@ -339,18 +335,22 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
                   <EventForm 
                     currentDate={date} 
                     selectedDate={date} 
+                    addAnother={() => handleAddDraft('event')}
                     onEventsChange={() => { fetchEvents(); handleRemoveDraft(draft.id); }} 
                     addEvent={addEvent}
                     onCancel={() => handleRemoveDraft(draft.id)} 
                     loading={loadingEvents}
+                    addMany
                   />
                 ) : (
                   <TaskForm 
                     selectedDate={dateStr}
                     addTask={addTask}
+                    addAnother={() => handleAddDraft('task')}
                     onTasksChange={() => { fetchTasks(); handleRemoveDraft(draft.id); }} 
                     onCancel={() => handleRemoveDraft(draft.id)} 
                     loading={loadingTasks}
+                    addMany
                   />
                 )}
               </div>
@@ -370,13 +370,13 @@ export default function DayView({ date, isMain = false, onBack }: Readonly<DayVi
                 }}
                 className="w-full py-3 hover:bg-primary bg-secondary text-white rounded-lg font-bold text-sm shadow-md flex justify-center items-center gap-2 transition-colors"
               >
-                ZAPISZ WSZYSTKIE {draftForms.length}
+                Dodaj wszystkie {draftForms.length}
                 <SaveAll className="w-5 h-5" />
               </button>
               
               <button 
                 onClick={() => setDraftForms([])} 
-                className="flex justify-center items-center gap-2 w-full sm:w-1/3 py-3 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg border border-gray-200 dark:border-gray-800 text-sm font-bold uppercase tracking-wider transition-colors"
+                className="flex justify-center items-center gap-2 w-full sm:w-1/3 py-3 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg border border-gray-200 dark:border-gray-800 text-sm font-bold tracking-wider transition-colors"
               >
                 Zamknij
                 <X className="w-5 h-5" />

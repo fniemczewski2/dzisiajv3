@@ -35,7 +35,8 @@ interface AddSpecificButtonProps {
   Icon: LucideIcon;
   label: string;
   title?: string;
-  router?: NextRouter
+  router?: NextRouter;
+  small?: boolean;
 }
 
 interface FormButtonsProps {
@@ -44,6 +45,8 @@ interface FormButtonsProps {
   loading?: boolean;
   disabled?: boolean;
   small?: boolean;
+  addMany?: boolean;
+  onAddAnother?: () => void;
 }
 
 export const AddButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
@@ -55,6 +58,19 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: Readonl
     aria-label="dodaj"
   >
     Dodaj
+    <PlusCircleIcon className="w-5 h-5" />
+  </button>
+);
+
+export const AddAnotherButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={loading || disabled}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+    aria-label="dodaj kolejny"
+  >
+    Następny
     <PlusCircleIcon className="w-5 h-5" />
   </button>
 );
@@ -98,13 +114,21 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Read
   </button>
 );
 
-export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false }: Readonly<FormButtonsProps>) => (
+export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false, addMany = false, onAddAnother }: Readonly<FormButtonsProps>) => (
   <div className={`${small ? "" : "pt-4 border-t border-gray-100 dark:border-gray-800 flex-col md:flex-row"} flex items-center md:justify-end gap-2 `}>
-    <SaveButton
-      onClick={onClickSave}
-      disabled={loading || disabled}
-      small={small}
-    />
+    {addMany ? (
+      <AddAnotherButton
+        onClick={onAddAnother}
+        disabled={loading || disabled}
+        small={small}
+      />
+    ) : (
+      <SaveButton
+        onClick={onClickSave}
+        disabled={loading || disabled}
+        small={small}
+      />
+    )}
     <CloseButton
       onClick={onClickClose}
       disabled={loading || disabled}
@@ -277,7 +301,7 @@ export const PdfButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export const AddSpecificButton = ({ path, Icon, title, label, action, router }: Readonly<AddSpecificButtonProps>) => {
+export const AddSpecificButton = ({ path, Icon, title, label, action, router, small }: Readonly<AddSpecificButtonProps>) => {
   return (
   <button
     key={path}
@@ -290,15 +314,17 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router }: 
         }
       }}
     title={title}
-    className="group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
+    className={`group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm ${small && "w-[40px]"}`}
     aria-label={`dodaj ${label}`}
   >        
       <div className="relative top-0 w-5 h-5 sm:h-6 sm:w-6">
         <Icon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
         <Plus className="absolute left-3 top-2 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-surface rounded-full"/>
       </div>
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
-      {label}
-    </span>
+    {!small && 
+      <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
+        {label}
+      </span>
+    }
   </button>
 )};

@@ -11,11 +11,13 @@ import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/SEO";
+import { useRouter } from "next/router";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), { ssr: false });
-const CalendarDayDetails = dynamic(() => import("../components/calendar/CalendarDayDetails"), { ssr: false });
+const DayView = dynamic(() => import("../components/dashboard/DayView"), { ssr: false });
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -24,8 +26,6 @@ export default function CalendarPage() {
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
 
   const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
-
-  const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
   const { moods } = useMoods();
   const { toast } = useToast();
@@ -47,6 +47,13 @@ export default function CalendarPage() {
       return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
+  useEffect(() => {
+    if (router.query.reset === "true") {
+      setSelectedDate(null); 
+      router.replace("/calendar", undefined, { shallow: true });
+    }
+  }, [router.query.reset, router]);
+
   return (
     <>
       <Seo
@@ -56,8 +63,8 @@ export default function CalendarPage() {
         keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google, outlook"
       />   
         
-        {selectedDateStr ? (
-          <CalendarDayDetails selectedDate={selectedDateStr} onBack={() => setSelectedDate(null)} />
+        {selectedDate ? (
+          <DayView date={selectedDate} onDateChange={setSelectedDate} />
         ) : (
         <>
           <div className="flex justify-between items-center mb-6 gap-2">

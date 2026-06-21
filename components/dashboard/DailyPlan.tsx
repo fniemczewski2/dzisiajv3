@@ -30,7 +30,7 @@ export const DailyPlan = React.memo(({
       </h2>
 
       <div className="relative">
-        <div className="space-y-2 relative z-10">
+        <div className="space-y-1 relative z-10">
           {visibleHours.map((timeKey) => {
             const items = planByHour[timeKey] || [];
 
