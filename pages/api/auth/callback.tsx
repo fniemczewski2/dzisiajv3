@@ -5,12 +5,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, next = '/' } = req.query
 
   if (code) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-    if (!url || !key) {
-      throw new Error("Brak zmiennych środowiskowych Supabase!");
-    }
     const supabase = createServerClient(url, key,
       {
         cookies: {
@@ -26,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
               })
             } catch {
-              throw new Error("Wystąpił błąd autoryzacji.")
+              { return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });}
             }
           },
         },
@@ -35,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const { error } = await supabase.auth.exchangeCodeForSession(String(code))
     if (error) {
-      console.error('Błąd logowania w callbacku:', error.message)
+      { return res.status(500).json({ error: "Wystąpił błąd logowania" });}
     }
   }
 

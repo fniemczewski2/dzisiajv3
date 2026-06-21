@@ -72,6 +72,6 @@ export default async function handler(
     res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=60");
     return res.status(200).json(data);
   } catch {
-    throw new Error("Wystąpił błąd  TMDB");
+    return res.status(500).json({ error: "Wystąpił błąd TMDB" });
   }
 }

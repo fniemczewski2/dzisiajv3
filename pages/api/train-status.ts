@@ -1,3 +1,4 @@
+import { getAppDateTime } from '@/lib/dateUtils';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const toSearch = (to as string).split(',')[0].trim();
     const stationsDictRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?pageSize=10000`, { headers })
 
-    if (stationsDictRes.status === 429) { return res.status(200).json({ delay: 0, platform: '-', status: 'Spróbuj ponownie później', estimatedArrival: '', hide: false }); }
-    if (!stationsDictRes.ok) throw new Error('Błąd słownika stacji');
+    if (stationsDictRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
+    if (!stationsDictRes.ok) { return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });}
 
     const dictData = await stationsDictRes.json();
     const fromStationId = matchStation(dictData.stations, fromSearch);
@@ -36,8 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${fromStationId}`, { headers });
-    if (schedulesRes.status === 429) return res.status(200).json({ delay: 0, platform: '-', status: '429', estimatedArrival: '', hide: false });
-    if (!schedulesRes.ok) throw new Error(`Błąd rozkładu ${schedulesRes.status}`);
+    if (schedulesRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
+    if (!schedulesRes.ok) { return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });}
     const schedulesData = await schedulesRes.json();
 
     const pureNumber = (trainNumber as string).replace(/\D/g, '');
@@ -62,11 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const opStationFrom = trainData.stations?.find((s: any) => s.stationId === fromStationId);
       const opStationTo = trainData.stations?.find((s: any) => s.stationId === toStationId);
       
-      const nowPlString = new Date().toLocaleString("en-US", { 
-        timeZone: "Europe/Warsaw",
-        hour12: false
-      });
-      const nowPl = new Date(nowPlString);
+      const nowPl = getAppDateTime();
       const hasDepartedFrom = opStationFrom?.actualDeparture && (nowPl.getTime() > new Date(opStationFrom.actualDeparture).getTime());
 
       if (hasDepartedFrom) {
@@ -101,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       delay: delay,
       platform: platform || '-',
-      status: delay > 0 ? 'Opóźniony' : 'Planowy',
+      status: delay > 0 ? 'Opóźniony' : 'Nie zaczął',
       estimatedArrival: '',
       hide: false
     });    

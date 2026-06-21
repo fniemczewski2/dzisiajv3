@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { useToast } from '@/providers/ToastProvider';
+import { getAppDateTime } from '@/lib/dateUtils';
 
 export interface TrainInput {
   trainNumber: string;
@@ -23,7 +23,6 @@ export interface TrackedTrain extends TrainInput {
 
 export function useTrains() {
   const { supabase, user } = useAuth();
-  const { toast } = useToast();
   
   const [trains, setTrains] = useState<TrackedTrain[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -36,61 +35,59 @@ export function useTrains() {
     
     setLoading(true);
     try {
+      const now = getAppDateTime();
+
+      const limitPast = now.getTime() - (6 * 60 * 60 * 1000); 
+      const limitFuture = now.getTime() + (6 * 60 * 60 * 1000); 
+
+      const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+        .toISOString()
+        .split('T')[0];
+
       const { data, error } = await supabase
         .from('user_trains')
         .select('*')
         .eq('user_id', user.id)
+        .gte('date', todayStr)
         .order('date', { ascending: true })
         .order('departure_time', { ascending: true });
 
       if (error) throw error;
 
-      const mappedData: TrackedTrain[] = (data || []).map((item: any) => ({
-        id: item.id,
-        userId: item.user_id,
-        trainNumber: item.train_number,
-        trainName: item.train_name,
-        date: item.date,
-        departureTime: item.departure_time,
-        from: item.from_station,
-        to: item.to_station,
-        wagon: item.wagon,
-        seat: item.seat,
-        createdAt: item.created_at,
-      }));
+      const mappedData: TrackedTrain[] = (data || [])
+        .map((item: any) => ({
+          id: item.id,
+          userId: item.user_id,
+          trainNumber: item.train_number,
+          trainName: item.train_name,
+          date: item.date,
+          departureTime: item.departure_time,
+          from: item.from_station,
+          to: item.to_station,
+          wagon: item.wagon,
+          seat: item.seat,
+          createdAt: item.created_at,
+        }))
+        .filter(train => {
+          const [year, month, day] = train.date.split('-').map(Number);
+          const [hours, minutes] = train.departureTime.split(':').map(Number);
+          
+          const departureTime = new Date(year, month - 1, day, hours, minutes);
+          const departureTimestamp = departureTime.getTime();
+
+          return departureTimestamp >= limitPast && departureTimestamp <= limitFuture;
+        });
 
       setTrains(mappedData);
-    } catch {
-      toast.error('Nie udało się pobrać listy pociągów');
+    } catch (error) {
+      throw new Error("Błąd pobierania pociągów")
     } finally {
       setLoading(false);
     }
-  }, [user, supabase, toast]);
-
-  useEffect(() => {
-    if (user) {
-      fetchTrains();
-    } else {
-      setTrains([]);
-      setLoading(false);
-    }
-  }, [user, fetchTrains]);
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (loading && trains.length === 0) {
-      toastId = toast.loading("Ładowanie zapisanych pociągów...");
-    }
-    return () => { 
-      if (toastId) toast.dismiss(toastId); 
-    };
-  }, [loading, toast, trains.length]);
+  }, [user, supabase]);
 
   const addTrain = async (trainData: TrainInput) => {
-    if (!user) {
-      toast.error('Musisz być zalogowany, aby dodać pociąg.');
-      return false;
-    }
+    if (!user) { return false; }
 
     try {
       const { data, error } = await supabase
@@ -135,15 +132,12 @@ export function useTrains() {
 
       return true;
     } catch {
-      toast.error('Wystąpił błąd podczas zapisywania pociągu');
+      throw new Error('Błąd zapisywania pociągu');
       return false;
     }
   };
 
   const deleteTrain = async (id: string) => {
-    const ok = await toast.confirm('Czy na pewno chcesz przestać śledzić ten pociąg?');
-    if (!ok) return false;
-
     try {
       const { error } = await supabase
         .from('user_trains')
@@ -154,11 +148,8 @@ export function useTrains() {
       if (error) throw error;
 
       setTrains((prev) => prev.filter((t) => t.id !== id));
-      toast.success('Pociąg został usunięty z listy');
-      return true;
     } catch {
-      toast.error('Nie udało się usunąć pociągu');
-      return false;
+      throw new Error('Nie udało się usunąć pociągu');
     }
   };
 
@@ -166,7 +157,8 @@ export function useTrains() {
     trains,
     refresh: fetchTrains,
     addTrain,
-    deleteTrain
+    deleteTrain,
+    loading
   };
 }
 
@@ -200,8 +192,20 @@ export function useTrainStatus(train: { trainNumber: string; date: string; from:
             });
 
             const response = await fetch(`/api/train-status?${params.toString()}`);
+            if (response.status === 429){
+              setData({
+                delay: 0, 
+                platform: '-', 
+                status: '429', 
+                loading: false,
+                estimatedArrival: '',
+                hide: false
+              })
+              return;
+            }
+
             if (!response.ok) throw new Error('Błąd pobierania statusu');
-            
+
             const result = await response.json();
             if (isMounted) {
               setData({
@@ -216,7 +220,7 @@ export function useTrainStatus(train: { trainNumber: string; date: string; from:
         } catch {
             if (isMounted) setData({ 
                 delay: 0, 
-                platform: 'Brak', 
+                platform: '-', 
                 status: 'Błąd połączenia', 
                 loading: false,
                 estimatedArrival: '',

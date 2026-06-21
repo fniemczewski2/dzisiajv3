@@ -1,3 +1,4 @@
+import { getAppDateTime } from '@/lib/dateUtils';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,12 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const searchWord = (stationName as string);
     const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(searchWord)}&pageSize=10`, { headers });
-    if(stationsRes.status === 429) {
-        return res.status(429).json({
-            error: "Spróbuj ponownie później"
-        });
-    }
-    if (!stationsRes.ok) throw new Error('Błąd pobierania słownika stacji');
+    if(stationsRes.status === 429) { return res.status(429).json({ error: "Spróbuj ponownie później" });}
+    if (!stationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
     const stationsData = await stationsRes.json();
     
     const normalizedInput = (stationName as string).toLowerCase().replaceAll('gł.', 'główny');
@@ -43,28 +40,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stationId = station.id;
     const actualStationName = station.name;
 
-    const nowPlString = new Date().toLocaleString("en-US", { timeZone: "Europe/Warsaw" });
-    const nowPl = new Date(nowPlString);
+    const nowPl = getAppDateTime();
     const date = `${nowPl.getFullYear()}-${String(nowPl.getMonth() + 1).padStart(2, '0')}-${String(nowPl.getDate()).padStart(2, '0')}`;
 
     const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`, { headers });
-    if(schedulesRes.status === 429) {
-        return res.status(429).json({
-            error: "Spróbuj ponownie później"
-        });
-    }
-    if (!schedulesRes.ok) throw new Error('Błąd pobierania rozkładu planowanego');
+    if(schedulesRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
+    if (!schedulesRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
 
     const schedulesData = await schedulesRes.json();
 
     const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers });
-    if(operationsRes.status === 429) {
-        return res.status(429).json({
-            error: "Spróbuj ponownie później"
-        });
-    }
+    if(operationsRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
     
-    if (!operationsRes.ok) throw new Error('Błąd pobierania danych czasu rzeczywistego');
+    if (!operationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
     const operationsData = await operationsRes.json();
     const stationsDict = operationsData.stations || {};
 
@@ -77,17 +65,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!plannedStation) return; 
 
       const liveTrain = operationsData.trains?.find((t: any) => t.scheduleId === route.scheduleId && t.orderId === route.orderId);
-      
       const opStation = liveTrain?.stations?.find((s: any) => s.stationId === stationId);
       const destinationStationId = liveTrain?.stations?.[liveTrain.stations.length - 1].stationId;
       const destinationName = destinationStationId ? getStationName(destinationStationId) : '-';
       
-      let status = 'Planowy';
+      let status = 'Brak danych';
       if (liveTrain) {
         const statusMap: Record<string, string> = {
-          'S': 'Oczekuje',
+          'S': 'Nie zaczął',
           'P': 'W trasie',
           'C': 'Zakończył',
+          'F': 'Zakończył',
           'X': 'Odwołany',
           'Q': 'Cz. odwołany'
         };
@@ -119,28 +107,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     boardItems.sort((a, b) => a.rawTime.localeCompare(b.rawTime));
 
-    const currentHourMinutes = nowPl.getHours() * 60 + nowPl.getMinutes();
+    const nowTimestamp = nowPl.getTime();
+    const limitPast = nowTimestamp - (5 * 60 * 1000);
+    const limitFuture = nowTimestamp + (2 * 60 * 60 * 1000);
+    
+    const endOfToday = new Date(nowPl);
+    endOfToday.setHours(23, 59, 59, 999);
+    const endOfTodayTimestamp = endOfToday.getTime();
 
     const finalItems = boardItems.filter(item => {
-      let itemTotalMinutes;
+      const [h, m] = item.plannedTime.split(':').map(Number);
+      const departureTime = new Date(nowPl);
+      departureTime.setHours(h, m, 0, 0);
+      
+      const scheduledTimeWithDelay = new Date(departureTime.getTime() + (item.delay * 60 * 1000));
+      const departureTimestamp = scheduledTimeWithDelay.getTime();
+      
+      const isPastLimit = departureTimestamp < limitPast;
+      const isTooFarInFuture = departureTimestamp > limitFuture;
+      const isNotToday = departureTimestamp > endOfTodayTimestamp;
 
-      if (item.actualDeparture) {
-         const timePart = item.actualDeparture.split('T')[1] || item.actualDeparture;
-         const [h, m] = timePart.split(':').map(Number);
-         itemTotalMinutes = h * 60 + m;
-      } else {
-         const [h, m] = item.plannedTime.split(':').map(Number);
-         itemTotalMinutes = h * 60 + m + item.delay;
-      }
-
-      const diff = currentHourMinutes - itemTotalMinutes;
-      return diff <= 5;
+      return !isPastLimit && !isTooFarInFuture && !isNotToday;
     }).slice(0, 10);
 
     return res.status(200).json({
       station: actualStationName,
       items: finalItems
     });
+
+    const currentHourMinutes = nowPl.getHours() * 60 + nowPl.getMinutes();
 
   } catch {
     return res.status(500).json({ error: 'Nie udało się wygenerować tablicy stacji' });

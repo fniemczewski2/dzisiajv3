@@ -1,7 +1,8 @@
 import React from 'react';
-import { MapPin, Loader2, AlertTriangle, Clock } from 'lucide-react';
+import { MapPin, Loader2, AlertTriangle, Clock, TrainFront } from 'lucide-react';
 import { useTrainStatus } from '@/hooks/useTrains';
 import { DeleteButton } from '../CommonButtons';
+import { useToast } from '@/providers/ToastProvider';
 
 interface TrackedTrainProps {
   train: {
@@ -20,14 +21,19 @@ interface TrackedTrainProps {
 
 export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
   const { delay, platform, status, loading, hide } = useTrainStatus(train);
+  const { toast }
+   = useToast();
   const handleDelete = async () => {
-    onDelete(train.id); 
+    const ok = await toast.confirm('Czy na pewno chcesz przestać śledzić ten pociąg?');
+    if (ok) onDelete(train.id); 
   };
 
-  if (hide) return null;
+  console.log(delay, platform, status, loading, hide)
 
+  if (hide) return null;
+  const isRateLimited = status === 'Zbyt wiele zapytań';
   const isCancelled = status?.toLowerCase().includes('odwołany');
-  const isDepartedFromStart = status?.toLowerCase().includes('odjechał');
+  const isDepartedFromStart = status?.toLowerCase().includes('w trasie');
   const isDelayed = delay > 0;
 
   const renderStatusBanner = () => {
@@ -40,6 +46,14 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
       )
     }
 
+    if (isRateLimited) {
+      return (
+        <div className="absolute top-0 left-0 w-full bg-yellow-500 text-white text-xs font-bold text-center py-1.5 shadow-sm">
+          Limit zapytań osiągnięty.
+        </div>
+      );
+    }
+
     if (isCancelled) {
       return (
         <div className="absolute top-0 left-0 w-full bg-red-600 text-white text-xs font-bold text-center py-1.5 flex justify-center items-center gap-1 shadow-sm animate-pulse">
@@ -48,18 +62,18 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
       );
     }
 
-    if (isDepartedFromStart) {
+    if (isDelayed) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-indigo-600 text-white text-xs font-bold text-center py-1.5 shadow-sm flex justify-center items-center gap-1">
-          <Clock className="w-3 h-3" /> W trasie
+        <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-xs font-bold text-center py-1.5 shadow-sm">
+          <Clock className="w-3 h-3" /> Opóźnienie: {delay} min
         </div>
       );
     }
 
-    if (isDelayed) {
+    if (isDepartedFromStart) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-xs font-bold text-center py-1.5 shadow-sm">
-          Opóźnienie: {delay} min
+        <div className="absolute top-0 left-0 w-full bg-indigo-600 text-white text-xs font-bold text-center py-1.5 shadow-sm flex justify-center items-center gap-1">
+          <TrainFront className="w-3 h-3" /> W trasie
         </div>
       );
     }
