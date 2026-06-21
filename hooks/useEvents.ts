@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Event } from "@/types";
 import { expandRepeatingEvents } from "@/lib/eventUtils";
 import { useAuth } from "@/providers/AuthProvider";
-import { resolveSharedEmails, getUserIdByEmail } from "@/utils/share"; 
+import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share"; 
 
 export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
@@ -44,12 +44,10 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     }
   }, [supabase, userId, rangeStart, rangeEnd]);
 
-  // Standardowe pobieranie po zmianie zakresu dat
   useEffect(() => { 
     fetchEvents(); 
   }, [fetchEvents]);
 
-  // NOWE: Nasłuchiwanie na globalne zdarzenie z innych komponentów (np. ConnectedCalendars)
   useEffect(() => {
     const handleRefresh = () => {
       fetchEvents();
@@ -62,7 +60,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     };
   }, [fetchEvents]);
 
-// hooks/useEvents.ts (fragment)
 
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
     if (!userId) throw new Error("Musisz być zalogowany");
@@ -84,7 +81,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       if (error) throw error;
       await fetchEvents();
       
-      // ZMIANA: Zwracamy dodane wydarzenie, aby mieć dostęp do jego ID w formularzu
       return data;
     } finally {
       setLoading(false);
@@ -94,6 +90,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const editEvent = async (event: Event & { shared_with_email?: string }) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
+    setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, ...event } : e));
     try {
       const originalId = event.id.split("_")[0];
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
@@ -111,10 +108,11 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         .from("events")
         .update({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
         .eq("id", originalId);
-      
-      if (error) throw error;
-      await fetchEvents();
+
+    } catch (error) {
+      throw error;
     } finally {
+      fetchEvents();
       setLoading(false);
     }
   };
@@ -122,11 +120,16 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const deleteEvent = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
+
+    setEvents((prev) => prev.filter((e) => e.id !== id));
     try {
       const originalId = id.split("_")[0];
       const { error } = await supabase.from("events").delete().eq("id", originalId);
       if (error) throw error;
-      await fetchEvents();
+      
+    } catch (error) {
+      fetchEvents();
+      throw error;
     } finally {
       setLoading(false);
     }

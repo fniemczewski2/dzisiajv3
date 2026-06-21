@@ -76,15 +76,20 @@ export function useNotes() {
   const togglePin = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
+    
+    const note = notes.find((n) => n.id === id);
+    if (!note) return;
+    setNotes((prev) => prev.map((n) => n.id === id ? { ...n, pinned: !n.pinned, archived: false} : n));
+
     try {
-      const note = notes.find((n) => n.id === id);
-      if (!note) return;
       const { error } = await supabase
         .from("notes")
         .update({ pinned: !note.pinned, archived: false, updated_at: getAppDateTime() })
         .eq("id", id);
-      if (error) throw error;
-      await fetchNotes();
+    if (error) {
+       fetchNotes(); 
+       throw error;
+    }
     } finally {
       setLoading(false);
     }
@@ -93,6 +98,10 @@ export function useNotes() {
   const toggleArchive = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
+
+
+    setNotes((prev) => prev.map((n) => n.id === id ? { ...n, archived: !n.archived, pinned: false, updated_at: getAppDateTime().toISOString() } : n));
+
     try {
       const note = notes.find((n) => n.id === id);
       if (!note) return;
@@ -100,8 +109,10 @@ export function useNotes() {
         .from("notes")
         .update({ archived: !note.archived, pinned: false, updated_at: getAppDateTime() })
         .eq("id", id);
-      if (error) throw error;
-      await fetchNotes();
+      if (error) {
+       fetchNotes(); 
+       throw error;
+      }
     } finally {
       setLoading(false);
     }
@@ -109,11 +120,15 @@ export function useNotes() {
 
   const deleteNote = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
+
+    setNotes((prev) => prev.filter((n) => n.id !== id));
     setLoading(true);
     try {
       const { error } = await supabase.from("notes").delete().eq("id", id);
-      if (error) throw error;
-      await fetchNotes();
+      if (error) {
+       fetchNotes(); 
+       throw error;
+      }
     } finally {
       setLoading(false);
     }

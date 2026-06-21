@@ -1,6 +1,6 @@
 // pages/api/tmdb.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabase } from "@/utils/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 

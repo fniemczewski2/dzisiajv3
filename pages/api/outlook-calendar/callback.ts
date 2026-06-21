@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createServerSupabase } from '@/utils/supabase/server';
+import { createServerSupabase } from '@/lib/supabase/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;
