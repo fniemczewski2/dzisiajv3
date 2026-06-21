@@ -21,6 +21,8 @@ interface EventsFormProps {
   currentDate: Date | null;
   selectedDate: Date | null;
   loading: boolean;
+  addMany?: boolean;
+  addAnother?: (type: "task" | "event") => void;
 }
 
 export default function EventForm({
@@ -29,7 +31,9 @@ export default function EventForm({
   onCancel,
   currentDate = getAppDateTime(),
   selectedDate,
-  loading
+  loading,
+  addMany = false,
+  addAnother
 }: Readonly<EventsFormProps>) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -268,7 +272,7 @@ export default function EventForm({
           className="input-field" rows={2} disabled={loading} 
           placeholder="Dodatkowe informacje..." />
       </div>
-        <FormButtons onClickClose={onCancel} loading={loading} />
+        <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother && addAnother('event')} />
         <label className="flex items-center justify-center text-sm font-medium text-textMuted hover:underline transition-colors px-2 py-1 disabled:opacity-50">
           .ics <Upload className="w-4 h-4 ml-2" />
           <input type="file" accept=".ics" onChange={handleFileUpload} className="hidden" disabled={loading} />

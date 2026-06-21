@@ -1,6 +1,6 @@
 // pages/index.tsx
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Seo from "@/components/SEO";
 import dynamic from "next/dynamic";
 import { useSettings } from "@/hooks/useSettings";
@@ -23,7 +23,7 @@ const DayView = dynamic(() => import("../components/dashboard/DayView"), {
 export default function IndexPage() {
   const { user, loadingUser } = useAuth();
   const router = useRouter();
-  const todayDate = getAppDateTime();
+  const [viewDate, setViewDate] = useState(getAppDateTime());
   const { settings, loading: loadingSettings } = useSettings();
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function IndexPage() {
                   canonical="https://dzisiajv3.vercel.app/"
                   keywords="planner, plan dnia, produktywność, dashboard, zarządzanie czasem"
                 />
-                <DayView date={todayDate} isMain />
+                <DayView date={viewDate} onDateChange={setViewDate} />
               </>
             )
           }

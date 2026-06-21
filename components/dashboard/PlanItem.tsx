@@ -49,8 +49,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
   const colors = priorityColors[item.data?.priority as 1 | 2 | 3 | 4 | 5] ?? priorityColors[3];
 
   return (
-    <div className="mb-2 p-3 rounded-xl flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors">
-      <div className="flex-1 min-w-0 pr-2">
+    <div className="mb-2 p-2 rounded-lg flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors">      <div className="flex-1 min-w-0 pr-2">
         <p className="flex items-center gap-2 font-bold text-sm leading-tight truncate">
           {item.type === "task" && (
             <span
@@ -62,9 +61,9 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
           )}
           {item.title}
         </p>
-        <p className="flex items-center flex-wrap gap-2 mt-2">
+        <p className="flex items-center flex-wrap gap-2">
           {item.type === "task" && <TimeContextBadge dueDate={item.data.due_date} small />}
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-textMuted">
+          <span className="text-[8px] font-semibold uppercase tracking-wider text-textMuted">
             {getLabel(item)}
           </span>
         </p>
@@ -84,7 +83,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
           </Link>
         )}
 
-        {item.type === "task" && onMarkAsDoneTask && onRemoveFromSchedule && (
+        {(item.type === "task" || item.type === "schema") && onMarkAsDoneTask && onRemoveFromSchedule && (
           <>
             <button
               onClick={(e) => { e.preventDefault(); onMarkAsDoneTask(item.id); }}

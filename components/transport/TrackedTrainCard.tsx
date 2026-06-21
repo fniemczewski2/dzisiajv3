@@ -35,7 +35,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
     if (loading) {
       return (
         <div className="absolute top-0 left-0 w-full bg-surface text-textMuted text-xs font-bold text-center py-1.5 shadow-sm flex items-center justify-center gap-2">
-          <Loader2 className="w-3 h-3 animate-spin" /> Aktualizacja statusu...
+          <Loader2 className="w-3 h-3 animate-spin" /> Aktualizacja...
         </div>
       )
     }

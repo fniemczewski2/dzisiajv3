@@ -80,12 +80,6 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
     });
   }, [selectedStations, fetchBoard]);
 
-  useEffect(() => {
-    refreshAllBoards();
-    const interval = setInterval(refreshAllBoards, 60000);
-    return () => clearInterval(interval);
-  }, [selectedStations, refreshAllBoards]);
-
   const handleAddStation = () => {
     const trimmed = searchInput.trim();
     if (!trimmed) return;
