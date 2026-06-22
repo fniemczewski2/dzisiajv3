@@ -21,7 +21,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/useSettings";
 import Seo from "@/components/SEO";
 
-const TaskForm = dynamic(() => import("../../components/tasks/TaskForm"), {
+const TaskForm = dynamic(() => import("@/components/tasks/TaskForm"), {
   ssr: false, 
 });
 
