@@ -3,7 +3,6 @@ import { AddSpecificButton } from "../CommonButtons";
 import { DashboardWidgets } from "../widgets/DashboardWidgets";
 import { useMemo } from "react";
 import { getPolishHolidays } from "@/lib/holidays";
-import { useRouter } from "next/router";
 import { Settings } from "@/types";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";

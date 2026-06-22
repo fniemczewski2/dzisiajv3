@@ -9,15 +9,15 @@ import { Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/SEO";
 
-const ImportPlaces = dynamic(() => import("../../components/places/ImportPlaces"), { 
+const ImportPlaces = dynamic(() => import("@/components/places/ImportPlaces"), { 
   ssr: false 
 });
 
-const PlaceForm = dynamic(() => import("../../components/places/PlaceForm"), { 
+const PlaceForm = dynamic(() => import("@/components/places/PlaceForm"), { 
   ssr: false 
 });
 
-const PlacesMap = dynamic(() => import("../../components/places/PlacesMap"), { 
+const PlacesMap = dynamic(() => import("@/components/places/PlacesMap"), { 
   ssr: false,
   loading: () => <div className="w-full h-64 bg-surface animate-pulse rounded-xl" /> 
 });

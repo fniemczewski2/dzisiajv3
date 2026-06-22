@@ -398,6 +398,7 @@ export interface SettingsRow {
   mood_options: MoodOption[] | null;
   sort_people: string | null;
   hide_priority_5: boolean | null;
+  main_view: string | null;
 }
 
 export interface StopRow {

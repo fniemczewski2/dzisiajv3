@@ -1,8 +1,49 @@
 import { useState, useEffect } from 'react';
 
+export interface WeatherData {
+  current_weather: {
+    temperature: number;
+    windspeed: number;
+    winddirection: number;
+    weathercode: number;
+    is_day?: number;
+    time: string;
+  };
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+    precipitation: number[];
+    windspeed_10m: number[];
+    uv_index: number[];
+    weathercode: number[];
+    pressure_msl: number[];
+    relative_humidity_2m: number[];
+    winddirection_10m: number[];
+  };
+  daily: {
+    time: string[];
+    apparent_temperature_min: number[];
+    apparent_temperature_max: number[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    weathercode: number[];
+    uv_index_max: number[];
+    sunrise: string[];
+    sunset: string[];
+    precipitation_sum: number[];
+  };
+}
+
+export interface AirQualityData {
+  hourly: {
+    time: string[];
+    pm10: number[];
+    pm2_5: number[];
+  };
+}
 export interface WeatherState {
-  forecast: any;
-  air: any;
+  forecast: WeatherData | null;
+  air: AirQualityData | null;
   loading: boolean;
   error: string | null;
 }
@@ -11,7 +52,7 @@ export function useWeather() {
   const [state, setState] = useState<WeatherState>({
     forecast: null,
     air: null,
-    loading: true,
+    loading: true, 
     error: null,
   });
 
@@ -20,8 +61,12 @@ export function useWeather() {
     const controller = new AbortController();
     const { signal } = controller;
 
-    if (!navigator.geolocation) {
-      setState(prev => ({ ...prev, loading: false, error: "Geolokalizacja nie jest wspierana." }));
+    if (typeof window === 'undefined' || !navigator?.geolocation) {
+      setState(prev => ({ 
+        ...prev, 
+        loading: false, 
+        error: "Geolokalizacja nie jest wspierana w tym środowisku." 
+      }));
       return;
     }
 
@@ -60,8 +105,8 @@ export function useWeather() {
             throw new Error("Brak danych pogodowych!");
           }
 
-          const forecastJson = await forecastRes.json();
-          const airJson = await airRes.json();
+          const forecastJson = (await forecastRes.json()) as WeatherData;
+          const airJson = (await airRes.json()) as AirQualityData;
 
           if (isMounted) {
             setState({
@@ -71,7 +116,9 @@ export function useWeather() {
               error: null,
             });
           }
-        } catch {
+        } catch (error: any) {
+          if (error.name === 'AbortError') return; 
+          
           if (isMounted) {
             setState(prev => ({
               ...prev,

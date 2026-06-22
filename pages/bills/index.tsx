@@ -15,10 +15,10 @@ import type { Bill } from "@/types";
 import BillListGrouped from "@/components/bills/BillListGrouped";
 import Seo from "@/components/SEO";
 
-const BillForm = dynamic(() => import("../../components/bills/BillForm"), {
+const BillForm = dynamic(() => import("@/components/bills/BillForm"), {
   ssr: false,
 });
-const BankCsvImporter = dynamic(() => import("../../components/budget/BankCSV"), {
+const BankCsvImporter = dynamic(() => import("@/components/budget/BankCSV"), {
   ssr: false, 
 });
 

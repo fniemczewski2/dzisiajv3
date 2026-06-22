@@ -42,9 +42,16 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   const sortedNotes = useMemo(() => {
     const sortType = settings?.sort_notes || "updated_desc";
     return [...notes].sort((a, b) => {
-      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-      if (sortType === "alphabetical")
+      if (a.archived !== b.archived) {
+        return a.archived ? 1 : -1;
+      }
+      
+      if (a.pinned !== b.pinned) {
+        return a.pinned ? -1 : 1;
+      }
+      if (sortType === "alphabetical") {
         return (a.title || "").localeCompare(b.title || "", "pl");
+      }
       return (
         new Date(b.updated_at || 0).getTime() -
         new Date(a.updated_at || 0).getTime()

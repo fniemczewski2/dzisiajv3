@@ -5,8 +5,8 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRecipes } from "@/hooks/useRecipes";
 import Seo from "@/components/SEO";
 
-const RecipeForm = dynamic(() => import("../../components/recipes/RecipeForm"), { ssr: false });
-const RecipesList = dynamic(() => import("../../components/recipes/RecipesList"), { ssr: false });
+const RecipeForm = dynamic(() => import("@/components/recipes/RecipeForm"), { ssr: false });
+const RecipesList = dynamic(() => import("@/components/recipes/RecipesList"), { ssr: false });
 
 export default function RecipesPage() {
   const [showForm, setShowForm] = useState(false);
