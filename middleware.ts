@@ -45,13 +45,26 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/start'
     redirectUrl.searchParams.set('next', path)
-    return NextResponse.redirect(redirectUrl)
+    
+    const redirectResponse = NextResponse.redirect(redirectUrl)
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    
+    return redirectResponse
   }
 
   if (user && path === '/start') {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/'
-    return NextResponse.redirect(redirectUrl)
+    
+    const redirectResponse = NextResponse.redirect(redirectUrl)
+    
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+
+    return redirectResponse
   }
 
   return response
