@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
+import { requestSmartLocation } from "@/lib/locationUtils";
 
 export interface Departure {
   line: string;
@@ -97,33 +98,29 @@ export function useTransport(autoRefresh = false) {
     }
   }, [supabase]);
 
-  const initLocationAndFetch = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationError("Twoja przeglądarka nie obsługuje geolokalizacji.");
-      return;
-    }
+  const initLocationAndFetch = useCallback((forcePrompt = false) => {
     setLoadingNearby(true);
     setLocationError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
+    requestSmartLocation({
+      forcePrompt,
+      onSuccess: (position) => {
         lastCoords.current = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
         fetchNearbyData();
       },
-      (err) => {
+      onError: (err) => {
         setLoadingNearby(false);
         lastCoords.current = null;
-        setLocationError(
-          err.code === 1
-            ? "Brak zgody na lokalizację."
-            : "Nie udało się pobrać lokalizacji GPS."
-        );
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+        if (err.code === 1) {
+          setLocationError("Brak zgody na lokalizację. Odblokuj w ustawieniach przeglądarki.");
+        } else {
+          setLocationError("Nie udało się pobrać lokalizacji GPS.");
+        }
+      }
+    });
   }, [fetchNearbyData]);
 
   const fetchFavorites = useCallback(async (stops: { name: string; zone_id: string }[]) => {

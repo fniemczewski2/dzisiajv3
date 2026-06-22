@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabase } from '@/lib/supabase/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,7 +7,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { code, next = '/' } = req.query;
-  const targetUrl = typeof next === 'string' ? next : '/';
+  let targetPath = Array.isArray(next) ? next[0] : next;
+  if (targetPath === '/index') targetPath = '/';
 
   if (code && typeof code === 'string') {
     const supabase = createServerSupabase(req, res);
@@ -16,22 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (!error) {
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        return res.status(200).send(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta http-equiv="refresh" content="0;url=${targetUrl}" />
-              <title>Logowanie...</title>
-            </head>
-            <body>
-              <script>
-                // Wymuszenie nawigacji wewnątrz instancji PWA
-                window.location.replace("${targetUrl}");
-              </script>
-            </body>
-          </html>
-        `);
+        const host = req.headers.host || 'localhost:3000';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const cleanPath = targetPath.startsWith('/') ? targetPath : `/${targetPath}`;
+        
+        return res.redirect(`${protocol}://${host}${cleanPath}`);
       }
       
       console.error("[Auth Callback] Błąd wymiany kodu:", error.message);
@@ -40,18 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  return res.status(200).send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta http-equiv="refresh" content="0;url=/login?error=auth_failed" />
-      </head>
-      <body>
-        <script>
-          window.location.replace("/login?error=auth_failed");
-        </script>
-      </body>
-    </html>
-  `);
+  const host = req.headers.host || 'localhost:3000';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  return res.redirect(`${protocol}://${host}/start?error=auth_failed`);
 }

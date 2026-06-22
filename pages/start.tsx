@@ -1,17 +1,45 @@
-import { useRouter } from "next/router";
+'use client';
+
 import Seo from "@/components/SEO";
 import { FEATURE_GROUPS } from "@/config/features";
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/providers/AuthProvider'; 
+import { useToast } from "@/providers/ToastProvider";
 
-export default function Home() {
-  const router = useRouter();
-   
-  const handleStartClick = () => {
-    router.push({
-      pathname: "/login",
-      query: router.query 
-    });
+export default function StartPage() {
+  const { supabase, loadingUser } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { toast } = useToast();
+
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoggingIn(true);
+      
+      const searchParams = new URLSearchParams(window.location.search);
+      const nextUrl = searchParams.get('next') || '/';
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(nextUrl)}`,
+        },
+      });
+
+      if (error) throw error;
+      
+    } catch (err) {
+      console.error("Błąd logowania:", err);
+      toast.error("Wystąpił błąd podczas logowania.")
+      setIsLoggingIn(false);
+    }
   };
 
+  useEffect(() => {
+      let toastId: string | undefined;
+      if ((loadingUser || isLoggingIn) && toast.loading) toastId = toast.loading("Logowanie...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+    }, [loadingUser, isLoggingIn, toast]);
+  
   return (
     <>
       <Seo
@@ -31,10 +59,10 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={handleStartClick}
-                className="hover:bg-primary bg-secondary text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
+                onClick={handleGoogleLogin}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
               >
-                Rozpocznij
+                Zaloguj przez Google
               </button>
             </div>
           </section>
