@@ -36,7 +36,6 @@ export async function middleware(request: NextRequest) {
 
   const isPublicRoute = 
     path === '/start' || 
-    path.startsWith('/login') || 
     path.startsWith('/api') || 
     path.startsWith('/auth') || 
     path === '/privacy' ||
@@ -49,7 +48,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && (path === '/start' || path.startsWith('/login'))) {
+  if (user && path === '/start') {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/'
     return NextResponse.redirect(redirectUrl)

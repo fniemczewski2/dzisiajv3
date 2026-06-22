@@ -5,6 +5,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { Settings } from "@/types";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "@/config/limits";
+import { requestSmartLocation } from "@/lib/locationUtils";
 
 type GeoCoords = { lat: number; lng: number };
 
@@ -231,27 +232,25 @@ export function useSettings() {
       return { ...s, users: updated };
     });
 
-  const requestGeolocation = (onSuccess?: (coords: GeoCoords) => void) => {
-    if (!navigator.geolocation) {
-      setLocationStatus("Geolokalizacja nie jest obsługiwana.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      ({ coords: { latitude, longitude } }) => {
+  const requestGeolocation = (onSuccess?: (coords: {lat: number, lng: number}) => void) => {
+    requestSmartLocation({
+      forcePrompt: true, 
+      onSuccess: (position) => {
+        const { latitude, longitude } = position.coords;
         setLocationStatus(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        onSuccess?.({ lat: latitude, lng: longitude });
+        if (typeof onSuccess === 'function') {
+          onSuccess({ lat: latitude, lng: longitude });
+        }
       },
-      (e) => {
+      onError: (err) => {
         const errorMessages: Record<number, string> = {
-          [e.PERMISSION_DENIED]: "Odmowa dostępu do lokalizacji.",
-          [e.POSITION_UNAVAILABLE]: "Lokalizacja niedostępna.",
-          [e.TIMEOUT]: "Przekroczono czas oczekiwania.",
+          1: "Odmowa dostępu. Zezwól na lokalizację.",
+          2: "Lokalizacja niedostępna.",
+          3: "Przekroczono czas oczekiwania.",
         };
-
-        const msg = errorMessages[e.code] || "Nieznany błąd lokalizacji.";
-        setLocationStatus(msg);
+        setLocationStatus(errorMessages[err.code] || "Nieznany błąd lokalizacji.");
       }
-    );
+    });
   };
 
   const handleSignOut = async () => {
