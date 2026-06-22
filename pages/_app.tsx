@@ -7,25 +7,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
 import CookieBanner from "@/components/CookieBanner"; 
 import Layout from "@/components/Layout";
-
-export default function MyApp({
-  Component,
-  pageProps,
-  router
-}: AppProps) {
-
-  const isAuthPage = router.pathname === '/login';
-
-  if (isAuthPage) {
-    return (
-      <AuthProvider>
-        <ToastProvider>
-          <Component {...pageProps} />
-        </ToastProvider>
-      </AuthProvider>
-    );
-  }
-
+export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <ErrorBoundary>
