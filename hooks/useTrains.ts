@@ -133,7 +133,6 @@ export function useTrains() {
       return true;
     } catch {
       throw new Error('Błąd zapisywania pociągu');
-      return false;
     }
   };
 

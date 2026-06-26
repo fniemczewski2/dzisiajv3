@@ -22,7 +22,10 @@ export function useMoods(startDate?: string, endDate?: string) {
       if (endDate)   query = query.lte("date", endDate);
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        setFetching(false);
+        throw error;
+      }
       setMoods(data || []);
     } finally {
       setFetching(false);

@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${fromStationId}&withPlanned=true&fullRoutes=true&pageSize=10000`, {headers});
     const operationsData = await operationsRes.json();
     const trainData =  operationsData.trains?.find((t: any) => t.orderId === plannedRoute.orderId );
-    const platform = schedulesData?.routes.find((train: any) => train.nationalNumber === pureNumber || (train.nationalNumber?.startsWith(baseNumber) && (train.name?.toLowerCase() === (trainName as string)?.toLowerCase()))).stations?.find((s: any) => s.stationId === fromStationId).departurePlatform || '-';
+    const platform = schedulesData?.routes.find((train: any) => train.nationalNumber === pureNumber || (train.nationalNumber?.startsWith(baseNumber) && (train.name?.toLowerCase() === (trainName as string)?.toLowerCase())))?.stations?.find((s: any) => s.stationId === fromStationId)?.departurePlatform || '-';
     let delay = 0;
 
     if (operationsRes.ok && trainData) {

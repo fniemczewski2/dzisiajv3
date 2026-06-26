@@ -82,15 +82,14 @@ export function useNotes() {
   const togglePin = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
-    
-    const note = notes.find((n) => n.id === id);
-    if (!note) return;
-    setNotes((prev) => prev.map((n) => n.id === id ? { ...n, pinned: !n.pinned, archived: false} : n));
-
     try {
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      const newPinned = !note.pinned;
+      setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: newPinned, archived: false } : n));
       const { error } = await supabase
         .from("notes")
-        .update({ pinned: !note.pinned, archived: false, updated_at: getAppDateTime() })
+        .update({ archived: false, pinned: newPinned })
         .eq("id", id);
     if (error) {
        fetchNotes(); 
@@ -105,15 +104,14 @@ export function useNotes() {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
 
-
-    setNotes((prev) => prev.map((n) => n.id === id ? { ...n, archived: !n.archived, pinned: false, updated_at: getAppDateTime().toISOString() } : n));
-
     try {
-      const note = notes.find((n) => n.id === id);
+      const note = notes.find(n => n.id === id);
       if (!note) return;
+      const newArchived = !note.archived;
+      setNotes(prev => prev.map(n => n.id === id ? { ...n, archived: newArchived, pinned: false } : n));
       const { error } = await supabase
         .from("notes")
-        .update({ archived: !note.archived, pinned: false, updated_at: getAppDateTime() })
+        .update({ archived: newArchived, pinned: false })
         .eq("id", id);
       if (error) {
        fetchNotes(); 
