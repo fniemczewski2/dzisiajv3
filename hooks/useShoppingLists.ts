@@ -43,7 +43,10 @@ export function useShoppingLists() {
   const addShoppingList = useCallback(
     async (name: string, shared_with_email: string | null): Promise<boolean> => {
       setLoading(true);
-      if (lists.length >= MAX_SHOPPING_LISTS) return false;
+      if (lists.length >= MAX_SHOPPING_LISTS) {
+        setLoading(false);
+        return false;
+      }
 
       let sharedWithUuid: string | null = null;
       if (shared_with_email !== undefined && shared_with_email !== null) {

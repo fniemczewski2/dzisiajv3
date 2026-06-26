@@ -75,10 +75,10 @@ export function useMovies() {
   const updateMovie = useCallback(
     async (movie: Movie): Promise<void> => {
       setLoading(true);
-      const { id, ...updates } = movie;
-      const { error } = await supabase.from("movies").update(updates).eq("id", id);
-      if (error) throw error;
-      try {
+      try { 
+        const { id, ...updates } = movie;
+        const { error } = await supabase.from("movies").update(updates).eq("id", id);
+        if (error) throw error;
         setRawMovies((prev) => prev.map((m) => (m.id === id ? movie : m)));
       } finally {
         setLoading(false);
@@ -90,9 +90,9 @@ export function useMovies() {
   const deleteMovie = useCallback(
     async (id: string): Promise<void> => {
       setLoading(true);
-      const { error } = await supabase.from("movies").delete().eq("id", id);
-      if (error) throw error;
-      try {
+      try { 
+        const { error } = await supabase.from("movies").delete().eq("id", id);
+        if (error) throw error;
         setRawMovies((prev) => prev.filter((m) => m.id !== id));
       } finally {
         setLoading(false);

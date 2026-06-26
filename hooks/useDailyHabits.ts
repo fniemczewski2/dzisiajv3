@@ -1,5 +1,4 @@
-// hooks/useDailyHabits.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { DailyHabits, HabitKey } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
@@ -19,7 +18,6 @@ const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
   water_amount: 0,
   daily_spending: 0,
 });
-
 export function useDailyHabits(date?: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -32,7 +30,8 @@ export function useDailyHabits(date?: string) {
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const fetchHabits = async () => {
+  // 1. Owijamy fetchHabits w useCallback
+  const fetchHabits = useCallback(async () => {
     if (!userId) return;
     setFetching(true);
     try {
@@ -56,9 +55,9 @@ export function useDailyHabits(date?: string) {
     } finally {
       setFetching(false);
     }
-  };
+  }, [userId, targetDate, supabase, toast]);
 
-  const toggleHabit = async (key: HabitKey) => {
+  const toggleHabit = useCallback(async (key: HabitKey) => {
     if (!habits || !userId) return;
     setLoading(true);
     const prevValue = habits[key] as boolean;
@@ -83,9 +82,9 @@ export function useDailyHabits(date?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [habits, userId, targetDate, supabase]); 
 
-  const updateWater = async (amount: number) => {
+  const updateWater = useCallback(async (amount: number) => {
     if (!habits || !userId) return;
     setLoading(true);
     const validAmount = Number.isNaN(amount) ? 0 : amount;
@@ -109,9 +108,9 @@ export function useDailyHabits(date?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [habits, userId, targetDate, supabase]);
 
-  const updateSpending = async (amount: number) => {
+  const updateSpending = useCallback(async (amount: number) => {
     if (!habits || !userId) return;
 
     const validAmount = Number.isNaN(amount) ? 0 : amount;
@@ -133,11 +132,11 @@ export function useDailyHabits(date?: string) {
     } catch {
       setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
     }
-  };
+  }, [habits, userId, targetDate, supabase]);
 
   useEffect(() => {
     fetchHabits();
-  }, [userId, targetDate]);
+  }, [fetchHabits]);
 
   return { habits, loading, fetching, fetchHabits, toggleHabit, updateWater, updateSpending };
 }

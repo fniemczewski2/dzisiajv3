@@ -18,10 +18,8 @@ export interface ExternalCalendar {
   primaryAccountId?: string;
 }
 
-const supabase = createClient();
-
 export function useConnectedCalendars(expanded: boolean) {
-  const { user } = useAuth();
+  const { user, supabase } = useAuth();
   const { toast } = useToast();
   
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);

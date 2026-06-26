@@ -119,12 +119,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const updateRate = (month: number, rate: number) => {
-    setLoading(true)
     setData((prev) => ({
       ...prev,
       [month]: { ...(prev[month] || getEmptyMonthData()), rate },
     }));
-    setLoading(false)
   };
 
   const saveRates = async () => {

@@ -9,7 +9,7 @@ export interface Task {
   priority: number;
   description: string;
   due_date: string;
-  status: string;
+  status: "active" | "done" | "accepted" | "waiting for acceptance";
   scheduled_time?: string | null;
   user_id: string;
 }
