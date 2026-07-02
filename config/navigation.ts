@@ -23,6 +23,8 @@ import {
   LayoutDashboard,
   BusFront,
   User,
+  IdCard,
+  Clock,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -48,6 +50,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
+      { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy" },
      
     ],
   },
@@ -57,7 +60,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
       { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
       { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
-      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
+      { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
     
     ],
   },
@@ -68,6 +71,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
       { path: "/bills/calculator", title: "Kalkulator", icon: Calculator, label: "Kalkulator" },
       { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
+      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
       
     ],
   },
@@ -83,11 +87,12 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
     name: "Rozrywka",
     items: [
-      { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
+
       { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
       { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
       { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
       { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
+      { path: "/profiles", title: "Wizytówka", icon: IdCard, label: "Wizytówka" },
     ],
   },
 ];
