@@ -7,7 +7,7 @@ import { getAppDateTime } from "@/lib/dateUtils";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
 import { useBudgetSummary } from "@/hooks/useBudgetSummary";
 import BudgetCategoriesEditor from "@/components/budget/BudgetCategoriesEditor";
-import BudgetOverview from "@/components/budget/BugdetOverview";
+import BudgetOverview from "@/components/budget/BudgetOverview";
 import BudgetStatsTable from "@/components/budget/StatsTable";
 import SummaryTable from "@/components/budget/SummaryTable";
 import { useBudgetData } from "@/hooks/useBudget";

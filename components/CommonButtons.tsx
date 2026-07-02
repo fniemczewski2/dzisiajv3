@@ -18,7 +18,8 @@ import {
   Star,
   Loader2,
   Bell,
-  BellOff
+  BellOff,
+  Copy
 } from "lucide-react";
 import { NextRouter } from "next/router";
 
@@ -298,6 +299,34 @@ export const PdfButton = ({ onClick }: { onClick: () => void }) => (
   >
     <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
     <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">PDF</span>
+  </button>
+);
+
+export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void, fileFormat: string }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
+    aria-label={`Pobierz plik ${fileFormat}`}
+    title={`Pobierz plik ${fileFormat}`}
+  >
+    <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">{fileFormat}</span>
+  </button>
+);
+
+export const CopyButton = ({ onClick}: { onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    title="Kopiuj"
+    aria-label="Kopiuj" 
+  >
+    <Copy className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+      Kopiuj
+    </span>
   </button>
 );
 

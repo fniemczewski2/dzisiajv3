@@ -101,7 +101,7 @@ export default function DayView({ date, onBack, onDateChange }: Readonly<DayView
   const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
 
   const { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd } = useDashboardDnd({
-    tasks, events, userId, date, editTask, editEvent, fetchTasks, fetchEvents,
+    tasks, events, userId, date, editTask, editEvent
   });
 
   const sensors = useSensors(
