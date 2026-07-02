@@ -31,16 +31,15 @@ export function useReports() {
   const addReport = useCallback(
     async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
       setLoading(true)
-      const { data, error } = await supabase
-        .from("reports")
-        .insert([{ ...payload, user_id: userId }])
-        .select()
-        .single();
-      if (error) throw error;
       try {
+        const { data, error } = await supabase
+          .from("reports")
+          .insert([{ ...payload, user_id: userId }])
+          .select()
+          .single();
+        if (error) throw error;
         setReports((prev) => [data as Report, ...prev]);
       } finally {
-        fetchReports();
         setLoading(false)
       }
     },
@@ -49,31 +48,31 @@ export function useReports() {
 
   const editReport = useCallback(
     async (id: string, updates: Partial<Report>) => {
-      const { data, error } = await supabase
-        .from("reports")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
+      setLoading(true)
       try {
+        const { data, error } = await supabase
+          .from("reports")
+          .update(updates)
+          .eq("id", id)
+          .select()
+          .single();
+        if (error) throw error;
         setReports((prev) => prev.map((r) => (r.id === id ? (data as Report) : r)));
       } finally {
-        fetchReports();
         setLoading(false)
       }
     },
-    [supabase]
+    [supabase, userId]
   );
 
   const deleteReport = useCallback(
     async (id: string) => {
-      const { error } = await supabase.from("reports").delete().eq("id", id);
-      if (error) throw error;
+      setLoading(true)
       try {
+        const { error } = await supabase.from("reports").delete().eq("id", id);
+        if (error) throw error;
         setReports((prev) => prev.filter((r) => r.id !== id));
       } finally {
-        fetchReports();
         setLoading(false)
       }
     },

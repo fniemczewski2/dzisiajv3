@@ -56,7 +56,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const userEmailsRef = useRef<Record<string, string>>({});
 
   const getPriority = (task: Task): number =>
-    task.status === "waiting for acceptance" ? 0 : 1;
+    task.status === "waiting_for_acceptance" ? 0 : 1;
 
   const sortFunction = useMemo(() => {
     if (!settings) return null;

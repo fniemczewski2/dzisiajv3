@@ -19,11 +19,11 @@ const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "duolingo", Icon: Languages },
 ];
 
-interface HabbitIconsProps {
+interface HabitIconsProps {
   date?: string;
 }
 
-export default function HabbitIcons({ date }: Readonly<HabbitIconsProps>) {
+export default function HabitIcons({ date }: Readonly<HabitIconsProps>) {
   const { habits, loading: habitsLoading, toggleHabit } = useDailyHabits(date);
   const { settings } = useSettings();
   if (!habits || !settings) {

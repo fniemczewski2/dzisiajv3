@@ -20,12 +20,18 @@ const DayView = dynamic(() => import("../components/dashboard/DayView"), {
   loading: () => <LoadingState fullScreen />,
 });
 
+
 export default function IndexPage() {
   const { user, loadingUser } = useAuth();
   const router = useRouter();
   const [viewDate, setViewDate] = useState(getAppDateTime());
   const { settings, loading: loadingSettings } = useSettings();
 
+  function MainView({ view }: { view: string }) {
+    if (view === 'tasks') return <TasksPage />;
+    if (view === 'day_view') return <DayView date={viewDate} onDateChange={setViewDate} />;
+    return <CalendarPage />;
+  }
   useEffect(() => {
     if (!loadingUser && !user) {
       router.replace("/start");
@@ -40,27 +46,7 @@ export default function IndexPage() {
 
   return (
     <>
-        {(() => {switch(settings.main_view){
-          case "tasks":{
-            return (<TasksPage />)
-          }
-          case "day_view":{
-            return (
-              <>
-                <Seo 
-                  title="Twój Plan Dnia - Dzisiaj v3"
-                  description="Zarządzaj dzisiejszymi zadaniami, nawykami i planem dnia w jednym miejscu. Sprawdź postępy i zoptymalizuj swoją produktywność."
-                  canonical="https://dzisiajv3.vercel.app/"
-                  keywords="planner, plan dnia, produktywność, dashboard, zarządzanie czasem"
-                />
-                <DayView date={viewDate} onDateChange={setViewDate} />
-              </>
-            )
-          }
-          default:{
-            return (<CalendarPage />)
-          }
-        }})()} 
+        <MainView view={settings.main_view} />
     </>
   )
 }

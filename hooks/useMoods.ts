@@ -37,21 +37,24 @@ export function useMoods(startDate?: string, endDate?: string) {
   const logMood = async (date: string, mood_id: string | null) => {
     if (!user) throw new Error("Musisz być zalogowany");
     setLoading(true)
-    const { data, error } = await supabase
-      .from("mood_entries")
-      .upsert({ user_id: user.id, date, mood_id }, { onConflict: "user_id, date" })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("mood_entries")
+        .upsert({ user_id: user.id, date, mood_id }, { onConflict: "user_id, date" })
+        .select()
+        .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    setMoods((prev) => {
-      const exists = prev.find((m) => m.date === date);
-      return exists
-        ? prev.map((m) => (m.date === date ? (data as MoodEntry) : m))
-        : [...prev, data as MoodEntry];
-    });
+      setMoods((prev) => {
+        const exists = prev.find((m) => m.date === date);
+        return exists
+          ? prev.map((m) => (m.date === date ? (data as MoodEntry) : m))
+          : [...prev, data as MoodEntry];
+      });
+    } finally {
     setLoading(false)
+    }
   };
 
   return { moods, loading, fetching, logMood, fetchMoods };

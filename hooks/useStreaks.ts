@@ -108,11 +108,11 @@ export function useStreaks() {
 
   const addStreak = async (newStreak: Omit<Streak, "id" | "user_id">) => {
     setLoading(true);
-    const { error } = await supabase
-      .from("streaks")
-      .insert([{ ...newStreak, user_id: userId }]);
-    if (error) throw error;
     try {
+      const { error } = await supabase
+        .from("streaks")
+        .insert([{ ...newStreak, user_id: userId }]);
+      if (error) throw error;
       await fetchStreaks();
     } finally {
       setLoading(false);
@@ -121,9 +121,9 @@ export function useStreaks() {
 
   const deleteStreak = async (id: string) => {
     setLoading(true);
-    const { error } = await supabase.from("streaks").delete().eq("id", id);
-    if (error) throw error;
     try {
+      const { error } = await supabase.from("streaks").delete().eq("id", id);
+      if (error) throw error;
       await fetchStreaks();
     } finally {
       setLoading(false);
@@ -132,10 +132,10 @@ export function useStreaks() {
 
   const updateStreak = async (id: string, updates: Partial<Streak>) => {
     setLoading(true);
-    const { error } = await supabase.from("streaks").update(updates).eq("id", id);
-    if (error) throw error;
-    setStreaks((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
     try {
+      const { error } = await supabase.from("streaks").update(updates).eq("id", id);
+      if (error) throw error;
+      setStreaks((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
       await fetchStreaks();
     } finally {
       setLoading(false);

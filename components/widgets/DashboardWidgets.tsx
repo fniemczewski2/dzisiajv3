@@ -1,12 +1,13 @@
 import React from 'react';
-import TaskIcons from "./HabbitIcons";
+import TaskIcons from "./HabitIcons";
 import WaterTracker from "./WaterTracker";
 import DailySpendingForm from "./DailySpendingForm";
 import MoodWidget from './MoodTracker';
 import { getAppDate } from '@/lib/dateUtils';
+import { Settings } from '@/types';
 
 interface DashboardWidgetsProps {
-  settings: any;
+  settings: Settings;
   date?: string;
 }
 

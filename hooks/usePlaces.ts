@@ -54,44 +54,49 @@ export function usePlaces() {
   const addPlace = async (place: PlaceInsert) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
-    const { data, error } = await supabase
-      .from("places")
-      .insert([{ ...place, user_id: userId }])
-      .select()
-      .single();
-    if (error) throw error;
-    setRawPlaces((prev) => [data, ...prev]);
-    setLoading(false);
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from("places")
+        .insert([{ ...place, user_id: userId }])
+        .select()
+        .single();
+      if (error) throw error;
+      setRawPlaces((prev) => [data, ...prev]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updatePlace = async (id: string, updates: Partial<Place>) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
-    const { data, error } = await supabase
-      .from("places")
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("user_id", userId)
-      .select()
-      .single();
-    if (error) throw error;
-    setRawPlaces((prev) => prev.map((p) => (p.id === id ? data : p)));
-    setLoading(false);
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from("places")
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("user_id", userId)
+        .select()
+        .single();
+      if (error) throw error;
+      setRawPlaces((prev) => prev.map((p) => (p.id === id ? data : p)));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deletePlace = async (id: string) => {
     if (!userId) throw new Error("Musisz być zalogowany");
     setLoading(true);
-    const { error } = await supabase
-      .from("places")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", userId);
-    if (error) throw error;
-    setRawPlaces((prev) => prev.filter((p) => p.id !== id));
-    setLoading(false);
+    try {
+      const { error } = await supabase
+        .from("places")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", userId);
+      if (error) throw error;
+      setRawPlaces((prev) => prev.filter((p) => p.id !== id));
+    } finally { setLoading(false); }
   };
 
   const extractHours = (dayText: string): string[] => {

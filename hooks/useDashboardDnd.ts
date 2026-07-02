@@ -11,8 +11,6 @@ interface UseDashboardDndProps {
   date: Date;
   editTask: (task: any) => Promise<void>;
   editEvent: (event: any) => Promise<void>;
-  fetchTasks: () => Promise<Task[]>;
-  fetchEvents: () => Promise<void>;
 }
 
 export function useDashboardDnd({
@@ -22,8 +20,6 @@ export function useDashboardDnd({
   date,
   editTask,
   editEvent,
-  fetchTasks,
-  fetchEvents,
 }: Readonly<UseDashboardDndProps>) {
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
@@ -92,7 +88,7 @@ export function useDashboardDnd({
         });
       }
     },
-    [userId, tasks, events, date, editTask, editEvent, fetchTasks, fetchEvents]
+    [userId, tasks, events, date, editTask, editEvent]
   );
 
   return { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd };
