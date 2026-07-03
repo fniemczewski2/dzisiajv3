@@ -11,9 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') return res.status(405).json({ error: 'Użyj POST' });
 
   const { secret, userId, action } = req.body;
-
+  
   if (secret !== process.env.SHORTCUTS_API_SECRET) {
-    return res.status(401).json({ error: `Brak autoryzacji ${secret}/${process.env.SHORTCUTS_API_SECRET}` });
+    return res.status(401).json({ error: `Brak autoryzacji ${req.body}` });
   }
   if (!userId || !action) {
     return res.status(400).json({ error: 'Brak wymaganych danych (userId, action)' });
