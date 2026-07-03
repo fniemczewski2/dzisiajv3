@@ -1,16 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { getAppDate, getAppDateTime } from '@/lib/dateUtils';
+import { getAppDateTime } from '@/lib/dateUtils';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Użyj POST' });
 
-  // Pobieramy parametry z żądania HTTP (Skrót na iOS wyśle je jako JSON)
   const { secret, userId, action } = req.body;
 
   if (secret !== process.env.SHORTCUTS_API_SECRET) {
@@ -29,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .select('id')
         .eq('user_id', userId)
         .is('end_time', null) 
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return res.status(400).json({ error: 'Masz już otwartą sesję pracy.' });
@@ -43,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           start_time: now,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return res.status(200).json({ success: true, message: 'Rozpoczęto pracę', data });
@@ -56,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .is('end_time', null)
         .order('start_time', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (fetchError || !openLog) {
         return res.status(404).json({ error: 'Brak otwartej sesji do zakończenia.' });
@@ -67,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .update({ end_time: now })
         .eq('id', openLog.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return res.status(200).json({ success: true, message: 'Zakończono pracę', data });
