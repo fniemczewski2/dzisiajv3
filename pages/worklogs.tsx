@@ -164,27 +164,29 @@ const sumText = totalMonthHours > 0
             <h1 className="text-2xl font-bold text-text flex items-center gap-3">
              Godziny pracy
             </h1>
-            <div className="flex items-center card rounded-2xl p-1 shadow-sm flex-1 sm:flex-none justify-between">
-              <button
-                onClick={onPrev}
-                className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-              </button>
-              
-              <h2 className="text-base sm:text-lg font-bold text-text px-4 min-w-[140px] text-center capitalize tracking-wide">
-                {format(currentDate, "LLLL yyyy", { locale: pl })}
-              </h2>
-              
-              <button
-                onClick={onNext}
-                className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-              </button>
-            </div>
             
             {!isFormOpen && <AddButton onClick={() => setIsFormOpen(true)} />}
+        </div>
+        <div className='flex items-center justify-center'>
+          <div className="flex items-center card rounded-2xl p-1 shadow-sm w-fit sm:flex-none justify-between">
+            <button
+              onClick={onPrev}
+              className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+                
+            <h2 className="text-base sm:text-lg font-bold text-text px-4 min-w-[140px] text-center capitalize tracking-wide">
+              {format(currentDate, "LLLL yyyy", { locale: pl })}
+            </h2>
+                
+            <button
+              onClick={onNext}
+              className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </div>
         </div>
         
         {isFormOpen && <WorkLogForm onAdd={handleAddLog} onCancel={() => setIsFormOpen(false)} />}
