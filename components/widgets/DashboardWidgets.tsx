@@ -5,15 +5,18 @@ import DailySpendingForm from "./DailySpendingForm";
 import MoodWidget from './MoodTracker';
 import { getAppDate } from '@/lib/dateUtils';
 import { Settings } from '@/types';
+import LoadingState from '../LoadingState';
 
 interface DashboardWidgetsProps {
   settings: Settings;
+  loading: boolean;
   date?: string;
 }
 
-export const DashboardWidgets = React.memo(({ settings, date }: Readonly<DashboardWidgetsProps>) => {
+export const DashboardWidgets = React.memo(({ settings, loading, date }: Readonly<DashboardWidgetsProps>) => {
   const today = getAppDate();
   if (!settings) return null; 
+  if (loading) return <LoadingState />;
   return (
     <div className="flex flex-col">
       {settings?.show_habits && <TaskIcons date={date}/>}

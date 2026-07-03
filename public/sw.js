@@ -1,4 +1,7 @@
 // public/custom-sw.js
+self.addEventListener('fetch', function(event) {
+  return; 
+});
 
 globalThis.addEventListener('push', function(event) {
   if (!event.data) return;

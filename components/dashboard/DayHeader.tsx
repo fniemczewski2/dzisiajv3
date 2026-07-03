@@ -15,9 +15,10 @@ interface Props {
   onNext(): void;
   handleAddDraft: (type: "task" | "event") => void;
   settings: Settings;
+  loadingSettings: boolean;
 }
 
-export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraft, settings }: Readonly<Props>) {
+export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraft, settings, loadingSettings }: Readonly<Props>) {
 
   const holiday = useMemo(() => {
       const map = getPolishHolidays(date.getFullYear());
@@ -62,7 +63,7 @@ export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraf
           </div>
         </div>
 
-        <DashboardWidgets settings={settings} date={dateStr}/>
+        <DashboardWidgets settings={settings} loading={loadingSettings} date={dateStr}/>
     </>
   );
 }

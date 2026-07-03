@@ -64,7 +64,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
 
     if (isDelayed) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-xs font-bold text-center py-1.5 shadow-sm">
+        <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-xs font-bold text-center py-1.5 shadow-sm flex justify-center items-center gap-1">
           <Clock className="w-3 h-3" /> Opóźnienie: {delay} min
         </div>
       );

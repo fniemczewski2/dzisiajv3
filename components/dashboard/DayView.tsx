@@ -31,7 +31,6 @@ const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
 
 interface DayViewProps {
   date: Date;
-  onBack?: () => void;
   onDateChange?: (newDate: Date) => void;
 }
 
@@ -56,10 +55,10 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
   return null;
 };
 
-export default function DayView({ date, onBack, onDateChange }: Readonly<DayViewProps>) {
+export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) {
   const { user } = useAuth();
   const userId = user!.id;
-  const { settings } = useSettings();
+  const { settings, loading: loadingSettings } = useSettings();
   const { toast } = useToast();
   
   const dateStr = useMemo(() => format(date, "yyyy-MM-dd"), [date]);
@@ -322,6 +321,7 @@ export default function DayView({ date, onBack, onDateChange }: Readonly<DayView
           onNext={handleNextDay} 
           handleAddDraft={handleAddDraft} 
           settings={settings} 
+          loadingSettings={loadingSettings}
         />
         
         {draftForms.length > 0 && (

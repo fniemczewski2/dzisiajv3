@@ -11,26 +11,30 @@ export function usePushNotifications(userId: string | undefined) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/custom-sw.js')
-        .then(() => checkSubscription())
-        .catch((err) => {
-          console.warn('[usePushNotifications] Service Worker registration failed:', err)
-        })
+    async function initSW() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+          });
+          
+          await registration.update();
+          const subscription = await registration.pushManager.getSubscription();
+          setIsSubscribed(!!subscription);
+          setLoading(false);
+        } catch (err) {
+          console.error('[SW] Rejestracja nie powiodła się:', err);
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
     }
-  }, [])
-
-  async function checkSubscription() {
-    if (!('serviceWorker' in navigator) || !userId) return
-    try {
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
-      setIsSubscribed(!!subscription)
-    } catch  {
-      console.warn('Wystąpił błąd weryfikacji subskrypcji.')
+    
+    if (userId) {
+      initSW();
     }
-  }
+  }, [userId]);
 
   async function subscribeToPush() {
     if (!userId) throw new Error('Musisz być zalogowany')
