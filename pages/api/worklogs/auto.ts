@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { secret, userId, action } = req.body;
 
   if (secret !== process.env.SHORTCUTS_API_SECRET) {
-    return res.status(401).json({ error: 'Brak autoryzacji' });
+    return res.status(401).json({ error: `Brak autoryzacji ${secret}/${process.env.SHORTCUTS_API_SECRET}` });
   }
   if (!userId || !action) {
     return res.status(400).json({ error: 'Brak wymaganych danych (userId, action)' });
