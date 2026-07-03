@@ -23,6 +23,8 @@ import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { AddButton } from "../CommonButtons";
 import DayHeader from "./DayHeader";
+import { useWorkLogs } from "@/hooks/useWorkLogs";
+import LoadingState from "../LoadingState";
 
 const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
 const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });
@@ -88,14 +90,15 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
 
-  const { tasks, loading: tasksLoading, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, acceptTask } = 
+  const { tasks, fetchTasks, setDoneTask, addTask, deleteTask, editTask, fetching: fetchingTasks, loading: loadingTasks, acceptTask } = 
     useTasks(
       dateStr, 
       dateStr,
     );
-  const { events, fetchEvents, addEvent, deleteEvent, editEvent, loading: loadingEvents } = useEvents(dateStr, dateStr);
-  const { streaks, getMilestoneMessage } = useStreaks();
-  const { schemas } = useDaySchemas();
+  const { events, fetchEvents, addEvent, deleteEvent, editEvent, fetching: fetchingEvents, loading: loadingEvents } = useEvents(dateStr, dateStr);
+  const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
+  const { schemas, fetching: fetchingSchemas } = useDaySchemas();
+  const { workLogs, fetching: fetchingWorkLogs } = useWorkLogs();
   
   const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
 
@@ -178,7 +181,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       if (h) {
         const key = `${h}:00`;
         if (map[key]) {
-          map[key].push({ id: event.id, title: event.title, type: "event", color: "card shadow-sm text-text border-l-4 border-l-primary", data: event });
+          map[key].push({ id: event.id, title: event.title, type: "event", color: "card shadow-sm text-text", data: event });
         }
       }
     });
@@ -189,6 +192,16 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
         const key = `${h}:00`;
         if (map[key]) {
           map[key].push({ id: String(task.id), title: task.title, type: "task", color: "card shadow-sm text-text", data: task });
+        }
+      }
+    });
+
+    workLogs.forEach((w) => {
+      const h = getHourStr(w.start_time);
+      if (h) {
+        const key = `${h}:00`;
+        if (map[key]) {
+          map[key].push({ id: String(w.id), title: w.description, type: "worklog", color: "card shadow-sm text-text", data: w });
         }
       }
     });
@@ -224,7 +237,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     }
 
     return map;
-  }, [schemas, events, scheduledTasks, currentDayOfWeek, isToday, overrides]);
+  }, [schemas, events, workLogs, scheduledTasks, currentDayOfWeek, isToday, overrides]);
 
   const streaksWithMilestones = useMemo(() => {
     if (!streaks) return [];
@@ -310,6 +323,12 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     
     return null;
   })();
+
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (fetchingTasks || fetchingEvents || fetchingStreaks || fetchingWorkLogs  && toast.loading) toastId = toast.loading("ładowanie planu dnia...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+    }, [fetchingTasks, fetchingEvents, fetchingStreaks, fetchingWorkLogs, toast]);
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStartCustom} onDragEnd={handleDragEndCustom}>
@@ -430,7 +449,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 setDoneTask={setDoneTask} 
                 editTask={editTask} 
                 deleteTask={deleteTask} 
-                tasksLoading={tasksLoading} 
+                loadingTasks={loadingTasks} 
+                fetchingTasks={fetchingTasks}
                 fetchTasks={fetchTasks}
                 userId={userId}
                 userOptions={userOptions} 
@@ -460,7 +480,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
 
               <DayEvents 
                 events={events} 
-                loading={tasksLoading} 
+                loadingEvents={loadingEvents} 
+                fetchingEvents={fetchingEvents}
                 onEditEvent={editEvent} 
                 onDeleteEvent={deleteEvent} 
                 onEventsChange={fetchEvents} 
@@ -476,7 +497,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                     <Trophy className="text-primary w-5 h-5" /> Postępy
                   </h2>
                 </div>
-                <DayStreaks streaks={streaksWithMilestones} />
+                <DayStreaks streaks={streaksWithMilestones} fetchingStreaks={fetchingStreaks} />
               </section>
             )}
           </div>

@@ -1,14 +1,24 @@
-import React from 'react';
+import { useToast } from '@/providers/ToastProvider';
+import React, { useEffect } from 'react';
 
 interface DayStreaksProps {
   streaks: any[];
+  fetchingStreaks: boolean;
 }
 
-export const DayStreaks = React.memo(({ streaks }: Readonly<DayStreaksProps>) => {
+export const DayStreaks = React.memo(({ streaks, fetchingStreaks }: Readonly<DayStreaksProps>) => {
+
+  const { toast } = useToast();
+  
+  useEffect(() => {
+      let toastId: string | undefined;
+      if (fetchingStreaks  && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
+      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetchingStreaks, toast]);
 
   return (
     <>
-        {streaks.map((streak) => (
+        {streaks?.map((streak) => (
           <div key={streak.id} className="p-4 w-full card hover:border-primary transition-all flex items-center justify-between gap-3 rounded-2xl">
               <p className="font-bold text-sm sm:text-base text-text leading-tight truncate">
                 {streak.name}

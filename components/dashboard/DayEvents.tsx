@@ -6,7 +6,8 @@ import EventItem from "../calendar/EventItem";
 
 interface Props {
   events: Event[];
-  loading: boolean;
+  loadingEvents: boolean;
+  fetchingEvents: boolean;
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
@@ -14,21 +15,21 @@ interface Props {
   userOptions: string[];
 }
 
-export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Readonly<Props>) {
+export function DayEvents({ events, loadingEvents, fetchingEvents, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Readonly<Props>) {
   const { toast } = useToast();
 
   useEffect(() => {
     let toastId: string | undefined;
-    if (loading && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
+    if (fetchingEvents  && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loading, toast]);
+  }, [fetchingEvents, toast]);
 
   return (
     <div className="grid grid-cols-1 gap-3">
       {events.map((event) => (
             <EventItem
               event={event}
-              loading={loading}
+              loading={loadingEvents}
               onEditEvent={onEditEvent}
               onDeleteEvent={onDeleteEvent}
               onEventsChange={onEventsChange}
@@ -36,7 +37,7 @@ export function DayEvents({ events, loading, onEditEvent, onDeleteEvent, onEvent
               userOptions={userOptions}
             />
       ))}
-      {!loading && events.length === 0 && <NoResultsState text="wydarzeń" />}
+      {!fetchingEvents && events.length === 0 && <NoResultsState text="wydarzeń" />}
     </div>
   );
 }

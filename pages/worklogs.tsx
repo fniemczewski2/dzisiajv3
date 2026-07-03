@@ -116,13 +116,22 @@ export default function WorkLogsPage() {
     return new Date(cleanDateStr);
   };
 
-  const calculateDuration = (start: string, end: string) => {
+  const calculateDuration = (start: string, end?: string | null) => {
+    if (!end) return "W trakcie...";
     const diffMins = Math.round((parseLocal(end).getTime() - parseLocal(start).getTime()) / 60000);
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
   };
+
+  // Zaktualizuj reduktor liczący sumę:
+  const totalMonthMinutes = workLogs.reduce((acc, log) => {
+    if (!log.end_time) return acc; // Pomijamy niezakończone sesje!
+    const start = parseLocal(log.start_time).getTime();
+    const end = parseLocal(log.end_time).getTime();
+    return acc + (end - start) / 60000;
+  }, 0);
 
   const handleAddLog = async (log: any) => {
     const result = await addWorkLog(log);
@@ -142,13 +151,6 @@ export default function WorkLogsPage() {
     toast.success("Usunięto pomyślnie.");
     fetchWorkLogs();
   }
-
-
-const totalMonthMinutes = workLogs.reduce((acc, log) => {
-  const start = parseLocal(log.start_time).getTime();
-  const end = parseLocal(log.end_time).getTime();
-  return acc + (end - start) / 60000;
-}, 0);
 
 const totalMonthHours = Math.floor(totalMonthMinutes / 60);
 const totalMonthMinsLeft = Math.round(totalMonthMinutes % 60);
@@ -216,7 +218,7 @@ const sumText = totalMonthHours > 0
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-primary/70" />
-                          {format(parseLocal(log.start_time), 'HH:mm')} - {format(parseLocal(log.end_time), 'HH:mm')}
+                          {format(parseLocal(log.start_time), 'HH:mm')} - {log.end_time ? format(parseLocal(log.end_time), 'HH:mm') : "..."}
                         </div>
                       </div>
                     </div>

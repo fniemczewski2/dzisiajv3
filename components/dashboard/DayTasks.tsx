@@ -4,9 +4,11 @@ import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 
 import { Task } from "@/types";
 import { useToast } from "@/providers/ToastProvider";
+import LoadingState from "../LoadingState";
 
 interface DayTasksProps {
-  tasksLoading: boolean;
+  loadingTasks: boolean;
+  fetchingTasks: boolean;
   tasks: Task[];
   acceptTask: (id: string) => void;
   setDoneTask: (id: string) => void;
@@ -18,7 +20,8 @@ interface DayTasksProps {
 }
 
 export const DayTasks = React.memo(({
-  tasksLoading,
+  loadingTasks,
+  fetchingTasks,
   tasks,
   acceptTask,
   setDoneTask,
@@ -32,9 +35,9 @@ export const DayTasks = React.memo(({
 
   useEffect(() => {
     let toastId: string | undefined;
-    if (tasksLoading && toast.loading) toastId = toast.loading("Ładowanie zadań...");
+    if (fetchingTasks && toast.loading) toastId = toast.loading("Ładowanie zadań...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [tasksLoading, toast]);
+  }, [fetchingTasks, toast]);
 
   return (
     <div className="mb-6">
@@ -57,7 +60,7 @@ export const DayTasks = React.memo(({
             </DraggablePlanItem>
           );
         })}
-        {!tasksLoading && tasks.length === 0 && <NoResultsState text="zadań" />}
+        {!fetchingTasks && tasks.length === 0 && <NoResultsState text="zadań" />}
       </div>
     </div>
   );

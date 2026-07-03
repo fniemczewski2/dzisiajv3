@@ -4,11 +4,13 @@ import React from "react";
 import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Check } from "lucide-react";
 import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
+import { Event, WorkLog } from "@/types";
+import { formatTime } from "@/lib/dateUtils";
 
 interface PlanItemData {
   id: string;
   title: string;
-  type: "event" | "schema" | "task";
+  type: "event" | "schema" | "task" | "worklog";
   data?: any;
 }
 
@@ -40,9 +42,25 @@ const getLabel = (item: PlanItemData): string => {
     case "event":  return "Wydarzenie";
     case "schema": return "Rutyna";
     case "task":   return item.data?.category ?? "Zadanie";
+    case "worklog": return "Praca";
     default:       return "";
   }
 };
+
+const getTimes = (e: any) => {
+  if (e.start_time && e.end_time) {
+      const isSameDay = e.start_time.slice(0, 10) === e.end_time.slice(0, 10);
+    
+      const renderedTime = isSameDay ? (
+        <>{formatTime(e.start_time)} – {formatTime(e.end_time)}</>
+      ) : (
+        <>{formatTime(e.start_time, true)} – {formatTime(e.end_time, true)}</>
+      );
+    return renderedTime
+  }
+
+  return null
+}
 
 export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedule }: Readonly<PlanItemProps>) => {
   const quickLink = getQuickLink(item.title);
@@ -63,10 +81,13 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
         </p>
         <p className="flex items-center flex-wrap gap-2">
           {item.type === "task" && <TimeContextBadge dueDate={item.data.due_date} small />}
+          {(item.type === 'event' || item.type === 'worklog') && getTimes(item)}
           <span className="text-[8px] font-semibold uppercase tracking-wider text-textMuted">
             {getLabel(item)}
           </span>
+
         </p>
+
       </div>
       <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
         {quickLink && (
