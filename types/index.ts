@@ -445,6 +445,7 @@ export interface Person {
   relationship: string;
   priority: number; // 0, 1, 2, 3, 4, 5
   birthday?: string | null;
+  nameday?: string | null;
   phones: string[];
   emails: string[];
   notes?: string;

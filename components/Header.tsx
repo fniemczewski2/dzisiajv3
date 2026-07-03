@@ -73,7 +73,7 @@ function WeatherDetails({
           />
           <span className="font-bold leading-none">{currentTemp}°C</span>
         </div>
-        <span className="whitespace-nowrap text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
+        <span className="whitespace-nowrap text-[11px] sm:text-sm font-bold text-textMuted uppercase tracking-wider truncate">
           min {dailyMin}° · max {dailyMax}°
         </span>
         {airQuality && (
@@ -157,7 +157,7 @@ export default function Header() {
             <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
               {currentTime}
             </div>
-            <span className="text-[10px] sm:text-xs font-bold text-textMuted uppercase tracking-wider truncate">
+            <span className="text-[11px] sm:text-sm font-bold text-textMuted uppercase tracking-wider truncate mb-1">
               {currentDate}
             </span>
             <BirthdayIndicator date={todayDateString} />

@@ -1,6 +1,6 @@
 // components/people/PersonCard.tsx
 import React, { useState } from 'react';
-import { Phone, Mail, Calendar, CheckCircle2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Phone, Mail, CheckCircle2, Clock, ChevronDown, ChevronUp, Cake, Gift } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react'; 
 import { Person } from '@/types';
 import { EditButton, DeleteButton, ShareButton, CloseButton } from '../CommonButtons';
@@ -30,7 +30,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
   return (
     <>
-      <div className="bg-surface border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex flex-col relative transition-all">
+      <div className="card rounded-xl p-4 shadow-sm flex flex-col relative transition-all">
     
         <div 
           className="flex justify-between items-center cursor-pointer select-none"
@@ -91,8 +91,15 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
             {person.birthday && (
               <div className="flex items-center gap-2 text-sm text-textSecondary">
-                <Calendar className="w-4 h-4 text-purple-500" />
-                Urodziny: {new Date(person.birthday).toLocaleDateString('pl-PL')}
+                <Cake className="w-4 h-4 text-purple-500" />
+                {new Date(person.birthday).toLocaleDateString('pl-PL')}
+              </div>
+            )}
+            
+            {person.nameday && ( 
+              <div className="flex items-center gap-2 text-sm text-textSecondary">
+                <Gift className="w-4 h-4 text-purple-500" />
+                {new Date(person.nameday).toLocaleDateString('pl-PL')}
               </div>
             )}
 

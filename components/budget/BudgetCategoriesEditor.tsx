@@ -9,6 +9,7 @@ import {
   EditButton,
   DeleteButton,
   FormButtons,
+  AddButton,
 } from "../CommonButtons";
 import type { BudgetCategory } from "@/types";
 import { MAX_CATEGORIES } from "@/config/limits";
@@ -235,6 +236,14 @@ export default function BudgetCategoriesEditor({
             </span>
           )}
         </h3>
+        {!maxReached && (
+            <AddButton
+              onClick={() => {
+                setShowAddForm(true);
+                setEditingId(null);
+              }}
+            />
+        )}
       </div>
 
       {categories.length > 0 && (
@@ -310,31 +319,6 @@ export default function BudgetCategoriesEditor({
           saving={loading}
           onCancel={() => setShowAddForm(false)}
         />
-      )}
-
-      {!showAddForm && (
-        <div
-          className={`flex gap-2 flex-wrap ${
-            categories.length > 0
-              ? "border-t border-gray-100 dark:border-gray-800 pt-4"
-              : ""
-          }`}
-        >
-          {maxReached ? (
-            <p className="text-sm text-textMuted">Osiągnięto limit 10 kategorii.</p>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setShowAddForm(true);
-                setEditingId(null);
-              }}
-              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-secondary transition-colors"
-            >
-              <PlusCircle className="w-4 h-4" /> Dodaj kategorię
-            </button>
-          )}
-        </div>
       )}
     </div>
   );

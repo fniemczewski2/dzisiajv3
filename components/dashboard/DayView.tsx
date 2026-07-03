@@ -428,7 +428,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
                   <ListTodo className="text-primary w-5 h-5" />Zadania
                 </h2>
-                {!showTaskForm && <AddButton onClick={() => setShowTaskForm(true)} small />}
+                {!showTaskForm && <AddButton onClick={() => setShowTaskForm(true)} />}
               </div>
               
               {showTaskForm && (
@@ -462,7 +462,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 <h2 className="text-lg font-bold text-text flex items-center gap-2">
                   <Calendar className="text-primary w-5 h-5" /> Wydarzenia
                 </h2>
-                {!showEventForm && <AddButton onClick={() => setShowEventForm(true)} small />}
+                {!showEventForm && <AddButton onClick={() => setShowEventForm(true)} />}
               </div>
               
               {showEventForm && (
