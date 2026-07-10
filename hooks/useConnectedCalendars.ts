@@ -30,7 +30,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie kont i kalendarzy...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 

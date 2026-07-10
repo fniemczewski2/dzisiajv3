@@ -87,6 +87,7 @@ export function useBills(options: FetchOptions = {}) {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
+  
   useEffect(() => {
     let toastId: string | undefined;
     if (fetching  && toast.loading) toastId = toast.loading("Ładowanie rachunków...");
@@ -134,7 +135,10 @@ export function useBills(options: FetchOptions = {}) {
 
   const addBill = useCallback(
     async (bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">): Promise<Bill> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       
       try {
@@ -172,21 +176,25 @@ export function useBills(options: FetchOptions = {}) {
             if (childError) throw childError;
           }
         }
+        
+        toast.success("Dodano rachunek");
         return parent;
-      } catch {
+      } catch (error) {
         toast.error("Błąd dodawania rachunku");
+        throw error;
       } finally {
         setLoading(false);
-        toast.success("Dodano rachunek");
-        return {} as Bill; 
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const editBill = useCallback(
     async (bill: Bill, editOptions: { updateFutureRecurring?: boolean } = {}): Promise<Bill> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
 
       setIncomeItems((prev) => prev.map((b) => b.id === bill.id ? { ...b, ...bill } : b));
@@ -222,19 +230,22 @@ export function useBills(options: FetchOptions = {}) {
         }
         toast.success("Zaktualizowano rachunek");
         return data as Bill;
-      } catch {
+      } catch (error) {
         toast.error("Błąd aktualizacji rachunku");
+        throw error;
       } finally {
         setLoading(false);
-        return bill;
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const deleteBill = useCallback(
     async (id: string, deleteFutureRecurring = false): Promise<void> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        return;
+      }
       setLoading(true);
 
       setIncomeItems((prev) => prev.filter((b) => b.id !== id));
@@ -245,20 +256,27 @@ export function useBills(options: FetchOptions = {}) {
           const today = format(new Date(), "yyyy-MM-dd");
           await supabase.from("bills").delete().eq("parent_bill_id", id).gte("date", today);
         }
+        
+        // POPRAWKA: Faktyczne usunięcie rekordu głównego
+        const { error } = await supabase.from("bills").delete().eq("id", id).eq("user_id", userId);
+        if (error) throw error;
 
+        toast.success("Usunięto rachunek");
       } catch {
         toast.error("Błąd usuwania rachunku");
       } finally {
         setLoading(false);
-        toast.success("Usunięto rachunek");
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const markAsDone = useCallback(
     async (id: string): Promise<void> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        return;
+      }
       setLoading(true);
       
       try {
@@ -271,7 +289,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const fetchActiveMonths = useCallback(

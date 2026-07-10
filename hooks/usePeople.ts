@@ -14,7 +14,7 @@ export function usePeople() {
 
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie kontaktów...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
@@ -35,7 +35,7 @@ export function usePeople() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   useEffect(() => {
     fetchPeople();
@@ -43,10 +43,11 @@ export function usePeople() {
 
   const addPerson = async (person: PersonInsert) => {
     if (!userId) return;
-    setLoading(true)
+    setLoading(true);
     try {
       const { data, error } = await supabase.from("people").insert({ ...person, user_id: userId }).select().single();
-      toast.success("Dodano kontakt")
+      if (error) throw error;
+      toast.success("Dodano kontakt");
       setPeople((prev) => [...prev, data].sort((a, b) => a.first_name.localeCompare(b.first_name)));
     } catch {
       toast.error("Błąd dodawania kontaktu");
@@ -60,10 +61,11 @@ export function usePeople() {
     setLoading(true);
     try {
       setPeople((prev) => prev.map((p) => p.id === id ? { ...p, ...updates } : p));
-      await supabase.from("people").update(updates).eq("id", id);
-      toast.success("Zaaktulizowano kontakt")
+      const { error } = await supabase.from("people").update(updates).eq("id", id);
+      if (error) throw error;
+      toast.success("Zaktualizowano kontakt");
     } catch {
-      fetchPeople()
+      fetchPeople();
       toast.error("Błąd aktualizacji kontaktu");
     } finally {
       setLoading(false);
@@ -72,19 +74,22 @@ export function usePeople() {
 
   const deletePerson = async (id: string) => {
     if (!userId) return;
-    setLoading(true);
+    
     const ok = await toast.confirm("Czy na pewno chcesz usunąć kontakt?");
+    // POPRAWKA: Aktywacja loading DOPIERO gdy dostaniemy OK.
     if (ok) {
+      setLoading(true);
       try {
         setPeople((prev) => prev.filter((p) => p.id !== id));
-        await supabase.from("people").delete().eq("id", id);
+        const { error } = await supabase.from("people").delete().eq("id", id);
+        if (error) throw error;
         toast.success("Usunięto kontakt");
       } catch {
         toast.error("Błąd usuwania kontaktu");
       } finally {
         setLoading(false);
       }
-    };
+    }
   };
 
   const logContact = async (id: string) => {
@@ -95,7 +100,7 @@ export function usePeople() {
     const now = new Date();
     return people.filter(p => {
       if (p.priority === 0 || p.priority === 5) return false;
-      if (!p.last_contact_date) return true; // Jeśli nigdy, trzeba się skontaktować
+      if (!p.last_contact_date) return true; 
 
       const lastContact = new Date(p.last_contact_date);
       const diffTime = Math.abs(now.getTime() - lastContact.getTime());

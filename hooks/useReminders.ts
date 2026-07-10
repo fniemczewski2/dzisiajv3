@@ -17,7 +17,7 @@ export function useReminders() {
   const { toast } = useToast();
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie zadańc cyklicznych...");
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie zadań cyklicznych...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
   

@@ -4,7 +4,6 @@ import { useSettings } from "./useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
-import { se } from "date-fns/locale";
 
 const createSortFunction = (
   sortOrder: string,

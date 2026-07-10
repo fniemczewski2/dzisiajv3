@@ -1,5 +1,6 @@
+// hooks/useProfiles.ts
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
 
 export interface PhoneItem { type: string; number: string; }
@@ -29,13 +30,16 @@ export interface VCardProfile {
 export type NewVCardProfile = Omit<VCardProfile, 'id' | 'user_id'>;
 
 export function useProfiles() {
-  const supabase = createClient();
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
+
   const [profiles, setProfiles] = useState<VCardProfile[]>([]);
   const [fetching, setFetching] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const { toast } = useToast();
+  
   useEffect(() => {
     let toastId: string | undefined;
     if (fetching  && toast.loading) toastId = toast.loading("Ładowanie profili...");
@@ -43,18 +47,14 @@ export function useProfiles() {
   }, [fetching, toast]);
 
   const fetchProfiles = useCallback(async () => {
+    if (!userId) return;
     setFetching(true);
     setError(null);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast.error("Zaloguj się");
-        return;
-      }
       const { data, error: fetchError } = await supabase
         .from('vcard_profiles')
         .select('*')
-        .eq('user_id', userData.user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -64,18 +64,17 @@ export function useProfiles() {
     } finally {
       setFetching(false);
     }
-  }, [supabase]);
+  }, [supabase, userId, toast]);
 
   const addProfile = async (profileData: NewVCardProfile) => {
+    if (!userId) return { success: false, error: "Brak zalogowanego użytkownika" };
     setLoading(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Brak zalogowanego użytkownika");
       if (profiles.length >= 5) throw new Error("Osiągnięto limit 5 wizytówek.");
 
       const { data, error } = await supabase
         .from('vcard_profiles')
-        .insert([{ ...profileData, user_id: userData.user.id }]) 
+        .insert([{ ...profileData, user_id: userId }]) 
         .select()
         .single();
 
