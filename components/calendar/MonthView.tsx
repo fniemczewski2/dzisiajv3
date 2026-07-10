@@ -7,8 +7,7 @@ import {
   isBefore, isAfter, max, min, differenceInCalendarDays, format, endOfDay,
 } from "date-fns";
 import CalendarCell from "./CalendarCell";
-import { useCalendarData } from "@/hooks/useCalendar";
-import { useResponsive } from "@/hooks/useResponsive";
+import { useResponsive } from "@/lib/useResponsive";
 import { getPolishHolidays } from "@/lib/holidays";
 import { parseEventDate } from "@/lib/dateUtils";
 
@@ -131,8 +130,6 @@ const MonthView = memo(function MonthView({
     };
   }, [currentDate]);
 
-  const { tasksCount } = useCalendarData(rangeStart, rangeEnd);
-
   const weeks = useMemo(() => {
     const result: Date[][] = [];
     let current = calendarStart;
@@ -191,7 +188,6 @@ const MonthView = memo(function MonthView({
                   key={day.toISOString()}
                   date={day}
                   onClick={clickHandlers[dateStr]}
-                  tCount={tasksCount[dateStr] ?? null}
                   isMobile={isMobile}
                   currentMonth={currentDate.getMonth()}
                   eCount={overflowCounts[week.indexOf(day)] ?? null}

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { VCardProfile } from '@/hooks/useProfiles';
 import { QRCodeSVG } from 'qrcode.react';
-import { CopyButton, DownloadButton } from '../CommonButtons';
-import { Check, ChevronLeft, Copy } from 'lucide-react';
+import { CopyButton, DownloadButton } from '../ui/CommonButtons';
+import { ChevronLeft } from 'lucide-react';
+import { CopyButtonSmall } from '../ui/CommonButtons';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/providers/ToastProvider';
 
@@ -33,45 +34,17 @@ const getUsernameFromUrl = (url: string, platform: string) => {
   }
 };
 
-const SocialIcon = ({ platform }: { platform: string }) => {
+const SocialIcon = ({ platform }: { platform: string; }) => {
   const p = platform.toLowerCase();
   
-  if (p.includes('facebook')) return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
-  if (p.includes('instagram')) return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
-  if (p.includes('linkedin')) return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-700"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
-  if (p.includes('youtube')) return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>;
-  if (p.includes('x') || p.includes('twitter')) return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800 dark:text-neutral-200"><path d="M4 4l11.733 16h4.267l-11.733 -16z"></path><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path></svg>;
-  if (p.includes('tiktok')) return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-900 dark:text-neutral-100"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>;
+  if (p.includes('facebook')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
+  if (p.includes('instagram')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
+  if (p.includes('linkedin')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-700"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
+  if (p.includes('youtube')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>;
+  if (p.includes('x') || p.includes('twitter')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800 dark:text-neutral-200"><path d="M4 4l11.733 16h4.267l-11.733 -16z"></path><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path></svg>;
+  if (p.includes('tiktok')) return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-900 dark:text-neutral-100"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>;
 
-  return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
-};
-
-const CopyButtonSmall = ({ text, label }: { text: string; label?: string }) => {
-  const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success('Skopiowano!')
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="p-1.5 text-neutral-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition flex items-center gap-1"
-      title={`Skopiuj ${label || 'wartość'}`}
-    >
-      {copied ? (
-        <Check className="text-green-600 w-4 h-4 sm:h-5 sm:w-5"/>
-      ) : (
-        <Copy className="text-blue-600 w-4 h-4 sm:h-5 sm:w-5" />
-      )}
-    </button>
-  );
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
 };
 
 export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
@@ -127,8 +100,7 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
   const hasBusinessData = bizData.nip || bizData.krs || bizData.bank_account;
 
   const { resolvedTheme } = useTheme();
-  
-  // Określamy kolor na podstawie zresolvedTheme
+
   const isDarkMode = resolvedTheme === 'dark';
   const activeColor = isDarkMode 
     ? (profile.color_dark || '#171717') 
@@ -175,7 +147,7 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
               <div className="space-y-2">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Kontakt</h3>
                 {profile.phones?.map((p, i) => (
-                  <div key={`tel-${i}`} className="flex justify-between items-center text-sm py-1">
+                  <div key={`tel-${i}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{p.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
                       <a href={`tel:${p.number.replace(/\s+/g, '')}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
@@ -186,7 +158,7 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
                   </div>
                 ))}
                 {profile.emails?.map((e, i) => (
-                  <div key={`email-${i}`} className="flex justify-between items-center text-sm py-1">
+                  <div key={`email-${i}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{e.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
                       <a href={`mailto:${e.email}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[180px]">
@@ -204,7 +176,7 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Adresy</h3>
                 {profile.addresses.map((a, i) => (
-                  <div key={`addr-${i}`} className="flex justify-between items-start text-sm py-1">
+                  <div key={`addr-${i}`} className="flex flex-col sm:flex-row justify-between items-start text-sm py-1">
                     <span className="opacity-70 text-xs w-20 mt-1">{a.type}</span>
                     <div className="flex-1 flex justify-end items-start gap-2 text-right">
                       <span className="font-medium max-w-[180px]">{a.address}</span>
@@ -223,17 +195,12 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
                   if (!social.url) return null;
                   const displayUser = getUsernameFromUrl(social.url, social.platform);
                   return (
-                    <div key={`social-${i}`} className="flex justify-between items-center text-sm py-1.5">
-                      <div className="flex items-center gap-2 w-28">
+                    <div key={`social-${i}`} className="flex flex-row justify-between items-center gap-2">
                         <SocialIcon platform={social.platform} />
-                        <span className="opacity-70 text-xs capitalize truncate" title={social.platform}>{social.platform}</span>
-                      </div>
-                      <div className="flex-1 flex justify-end items-center gap-2">
-                        <a href={social.url} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[140px]" title={social.url}>
+                        <a href={social.url} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate w-full" title={social.url}>
                           {displayUser}
                         </a>
                         <CopyButtonSmall text={social.url} label="link" />
-                      </div>
                     </div>
                   );
                 })}

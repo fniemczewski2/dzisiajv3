@@ -1,8 +1,7 @@
 import React from 'react';
 import { MapPin, Loader2, AlertTriangle, Clock, TrainFront } from 'lucide-react';
 import { useTrainStatus } from '@/hooks/useTrains';
-import { DeleteButton } from '../CommonButtons';
-import { useToast } from '@/providers/ToastProvider';
+import { DeleteButton } from '../ui/CommonButtons';
 
 interface TrackedTrainProps {
   train: {
@@ -21,12 +20,6 @@ interface TrackedTrainProps {
 
 export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
   const { delay, platform, status, loading, hide } = useTrainStatus(train);
-  const { toast }
-   = useToast();
-  const handleDelete = async () => {
-    const ok = await toast.confirm('Czy na pewno chcesz przestać śledzić ten pociąg?');
-    if (ok) onDelete(train.id); 
-  };
 
   console.log(delay, platform, status, loading, hide)
 
@@ -114,7 +107,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
         </div>
         
         <div className="w-min ml-2">
-          <DeleteButton onClick={handleDelete} />
+          <DeleteButton onClick={() => onDelete(train.id)} />
         </div>
       </div>
       

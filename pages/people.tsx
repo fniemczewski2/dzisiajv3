@@ -4,12 +4,12 @@ import { PersonCard } from '@/components/people/PersonCard';
 import { PersonForm } from '@/components/people/PersonForm';
 import { ImportPeople } from '@/components/people/ImportPeople';
 import { ExportPeople } from '@/components/people/ExportPeople';
-import { AddButton } from '@/components/CommonButtons';
-import SearchBar from '@/components/SearchBar'; 
+import { AddButton } from '@/components/ui/CommonButtons';
+import SearchBar from '@/components/ui/SearchBar'; 
 import { Person, PersonInsert } from '@/types';
-import LoadingState from '@/components/LoadingState';
-import NoResultsState from '@/components/NoResultsState';
-import Seo from '@/components/SEO';
+import LoadingState from '@/components/ui/LoadingState';
+import NoResultsState from '@/components/ui/NoResultsState';
+import Seo from '@/components/ui/SEO';
 import { useToast } from '@/providers/ToastProvider';
 
 export default function PeoplePage() {

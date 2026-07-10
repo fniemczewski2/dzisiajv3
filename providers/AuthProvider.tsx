@@ -1,3 +1,4 @@
+// providers/AuthProvider.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
@@ -31,7 +32,17 @@ export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode 
       }
     );
 
-    return () => subscription.unsubscribe();
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin === window.location.origin && event.data === 'auth-success') {
+        window.location.reload(); 
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('message', handleMessage);
+    };
   }, [supabase]); 
 
   const contextValue = useMemo(() => ({

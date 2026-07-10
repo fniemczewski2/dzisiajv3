@@ -10,7 +10,6 @@ import { MoodEntry, MoodOption } from "@/types";
 interface Props {
   date: Date;
   currentMonth: number;
-  tCount?: number | null;
   eCount?: number | null;
   isMobile: boolean;
   onClick: () => void;
@@ -23,7 +22,6 @@ function areEqual(prev: Props, next: Props): boolean {
   return (
     prev.date.getTime() === next.date.getTime() &&
     prev.currentMonth === next.currentMonth &&
-    prev.tCount === next.tCount &&
     prev.eCount === next.eCount &&
     prev.isMobile === next.isMobile &&
     prev.onClick === next.onClick &&
@@ -35,7 +33,6 @@ function areEqual(prev: Props, next: Props): boolean {
 const CalendarCell = memo(function CalendarCell({
   date,
   currentMonth,
-  tCount,
   eCount,
   isMobile,
   onClick,
@@ -94,12 +91,6 @@ const CalendarCell = memo(function CalendarCell({
         )}
 
         <div className="flex items-center gap-1 z-10">
-          {tCount && !isMobile && (
-            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
-              <ListTodo size={12} />
-              {tCount}
-            </div>
-          )}
           {(eCount != 0 && !isMobile) && (
             <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
               <Calendar size={12} />

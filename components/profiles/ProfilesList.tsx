@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useProfiles, VCardProfile, NewVCardProfile } from '@/hooks/useProfiles';
-import LoadingState from '@/components/LoadingState';
-import NoResultsState from '@/components/NoResultsState';
+import LoadingState from '@/components/ui/LoadingState';
+import NoResultsState from '@/components/ui/NoResultsState';
 import ProfileEditorForm from './ProfileEditorForm';
 import VCardPreview from './VCardPreview';
-import { AddButton, DeleteButton, EditButton, ShareButton } from '../CommonButtons';
+import { AddButton, DeleteButton, EditButton, ShareButton } from '../ui/CommonButtons';
 
 type ViewState = 'list' | 'form' | 'preview';
 
 export default function ProfilesList() {
-  const { profiles, isLoading, error, addProfile, updateProfile, deleteProfile } = useProfiles();
+  const { profiles, loading, error, addProfile, updateProfile, deleteProfile } = useProfiles();
   const [view, setView] = useState<ViewState>('list');
   const [selectedProfile, setSelectedProfile] = useState<VCardProfile | null>(null);
 
@@ -48,7 +48,6 @@ export default function ProfilesList() {
     }
   };
 
-  if (isLoading) return <LoadingState />;
   if (error) return <div className="p-4 text-red-500 bg-red-100 rounded">Błąd: {error}</div>;
 
   if (view === 'form') {

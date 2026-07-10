@@ -4,13 +4,13 @@ import {
   Trash2, ChevronsRight, List, ListPlus,
 } from "lucide-react";
 import { useReminders } from "@/hooks/useReminders";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { Task } from "@/types";
-import NoResultsState from "../NoResultsState";
-import { FormButtons } from "../CommonButtons";
+import NoResultsState from "../ui/NoResultsState";
+import { FormButtons } from "../ui/CommonButtons";
 
 interface RemindersProps {
   addTask: (task: Task) => Promise<unknown>;
@@ -23,7 +23,6 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   const [showAll, setShowAll] = useState(false);
 
   const { user } = useAuth();
-  const { toast } = useToast();
   const userId = user?.id;
   const today = getAppDate();
 
@@ -36,47 +35,32 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   const [form, setForm] = useState({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
 
   const handleAdd = async () => {
-    if (!form.tytul || !form.data_poczatkowa) {
-      toast.error("Tytuł i data początkowa są wymagane.");
-      return;
-    }
-    try {
       await addReminder(form.tytul, form.data_poczatkowa, form.powtarzanie);
-      toast.success("Dodano pomyślnie.");
       setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
       setShowForm(false);
-    } catch {
-      toast.error("Wystąpił błąd podczas dodawania.");
-    }
   };
 
   const handleComplete = async (id: string) => {
     try {
       await completeReminder(id);
-      toast.success("Oznaczono jako wykonane.");
     } catch {
-      toast.error("Wystąpił błąd podczas aktualizacji.");
+      return;
     }
   };
 
   const handlePostpone = async (id: string, powtarzanie: number) => {
     try {
       await postponeReminder(id, powtarzanie);
-      toast.success("Zadanie odłożone na później.");
     } catch {
-      toast.error("Wystąpił błąd.");
+      return;
     }
   };
 
   const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie cykliczne?");
-    if (!ok) return;
-
     try {
       await deleteReminder(id);
-      toast.success("Usunięto pomyślnie.");
     } catch {
-      toast.error("Wystąpił błąd podczas usuwania.");
+      return;
     }
   };
 
@@ -119,18 +103,13 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     } as Task;
 
     try {
-      await withRetry(
-        () => addTask(newTask),
-        toast,
-        { context: "Reminders.addTask", userId }
-      );
+      await withRetry(() => addTask(newTask));
       
       await completeReminder(reminder.id);
       
-      toast.success("Utworzono zadanie.");
       onTasksChange?.();
     } catch {
-      toast.error("Wystąpił błąd dodawania zadania.");
+      return;
     }
   };
 

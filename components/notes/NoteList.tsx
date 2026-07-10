@@ -5,14 +5,13 @@ import { Search } from "lucide-react";
 import { Note } from "@/types";
 import { useNotes } from "@/hooks/useNotes";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import SearchBar from "../SearchBar";
+import SearchBar from "../ui/SearchBar";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
 import { filterNotes, getNoteTitles } from "@/lib/notesUtils";
-import NoResultsState from "../NoResultsState";
+import NoResultsState from "../ui/NoResultsState";
 
 interface NoteListProps {
   notes: Note[];
@@ -30,7 +29,6 @@ const COLOR_MAP: { [key: string]: string } = {
 export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProps>) {
   const { deleteNote, editNote, togglePin, toggleArchive, loading } = useNotes();
   const { settings } = useSettings();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -74,14 +72,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   }, [filteredNotes.length]);
 
   const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć tę notatkę?");
-    if (!ok) return;
-    await withRetry(
-      () => deleteNote(id),
-      toast,
-      { context: "NoteList.deleteNote", ...retryOpts }
-    );
-    toast.success("Usunięto pomyślnie.");
+    await withRetry(() => deleteNote(id));
     onNotesChange();
   };
 
@@ -96,32 +87,19 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   };
 
   const handleSaveEdit = async (note: Note) => {
-    await withRetry(
-      () => editNote(note),
-      toast,
-      { context: "NoteList.editNote", ...retryOpts }
-    );
-    toast.success("Zmieniono pomyślnie.");
+    await withRetry(() => editNote(note));
     setEditingId(null);
     setEditedNote(null);
     onNotesChange();
   };
 
   const handleTogglePin = async (id: string) => {
-    await withRetry(
-      () => togglePin(id),
-      toast,
-      { context: "NoteList.togglePin", ...retryOpts }
-    );
+    await withRetry(() => togglePin(id));
     onNotesChange();
   };
 
   const handleToggleArchive = async (id: string) => {
-    await withRetry(
-      () => toggleArchive(id),
-      toast,
-      { context: "NoteList.toggleArchive", ...retryOpts }
-    );
+    await withRetry(() => toggleArchive(id));
     onNotesChange();
   };
 

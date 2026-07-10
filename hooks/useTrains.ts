@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { getAppDateTime } from '@/lib/dateUtils';
+import { useToast } from '@/providers/ToastProvider';
 
 export interface TrainInput {
   trainNumber: string;
@@ -26,14 +27,22 @@ export function useTrains() {
   
   const [trains, setTrains] = useState<TrackedTrain[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [fetching, setFetching] = useState<boolean>(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (loading  && toast.loading) toastId = toast.loading("Ładowanie pociągów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loading, toast]);
 
+  
   const fetchTrains = useCallback(async () => {
     if (!user) {
-      setLoading(false);
+      setFetching(false);
       return;
     }
     
-    setLoading(true);
+    setFetching(true);
     try {
       const now = getAppDateTime();
 
@@ -82,13 +91,13 @@ export function useTrains() {
     } catch (error) {
       throw new Error("Błąd pobierania pociągów")
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [user, supabase]);
 
   const addTrain = async (trainData: TrainInput) => {
     if (!user) { return false; }
-
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_trains')
@@ -133,10 +142,13 @@ export function useTrains() {
       return true;
     } catch {
       throw new Error('Błąd zapisywania pociągu');
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteTrain = async (id: string) => {
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('user_trains')
@@ -149,7 +161,9 @@ export function useTrains() {
       setTrains((prev) => prev.filter((t) => t.id !== id));
     } catch {
       throw new Error('Nie udało się usunąć pociągu');
-    }
+    } finally {
+      setLoading(false);
+    } 
   };
 
   return {
@@ -157,6 +171,7 @@ export function useTrains() {
     refresh: fetchTrains,
     addTrain,
     deleteTrain,
+    fetching,
     loading
   };
 }

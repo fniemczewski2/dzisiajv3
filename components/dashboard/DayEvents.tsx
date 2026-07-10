@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 import { Event } from "@/types";
-import { useToast } from "@/providers/ToastProvider"; 
-import NoResultsState from "../NoResultsState";
+ 
+import NoResultsState from "../ui/NoResultsState";
 import EventItem from "../calendar/EventItem";
 
 interface Props {
   events: Event[];
-  loadingEvents: boolean;
   fetchingEvents: boolean;
+  loadingEvents: boolean;
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
@@ -15,14 +15,7 @@ interface Props {
   userOptions: string[];
 }
 
-export function DayEvents({ events, loadingEvents, fetchingEvents, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Readonly<Props>) {
-  const { toast } = useToast();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetchingEvents  && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetchingEvents, toast]);
+export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Readonly<Props>) {
 
   return (
     <div className="grid grid-cols-1 gap-3">

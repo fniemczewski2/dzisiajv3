@@ -1,4 +1,4 @@
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 import Navbar from "@/components/Navbar"; // Jeśli używasz Navbaru na tej stronie
 
 export default function PrivacyPage() {

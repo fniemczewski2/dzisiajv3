@@ -3,6 +3,7 @@ import { Place, PlaceInsert, OpeningHours } from "@/types";
 import { generatePlaceTags } from "@/lib/placeTagging";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
+import { useToast } from "@/providers/ToastProvider";
 
 export function usePlaces() {
   const { user, supabase } = useAuth();
@@ -13,6 +14,13 @@ export function usePlaces() {
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie miejsc...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const places = useMemo(() => {
     if (!settings) return rawPlaces;
@@ -52,7 +60,7 @@ export function usePlaces() {
   }, [fetchPlaces]);
 
   const addPlace = async (place: PlaceInsert) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -68,7 +76,7 @@ export function usePlaces() {
   };
 
   const updatePlace = async (id: string, updates: Partial<Place>) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -86,7 +94,7 @@ export function usePlaces() {
   };
 
   const deletePlace = async (id: string) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { error } = await supabase
@@ -232,7 +240,7 @@ export function usePlaces() {
     fetchGoogleData = true,
     autoTag = true
   ): Promise<number> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
 
     const features = jsonData.features || [];

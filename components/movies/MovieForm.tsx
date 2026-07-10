@@ -1,16 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
-import { FormButtons } from "../CommonButtons";
-import { useToast } from "@/providers/ToastProvider";
-import { useAuth } from "@/providers/AuthProvider";
+import { FormButtons } from "../ui/CommonButtons";
+import { useToast } from "@/providers/ToastProvider"; 
 import { withRetry } from "@/lib/withRetry";
-
-interface MovieAddFormProps {
-  onSubmit: (movie: NewMovieData) => Promise<void>;
-  onCancel: () => void;
-  loading?: boolean;
-}
 
 export interface NewMovieData {
   title: string;
@@ -20,6 +13,12 @@ export interface NewMovieData {
   description: string | null;
 }
 
+interface MovieAddFormProps {
+  onSubmit: (movie: NewMovieData) => Promise<void>;
+  onCancel: () => void;
+  loading?: boolean;
+}
+
 async function tmdbFetch<T = unknown>(
   path: string,
   params: Record<string, string> = {}
@@ -27,6 +26,7 @@ async function tmdbFetch<T = unknown>(
   const url = new URL("/api/tmdb", globalThis.location?.origin);
   url.searchParams.set("path", path);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  
   const res = await fetch(url.toString());
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -48,6 +48,7 @@ interface TmdbMovie {
   overview?: string; poster_path?: string; genre_ids?: number[];
   genres?: { id: number; name: string }[];
 }
+
 interface TmdbSearchResult { results: TmdbMovie[]; }
 interface TmdbDetails { genres?: { id: number; name: string }[]; }
 interface TmdbProvider { provider_id: number; provider_name: string; }
@@ -57,7 +58,6 @@ interface TmdbWatchProviders {
 
 export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Readonly<MovieAddFormProps>) {
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     title: "", genre: "", rating: "", platform: "", description: "",
@@ -67,11 +67,13 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
   const [movieOptions, setMovieOptions] = useState<TmdbMovie[]>([]);
   const [showOptions, setShowOptions] = useState(false);
 
+  // Funkcja przeniesiona do wewnątrz komponentu, aby miała dostęp do jego stanu
   const fetchTMDBData = async () => {
     if (!formData.title.trim()) return;
     setFetchingTMDB(true);
     setTmdbError(null);
     setShowOptions(false);
+    
     try {
       const data = await tmdbFetch<TmdbSearchResult>("/search/movie", {
         query: formData.title.trim(),
@@ -97,6 +99,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       const providersData = await tmdbFetch<TmdbWatchProviders>(`/movie/${movie.id}/watch/providers`);
       const plProviders = providersData.results?.PL;
       let platformNames: string[] = [];
+      
       if (plProviders) {
         const flatrate = plProviders.flatrate ?? [];
         const rent = plProviders.rent ?? [];
@@ -105,6 +108,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         const unique = Array.from(new Map(combined.map((p) => [p.provider_id, p])).values());
         platformNames = unique.map((p) => p.provider_name);
       }
+      
       const genres =
         details.genres?.length
           ? details.genres.map((g) => g.name).join(", ")
@@ -118,6 +122,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         platform: platformNames.join(", "),
         description: movie.overview ?? prev.description,
       }));
+      
       setShowOptions(false);
       setMovieOptions([]);
     } catch {
@@ -138,10 +143,9 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         rating: formData.rating ? Number.parseFloat(formData.rating.replaceAll(",", ".")) : null,
         platform: formData.platform.trim() || null,
         description: formData.description.trim() || null,
-      }),
-      toast,
-      { context: "MovieForm.onSubmit", userId: user?.id }
+      })
     );
+    
     setFormData({ title: "", genre: "", rating: "", platform: "", description: "" });
     setMovieOptions([]);
     setShowOptions(false);

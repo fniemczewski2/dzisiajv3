@@ -3,12 +3,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { MoodEntry } from "@/types";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();
   const [moods, setMoods] = useState<MoodEntry[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie nastrojów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchMoods = useCallback(async () => {
     if (!user) return;
@@ -35,12 +42,12 @@ export function useMoods(startDate?: string, endDate?: string) {
   useEffect(() => { fetchMoods(); }, [fetchMoods]);
 
   const logMood = async (date: string, mood_id: string | null) => {
-    if (!user) throw new Error("Musisz być zalogowany");
+    if (!user) toast.error("Zaloguj się!");
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from("mood_entries")
-        .upsert({ user_id: user.id, date, mood_id }, { onConflict: "user_id, date" })
+        .upsert({ user_id: user?.id, date, mood_id }, { onConflict: "user_id, date" })
         .select()
         .single();
 

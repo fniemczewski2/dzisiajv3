@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
-import NoResultsState from "../NoResultsState";
+import NoResultsState from "../ui/NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 
 import { Task } from "@/types";
-import { useToast } from "@/providers/ToastProvider";
-import LoadingState from "../LoadingState";
+
 
 interface DayTasksProps {
   loadingTasks: boolean;
@@ -20,7 +19,6 @@ interface DayTasksProps {
 }
 
 export const DayTasks = React.memo(({
-  loadingTasks,
   fetchingTasks,
   tasks,
   acceptTask,
@@ -31,13 +29,6 @@ export const DayTasks = React.memo(({
   userId,
   userOptions
 }: Readonly<DayTasksProps>) => {
-  const { toast } = useToast();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetchingTasks && toast.loading) toastId = toast.loading("Ładowanie zadań...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetchingTasks, toast]);
 
   return (
     <div className="mb-6">

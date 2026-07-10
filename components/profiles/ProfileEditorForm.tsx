@@ -1,15 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { VCardProfile } from '@/hooks/useProfiles';
-import { FormButtons, DeleteButton } from '../CommonButtons';
-import { useToast } from '@/providers/ToastProvider';
+import { FormButtons, DeleteButton } from '../ui/CommonButtons';
 import { 
   User, 
   Building, 
   Palette, 
-  Phone, 
-  Mail, 
-  MapPin, 
+  Phone,  
   Link as LinkIcon, 
   Briefcase, 
   Image as ImageIcon,
@@ -19,7 +16,7 @@ import {
   Loader2,
   Globe
 } from 'lucide-react';
-import { platform } from 'os';
+import { useImages } from '@/lib/imgUtils';
 
 interface ProfileEditorFormProps {
   initialData?: VCardProfile;
@@ -30,9 +27,7 @@ interface ProfileEditorFormProps {
 export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: ProfileEditorFormProps) {
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
-  
-  const [isUploading, setIsUploading] = useState(false);
+  const { handleImageUpload, uploading } = useImages()
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -51,12 +46,9 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
     business_data: initialData?.business_data || { nip: '', krs: '', bank_account: '' },
   });
 
-
-  // --- WALIDACJA SLUGA --- //
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!initialData?.public_slug);
 
-  // Automatyczne generowanie sugestii, jeśli użytkownik sam jej jeszcze nie nadpisał
   useEffect(() => {
     if (!isSlugManuallyEdited && (formData.full_name || formData.profile_name)) {
       const baseName = formData.full_name || formData.profile_name;
@@ -105,31 +97,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
   };
 
   // --- WGRYWANIE ZDJĘCIA --- //
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      if (!e.target.files || e.target.files.length === 0) return;
-      const file = e.target.files[0];
-      setIsUploading(true);
-      
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('Brak autoryzacji');
-      
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userData.user.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      
-      const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
-      setFormData(prev => ({ ...prev, avatar_url: publicUrlData.publicUrl }));
-      toast.success('Zdjęcie zostało wgrane!');
-    } catch (error: any) {
-      console.error(error);
-      toast.error('Nie udało się wgrać zdjęcia.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   // --- HANDLERY DYNAMICZNYCH LIST --- //
   const addPhone = () => setFormData(p => ({ ...p, phones: [...p.phones, { type: 'Komórka', number: '' }] }));
@@ -213,17 +180,12 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
         url: item.url.trim()
       }));
 
-    const result = await onSubmit({
+    await onSubmit({
       ...formData,
       social_links: validSocialLinks
     });
     
     setIsSubmitting(false);
-    if (!result.success) {
-      toast.error('Wystąpił błąd.');
-    } else {
-      toast.success('Zapisano pomyślnie!');
-    }
   };
 
   const appUrl = typeof window !== 'undefined' ? window.location.hostname : 'twojadomena.pl';
@@ -253,10 +215,9 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
           </div>
         </div>
         <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
-        {isUploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
+        {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
       </div>
 
-      {/* --- DANE PODSTAWOWE --- */}
       <div className="space-y-4">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
           <User size={18} className="text-neutral-400" /> Podstawowe informacje

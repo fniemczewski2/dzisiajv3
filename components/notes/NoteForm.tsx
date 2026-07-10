@@ -4,10 +4,10 @@ import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
 import { Note } from "@/types";
 import { useNotes } from "@/hooks/useNotes";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 
 interface NoteFormProps {
   onChange: () => void;
@@ -24,7 +24,6 @@ const COLOR_MAP: { [key: string]: string } = {
 
 export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>) {
   const { addNote, loading } = useNotes();
-  const { toast } = useToast();
   const { user } = useAuth();
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
@@ -56,13 +55,7 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
       bg_color: bgColor,
     } as Note;
 
-    await withRetry(
-      () => addNote(payload),
-      toast,
-      { context: "NoteForm.addNote", userId: user?.id }
-    );
-
-    toast.success("Dodano pomyślnie.");
+    await withRetry(() => addNote(payload));
     onChange();
     onCancel?.();
   };

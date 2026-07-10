@@ -1,5 +1,4 @@
-import { useToast } from '@/providers/ToastProvider';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 interface DayStreaksProps {
   streaks: any[];
@@ -7,14 +6,6 @@ interface DayStreaksProps {
 }
 
 export const DayStreaks = React.memo(({ streaks, fetchingStreaks }: Readonly<DayStreaksProps>) => {
-
-  const { toast } = useToast();
-  
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (fetchingStreaks  && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetchingStreaks, toast]);
 
   return (
     <>

@@ -5,7 +5,7 @@ import DailySpendingForm from "./DailySpendingForm";
 import MoodWidget from './MoodTracker';
 import { getAppDate } from '@/lib/dateUtils';
 import { Settings } from '@/types';
-import LoadingState from '../LoadingState';
+import LoadingState from '../ui/LoadingState';
 
 interface DashboardWidgetsProps {
   settings: Settings;

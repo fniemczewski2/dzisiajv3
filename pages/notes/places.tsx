@@ -7,7 +7,7 @@ import PlacesList from "@/components/places/PlacesList";
 import { Place } from "@/types";
 import { Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 const ImportPlaces = dynamic(() => import("@/components/places/ImportPlaces"), { 
   ssr: false 

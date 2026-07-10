@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabase } from '@/lib/supabase/server';
+import { randomBytes } from 'node:crypto';
 
 async function refreshOutlookToken(refreshToken: string) {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
@@ -17,17 +18,19 @@ async function refreshOutlookToken(refreshToken: string) {
 }
 
 function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
-  const { userId } = req.query;
-  const state = Buffer.from(JSON.stringify({ userId })).toString('base64');
+  const nonce = randomBytes(24).toString('base64url');
+  res.setHeader("Set-Cookie", `outlook_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
+
   const params = new URLSearchParams({
     client_id: process.env.OUTLOOK_CLIENT_ID!,
     response_type: 'code',
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/outlook-calendar/callback`,
     scope: 'offline_access Calendars.Read User.Read',
-    state: state,
+    state: nonce,
     prompt: 'select_account'
   });
-  return res.redirect(`https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`);
+  
+  return res.status(200).json({ url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}` });
 }
 
 async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, supabase: any, user: any) {
@@ -168,14 +171,7 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supab
   }
 }
 
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { action } = req.query;
-
-  if (action === 'auth-url') {
-    return handleAuthUrl(req, res);
-  }
-
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -183,17 +179,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Nieautoryzowany dostęp' });
   }
 
-  if (action === 'list-calendars') {
-    return handleListCalendars(req, res, supabase, user);
+  const { action } = req.query;
+
+  if (action === 'auth-url') {
+    return handleAuthUrl(req, res); // Nie musimy już przekazywać userId do auth-url!
   }
   
-  if (action === 'import') {
-    return handleImport(req, res, supabase, user);
-  }
-  
-  if (action === 'disconnect') {
-    return handleDisconnect(req, res, supabase, user);
-  }
+  if (action === 'list-calendars') return handleListCalendars(req, res, supabase, user);
+  if (action === 'import') return handleImport(req, res, supabase, user);
+  if (action === 'disconnect') return handleDisconnect(req, res, supabase, user);
 
   return res.status(404).json({ error: 'Nieznana akcja' });
 }

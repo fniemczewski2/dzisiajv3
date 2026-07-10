@@ -40,6 +40,7 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/auth') || 
     path === '/privacy' ||
     path.startsWith('/.well-known')
+    path.startsWith('/v/')
 
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone()
@@ -56,7 +57,10 @@ export async function middleware(request: NextRequest) {
 
   if (user && path === '/start') {
     const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/'
+    
+    const nextPath = request.nextUrl.searchParams.get('next') || '/'
+    redirectUrl.pathname = nextPath.startsWith('/') ? nextPath : `/${nextPath}`
+    redirectUrl.searchParams.delete('next')
     
     const redirectResponse = NextResponse.redirect(redirectUrl)
     
@@ -66,7 +70,6 @@ export async function middleware(request: NextRequest) {
 
     return redirectResponse
   }
-
   return response
 }
 

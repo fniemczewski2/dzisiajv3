@@ -5,6 +5,7 @@ import { useAuth } from '@/providers/AuthProvider';
 export type DailyOverride = {
   schema_id: string;
   new_time?: string | null;
+  is_hidden: boolean;
 };
 
 export function useDailyOverrides(dateStr: string) {
@@ -16,7 +17,7 @@ export function useDailyOverrides(dateStr: string) {
     
     const { data, error } = await supabase
       .from('daily_overrides')
-      .select('schema_id, new_time')
+      .select('schema_id, new_time, is_hidden')
       .eq('user_id', user.id)
       .eq('date', dateStr);
 
@@ -35,9 +36,9 @@ export function useDailyOverrides(dateStr: string) {
     setOverrides(prev => {
       const existing = prev.find(o => o.schema_id === schemaId);
       if (existing) {
-        return prev.map(o => o.schema_id === schemaId ? { ...o, new_time: null } : o);
+        return prev.map(o => o.schema_id === schemaId ? { ...o, is_hidden: true } : o);
       }
-      return [...prev, { schema_id: schemaId, new_time: null }];
+      return [...prev, { schema_id: schemaId, is_hidden: true }];
     });
 
     const { data: existing } = await supabase
@@ -50,10 +51,15 @@ export function useDailyOverrides(dateStr: string) {
 
     let error;
     if (existing) {
-      const res = await supabase.from('daily_overrides').update({ new_time: null }).eq('id', existing.id);
+      const res = await supabase.from('daily_overrides').update({ is_hidden: true }).eq('id', existing.id);
       error = res.error;
     } else {
-      const res = await supabase.from('daily_overrides').insert({ user_id: user.id, date: dateStr, schema_id: schemaId, new_time: null });
+      const res = await supabase.from('daily_overrides').insert({ 
+        user_id: user.id, 
+        date: dateStr, 
+        schema_id: schemaId, 
+        is_hidden: true 
+      });
       error = res.error;
     }
 
@@ -69,9 +75,9 @@ export function useDailyOverrides(dateStr: string) {
     setOverrides(prev => {
       const existing = prev.find(o => o.schema_id === schemaId);
       if (existing) {
-        return prev.map(o => o.schema_id === schemaId ? { ...o, new_time: newTime } : o);
+        return prev.map(o => o.schema_id === schemaId ? { ...o, new_time: newTime, is_hidden: false } : o);
       }
-      return [...prev, { schema_id: schemaId, new_time: newTime }];
+      return [...prev, { schema_id: schemaId, new_time: newTime, is_hidden: false }];
     });
 
     const { data: existing } = await supabase
@@ -84,10 +90,10 @@ export function useDailyOverrides(dateStr: string) {
 
     let error;
     if (existing) {
-      const res = await supabase.from('daily_overrides').update({ new_time: newTime }).eq('id', existing.id);
+      const res = await supabase.from('daily_overrides').update({ new_time: newTime, is_hidden: false }).eq('id', existing.id);
       error = res.error;
     } else {
-      const res = await supabase.from('daily_overrides').insert({ user_id: user.id, date: dateStr, schema_id: schemaId, new_time: newTime });
+      const res = await supabase.from('daily_overrides').insert({ user_id: user.id, date: dateStr, schema_id: schemaId, new_time: newTime, is_hidden: false });
       error = res.error;
     }
 

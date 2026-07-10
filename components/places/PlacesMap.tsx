@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Place } from "@/types";
 import { escapeHtml, validateUuid } from "@/lib/sanitize";
-import NoResultsState from "../NoResultsState";
+import NoResultsState from "../ui/NoResultsState";
 
 interface PlacesMapProps {
   places: Place[];

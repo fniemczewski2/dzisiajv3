@@ -121,7 +121,7 @@ The application uses Supabase/PostgreSQL with the following main tables:
 - Event creation with start/end times
 - Recurring events (weekly, monthly, yearly)
 - Event sharing
-- .ics import/export
+- .ics export
 
 ### Budget Tracker
 - Income and expense tracking

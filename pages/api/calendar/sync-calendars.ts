@@ -1,9 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
 
 const supabaseService = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SECRET_KEY!
 );
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -188,23 +189,32 @@ async function updateMainTokens(tokenCache: Record<string, string>, mainAccounts
     }
   }
 }
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const authHeader = req.headers.authorization;
-
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  const expectedSecret = process.env.CRON_SECRET;
+  
+  if (!expectedSecret) {
+    console.error("[CRON] No CRON_SECRET defined.");
+    return res.status(500).json({ error: "Server configuration error" });
+  }
 
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ error: "Nieautoryzowane wywołanie" });
+  const expectedHeader = `Bearer ${expectedSecret}`;
+  const providedHeader = req.headers.authorization || "";
+
+  if (
+    expectedHeader.length !== providedHeader.length || 
+    !crypto.timingSafeEqual(Buffer.from(expectedHeader), Buffer.from(providedHeader))
+  ) {
+    return res.status(401).json({ error: "Unauthorized." });
   }
 
   try {
     const { data: accounts, error: dbError } = await supabaseService.from("connected_calendars").select("*");
 
     if (dbError) throw dbError;
-    if (!accounts || accounts.length === 0) return res.json({ message: "Brak kont do synchronizacji" });
+    if (!accounts || accounts.length === 0) return res.json({ message: "No accounts to synchronize." });
 
     let totalImported = 0;
     const tokenCache: Record<string, string> = {}; 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/providers/ToastProvider';
 
 export interface PhoneItem { type: string; number: string; }
 export interface EmailItem { type: string; email: string; }
@@ -30,16 +31,26 @@ export type NewVCardProfile = Omit<VCardProfile, 'id' | 'user_id'>;
 export function useProfiles() {
   const supabase = createClient();
   const [profiles, setProfiles] = useState<VCardProfile[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [fetching, setFetching] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie profili...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
+
   const fetchProfiles = useCallback(async () => {
-    setIsLoading(true);
+    setFetching(true);
     setError(null);
     try {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Brak zalogowanego użytkownika");
-
+      if (!userData.user) {
+        toast.error("Zaloguj się");
+        return;
+      }
       const { data, error: fetchError } = await supabase
         .from('vcard_profiles')
         .select('*')
@@ -49,14 +60,14 @@ export function useProfiles() {
       if (fetchError) throw fetchError;
       setProfiles(data || []);
     } catch (err: any) {
-      console.error('Błąd pobierania profili:', err);
-      setError(err.message || 'Nie udało się pobrać profili');
+      toast.error('Błąd pobierania profili');
     } finally {
-      setIsLoading(false);
+      setFetching(false);
     }
   }, [supabase]);
 
   const addProfile = async (profileData: NewVCardProfile) => {
+    setLoading(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Brak zalogowanego użytkownika");
@@ -75,14 +86,17 @@ export function useProfiles() {
       console.error('Błąd dodawania profilu:', err);
       if (err.code === '23505') return { success: false, error: 'Ten publiczny link jest już zajęty.' };
       return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
     }
   };
 
   const updateProfile = async (id: string, updates: Partial<VCardProfile>) => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('vcard_profiles')
-        .update(updates) // slug przyjdzie w updates
+        .update(updates) 
         .eq('id', id)
         .select()
         .single();
@@ -94,10 +108,13 @@ export function useProfiles() {
       console.error('Błąd edycji profilu:', err);
       if (err.code === '23505') return { success: false, error: 'Ten publiczny link jest już zajęty.' };
       return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteProfile = async (id: string) => {
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('vcard_profiles')
@@ -111,6 +128,9 @@ export function useProfiles() {
       console.error('Błąd usuwania profilu:', err);
       return { success: false, error: err.message };
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -119,7 +139,8 @@ export function useProfiles() {
 
   return {
     profiles,
-    isLoading,
+    fetching,
+    loading,
     error,
     refetch: fetchProfiles,
     addProfile,

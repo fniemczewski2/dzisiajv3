@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import type { Recipe, RecipeCategory } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
+import { useToast } from "@/providers/ToastProvider";
 
 type NewRecipe = {
   name: string;
@@ -20,6 +21,13 @@ export function useRecipes() {
   const [products, setProducts] = useState<string[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie przepisów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const recipes = useMemo(() => {
     if (!settings) return rawRecipes;
@@ -82,7 +90,7 @@ export function useRecipes() {
   }, [fetchRecipes, fetchProducts]);
 
   const addRecipe = async (r: NewRecipe): Promise<Recipe> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -106,7 +114,7 @@ export function useRecipes() {
   };
 
   const editRecipe = async (recipe: Recipe): Promise<Recipe> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -130,7 +138,7 @@ export function useRecipes() {
   };
 
   const deleteRecipe = async (id: string): Promise<void> => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { error } = await supabase.from("recipes").delete().eq("id", id);

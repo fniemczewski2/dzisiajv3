@@ -3,11 +3,10 @@
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "@/types";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
 
 interface TaskFormProps {
@@ -24,7 +23,6 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
-  const { toast } = useToast();
   const todayIso = getAppDate();
 
   const titleRef       = useRef<HTMLInputElement>(null);
@@ -57,13 +55,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       taskData.status = "pending";
     }
 
-    await withRetry(
-      () => addTask(taskData),
-      toast,
-      { context: "TaskForm.addTask", userId }
-    );
-
-    toast.success("Dodano pomyślnie.");
+    await withRetry(() => addTask(taskData));
     onTasksChange();
     onCancel?.();
   };

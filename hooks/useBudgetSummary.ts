@@ -5,6 +5,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory } from "@/types";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
+import { useToast } from "@/providers/ToastProvider";
 
 interface RawBillRow {
   amount: number;
@@ -21,6 +22,13 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
   const [uncategorised, setUncategorised] = useState<any>({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
   const [totalIncome, setTotalIncome] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (loading  && toast.loading) toastId = toast.loading("Ładowanie statystyk...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loading, toast]);
 
   const compute = useCallback(async () => {
     if (!userId) {

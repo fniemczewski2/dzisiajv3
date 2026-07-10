@@ -1,12 +1,12 @@
 // pages/index.tsx
 
 import React, { useEffect, useState } from "react";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 import dynamic from "next/dynamic";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 
-import LoadingState from "@/components/LoadingState";
+import LoadingState from "@/components/ui/LoadingState";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "@/lib/dateUtils";
 

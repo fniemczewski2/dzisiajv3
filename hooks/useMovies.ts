@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Movie, MovieInsert } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useMovies() {
   const { user, supabase } = useAuth();
@@ -11,6 +12,12 @@ export function useMovies() {
   const [rawMovies, setRawMovies] = useState<Movie[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie filmów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const movies = useMemo(() => {
     if (!settings) return rawMovies;
@@ -54,7 +61,7 @@ export function useMovies() {
 
   const addMovie = useCallback(
     async (movie: Omit<MovieInsert, "user_id">): Promise<Movie> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
       const { data, error } = await supabase
         .from("movies")

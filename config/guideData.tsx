@@ -284,7 +284,7 @@ export const guideSections: GuideSection[] = [
         <K>Powtarzanie wydarzeń.</K> Przy tworzeniu możesz ustawić powtarzanie: co tydzień, co miesiąc lub co rok. Powtarzające się instancje generowane są automatycznie bez tworzenia osobnych wpisów w bazie danych.
       </>,
       <>
-        <K>Import i eksport .ics.</K> Możesz importować zdarzenia z pliku .ics (np. eksport z Google Calendar) bezpośrednio w formularzu. Każde wydarzenie możesz też pobrać jako plik .ics i dodać do dowolnego kalendarza zewnętrznego.
+        <K>Eksport .ics.</K> Każde wydarzenie możesz pobrać jako plik .ics i dodać do dowolnego kalendarza zewnętrznego.
       </>,
       <>
         <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych — wydarzenie pojawi się w jego kalendarzu.

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useShoppingLists } from "@/hooks/useShoppingLists";
 import ShoppingForm from "@/components/shopping/ShoppingForm";
 import ShoppingListView from "@/components/shopping/ShoppingListView";
-import { AddButton } from "@/components/CommonButtons";
+import { AddButton } from "@/components/ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 export default function ShoppingPage() {
 

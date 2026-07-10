@@ -1,12 +1,12 @@
 import { Calendar, ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
-import { AddSpecificButton } from "../CommonButtons";
+import { AddSpecificButton } from "../ui/CommonButtons";
 import { DashboardWidgets } from "../widgets/DashboardWidgets";
 import { useMemo } from "react";
 import { getPolishHolidays } from "@/lib/holidays";
 import { Settings } from "@/types";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
-import { useResponsive } from "@/hooks/useResponsive";
+import { useResponsive } from "@/lib/useResponsive";
 
 interface Props {
   date: Date;

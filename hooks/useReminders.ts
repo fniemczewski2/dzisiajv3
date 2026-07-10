@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Reminder } from "@/types";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useReminders() {
   const { user, supabase } = useAuth();
@@ -12,6 +13,13 @@ export function useReminders() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [fetching, setFetching] = useState(false); 
   const [loading, setLoading] = useState(false);   
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie zadańc cyklicznych...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
   
   const today = getAppDate();
 
@@ -34,7 +42,7 @@ export function useReminders() {
 
   const addReminder = useCallback(
     async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
       try {
         const { data, error } = await supabase

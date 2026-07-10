@@ -5,10 +5,9 @@ import { Minus, Plus, RefreshCw } from "lucide-react";
 import { format, endOfYear } from "date-fns";
 import { getAppDate } from "@/lib/dateUtils";
 import { useBills } from "@/hooks/useBills";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 import type { Bill, BudgetCategory } from "@/types";
 
 interface BillFormProps {
@@ -27,7 +26,6 @@ export default function BillForm({
   const isEdit = !!initial;
   const { user } = useAuth();
   const { addBill, editBill, loading } = useBills();
-  const { toast } = useToast();
 
   const yearEnd = format(endOfYear(new Date()), "yyyy-MM-dd");
 
@@ -68,19 +66,13 @@ export default function BillForm({
 
     if (isEdit && initial) {
       await withRetry(
-        () => editBill({ ...initial, ...payload }, { updateFutureRecurring: updateFuture }),
-        toast,
-        { context: "BillForm.editBill", userId: user?.id }
+        () => editBill({ ...initial, ...payload }, { updateFutureRecurring: updateFuture })
       );
     } else {
       await withRetry(
-        () => addBill(payload),
-        toast,
-        { context: "BillForm.addBill", userId: user?.id }
+        () => addBill(payload)
       );
     }
-
-    toast.success(isEdit ? "Zmieniono pomyślnie." : "Dodano pomyślnie.");
 
     if (!isEdit) {
       setAmount("0");

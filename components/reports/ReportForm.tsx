@@ -4,11 +4,11 @@ import React, { useRef, useState, SyntheticEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { Report } from "@/types";
 import { useReports } from "@/hooks/useReports";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 
 interface ReportFormProps {
   onChange: () => void;
@@ -21,7 +21,6 @@ const createTask = () => ({ id: crypto.randomUUID(), zadanie: "", data: "", osob
 
 export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormProps>) {
   const { addReport, loading } = useReports();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const topicRef = useRef<HTMLInputElement>(null);
@@ -45,13 +44,8 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
       notes: notesRef.current?.value.trim() || "",
     } as Report;
 
-    await withRetry(
-      () => addReport(payload),
-      toast,
-      { context: "ReportForm.addReport", userId: user?.id }
-    );
+    await withRetry(() => addReport(payload));
 
-    toast.success("Dodano pomyślnie.");
     if (topicRef.current) topicRef.current.value = "";
     if (dateRef.current)  dateRef.current.value  = getAppDate();
     if (notesRef.current) notesRef.current.value = "";

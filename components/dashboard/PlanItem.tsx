@@ -4,7 +4,6 @@ import React from "react";
 import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Check } from "lucide-react";
 import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
-import { Event, WorkLog } from "@/types";
 import { formatTime } from "@/lib/dateUtils";
 
 interface PlanItemData {
@@ -16,7 +15,7 @@ interface PlanItemData {
 
 interface PlanItemProps {
   item: PlanItemData;
-  onMarkAsDoneTask?: (taskId: string) => void;
+  onMarkAsDone?: (id: string) => void;
   onRemoveFromSchedule?: (taskId: string) => void;
 }
 
@@ -62,12 +61,13 @@ const getTimes = (e: any) => {
   return null
 }
 
-export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedule }: Readonly<PlanItemProps>) => {
+export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }: Readonly<PlanItemProps>) => {
   const quickLink = getQuickLink(item.title);
   const colors = priorityColors[item.data?.priority as 1 | 2 | 3 | 4 | 5] ?? priorityColors[3];
 
   return (
-    <div className="mb-2 p-2 rounded-lg flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors">      <div className="flex-1 min-w-0 pr-2">
+    <div className="mb-2 p-2 rounded-lg flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors">      
+      <div className="flex-1 min-w-0 pr-2 gap-y-1 flex flex-col">
         <p className="flex items-center gap-2 font-bold text-sm leading-tight truncate">
           {item.type === "task" && (
             <span
@@ -104,10 +104,10 @@ export const PlanItem = React.memo(({ item, onMarkAsDoneTask, onRemoveFromSchedu
           </Link>
         )}
 
-        {(item.type === "task" || item.type === "schema") && onMarkAsDoneTask && onRemoveFromSchedule && (
+        {(item.type === "task" || item.type === "schema") && onMarkAsDone && onRemoveFromSchedule && (
           <>
             <button
-              onClick={(e) => { e.preventDefault(); onMarkAsDoneTask(item.id); }}
+              onClick={(e) => { e.preventDefault(); onMarkAsDone(item.id); }}
               className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
               title="Zrobione"
             >

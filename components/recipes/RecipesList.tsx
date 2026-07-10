@@ -5,12 +5,11 @@ import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
-import SearchBar from "../SearchBar";
-import NoResultsState from "../NoResultsState";
+import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
+import SearchBar from "../ui/SearchBar";
+import NoResultsState from "../ui/NoResultsState";
 
 const CATEGORIES: RecipeCategory[] = [
   "śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser",
@@ -23,7 +22,6 @@ interface RecipesListProps {
 export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>) {
   const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
   const { settings } = useSettings();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const [qText, setQText] = useState("");
@@ -77,10 +75,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
   const toggleOpen = (id: string) => setOpenId((prev) => prev === id ? null : id);
 
   const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć ten przepis?");
-    if (!ok) return;
-    await withRetry(async () => { await deleteRecipe(id); }, toast, { context: "RecipesList.deleteRecipe", ...retryOpts });
-    toast.success("Usunięto pomyślnie.");
+    await withRetry(async () => { await deleteRecipe(id); });
   };
 
   const handleEdit = (recipe: Recipe) => {
@@ -93,8 +88,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
 
   const handleSaveEdit = async () => {
     if (!editedRecipe) return;
-    await withRetry(async () => { await editRecipe(editedRecipe); }, toast, { context: "RecipesList.editRecipe", ...retryOpts });
-    toast.success("Zmieniono pomyślnie.");
+    await withRetry(async () => { await editRecipe(editedRecipe); });
     setEditingId(null); setEditedRecipe(null); setProdInput("");
   };
 

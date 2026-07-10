@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEuroRate } from "@/hooks/useEuroRate";
-import LoadingState from "@/components/LoadingState";
-import Seo from "@/components/SEO";
+import { useEuroRate } from "@/lib/useEuroRate";
+import LoadingState from "@/components/ui/LoadingState";
+import Seo from "@/components/ui/SEO";
 import { FLAT_RENTAL_DEFAULT, FLAT_FEE_DEFAULT, TAX_DEFAULT, ZUS_DEFAULT} from "@/config/limits";
 
 const InputField = ({

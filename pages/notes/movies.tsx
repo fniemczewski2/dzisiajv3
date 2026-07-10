@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import MovieWatchlist from "@/components/movies/MovieList";
 import { useMovies } from "@/hooks/useMovies";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 export default function MoviesPage() {
   const { movies, fetching, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();

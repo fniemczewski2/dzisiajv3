@@ -9,11 +9,11 @@ import { useRouter } from "next/router";
 import { useToast } from "@/providers/ToastProvider";
 import { getYear } from "date-fns";
 import DailySpendingForm from "@/components/widgets/DailySpendingForm";
-import { AddButton } from "@/components/CommonButtons";
-import { useQuickAction } from "@/hooks/useQuickAction";
+import { AddButton } from "@/components/ui/CommonButtons";
+import { useQuickAction } from "@/lib/useQuickAction";
 import type { Bill } from "@/types";
 import BillListGrouped from "@/components/bills/BillListGrouped";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 const BillForm = dynamic(() => import("@/components/bills/BillForm"), {
   ssr: false,

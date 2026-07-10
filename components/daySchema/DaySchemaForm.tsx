@@ -3,10 +3,10 @@
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { PlusCircle } from "lucide-react";
 import { useDaySchemas } from "@/hooks/useDaySchemas";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { DeleteButton, FormButtons, NotifyButton } from "../CommonButtons";
+import { DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
 
 import type { ScheduleItem, Schema } from "@/types";
 
@@ -24,7 +24,6 @@ export default function DaySchemaForm({
   onCancel,
 }: Readonly<DaySchemaFormProps>) {
   const { addSchema, updateSchema } = useDaySchemas();
-  const { toast } = useToast();
   const { user } = useAuth();
   const isEdit = !!initialSchema?.id;
 
@@ -43,10 +42,6 @@ export default function DaySchemaForm({
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
-    if (!schemaName || days.length === 0 || entries.length === 0) {
-      toast.error("Uzupełnij nazwę, dni i przynajmniej jeden wpis.");
-      return;
-    }
 
     setLoading(true);
     const payload = { name: schemaName.trim(), days, entries };
@@ -54,11 +49,8 @@ export default function DaySchemaForm({
     await withRetry(
       () => isEdit && initialSchema?.id
         ? updateSchema(initialSchema.id, payload)
-        : addSchema(payload as any),
-      toast,
-      { context: `DaySchemaForm.${isEdit ? "updateSchema" : "addSchema"}`, userId: user?.id }
+        : addSchema(payload as any)
     );
-    toast.success(isEdit ? "Zmieniono pomyślnie." : "Dodano pomyślnie.");
     setLoading(false);
     onSchemaSaved();
     onCancel?.();

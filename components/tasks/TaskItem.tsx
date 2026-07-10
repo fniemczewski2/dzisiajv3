@@ -6,12 +6,11 @@ import { Check, Minus, Plus } from "lucide-react";
 import { Task } from "@/types";
 import { getAppDate } from "@/lib/dateUtils";
 import TimeContextBadge from "./TimeContextBadge";
-import UniversalTimer from "../Timer";
+import UniversalTimer from "../ui/Timer";
 import {
   EditButton, DeleteButton, RescheduleButton, TimerButton, FormButtons,
-} from "../CommonButtons";
+} from "../ui/CommonButtons";
 import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
 
 interface Props {
   task: Task;
@@ -311,7 +310,6 @@ function TaskView({
 function useTaskActions(props: Props) {
   const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId } = props;
   const { supabase } = useAuth();
-  const { toast } = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
@@ -320,14 +318,11 @@ function useTaskActions(props: Props) {
   const [isTimerActive, setIsTimerActive] = useState(false);
   
   const handleDelete = async () => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć to zadanie?");
-    if (!ok) return;
     try {
       await deleteTask(task.id);
-      toast.success("Usunięto pomyślnie.");
       onTasksChange();
     } catch {
-      toast.error("Wystąpił błąd podczas usuwania.");
+      return;
     }
   };
 
@@ -353,62 +348,50 @@ function useTaskActions(props: Props) {
   const handleSaveEdit = async () => {
     try {
       await editTask({ ...editedTask, shared_with_email: sharedEmail });
-      toast.success("Zmieniono pomyślnie.");
       onTasksChange();
       setIsEditing(false);
       setSharedEmail("");
     } catch {
-      toast.error("Wystąpił błąd podczas zapisywania.");
+      return;
     }
   };
 
   const handleComplete = async () => {
     try {
       await setDoneTask(task.id);
-      toast.success("Zadanie wykonane!");
       onTasksChange();
     } catch {
-      toast.error("Wystąpił błąd podczas kończenia zadania.");
+      return;
     }
   };
 
   const handleReschedule = async (days: number) => {
-    setIsRescheduling(true);
     try {
       const newDate = format(addDays(parseISO(task.due_date), days), "yyyy-MM-dd");
       await editTask({ ...task, due_date: newDate });
-      toast.success("Zadanie przełożone.");
       onTasksChange();
     } catch {
-      toast.error("Wystąpił błąd podczas przekładania zadania.");
-    } finally {
-      setIsRescheduling(false);
+      return;
     }
   };
 
   const handleAccept = async () => {
     try {
       await acceptTask(task.id);
-      toast.success("Zadanie zaakceptowane.");
       onTasksChange();
     } catch {
-      toast.error("Wystąpił błąd podczas akceptacji.");
+      return;
     }
   };
 
   const stopTimerAndSave = async (timerSeconds: number) => {
     setIsTimerActive(false);
     if (timerSeconds >= 60) {
-      try {
         const minutes = Math.floor(timerSeconds / 60);
         const newNote = `Czas: ${minutes} min`;
         const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
         await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
-        toast.success("Zapisano czas pracy.");
         onTasksChange();
-      } catch {
-        toast.error("Nie udało się zapisać czasu z timera.");
-      }
     }
   };
 

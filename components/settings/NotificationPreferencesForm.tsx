@@ -2,25 +2,18 @@
 
 import React, { useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
-import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon } from "lucide-react";
+import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon, Users, Gift } from "lucide-react";
 
 export default function NotificationPreferences() {
   const { settings, updateSettings } = useSettings();
-  const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
 
   if (!settings) return null;
 
   const handleToggle = async (key: string, currentValue: boolean) => {
     setIsUpdating(true);
-    try {
-      await updateSettings({ [key]: !currentValue });
-    } catch {
-      toast.error("Wystąpił błąd podczas aktualizacji powiadomień.");
-    } finally {
-      setIsUpdating(false);
-    }
+    await updateSettings({ [key]: !currentValue });
+    setIsUpdating(false);
   };
 
   const notifOptions = [
@@ -30,6 +23,8 @@ export default function NotificationPreferences() {
     { key: "notif_water",         label: "Nawodnienie",               description: "Powiadomienia o 10:00, 14:00 i 18:00",               icon: Droplet},
     { key: "notif_habits",        label: "Codzienne nawyki",          description: "Przypomnienie o nawykach",                           icon: CheckSquare},
     { key: "notif_evening",       label: "Wieczorny audyt",           description: "Podsumowanie dnia o 21:00",                          icon: Moon},
+    { key: "notif_birthdays",     label: "Urodziny i imieniny",       description: "W dniu oraz 1 i 7 dni wcześniej",                    icon: Gift},
+    { key: "notif_contact",       label: "Przypomnienia o kontakcie", description: "Zgodnie z ustawionym priorytetem",                   icon: Users},
   ];
 
   return (

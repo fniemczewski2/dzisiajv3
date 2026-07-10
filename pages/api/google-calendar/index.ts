@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { randomBytes } from "node:crypto";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
@@ -67,9 +68,7 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
     .eq("provider", "google")
     .eq("google_calendar_id", "@account_connection");
 
-  if (targetEmail) {
-    query = query.eq("account_email", targetEmail);
-  }
+  if (targetEmail) query = query.eq("account_email", targetEmail);
 
   const { data } = await query.limit(1).maybeSingle();
 
@@ -89,25 +88,18 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
 
 const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined, isEndTime = false): string => {
   if (!dt) return new Date().toISOString().slice(0, 19);
-  
-  if (dt.dateTime) {
-    return dt.dateTime.slice(0, 19) + "+00:00";
-  }
-  
+  if (dt.dateTime) return dt.dateTime.slice(0, 19) + "+00:00";
   if (dt.date) {
     if (isEndTime) {
       const d = new Date(dt.date);
       d.setDate(d.getDate() - 1);
-      
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}T23:59:59`;
     }
-    
     return `${dt.date}T00:00:00`;
   }
-  
   return new Date().toISOString().slice(0, 19);
 };
 
@@ -125,8 +117,11 @@ const toRFC3339 = (ts: string): string => {
   }
 };
 
+// --- FIX: Secure State Generation ---
 async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
-  const state = Buffer.from(JSON.stringify({ userId: auth.user.id, token: auth.token })).toString("base64url");
+  const nonce = randomBytes(24).toString("base64url");
+  res.setHeader("Set-Cookie", `gcal_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
+
   const scopes = [
     "https://www.googleapis.com/auth/calendar.readonly",
     "https://www.googleapis.com/auth/calendar.calendarlist",
@@ -145,7 +140,7 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: Au
   url.searchParams.set("scope", scopes);
   url.searchParams.set("access_type", "offline");
   url.searchParams.set("prompt", "consent select_account"); 
-  url.searchParams.set("state", state);
+  url.searchParams.set("state", nonce);
 
   return res.json({ url: url.toString() });
 }

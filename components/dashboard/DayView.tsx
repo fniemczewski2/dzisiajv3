@@ -13,18 +13,17 @@ import { useTasks } from "@/hooks/useTasks";
 import { useEvents } from "@/hooks/useEvents";
 import { useStreaks } from "@/hooks/useStreaks";
 import { useDaySchemas } from "@/hooks/useDaySchemas";
-import { useDashboardDnd } from "@/hooks/useDashboardDnd";
+import { useDashboardDnd } from "@/lib/useDashboardDnd";
 import { useDailyOverrides } from "@/hooks/useDailyOverrides";
-import { useToast } from "@/providers/ToastProvider";
+
 import { DayEvents } from "./DayEvents";
 import { DailyPlan } from "./DailyPlan";
 import { DayTasks } from "./DayTasks";
 import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
-import { AddButton } from "../CommonButtons";
+import { AddButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
 import { useWorkLogs } from "@/hooks/useWorkLogs";
-import LoadingState from "../LoadingState";
 
 const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
 const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });
@@ -61,7 +60,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { user } = useAuth();
   const userId = user!.id;
   const { settings, loading: loadingSettings } = useSettings();
-  const { toast } = useToast();
   
   const dateStr = useMemo(() => format(date, "yyyy-MM-dd"), [date]);
   const currentDayOfWeek = (date.getDay() + 6) % 7;
@@ -90,7 +88,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
 
-  const { tasks, fetchTasks, setDoneTask, addTask, deleteTask, editTask, fetching: fetchingTasks, loading: loadingTasks, acceptTask } = 
+  const { tasks, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, fetching: fetchingTasks, acceptTask } = 
     useTasks(
       dateStr, 
       dateStr,
@@ -98,7 +96,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { events, fetchEvents, addEvent, deleteEvent, editEvent, fetching: fetchingEvents, loading: loadingEvents } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
   const { schemas, fetching: fetchingSchemas } = useDaySchemas();
-  const { workLogs, fetching: fetchingWorkLogs } = useWorkLogs();
+  const { workLogs, fetching: fetchingWorkLogs } = useWorkLogs(dateStr);
   
   const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
 
@@ -155,8 +153,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       todaySchema.entries.forEach((entry, idx) => {
         const schemaId = `schema-${idx}`;
         const override = overrides.find(o => o.schema_id === schemaId);
-        
-        if (override?.new_time === null) return;
+        if (override?.is_hidden) return;
 
         const rawTime = override?.new_time || entry.time;
         const timeMatch = rawTime.match(/\d{2}:\d{2}/);
@@ -281,7 +278,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
        const newTime = timeMatch[0];
        
        await moveSchema(schemaId, newTime);
-       toast.success(`Rutyna przeniesiona na godzinę ${newTime}.`);
     } else {
        handleDragEnd(event);
     }
@@ -290,7 +286,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const handleRemoveFromSchedule = async (id: string, type?: string) => {
     if (type === "schema" || id.startsWith("schema-")) {
       await hideSchema(id);
-      toast.success("Rutyna ukryta z dzisiejszego planu.");
       return;
     }
 
@@ -323,12 +318,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     
     return null;
   })();
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (fetchingTasks || fetchingEvents || fetchingStreaks || fetchingWorkLogs  && toast.loading) toastId = toast.loading("ładowanie planu dnia...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-    }, [fetchingTasks, fetchingEvents, fetchingStreaks, fetchingWorkLogs, toast]);
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStartCustom} onDragEnd={handleDragEndCustom}>
@@ -411,14 +400,12 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
               handleMarkAsDone={async (id) => {
                 if (id.startsWith("schema-")) {
                   await hideSchema(id);
-                  toast.success("Rutyna zaliczona na dzisiaj!");
                 } else {
-                  setDoneTask(id);
+                  await setDoneTask(id);
+                  handleRemoveFromSchedule(id);
                 }
               }} 
-              handleDeleteTask={async (id) => deleteTask(id)}
               handleRemoveFromSchedule={handleRemoveFromSchedule} 
-              handleDeleteEvent={deleteEvent}
             />
           </div>
 
@@ -449,8 +436,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 setDoneTask={setDoneTask} 
                 editTask={editTask} 
                 deleteTask={deleteTask} 
-                loadingTasks={loadingTasks} 
                 fetchingTasks={fetchingTasks}
+                loadingTasks={loadingTasks} 
                 fetchTasks={fetchTasks}
                 userId={userId}
                 userOptions={userOptions} 

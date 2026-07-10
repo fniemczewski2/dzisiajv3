@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory } from "@/types";
 import { MAX_CATEGORIES } from "@/config/limits";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useBudgetCategories(year: number) {
   const { user, supabase } = useAuth();
@@ -12,6 +13,13 @@ export function useBudgetCategories(year: number) {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie kategorii...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchCategories = useCallback(async () => {
     if (!userId) { setFetching(false); return; }
@@ -39,7 +47,7 @@ export function useBudgetCategories(year: number) {
       monthly_amounts: number[];
       is_monthly: boolean;
     }): Promise<BudgetCategory> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       if (categories.length >= MAX_CATEGORIES) {
         throw new Error(`Maksymalnie ${MAX_CATEGORIES} kategorii budżetu`);
       }
@@ -138,7 +146,7 @@ export function useBudgetCategories(year: number) {
     async (
       defaults: Array<{ name: string; monthly_amounts: number[]; is_monthly: boolean }> 
     ): Promise<void> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
       try {
         const rows = defaults.map((d, i) => ({
@@ -167,7 +175,6 @@ export function useBudgetCategories(year: number) {
   return {
     categories,
     loading,
-    fetching,
     maxReached: categories.length >= MAX_CATEGORIES,
     fetchCategories,
     addCategory,

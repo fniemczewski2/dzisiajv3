@@ -2,20 +2,17 @@
 
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
-import { useToast } from '@/providers/ToastProvider';
-import { CancelButton, SaveButton } from '../CommonButtons';
+import { CancelButton, SaveButton } from '../ui/CommonButtons';
+import { useTicketUpload, TicketFormData } from '@/lib/trainTicketUtils'; 
 
 interface AddTrainWidgetProps {
-  onTrainAdded: (train: any) => void;
+  onTrainAdded: (train: TicketFormData) => void;
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
 }
 
 export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Readonly<AddTrainWidgetProps>) {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TicketFormData>({
     trainNumber: '',
     trainName: '',
     date: '',
@@ -26,70 +23,20 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
     seat: ''
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsLoading(true);
-    let toastId: string | undefined;
-
-    try {
-      toastId = toast.loading('Analizowanie biletu PDF...');
-      
-      const form = new FormData();
-      form.append('file', file);
-
-      const res = await fetch('/api/transport/parse-ticket', {
-        method: 'POST',
-        body: form,
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        if (toastId && toast.dismiss) toast.dismiss(toastId);
-        toast.success('Bilet odczytany! Sprawdź dane w formularzu.');
-
-        // Podział stacji (np. "Poznań Gł. Warszawa Centr.")
-        const stations = data.route?.split(/ (?=[A-Z])/) || [];
-
-        setFormData({
-          trainNumber: data.trainNumber || '',
-          trainName: data.trainName || '',
-          date: data.date ? data.date.split('.').reverse().join('-') : '', 
-          departureTime: data.departureTime || '',
-          from: stations[0] || '',
-          to: stations[1] || '',
-          wagon: data.wagon || '',
-          seat: data.seat || ''
-        });
-        
-        setExpanded(true); 
-      } else {
-        if (toastId && toast.dismiss) toast.dismiss(toastId);
-        toast.error(data.error || 'Nie udało się odczytać biletu');
-      }
-    } catch {
-      if (toastId && toast.dismiss) toast.dismiss(toastId);
-      toast.error('Błąd połączenia z serwerem');
-    } finally {
-      setIsLoading(false);
-      e.target.value = ''; 
-    }
-  };
+  // Wstrzyknięcie funkcji modyfikujących stan do naszego hooka
+  const { handleFileUpload, loading } = useTicketUpload({
+    setFormData,
+    setExpanded
+  }); 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
     onTrainAdded(formData);
-    toast.success('Pociąg dodany do śledzenia!');
-    
     setFormData({ trainNumber: '', trainName: '', date: '', departureTime: '', from: '', to: '', wagon: '', seat: ''});
     setExpanded(false);
-    } catch {
-      toast.error("Wystąpił błąd podczas dodawania pociągu");
-    }
   };
 
+  if (!expanded) return null;; 
   return (
     <>
       {expanded && (
@@ -194,7 +141,6 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
               </div>
             </div>
 
-            {/* Przyciski Akcji na dole - Wzorowane na GoogleCalendarSync.tsx */}
             <div className="flex flex-col md:flex-row items-center justify-end gap-3 mt-2 border-t border-gray-100 dark:border-gray-800">
               <CancelButton onClick={() => setExpanded(false)} />
               <label 
@@ -206,12 +152,12 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                   type="file" 
                   accept="application/pdf"
                   onChange={handleFileUpload} 
-                  disabled={isLoading}
+                  disabled={loading}
                   className="hidden" 
                 />
               </label>
             
-              <SaveButton disabled={isLoading} />
+              <SaveButton disabled={loading} />
             </div>
           </form>
       )}

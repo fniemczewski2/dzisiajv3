@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Note } from "@/types";
 import { getAppDateTime } from "@/lib/dateUtils";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useNotes() {
   const { user, supabase } = useAuth();
@@ -9,6 +10,13 @@ export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchNotes = useCallback(async () => {
     if (!userId) return;
@@ -24,15 +32,15 @@ export function useNotes() {
 
       const fetchedNotes = (data as Note[]) || [];
       setNotes(fetchedNotes);
-    } catch (error) {
-      console.error("[useNotes] fetchNotes error:", error);
+    } catch {
+      toast.error("Błąd pobierania notatek");
     } finally {
       setFetching(false);
     }
   }, [userId, supabase]);
 
   const addNote = async (note: Note) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { error } = await supabase
@@ -47,14 +55,17 @@ export function useNotes() {
         .select()
         .single();
       if (error) throw error;
+      toast.success("Dodano notatkę");
       await fetchNotes();
+    } catch {
+      toast.error("Błąd dodawania notatki");
     } finally {
       setLoading(false);
     }
   };
 
   const editNote = async (note: Note) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { id, ...clean } = note;
@@ -73,35 +84,37 @@ export function useNotes() {
         .select()
         .single();
       if (error) throw error;
+      toast.success("Zaktualizowano notatkę");
       await fetchNotes();
+    } catch {
+      toast.error("Błąd aktualizacji notatki");
     } finally {
       setLoading(false);
     }
   };
 
   const togglePin = async (id: string) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const note = notes.find(n => n.id === id);
       if (!note) return;
       const newPinned = !note.pinned;
       setNotes(prev => prev.map(n => n.id === id ? { ...n, pinned: newPinned, archived: false } : n));
-      const { error } = await supabase
+      await supabase
         .from("notes")
         .update({ archived: false, pinned: newPinned })
         .eq("id", id);
-    if (error) {
-       fetchNotes(); 
-       throw error;
-    }
+      toast.success(newPinned ? "Przypięto notatkę" : "Odepnieto notatkę");
+    } catch {
+      toast.error("Błąd przypięcia notatki");
     } finally {
       setLoading(false);
     }
   };
 
   const toggleArchive = async (id: string) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
 
     try {
@@ -109,30 +122,28 @@ export function useNotes() {
       if (!note) return;
       const newArchived = !note.archived;
       setNotes(prev => prev.map(n => n.id === id ? { ...n, archived: newArchived, pinned: false } : n));
-      const { error } = await supabase
+      await supabase
         .from("notes")
         .update({ archived: newArchived, pinned: false })
         .eq("id", id);
-      if (error) {
-       fetchNotes(); 
-       throw error;
-      }
-    } finally {
+      toast.success(newArchived ? "Zarchiwizowano notatkę" : "Przywrócono notatkę");
+        } catch {
+          toast.error("Błąd archiwizacji notatki");
+        } finally {
       setLoading(false);
     }
   };
 
   const deleteNote = async (id: string) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
 
     setNotes((prev) => prev.filter((n) => n.id !== id));
     setLoading(true);
     try {
-      const { error } = await supabase.from("notes").delete().eq("id", id);
-      if (error) {
-       fetchNotes(); 
-       throw error;
-      }
+      await supabase.from("notes").delete().eq("id", id);
+      toast.success("Usunięto notatkę");
+    } catch {
+      toast.error("Błąd usuwania notatki");
     } finally {
       setLoading(false);
     }

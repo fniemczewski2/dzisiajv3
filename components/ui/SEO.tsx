@@ -1,6 +1,6 @@
-// components/SEO.tsx
+// components/ui/SEO.tsx
 import Head from "next/head";
-import { sanitizeJsonLd } from "../lib/sanitize";
+import { sanitizeJsonLd } from "@/lib/sanitize";
 
 interface SeoProps {
   title?: string;

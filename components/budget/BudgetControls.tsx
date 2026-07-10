@@ -1,5 +1,5 @@
 import { Edit2, Save, X } from "lucide-react";
-import LoadingState from "../LoadingState";
+import LoadingState from "../ui/LoadingState";
 
 interface Props {
   isEditing: boolean;

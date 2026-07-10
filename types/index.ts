@@ -43,6 +43,13 @@ export interface Bill {
   category?: BudgetCategory | null;
 }
 
+export interface ParsedTransaction {
+  date: string; 
+  description: string;
+  amount: number;
+  mappedCategory: string;
+}
+
 export interface CategorySpending {
   category: BudgetCategory;
   spent: number;         
@@ -106,6 +113,8 @@ export interface Settings {
   notif_water: boolean;
   notif_habits: boolean;
   notif_evening: boolean;
+  notif_birthdays: boolean; // <-- DODANO
+  notif_contact: boolean;
 
   habit_pills: boolean;
   habit_bath: boolean;
@@ -382,6 +391,8 @@ export interface SettingsRow {
   notif_water: boolean | null;
   notif_habits: boolean | null;
   notif_evening: boolean | null;
+  notif_birthdays: boolean | null; 
+  notif_contact: boolean | null;
   sort_notes: string | null;
   sort_shopping: string | null;
   sort_movies: string | null;

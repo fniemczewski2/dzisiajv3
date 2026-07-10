@@ -1,15 +1,26 @@
 'use client';
 
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 import { FEATURE_GROUPS } from "@/config/features";
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider'; 
 import { useToast } from "@/providers/ToastProvider";
+import { useRouter } from 'next/router'; 
 
 export default function StartPage() {
-  const { supabase, loadingUser } = useAuth();
+  const { user, supabase, loadingUser } = useAuth(); 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { toast } = useToast();
+  const router = useRouter(); 
+
+  useEffect(() => {
+    if (!loadingUser && user) {
+      const searchParams = new URLSearchParams(window.location.search);
+      let nextUrl = searchParams.get('next') || '/';
+      if (!nextUrl.startsWith('/')) nextUrl = '/'; 
+      router.replace(nextUrl);
+    }
+  }, [user, loadingUser, router]);
 
   const handleGoogleLogin = async () => {
     try {

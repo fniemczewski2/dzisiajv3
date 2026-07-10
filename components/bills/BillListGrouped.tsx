@@ -6,11 +6,11 @@ import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "
 import { Bill, BudgetCategory } from "@/types";
 import { useBills } from "@/hooks/useBills";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories"; 
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { DeleteButton, EditButton, ShareButton, FormButtons } from "../CommonButtons";
-import NoResultsState from "../NoResultsState";
+import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
+import NoResultsState from "../ui/NoResultsState";
 
 interface BillListProps {
   year: number;
@@ -125,12 +125,10 @@ function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccord
 }
 
 function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContent>) {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const { incomeItems, expenseItems, fetching, hasMore, fetchBills, deleteBill, editBill, markAsDone } = useBills({
+  const { loading, fetching, incomeItems, expenseItems, hasMore, fetchBills, deleteBill, editBill, markAsDone } = useBills({
     dateFrom,
     dateTo,
     includeRecurringChildren: true,
@@ -152,18 +150,8 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
   }, [fetchBills, page, onBillsChange]);
 
   const handleDelete = async (bill: Bill) => {
-    let deleteFuture = false;
-    if (bill.is_recurring) {
-      const ok = await toast.confirm(`Usunąć tylko ten rachunek czy również przyszłe powtórzenia?\n\nKliknij "Usuń" aby usunąć tylko ten.`);
-      if (!ok) return;
-      deleteFuture = await toast.confirm("Usunąć również przyszłe kopie cykliczne?");
-    } else {
-      const ok = await toast.confirm("Czy na pewno chcesz usunąć ten wpis?");
-      if (!ok) return;
-    }
 
-    await withRetry(() => deleteBill(bill.id, deleteFuture), toast, { context: "MonthContent.deleteBill", userId: user?.id });
-    toast.success("Usunięto pomyślnie.");
+    await withRetry(() => deleteBill(bill.id));
     handleRefresh();
   };
 
@@ -171,16 +159,14 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
     if (!editedBill) return;
     const finalBill = { ...editedBill, category_id: editedBill.category_id || null };
     
-    await withRetry(() => editBill(finalBill), toast, { context: "MonthContent.editBill", userId: user?.id });
-    toast.success("Zmieniono pomyślnie.");
+    await withRetry(() => editBill(finalBill));
     setEditingId(null);
     setEditedBill(null);
     handleRefresh();
   };
 
   const handleMarkDone = async (bill: Bill) => {
-    await withRetry(() => markAsDone(bill.id), toast, { context: "MonthContent.markAsDone", userId: user?.id });
-    toast.success("Opłacono.");
+    await withRetry(() => markAsDone(bill.id));
     handleRefresh();
   };
   
@@ -193,9 +179,7 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
     const shareData = { title: "Rachunek", text };
     if (navigator.share) {
       navigator.share(shareData).catch(console.error);
-    } else {
-      toast.error("Udostępnianie nie jest wspierane w tej przeglądarce.");
-    }
+    } 
   };
 
   const handleLoadMore = () => {
@@ -281,7 +265,7 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
                 id="data"
               />
             </div>
-            <FormButtons onClickSave={handleSaveEdit} onClickClose={() => setEditingId(null)} loading={fetching}/>
+            <FormButtons onClickSave={handleSaveEdit} onClickClose={() => setEditingId(null)} loading={loading}/>
           </div>
         </li>
       );

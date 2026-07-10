@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import SearchBar from "@/components/SearchBar";
+import SearchBar from "@/components/ui/SearchBar";
 import { useTransport } from "@/hooks/useTransport";
-import NoResultsState from "@/components/NoResultsState";
+import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
-import { AddButton, DeleteButton, FavButton } from "@/components/CommonButtons";
-import Seo from "@/components/SEO";
+import { AddButton, DeleteButton, FavButton } from "@/components/ui/CommonButtons";
+import Seo from "@/components/ui/SEO";
 import { useTrains } from "@/hooks/useTrains";
 import AddTrainForm from "@/components/transport/AddTrainWidget"; 
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";

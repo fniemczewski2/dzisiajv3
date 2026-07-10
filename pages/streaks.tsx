@@ -5,10 +5,10 @@ import StreakCard from "@/components/streaks/StreakCard";
 import StreakForm from "@/components/streaks/StreakForm";
 import { useStreaks } from "@/hooks/useStreaks";
 import { Streak } from "@/types";
-import { AddButton } from "@/components/CommonButtons";
-import NoResultsState from "@/components/NoResultsState";
+import { AddButton } from "@/components/ui/CommonButtons";
+import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 export default function StreaksPage() {
   const { toast } = useToast();

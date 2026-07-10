@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
 import ThemeToggle from "./ThemeButton";
-import { DeleteButton, SaveButton } from "../CommonButtons"; 
+import { DeleteButton, SaveButton } from "../ui/CommonButtons"; 
 import { useRouter } from "next/router";
 
 interface MoodOption {
@@ -20,14 +20,14 @@ const DEFAULT_MOODS: MoodOption[] = [
 
 interface SettingsFormProps {
   settings: any;
-  saving: boolean;
+  loading: boolean;
   onSave: (updatedSettings: any) => void;
   onRestoreDefaults: () => void;
 }
 
 export default function SettingsForm({
   settings: initialSettings, 
-  saving, 
+  loading, 
   onSave,
   onRestoreDefaults
 }: Readonly<SettingsFormProps>) {
@@ -388,7 +388,7 @@ export default function SettingsForm({
         <button
           type="button"
           onClick={onRestoreDefaults}
-          disabled={saving}
+          disabled={loading}
           className="flex items-center text-sm font-medium text-textMuted hover:underline transition-colors px-2 py-1 disabled:opacity-50"
         >
           Przywróć domyślne
@@ -404,7 +404,7 @@ export default function SettingsForm({
               Instrukcja 
               <Info className="w-4 h-4"/>
             </button>
-            <SaveButton loading={saving} />
+            <SaveButton loading={loading} />
         </div>
       </div>
     </form>

@@ -1,12 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { WorkLog, WorkLogInsert } from '@/types';
+import { useToast } from '@/providers/ToastProvider';
 
 export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const { user, supabase } = useAuth();
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);  
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie logów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
+
 
   const fetchWorkLogs = useCallback(async () => {
     if (!user) return;
@@ -51,39 +59,40 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   }, [fetchWorkLogs]);
 
   const addWorkLog = async (log: Omit<WorkLogInsert, 'user_id'>) => {
-    if (!user) return { success: false, error: 'Brak użytkownika' };
+    if (!user) {
+      toast.error('Zaloguj się');
+      return;
+    }
 
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('work_logs')
         .insert([{ ...log, user_id: user.id }])
         .select()
         .single();
-
-      if (error) throw error;
       
       setWorkLogs((prev) => [...prev, data]);
-      return { success: true, data };
-    } catch (error: any) {
-      console.error('Błąd dodawania czasu pracy.');
-      return { success: false, error };
+      toast.success('Dodano czas pracy.');
+      return { data };
+    } catch {
+      toast.error('Błąd dodawania czasu pracy.');
+      return;
     }
   };
 
   const deleteWorkLog = async (id: string) => {
     try {
-      const { error } = await supabase
+      await supabase
         .from('work_logs')
         .delete()
         .eq('id', id);
-
-      if (error) throw error;
       
       setWorkLogs((prev) => prev.filter((log) => log.id !== id));
-      return { success: true };
-    } catch (error: any) {
-      console.error('Błąd usuwania czasu pracy.');
-      return { success: false, error };
+      toast.success('Usunięto czas pracy.');
+      return;
+    } catch {
+      toast.error('Błąd usuwania czasu pracy.');
+      return;
     }
   };
 

@@ -1,7 +1,7 @@
 import React from "react";
 import TaskItem from "./TaskItem";
 import { Task } from "@/types";
-import NoResultsState from "../NoResultsState";
+import NoResultsState from "../ui/NoResultsState";
 
 interface Props {
   tasks: Task[];

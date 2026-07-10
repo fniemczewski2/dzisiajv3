@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
-import Header from "./Header";
-import Navbar from "./Navbar";
+import Header from "../Header";
+import Navbar from "../Navbar";
 import Link from "next/link";
-import LoveCat from "./LoveCat";
+import LoveCat from "../settings/LoveCat";
 
 export default function Layout({ children }: { readonly children: ReactNode }) {
   return (

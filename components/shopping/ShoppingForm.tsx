@@ -2,10 +2,9 @@
 
 import { SyntheticEvent, useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 import { ShoppingList } from "@/types";
 
 interface ShoppingFormProps {
@@ -16,30 +15,15 @@ interface ShoppingFormProps {
   addShoppingList: (name: string, shared_with_email: string | null) => Promise<boolean>;
 }
 
-const MAX_LISTS = 5;
-
 export default function ShoppingForm({ onChange, onCancel, lists, loading, addShoppingList }: Readonly<ShoppingFormProps>) {
   const { settings } = useSettings();
-  const { toast } = useToast();
-  const { user } = useAuth();
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (lists.length >= MAX_LISTS) {
-      toast.error(`Możesz mieć maksymalnie ${MAX_LISTS} list zakupów.`);
-      return;
-    }
-
-    await withRetry(
-      () => addShoppingList(name.trim(), share.trim() || null),
-      toast,
-      { context: "ShoppingForm.addShoppingList", userId: user?.id }
-    );
-
-    toast.success("Dodano pomyślnie.");
+    await withRetry(() => addShoppingList(name.trim(), share.trim() || null));
     setName(""); setShare("");
     onChange();
     onCancel?.();

@@ -6,6 +6,7 @@ import { Settings } from "@/types";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
+import { useToast } from "@/providers/ToastProvider";
 
 type GeoCoords = { lat: number; lng: number };
 
@@ -48,6 +49,8 @@ const DEFAULT_SETTINGS: Settings = {
   notif_water: true,
   notif_habits: true,
   notif_evening: true,
+  notif_birthdays: true, 
+  notif_contact:  true,
   sort_notes: "updated_desc",
   sort_shopping: "updated_desc",
   sort_movies: "rating",
@@ -72,24 +75,32 @@ export function useSettings() {
   const userId = user?.id;
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   const settingsRef = useRef(settings);
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie ustawień...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
+
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
   useEffect(() => {
     if (loadingUser) return;
 
     if (!userId) {
-      setLoading(false);
+      setFetching(false);
       return;
     }
     let cancelled = false;
 
     const loadSettings = async () => {
-      setLoading(true);
+      setFetching(true);
       try {
         const { data, error } = await supabase
           .from("settings")
@@ -101,7 +112,7 @@ export function useSettings() {
 
         if (error) {
           console.error("[useSettings] Fetch error:", error.message);
-          setLoading(false);
+          setFetching(false);
           return;
         }
 
@@ -122,6 +133,8 @@ export function useSettings() {
             notif_water: data.notif_water ?? true,
             notif_habits: data.notif_habits ?? true,
             notif_evening: data.notif_evening ?? true,
+            notif_birthdays: data.notif_birthdays ?? true, 
+            notif_contact: data.notif_contact ?? true,
             sort_notes: data.sort_notes ?? "updated_desc",
             sort_shopping: data.sort_shopping ?? "updated_desc",
             sort_movies: data.sort_movies ?? "updated_desc",
@@ -144,7 +157,7 @@ export function useSettings() {
       } catch {
         console.error("Wystąpił błąd ustawień.")
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setFetching(false);
       }
     };
 
@@ -155,19 +168,19 @@ export function useSettings() {
 
   const saveSettings = useCallback(async () => {
     if (!userId) return { error: "No user" };
-    setSaving(true);
+    setLoading(true);
     
     const { error } = await supabase
       .from("settings")
       .upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" });
       
-    setSaving(false);
+    setLoading(false);
     return { error };
   }, [supabase, userId]);
 
   const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
     if (!userId) return { error: "No user" };
-    setSaving(true);
+    setLoading(true);
 
     const updated = { ...settingsRef.current, ...partialSettings };
     setSettings(updated);
@@ -177,7 +190,7 @@ export function useSettings() {
       .from("settings")
       .upsert({ user_id: userId, ...updated }, { onConflict: "user_id" });
 
-    setSaving(false);
+    setLoading(false);
     if (error) throw error;
     return { error };
   }, [supabase, userId]);
@@ -268,8 +281,8 @@ export function useSettings() {
     settings,
     setSettings,
     DEFAULT_SETTINGS,
+    fetching,
     loading,
-    saving,
     locationStatus,
     saveSettings,
     updateSettings,

@@ -5,10 +5,9 @@ import { Plus, User } from "lucide-react";
 import { ShoppingList } from "@/types";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
 import { withRetry } from "@/lib/withRetry";
-import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
-import NoResultsState from "../NoResultsState";
+import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
+import NoResultsState from "../ui/NoResultsState";
 
 interface ShoppingListViewProps {
   lists: ShoppingList[];
@@ -19,7 +18,6 @@ interface ShoppingListViewProps {
 export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList }: Readonly<ShoppingListViewProps>) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
-  const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editedList, setEditedList] = useState<ShoppingList | null>(null);
@@ -77,18 +75,8 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
 
     const listId = editedList.id;
 
-    if (!listId) {
-      toast.error("Błąd: Brak identyfikatora listy.");
-      return;
-    }
-
-    await withRetry(
-      () => editShoppingList(listId, updates), 
-      toast,
-      { context: "ShoppingListView.editShoppingList", ...retryOpts }
-    );
+    await withRetry(() => editShoppingList(listId, updates));
     
-    toast.success("Zmieniono pomyślnie.");
     setEditingId(undefined); 
     setEditedList(null); 
     setSharedEmail("");
@@ -98,23 +86,9 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     const isOwner = list.user_id === user?.id;
 
     if (isOwner) {
-      const ok = await toast.confirm("Czy na pewno chcesz trwale usunąć tę listę zakupów?");
-      if (!ok) return;
-      await withRetry(
-        () => deleteShoppingList(list.id!),
-        toast,
-        { context: "ShoppingListView.deleteShoppingList", ...retryOpts }
-      );
-      toast.success("Usunięto pomyślnie.");
+      await withRetry(() => deleteShoppingList(list.id!));
     } else {
-      const ok = await toast.confirm("Czy na pewno chcesz opuścić tę listę? Zniknie ona z Twojego widoku.");
-      if (!ok) return;
-      await withRetry(
-        () => editShoppingList(list.id!, { shared_with_id: list.user_id }),
-        toast,
-        { context: "ShoppingListView.leaveShoppingList", ...retryOpts }
-      );
-      toast.success("Opuszczono listę.");
+      await withRetry(() => editShoppingList(list.id!, { shared_with_id: list.user_id }));
     }
   };
 

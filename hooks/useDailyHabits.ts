@@ -30,7 +30,12 @@ export function useDailyHabits(date?: string) {
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 1. Owijamy fetchHabits w useCallback
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
+
   const fetchHabits = useCallback(async () => {
     if (!userId) return;
     setFetching(true);
@@ -138,5 +143,5 @@ export function useDailyHabits(date?: string) {
     fetchHabits();
   }, [fetchHabits]);
 
-  return { habits, loading, fetching, fetchHabits, toggleHabit, updateWater, updateSpending };
+  return { habits, loading, fetchHabits, toggleHabit, updateWater, updateSpending };
 }

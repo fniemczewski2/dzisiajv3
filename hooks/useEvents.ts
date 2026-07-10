@@ -4,6 +4,7 @@ import { Event } from "@/types";
 import { expandRepeatingEvents } from "@/lib/eventUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share"; 
+import { useToast } from "@/providers/ToastProvider";
 
 export function useEvents(rangeStart: string, rangeEnd: string) {
   const { user, supabase } = useAuth();
@@ -11,8 +12,14 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const [events, setEvents] = useState<Event[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const userEmailsRef = useRef<Record<string, string>>({});
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchEvents = useCallback(async () => {
     if (!userId || !rangeStart || !rangeEnd) return;
@@ -97,7 +104,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   }, [fetchEvents]);
 
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
@@ -129,7 +136,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       return;
     }
 
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, ...event } : e));
     try {
@@ -165,7 +172,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       return;
     }
 
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
 
     setEvents((prev) => prev.filter((e) => e.id !== id));

@@ -19,10 +19,10 @@ import {
   Sunset,
 } from "lucide-react";
 import { getAppDateTime } from "@/lib/dateUtils";
-import NoResultsState from "@/components/NoResultsState";
+import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
-import { useWeather } from "@/hooks/useWeather";
+import Seo from "@/components/ui/SEO";
+import { useWeather } from "@/lib/useWeather";
 
 interface HourlyRow {
   time: string;

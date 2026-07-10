@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Report } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useReports() {
   const { user, supabase } = useAuth();
@@ -11,6 +12,13 @@ export function useReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchReports = useCallback(async () => {
     if (!userId) return;

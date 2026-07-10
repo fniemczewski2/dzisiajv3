@@ -4,10 +4,10 @@ import React, { useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types";
 import { useRecipes } from "@/hooks/useRecipes";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 
 interface RecipeFormProps {
   onChange: () => void;
@@ -20,7 +20,6 @@ const CATEGORIES: RecipeCategory[] = [
 
 export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormProps>) {
   const { addRecipe, loading, products: allProducts } = useRecipes();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const [name, setName] = useState("");
@@ -63,11 +62,8 @@ export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormPr
         category,
         products: picked.map((p) => p.trim()),
         description: description.trim(),
-      } as Recipe),
-      toast,
-      { context: "RecipeForm.addRecipe", userId: user?.id }
+      } as Recipe)
     );
-    toast.success("Dodano pomyślnie.");
     setName(""); setCategory("śniadanie"); setDescription(""); setPicked([]); setProdInput("");
     onChange();
     onCancel?.();

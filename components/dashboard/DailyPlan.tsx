@@ -7,9 +7,7 @@ import { PlanItem } from "./PlanItem";
 interface DailyPlanProps {
   planByHour: Record<string, any[]>;
   handleMarkAsDone: (id: string) => void;
-  handleDeleteTask: (id: string) => void;
   handleRemoveFromSchedule: (id: string) => void;
-  handleDeleteEvent: (id: string) => void;
 }
 
 export const DailyPlan = React.memo(({
@@ -44,7 +42,7 @@ export const DailyPlan = React.memo(({
                   >
                     <PlanItem
                       item={item}
-                      onMarkAsDoneTask={handleMarkAsDone}
+                      onMarkAsDone={handleMarkAsDone}
                       onRemoveFromSchedule={handleRemoveFromSchedule}
                     />
                   </DraggablePlanItem>

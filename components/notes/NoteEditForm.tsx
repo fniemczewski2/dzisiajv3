@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import clsx from "clsx";
 import { Note } from "@/types";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 
 interface NoteEditFormProps {
   note: Note;

@@ -3,14 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown, PlusCircle } from "lucide-react";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
-import { useToast } from "@/providers/ToastProvider";
+
 import { propagateMonthlyLimits } from "@/lib/budgetUtils";
 import {
   EditButton,
   DeleteButton,
   FormButtons,
   AddButton,
-} from "../CommonButtons";
+} from "../ui/CommonButtons";
 import type { BudgetCategory } from "@/types";
 import { MAX_CATEGORIES } from "@/config/limits";
 
@@ -162,7 +162,6 @@ export default function BudgetCategoriesEditor({
   readonly selectedMonth: number;
   readonly onCategoriesChange?: () => void;
 }) {
-  const { toast } = useToast();
   const {
     categories, loading, maxReached,
     addCategory, updateCategory, deleteCategory,
@@ -173,46 +172,27 @@ export default function BudgetCategoriesEditor({
   const [editingId,   setEditingId]   = useState<string | null>(null);
 
   const handleAdd = async (name: string) => {
-    try {
       await addCategory({ 
         name, 
         monthly_amounts: new Array(12).fill(0), 
         is_monthly: false 
       });
-      toast.success(`Dodano "${name}". Kliknij Edytuj, by ustawić limit.`);
       setShowAddForm(false);
       onCategoriesChange?.();
-    } catch {
-      toast.error("Wystąpił błąd dodawania.");
-    }
   };
 
   const handleSaveEdit = async (
     id: string,
     updates: Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly">
   ) => {
-    try {
       await updateCategory(id, updates);
-      toast.success("Zmieniono pomyślnie.");
       setEditingId(null);
       onCategoriesChange?.();
-    } catch {
-      toast.error("Błąd zapisu.");
-    }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    const ok = await toast.confirm(
-      `Usunąć kategorię "${name}"? Rachunki z tą kategorią staną się nieprzypisane.`
-    );
-    if (!ok) return;
-    try {
       await deleteCategory(id);
-      toast.success("Usunięto.");
       onCategoriesChange?.();
-    } catch {
-      toast.error("Błąd usuwania.");
-    }
   };
 
   const move = async (index: number, direction: -1 | 1) => {

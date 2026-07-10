@@ -1,7 +1,7 @@
 // pages/settings.tsx
 import React from "react";
 import InstallButton from "@/components/settings/InstallButton";
-import LoadingState from "@/components/LoadingState";
+import LoadingState from "@/components/ui/LoadingState";
 import VersionInfo from "@/components/settings/Versioninfo";
 import MenuGrid from "@/components/settings/MenuGrid";
 import SettingsForm from "@/components/settings/SettingsForm";
@@ -13,7 +13,7 @@ import LoveButton from "@/components/settings/LoveButton";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { Settings } from "@/types"; 
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -22,7 +22,6 @@ export default function SettingsPage() {
   const {
     settings,
     loading,
-    saving,
     locationStatus,
     updateSettings,
     requestGeolocation,
@@ -75,7 +74,7 @@ export default function SettingsPage() {
           
           <SettingsForm
             settings={settings}
-            saving={saving}
+            loading={loading}
             onSave={handleSave} 
             onRestoreDefaults={handleRestoreDefaults}
           />

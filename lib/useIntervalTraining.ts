@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useTimerEngine } from "./useTimer";
-import type { TimerPhase } from "@/components/Timer";
+import type { TimerPhase } from "@/components/ui/Timer";
 
 export type IntervalConfig = {
   workSeconds: number;

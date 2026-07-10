@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabase } from '@/lib/supabase/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;
@@ -10,10 +10,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   if (!code || !state) return res.status(400).redirect('/calendar?error=missing_params');
 
-  try {
-    const decodedState = JSON.parse(Buffer.from(state as string, 'base64url').toString());
-    const { userId, token } = decodedState;
+  const cookieNonce = req.cookies["gcal_oauth_state"];
+  if (!cookieNonce || cookieNonce !== state) {
+    return res.redirect('/calendar?error=invalid_state');
+  }
 
+  const supabase = createServerSupabase(req, res);
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return res.redirect('/calendar?error=auth_failed');
+  }
+
+  try {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, "");
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -35,17 +44,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const profile = await profileResponse.json();
     const email = profile.email;
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      { global: { headers: { Authorization: `Bearer ${token}` } } }
-    );
     
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
     const { error } = await supabase.from('connected_calendars').upsert({
-      user_id: userId,
+      user_id: user.id, // Używamy ID ze zweryfikowanej sesji
       provider: 'google',
       account_email: email,
       access_token: tokens.access_token,
@@ -55,9 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       calendar_name: 'Połączenie Google'         
     }, { onConflict: 'user_id, account_email, google_calendar_id' });
 
-    if (error) {
-      console.error("[gcal] DB upsert error:", error);
-    }
+    if (error) console.error("[gcal] DB upsert error:", error);
 
     res.redirect('/calendar?sync=success');
   } catch {

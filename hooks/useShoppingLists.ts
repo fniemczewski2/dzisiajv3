@@ -3,6 +3,7 @@ import { ShoppingList } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useShoppingLists() {
   const { user, supabase } = useAuth();
@@ -12,6 +13,12 @@ export function useShoppingLists() {
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie zakupów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchShoppingLists = useCallback(async () => {
     if (!userId) return;

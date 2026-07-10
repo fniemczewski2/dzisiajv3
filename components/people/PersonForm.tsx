@@ -1,7 +1,7 @@
 // components/people/PersonForm.tsx
 import React, { useState } from 'react';
 import { Person, PersonInsert } from '@/types';
-import { AddButton, FormButtons } from '../CommonButtons';
+import { AddButton, FormButtons } from '../ui/CommonButtons';
 import { Plus, X } from 'lucide-react';
 
 interface PersonFormProps {

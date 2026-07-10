@@ -1,7 +1,7 @@
 import { List, MapPin } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { usePlaces } from "@/hooks/usePlaces";
-import SearchBar from "../SearchBar";
+import SearchBar from "../ui/SearchBar";
 
 interface TimeFilter {
   day: number; 

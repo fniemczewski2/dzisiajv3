@@ -3,11 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, RefreshCw, Plus, AlertCircle } from 'lucide-react';
 import { useTrains } from '@/hooks/useTrains';
-import { useToast } from '@/providers/ToastProvider';
-import { AddButton } from '../CommonButtons';
-import NoResultsState from '../NoResultsState';
-import LoadingState from '../LoadingState';
-import { useResponsive } from '@/hooks/useResponsive';
+import { AddButton } from '../ui/CommonButtons';
+import NoResultsState from '../ui/NoResultsState';
+import LoadingState from '../ui/LoadingState';
+import { useResponsive } from '@/lib/useResponsive';
 
 interface StationBoardProps {
   readonly onTrainAdded?: () => void;
@@ -54,7 +53,6 @@ const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: 
 
 export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) {
   const { addTrain } = useTrains();
-  const { toast } = useToast();
   const isSmallScreen = useResponsive(721);
   
   const [selectedStations, setSelectedStations] = useState<string[]>([]);
@@ -117,16 +115,6 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
     const trimmed = searchInput.trim();
     if (!trimmed) return;
 
-    if (selectedStations.length >= 3) {
-      toast.error('Możesz przypiąć maksymalnie 3 tablice stacji jednocześnie.');
-      return;
-    }
-
-    if (selectedStations.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
-      toast.error('Ta stacja jest już dodana.');
-      return;
-    }
-
     setSelectedStations(prev => [...prev, trimmed]);
     setSearchInput('');
   };
@@ -152,11 +140,7 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
       seat: ''
     };
 
-    const success = await addTrain(trainData); 
-    if (success) {
-      toast.success(`Dodano pociąg ${item.trainNumber}!`);
-      if (onTrainAdded) onTrainAdded(); 
-    }
+    await addTrain(trainData); 
   };
 
   const renderBoardState = (board: { items: any[]; loading: boolean; error: string }) => {

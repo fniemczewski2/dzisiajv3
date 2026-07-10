@@ -3,12 +3,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Place } from "@/types";
 import { ChevronDown, Globe, MapPin, Phone, Star, Navigation } from "lucide-react";
-import { EditButton, DeleteButton } from "../CommonButtons";
+import { EditButton, DeleteButton } from "../ui/CommonButtons";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import NoResultsState from "../NoResultsState";
+import NoResultsState from "../ui/NoResultsState";
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371;
@@ -36,7 +36,6 @@ const DAY_ORDER = ["monday","tuesday","wednesday","thursday","friday","saturday"
 export default function PlacesList({ places, onEdit, onDelete }: Readonly<PlacesListProps>) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { settings, requestGeolocation } = useSettings();
-  const { toast } = useToast();
   const { user } = useAuth();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -73,14 +72,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
   };
 
   const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć to miejsce?");
-    if (!ok) return;
-    await withRetry(
-      async () => { await onDelete(id); },
-      toast,
-      { context: "PlacesList.onDelete", userId: user?.id }
-    );
-    toast.success("Usunięto pomyślnie.");
+    await withRetry(async () => { await onDelete(id); });
   };
 
   if (places.length === 0) return <NoResultsState text="miejsc" isSearch />;

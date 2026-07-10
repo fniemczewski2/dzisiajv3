@@ -6,11 +6,10 @@ import {
   UtensilsCrossed, Dumbbell, PiggyBank, BriefcaseMedical,
 } from "lucide-react";
 import { useStreaks } from "@/hooks/useStreaks";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 
 interface StreakFormProps {
   onChange: () => void;
@@ -32,7 +31,6 @@ const ICONS = [
 
 export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormProps>) {
   const { addStreak } = useStreaks();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const [name, setName] = useState("");
@@ -42,18 +40,8 @@ export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormPr
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error("Podaj nazwę nawyku!");
-      return;
-    }
     setLoading(true);
-    await withRetry(
-      () => addStreak({ name: name.trim(), start_date: startDate, icon }),
-      toast,
-      { context: "StreakForm.addStreak", userId: user?.id }
-    );
-
-    toast.success("Dodano pomyślnie.");
+    await withRetry(() => addStreak({ name: name.trim(), start_date: startDate, icon }));
     setName("");
     setStartDate(getAppDate());
     setIcon("flame");

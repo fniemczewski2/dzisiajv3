@@ -12,10 +12,9 @@ import {
   CloudSun,
 } from "lucide-react";
 import { useRouter } from "next/router";
-import LoadingState from "./LoadingState";
+import LoadingState from "./ui/LoadingState";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
-import { useWeather } from "../hooks/useWeather";
-import { useToast } from "../providers/ToastProvider";
+import { useWeather } from "../lib/useWeather";
 
 interface WeatherdetailsProps {
   currentTemp: number | null;
@@ -89,7 +88,6 @@ function WeatherDetails({
 }
 
 export default function Header() {
-  const { toast } = useToast();
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
   const [currentTime, setCurrentTime] = useState("");
@@ -99,12 +97,6 @@ export default function Header() {
   });
   
   const { forecast, air, loading: weatherLoading, error: weatherError } = useWeather();
-
-  useEffect(() => {
-    if (weatherError) {
-      toast.error(weatherError);
-    }
-  }, [weatherError, toast]);
 
   const currentTemp = forecast?.current_weather?.temperature ?? null;
   const weatherCode = forecast?.current_weather?.weathercode ?? null;

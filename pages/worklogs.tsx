@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Clock, Trash2, Plus, Calendar, Save, X } from 'lucide-react';
-import Layout from "@/components/Layout";
+import { ChevronLeft, ChevronRight, Clock, Calendar, Save, X } from 'lucide-react';
 import { useWorkLogs } from '@/hooks/useWorkLogs';
 import { useToast } from '@/providers/ToastProvider';
-import { AddButton, DeleteButton } from '@/components/CommonButtons';
-import NoResultsState from '@/components/NoResultsState';
+import { AddButton, DeleteButton } from '@/components/ui/CommonButtons';
+import NoResultsState from '@/components/ui/NoResultsState';
 import { WorkLog } from '@/types';
-import { withRetry } from '@/lib/withRetry';
 
-// --- KOMPONENT FORMULARZA ---
-const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<boolean>, onCancel: () => void }) => {
+const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => void, onCancel: () => void }) => {
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [endTime, setEndTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
@@ -21,18 +18,16 @@ const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<boolean
     e.preventDefault();
     setIsSubmitting(true);
     
-    const success = await onAdd({
+    await onAdd({
       description,
       start_time: startTime,
       end_time: endTime,
     });
 
-    if (success) {
-      setDescription("");
-      setStartTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-      setEndTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-      onCancel(); // Zamknij formularz po sukcesie
-    }
+    setDescription("");
+    setStartTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+    setEndTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+    onCancel();
     
     setIsSubmitting(false);
   };
@@ -98,7 +93,6 @@ const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<boolean
   );
 };
 
-// --- GŁÓWNY KOMPONENT STRONY ---
 export default function WorkLogsPage() {
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -134,8 +128,7 @@ export default function WorkLogsPage() {
   }, 0);
 
   const handleAddLog = async (log: any) => {
-    const result = await addWorkLog(log);
-    return result.success;
+    await addWorkLog(log);
   };
 
     useEffect(() => {

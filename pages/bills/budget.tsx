@@ -13,7 +13,7 @@ import SummaryTable from "@/components/budget/SummaryTable";
 import { useBudgetData } from "@/hooks/useBudget";
 import BudgetControls from "@/components/budget/BudgetControls";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 const MONTH_NAMES = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import Seo from '@/components/SEO';
+import Seo from '@/components/ui/SEO';
 import { BookOpen } from 'lucide-react';
 import { guideSections } from '@/config/guideData';
 

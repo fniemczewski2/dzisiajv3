@@ -3,6 +3,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
+import { useToast } from "@/providers/ToastProvider";
 
 export interface Departure {
   line: string;
@@ -52,6 +53,20 @@ export function useTransport(autoRefresh = false) {
 
   const nearbyAbortRef    = useRef<AbortController | null>(null);
   const favoritesAbortRef = useRef<AbortController | null>(null);
+
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (loadingFavorites  && toast.loading) toastId = toast.loading("Ładowanie ulubionych przystanków...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loadingFavorites, toast]);
+
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (loadingNearby  && toast.loading) toastId = toast.loading("Ładowanie przystanków w pobliżu...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loadingNearby, toast]);
 
   const fetchNearbyData = useCallback(async () => {
     if (!lastCoords.current) {

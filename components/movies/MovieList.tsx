@@ -3,14 +3,13 @@
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { AddButton } from "../CommonButtons";
-import SearchBar from "../SearchBar";
+import { AddButton } from "../ui/CommonButtons";
+import SearchBar from "../ui/SearchBar";
 import MovieAddForm, { type NewMovieData } from "./MovieForm";
 import MovieCard from "./MovieCard";
-import NoResultsState from "../NoResultsState";
+import NoResultsState from "../ui/NoResultsState";
 import type { Movie, MovieInsert } from "@/types";
 
 interface MoviesProps {
@@ -28,7 +27,6 @@ export default function MovieWatchlist({
 }: Readonly<MoviesProps>) {
   
   const { settings } = useSettings();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,46 +77,24 @@ export default function MovieWatchlist({
   }, [filteredMovies.length]);
 
   const handleAddMovie = async (movieData: NewMovieData) => {
-    await withRetry(
-      () => addMovie({ ...movieData, watched: false, notes: "" }),
-      toast,
-      { context: "MovieList.addMovie", ...retryOpts }
-    );
-    toast.success("Dodano pomyślnie.");
+    await withRetry(() => addMovie({ ...movieData, watched: false, notes: "" }));
     setShowAddForm(false);
   };
 
   const handleToggleWatched = async (id: string) => {
-    await withRetry(
-      () => toggleWatched(id),
-      toast,
-      { context: "MovieList.toggleWatched", ...retryOpts }
-    );
-    toast.success("Zmieniono pomyślnie.");
+    await withRetry(() => toggleWatched(id));
   };
 
   const handleDelete = async (id: string) => {
-    await withRetry(
-      () => deleteMovie(id),
-      toast,
-      { context: "MovieList.deleteMovie", ...retryOpts }
-    );
+    await withRetry(() => deleteMovie(id));
   };
 
   const handleUpdate = async (movie: Movie) => {
-    await withRetry(
-      () => updateMovie(movie),
-      toast,
-      { context: "MovieList.updateMovie", ...retryOpts }
-    );
+    await withRetry(() => updateMovie(movie));
   };
 
   const handleSaveNotes = async (movieId: string, notes: string) => {
-    await withRetry(
-      () => updateNotes(movieId, notes),
-      toast,
-      { context: "MovieList.updateNotes", ...retryOpts }
-    );
+    await withRetry(() => updateNotes(movieId, notes));
   };
 
   const toggleNotes = (movieId: string) => {

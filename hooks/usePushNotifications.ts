@@ -4,11 +4,19 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'
+import { useToast } from '@/providers/ToastProvider'
 
 export function usePushNotifications(userId: string | undefined) {
   const { supabase } = useAuth()
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (loading  && toast.loading) toastId = toast.loading("Ładowanie powiadomień...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [loading, toast]);
 
   useEffect(() => {
     async function initSW() {

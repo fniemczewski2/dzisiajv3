@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Schema } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 export function useDaySchemas() {
   const { user, supabase } = useAuth();
@@ -10,6 +11,12 @@ export function useDaySchemas() {
   const [schemas, setSchemas] = useState<Schema[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie schematów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchSchemas = useCallback(async () => {
     if (!userId) return;
@@ -35,7 +42,7 @@ export function useDaySchemas() {
   }, [userId, supabase]);
 
   const addSchema = async (schema: Schema) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const { data, error } = await supabase.from("day_schemas").insert({
@@ -75,7 +82,7 @@ export function useDaySchemas() {
   };
 
   const deleteSchema = async (id: string) => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
 
     setSchemas((prev) => prev.filter(s => s.id !== id));

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   PlusCircleIcon, 
   Trash2, 
@@ -22,6 +22,7 @@ import {
   Copy
 } from "lucide-react";
 import { NextRouter } from "next/router";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ButtonProps {
   onClick?: () => void;
@@ -114,6 +115,34 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Read
     <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
   </button>
 );
+
+export const CopyButtonSmall = ({ text, label }: { text: string; label?: string }) => {
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+  
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Skopiowano!')
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="p-1.5 text-neutral-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition flex items-center gap-1"
+      title={`Skopiuj ${label || 'wartość'}`}
+    >
+      {copied ? (
+        <Check className="text-green-600 w-4 h-4 sm:h-5 sm:w-5"/>
+      ) : (
+        <Copy className="text-blue-600 w-4 h-4 sm:h-5 sm:w-5" />
+      )}
+    </button>
+  );
+}
 
 export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, small = false, addMany = false, onAddAnother }: Readonly<FormButtonsProps>) => (
   <div className={`${small ? "" : "pt-4 border-t border-gray-100 dark:border-gray-800 flex-col md:flex-row"} flex items-center md:justify-end gap-2 `}>

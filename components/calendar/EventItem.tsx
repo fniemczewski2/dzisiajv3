@@ -2,11 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { Clock, MapPin, User, Download, Globe } from "lucide-react";
 import { Event } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
 import { withRetry } from "@/lib/withRetry";
 import { formatTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
-import { EditButton, DeleteButton, FormButtons } from "../CommonButtons";
+import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 
 interface EventItemProps {
   event: Event;
@@ -28,7 +27,6 @@ export default function EventItem({
   userOptions
 }: Readonly<EventItemProps>) {
   const { supabase } = useAuth();
-  const { toast } = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
@@ -54,49 +52,20 @@ export default function EventItem({
 
   const handleSaveEdit = async () => {
     if (!editedEvent) return;
-    let targetUserId: string | null = null;
-
-    if (sharedEmail) {
-      const { data, error } = await supabase.rpc("get_user_id_by_email", {
-        email_address: sharedEmail,
-      });
-      if (error || !data) {
-        toast.error("Nie znaleziono użytkownika o takim adresie e-mail.");
-        return;
-      }
-      targetUserId = data;
-    }
-
-    try {
       await withRetry(
-        () => onEditEvent({ ...editedEvent, shared_with_id: targetUserId }),
-        toast,
-        { context: "EventItem.editEvent", userId }
+        () => onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
       );
-      toast.success("Wydarzenie zapisane pomyślnie.");
       setIsEditing(false);
       setEditedEvent(null);
       setSharedEmail("");
       onEventsChange();
-    } catch {
-      toast.error("Wystąpił błąd podczas zapisywania wydarzenia.");
-    }
   };
 
   const handleDelete = async () => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć to wydarzenie?");
-    if (!ok) return;
-    try {
       await withRetry(
-        () => onDeleteEvent(event.id),
-        toast,
-        { context: "EventItem.deleteEvent", userId }
+        () => onDeleteEvent(event.id)
       );
-      toast.success("Wydarzenie usunięte pomyślnie.");
       onEventsChange();
-    } catch {
-      toast.error("Wystąpił błąd podczas usuwania wydarzenia.");
-    }
   };
 
   const handleCancelEdit = () => {
@@ -246,7 +215,7 @@ export default function EventItem({
         </p>
       )}
       <div className="flex justify-between w-full gap-1 sm:gap-1.5 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-        <button onClick={() => { generateSingleEventICS(event); toast.success("Plik ICS został pobrany."); }} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors" title="Pobierz zdarzenie do kalendarza Google/Apple">
+        <button onClick={() => { generateSingleEventICS(event); }} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors" title="Pobierz zdarzenie do kalendarza Google/Apple">
           <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
           <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Pobierz .ICS</span>
         </button>

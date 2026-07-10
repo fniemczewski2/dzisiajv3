@@ -5,6 +5,7 @@ import { useSettings } from "./useSettings";
 import type { Bill } from "@/types";
 import { addMonths, format, parseISO, isAfter } from "date-fns";
 import { BILLS_PAGE_LIMIT } from "@/config/limits";
+import { useToast } from "@/providers/ToastProvider";
 
 function getRecurringDates(startDate: string, recurringUntil: string): string[] {
   const dates: string[] = [];
@@ -85,6 +86,12 @@ export function useBills(options: FetchOptions = {}) {
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie rachunków...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchBills = useCallback(
     async (append = false, page = 1, limit = BILLS_PAGE_LIMIT) => {
@@ -127,7 +134,7 @@ export function useBills(options: FetchOptions = {}) {
 
   const addBill = useCallback(
     async (bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">): Promise<Bill> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
       
       try {
@@ -166,8 +173,12 @@ export function useBills(options: FetchOptions = {}) {
           }
         }
         return parent;
+      } catch {
+        toast.error("Błąd dodawania rachunku");
       } finally {
         setLoading(false);
+        toast.success("Dodano rachunek");
+        return {} as Bill; 
       }
     },
     [supabase, userId]
@@ -175,7 +186,7 @@ export function useBills(options: FetchOptions = {}) {
 
   const editBill = useCallback(
     async (bill: Bill, editOptions: { updateFutureRecurring?: boolean } = {}): Promise<Bill> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
 
       setIncomeItems((prev) => prev.map((b) => b.id === bill.id ? { ...b, ...bill } : b));
@@ -209,9 +220,13 @@ export function useBills(options: FetchOptions = {}) {
             .eq("parent_bill_id", bill.id)
             .gte("date", today);
         }
+        toast.success("Zaktualizowano rachunek");
         return data as Bill;
+      } catch {
+        toast.error("Błąd aktualizacji rachunku");
       } finally {
         setLoading(false);
+        return bill;
       }
     },
     [supabase, userId]
@@ -219,7 +234,7 @@ export function useBills(options: FetchOptions = {}) {
 
   const deleteBill = useCallback(
     async (id: string, deleteFutureRecurring = false): Promise<void> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
 
       setIncomeItems((prev) => prev.filter((b) => b.id !== id));
@@ -230,10 +245,12 @@ export function useBills(options: FetchOptions = {}) {
           const today = format(new Date(), "yyyy-MM-dd");
           await supabase.from("bills").delete().eq("parent_bill_id", id).gte("date", today);
         }
-        const { error } = await supabase.from("bills").delete().eq("id", id).eq("user_id", userId);
-        if (error) throw error;
+
+      } catch {
+        toast.error("Błąd usuwania rachunku");
       } finally {
         setLoading(false);
+        toast.success("Usunięto rachunek");
       }
     },
     [supabase, userId]
@@ -241,7 +258,7 @@ export function useBills(options: FetchOptions = {}) {
 
   const markAsDone = useCallback(
     async (id: string): Promise<void> => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
       
       try {
@@ -278,7 +295,7 @@ export function useBills(options: FetchOptions = {}) {
   );
 
   return {
-    incomeItems, expenseItems, fetching, loading, hasMore,
+    incomeItems, expenseItems, loading, fetching, hasMore,
     fetchBills, addBill, editBill, deleteBill, markAsDone,
     fetchActiveMonths,
   };

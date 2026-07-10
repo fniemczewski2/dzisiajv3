@@ -4,10 +4,10 @@ import { useReports } from "@/hooks/useReports";
 import ReportForm from "@/components/reports/ReportForm";
 import { generateReportPDF } from "@/lib/pdfGenerator";
 import { Report, ReportTask } from "@/types";
-import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "@/components/CommonButtons";
+import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "@/components/ui/CommonButtons";
 import { format } from "date-fns";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 interface ReportViewRowProps {
   report: Report;

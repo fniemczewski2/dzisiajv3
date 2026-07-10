@@ -25,11 +25,18 @@ export function useConnectedCalendars(expanded: boolean) {
   const [calendars, setCalendars] = useState<ExternalCalendar[]>([]);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchAccountsAndCalendars = useCallback(async (onlyAccounts = false) => {
     if (!user) return;
-    setLoading(true);
+    setFetching(true);
     
     const { data: accountsData, error } = await supabase
       .from('connected_calendars')
@@ -38,7 +45,7 @@ export function useConnectedCalendars(expanded: boolean) {
       
     if (error) {
       toast.error('Nie udało się pobrać połączonych kont');
-      setLoading(false);
+      setFetching(false);
       return;
     }
 
@@ -46,7 +53,7 @@ export function useConnectedCalendars(expanded: boolean) {
     setAccounts(fetchedAccounts);
 
     if (onlyAccounts || fetchedAccounts.length === 0) {
-      setLoading(false);
+      setFetching(false);
       return;
     }
 
@@ -56,7 +63,6 @@ export function useConnectedCalendars(expanded: boolean) {
 
       let combinedCalendars: ExternalCalendar[] = [];
 
-      // 1. Google
       const primaryGoogleAccount = fetchedAccounts.find(acc => acc.provider === 'google' && acc.google_calendar_id === '@account_connection') || fetchedAccounts.find(acc => acc.provider === 'google');
       if (primaryGoogleAccount) {
         try {
@@ -80,11 +86,10 @@ export function useConnectedCalendars(expanded: boolean) {
             }
           }
         } catch (err) {
-          console.error("Błąd listowania Google:", err);
+          toast.error("Błąd kalendarzy Google");
         }
       }
 
-      // 2. Outlook
       const primaryOutlookAccount = fetchedAccounts.find(acc => acc.provider === 'outlook' && acc.google_calendar_id === '@account_connection') || fetchedAccounts.find(acc => acc.provider === 'outlook');
       if (primaryOutlookAccount) {
         try {
@@ -108,7 +113,7 @@ export function useConnectedCalendars(expanded: boolean) {
             }
           }
         } catch (err) {
-          console.error("Błąd listowania Outlook:", err);
+          toast.error("Błąd kalendarzy Outlook");
         }
       }
 
@@ -119,10 +124,10 @@ export function useConnectedCalendars(expanded: boolean) {
         .map((c: any) => `${c.primaryAccountId}:::${c.id}`);
       setSelectedCalendars(alreadySavedKeys);
 
-    } catch (err) {
-      console.error("Błąd podczas pobierania list kalendarzy:", err);
+    } catch {
+      toast.error("Błąd podczas pobierania kalendarzy.");
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   }, [user, toast]);
 
@@ -148,11 +153,10 @@ export function useConnectedCalendars(expanded: boolean) {
 
       if (isCurrentlyOn) {
         if (cal.accountId) {
-          const res = await fetch(`${baseApiUrl}?action=disconnect&subCalendarId=${cal.accountId}`, {
+          await fetch(`${baseApiUrl}?action=disconnect&subCalendarId=${cal.accountId}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${session.access_token}` }
           });
-          if (!res.ok) throw new Error("Błąd usuwania");
         }
         
         setSelectedCalendars(prev => prev.filter(id => id !== key));
@@ -173,7 +177,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
         if (insertErr) throw insertErr;
 
-        const res = await fetch(`${baseApiUrl}?action=import`, {
+        await fetch(`${baseApiUrl}?action=import`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -181,8 +185,6 @@ export function useConnectedCalendars(expanded: boolean) {
           },
           body: JSON.stringify({ calendarId: cal.id, accountId: newAcc.id })
         });
-
-        if (!res.ok) throw new Error("Błąd podczas importu");
         
         setSelectedCalendars(prev => [...prev, key]);
         toast.success(`Zsynchronizowano kalendarz: ${cal.summary}.`);
@@ -191,7 +193,7 @@ export function useConnectedCalendars(expanded: boolean) {
       
       await fetchAccountsAndCalendars();
     } catch {
-      toast.error("Wystąpił błąd podczas przetwarzania.");
+      toast.error(`Wystąpił błąd ${isCurrentlyOn ? "odłączania" : "łączenia"} kalendarza zewnętrznego.`);
     } finally {
       setTogglingId(null);
     }
@@ -199,7 +201,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
   const handleDisconnect = async (id: string, email: string, provider: 'google' | 'outlook') => {
     const ok = await toast.confirm(
-      `Czy na pewno chcesz odłączyć konto ${email}? Spowoduje to również usunięcie wszystkich zaimportowanych z niego wydarzeń.`
+      `Czy chcesz odłączyć konto ${email} i usunąć zaimportowane wydarzenia?`
     );
     if (!ok) return;
 
@@ -207,7 +209,7 @@ export function useConnectedCalendars(expanded: boolean) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        toast.error("Brak autoryzacji. Zaloguj się ponownie.");
+        toast.error("Zaloguj się ponownie.");
         return;
       }
 
@@ -219,7 +221,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
       if (!res.ok) throw new Error("Błąd serwera");
 
-      toast.success(`Odłączono konto ${email} oraz usunięto powiązane wydarzenia.`);
+      toast.success(`Odłączono konto ${email} i usunięto wydarzenia.`);
       setSelectedCalendars(prev => prev.filter(key => !key.startsWith(`${id}:::`)));
       globalThis.dispatchEvent(new Event("refreshEvents"));
 
@@ -232,10 +234,11 @@ export function useConnectedCalendars(expanded: boolean) {
   };
 
   const handleConnectGoogle = async () => {
+    setLoading(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session?.access_token) {
-        toast.error("Brak aktywnej sesji. Zaloguj się ponownie.");
+        toast.error("Zaloguj się ponownie.");
         return;
       }
       const res = await fetch('/api/google-calendar?action=auth-url', {
@@ -245,23 +248,36 @@ export function useConnectedCalendars(expanded: boolean) {
       const data = await res.json();
       if (data.url) globalThis.location.href = data.url;
     } catch {
-      toast.error("Nie udało się rozpocząć logowania do Google");
+      toast.error("Błąd logowania Google");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleConnectOutlook = async () => {
+    setLoading(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      // Outlook dodatkowo potrzebuje user.id do parametru URL
-      if (sessionError || !session?.access_token || !user?.id) {
-        toast.error("Brak aktywnej sesji. Zaloguj się ponownie.");
+      if (sessionError || !session?.access_token) {
+        toast.error("Zaloguj się ponownie.");
         return;
       }
-      globalThis.location.href = `/api/outlook-calendar?action=auth-url&userId=${user.id}`;
+      
+      const res = await fetch('/api/outlook-calendar?action=auth-url', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+      
+      if (!res.ok) throw new Error("Błąd HTTP");
+      const data = await res.json();
+      
+      if (data.url) globalThis.location.href = data.url;
     } catch {
-      toast.error("Nie udało się rozpocząć logowania do Outlook");
+      toast.error("Błąd logowania Outlook");
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return {
     accounts,

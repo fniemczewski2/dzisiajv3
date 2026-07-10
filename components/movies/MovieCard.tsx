@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";
 import type { Movie } from "@/types";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
-import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../CommonButtons";
+import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../ui/CommonButtons";
 
 interface MovieCardProps {
   movie: Movie;
@@ -27,7 +27,6 @@ export default function MovieCard({
   toggleNotes,
   onSaveNotes,
 }: Readonly<MovieCardProps>) {
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -55,11 +54,8 @@ export default function MovieCard({
           platform: editForm.platform || null,
           description: editForm.description || null,
         });
-      },
-      toast,
-      { context: "MovieCard.onUpdate", ...retryOpts }
+      }
     );
-    toast.success("Zmieniono pomyślnie.");
     setIsEditing(false);
   };
 
@@ -75,23 +71,11 @@ export default function MovieCard({
   };
 
   const handleSaveNotes = async () => {
-    await withRetry(
-      async () => { await onSaveNotes(movie.id, notesText); },
-      toast,
-      { context: "MovieCard.onSaveNotes", ...retryOpts }
-    );
-    toast.success("Zmieniono pomyślnie.");
+    await withRetry(async () => { await onSaveNotes(movie.id, notesText); });
   };
 
   const handleDelete = async () => {
-    const ok = await toast.confirm(`Czy na pewno chcesz usunąć film "${movie.title}"?`);
-    if (!ok) return;
-    await withRetry(
-      async () => { await onDelete(); },
-      toast,
-      { context: "MovieCard.onDelete", ...retryOpts }
-    );
-    toast.success("Usunięto pomyślnie.");
+    await withRetry(async () => { await onDelete(); });
   };
 
   const editPrefix = `edit-movie-${movie.id}`;

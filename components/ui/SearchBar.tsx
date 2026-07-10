@@ -3,7 +3,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Clock, X } from "lucide-react";
-import { MAX_HISTORY, MAX_SEARCH_SUGGESTIONS } from "../config/limits";
+import { MAX_HISTORY, MAX_SEARCH_SUGGESTIONS } from "@/config/limits";
 
 function useSessionHistory() {
   const [history, setHistory] = useState<string[]>([]);

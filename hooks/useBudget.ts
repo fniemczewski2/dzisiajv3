@@ -1,6 +1,7 @@
 // hooks/useBudget.ts
 import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 interface MonthData {
   sum: number;
@@ -30,6 +31,13 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     sum: 0, rate: 0, budget: 0, income: 0,
     doneExpense: 0, plannedExpense: 0, monthlySpending: 0,
   });
+  
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie budżetu...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchMonthData = async (month: number): Promise<MonthData> => {
     if (!userId) return getEmptyMonthData();
@@ -119,14 +127,16 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const updateRate = (month: number, rate: number) => {
+    setLoading(true);
     setData((prev) => ({
       ...prev,
       [month]: { ...(prev[month] || getEmptyMonthData()), rate },
     }));
+    setLoading(false);
   };
 
   const saveRates = async () => {
-    if (!userId) throw new Error("Musisz być zalogowany");
+    if (!userId) toast.error("Zaloguj się!");
     setLoading(true);
     try {
       const payload: any = { user_id: userId };
@@ -167,5 +177,5 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     loadData();
   }, [userId, year, startMonth, endMonth]);
 
-  return { data, fetching, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
+  return { data, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
 }

@@ -6,10 +6,10 @@ import { Clapperboard, MapPin } from "lucide-react";
 import { useNotes } from "@/hooks/useNotes";
 import NoteList from "@/components/notes/NoteList";
 import { useRouter } from "next/router";
-import { AddButton } from "@/components/CommonButtons";
-import { useQuickAction } from "@/hooks/useQuickAction";
+import { AddButton } from "@/components/ui/CommonButtons";
+import { useQuickAction } from "@/lib/useQuickAction";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO"
+import Seo from "@/components/ui/SEO"
 const NoteForm = dynamic(() => import("@/components/notes/NoteForm"), {
   ssr: false,
 });

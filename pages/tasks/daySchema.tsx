@@ -6,10 +6,10 @@ import { useDaySchemas } from "@/hooks/useDaySchemas";
 import { Schema, ScheduleItem } from "@/types";
 import { getAppDateTime } from "@/lib/dateUtils";
 import DaySchemaForm from "@/components/daySchema/DaySchemaForm";
-import { AddButton, EditButton, DeleteButton } from "@/components/CommonButtons";
-import NoResultsState from "@/components/NoResultsState";
+import { AddButton, EditButton, DeleteButton } from "@/components/ui/CommonButtons";
+import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/SEO";
+import Seo from "@/components/ui/SEO";
 
 export default function DaySchemaPage() {
   const { schemas, loading, fetching, fetchSchemas, deleteSchema } = useDaySchemas();

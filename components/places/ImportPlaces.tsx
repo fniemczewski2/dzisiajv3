@@ -1,7 +1,9 @@
-import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
+"use client"; // Pamiętaj o tej dyrektywie, jeśli używasz Next.js App Router i komponent korzysta ze stanu/hooków
+
 import React, { useState } from "react";
-import { CloseButton } from "../CommonButtons";
+import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
+import { CloseButton } from "../ui/CommonButtons";
 
 interface ImportPlacesProps {
   onImport: (jsonData: any, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;
@@ -9,11 +11,12 @@ interface ImportPlacesProps {
 }
 
 export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPlacesProps>) {
+  const { toast } = useToast();
+  
   const [isImporting, setIsImporting] = useState(false);
   const [autoTagEnabled, setAutoTagEnabled] = useState(true);
   const [fetchGoogleData, setFetchGoogleData] = useState(true);
   const [showInstructions, setShowInstructions] = useState(false);
-  const { toast } = useToast();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -32,15 +35,18 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
 
       toastId = toast.loading(`Importowanie ${jsonData.features.length} miejsc...`);
 
+      // Wywołanie onImport z aktualnym stanem przełączników
       const count = await onImport(jsonData, fetchGoogleData, autoTagEnabled);
 
       if (toastId && toast.dismiss) toast.dismiss(toastId);
       toast.success(`Pomyślnie zaimportowano ${count} miejsc.`);
 
+      // Wyczyszczenie inputa, aby użytkownik mógł wgrać ten sam plik ponownie, jeśli zajdzie taka potrzeba
       e.target.value = "";
-    } catch {
+    } catch (error) {
+      console.error("Błąd podczas odczytu/importu pliku:", error);
       if (toastId && toast.dismiss) toast.dismiss(toastId);
-      toast.error("Błąd podczas importu");
+      toast.error("Błąd podczas importu. Sprawdź format pliku.");
     } finally {
       setIsImporting(false);
     }
@@ -54,6 +60,7 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
         <button
           onClick={() => setShowInstructions(!showInstructions)}
           className="w-full flex items-center justify-between p-4 hover:bg-surfaceHover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-expanded={showInstructions}
         >
           <div className="flex items-center gap-3 text-text">
             <Info className="w-5 h-5 text-primary" />

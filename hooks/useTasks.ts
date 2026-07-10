@@ -3,6 +3,8 @@ import { Task } from "@/types";
 import { useSettings } from "./useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
+import { useToast } from "@/providers/ToastProvider";
+import { se } from "date-fns/locale";
 
 const createSortFunction = (
   sortOrder: string,
@@ -52,6 +54,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const [rawTasks, setRawTasks] = useState<Task[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const userEmailsRef = useRef<Record<string, string>>({});
 
@@ -108,7 +116,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const addTask = useCallback(
     async (task: Partial<Task> & { shared_with_email?: string }) => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
       try {
         const { shared_with_email, display_share_info, ...taskData } = task;
@@ -118,22 +126,18 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           const fetchedId = await getUserIdByEmail(shared_with_email, supabase);
           if (fetchedId) finalForUserId = fetchedId;
         }
-
-        // WAŻNE: Dodajemy .select().single(), aby baza zwróciła nam utworzony obiekt (wraz z wygenerowanym ID)
-        const { data, error: insertError } = await supabase.from("tasks").insert({
+        const { data } = await supabase.from("tasks").insert({
           ...taskData,
           user_id: userId,
           for_user_id: finalForUserId,
           due_date: formatDate((taskData as any).due_date),
         }).select().single();
         
-        if (insertError) throw insertError;
-        
-        // Optimistic UI Update: Natychmiast dodajemy zadanie do stanu
+        toast.success("Dodano zadanie");
         setRawTasks(prev => [...prev, data as Task]);
-      } catch (error) {
-        fetchTasks(); // W razie błędu pobieramy listę ponownie
-        throw error;
+      } catch {
+        fetchTasks(); 
+        toast.error("Błąd dodawania zadania");
       } finally {
         setLoading(false);
       }
@@ -143,9 +147,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const editTask = useCallback(
     async (task: Task & { shared_with_email?: string }) => {
-      if (!userId) throw new Error("Musisz być zalogowany");
+      if (!userId) toast.error("Zaloguj się!");
       
-      // Optimistic UI Update: Zmieniamy zadanie w locie
       setRawTasks(prev => prev.map(t => t.id === task.id ? { ...t, ...task } : t));
 
       try {
@@ -157,7 +160,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           finalForUserId = fetchedId || userId; 
         }
 
-        const { error: updateError } = await supabase
+         await supabase
           .from("tasks")
           .update({
             ...taskData,
@@ -167,10 +170,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           })
           .eq("id", task.id);
           
-        if (updateError) throw updateError;
-      } catch (error) {
-        fetchTasks(); // Rollback
-        throw error;
+          toast.success("Zaktualizowano zadanie");
+      } catch {
+        fetchTasks(); 
+        toast.error("Błąd aktualizacji zadania");
+      } finally {
+        setLoading(false);
       }
     },
     [supabase, userId, fetchTasks]
@@ -178,17 +183,18 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const deleteTask = useCallback(
     async (id: string) => {
-      if (!userId) throw new Error("Musisz być zalogowany");
-      
-      // Optimistic UI Update: Ukrywamy zadanie z listy
+      if (!userId) toast.error("Zaloguj się!");
+      setLoading(true);
       setRawTasks(prev => prev.filter(t => t.id !== id));
 
       try {
-        const { error: deleteError } = await supabase.from("tasks").delete().eq("id", id);
-        if (deleteError) throw deleteError;
-      } catch (error) {
-        fetchTasks(); // Rollback
-        throw error;
+        await supabase.from("tasks").delete().eq("id", id);
+        toast.success("Usunięto zadanie");
+      } catch { 
+        fetchTasks(); 
+        toast.error("Błąd usuwania zadania");
+      } finally {
+        setLoading(false);
       }
     },
     [supabase, userId, fetchTasks]
@@ -196,34 +202,46 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const acceptTask = useCallback(
     async (id: string) => {
-      if (!userId) throw new Error("Musisz być zalogowany");
-      
+      if (!userId) toast.error("Zaloguj się!");
+      setLoading(true);
       setRawTasks(prev => prev.map(t => t.id === id ? { ...t, status: "accepted" } : t));
 
       try {
-        const { error: updateError } = await supabase.from("tasks").update({ status: "accepted" }).eq("id", id);
-        if (updateError) throw updateError;
-      } catch (error) { fetchTasks(); throw error; }
+        await supabase.from("tasks").update({ status: "accepted" }).eq("id", id);
+        toast.success("Zaakceptowano zadanie");
+      } catch { 
+        fetchTasks();
+        toast.error("Błąd akceptacji zadania");
+      } finally {
+        setLoading(false);
+      }
     },
     [supabase, userId, fetchTasks]
   );
 
   const setDoneTask = useCallback(
     async (id: string) => {
-      if (!userId) throw new Error("Musisz być zalogowany");
-      
+      if (!userId) toast.error("Zaloguj się!");
+      setLoading(true);
+      if (id.startsWith("task-")) id = id.replace("task-", "");
       setRawTasks(prev => prev.map(t => t.id === id ? { ...t, status: "done" } : t));
 
       try {
-        const { error: updateError } = await supabase.from("tasks").update({ status: "done" }).eq("id", id);
-        if (updateError) throw updateError;
-      } catch (error) { fetchTasks(); throw error; }
+        await supabase.from("tasks").update({ status: "done" }).eq("id", id);
+        toast.success("Wykonano zadanie");
+      } catch { 
+        fetchTasks(); 
+        toast.error("Błąd wykonania zadania");
+      } finally {
+        setLoading(false);
+      }
     },
     [supabase, userId, fetchTasks]
   );
 
   const rescheduleTask = useCallback(
     async (taskId: string, newDate: string) => {
+      setLoading(true);
       setRawTasks(prev => prev.map(t => t.id === taskId ? { ...t, due_date: newDate } : t));
 
       try {
@@ -234,8 +252,14 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           .select()
           .single();
         if (updateError) throw updateError;
+        toast.success("Zaktualizowano zadanie");
         return data;
-      } catch (error) { fetchTasks(); throw error; }
+      } catch { 
+        fetchTasks(); 
+        toast.error("Błąd aktualizacji zadania");
+      } finally {
+        setLoading(false);
+      }
     },
     [supabase, fetchTasks]
   );

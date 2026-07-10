@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Streak } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 
 const getMonthsLabel = (m: number) => {
   const d = m % 10, td = m % 100;
@@ -89,6 +90,12 @@ export function useStreaks() {
   const [streaks, setStreaks] = useState<Streak[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    let toastId: string | undefined;
+    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
+  }, [fetching, toast]);
 
   const fetchStreaks = useCallback(async () => {
     if (!userId) return;

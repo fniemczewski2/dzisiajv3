@@ -8,7 +8,7 @@ import {
   BriefcaseMedical,
 } from "lucide-react";
 import { Streak } from "@/types";
-import { DeleteButton, EditButton, FormButtons } from "../CommonButtons";
+import { DeleteButton, EditButton, FormButtons } from "../ui/CommonButtons";
 
 interface StreakCardProps {
   streak: Streak;

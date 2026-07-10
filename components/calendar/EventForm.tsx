@@ -5,13 +5,13 @@ import React, { useState, SyntheticEvent, useEffect } from "react";
 import { Upload } from "lucide-react";
 import { Event } from "@/types";
 import { useSettings } from "@/hooks/useSettings";
-import { useToast } from "@/providers/ToastProvider";
+
 import { useAuth } from "@/providers/AuthProvider";
 import { withRetry } from "@/lib/withRetry";
 import { format } from "date-fns";
 import ICAL from "ical.js";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
-import { FormButtons } from "../CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
 
 interface EventsFormProps {
@@ -38,7 +38,6 @@ export default function EventForm({
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
-  const { toast } = useToast();
   const userOptions = settings?.users ?? [];
   const supabase = createClient();
 
@@ -51,11 +50,9 @@ export default function EventForm({
   const [share, setShare] = useState("null");
   const [repeat, setRepeat] = useState<Event["repeat"]>("none");
 
-  // ZMIANA: Stany dla wyboru zewnętrznego kalendarza
   const [calendars, setCalendars] = useState<any[]>([]);
   const [selectedCalendar, setSelectedCalendar] = useState("local");
 
-  // ZMIANA: Pobranie zadeklarowanych kalendarzy
   useEffect(() => {
     if (!userId) return;
     const fetchCalendars = async () => {
@@ -63,7 +60,7 @@ export default function EventForm({
         .from("connected_calendars")
         .select("id, calendar_name, google_calendar_id, provider")
         .eq("user_id", userId)
-        .neq("google_calendar_id", "@account_connection"); // pomijamy same konta-matki
+        .neq("google_calendar_id", "@account_connection");
 
       if (data) {
         setCalendars(data);
@@ -87,10 +84,6 @@ export default function EventForm({
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!title.trim() || !start || !end) {
-      toast.error("Tytuł, początek i koniec wydarzenia są wymagane.");
-      return;
-    }
 
     let createdEvent: any = null;
 
@@ -106,84 +99,12 @@ export default function EventForm({
           repeat,
           user_id: userId,
         } as any);
-      },
-      toast,
-      { context: "EventForm.addEvent", userId }
-    );
-
-    // ZMIANA: Logika eksportująca nowo utworzone wydarzenie do zewnętrznego API, jeśli wybrano z listy
-    if (createdEvent && selectedCalendar !== "local") {
-      const cal = calendars.find(c => c.id === selectedCalendar);
-      if (cal?.provider === "google") {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          const res = await fetch("/api/google-calendar?action=export", {
-            method: "POST",
-            headers: { 
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session?.access_token}`
-            },
-            body: JSON.stringify({
-              calendarId: cal.google_calendar_id, // ID kalendarza u Providera 
-              accountId: cal.id,                  // ID połączenia w bazie Supabase
-              eventIds: [createdEvent.id]         // ID lokalnego nowo powstałego eventu
-            })
-          });
-
-          if (res.ok) {
-            toast.success("Dodano do wybranego kalendarza zewnętrznego.");
-          } else {
-            toast.error("Utworzono lokalnie, ale wystąpił błąd podczas dodawania do Google Calendar.");
-          } 
-        } catch (err) {
-          console.error("Błąd eksportu:", err);
-          toast.error("Błąd sieci podczas eksportu wydarzenia.");
-        }
       }
-    } else {
-      toast.success("Dodano pomyślnie.");
-    }
+    );
 
     resetForm();
     onEventsChange();
     onCancel?.();
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // ... [oryginalny kod bez zmian] ...
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    let count = 0;
-    await withRetry(
-      async () => {
-        const text = await file.text();
-        const jcalData = ICAL.parse(text);
-        const comp = new ICAL.Component(jcalData);
-        const vevents = comp.getAllSubcomponents("vevent");
-        for (const vevent of vevents) {
-          const ev = new ICAL.Event(vevent);
-          await addEvent({
-            id: "",
-            title: ev.summary || "Bez tytułu",
-            description: ev.description || "",
-            start_time: localDateTimeToISO(ev.startDate.toString()),
-            end_time:   localDateTimeToISO(ev.endDate.toString()),
-            place: ev.location || "",
-            share: "",
-            repeat: "none",
-            user_id: userId,
-          } as Event);
-        }
-        count = vevents.length;
-      },
-      toast,
-      { context: "EventForm.importICS", userId }
-    );
-
-    toast.success(`Dodano pomyślnie (${count} wydarzeń z pliku .ics).`);
-    onEventsChange();
-    e.target.value = "";
   };
 
   return (
@@ -273,10 +194,6 @@ export default function EventForm({
           placeholder="Dodatkowe informacje..." />
       </div>
         <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother && addAnother('event')} />
-        <label className="flex items-center justify-center text-sm font-medium text-textMuted hover:underline transition-colors px-2 py-1 disabled:opacity-50">
-          .ics <Upload className="w-4 h-4 ml-2" />
-          <input type="file" accept=".ics" onChange={handleFileUpload} className="hidden" disabled={loading} />
-        </label>
     </form>
   );
 }

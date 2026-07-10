@@ -3,11 +3,10 @@
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
+
 
 export default function LoveButton() {
   const { user, supabase } = useAuth();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -18,8 +17,7 @@ export default function LoveButton() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Nie można pobrać tokena dostępu");
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`,
+      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`,
         {
           method: "POST",
           headers: {
@@ -30,15 +28,8 @@ export default function LoveButton() {
         }
       );
 
-      if (!response.ok) {
-        toast.error("Nie udało się wysłać serduszka.");
-        return;
-      }
-
       setSent(true);
       setTimeout(() => setSent(false), 60000);
-    } catch {
-      toast.error("Nie udało się wysłać serduszka.");
     } finally {
       setLoading(false);
     }
