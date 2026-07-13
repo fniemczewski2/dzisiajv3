@@ -14,7 +14,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const [loading, setLoading] = useState(false);
   const userEmailsRef = useRef<Record<string, string>>({});
   const { toast } = useToast();
-  
+
   useEffect(() => {
     let toastId: string | undefined;
     if (fetching  && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
@@ -25,7 +25,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     if (!userId || !rangeStart || !rangeEnd) return;
     setFetching(true);
     try {
-      // 1. Pobieranie normalnych wydarzeń
       const { data, error } = await supabase
         .from("events")
         .select("*")
@@ -166,13 +165,17 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   };
 
   const deleteEvent = async (id: string) => {
-    // Zabezpieczenie przed usunięciem wirtualnych wydarzeń
     if (id.startsWith("bday_") || id.startsWith("nday_")) {
       console.warn("Nie można usuwać wydarzeń generowanych z kontaktów z poziomu kalendarza.");
       return;
     }
 
     if (!userId) toast.error("Zaloguj się!");
+
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć wydarzenie?`
+    );
+    if (!ok) return;
     setLoading(true);
 
     setEvents((prev) => prev.filter((e) => e.id !== id));

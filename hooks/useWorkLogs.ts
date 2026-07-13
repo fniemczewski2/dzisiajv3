@@ -7,7 +7,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const { user, supabase } = useAuth();
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);  
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   useEffect(() => {
     let toastId: string | undefined;
@@ -64,6 +64,8 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
       return;
     }
 
+    setLoading(true);
+
     try {
       const { data } = await supabase
         .from('work_logs')
@@ -77,10 +79,17 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     } catch {
       toast.error('Błąd dodawania czasu pracy.');
       return;
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteWorkLog = async (id: string) => {
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć czas pracy?`
+    );
+    if (!ok) return;
+    setLoading(true);
     try {
       await supabase
         .from('work_logs')
@@ -93,7 +102,9 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     } catch {
       toast.error('Błąd usuwania czasu pracy.');
       return;
-    }
+    } finally {
+      setLoading(false);
+    } 
   };
 
   return {

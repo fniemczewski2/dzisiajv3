@@ -3,8 +3,7 @@ import { Coins } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useDailyHabits } from "@/hooks/useDailyHabits";
-import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 
@@ -16,7 +15,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
   const today = getAppDate();
   const targetDate = date ?? today;
   const { habits, loading, updateSpending } = useDailyHabits(targetDate);
-  const { user } = useAuth();
+  const retry = useRetry();
 
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -29,7 +28,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
 
   const handleSave = async () => {
     const value = Number.parseFloat(inputRef.current?.value || "0");
-    await withRetry(() => updateSpending(value));
+    await retry(() => updateSpending(value));
     setIsEditing(false);
   };
 

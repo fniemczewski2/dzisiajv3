@@ -6,7 +6,7 @@ import { Note } from "@/types";
 import { useNotes } from "@/hooks/useNotes";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 import SearchBar from "../ui/SearchBar";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
@@ -29,13 +29,11 @@ const COLOR_MAP: { [key: string]: string } = {
 export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProps>) {
   const { deleteNote, editNote, togglePin, toggleArchive, loading } = useNotes();
   const { settings } = useSettings();
-  const { user } = useAuth();
+  const retry = useRetry();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const retryOpts = { userId: user?.id };
 
   const sortedNotes = useMemo(() => {
     const sortType = settings?.sort_notes || "updated_desc";
@@ -72,7 +70,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   }, [filteredNotes.length]);
 
   const handleDelete = async (id: string) => {
-    await withRetry(() => deleteNote(id));
+    await retry(() => deleteNote(id));
     onNotesChange();
   };
 
@@ -87,19 +85,19 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   };
 
   const handleSaveEdit = async (note: Note) => {
-    await withRetry(() => editNote(note));
+    await retry(() => editNote(note));
     setEditingId(null);
     setEditedNote(null);
     onNotesChange();
   };
 
   const handleTogglePin = async (id: string) => {
-    await withRetry(() => togglePin(id));
+    await retry(() => togglePin(id));
     onNotesChange();
   };
 
   const handleToggleArchive = async (id: string) => {
-    await withRetry(() => toggleArchive(id));
+    await retry(() => toggleArchive(id));
     onNotesChange();
   };
 

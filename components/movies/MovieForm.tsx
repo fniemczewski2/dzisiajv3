@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import { FormButtons } from "../ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider"; 
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 
 export interface NewMovieData {
   title: string;
@@ -58,6 +58,7 @@ interface TmdbWatchProviders {
 
 export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Readonly<MovieAddFormProps>) {
   const { toast } = useToast();
+  const retry = useRetry();
 
   const [formData, setFormData] = useState({
     title: "", genre: "", rating: "", platform: "", description: "",
@@ -67,7 +68,6 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
   const [movieOptions, setMovieOptions] = useState<TmdbMovie[]>([]);
   const [showOptions, setShowOptions] = useState(false);
 
-  // Funkcja przeniesiona do wewnątrz komponentu, aby miała dostęp do jego stanu
   const fetchTMDBData = async () => {
     if (!formData.title.trim()) return;
     setFetchingTMDB(true);
@@ -136,7 +136,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    await withRetry(
+    await retry(
       () => onSubmit({
         title: formData.title.trim(),
         genre: formData.genre.trim() || null,

@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";
 import type { Movie } from "@/types";
-
-import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../ui/CommonButtons";
+import { useRetry } from "@/lib/withRetry";
 
 interface MovieCardProps {
   movie: Movie;
@@ -27,7 +25,7 @@ export default function MovieCard({
   toggleNotes,
   onSaveNotes,
 }: Readonly<MovieCardProps>) {
-  const { user } = useAuth();
+  const retry = useRetry();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -40,11 +38,9 @@ export default function MovieCard({
   const [notesText, setNotesText] = useState(movie.notes || "");
   const [showDescription, setShowDescription] = useState(false);
 
-  const retryOpts = { userId: user?.id };
-
   const handleSaveEdit = async () => {
     const normalizedRating = editForm.rating.replaceAll(",", ".");
-    await withRetry(
+    await retry(
       async () => {
         await onUpdate({
           ...movie,
@@ -71,11 +67,11 @@ export default function MovieCard({
   };
 
   const handleSaveNotes = async () => {
-    await withRetry(async () => { await onSaveNotes(movie.id, notesText); });
+    await retry(async () => { await onSaveNotes(movie.id, notesText); });
   };
 
   const handleDelete = async () => {
-    await withRetry(async () => { await onDelete(); });
+    await retry(async () => { await onDelete(); });
   };
 
   const editPrefix = `edit-movie-${movie.id}`;

@@ -26,7 +26,6 @@ export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, 
               onEditEvent={onEditEvent}
               onDeleteEvent={onDeleteEvent}
               onEventsChange={onEventsChange}
-              userId={userId}
               userOptions={userOptions}
             />
       ))}

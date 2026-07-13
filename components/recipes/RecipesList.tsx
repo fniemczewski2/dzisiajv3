@@ -6,7 +6,7 @@ import type { Recipe, RecipeCategory } from "@/types";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
 import NoResultsState from "../ui/NoResultsState";
@@ -23,6 +23,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
   const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
   const { settings } = useSettings();
   const { user } = useAuth();
+  const retry = useRetry();
 
   const [qText, setQText] = useState("");
   const [prodFilter, setProdFilter] = useState<string[]>([]);
@@ -75,7 +76,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
   const toggleOpen = (id: string) => setOpenId((prev) => prev === id ? null : id);
 
   const handleDelete = async (id: string) => {
-    await withRetry(async () => { await deleteRecipe(id); });
+    await retry(async () => { await deleteRecipe(id); });
   };
 
   const handleEdit = (recipe: Recipe) => {
@@ -88,7 +89,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
 
   const handleSaveEdit = async () => {
     if (!editedRecipe) return;
-    await withRetry(async () => { await editRecipe(editedRecipe); });
+    await retry(async () => { await editRecipe(editedRecipe); });
     setEditingId(null); setEditedRecipe(null); setProdInput("");
   };
 

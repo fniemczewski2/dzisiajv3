@@ -6,7 +6,7 @@ import {
 import { useReminders } from "@/hooks/useReminders";
 
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { Task } from "@/types";
 import NoResultsState from "../ui/NoResultsState";
@@ -23,6 +23,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   const [showAll, setShowAll] = useState(false);
 
   const { user } = useAuth();
+  const retry = useRetry();
   const userId = user?.id;
   const today = getAppDate();
 
@@ -103,7 +104,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     } as Task;
 
     try {
-      await withRetry(() => addTask(newTask));
+      await retry(() => addTask(newTask));
       
       await completeReminder(reminder.id);
       

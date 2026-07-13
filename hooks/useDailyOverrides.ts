@@ -1,6 +1,7 @@
 // hooks/useDailyOverrides.ts
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useToast } from '@/providers/ToastProvider';
 
 export type DailyOverride = {
   schema_id: string;
@@ -10,6 +11,7 @@ export type DailyOverride = {
 
 export function useDailyOverrides(dateStr: string) {
   const { supabase, user } = useAuth();
+  const { toast } = useToast();
   const [overrides, setOverrides] = useState<DailyOverride[]>([]);
 
   const fetchOverrides = useCallback(async () => {
@@ -31,6 +33,10 @@ export function useDailyOverrides(dateStr: string) {
   }, [fetchOverrides]);
 
   const hideSchema = async (schemaId: string) => {
+    const ok = await toast.confirm(
+      `Czy ukryć rutynę?`
+    );
+    if (!ok) return;
     if (!user) return;
     
     setOverrides(prev => {

@@ -95,6 +95,11 @@ export function usePlaces() {
 
   const deletePlace = async (id: string) => {
     if (!userId) toast.error("Zaloguj się!");
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć miejsce?`
+    );
+    if (!ok) return;
+
     setLoading(true);
     try {
       const { error } = await supabase

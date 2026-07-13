@@ -148,6 +148,10 @@ export function useTrains() {
   };
 
   const deleteTrain = async (id: string) => {
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć pociąg?`
+    );
+    if (!ok) return;
     setLoading(true);
     try {
       const { error } = await supabase

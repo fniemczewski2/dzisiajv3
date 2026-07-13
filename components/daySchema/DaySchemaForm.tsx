@@ -3,12 +3,10 @@
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { PlusCircle } from "lucide-react";
 import { useDaySchemas } from "@/hooks/useDaySchemas";
-
-import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
 import { DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
 
 import type { ScheduleItem, Schema } from "@/types";
+import { useRetry } from "@/lib/withRetry";
 
 interface DaySchemaFormProps {
   initialSchema?: Schema | null;
@@ -24,7 +22,7 @@ export default function DaySchemaForm({
   onCancel,
 }: Readonly<DaySchemaFormProps>) {
   const { addSchema, updateSchema } = useDaySchemas();
-  const { user } = useAuth();
+  const retry = useRetry();
   const isEdit = !!initialSchema?.id;
 
   const [schemaName, setSchemaName] = useState("");
@@ -46,7 +44,7 @@ export default function DaySchemaForm({
     setLoading(true);
     const payload = { name: schemaName.trim(), days, entries };
 
-    await withRetry(
+    await retry(
       () => isEdit && initialSchema?.id
         ? updateSchema(initialSchema.id, payload)
         : addSchema(payload as any)

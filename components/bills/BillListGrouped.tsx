@@ -6,11 +6,9 @@ import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "
 import { Bill, BudgetCategory } from "@/types";
 import { useBills } from "@/hooks/useBills";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories"; 
-
-import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
 import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
+import { useRetry } from "@/lib/withRetry";
 
 interface BillListProps {
   year: number;
@@ -125,6 +123,7 @@ function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccord
 }
 
 function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContent>) {
+  const retry = useRetry();
   const [page, setPage] = useState(1);
   const limit = 20;
 
@@ -151,7 +150,7 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
 
   const handleDelete = async (bill: Bill) => {
 
-    await withRetry(() => deleteBill(bill.id));
+    await retry(() => deleteBill(bill.id));
     handleRefresh();
   };
 
@@ -159,14 +158,14 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
     if (!editedBill) return;
     const finalBill = { ...editedBill, category_id: editedBill.category_id || null };
     
-    await withRetry(() => editBill(finalBill));
+    await retry(() => editBill(finalBill));
     setEditingId(null);
     setEditedBill(null);
     handleRefresh();
   };
 
   const handleMarkDone = async (bill: Bill) => {
-    await withRetry(() => markAsDone(bill.id));
+    await retry(() => markAsDone(bill.id));
     handleRefresh();
   };
   

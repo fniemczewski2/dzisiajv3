@@ -4,10 +4,10 @@ import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "@/types";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
+import { useRetry } from "@/lib/withRetry";
 
 interface TaskFormProps {
   addTask: (task: Task) => Promise<unknown>;
@@ -21,6 +21,7 @@ interface TaskFormProps {
 
 export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate, addMany = false, addAnother }: Readonly<TaskFormProps>) {
   const { user } = useAuth();
+  const retry = useRetry();
   const userId = user?.id;
   const { settings } = useSettings();
   const todayIso = getAppDate();
@@ -55,7 +56,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       taskData.status = "pending";
     }
 
-    await withRetry(() => addTask(taskData));
+    await retry(() => addTask(taskData));
     onTasksChange();
     onCancel?.();
   };

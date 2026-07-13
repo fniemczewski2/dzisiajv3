@@ -104,6 +104,10 @@ export function useBudgetCategories(year: number) {
 
   const deleteCategory = useCallback(
     async (id: string): Promise<void> => {
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć kategorię?`
+    );
+    if (!ok) return;
       setLoading(true);
       try {
         const { error } = await supabase

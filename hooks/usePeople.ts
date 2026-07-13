@@ -76,7 +76,7 @@ export function usePeople() {
     if (!userId) return;
     
     const ok = await toast.confirm("Czy na pewno chcesz usunąć kontakt?");
-    // POPRAWKA: Aktywacja loading DOPIERO gdy dostaniemy OK.
+
     if (ok) {
       setLoading(true);
       try {

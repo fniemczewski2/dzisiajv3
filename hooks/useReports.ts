@@ -75,6 +75,10 @@ export function useReports() {
 
   const deleteReport = useCallback(
     async (id: string) => {
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć raport?`
+    );
+    if (!ok) return;
       setLoading(true)
       try {
         const { error } = await supabase.from("reports").delete().eq("id", id);

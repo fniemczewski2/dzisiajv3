@@ -2,17 +2,14 @@
 "use client";
 
 import React, { useState, SyntheticEvent, useEffect } from "react";
-import { Upload } from "lucide-react";
 import { Event } from "@/types";
 import { useSettings } from "@/hooks/useSettings";
-
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
 import { format } from "date-fns";
-import ICAL from "ical.js";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
+import { useRetry } from "@/lib/withRetry";
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -36,8 +33,10 @@ export default function EventForm({
   addAnother
 }: Readonly<EventsFormProps>) {
   const { user } = useAuth();
+  const retry = useRetry();
   const userId = user?.id;
   const { settings } = useSettings();
+  
   const userOptions = settings?.users ?? [];
   const supabase = createClient();
 
@@ -87,7 +86,7 @@ export default function EventForm({
 
     let createdEvent: any = null;
 
-    await withRetry(
+    await retry(
       async () => {
         createdEvent = await addEvent({
           title: title.trim(),

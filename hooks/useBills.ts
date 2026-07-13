@@ -246,6 +246,10 @@ export function useBills(options: FetchOptions = {}) {
         toast.error("Zaloguj się!");
         return;
       }
+      const ok = await toast.confirm(
+      `Czy chcesz usunąć rachunek?${deleteFutureRecurring ? " (wraz z przyszłymi powtarzającymi się)" : ""}`
+      );
+      if (!ok) return;
       setLoading(true);
 
       setIncomeItems((prev) => prev.filter((b) => b.id !== id));
@@ -256,8 +260,7 @@ export function useBills(options: FetchOptions = {}) {
           const today = format(new Date(), "yyyy-MM-dd");
           await supabase.from("bills").delete().eq("parent_bill_id", id).gte("date", today);
         }
-        
-        // POPRAWKA: Faktyczne usunięcie rekordu głównego
+
         const { error } = await supabase.from("bills").delete().eq("id", id).eq("user_id", userId);
         if (error) throw error;
 

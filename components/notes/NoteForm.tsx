@@ -6,7 +6,7 @@ import { Note } from "@/types";
 import { useNotes } from "@/hooks/useNotes";
 
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";
 
 interface NoteFormProps {
@@ -25,6 +25,7 @@ const COLOR_MAP: { [key: string]: string } = {
 export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>) {
   const { addNote, loading } = useNotes();
   const { user } = useAuth();
+  const retry = useRetry();
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
   const [bgColor, setBgColor] = useState("zinc-50");
@@ -55,7 +56,7 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
       bg_color: bgColor,
     } as Note;
 
-    await withRetry(() => addNote(payload));
+    await retry(() => addNote(payload));
     onChange();
     onCancel?.();
   };

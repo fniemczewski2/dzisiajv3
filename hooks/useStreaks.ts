@@ -128,6 +128,10 @@ export function useStreaks() {
 
   const deleteStreak = async (id: string) => {
     setLoading(true);
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć cel?`
+    );
+    if (!ok) return;
     try {
       const { error } = await supabase.from("streaks").delete().eq("id", id);
       if (error) throw error;

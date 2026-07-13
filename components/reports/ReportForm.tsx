@@ -4,9 +4,7 @@ import React, { useRef, useState, SyntheticEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { Report } from "@/types";
 import { useReports } from "@/hooks/useReports";
-
-import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
+import { useRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 
@@ -21,7 +19,7 @@ const createTask = () => ({ id: crypto.randomUUID(), zadanie: "", data: "", osob
 
 export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormProps>) {
   const { addReport, loading } = useReports();
-  const { user } = useAuth();
+  const retry = useRetry();
 
   const topicRef = useRef<HTMLInputElement>(null);
   const dateRef  = useRef<HTMLInputElement>(null);
@@ -44,7 +42,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
       notes: notesRef.current?.value.trim() || "",
     } as Report;
 
-    await withRetry(() => addReport(payload));
+    await retry(() => addReport(payload));
 
     if (topicRef.current) topicRef.current.value = "";
     if (dateRef.current)  dateRef.current.value  = getAppDate();

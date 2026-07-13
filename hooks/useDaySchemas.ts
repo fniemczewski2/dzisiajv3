@@ -83,6 +83,10 @@ export function useDaySchemas() {
 
   const deleteSchema = async (id: string) => {
     if (!userId) toast.error("Zaloguj się!");
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć schemat?`
+    );
+    if (!ok) return;
     setLoading(true);
 
     setSchemas((prev) => prev.filter(s => s.id !== id));

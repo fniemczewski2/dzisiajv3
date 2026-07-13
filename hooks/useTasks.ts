@@ -183,6 +183,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) toast.error("Zaloguj się!");
+      const ok = await toast.confirm(
+      `Czy chcesz usunąć zadanie?`
+    );
+    if (!ok) return;
       setLoading(true);
       setRawTasks(prev => prev.filter(t => t.id !== id));
 

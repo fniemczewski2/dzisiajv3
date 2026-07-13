@@ -136,7 +136,10 @@ export function useNotes() {
 
   const deleteNote = async (id: string) => {
     if (!userId) toast.error("Zaloguj się!");
-
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć notatkę?`
+    );
+    if (!ok) return;
     setNotes((prev) => prev.filter((n) => n.id !== id));
     setLoading(true);
     try {

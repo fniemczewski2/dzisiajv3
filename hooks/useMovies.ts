@@ -96,6 +96,10 @@ export function useMovies() {
 
   const deleteMovie = useCallback(
     async (id: string): Promise<void> => {
+      const ok = await toast.confirm(
+        `Czy chcesz usunąć film?`
+      );
+      if (!ok) return;
       setLoading(true);
       try { 
         const { error } = await supabase.from("movies").delete().eq("id", id);

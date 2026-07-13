@@ -139,6 +139,10 @@ export function useRecipes() {
 
   const deleteRecipe = async (id: string): Promise<void> => {
     if (!userId) toast.error("Zaloguj się!");
+    const ok = await toast.confirm(
+      `Czy chcesz usunąć przepis?`
+    );
+    if (!ok) return;
     setLoading(true);
     try {
       const { error } = await supabase.from("recipes").delete().eq("id", id);

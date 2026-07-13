@@ -2,10 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { Clock, MapPin, User, Download, Globe } from "lucide-react";
 import { Event } from "@/types";
 import { useAuth } from "@/providers/AuthProvider";
-import { withRetry } from "@/lib/withRetry";
 import { formatTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
+import { useRetry } from "@/lib/withRetry";
 
 interface EventItemProps {
   event: Event;
@@ -13,7 +13,6 @@ interface EventItemProps {
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
-  userId: string;
   userOptions: string[];
 }
 
@@ -23,11 +22,10 @@ export default function EventItem({
   onEditEvent,
   onDeleteEvent,
   onEventsChange,
-  userId,
   userOptions
 }: Readonly<EventItemProps>) {
   const { supabase } = useAuth();
-
+  const retry = useRetry();
   const [isEditing, setIsEditing] = useState(false);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
   const [sharedEmail, setSharedEmail] = useState("");
@@ -52,7 +50,7 @@ export default function EventItem({
 
   const handleSaveEdit = async () => {
     if (!editedEvent) return;
-      await withRetry(
+      await retry(
         () => onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
       );
       setIsEditing(false);
@@ -62,7 +60,7 @@ export default function EventItem({
   };
 
   const handleDelete = async () => {
-      await withRetry(
+      await retry(
         () => onDeleteEvent(event.id)
       );
       onEventsChange();
