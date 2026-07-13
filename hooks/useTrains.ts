@@ -88,7 +88,7 @@ export function useTrains() {
         });
 
       setTrains(mappedData);
-    } catch (error) {
+    } catch {
       throw new Error("Błąd pobierania pociągów")
     } finally {
       setFetching(false);

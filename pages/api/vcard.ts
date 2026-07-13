@@ -44,11 +44,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  if (profile.social_links) {
-    Object.entries(profile.social_links).forEach(([network, link]) => {
-      if (link) vcf += `URL;TYPE=${network.toUpperCase()}:${link}\r\n`;
-    });
-  }
+if (profile.social_links) {
+  Object.entries(profile.social_links).forEach(([network, rawLink]) => {
+    const link = rawLink as any;
+
+    if (typeof link === 'string' && link.trim() !== '') {
+      vcf += `URL;TYPE=${network.toUpperCase()}:${link}\r\n`;
+    } 
+
+    else if (link && typeof link === 'object' && 'url' in link && typeof link.url === 'string' && link.url.trim() !== '') {
+      vcf += `URL;TYPE=${network.toUpperCase()}:${link.url}\r\n`;
+    }
+  });
+}
 
   vcf += `END:VCARD\r\n`;
 

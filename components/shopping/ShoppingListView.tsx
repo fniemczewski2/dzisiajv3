@@ -25,7 +25,6 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
   const [sharedEmail, setSharedEmail] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
   const userOptions = settings?.users ?? [];
-  const retryOpts = { userId: user?.id };
 
   useEffect(() => {
     if (editingId && nameRef.current) nameRef.current.focus();

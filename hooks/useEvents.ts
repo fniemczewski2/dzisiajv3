@@ -156,6 +156,11 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         .update({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
         .eq("id", originalId);
 
+      if (error) {
+        toast.error('Błąd edycji wydarzenia.');
+        throw error;
+      }
+
     } catch (error) {
       throw error;
     } finally {
@@ -182,11 +187,13 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     try {
       const originalId = id.split("_")[0];
       const { error } = await supabase.from("events").delete().eq("id", originalId);
-      if (error) throw error;
+      if (error) {
+        toast.error('Błąd usuwania wydarzenia.');
+        throw error;
+      }
       
-    } catch (error) {
+    } catch {
       fetchEvents();
-      throw error;
     } finally {
       setLoading(false);
     }

@@ -51,15 +51,18 @@ export function useProfiles() {
     setFetching(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from('vcard_profiles')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
-      if (fetchError) throw fetchError;
+      if (error) {
+        toast.error('Błąd pobierania danych');
+        throw error;
+      }
       setProfiles(data || []);
-    } catch (err: any) {
+    } catch {
       toast.error('Błąd pobierania profili');
     } finally {
       setFetching(false);

@@ -8,7 +8,7 @@ import { AddButton, DeleteButton } from '@/components/ui/CommonButtons';
 import NoResultsState from '@/components/ui/NoResultsState';
 import { WorkLog } from '@/types';
 
-const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => void, onCancel: () => void }) => {
+const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<void>, onCancel: () => void }) => {
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [endTime, setEndTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));

@@ -49,7 +49,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return { 
     props: { 
-      profile: JSON.parse(JSON.stringify(profile)) // Bezpieczna serializacja
+      profile: structuredClone(profile) // Bezpieczna serializacja
     } 
   };
 };

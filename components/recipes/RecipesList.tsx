@@ -5,7 +5,6 @@ import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useSettings } from "@/hooks/useSettings";
-import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
@@ -22,7 +21,6 @@ interface RecipesListProps {
 export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>) {
   const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
   const { settings } = useSettings();
-  const { user } = useAuth();
   const retry = useRetry();
 
   const [qText, setQText] = useState("");
@@ -33,7 +31,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
   const [editedRecipe, setEditedRecipe] = useState<Recipe | null>(null);
   const [prodInput, setProdInput] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
-  const retryOpts = { userId: user?.id };
+
 
   useEffect(() => {
     if (refreshToken !== undefined) {

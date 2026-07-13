@@ -1,9 +1,8 @@
 import React from 'react';
 import { VCardProfile } from '@/hooks/useProfiles';
 import { QRCodeSVG } from 'qrcode.react';
-import { CopyButton, DownloadButton } from '../ui/CommonButtons';
+import { CopyButton, DownloadButton, CopyButtonSmall } from '../ui/CommonButtons';
 import { ChevronLeft } from 'lucide-react';
-import { CopyButtonSmall } from '../ui/CommonButtons';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/providers/ToastProvider';
 
@@ -20,13 +19,13 @@ const getUsernameFromUrl = (url: string, platform: string) => {
     const p = platform.toLowerCase();
 
     if (p.includes('instagram') || p.includes('tiktok') || p.includes('x') || p.includes('twitter')) {
-      const handle = parts[parts.length - 1];
+      const handle = parts.at(-1);
       return handle?.startsWith('@') ? handle : `@${handle}`;
     }
     
-    if (p.includes('linkedin')) return parts[parts.length - 1] || urlObj.hostname.replace('www.', '');
-    if (p.includes('youtube')) return parts[parts.length - 1] || 'YouTube Channel';
-    if (p.includes('facebook') || p.includes('messenger')) return parts[parts.length - 1] || 'Facebook';
+    if (p.includes('linkedin')) return parts.at(-1) || urlObj.hostname.replace('www.', '');
+    if (p.includes('youtube')) return parts.at(-1) || 'YouTube Channel';
+    if (p.includes('facebook') || p.includes('messenger')) return parts.at(-1) || 'Facebook';
 
     return urlObj.hostname.replace(/^www\./, '');
   } catch (e) {
@@ -74,13 +73,11 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
 
   if (profile.social_links) {
       Object.entries(profile.social_links).forEach(([network, rawLink]) => {
-        // Rzutowanie na 'any', aby uniknąć zawężenia do typu 'never' przez TypeScript
         const link = rawLink as any;
 
         if (typeof link === 'string' && link.trim() !== '') {
           vcf += `URL;TYPE=${network.toUpperCase()}:${link}\r\n`;
         } 
-        // Obsługa przypadku, gdy link jest obiektem (np. z właściwością 'url')
         else if (link && typeof link === 'object' && typeof link.url === 'string' && link.url.trim() !== '') {
           vcf += `URL;TYPE=${network.toUpperCase()}:${link.url}\r\n`;
         }

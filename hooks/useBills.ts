@@ -105,7 +105,10 @@ export function useBills(options: FetchOptions = {}) {
         const query = buildFetchBillsQuery(supabase, userId, options).range(from, to);
 
         const { data, error, count } = await query;
-        if (error) throw error;
+        if (error) {
+          toast.error('Błąd pobierania rachunków.');
+          throw error;
+        }
 
         const bills = (data ?? []) as Bill[];
         const incomes = bills.filter((b) => b.is_income);
@@ -148,7 +151,10 @@ export function useBills(options: FetchOptions = {}) {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          toast.error('Błąd dodawania rachunku.');
+          throw error;
+        }
         const parent = data as Bill;
 
         if (parent.is_income) {

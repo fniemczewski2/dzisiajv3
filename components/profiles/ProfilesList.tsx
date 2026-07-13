@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useProfiles, VCardProfile, NewVCardProfile } from '@/hooks/useProfiles';
-import LoadingState from '@/components/ui/LoadingState';
 import NoResultsState from '@/components/ui/NoResultsState';
 import ProfileEditorForm from './ProfileEditorForm';
 import VCardPreview from './VCardPreview';
@@ -75,7 +74,7 @@ export default function ProfilesList() {
             <h1 className="text-2xl font-bold text-textPrimary">Wizytówka</h1>
             <AddButton
               onClick={handleAddClick}
-              disabled={profiles.length >= 5}
+              disabled={profiles.length >= 5 || loading}
             />
         </div>
       {profiles.length === 0 ? (
