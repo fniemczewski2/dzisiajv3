@@ -1,39 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Clock, Calendar, Save, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Calendar} from 'lucide-react';
 import { useWorkLogs } from '@/hooks/useWorkLogs';
 import { useToast } from '@/providers/ToastProvider';
-import { AddButton, DeleteButton } from '@/components/ui/CommonButtons';
+import { AddButton, DeleteButton, FormButtons } from '@/components/ui/CommonButtons';
 import NoResultsState from '@/components/ui/NoResultsState';
-import { WorkLog } from '@/types';
+import { WorkLog, WorkLogInsert } from '@/types';
+import { useRetry } from '@/lib/withRetry';
+import { useAuth } from '@/providers/AuthProvider';
 
-const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<void>, onCancel: () => void }) => {
+const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: any) => Promise<void>, onCancel: () => void, loading: boolean }) => {
+  const { user } = useAuth();
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-  const [endTime, setEndTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [endTime, setEndTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    await onAdd({
-      description,
-      start_time: startTime,
-      end_time: endTime,
-    });
+  const descriptionRef = useRef<HTMLInputElement>(null);
+  const startTimeRef = useRef<HTMLInputElement>(null);
+  const endTimeRef = useRef<HTMLInputElement>(null);
 
-    setDescription("");
-    setStartTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-    setEndTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-    onCancel();
-    
-    setIsSubmitting(false);
-  };
+    const handleSubmit = async (e: SyntheticEvent) => {
+      e.preventDefault();
 
+      if (!user) return;
+  
+      const data: WorkLogInsert = {
+        user_id: user?.id,
+        description: descriptionRef.current?.value || "",
+        start_time: startTimeRef?.current?.value || "",
+        end_time: endTimeRef?.current?.value || undefined,
+      };
+
+      await onAdd(data);
+    };
   return (
-    <form onSubmit={handleSubmit} className="card p-4 sm:p-6 mb-8 animate-in fade-in slide-in-from-top-4">
+    <form
+      onSubmit={handleSubmit}
+      className="form-card"
+    >
       <div className="space-y-4">
         <div>
           <label className="form-label">Opis pracy:</label>
@@ -70,24 +75,7 @@ const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<void>, 
           </div>
         </div>
         
-        <div className="flex justify-end gap-3 mt-6 pt-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-xl font-bold transition-colors flex items-center gap-2"
-          >
-            <X className="w-5 h-5" />
-            Anuluj
-          </button>
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="px-5 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-          >
-            <Save className="w-5 h-5" />
-            {isSubmitting ? "Zapisywanie..." : "Zapisz"}
-          </button>
-        </div>
+          <FormButtons onClickClose={onCancel} loading={loading} />
       </div>
     </form>
   );
@@ -95,6 +83,7 @@ const WorkLogForm = ({ onAdd, onCancel }: { onAdd: (log: any) => Promise<void>, 
 
 export default function WorkLogsPage() {
   const { toast } = useToast();
+  const retry = useRetry();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   
@@ -119,16 +108,15 @@ export default function WorkLogsPage() {
     return `${mins}m`;
   };
 
-  // Zaktualizuj reduktor liczący sumę:
   const totalMonthMinutes = workLogs.reduce((acc, log) => {
-    if (!log.end_time) return acc; // Pomijamy niezakończone sesje!
+    if (!log.end_time) return acc; 
     const start = parseLocal(log.start_time).getTime();
     const end = parseLocal(log.end_time).getTime();
     return acc + (end - start) / 60000;
   }, 0);
 
   const handleAddLog = async (log: any) => {
-    await addWorkLog(log);
+    await retry(() => addWorkLog(log));
   };
 
     useEffect(() => {
@@ -182,7 +170,7 @@ const sumText = totalMonthHours > 0
           </div>
         </div>
         
-        {isFormOpen && <WorkLogForm onAdd={handleAddLog} onCancel={() => setIsFormOpen(false)} />}
+        {isFormOpen && <WorkLogForm onAdd={handleAddLog} onCancel={() => setIsFormOpen(false)} loading={loading} />}
 
         <section>
           {workLogs.length === 0 ? (

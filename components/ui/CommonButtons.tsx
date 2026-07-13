@@ -161,7 +161,7 @@ export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, smal
     )}
     <CloseButton
       onClick={onClickClose}
-      disabled={loading || disabled}
+      disabled={disabled}
       small={small}
     />
   </div>

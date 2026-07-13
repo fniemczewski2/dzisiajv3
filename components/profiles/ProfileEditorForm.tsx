@@ -54,15 +54,14 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
       const baseName = formData.full_name || formData.profile_name;
       const safeName = baseName
         .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Usuwanie polskich znaków
-        .replace(/[^a-z0-9]+/g, '-') // Zastępowanie spacji myślnikiem
-        .replace(/^-|-$/g, ''); // Usuwanie myślników na początku i końcu
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+        .replace(/[^a-z0-9]+/g, '-') 
+        .replace(/^-|-$/g, ''); 
       
       setFormData(prev => ({ ...prev, public_slug: safeName }));
     }
   }, [formData.full_name, formData.profile_name, isSlugManuallyEdited]);
 
-  // Sprawdzanie unikalności w bazie (Debounce)
   useEffect(() => {
     const checkSlug = async () => {
       if (!formData.public_slug || !formData.is_public) {
@@ -95,8 +94,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
     const formatted = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
     setFormData(prev => ({ ...prev, public_slug: formatted }));
   };
-
-  // --- WGRYWANIE ZDJĘCIA --- //
 
   // --- HANDLERY DYNAMICZNYCH LIST --- //
   const addPhone = () => setFormData(p => ({ ...p, phones: [...p.phones, { type: 'Komórka', number: '' }] }));
@@ -170,7 +167,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setIsSubmitting(true);
 
     const validSocialLinks = formData.social_links
@@ -202,171 +198,184 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
         </h2>
       </div>
 
-      {/* --- ZDJĘCIE PROFILOWE --- */}
       <div className="flex flex-col items-center gap-4 pb-6 border-b dark:border-neutral-800">
-        <div className="w-24 h-24 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800 border-2 border-primary/20 shadow-sm flex items-center justify-center relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+        <button 
+          type="button"
+          aria-label="Zmień zdjęcie profilowe"
+          className="w-24 h-24 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800 border-2 border-primary/20 shadow-sm flex items-center justify-center relative group cursor-pointer" 
+          onClick={() => fileInputRef.current?.click()}
+        >
           {formData.avatar_url ? (
-            <img src={formData.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+            <img src={formData.avatar_url} alt="Avatar użytkownika" className="w-full h-full object-cover" />
           ) : (
-            <ImageIcon className="text-neutral-400 w-8 h-8" />
+            <ImageIcon className="text-neutral-400 w-8 h-8" aria-hidden="true" />
           )}
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
              <span className="text-white text-xs font-medium">Zmień</span>
           </div>
-        </div>
+        </button>
         <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
         {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
       </div>
 
       <div className="space-y-4">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <User size={18} className="text-neutral-400" /> Podstawowe informacje
+          <User size={18} className="text-neutral-400" aria-hidden="true" /> Podstawowe informacje
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="form-label">Nazwa profilu (wymagane)</label>
+          <label className="block">
+            <span className="form-label mb-1 block">Nazwa profilu (wymagane)</span>
             <input required type="text" placeholder="np. Służbowa, Prywatna" value={formData.profile_name} onChange={e => setFormData(prev => ({ ...prev, profile_name: e.target.value }))} className="input-field w-full" />
-          </div>
-          <div>
-            <label className="form-label">Imię i nazwisko</label>
+          </label>
+          <label className="block">
+            <span className="form-label mb-1 block">Imię i nazwisko</span>
             <input type="text" value={formData.full_name} onChange={e => setFormData(prev => ({ ...prev, full_name: e.target.value }))} className="input-field w-full" />
-          </div>
-          <div className="md:col-span-2">
-            <label className="form-label">Organizacja / Firma</label>
+          </label>
+          <label className="md:col-span-2 block">
+            <span className="form-label mb-1 block">Organizacja / Firma</span>
             <div className="relative">
-               <Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+               <Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
                <input type="text" value={formData.organization} onChange={e => setFormData(prev => ({ ...prev, organization: e.target.value }))} className="input-field w-full pl-9" placeholder="Nazwa firmy lub organizacji" />
             </div>
-          </div>
+          </label>
         </div>
       </div>
 
-      {/* --- KOLORY --- */}
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Palette size={18} className="text-neutral-400" /> Kolorystyka wizytówki
+          <Palette size={18} className="text-neutral-400" aria-hidden="true" /> Kolorystyka wizytówki
         </h3>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="form-label">Wersja jasna</label>
+          <label className="block">
+            <span className="form-label mb-1 block">Wersja jasna</span>
             <div className="flex gap-3 items-center">
               <input type="color" value={formData.color_light} onChange={e => setFormData(prev => ({ ...prev, color_light: e.target.value }))} className="w-12 h-12 p-1 bg-white dark:bg-neutral-800 border rounded cursor-pointer dark:border-neutral-700" />
               <span className="text-sm font-mono text-neutral-500">{formData.color_light}</span>
             </div>
-          </div>
-          <div>
-            <label className="form-label">Wersja ciemna</label>
+          </label>
+          <label className="block">
+            <span className="form-label mb-1 block">Wersja ciemna</span>
             <div className="flex gap-3 items-center">
               <input type="color" value={formData.color_dark} onChange={e => setFormData(prev => ({ ...prev, color_dark: e.target.value }))} className="w-12 h-12 p-1 bg-white dark:bg-neutral-800 border rounded cursor-pointer dark:border-neutral-700" />
               <span className="text-sm font-mono text-neutral-500">{formData.color_dark}</span>
             </div>
-          </div>
+          </label>
         </div>
       </div>
 
-      {/* --- KONTAKT --- */}
       <div className="space-y-6 border-t pt-6 dark:border-neutral-800">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Phone size={18} className="text-neutral-400" /> Dane kontaktowe
+          <Phone size={18} className="text-neutral-400" aria-hidden="true" /> Dane kontaktowe
         </h3>
-        
-        {/* Telefony */}
+
         <div>
-          <label className="form-label mb-2 block">Numery telefonu</label>
+          <span className="form-label mb-2 block font-medium">Numery telefonu</span>
           <div className="space-y-2">
             {formData.phones.map((phone, idx) => (
               <div key={`phone-${idx}`} className="flex gap-2 items-center">
+                <label className="sr-only">Typ numeru telefonu {idx + 1}</label>
                 <input type="text" placeholder="Typ" value={phone.type} onChange={e => updatePhone(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+                
+                <label className="sr-only">Numer telefonu {idx + 1}</label>
                 <input type="text" placeholder="Numer" value={phone.number} onChange={e => updatePhone(idx, 'number', e.target.value)} className="input-field flex-1" />
+                
                 <DeleteButton onClick={() => removePhone(idx)} small />
               </div>
             ))}
           </div>
           <button type="button" onClick={addPhone} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-            <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj numer
+            <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj numer
           </button>
         </div>
 
-        {/* Emaile */}
         <div>
-          <label className="form-label mb-2 items-center gap-1.5">Adresy e-mail</label>
+          <span className="form-label mb-2 block font-medium">Adresy e-mail</span>
           <div className="space-y-2">
             {formData.emails.map((email, idx) => (
               <div key={`email-${idx}`} className="flex gap-2 items-center">
+                <label className="sr-only">Typ e-mail {idx + 1}</label>
                 <input type="text" placeholder="Typ" value={email.type} onChange={e => updateEmail(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+                
+                <label className="sr-only">Adres e-mail {idx + 1}</label>
                 <input type="email" placeholder="Adres e-mail" value={email.email} onChange={e => updateEmail(idx, 'email', e.target.value)} className="input-field flex-1" />
+                
                 <DeleteButton onClick={() => removeEmail(idx)} small />
               </div>
             ))}
           </div>
           <button type="button" onClick={addEmail} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-            <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj e-mail
+            <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj e-mail
           </button>
         </div>
 
-        {/* Adresy */}
         <div>
-          <label className="form-label mb-2 items-center gap-1.5">Fizyczne adresy</label>
+          <span className="form-label mb-2 block font-medium">Adresy</span>
           <div className="space-y-2">
             {formData.addresses.map((addr, idx) => (
               <div key={`addr-${idx}`} className="flex gap-2 items-center">
+                <label className="sr-only">Typ adresu {idx + 1}</label>
                 <input type="text" placeholder="Typ" value={addr.type} onChange={e => updateAddress(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+                
+                <label className="sr-only">Adres fizyczny {idx + 1}</label>
                 <input type="text" placeholder="Adres" value={addr.address} onChange={e => updateAddress(idx, 'address', e.target.value)} className="input-field flex-1" />
+                
                 <DeleteButton onClick={() => removeAddress(idx)} small />
               </div>
             ))}
           </div>
           <button type="button" onClick={addAddress} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-            <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj adres
+            <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj adres
           </button>
         </div>
       </div>
 
-      {/* --- SOCIAL MEDIA DYNAMICZNE --- */}
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <LinkIcon size={18} className="text-neutral-400" /> Linki i Media Społecznościowe
+          <LinkIcon size={18} className="text-neutral-400" aria-hidden="true" /> Linki i Media Społecznościowe
         </h3>
         
         <div className="space-y-3">
           {formData.social_links.map((social, idx) => (
             <div key={`social-${idx}`} className="flex gap-2 items-center">
+              <label className="sr-only">Platforma społecznościowa {idx + 1}</label>
               <input type="text" placeholder="np. Facebook" value={social.platform} onChange={e => updateSocialPlatform(idx, e.target.value)} className="input-field w-24 sm:w-32" />
+              
+              <label className="sr-only">Adres URL profilu {idx + 1}</label>
               <input type="text" placeholder="Wklej adres profilu (URL)" value={social.url} onChange={e => updateSocialUrl(idx, e.target.value)} onBlur={() => handleSocialBlur(idx)} className="input-field flex-1" />
+              
               <DeleteButton onClick={() => removeSocialLink(idx)} small />
             </div>
           ))}
         </div>
         
         <button type="button" onClick={addSocialLink} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-          <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj link
+          <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj link
         </button>
       </div>
 
-      {/* --- DANE FIRMOWE --- */}
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Briefcase size={18} className="text-neutral-400" /> Dodatkowe dane firmy
+          <Briefcase size={18} className="text-neutral-400" aria-hidden="true" /> Dodatkowe dane firmy
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="form-label">NIP</label>
+          <label className="block">
+            <span className="form-label mb-1 block">NIP</span>
             <input type="text" value={(formData.business_data as any).nip || ''} onChange={e => updateBusinessData('nip', e.target.value)} className="input-field w-full" placeholder="np. 1234567890" />
-          </div>
-          <div>
-            <label className="form-label">KRS</label>
+          </label>
+          <label className="block">
+            <span className="form-label mb-1 block">KRS</span>
             <input type="text" value={(formData.business_data as any).krs || ''} onChange={e => updateBusinessData('krs', e.target.value)} className="input-field w-full" placeholder="np. 0000123456" />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="form-label">Numer konta bankowego</label>
+          </label>
+          <label className="sm:col-span-2 block">
+            <span className="form-label mb-1 block">Numer konta bankowego</span>
             <input type="text" value={(formData.business_data as any).bank_account || ''} onChange={e => updateBusinessData('bank_account', e.target.value)} className="input-field w-full font-mono text-sm" placeholder="IBAN / Numer konta" />
-          </div>
+          </label>
         </div>
       </div>
 
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Globe size={18} className="text-neutral-400" /> Prywatność i Udostępnianie
+          <Globe size={18} className="text-neutral-400" aria-hidden="true" /> Prywatność i Udostępnianie
         </h3>
         
         <div className="flex items-start gap-3 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border dark:border-neutral-800">
@@ -375,46 +384,46 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
             id="is_public"
             checked={formData.is_public}
             onChange={e => setFormData(prev => ({ ...prev, is_public: e.target.checked }))}
-            className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+            className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
           />
-          <label htmlFor="is_public" className="text-sm dark:text-neutral-300 cursor-pointer">
+          <label htmlFor="is_public" className="text-sm dark:text-neutral-300 cursor-pointer select-none">
             <span className="font-semibold block mb-1 text-neutral-900 dark:text-white">Udostępnij publicznie</span>
           </label>
         </div>
 
         {formData.is_public && (
           <div className="mt-4 animate-in fade-in slide-in-from-top-2">
-            <label className="form-label">Adres URL wizytówki:</label>
-            <div className="flex items-center overflow-hidden border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-shadow">
-              <span className="px-3 py-2.5 text-sm text-neutral-500 bg-neutral-100 dark:bg-neutral-800 border-r dark:border-neutral-700 select-none hidden sm:inline-block">
-                {appUrl}/v/
-              </span>
-              <span className="px-2 text-neutral-400 sm:hidden">/v/</span>
-              <input
-                type="text"
-                required={formData.is_public}
-                value={formData.public_slug}
-                onChange={handleSlugChange}
-                className="flex-1 p-2.5 bg-transparent text-sm font-medium dark:text-white outline-none w-full"
-                placeholder="np. jan-kowalski"
-              />
-              
-              {/* Ikona weryfikacji */}
-              <div className="px-3 flex items-center justify-center bg-transparent">
-                {slugStatus === 'checking' && <Loader2 className="animate-spin text-blue-500 w-5 h-5" />}
-                {slugStatus === 'available' && <CheckCircle2 className="text-green-500 w-5 h-5" />}
-                {slugStatus === 'taken' && <XCircle className="text-red-500 w-5 h-5" />}
+            <label className="block">
+              <span className="form-label mb-1 block">Adres URL wizytówki:</span>
+              <div className="flex items-center overflow-hidden border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-shadow">
+                <span className="px-3 py-2.5 text-sm text-neutral-500 bg-neutral-100 dark:bg-neutral-800 border-r dark:border-neutral-700 select-none hidden sm:inline-block">
+                  {appUrl}/v/
+                </span>
+                <span className="px-2 text-neutral-400 sm:hidden" aria-hidden="true">/v/</span>
+                <input
+                  type="text"
+                  required={formData.is_public}
+                  value={formData.public_slug}
+                  onChange={handleSlugChange}
+                  className="flex-1 p-2.5 bg-transparent text-sm font-medium dark:text-white outline-none w-full"
+                  placeholder="np. jan-kowalski"
+                />
+
+                <div className="px-3 flex items-center justify-center bg-transparent">
+                  {slugStatus === 'checking' && <Loader2 className="animate-spin text-blue-500 w-5 h-5" aria-label="Sprawdzanie dostępności adresu" />}
+                  {slugStatus === 'available' && <CheckCircle2 className="text-green-500 w-5 h-5" aria-label="Adres jest dostępny" />}
+                  {slugStatus === 'taken' && <XCircle className="text-red-500 w-5 h-5" aria-label="Adres jest zajęty" />}
+                </div>
               </div>
-            </div>
+            </label>
             
             {slugStatus === 'taken' && (
-              <p className="mt-1.5 text-xs font-medium text-red-500">Ten adres jest już zajęty. Proszę wpisać inny.</p>
+              <p className="mt-1.5 text-xs font-medium text-red-500" role="alert">Ten adres jest już zajęty. Proszę wpisać inny.</p>
             )}
           </div>
         )}
       </div>
 
-      {/* --- PRZYCISKI --- */}
       <div className="pt-6 border-t dark:border-neutral-800">
         <FormButtons 
           onClickClose={onCancel} 
