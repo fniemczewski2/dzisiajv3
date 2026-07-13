@@ -95,8 +95,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     );
   const { events, fetchEvents, addEvent, deleteEvent, editEvent, fetching: fetchingEvents, loading: loadingEvents } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
-  const { schemas, fetching: fetchingSchemas } = useDaySchemas();
-  const { workLogs, fetching: fetchingWorkLogs } = useWorkLogs(dateStr);
+  const { schemas } = useDaySchemas();
+  const { workLogs } = useWorkLogs(dateStr);
   
   const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
 
@@ -401,8 +401,9 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 if (id.startsWith("schema-")) {
                   await hideSchema(id);
                 } else {
+                  console.log("Marking task as done from DailyPlan:", id);
                   await setDoneTask(id);
-                  handleRemoveFromSchedule(id);
+                  fetchTasks();
                 }
               }} 
               handleRemoveFromSchedule={handleRemoveFromSchedule} 

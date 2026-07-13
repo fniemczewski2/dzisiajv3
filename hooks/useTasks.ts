@@ -207,7 +207,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     async (id: string) => {
       if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
-      setRawTasks(prev => prev.map(t => t.id === id ? { ...t, status: "accepted" } : t));
+      let cleanId = id;
+      if (cleanId.startsWith("task-")) {
+          cleanId = cleanId.replace("task-", ""); 
+      }
+      setRawTasks(prev => prev.map(t => String(t.id) === cleanId ? { ...t, status: "accepted" } : t));
 
       try {
         await supabase.from("tasks").update({ status: "accepted" }).eq("id", id);
@@ -226,11 +230,9 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     async (id: string) => {
       if (!userId) toast.error("Zaloguj się!");
       setLoading(true);
-      if (id.startsWith("task-")) id = id.replace("task-", "");
-      setRawTasks(prev => prev.map(t => t.id === id ? { ...t, status: "done" } : t));
-
       try {
-        await supabase.from("tasks").update({ status: "done" }).eq("id", id);
+        const { data, error } = await supabase.from("tasks").update({ status: "done" }).eq("id", id).select().single();
+        if (error) console.log(data, error);
         toast.success("Wykonano zadanie");
       } catch { 
         fetchTasks(); 
