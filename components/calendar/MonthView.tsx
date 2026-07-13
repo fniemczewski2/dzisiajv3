@@ -115,7 +115,7 @@ const MonthView = memo(function MonthView({
 }: Readonly<Props>) {
   const isMobile = useResponsive();
 
-  const { calendarStart, calendarEnd, rangeStart, rangeEnd } = useMemo(() => {
+  const { calendarStart, calendarEnd } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd   = endOfMonth(currentDate);
     const calStart   = startOfWeek(monthStart, { weekStartsOn: 1 });

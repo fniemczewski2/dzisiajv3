@@ -1,7 +1,7 @@
 // components/calendar/CalendarCell.tsx
 import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
-import { Calendar, ListTodo } from "lucide-react";
+import { Calendar } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { useSettings } from "@/hooks/useSettings";

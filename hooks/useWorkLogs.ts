@@ -35,8 +35,8 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
 
       if (monthStr) {
         const [year, month] = monthStr.split('-');
-        const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-        const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
+        const startDate = new Date(Number.parseInt(year), Number.parseInt(month) - 1, 1);
+        const endDate = new Date(Number.parseInt(year), Number.parseInt(month), 0, 23, 59, 59, 999);
         
         query = query
           .gte('start_time', startDate.toISOString())

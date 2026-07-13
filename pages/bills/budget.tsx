@@ -116,7 +116,7 @@ export default function BudgetPage() {
       <Seo
         title="Budżet - Dzisiaj v3"
         description="Analizuj swoje wydatki, przeglądaj statystyki finansowe i mądrze zaplanuj domowy budżet."
-        canonical="https://dzisiajv3.vercel.app/bills/budget"
+        canonical="https://dzisiaj.fun/bills/budget"
         keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
       />
         <div className="flex justify-between gap-3 items-center mb-6">

@@ -59,7 +59,7 @@ export default function BillsPage() {
       <Seo
         title="Rachunki - Dzisiaj v3"
         description="Miej pełną kontrolę nad stałymi opłatami, śledź terminy płatności i unikaj opóźnień."
-        canonical="https://dzisiajv3.vercel.app/bills"
+        canonical="https://dzisiaj.fun/bills"
         keywords="rachunki, płatności, opłaty stałe, finanse osobiste, przypomnienia finansowe"
       />
         <div className="flex justify-between items-center mb-6 gap-2">

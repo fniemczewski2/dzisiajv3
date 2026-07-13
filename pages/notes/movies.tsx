@@ -28,7 +28,7 @@ export default function MoviesPage() {
       <Seo
         title="Filmy i Seriale - Dzisiaj v3"
         description="Kataloguj produkcje do obejrzenia, wystawiaj oceny i twórz swoją prywatną filmotekę."
-        canonical="https://dzisiajv3.vercel.app/notes/movies"
+        canonical="https://dzisiaj.fun/notes/movies"
         keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"
       />
       <MovieWatchlist movies={movies} addMovie={addMovie} updateMovie={updateMovie} deleteMovie={deleteMovie} toggleWatched={toggleWatched} updateNotes={updateNotes} loading={loading}/>

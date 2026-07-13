@@ -50,13 +50,13 @@ export default function EventItem({
 
   const handleSaveEdit = async () => {
     if (!editedEvent) return;
-      await retry(
-        () => onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
-      );
-      setIsEditing(false);
-      setEditedEvent(null);
-      setSharedEmail("");
-      onEventsChange();
+    await retry(
+      () => onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
+    );
+    setIsEditing(false);
+    setEditedEvent(null);
+    setSharedEmail("");
+    onEventsChange();
   };
 
   const handleDelete = async () => {

@@ -7,7 +7,7 @@ export function useRetry() {
   return async function withRetry<T>(operation: () => Promise<T>): Promise<T> {
     try {
       return await operation();
-    } catch (firstError) {
+    } catch {
       toast.error("Wystąpił błąd. System próbuje ponownie…");
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
 

@@ -176,7 +176,7 @@ export default function BillCalculator() {
     <Seo
       title="Kalkulator - Dzisiaj v3"
       description="Szybki kalkulator wspierający zarządzanie Twoimi codziennymi wydatkami i wyliczeniami."
-      canonical="https://dzisiajv3.vercel.app/bills/calculator"
+      canonical="https://dzisiaj.fun/bills/calculator"
       keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
     />
       <div className="max-w-4xl mx-auto space-y-6">

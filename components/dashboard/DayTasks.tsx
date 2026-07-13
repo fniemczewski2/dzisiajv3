@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import NoResultsState from "../ui/NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 

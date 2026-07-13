@@ -96,7 +96,7 @@ export default function Header() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
   
-  const { forecast, air, loading: weatherLoading, error: weatherError } = useWeather();
+  const { forecast, air, loading: weatherLoading } = useWeather();
 
   const currentTemp = forecast?.current_weather?.temperature ?? null;
   const weatherCode = forecast?.current_weather?.weathercode ?? null;

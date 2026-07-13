@@ -52,7 +52,7 @@ export default function TrainingPage() {
       <Seo
         title="Trening Interwałowy - Dzisiaj v3"
         description="Ćwicz z wbudowanym stoperem. Skonfiguruj własne czasy pracy i przerw do treningów HIIT i Tabata."
-        canonical="https://dzisiajv3.vercel.app/training"
+        canonical="https://dzisiaj.fun/training"
         keywords="trening, interwały, stoper, hiit, tabata, fitness"
       />
         <div className="max-w-2xl mx-auto space-y-6">

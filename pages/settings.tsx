@@ -54,7 +54,7 @@ export default function SettingsPage() {
       <Seo
         title="Ustawienia - Dzisiaj v3"
         description="Dostosuj działanie aplikacji Dzisiaj v3. Zmień preferencje, powiadomienia i wygląd interfejsu."
-        canonical="https://dzisiajv3.vercel.app/settings"
+        canonical="https://dzisiaj.fun/settings"
         keywords="ustawienia, konfiguracja, personalizacja, profil, motyw"
         noindex={true} 
       />

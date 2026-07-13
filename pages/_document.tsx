@@ -31,8 +31,8 @@ export default class MyDocument extends Document {
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-          <link rel="alternate" hrefLang="pl" href="https://dzisiajv3.vercel.app" />
-          <link rel="alternate" hrefLang="x-default" href="https://dzisiajv3.vercel.app" />
+          <link rel="alternate" hrefLang="pl" href="https://dzisiaj.fun" />
+          <link rel="alternate" hrefLang="x-default" href="https://dzisiaj.fun" />
 
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" />

@@ -7,7 +7,7 @@ export default function PrivacyPage() {
       <Seo
         title="Prywatność - Dzisiaj v3"
         description="Polityka prywatności aplikacji Dzisiaj v3. Dowiedz się, jak chronimy Twoje dane, w tym dane z kalendarzy Google i Microsoft Outlook."
-        canonical="https://dzisiajv3.vercel.app/privacy"
+        canonical="https://dzisiaj.fun/privacy"
         keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności, google calendar, outlook"
       />
       

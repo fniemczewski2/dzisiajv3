@@ -11,7 +11,7 @@
 
 Dzisiaj v3 (meaning "Today v3" in Polish) is a feature-rich Progressive Web App (PWA) designed to help users organize their entire life in one place. Whether you're managing tasks, tracking expenses, planning events, or maintaining healthy habits, Dzisiaj v3 has you covered.
 
-**Live Demo:** [https://dzisiajv3.vercel.app](https://dzisiajv3.vercel.app)
+**Live Demo:** [https://dzisiaj.fun](https://dzisiaj.fun)
 
 ## ✨ Key Features
 

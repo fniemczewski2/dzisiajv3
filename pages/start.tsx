@@ -56,7 +56,7 @@ export default function StartPage() {
       <Seo
         title="Rozpocznij - Dzisiaj v3"
         description="Poznaj Dzisiaj v3 - kompleksową aplikację, która pomoże Ci uporządkować i zorganizować każdy dzień."
-        canonical="https://dzisiajv3.vercel.app/start"
+        canonical="https://dzisiaj.fun/start"
         keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />
         <main id="main-content" className="max-w-4xl mx-auto">

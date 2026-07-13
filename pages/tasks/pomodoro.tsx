@@ -124,7 +124,7 @@ const controls: TimerControls = {
       <Seo
         title="Pomodoro - Dzisiaj v3"
         description="Skup się na pracy wykorzystując technikę Pomodoro. Ustawiaj czas głębokiej pracy i optymalizuj przerwy."
-        canonical="https://dzisiajv3.vercel.app/tasks/pomodoro"
+        canonical="https://dzisiaj.fun/tasks/pomodoro"
         keywords="pomodoro, technika pomodoro, skupienie, focus, timer, praca głęboka"
       />
         <div className="flex justify-start gap-3 items-center mb-4 relative">

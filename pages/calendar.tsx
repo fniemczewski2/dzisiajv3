@@ -59,7 +59,7 @@ export default function CalendarPage() {
       <Seo
         title="Kalendarz - Dzisiaj v3"
         description="Planuj nadchodzące wydarzenia, monitoruj terminy i synchronizuj swoje plany z Kalendarzem Google oraz Outlookiem."
-        canonical="https://dzisiajv3.vercel.app/calendar"
+        canonical="https://dzisiaj.fun/calendar"
         keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google, outlook"
       />   
         

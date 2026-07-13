@@ -36,7 +36,7 @@ export default function ShoppingPage() {
       <Seo
         title="Listy Zakupów - Dzisiaj v3"
         description="Kategoryzuj niezbędne produkty i twórz inteligentne listy zakupów."
-        canonical="https://dzisiajv3.vercel.app/notes/shopping"
+        canonical="https://dzisiaj.fun/notes/shopping"
         keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
       />
         <div className="flex justify-between items-center mb-6">

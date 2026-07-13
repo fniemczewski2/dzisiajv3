@@ -72,12 +72,20 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
       vcf += `ADR;TYPE=${addr.type.toUpperCase()}:;;${addr.address};;;;\n`;
     });
 
-    if (profile.social_links) {
-      Object.entries(profile.social_links).forEach(([network, link]) => {
-        if (link) vcf += `URL;TYPE=${network.toUpperCase()}:${link}\n`;
+  if (profile.social_links) {
+      Object.entries(profile.social_links).forEach(([network, rawLink]) => {
+        // Rzutowanie na 'any', aby uniknąć zawężenia do typu 'never' przez TypeScript
+        const link = rawLink as any;
+
+        if (typeof link === 'string' && link.trim() !== '') {
+          vcf += `URL;TYPE=${network.toUpperCase()}:${link}\r\n`;
+        } 
+        // Obsługa przypadku, gdy link jest obiektem (np. z właściwością 'url')
+        else if (link && typeof link === 'object' && typeof link.url === 'string' && link.url.trim() !== '') {
+          vcf += `URL;TYPE=${network.toUpperCase()}:${link.url}\r\n`;
+        }
       });
     }
-
     vcf += `END:VCARD`;
 
     const blob = new Blob([vcf], { type: 'text/vcard;charset=utf-8' });

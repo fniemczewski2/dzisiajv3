@@ -140,7 +140,7 @@ export default function PlacesPage() {
       <Seo
         title="Miejsca - Dzisiaj v3"
         description="Zapisuj restauracje, atrakcje i lokalizacje warte odwiedzenia wraz ze współrzędnymi."
-        canonical="https://dzisiajv3.vercel.app/notes/places"
+        canonical="https://dzisiaj.fun/notes/places"
         keywords="miejsca, lokalizacje, restauracje do odwiedzenia, mapa, podróże"
       />
       <div className="flex items-center justify-between mb-6">

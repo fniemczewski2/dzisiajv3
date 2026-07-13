@@ -4,7 +4,7 @@ export type GpsPermission = 'granted' | 'denied' | null;
 
 export const getGpsCookie = (): GpsPermission => {
   if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp('(^| )gps_permission=([^;]+)'));
+  const match = /(^| )gps_permission=([^;]+)/.exec(document.cookie);
   return match ? (match[2] as GpsPermission) : null;
 };
 

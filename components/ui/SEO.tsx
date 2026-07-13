@@ -21,8 +21,8 @@ interface SeoProps {
 export default function Seo({
   title = "Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
   description = "Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.",
-  canonical = "https://dzisiajv3.vercel.app",
-  ogImage = "https://dzisiajv3.vercel.app/og-image.png",
+  canonical = "https://dzisiaj.fun",
+  ogImage = "https://dzisiaj.fun/og-image.png",
   ogType = "website",
   twitterCard = "summary_large_image",
   noindex = false,
@@ -158,7 +158,7 @@ export function createArticleSchema({
       name: "Dzisiaj v3",
       logo: {
         "@type": "ImageObject",
-        url: "https://dzisiajv3.vercel.app/logo.png",
+        url: "https://dzisiaj.fun/logo.png",
       },
     },
     mainEntityOfPage: {

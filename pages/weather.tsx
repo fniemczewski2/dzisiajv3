@@ -302,7 +302,7 @@ export default function WeatherPage() {
       <Seo
         title="Pogoda - Dzisiaj v3"
         description="Bądź na bieżąco. Sprawdź aktualną prognozę pogody, by idealnie zaplanować swój dzień."
-        canonical="https://dzisiajv3.vercel.app/weather"
+        canonical="https://dzisiaj.fun/weather"
         keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
       />
         <h2 className="text-xl mb-4 font-semibold text-text">Pogoda</h2>

@@ -64,7 +64,7 @@ export default function StreaksPage() {
     <Seo
       title="Cele - Dzisiaj v3"
       description="Zbuduj żelazną dyscyplinę, śledź swoje cele i przedłużaj swoje pasma sukcesów."
-      canonical="https://dzisiajv3.vercel.app/streaks"
+      canonical="https://dzisiaj.fun/streaks"
       keywords="nawyki, cele, pasma, streaks, dyscyplina"
     />
         <div className="flex justify-between items-center mb-4">

@@ -10,4 +10,4 @@ Crawl-delay: 10
 User-agent: SemrushBot
 Crawl-delay: 10
 
-Sitemap: https://dzisiajv3.vercel.app/sitemap.xml
+Sitemap: https://dzisiaj.fun/sitemap.xml

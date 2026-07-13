@@ -74,7 +74,7 @@ export default function DaySchemaPage() {
         <Seo
           title="Schemat Dnia - Dzisiaj v3"
           description="Zbuduj i zautomatyzuj swój idealny schemat dnia oraz poranne lub wieczorne rutyny."
-          canonical="https://dzisiajv3.vercel.app/tasks/daySchema"
+          canonical="https://dzisiaj.fun/tasks/daySchema"
           keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
         />
         <div className="flex justify-between items-center mb-6">

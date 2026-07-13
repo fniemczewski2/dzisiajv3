@@ -47,7 +47,7 @@ export default function NotesPage() {
       <Seo
         title="Notatki - Dzisiaj v3"
         description="Twórz szybkie zapiski, gromadź ważne informacje i buduj swoją podręczną bazę wiedzy."
-        canonical="https://dzisiajv3.vercel.app/notes"
+        canonical="https://dzisiaj.fun/notes"
         keywords="notatki, second brain, baza wiedzy, zapiski, notatnik online"
       />
         <div className="flex justify-between items-center mb-6 gap-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronUp, ChevronDown, PlusCircle } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
 
 import { propagateMonthlyLimits } from "@/lib/budgetUtils";

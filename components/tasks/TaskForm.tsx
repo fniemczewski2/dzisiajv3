@@ -125,7 +125,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
           placeholder="Dodatkowe informacje..." />
       </div>
 
-      <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother && addAnother('task')}/>
+      <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother?.('task')}/>
     </form>
   );
 }

@@ -264,7 +264,7 @@ export default function ReportsPage() {
       <Seo
         title="Sprawozdania - Dzisiaj v3"
         description="Twórz i przeglądaj sprawozdania ze swoich spotkań."
-        canonical="https://dzisiajv3.vercel.app/notes/reports"
+        canonical="https://dzisiaj.fun/notes/reports"
         keywords="raporty, podsumowania, spotkania, sprawozdania"
       />
         <div className="flex justify-between items-center mb-6">

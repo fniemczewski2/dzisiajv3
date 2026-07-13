@@ -107,7 +107,7 @@ export default function TasksPage() {
       <Seo
         title="Zadania - Dzisiaj v3"
         description="Organizuj swoje zadania, używaj priorytetów i grupuj projekty. Zwiększ skuteczność dzięki zaawansowanej liście To-Do."
-        canonical="https://dzisiajv3.vercel.app/tasks"
+        canonical="https://dzisiaj.fun/tasks"
         keywords="zadania, lista to-do, projekty, priorytety, zarządzanie projektami"
       />
         <div className="flex justify-between items-center mb-6">

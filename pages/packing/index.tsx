@@ -17,7 +17,7 @@ export default function PackingMenuPage() {
       <Seo
         title="Pakowanie - Dzisiaj v3"
         description="Zaplanuj swój bagaż przed podróżą. Generuj wygodne listy rzeczy do spakowania."
-        canonical="https://dzisiajv3.vercel.app/packing"
+        canonical="https://dzisiaj.fun/packing"
         keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"
       />
         <div className="w-full flex items-center mb-6">

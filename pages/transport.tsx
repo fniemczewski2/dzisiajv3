@@ -154,7 +154,7 @@ export default function TransportPage() {
       <Seo
         title="Transport - Dzisiaj v3"
         description="Sprawdzaj rzeczywiste odjazdy komunikacji miejskiej i zarządzaj swoimi ulubionymi przystankami."
-        canonical="https://dzisiajv3.vercel.app/transport"
+        canonical="https://dzisiaj.funransport"
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
       />
         <div className="flex items-center mb-4">

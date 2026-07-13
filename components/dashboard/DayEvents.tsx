@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Event } from "@/types";
  
 import NoResultsState from "../ui/NoResultsState";
@@ -21,6 +21,7 @@ export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, 
     <div className="grid grid-cols-1 gap-3">
       {events.map((event) => (
             <EventItem
+              key={event.id}
               event={event}
               loading={loadingEvents}
               onEditEvent={onEditEvent}

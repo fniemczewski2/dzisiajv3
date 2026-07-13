@@ -1,7 +1,6 @@
 // pages/index.tsx
 
 import React, { useEffect, useState } from "react";
-import Seo from "@/components/ui/SEO";
 import dynamic from "next/dynamic";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
@@ -20,6 +19,17 @@ const DayView = dynamic(() => import("../components/dashboard/DayView"), {
   loading: () => <LoadingState fullScreen />,
 });
 
+interface MainViewProps {
+  readonly view: string;
+  readonly viewDate: ReturnType<typeof getAppDateTime>;
+  readonly onDateChange: React.Dispatch<React.SetStateAction<ReturnType<typeof getAppDateTime>>>;
+}
+
+function MainView({ view, viewDate, onDateChange }: MainViewProps) {
+  if (view === 'tasks') return <TasksPage />;
+  if (view === 'day_view') return <DayView date={viewDate} onDateChange={onDateChange} />;
+  return <CalendarPage />;
+}
 
 export default function IndexPage() {
   const { user, loadingUser } = useAuth();
@@ -27,11 +37,6 @@ export default function IndexPage() {
   const [viewDate, setViewDate] = useState(getAppDateTime());
   const { settings, loading: loadingSettings } = useSettings();
 
-  function MainView({ view }: { view: string }) {
-    if (view === 'tasks') return <TasksPage />;
-    if (view === 'day_view') return <DayView date={viewDate} onDateChange={setViewDate} />;
-    return <CalendarPage />;
-  }
   useEffect(() => {
     if (!loadingUser && !user) {
       router.replace("/start");
@@ -45,8 +50,10 @@ export default function IndexPage() {
   if (!user) return null;
 
   return (
-    <>
-        <MainView view={settings.main_view} />
-    </>
-  )
+    <MainView 
+      view={settings.main_view} 
+      viewDate={viewDate} 
+      onDateChange={setViewDate} 
+    />
+  );
 }

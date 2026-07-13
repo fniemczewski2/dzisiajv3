@@ -34,7 +34,7 @@ export default function RecipesPage() {
       <Seo
         title="Przepisy - Dzisiaj v3"
         description="Zbieraj swoje ulubione przepisy kulinarne w jednej, prostej w użyciu książce kucharskiej."
-        canonical="https://dzisiajv3.vercel.app/notes/recipes"
+        canonical="https://dzisiaj.fun/notes/recipes"
         keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"
       />
         <div className="flex items-center justify-between mb-6">

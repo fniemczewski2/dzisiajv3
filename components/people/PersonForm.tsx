@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Person, PersonInsert } from '@/types';
 import { AddButton, FormButtons } from '../ui/CommonButtons';
-import { Plus, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface PersonFormProps {
   initialData?: Person | null;
@@ -10,7 +10,7 @@ interface PersonFormProps {
   onCancel: () => void;
 }
 
-export const PersonForm = ({ initialData, onSave, onCancel }: PersonFormProps) => {
+export const PersonForm = ({ initialData, onSave, onCancel }: Readonly<PersonFormProps>) => {
   const [formData, setFormData] = useState<Partial<Person>>(initialData || {
     first_name: '', last_name: '', relationship: '', priority: 0,
     phones: [], emails: [], notes: '', birthday: '', nameday: '' // <-- Dodane nameday

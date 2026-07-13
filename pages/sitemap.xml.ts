@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from "next";
 
-const BASE_URL = "https://dzisiajv3.vercel.app";
+const BASE_URL = "https://dzisiaj.fun";
 
 const STATIC_PAGES: Array<{
   url: string;

@@ -84,11 +84,9 @@ export default function EventForm({
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    let createdEvent: any = null;
-
     await retry(
       async () => {
-        createdEvent = await addEvent({
+        await addEvent({
           title: title.trim(),
           description: description.trim(),
           start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
@@ -192,7 +190,7 @@ export default function EventForm({
           className="input-field" rows={2} disabled={loading} 
           placeholder="Dodatkowe informacje..." />
       </div>
-        <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother && addAnother('event')} />
+        <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother?.('event')} />
     </form>
   );
 }

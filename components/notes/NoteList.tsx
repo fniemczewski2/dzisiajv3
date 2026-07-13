@@ -5,7 +5,6 @@ import { Search } from "lucide-react";
 import { Note } from "@/types";
 import { useNotes } from "@/hooks/useNotes";
 import { useSettings } from "@/hooks/useSettings";
-import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";
 import SearchBar from "../ui/SearchBar";
 import NoteCard from "./NoteCard";
