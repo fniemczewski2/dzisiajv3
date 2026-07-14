@@ -92,14 +92,13 @@ export function useSettings() {
 
   useEffect(() => {
     if (loadingUser) return;
-
-    if (!userId) {
-      setFetching(false);
-      return;
-    }
     let cancelled = false;
 
     const loadSettings = async () => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setFetching(true);
       try {
         const { data, error } = await supabase
@@ -167,7 +166,10 @@ export function useSettings() {
   }, [loadingUser, userId, supabase]);
 
   const saveSettings = useCallback(async () => {
-    if (!userId) return { error: "No user" };
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     
     const { error } = await supabase
@@ -179,7 +181,10 @@ export function useSettings() {
   }, [supabase, userId]);
 
   const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
-    if (!userId) return { error: "No user" };
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
 
     const updated = { ...settingsRef.current, ...partialSettings };
@@ -196,6 +201,10 @@ export function useSettings() {
   }, [supabase, userId]);
 
   const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const stops = settingsRef.current.favorite_stops;
     if (stops.some((s: any) => (s.name || s) === name)) return true;
     if (stops.length >= MAX_FAVORITE_STOPS) return false;
@@ -215,6 +224,10 @@ export function useSettings() {
   };
 
   const removeFavoriteStop = async (name: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const updated = settingsRef.current.favorite_stops.filter(
       (s: any) => (s.name || s) !== name
     );

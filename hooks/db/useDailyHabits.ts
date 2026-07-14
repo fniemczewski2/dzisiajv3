@@ -37,7 +37,10 @@ export function useDailyHabits(date?: string) {
   }, [fetching, toast]);
 
   const fetchHabits = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -63,7 +66,11 @@ export function useDailyHabits(date?: string) {
   }, [userId, targetDate, supabase, toast]);
 
   const toggleHabit = useCallback(async (key: HabitKey) => {
-    if (!habits || !userId) return;
+    if (!habits) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     const prevValue = habits[key] as boolean;
     const newValue = !prevValue;
@@ -90,7 +97,11 @@ export function useDailyHabits(date?: string) {
   }, [habits, userId, targetDate, supabase]); 
 
   const updateWater = useCallback(async (amount: number) => {
-    if (!habits || !userId) return;
+    if (!habits) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     const validAmount = Number.isNaN(amount) ? 0 : amount;
     const prevAmount = habits.water_amount;
@@ -116,7 +127,11 @@ export function useDailyHabits(date?: string) {
   }, [habits, userId, targetDate, supabase]);
 
   const updateSpending = useCallback(async (amount: number) => {
-    if (!habits || !userId) return;
+    if (!habits) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
 
     const validAmount = Number.isNaN(amount) ? 0 : amount;
     const prevAmount = habits.daily_spending;

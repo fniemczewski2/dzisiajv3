@@ -11,14 +11,14 @@ import {
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import TaskList from "@/components/tasks/TaskList";
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks } from "@/hooks/db/useTasks";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/lib/useQuickAction";
 import Reminders from "@/components/tasks/Reminders";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import Seo from "@/components/ui/SEO";
 
 const TaskForm = dynamic(() => import("@/components/tasks/TaskForm"), {
@@ -39,8 +39,7 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   
-  const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
-  const { toast } = useToast();
+  const { tasks, loading, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { user } = useAuth();
   const { settings } = useSettings();
 
@@ -88,19 +87,6 @@ export default function TasksPage() {
     onActionAdd: () => setShowForm(true),
   });
   
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie zadań...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching, toast]);
 
   return (
     <>
@@ -164,6 +150,7 @@ export default function TasksPage() {
               onTasksChange={fetchTasks}
               userId={userId} 
               userOptions={userOptions}
+              loading={loading}
             />
             <Reminders onTasksChange={fetchTasks} addTask={addTask} />
           </div>

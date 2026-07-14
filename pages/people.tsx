@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePeople } from '@/hooks/usePeople';
+import { usePeople } from '@/hooks/db/usePeople';
 import { PersonCard } from '@/components/people/PersonCard';
 import { PersonForm } from '@/components/people/PersonForm';
 import { ImportPeople } from '@/components/people/ImportPeople';

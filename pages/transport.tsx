@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import SearchBar from "@/components/ui/SearchBar";
-import { useTransport } from "@/hooks/useTransport";
+import { useTransport } from "@/hooks/db/useTransport";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
 import { AddButton, DeleteButton, FavButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
-import { useTrains } from "@/hooks/useTrains";
+import { useTrains } from "@/hooks/db/useTrains";
 import AddTrainForm from "@/components/transport/AddTrainWidget"; 
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
 import StationBoardWidget from "@/components/transport/StationBoard";

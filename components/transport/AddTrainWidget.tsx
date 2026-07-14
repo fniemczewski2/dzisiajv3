@@ -36,7 +36,8 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
     setExpanded(false);
   };
 
-  if (!expanded) return null;; 
+  if (!expanded) return null;
+  
   return (
     <>
       {expanded && (

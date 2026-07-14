@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Place } from "@/types";
 import { ChevronDown, Globe, MapPin, Phone, Star, Navigation } from "lucide-react";
 import { EditButton, DeleteButton } from "../ui/CommonButtons";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";
 import NoResultsState from "../ui/NoResultsState";
 

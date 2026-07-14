@@ -1,5 +1,5 @@
 import React from 'react';
-import { VCardProfile } from '@/hooks/useProfiles';
+import { VCardProfile } from '@/hooks/db/useProfiles';
 import { QRCodeSVG } from 'qrcode.react';
 import { CopyButton, DownloadButton, CopyButtonSmall } from '../ui/CommonButtons';
 import { ChevronLeft } from 'lucide-react';
@@ -147,12 +147,11 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
           </div>
 
           <div className="mt-6 space-y-5">
-            {/* Kontakt */}
             {(profile.phones?.length > 0 || profile.emails?.length > 0) && (
               <div className="space-y-2">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Kontakt</h3>
-                {profile.phones?.map((p, i) => (
-                  <div key={`tel-${i}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
+                {profile.phones?.map((p) => (
+                  <div key={`tel-${p.number}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{p.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
                       <a href={`tel:${p.number.replace(/\s+/g, '')}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
@@ -162,8 +161,8 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
                     </div>
                   </div>
                 ))}
-                {profile.emails?.map((e, i) => (
-                  <div key={`email-${i}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
+                {profile.emails?.map((e) => (
+                  <div key={`email-${e.email}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{e.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
                       <a href={`mailto:${e.email}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[180px]">
@@ -176,12 +175,11 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
               </div>
             )}
 
-            {/* Adresy fizyczne */}
             {profile.addresses?.length > 0 && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Adresy</h3>
-                {profile.addresses.map((a, i) => (
-                  <div key={`addr-${i}`} className="flex flex-col sm:flex-row justify-between items-start text-sm py-1">
+                {profile.addresses.map((a) => (
+                  <div key={`addr-${a.address}`} className="flex flex-col sm:flex-row justify-between items-start text-sm py-1">
                     <span className="opacity-70 text-xs w-20 mt-1">{a.type}</span>
                     <div className="flex-1 flex justify-end items-start gap-2 text-right">
                       <span className="font-medium max-w-[180px]">{a.address}</span>
@@ -192,15 +190,14 @@ export default function VCardPreview({ profile, onBack }: VCardPreviewProps) {
               </div>
             )}
 
-            {/* Linki społecznościowe */}
             {profile.social_links?.length > 0 && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Linki społecznościowe</h3>
-                {profile.social_links.map((social, i: any) => {
+                {profile.social_links.map((social) => {
                   if (!social.url) return null;
                   const displayUser = getUsernameFromUrl(social.url, social.platform);
                   return (
-                    <div key={`social-${i}`} className="flex flex-row justify-between items-center gap-2">
+                    <div key={`social-${social.url}`} className="flex flex-row justify-between items-center gap-2">
                         <SocialIcon platform={social.platform} />
                         <a href={social.url} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate w-full" title={social.url}>
                           {displayUser}

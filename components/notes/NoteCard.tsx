@@ -34,10 +34,10 @@ export default function NoteCard({
       return <span>{text.substring(0, 5000)}... (Text too long)</span>;
     }
 
-    return text.split(urlRegex).map((part, i) => {
+    return text.split(urlRegex).map((part) => {
       if (!part) return null;
       
-      const partKey = `${partPrefix}-p-${part.substring(0, 10)}-${i}`;
+      const partKey = `${partPrefix}-p-${part.substring(0, 10)}-${part}`;
 
       if (/^(https?:\/\/|www\.)/i.test(part)) {
         const safeHref = sanitizeHref(part);
@@ -101,7 +101,7 @@ export default function NoteCard({
         ) : (
           <ul className="list-disc pl-5 my-2 space-y-1.5">
             {note.items.map((item, i) => {
-              const itemKey = `${note.id}-item-${i}`;
+              const itemKey = `${note.id}-item-${item}`;
               return (
                 <li
                   key={itemKey}

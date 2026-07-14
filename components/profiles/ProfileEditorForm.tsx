@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { VCardProfile } from '@/hooks/useProfiles';
+import { VCardProfile } from '@/hooks/db/useProfiles';
 import { FormButtons, DeleteButton } from '../ui/CommonButtons';
 import { 
   User, 

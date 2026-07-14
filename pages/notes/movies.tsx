@@ -1,7 +1,7 @@
 // pages/movies.tsx
 import React, { useEffect } from "react";
 import MovieWatchlist from "@/components/movies/MovieList";
-import { useMovies } from "@/hooks/useMovies";
+import { useMovies } from "@/hooks/db/useMovies";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 

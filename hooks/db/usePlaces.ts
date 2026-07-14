@@ -39,8 +39,8 @@ export function usePlaces() {
 
   const fetchPlaces = useCallback(async () => {
     if (!userId) {
-      setLoading(false);
-      return;
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
     }
     setFetching(true);
     try {
@@ -60,7 +60,10 @@ export function usePlaces() {
   }, [fetchPlaces]);
 
   const addPlace = async (place: PlaceInsert) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -76,7 +79,10 @@ export function usePlaces() {
   };
 
   const updatePlace = async (id: string, updates: Partial<Place>) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -94,7 +100,10 @@ export function usePlaces() {
   };
 
   const deletePlace = async (id: string) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć miejsce?`
     );
@@ -171,7 +180,10 @@ export function usePlaces() {
   };
 
   const findExistingPlace = async (name: string, lat: number, lng: number): Promise<Place | null> => {
-    if (!userId) return null;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const threshold = 0.0001;
     const { data: coordMatches } = await supabase
       .from("places")
@@ -222,6 +234,11 @@ export function usePlaces() {
   };
 
   const savePlaceRecord = async (existing: Place | null, baseData: any, tags: string[]) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
+    setLoading(true);
     if (existing) {
       const { error } = await supabase
         .from("places")
@@ -231,12 +248,14 @@ export function usePlaces() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
+      setLoading(false);
       return error ?  "error" : "updated";
     }
 
     const { error } = await supabase
       .from("places")
       .insert([{ ...baseData, tags }]);
+    setLoading(false);
     return error ? "error" : "imported";
   };
 
@@ -245,7 +264,10 @@ export function usePlaces() {
     fetchGoogleData = true,
     autoTag = true
   ): Promise<number> => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
 
     const features = jsonData.features || [];

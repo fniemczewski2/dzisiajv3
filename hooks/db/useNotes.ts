@@ -19,7 +19,10 @@ export function useNotes() {
   }, [fetching, toast]);
 
   const fetchNotes = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -40,7 +43,10 @@ export function useNotes() {
   }, [userId, supabase]);
 
   const addNote = async (note: Note) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { error } = await supabase
@@ -65,7 +71,10 @@ export function useNotes() {
   };
 
   const editNote = async (note: Note) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { id, ...clean } = note;
@@ -94,7 +103,10 @@ export function useNotes() {
   };
 
   const togglePin = async (id: string) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const note = notes.find(n => n.id === id);
@@ -114,7 +126,10 @@ export function useNotes() {
   };
 
   const toggleArchive = async (id: string) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
 
     try {
@@ -135,7 +150,10 @@ export function useNotes() {
   };
 
   const deleteNote = async (id: string) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć notatkę?`
     );

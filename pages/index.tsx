@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 
 import LoadingState from "@/components/ui/LoadingState";

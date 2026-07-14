@@ -7,7 +7,7 @@ import MenuGrid from "@/components/settings/MenuGrid";
 import SettingsForm from "@/components/settings/SettingsForm";
 import LocationSection from "@/components/settings/LocationSection";
 import UserSection from "@/components/settings/UserSection";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import PushNotificationManager from '@/components/settings/PushNotificationManager';
 import LoveButton from "@/components/settings/LoveButton";
 import { useAuth } from "@/providers/AuthProvider";

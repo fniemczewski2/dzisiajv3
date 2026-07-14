@@ -5,7 +5,7 @@ import {
   Flame, Trophy, Target, Heart, Cigarette, Beer,
   UtensilsCrossed, Dumbbell, PiggyBank, BriefcaseMedical,
 } from "lucide-react";
-import { useStreaks } from "@/hooks/useStreaks";
+import { useStreaks } from "@/hooks/db/useStreaks";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { useRetry } from "@/lib/withRetry";

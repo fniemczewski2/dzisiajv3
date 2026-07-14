@@ -3,7 +3,7 @@
 import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
 import { Note } from "@/types";
-import { useNotes } from "@/hooks/useNotes";
+import { useNotes } from "@/hooks/db/useNotes";
 
 import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";

@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { useState, useCallback, useEffect } from "react";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider";
-import { useRecipes } from "@/hooks/useRecipes";
+import { useRecipes } from "@/hooks/db/useRecipes";
 import Seo from "@/components/ui/SEO";
 
 const RecipeForm = dynamic(() => import("@/components/recipes/RecipeForm"), { ssr: false });

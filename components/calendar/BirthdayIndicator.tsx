@@ -1,6 +1,6 @@
 // components/calendar/BirthdayIndicator.tsx
 import { useMemo } from "react";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents } from "@/hooks/db/useEvents";
 import { format } from "date-fns";
 import { eventSpansDate, getAppDate } from "@/lib/dateUtils";
 import { Cake, Star, Gift, Heart } from "lucide-react";

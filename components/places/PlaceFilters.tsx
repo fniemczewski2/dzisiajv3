@@ -1,6 +1,6 @@
 import { List, MapPin } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import { usePlaces } from "@/hooks/usePlaces";
+import { usePlaces } from "@/hooks/db/usePlaces";
 import SearchBar from "../ui/SearchBar";
 
 interface TimeFilter {

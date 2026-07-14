@@ -5,6 +5,7 @@ import { useToast } from '@/providers/ToastProvider';
 
 export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const { user, supabase } = useAuth();
+  const userId = user?.id;
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,14 +18,17 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
 
 
   const fetchWorkLogs = useCallback(async () => {
-    if (!user) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
 
     try {
       let query = supabase
         .from('work_logs')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('start_time', { ascending: true });
 
       if (dateStr) {
@@ -59,9 +63,9 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   }, [fetchWorkLogs]);
 
   const addWorkLog = async (log: Omit<WorkLogInsert, 'user_id'>) => {
-    if (!user) {
-      toast.error('Zaloguj się');
-      return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
     }
 
     setLoading(true);
@@ -69,7 +73,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     try {
       const { data } = await supabase
         .from('work_logs')
-        .insert([{ ...log, user_id: user.id }])
+        .insert([{ ...log, user_id: userId }])
         .select()
         .single();
       
@@ -85,6 +89,10 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   };
 
   const deleteWorkLog = async (id: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć czas pracy?`
     );

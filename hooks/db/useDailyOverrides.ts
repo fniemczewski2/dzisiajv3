@@ -11,11 +11,15 @@ export type DailyOverride = {
 
 export function useDailyOverrides(dateStr: string) {
   const { supabase, user } = useAuth();
+  const userId = user?.id;
   const { toast } = useToast();
   const [overrides, setOverrides] = useState<DailyOverride[]>([]);
 
   const fetchOverrides = useCallback(async () => {
-    if (!user) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     
     const { data, error } = await supabase
       .from('daily_overrides')
@@ -33,6 +37,10 @@ export function useDailyOverrides(dateStr: string) {
   }, [fetchOverrides]);
 
   const hideSchema = async (schemaId: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy ukryć rutynę?`
     );
@@ -76,7 +84,10 @@ export function useDailyOverrides(dateStr: string) {
   };
 
   const moveSchema = async (schemaId: string, newTime: string) => {
-    if (!user) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    };
     
     setOverrides(prev => {
       const existing = prev.find(o => o.schema_id === schemaId);
@@ -89,7 +100,7 @@ export function useDailyOverrides(dateStr: string) {
     const { data: existing } = await supabase
       .from('daily_overrides')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('date', dateStr)
       .eq('schema_id', schemaId)
       .maybeSingle();

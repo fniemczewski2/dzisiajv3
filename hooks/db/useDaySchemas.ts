@@ -19,7 +19,10 @@ export function useDaySchemas() {
   }, [fetching, toast]);
 
   const fetchSchemas = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -42,7 +45,10 @@ export function useDaySchemas() {
   }, [userId, supabase]);
 
   const addSchema = async (schema: Schema) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.from("day_schemas").insert({
@@ -63,8 +69,12 @@ export function useDaySchemas() {
   };
 
   const updateSchema = async (id: string, payload: Omit<Schema, "id">) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
+    
     setLoading(true);
-
     setSchemas((prev) => prev.map(s => s.id === id ? { ...s, ...payload } : s));
 
     try {
@@ -82,7 +92,10 @@ export function useDaySchemas() {
   };
 
   const deleteSchema = async (id: string) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć schemat?`
     );

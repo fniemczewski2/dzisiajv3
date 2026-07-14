@@ -24,7 +24,7 @@ export interface TrackedTrain extends TrainInput {
 
 export function useTrains() {
   const { supabase, user } = useAuth();
-  
+  const userId = user?.id;
   const [trains, setTrains] = useState<TrackedTrain[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [fetching, setFetching] = useState<boolean>(false);
@@ -37,9 +37,9 @@ export function useTrains() {
 
   
   const fetchTrains = useCallback(async () => {
-    if (!user) {
-      setFetching(false);
-      return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
     }
     
     setFetching(true);
@@ -96,7 +96,10 @@ export function useTrains() {
   }, [user, supabase]);
 
   const addTrain = async (trainData: TrainInput) => {
-    if (!user) { return false; }
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -148,6 +151,10 @@ export function useTrains() {
   };
 
   const deleteTrain = async (id: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć pociąg?`
     );

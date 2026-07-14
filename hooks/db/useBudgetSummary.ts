@@ -32,8 +32,8 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
 
   const compute = useCallback(async () => {
     if (!userId) {
-      setLoading(false);
-      return;
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
     }
 
     if (categories.length === 0) {

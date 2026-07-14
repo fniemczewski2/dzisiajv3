@@ -98,7 +98,10 @@ export function useStreaks() {
   }, [fetching, toast]);
 
   const fetchStreaks = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -114,6 +117,10 @@ export function useStreaks() {
   }, [userId, supabase]);
 
   const addStreak = async (newStreak: Omit<Streak, "id" | "user_id">) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { error } = await supabase
@@ -127,6 +134,10 @@ export function useStreaks() {
   };
 
   const deleteStreak = async (id: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     const ok = await toast.confirm(
       `Czy chcesz usunąć cel?`
@@ -142,6 +153,10 @@ export function useStreaks() {
   };
 
   const updateStreak = async (id: string, updates: Partial<Streak>) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { error } = await supabase.from("streaks").update(updates).eq("id", id);

@@ -19,7 +19,10 @@ export function usePeople() {
   }, [fetching, toast]);
 
   const fetchPeople = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -42,7 +45,10 @@ export function usePeople() {
   }, [fetchPeople]);
 
   const addPerson = async (person: PersonInsert) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.from("people").insert({ ...person, user_id: userId }).select().single();
@@ -57,7 +63,10 @@ export function usePeople() {
   };
 
   const editPerson = async (id: string, updates: Partial<Person>) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       setPeople((prev) => prev.map((p) => p.id === id ? { ...p, ...updates } : p));
@@ -73,7 +82,10 @@ export function usePeople() {
   };
 
   const deletePerson = async (id: string) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     
     const ok = await toast.confirm("Czy na pewno chcesz usunąć kontakt?");
 

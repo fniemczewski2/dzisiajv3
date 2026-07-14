@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 
 import { propagateMonthlyLimits } from "@/lib/budgetUtils";
 import {

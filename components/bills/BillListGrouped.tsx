@@ -4,8 +4,8 @@ import { format, startOfMonth, endOfMonth, isSameMonth, parseISO } from "date-fn
 import { pl } from "date-fns/locale";
 import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "lucide-react";
 import { Bill, BudgetCategory } from "@/types";
-import { useBills } from "@/hooks/useBills";
-import { useBudgetCategories } from "@/hooks/useBudgetCategories"; 
+import { useBills } from "@/hooks/db/useBills";
+import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 
 import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import { useRetry } from "@/lib/withRetry";

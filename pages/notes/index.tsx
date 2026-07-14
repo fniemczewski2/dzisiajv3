@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Clapperboard, MapPin } from "lucide-react";
-import { useNotes } from "@/hooks/useNotes";
+import { useNotes } from "@/hooks/db/useNotes";
 import NoteList from "@/components/notes/NoteList";
 import { useRouter } from "next/router";
 import { AddButton } from "@/components/ui/CommonButtons";

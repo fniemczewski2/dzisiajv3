@@ -47,7 +47,10 @@ export function useProfiles() {
   }, [fetching, toast]);
 
   const fetchProfiles = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     setError(null);
     try {
@@ -70,7 +73,10 @@ export function useProfiles() {
   }, [supabase, userId, toast]);
 
   const addProfile = async (profileData: NewVCardProfile) => {
-    if (!userId) return { success: false, error: "Brak zalogowanego użytkownika" };
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       if (profiles.length >= 5) throw new Error("Osiągnięto limit 5 wizytówek.");
@@ -94,6 +100,10 @@ export function useProfiles() {
   };
 
   const updateProfile = async (id: string, updates: Partial<VCardProfile>) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -116,6 +126,10 @@ export function useProfiles() {
   };
 
   const deleteProfile = async (id: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć profil?`
     );

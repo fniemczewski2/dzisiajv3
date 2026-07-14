@@ -38,9 +38,8 @@ export function useMovies() {
 
   const fetchMovies = useCallback(async () => {
     if (!userId) {
-      setRawMovies([]);
-      setLoading(false);
-      return;
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
     }
     setFetching(true);
     try {
@@ -61,7 +60,10 @@ export function useMovies() {
 
   const addMovie = useCallback(
     async (movie: Omit<MovieInsert, "user_id">): Promise<Movie> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       const { data, error } = await supabase
         .from("movies")
@@ -81,6 +83,10 @@ export function useMovies() {
 
   const updateMovie = useCallback(
     async (movie: Movie): Promise<void> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try { 
         const { id, ...updates } = movie;
@@ -96,6 +102,10 @@ export function useMovies() {
 
   const deleteMovie = useCallback(
     async (id: string): Promise<void> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       const ok = await toast.confirm(
         `Czy chcesz usunąć film?`
       );
@@ -114,6 +124,10 @@ export function useMovies() {
 
   const toggleWatched = useCallback(
     async (id: string): Promise<void> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       const movie = rawMovies.find((m) => m.id === id);
       if (!movie) return;
@@ -128,6 +142,10 @@ export function useMovies() {
 
   const updateNotes = useCallback(
     async (id: string, notes: string): Promise<void> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       const movie = rawMovies.find((m) => m.id === id);
       if (!movie) return;
       await updateMovie({ ...movie, notes });

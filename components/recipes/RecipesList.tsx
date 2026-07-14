@@ -3,8 +3,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types";
-import { useRecipes } from "@/hooks/useRecipes";
-import { useSettings } from "@/hooks/useSettings";
+import { useRecipes } from "@/hooks/db/useRecipes";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";

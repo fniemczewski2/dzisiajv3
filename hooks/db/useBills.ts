@@ -250,7 +250,7 @@ export function useBills(options: FetchOptions = {}) {
     async (id: string, deleteFutureRecurring = false): Promise<void> => {
       if (!userId) {
         toast.error("Zaloguj się!");
-        return;
+        throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(
       `Czy chcesz usunąć rachunek?${deleteFutureRecurring ? " (wraz z przyszłymi powtarzającymi się)" : ""}`
@@ -284,7 +284,7 @@ export function useBills(options: FetchOptions = {}) {
     async (id: string): Promise<void> => {
       if (!userId) {
         toast.error("Zaloguj się!");
-        return;
+        throw new Error("Unauthorized");
       }
       setLoading(true);
       
@@ -303,7 +303,10 @@ export function useBills(options: FetchOptions = {}) {
 
   const fetchActiveMonths = useCallback(
     async (year: number, categoryId: string = "all"): Promise<number[]> => {
-      if (!userId) return [];
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       
       const query = buildActiveMonthsQuery(supabase, userId, year, categoryId);
       const { data, error } = await query;

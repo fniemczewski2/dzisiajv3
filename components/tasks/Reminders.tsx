@@ -3,7 +3,7 @@ import {
   RefreshCw, ChevronDown, ChevronUp, Plus, Check,
   Trash2, ChevronsRight, List, ListPlus,
 } from "lucide-react";
-import { useReminders } from "@/hooks/useReminders";
+import { useReminders } from "@/hooks/db/useReminders";
 
 import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";
@@ -71,7 +71,6 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   }
 
   const handleAddTask = async (reminder: any) => {
-    if (!userId) return;
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
 

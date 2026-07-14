@@ -115,7 +115,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const addTask = useCallback(
     async (task: Partial<Task> & { shared_with_email?: string }) => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const { shared_with_email, display_share_info, ...taskData } = task;
@@ -146,8 +149,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const editTask = useCallback(
     async (task: Task & { shared_with_email?: string }) => {
-      if (!userId) toast.error("Zaloguj się!");
-      
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+
       setRawTasks(prev => prev.map(t => t.id === task.id ? { ...t, ...task } : t));
 
       try {
@@ -182,7 +188,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const deleteTask = useCallback(
     async (id: string) => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       const ok = await toast.confirm(
       `Czy chcesz usunąć zadanie?`
       );
@@ -205,7 +214,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const acceptTask = useCallback(
     async (id: string) => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       let cleanId = id;
       if (cleanId.startsWith("task-")) {
@@ -228,7 +240,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const setDoneTask = useCallback(
     async (id: string) => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const { data, error } = await supabase.from("tasks").update({ status: "done" }).eq("id", id).select().single();

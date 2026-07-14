@@ -8,13 +8,13 @@ import {
 } from "@dnd-kit/core";
 
 import { useAuth } from "@/providers/AuthProvider";
-import { useSettings } from "@/hooks/useSettings";
-import { useTasks } from "@/hooks/useTasks";
-import { useEvents } from "@/hooks/useEvents";
-import { useStreaks } from "@/hooks/useStreaks";
-import { useDaySchemas } from "@/hooks/useDaySchemas";
+import { useSettings } from "@/hooks/db/useSettings";
+import { useTasks } from "@/hooks/db/useTasks";
+import { useEvents } from "@/hooks/db/useEvents";
+import { useStreaks } from "@/hooks/db/useStreaks";
+import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { useDashboardDnd } from "@/lib/useDashboardDnd";
-import { useDailyOverrides } from "@/hooks/useDailyOverrides";
+import { useDailyOverrides } from "@/hooks/db/useDailyOverrides";
 
 import { DayEvents } from "./DayEvents";
 import { DailyPlan } from "./DailyPlan";
@@ -23,7 +23,7 @@ import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { AddButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
-import { useWorkLogs } from "@/hooks/useWorkLogs";
+import { useWorkLogs } from "@/hooks/db/useWorkLogs";
 
 const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
 const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });

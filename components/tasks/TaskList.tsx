@@ -12,6 +12,7 @@ interface Props {
   onTasksChange: () => void;
   userId: string;
   userOptions: string[];
+  loading: boolean;
 }
 
 export default function TaskList({
@@ -22,7 +23,8 @@ export default function TaskList({
   deleteTask,
   onTasksChange,
   userId,
-  userOptions
+  userOptions,
+  loading
 }: Readonly<Props>) {
 
   if (tasks.length === 0) {
@@ -45,6 +47,7 @@ export default function TaskList({
               onTasksChange={onTasksChange}
               userId={userId}
               userOptions={userOptions}
+              loading={loading}
             />
           </li>
         ))}

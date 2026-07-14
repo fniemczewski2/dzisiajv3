@@ -7,6 +7,7 @@ import { useToast } from "@/providers/ToastProvider";
 
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();
+  const userId = user?.id;
   const [moods, setMoods] = useState<MoodEntry[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,10 @@ export function useMoods(startDate?: string, endDate?: string) {
   }, [fetching, toast]);
 
   const fetchMoods = useCallback(async () => {
-    if (!user) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       let query = supabase
@@ -42,7 +46,10 @@ export function useMoods(startDate?: string, endDate?: string) {
   useEffect(() => { fetchMoods(); }, [fetchMoods]);
 
   const logMood = async (date: string, mood_id: string | null) => {
-    if (!user) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true)
     try {
       const { data, error } = await supabase

@@ -4,7 +4,7 @@ import React, { useEffect, useState, SyntheticEvent } from "react";
 import { Minus, Plus, RefreshCw } from "lucide-react";
 import { format, endOfYear } from "date-fns";
 import { getAppDate } from "@/lib/dateUtils";
-import { useBills } from "@/hooks/useBills";
+import { useBills } from "@/hooks/db/useBills";
 import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";
 import type { Bill, BudgetCategory } from "@/types";

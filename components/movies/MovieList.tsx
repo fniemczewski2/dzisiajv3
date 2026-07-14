@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";
 import { AddButton } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";

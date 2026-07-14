@@ -2,8 +2,8 @@
 
 import React, { useState, useRef } from "react";
 import { Upload, AlertCircle, CheckCircle2, FileText } from "lucide-react";
-import { useBudgetCategories } from "@/hooks/useBudgetCategories";
-import { useBills } from "@/hooks/useBills";
+import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
+import { useBills } from "@/hooks/db/useBills";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { FormButtons } from "../ui/CommonButtons";

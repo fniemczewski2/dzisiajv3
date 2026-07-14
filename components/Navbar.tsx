@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Settings } from "../types";
 import { useEffect, useState } from "react";
-import { useSettings } from "../hooks/useSettings";
+import { useSettings } from "../hooks/db/useSettings";
 
 interface NavLinkProps {
   href: string;

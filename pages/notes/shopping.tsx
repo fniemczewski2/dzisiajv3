@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useShoppingLists } from "@/hooks/useShoppingLists";
+import { useShoppingLists } from "@/hooks/db/useShoppingLists";
 import ShoppingForm from "@/components/shopping/ShoppingForm";
 import ShoppingListView from "@/components/shopping/ShoppingListView";
 import { AddButton } from "@/components/ui/CommonButtons";

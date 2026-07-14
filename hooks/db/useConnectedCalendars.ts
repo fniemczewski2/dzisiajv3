@@ -35,7 +35,10 @@ export function useConnectedCalendars(expanded: boolean) {
   }, [fetching, toast]);
 
   const fetchAccountsAndCalendars = useCallback(async (onlyAccounts = false) => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     
     const { data: accountsData, error } = await supabase
@@ -142,6 +145,10 @@ export function useConnectedCalendars(expanded: boolean) {
   }, [fetchAccountsAndCalendars]);
 
   const handleToggleCalendar = async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {
+    if (!user) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const key = `${primaryAccountForEmail.id}:::${cal.id}`;
     setTogglingId(cal.id);
 
@@ -200,6 +207,10 @@ export function useConnectedCalendars(expanded: boolean) {
   };
 
   const handleDisconnect = async (id: string, email: string, provider: 'google' | 'outlook') => {
+    if (!user) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz odłączyć konto ${email} i usunąć zaimportowane wydarzenia?`
     );
@@ -234,6 +245,10 @@ export function useConnectedCalendars(expanded: boolean) {
   };
 
   const handleConnectGoogle = async () => {
+    if (!user) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -255,6 +270,10 @@ export function useConnectedCalendars(expanded: boolean) {
   };
 
   const handleConnectOutlook = async () => {
+    if (!user) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();

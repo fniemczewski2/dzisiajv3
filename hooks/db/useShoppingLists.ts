@@ -21,7 +21,10 @@ export function useShoppingLists() {
   }, [fetching, toast]);
 
   const fetchShoppingLists = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -49,6 +52,10 @@ export function useShoppingLists() {
 
   const addShoppingList = useCallback(
     async (name: string, shared_with_email: string | null): Promise<boolean> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       if (lists.length >= MAX_SHOPPING_LISTS) {
         setLoading(false);
@@ -79,6 +86,10 @@ export function useShoppingLists() {
     id: string,
     updates: Partial<ShoppingList> & { shared_with_email?: string }
   ) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     const { shared_with_email, display_share_info, ...finalUpdates } = updates as any;
 
@@ -100,6 +111,10 @@ export function useShoppingLists() {
   };
 
   const deleteShoppingList = async (id: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć listę zakupów?`
     );

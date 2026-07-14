@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, User } from "lucide-react";
 import { ShoppingList } from "@/types";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useProfiles, VCardProfile, NewVCardProfile } from '@/hooks/useProfiles';
+import { useProfiles, VCardProfile, NewVCardProfile } from '@/hooks/db/useProfiles';
 import NoResultsState from '@/components/ui/NoResultsState';
 import ProfileEditorForm from './ProfileEditorForm';
 import VCardPreview from './VCardPreview';

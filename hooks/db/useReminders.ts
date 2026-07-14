@@ -24,7 +24,10 @@ export function useReminders() {
   const today = getAppDate();
 
   const fetchReminders = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -42,7 +45,10 @@ export function useReminders() {
 
   const addReminder = useCallback(
     async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -62,6 +68,10 @@ export function useReminders() {
 
   const postponeReminder = useCallback(
     async (id: string, powtarzanie: number) => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const dt = getAppDateTime();
@@ -86,6 +96,10 @@ export function useReminders() {
 
   const completeReminder = useCallback(
     async (id: string) => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -106,6 +120,10 @@ export function useReminders() {
 
   const deleteReminder = useCallback(
     async (id: string) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć zadanie cykliczne?`
     );

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Link2Off, Loader2, Link as LinkIcon } from 'lucide-react';
-import { useConnectedCalendars } from '@/hooks/useConnectedCalendars';
+import { useConnectedCalendars } from '@/hooks/db/useConnectedCalendars';
 
 export default function ConnectedCalendars() {
   const [expanded, setExpanded] = useState(false);

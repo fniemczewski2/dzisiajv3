@@ -22,7 +22,11 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   }, [fetching, toast]);
 
   const fetchEvents = useCallback(async () => {
-    if (!userId || !rangeStart || !rangeEnd) return;
+    if (!rangeStart || !rangeEnd) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -41,7 +45,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         userEmailsRef
       );
 
-      // 2. Pobieranie kontaktów z odpowiednim priorytetem w celu stworzenia wirtualnych wydarzeń
       const { data: peopleData, error: peopleError } = await supabase
         .from("people")
         .select("*")
@@ -73,8 +76,6 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
           }
         });
       }
-
-      // Połączenie zwykłych wydarzeń i wygenerowanych z kontaktów
       const allEvents = [...eventsWithDisplayInfo, ...virtualEvents];
 
       const start = new Date(rangeStart + "T00:00:00");
@@ -103,7 +104,10 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   }, [fetchEvents]);
 
   const addEvent = async (event: Event & { shared_with_email?: string }) => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { id, shared_with_email, display_share_info, ...eventData } = event as any;
@@ -129,13 +133,15 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   };
 
   const editEvent = async (event: Event & { shared_with_email?: string }) => {
-    // Zabezpieczenie przed edycją wirtualnych wydarzeń
     if (event.id.startsWith("bday_") || event.id.startsWith("nday_")) {
       console.warn("Nie można edytować wydarzeń generowanych z kontaktów z poziomu kalendarza.");
       return;
     }
 
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, ...event } : e));
     try {
@@ -175,7 +181,10 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
       return;
     }
 
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
 
     const ok = await toast.confirm(
       `Czy chcesz usunąć wydarzenie?`

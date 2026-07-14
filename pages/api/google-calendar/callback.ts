@@ -4,23 +4,16 @@ import { createServerSupabase } from '@/lib/supabase/server';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;
 
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-  
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   if (!code || !state) return res.status(400).redirect('/calendar?error=missing_params');
 
   const cookieNonce = req.cookies["gcal_oauth_state"];
-  if (!cookieNonce || cookieNonce !== state) {
-    return res.redirect('/calendar?error=invalid_state');
-  }
+  if (!cookieNonce || cookieNonce !== state) return res.redirect('/calendar?error=invalid_state');
 
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (authError || !user) {
-    return res.redirect('/calendar?error=auth_failed');
-  }
+  if (authError || !user) return res.redirect('/calendar?error=auth_failed');
 
   try {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, "");
@@ -48,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
     const { error } = await supabase.from('connected_calendars').upsert({
-      user_id: user.id, // Używamy ID ze zweryfikowanej sesji
+      user_id: user.id, 
       provider: 'google',
       account_email: email,
       access_token: tokens.access_token,

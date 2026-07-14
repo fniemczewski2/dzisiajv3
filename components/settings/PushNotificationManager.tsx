@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { usePushNotifications } from "@/hooks/db/usePushNotifications";
 import { useToast } from "@/providers/ToastProvider";
 import NotificationPreferences from "./NotificationPreferencesForm";
 

@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "@/types";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";

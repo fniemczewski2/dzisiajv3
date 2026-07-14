@@ -21,6 +21,7 @@ interface Props {
   onTasksChange: () => void;
   userId: string;
   userOptions: string[];
+  loading: boolean;
 }
 
 function TaskEditForm({
@@ -135,7 +136,7 @@ function TaskViewActions({
   task,
   userId,
   isDone,
-  isRescheduling,
+  loading,
   handleEdit,
   handleDelete,
   handleAccept,
@@ -146,7 +147,7 @@ function TaskViewActions({
   task: Task;
   userId: string;
   isDone: boolean;
-  isRescheduling: boolean;
+  loading?: boolean;
   handleEdit: () => void;
   handleDelete: () => void;
   handleAccept: () => void;
@@ -181,7 +182,7 @@ function TaskViewActions({
         <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
         <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
       </button>
-      <RescheduleButton onClick={() => handleReschedule(1)} loading={isRescheduling} />
+      <RescheduleButton onClick={() => handleReschedule(1)} loading={loading} />
       <TimerButton onClick={() => setIsTimerActive(true)} />
       <EditButton onClick={handleEdit} />
       <DeleteButton onClick={handleDelete} />
@@ -236,26 +237,26 @@ function TaskView({
   isDone,
   isHighPriority,
   isOverdue,
+  loading,
   setIsTimerActive,
   handleEdit,
   handleDelete,
   handleAccept,
   handleComplete,
   handleReschedule,
-  isRescheduling
 }: Readonly<{
   task: Task;
   userId: string;
   isDone: boolean;
   isHighPriority: boolean;
   isOverdue: boolean;
+  loading?: boolean;
   setIsTimerActive: (val: boolean) => void;
   handleEdit: () => void;
   handleDelete: () => void;
   handleAccept: () => void;
   handleComplete: () => void;
   handleReschedule: (days: number) => void;
-  isRescheduling: boolean;
 }>) {
   return (
     <div className="card min-w-0 p-4 w-full rounded-2xl hover:border-primary transition-all flex flex-col text-left">
@@ -295,7 +296,7 @@ function TaskView({
         task={task}
         userId={userId}
         isDone={isDone}
-        isRescheduling={isRescheduling}
+        loading={loading}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
         handleAccept={handleAccept}
@@ -308,13 +309,12 @@ function TaskView({
 }
 
 function useTaskActions(props: Props) {
-  const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId } = props;
+  const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId, loading } = props;
   const { supabase } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [sharedEmail, setSharedEmail] = useState("");
-  const [isRescheduling, setIsRescheduling] = useState(false);
   const [isTimerActive, setIsTimerActive] = useState(false);
   
   const handleDelete = async () => {
@@ -401,7 +401,7 @@ function useTaskActions(props: Props) {
 
   return {
     isEditing, editedTask, setEditedTask, sharedEmail, setSharedEmail,
-    isRescheduling, isTimerActive, setIsTimerActive,
+    isTimerActive, setIsTimerActive,
     handleDelete, handleEdit, handleCancelEdit, handleSaveEdit,
     handleComplete, handleReschedule, handleAccept, stopTimerAndSave,
     increasePriority, decreasePriority
@@ -495,7 +495,6 @@ const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
       handleAccept={actions.handleAccept}
       handleComplete={actions.handleComplete}
       handleReschedule={actions.handleReschedule}
-      isRescheduling={actions.isRescheduling}
     />
   );
 });

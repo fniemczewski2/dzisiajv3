@@ -19,6 +19,7 @@ interface DayTasksProps {
 }
 
 export const DayTasks = React.memo(({
+  loadingTasks,
   fetchingTasks,
   tasks,
   acceptTask,
@@ -46,8 +47,9 @@ export const DayTasks = React.memo(({
                       onTasksChange={fetchTasks}
                       userId={userId}
                       userOptions={userOptions}
+                      loading={loadingTasks}
                     />
-                  </div>
+                </div>
             </DraggablePlanItem>
           );
         })}

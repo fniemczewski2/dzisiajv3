@@ -45,7 +45,10 @@ export function usePushNotifications(userId: string | undefined) {
   }, [userId]);
 
   async function subscribeToPush() {
-    if (!userId) throw new Error('Musisz być zalogowany')
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true)
     try {
       const permission = await Notification.requestPermission()
@@ -110,6 +113,10 @@ export function usePushNotifications(userId: string | undefined) {
   }
 
   async function unsubscribeFromPush() {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true)
     try {
       const registration = await navigator.serviceWorker.ready

@@ -3,7 +3,7 @@
 
 import React, { useState, SyntheticEvent, useEffect } from "react";
 import { Event } from "@/types";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { format } from "date-fns";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
@@ -53,7 +53,6 @@ export default function EventForm({
   const [selectedCalendar, setSelectedCalendar] = useState("local");
 
   useEffect(() => {
-    if (!userId) return;
     const fetchCalendars = async () => {
       const { data } = await supabase
         .from("connected_calendars")

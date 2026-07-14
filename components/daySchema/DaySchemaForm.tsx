@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { PlusCircle } from "lucide-react";
-import { useDaySchemas } from "@/hooks/useDaySchemas";
+import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
 
 import type { ScheduleItem, Schema } from "@/types";
@@ -101,13 +101,13 @@ export default function DaySchemaForm({
           {entries.map((entry, i) => (
            
             <div key={entry.id} className="flex w-full gap-2 items-center">
-              <label htmlFor={`time-${i}`} className="sr-only">Godzina</label>
-              <input id={`time-${i}`} type="time" value={entry.time}
+              <label htmlFor={`time-${entry.time}`} className="sr-only">Godzina</label>
+              <input id={`time-${entry.time}`} type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
                 className="input-field w-[80px]" required />
               
-              <label htmlFor={`label-${i}`} className="sr-only">Etykieta</label>
-              <input id={`label-${i}`} type="text" value={entry.label} placeholder="Etykieta"
+              <label htmlFor={`label-${entry.label}`} className="sr-only">Etykieta</label>
+              <input id={`label-${entry.label}`} type="text" value={entry.label} placeholder="Etykieta"
                 onChange={(e) => handleEntryChange(i, "label", e.target.value)}
                 className="input-field w-full" required />
               

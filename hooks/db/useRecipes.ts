@@ -50,6 +50,10 @@ export function useRecipes() {
   }, [rawRecipes, settings?.sort_recipes]);
 
   const fetchRecipes = useCallback(async (): Promise<Recipe[]> => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -67,6 +71,10 @@ export function useRecipes() {
   }, [supabase, userId]);
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -90,7 +98,10 @@ export function useRecipes() {
   }, [fetchRecipes, fetchProducts]);
 
   const addRecipe = async (r: NewRecipe): Promise<Recipe> => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -114,7 +125,10 @@ export function useRecipes() {
   };
 
   const editRecipe = async (recipe: Recipe): Promise<Recipe> => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -138,7 +152,10 @@ export function useRecipes() {
   };
 
   const deleteRecipe = async (id: string): Promise<void> => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć przepis?`
     );

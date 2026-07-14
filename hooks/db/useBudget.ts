@@ -40,7 +40,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   }, [fetching, toast]);
 
   const fetchMonthData = async (month: number): Promise<MonthData> => {
-    if (!userId) return getEmptyMonthData();
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true)
 
     const monthStr = String(month).padStart(2, "0");
@@ -85,7 +88,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const fetchRates = async () => {
-    if (!userId) return {};
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true)
     const { data: ratesData } = await supabase
       .from("budgets")
@@ -103,7 +109,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const loadData = async () => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const rates = await fetchRates();
@@ -127,6 +136,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const updateRate = (month: number, rate: number) => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     setData((prev) => ({
       ...prev,
@@ -136,7 +149,10 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   };
 
   const saveRates = async () => {
-    if (!userId) toast.error("Zaloguj się!");
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setLoading(true);
     try {
       const payload: any = { user_id: userId };

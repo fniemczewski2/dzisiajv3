@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon, Users, Gift } from "lucide-react";
 
 export default function NotificationPreferences() {

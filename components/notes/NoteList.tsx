@@ -3,8 +3,8 @@
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { Note } from "@/types";
-import { useNotes } from "@/hooks/useNotes";
-import { useSettings } from "@/hooks/useSettings";
+import { useNotes } from "@/hooks/db/useNotes";
+import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";
 import SearchBar from "../ui/SearchBar";
 import NoteCard from "./NoteCard";

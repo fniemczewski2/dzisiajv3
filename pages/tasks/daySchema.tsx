@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
-import { useDaySchemas } from "@/hooks/useDaySchemas";
+import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { Schema, ScheduleItem } from "@/types";
 import { getAppDateTime } from "@/lib/dateUtils";
 import DaySchemaForm from "@/components/daySchema/DaySchemaForm";

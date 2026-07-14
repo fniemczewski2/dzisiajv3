@@ -4,7 +4,7 @@ import { isSameDay, parseISO } from "date-fns";
 import { Calendar } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { getAppDate } from "@/lib/dateUtils";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { MoodEntry, MoodOption } from "@/types";
 
 interface Props {

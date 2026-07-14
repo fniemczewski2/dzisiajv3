@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Calculator, ChartColumnBig } from "lucide-react";
-import { useBills } from "@/hooks/useBills";
-import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { useBills } from "@/hooks/db/useBills";
+import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { useRouter } from "next/router";
 import { useToast } from "@/providers/ToastProvider";
 import { getYear } from "date-fns";

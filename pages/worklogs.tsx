@@ -2,7 +2,7 @@ import React, { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Clock, Calendar} from 'lucide-react';
-import { useWorkLogs } from '@/hooks/useWorkLogs';
+import { useWorkLogs } from '@/hooks/db/useWorkLogs';
 import { useToast } from '@/providers/ToastProvider';
 import { AddButton, DeleteButton, FormButtons } from '@/components/ui/CommonButtons';
 import NoResultsState from '@/components/ui/NoResultsState';

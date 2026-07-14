@@ -22,7 +22,10 @@ export function useBudgetCategories(year: number) {
   }, [fetching, toast]);
 
   const fetchCategories = useCallback(async () => {
-    if (!userId) { setFetching(false); return; }
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     setFetching(true);
     try {
       const { data, error } = await supabase
@@ -47,7 +50,10 @@ export function useBudgetCategories(year: number) {
       monthly_amounts: number[];
       is_monthly: boolean;
     }): Promise<BudgetCategory> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       if (categories.length >= MAX_CATEGORIES) {
         throw new Error(`Maksymalnie ${MAX_CATEGORIES} kategorii budżetu`);
       }
@@ -83,6 +89,10 @@ export function useBudgetCategories(year: number) {
       id: string,
       updates: Partial<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">> 
     ): Promise<void> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const { error } = await supabase
@@ -104,6 +114,10 @@ export function useBudgetCategories(year: number) {
 
   const deleteCategory = useCallback(
     async (id: string): Promise<void> => {
+    if (!userId) {
+      toast.error("Zaloguj się!");
+      throw new Error("Unauthorized");
+    }
     const ok = await toast.confirm(
       `Czy chcesz usunąć kategorię?`
     );
@@ -127,6 +141,10 @@ export function useBudgetCategories(year: number) {
 
   const reorderCategories = useCallback(
     async (reordered: BudgetCategory[]): Promise<void> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setCategories(reordered); 
       setLoading(true);
       try {
@@ -150,7 +168,10 @@ export function useBudgetCategories(year: number) {
     async (
       defaults: Array<{ name: string; monthly_amounts: number[]; is_monthly: boolean }> 
     ): Promise<void> => {
-      if (!userId) toast.error("Zaloguj się!");
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
       setLoading(true);
       try {
         const rows = defaults.map((d, i) => ({

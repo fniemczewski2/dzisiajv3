@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, RefreshCw, Plus, AlertCircle } from 'lucide-react';
-import { useTrains } from '@/hooks/useTrains';
+import { useTrains } from '@/hooks/db/useTrains';
 import { AddButton } from '../ui/CommonButtons';
 import NoResultsState from '../ui/NoResultsState';
 import LoadingState from '../ui/LoadingState';
@@ -12,32 +12,22 @@ interface StationBoardProps {
   readonly onTrainAdded?: () => void;
 }
 
-const renderStatusInfo = (status: string, statusClasses: string, isSmallScreen: boolean) => {
-  if(isSmallScreen) return (<span className={`inline-block h-2 w-2 rounded-full ${statusClasses}`}/>)
-  else {
+const renderStatusInfo = (status: string, statusClasses: string) => {
     return (
       <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusClasses}`}>
         {status}
       </span>
     )
-  }
 }
 
-const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: boolean, isSmallScreen: boolean) => {
+const renderStatusInfoSmall = (statusClasses: string) => {
+  return (
+    <span className={`inline-block h-2 w-2 rounded-full ${statusClasses}`}/>
+  )
+}
 
-  if (isSmallScreen) {
-      if (isCancelled) {
-      return 'bg-red-600 dark:bg-red-400';
-    }
-    if (isDelayed) {
-      return 'bg-orange-600 dark:bg-orange-400';
-    }
-    if (status === 'Odjechał') {
-      return 'bg-gray-600 dark:bg-gray-400';
-    }
-    return 'bg-green-500';
-  }
-  else {
+const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: boolean) => {
+
     if (isCancelled) {
       return 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400';
     }
@@ -48,7 +38,21 @@ const getStatusBadgeClasses = (status: string, isCancelled: boolean, isDelayed: 
       return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
     }
     return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400';
-  }
+  
+};
+
+const getStatusBadgeClassesSmall = (status: string, isCancelled: boolean, isDelayed: boolean) => {
+
+    if (isCancelled) {
+      return 'bg-red-600 dark:bg-red-400';
+    }
+    if (isDelayed) {
+      return 'bg-orange-600 dark:bg-orange-400';
+    }
+    if (status === 'Odjechał') {
+      return 'bg-gray-600 dark:bg-gray-400';
+    }
+    return 'bg-green-500';
 };
 
 export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) {
@@ -180,7 +184,10 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
           {board.items?.map((item, index) => {
             const isDelayed = item.delay > 0;
             const isCancelled = item.status === 'Odwołany';
-            const statusClasses = getStatusBadgeClasses(item.status, isCancelled, isDelayed, isSmallScreen);
+            const statusClasses = 
+                isSmallScreen ? 
+                  getStatusBadgeClassesSmall(item.status, isCancelled, isDelayed) :
+                  getStatusBadgeClasses(item.status, isCancelled, isDelayed);
 
             return (
               <tr 
@@ -205,7 +212,7 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
                 <td className="py-1 px-1.5 my-auto leading-tight text-center font-bold text-text">
                     {item.platform}
                 </td>
-                <td className="py-1 px-1.5 my-auto">{renderStatusInfo(item.status, statusClasses, isSmallScreen)}</td>
+                <td className="py-1 px-1.5 my-auto">{isSmallScreen ? renderStatusInfoSmall(statusClasses) : renderStatusInfo(item.status, statusClasses) }</td>
                 <td className="py-1 px-1.5 my-auto">
                   <button
                     onClick={() => handleTrackTrain(item)}

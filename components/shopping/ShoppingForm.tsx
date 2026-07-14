@@ -1,7 +1,7 @@
 "use client";
 
 import { SyntheticEvent, useState } from "react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks/db/useSettings";
 import { FormButtons } from "../ui/CommonButtons";
 import { ShoppingList } from "@/types";
 import { useRetry } from "@/lib/withRetry";

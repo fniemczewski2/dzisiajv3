@@ -1,12 +1,12 @@
 import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "@/components/calendar/MonthView";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents } from "@/hooks/db/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/lib/useQuickAction";
-import { useMoods } from "@/hooks/useMoods";
+import { useMoods } from "@/hooks/db/useMoods";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import { useToast } from "@/providers/ToastProvider";
