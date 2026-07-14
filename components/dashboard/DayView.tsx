@@ -473,7 +473,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 onEditEvent={editEvent} 
                 onDeleteEvent={deleteEvent} 
                 onEventsChange={fetchEvents} 
-                userId={userId}
                 userOptions={userOptions} 
               />
             </section>

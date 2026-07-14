@@ -7,14 +7,13 @@ import { useBills } from "@/hooks/db/useBills";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { FormButtons } from "../ui/CommonButtons";
-import { BudgetCategory, ParsedTransaction } from "@/types";
+import { BudgetCategory, ParsedTransaction } from "@/types/bills";
 import { processCsvText, readFileAsText } from "@/lib/csvUtils";
 
 export default function BankCsvImporter({ year }: { readonly year: number }) {
   const { user, supabase } = useAuth(); 
   const { toast } = useToast();
   const { categories, addCategory } = useBudgetCategories(year);
-  // Pobieramy expenseItems by przekazać je do deduplikacji
   const { addBill, expenseItems } = useBills(); 
   
   const fileInputRef = useRef<HTMLInputElement>(null);

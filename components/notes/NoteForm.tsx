@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
-import { Note } from "@/types";
+import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
 
 import { useAuth } from "@/providers/AuthProvider";

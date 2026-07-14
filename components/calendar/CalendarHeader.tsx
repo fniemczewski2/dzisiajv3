@@ -4,13 +4,13 @@ import { pl } from "date-fns/locale";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface Props {
+interface CalendarHeaderProps {
   currentDate: Date;
   onPrev(): void;
   onNext(): void;
 }
 
-export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly<Props>) {
+export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly<CalendarHeaderProps>) {
   return (
     <div className={clsx("flex items-center px-4 pb-4 sm:pb-6 my-2 sm:my-4 justify-center")}>
       <div className="flex items-center card rounded-2xl p-1 shadow-sm">

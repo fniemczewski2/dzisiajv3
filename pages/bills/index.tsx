@@ -11,7 +11,7 @@ import { getYear } from "date-fns";
 import DailySpendingForm from "@/components/widgets/DailySpendingForm";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/lib/useQuickAction";
-import type { Bill } from "@/types";
+import type { Bill } from "@/types/bills";
 import BillListGrouped from "@/components/bills/BillListGrouped";
 import Seo from "@/components/ui/SEO";
 

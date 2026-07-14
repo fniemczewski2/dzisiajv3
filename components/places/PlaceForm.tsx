@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Place, OpeningHours } from "@/types";
+import { Place, OpeningHours } from "@/types/places";
 import { FormButtons } from "../ui/CommonButtons";
 import { PlusCircle, X } from "lucide-react";
 

@@ -1,7 +1,7 @@
 import { Calendar, Coins, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Settings } from "../types";
+import { Settings } from "../types/settings";
 import { useEffect, useState } from "react";
 import { useSettings } from "../hooks/db/useSettings";
 

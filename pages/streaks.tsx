@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import StreakCard from "@/components/streaks/StreakCard";
 import StreakForm from "@/components/streaks/StreakForm";
 import { useStreaks } from "@/hooks/db/useStreaks";
-import { Streak } from "@/types";
+import { Streak } from "@/types/streaks";
 import { AddButton } from "@/components/ui/CommonButtons";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";

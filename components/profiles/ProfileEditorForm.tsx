@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { VCardProfile } from '@/hooks/db/useProfiles';
 import { FormButtons, DeleteButton, AddButton } from '../ui/CommonButtons';
 import { 
   User, 
@@ -16,6 +15,7 @@ import {
   Globe
 } from 'lucide-react';
 import { useImages } from '@/lib/imgUtils';
+import { VCardProfile } from '@/types/profiles';
 
 interface ProfileEditorFormProps {
   initialData?: VCardProfile;

@@ -1,6 +1,6 @@
 // hooks/useEvents.ts
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Event } from "@/types";
+import { Event } from "@/types/events";
 import { expandRepeatingEvents } from "@/lib/eventUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share"; 

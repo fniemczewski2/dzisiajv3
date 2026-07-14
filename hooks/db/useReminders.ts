@@ -1,7 +1,7 @@
 // hooks/useReminders.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { Reminder } from "@/types";
+import { Reminder } from "@/types/reminders";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";

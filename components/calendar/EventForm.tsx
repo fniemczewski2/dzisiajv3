@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, SyntheticEvent, useEffect } from "react";
-import { Event } from "@/types";
+import { Event } from "@/types/events";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { format } from "date-fns";

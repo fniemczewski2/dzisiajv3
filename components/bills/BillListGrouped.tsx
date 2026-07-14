@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, isSameMonth, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "lucide-react";
-import { Bill, BudgetCategory } from "@/types";
+import type { Bill, BudgetCategory } from "@/types/bills";
 import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 
 import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
@@ -21,7 +21,7 @@ interface MonthAccordionProps {
   year: number 
 } 
 
-interface MonthContent {
+interface MonthContentProps {
   dateFrom: string;
   dateTo: string;
   onBillsChange?: () => void;
@@ -122,7 +122,7 @@ function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccord
   );
 }
 
-function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContent>) {
+function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContentProps>) {
   const retry = useRetry();
   const [page, setPage] = useState(1);
   const limit = 20;

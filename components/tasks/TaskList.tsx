@@ -1,9 +1,9 @@
 import React from "react";
 import TaskItem from "./TaskItem";
-import { Task } from "@/types";
+import { Task } from "@/types/tasks";
 import NoResultsState from "../ui/NoResultsState";
 
-interface Props {
+interface TaskListProps {
   tasks: Task[];
   acceptTask: (id: string) => void;
   setDoneTask: (id: string) => void;
@@ -25,7 +25,7 @@ export default function TaskList({
   userId,
   userOptions,
   loading
-}: Readonly<Props>) {
+}: Readonly<TaskListProps>) {
 
   if (tasks.length === 0) {
     return (

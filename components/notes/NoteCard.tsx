@@ -3,7 +3,7 @@
 import React from "react";
 import clsx from "clsx";
 import { Pin, Archive } from "lucide-react";
-import { Note } from "@/types";
+import { Note } from "@/types/notes";
 import { formatTime } from "@/lib/dateUtils";
 import { sanitizeHref } from "@/lib/sanitize";
 import { ArchiveButton, DeleteButton, EditButton, PinButton } from "../ui/CommonButtons";

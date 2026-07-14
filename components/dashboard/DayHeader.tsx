@@ -3,12 +3,12 @@ import { AddSpecificButton } from "../ui/CommonButtons";
 import { DashboardWidgets } from "../widgets/DashboardWidgets";
 import { useMemo } from "react";
 import { getPolishHolidays } from "@/lib/holidays";
-import { Settings } from "@/types";
+import { Settings } from "@/types/settings";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { useResponsive } from "@/lib/useResponsive";
 
-interface Props {
+interface DayHeaderProps {
   date: Date;
   dateStr: string;
   onPrev(): void;
@@ -18,7 +18,7 @@ interface Props {
   loadingSettings: boolean;
 }
 
-export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraft, settings, loadingSettings }: Readonly<Props>) {
+export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraft, settings, loadingSettings }: Readonly<DayHeaderProps>) {
 
   const holiday = useMemo(() => {
       const map = getPolishHolidays(date.getFullYear());

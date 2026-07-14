@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAppDate } from "@/lib/dateUtils";
-import { DailyHabits, HabitKey } from "@/types";
+import { DailyHabitsRow, HabitKey } from "@/types/habits";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 
-const getDefaultHabits = (date: string, userId: string): DailyHabits => ({
-  date: new Date(date),
+const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
+  date: date,
   user_id: userId,
   pills: false,
   bath: false,
@@ -26,7 +26,7 @@ export function useDailyHabits(date?: string) {
   const today = getAppDate();
   const targetDate = date ?? today;
 
-  const [habits, setHabits] = useState<DailyHabits | null>(null);
+  const [habits, setHabits] = useState<DailyHabitsRow | null>(null);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 

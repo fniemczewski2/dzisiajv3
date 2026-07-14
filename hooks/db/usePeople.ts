@@ -1,6 +1,6 @@
 // hooks/usePeople.ts
 import { useState, useEffect, useCallback } from "react";
-import { Person, PersonInsert } from "@/types";
+import { Person, PersonInsert } from "@/types/people";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 

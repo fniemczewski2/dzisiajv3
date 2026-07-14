@@ -1,7 +1,7 @@
 // hooks/useReports.ts
 
 import { useEffect, useState, useCallback } from "react";
-import { Report } from "@/types";
+import { Report } from "@/types/reports";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 

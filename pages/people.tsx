@@ -6,7 +6,7 @@ import { ImportPeople } from '@/components/people/ImportPeople';
 import { ExportPeople } from '@/components/people/ExportPeople';
 import { AddButton } from '@/components/ui/CommonButtons';
 import SearchBar from '@/components/ui/SearchBar'; 
-import { Person, PersonInsert } from '@/types';
+import { Person, PersonInsert } from '@/types/people';
 import LoadingState from '@/components/ui/LoadingState';
 import NoResultsState from '@/components/ui/NoResultsState';
 import Seo from '@/components/ui/SEO';

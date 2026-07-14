@@ -2,12 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
-
-export type DailyOverride = {
-  schema_id: string;
-  new_time?: string | null;
-  is_hidden: boolean;
-};
+import { DailyOverride } from '@/types/schemas';
 
 export function useDailyOverrides(dateStr: string) {
   const { supabase, user } = useAuth();

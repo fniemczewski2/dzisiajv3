@@ -23,15 +23,7 @@ import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 import { useWeather } from "@/lib/useWeather";
-
-interface HourlyRow {
-  time: string;
-  temp: number;
-  precip: number;
-  wind: number;
-  uv: number;
-  index: number;
-}
+import { HourlyRow } from "@/types/weather";
 
 function WeatherIcon({ code }: { readonly code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;

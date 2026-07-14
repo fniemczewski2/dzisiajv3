@@ -2,7 +2,7 @@ import React from "react";
 import NoResultsState from "../ui/NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 
-import { Task } from "@/types";
+import { Task } from "@/types/tasks";
 
 
 interface DayTasksProps {

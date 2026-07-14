@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, SyntheticEvent } from "react";
-import { Task } from "@/types";
+import { Task } from "@/types/tasks";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";

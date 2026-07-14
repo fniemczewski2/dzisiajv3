@@ -6,10 +6,10 @@ import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";
 import { AddButton } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
-import MovieAddForm, { type NewMovieData } from "./MovieForm";
+import MovieAddForm from "./MovieForm";
 import MovieCard from "./MovieCard";
 import NoResultsState from "../ui/NoResultsState";
-import type { Movie, MovieInsert } from "@/types";
+import type { Movie, MovieInsert, NewMovieData } from "@/types/movies";
 
 interface MoviesProps {
   movies: Movie[];

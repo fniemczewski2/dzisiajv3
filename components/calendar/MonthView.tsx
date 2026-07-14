@@ -1,7 +1,8 @@
 // components/calendar/MonthView.tsx
 
 import React, { useMemo, memo } from "react";
-import { Event, MoodEntry, MoodOption } from "@/types";
+import { Event, PlacedEvent } from "@/types/events";
+import { MoodEntry, MoodOption } from "@/types/moods"
 import {
   startOfMonth, endOfMonth, addDays, startOfWeek, endOfWeek,
   isBefore, isAfter, max, min, differenceInCalendarDays, format, endOfDay,
@@ -11,7 +12,7 @@ import { useResponsive } from "@/lib/useResponsive";
 import { getPolishHolidays } from "@/lib/holidays";
 import { parseEventDate } from "@/lib/dateUtils";
 
-interface Props {
+interface MonthViewProps {
   events: Event[];
   currentDate: Date;
   onSelectDate: (date: Date) => void;
@@ -20,15 +21,6 @@ interface Props {
 }
 
 const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
-
-type PlacedEvent = {
-  event: Event;
-  start: Date;
-  end: Date;
-  col: number;
-  span: number;
-  row: number;
-};
 
 const getSortedEventsForWeek = (events: Event[], weekStart: Date, weekEnd: Date) => {
   const eventsThisWeek = events.filter((event) => {
@@ -112,7 +104,7 @@ const MonthView = memo(function MonthView({
   onSelectDate,
   moods,
   DEFAULT_MOODS,
-}: Readonly<Props>) {
+}: Readonly<MonthViewProps>) {
   const isMobile = useResponsive();
 
   const { calendarStart, calendarEnd } = useMemo(() => {

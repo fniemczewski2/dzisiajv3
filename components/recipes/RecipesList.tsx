@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
-import type { Recipe, RecipeCategory } from "@/types";
+import type { Recipe, RecipeCategory } from "@/types/recipes";
 import { useRecipes } from "@/hooks/db/useRecipes";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";

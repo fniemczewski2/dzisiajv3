@@ -4,14 +4,7 @@ import { Loader2, Search } from "lucide-react";
 import { FormButtons } from "../ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider"; 
 import { useRetry } from "@/lib/withRetry";
-
-export interface NewMovieData {
-  title: string;
-  genre: string | null;
-  rating: number | null;
-  platform: string | null;
-  description: string | null;
-}
+import { NewMovieData, TmdbDetails, TmdbMovie, TmdbSearchResult, TmdbWatchProviders } from "@/types/movies";
 
 interface MovieAddFormProps {
   onSubmit: (movie: NewMovieData) => Promise<void>;
@@ -42,19 +35,6 @@ const GENRE_MAP: Record<number, string> = {
   9648: "Tajemnica", 10749: "Romans", 878: "Sci-Fi", 10770: "Film TV",
   53: "Thriller", 10752: "Wojenny", 37: "Western",
 };
-
-interface TmdbMovie {
-  id: number; title: string; release_date?: string; vote_average: number;
-  overview?: string; poster_path?: string; genre_ids?: number[];
-  genres?: { id: number; name: string }[];
-}
-
-interface TmdbSearchResult { results: TmdbMovie[]; }
-interface TmdbDetails { genres?: { id: number; name: string }[]; }
-interface TmdbProvider { provider_id: number; provider_name: string; }
-interface TmdbWatchProviders {
-  results?: { PL?: { flatrate?: TmdbProvider[]; rent?: TmdbProvider[]; buy?: TmdbProvider[]; }; };
-}
 
 export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Readonly<MovieAddFormProps>) {
   const { toast } = useToast();

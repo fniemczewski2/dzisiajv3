@@ -1,21 +1,20 @@
 import React from "react";
-import { Event } from "@/types";
+import { Event } from "@/types/events";
  
 import NoResultsState from "../ui/NoResultsState";
 import EventItem from "../calendar/EventItem";
 
-interface Props {
+interface DayEventsProps {
   events: Event[];
   fetchingEvents: boolean;
   loadingEvents: boolean;
   onEditEvent: (event: Event) => Promise<void>;
   onDeleteEvent: (id: string) => Promise<void>;
   onEventsChange: () => void;
-  userId: string;
   userOptions: string[];
 }
 
-export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, onDeleteEvent, onEventsChange, userId, userOptions }: Readonly<Props>) {
+export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, onDeleteEvent, onEventsChange, userOptions }: Readonly<DayEventsProps>) {
 
   return (
     <div className="grid grid-cols-1 gap-3">

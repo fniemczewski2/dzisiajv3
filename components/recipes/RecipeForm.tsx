@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";
-import type { Recipe, RecipeCategory } from "@/types";
+import type { Recipe, RecipeCategory } from "@/types/recipes";
 import { useRecipes } from "@/hooks/db/useRecipes";
 import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";

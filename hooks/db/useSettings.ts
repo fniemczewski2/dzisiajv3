@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import { Settings } from "@/types";
+import { Settings } from "@/types/settings";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useToast } from "@/providers/ToastProvider";
-
-type GeoCoords = { lat: number; lng: number };
 
 const safeParseArray = (data: unknown): any[] => {
   if (!data) return [];

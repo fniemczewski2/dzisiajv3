@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";
-import type { Movie } from "@/types";
+import type { Movie } from "@/types/movies";
 import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../ui/CommonButtons";
 import { useRetry } from "@/lib/withRetry";
 

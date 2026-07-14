@@ -2,18 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-
-interface MonthData {
-  sum: number;
-  rate: number;
-  budget: number;
-  income: number;
-  doneExpense: number;
-  plannedExpense: number;
-  monthlySpending: number;
-}
-
-type YearData = Record<number, MonthData>;
+import { MonthData, YearData } from "@/types/bills";
 
 export function useBudgetData(year: number, monthRange?: [number, number]) {
   const { user, supabase } = useAuth();

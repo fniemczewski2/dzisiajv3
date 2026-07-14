@@ -6,13 +6,9 @@ import { eventSpansDate, getAppDate } from "@/lib/dateUtils";
 import { Cake, Star, Gift, Heart } from "lucide-react";
 import { getPolishHolidays } from "@/lib/holidays"; 
 
-interface Props {
-  date?: string; 
-}
-
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
-export default function BirthdayIndicator({ date }: Readonly<Props>) {
+export default function BirthdayIndicator({ date }: {readonly date?: string}) {
   const dateStr = date || getAppDate(); 
   const dateObj = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
   

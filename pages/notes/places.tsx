@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { usePlaces } from "@/hooks/db/usePlaces";
 import PlaceFilters from "@/components/places/PlaceFilters";
 import PlacesList from "@/components/places/PlacesList";
-import { Place } from "@/types";
+import { Place, TimeFilter, ViewMode } from "@/types/places";
 import { Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
@@ -21,14 +21,6 @@ const PlacesMap = dynamic(() => import("@/components/places/PlacesMap"), {
   ssr: false,
   loading: () => <div className="w-full h-64 bg-surface animate-pulse rounded-xl" /> 
 });
-
-type ViewMode = "list" | "map";
-
-interface TimeFilter {
-  day: number;
-  startTime: string;
-  endTime: string;
-}
 
 const matchesSearchQuery = (place: Place, query: string): boolean => {
   if (!query) return true;

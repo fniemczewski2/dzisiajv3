@@ -1,4 +1,4 @@
-import { BudgetCategory } from "@/types";
+import { BudgetCategory } from "@/types/bills";
 
 export const calculateExpectedYearlyLimit = (
   category: BudgetCategory,

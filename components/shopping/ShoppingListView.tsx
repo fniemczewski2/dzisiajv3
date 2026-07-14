@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, User } from "lucide-react";
-import { ShoppingList } from "@/types";
+import { ShoppingList } from "@/types/shopping";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";

@@ -11,7 +11,7 @@ import {
   FormButtons,
   AddButton,
 } from "../ui/CommonButtons";
-import type { BudgetCategory } from "@/types";
+import type { BudgetCategory } from "@/types/bills";
 import { MAX_CATEGORIES } from "@/config/limits";
 
 interface AmountEditorProps {

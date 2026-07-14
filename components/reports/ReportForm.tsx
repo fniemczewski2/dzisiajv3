@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Plus, X } from "lucide-react";
-import { Report } from "@/types";
+import { Report } from "@/types/reports";
 import { useReports } from "@/hooks/db/useReports";
 import { useRetry } from "@/lib/withRetry";
 import { getAppDate } from "@/lib/dateUtils";

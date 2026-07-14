@@ -5,7 +5,7 @@ import { Calendar } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { useSettings } from "@/hooks/db/useSettings";
-import { MoodEntry, MoodOption } from "@/types";
+import { MoodEntry, MoodOption } from "@/types/moods";
 
 interface Props {
   date: Date;

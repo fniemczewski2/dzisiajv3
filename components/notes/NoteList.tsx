@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { Note } from "@/types";
+import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useRetry } from "@/lib/withRetry";

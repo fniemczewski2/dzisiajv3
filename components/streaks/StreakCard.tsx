@@ -7,7 +7,7 @@ import {
   UtensilsCrossed, Dumbbell, PiggyBank,
   BriefcaseMedical,
 } from "lucide-react";
-import { Streak } from "@/types";
+import { Streak } from "@/types/streaks";
 import { DeleteButton, EditButton, FormButtons } from "../ui/CommonButtons";
 
 interface StreakCardProps {

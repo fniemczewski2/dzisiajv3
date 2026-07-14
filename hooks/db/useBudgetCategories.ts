@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import type { BudgetCategory } from "@/types";
+import type { BudgetCategory } from "@/types/bills";
 import { MAX_CATEGORIES } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 

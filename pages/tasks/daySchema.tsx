@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
-import { Schema, ScheduleItem } from "@/types";
+import { Schema, ScheduleItem } from "@/types/schemas";
 import { getAppDateTime } from "@/lib/dateUtils";
 import DaySchemaForm from "@/components/daySchema/DaySchemaForm";
 import { AddButton, EditButton, DeleteButton } from "@/components/ui/CommonButtons";

@@ -1,16 +1,9 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import type { Recipe, RecipeCategory } from "@/types";
+import type { NewRecipe, Recipe } from "@/types/recipes";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { useToast } from "@/providers/ToastProvider";
-
-type NewRecipe = {
-  name: string;
-  category: RecipeCategory;
-  products: string[];
-  description: string;
-};
 
 export function useRecipes() {
   const { user, supabase } = useAuth();

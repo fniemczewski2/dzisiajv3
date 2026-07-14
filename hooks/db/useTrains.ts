@@ -4,23 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { getAppDateTime } from '@/lib/dateUtils';
 import { useToast } from '@/providers/ToastProvider';
-
-export interface TrainInput {
-  trainNumber: string;
-  trainName: string;
-  date: string;
-  departureTime: string;
-  from: string;
-  to: string;
-  wagon: string;
-  seat: string;
-}
-
-export interface TrackedTrain extends TrainInput {
-  id: string;
-  userId: string;
-  createdAt: string;
-}
+import { TrackedTrain, TrainInput } from '@/types/transport';
 
 export function useTrains() {
   const { supabase, user } = useAuth();

@@ -2,18 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import type { BudgetCategory } from "@/types";
+import type { BudgetCategory, RawBillRow } from "@/types/bills";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 import { useToast } from "@/providers/ToastProvider";
-
-interface RawBillRow {
-  amount: number;
-  date: string;
-  category_id: string | null;
-  is_income: boolean;
-  done: boolean;
-}
 
 export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
   const { user, supabase } = useAuth();

@@ -1,6 +1,6 @@
 // components/places/PlacesMap.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { Place } from "@/types";
+import { Place } from "@/types/places";
 import { escapeHtml, validateUuid } from "@/lib/sanitize";
 import NoResultsState from "../ui/NoResultsState";
 

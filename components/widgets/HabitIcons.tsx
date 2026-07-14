@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useDailyHabits } from "@/hooks/db/useDailyHabits";
 import { useSettings } from "@/hooks/db/useSettings";
-import type { HabitKey } from "@/types";
+import type { HabitKey } from "@/types/habits";
 
 const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
   { key: "pills", Icon: Pill },

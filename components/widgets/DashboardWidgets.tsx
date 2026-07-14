@@ -4,7 +4,7 @@ import WaterTracker from "./WaterTracker";
 import DailySpendingForm from "./DailySpendingForm";
 import MoodWidget from './MoodTracker';
 import { getAppDate } from '@/lib/dateUtils';
-import { Settings } from '@/types';
+import { Settings } from '@/types/settings';
 import LoadingState from '../ui/LoadingState';
 
 interface DashboardWidgetsProps {

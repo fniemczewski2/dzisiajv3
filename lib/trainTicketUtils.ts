@@ -1,16 +1,6 @@
 import { useToast } from "@/providers/ToastProvider";
+import { TicketFormData } from "@/types/transport";
 import { useState, ChangeEvent } from "react";
-
-export interface TicketFormData {
-  trainNumber: string;
-  trainName: string;
-  date: string;
-  departureTime: string;
-  from: string;
-  to: string;
-  wagon: string;
-  seat: string;
-}
 
 interface UseTicketUploadProps {
   setFormData: (data: TicketFormData) => void;

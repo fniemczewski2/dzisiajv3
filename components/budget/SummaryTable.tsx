@@ -1,18 +1,13 @@
 import React from "react";
+import { MonthData } from "@/types/bills";
 
-interface MonthData {
-  income: number;
-  doneExpense: number;
-  plannedExpense: number;
-}
-
-interface Props {
+interface SummaryTableProps {
   data: Record<number, MonthData>;
   monthNames: string[];
   loadedMonths: Set<number>;
 }
 
-export default function SummaryTable({ data, monthNames, loadedMonths }: Readonly<Props>) {
+export default function SummaryTable({ data, monthNames, loadedMonths }: Readonly<SummaryTableProps>) {
   return (
     <div className="w-full">
       <h3 className="font-bold mb-2 text-text">Budżet roczny</h3>

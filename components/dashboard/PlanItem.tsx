@@ -5,13 +5,7 @@ import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Check } 
 import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { formatTime } from "@/lib/dateUtils";
-
-interface PlanItemData {
-  id: string;
-  title: string;
-  type: "event" | "schema" | "task" | "worklog";
-  data?: any;
-}
+import { PlanItemData } from "@/types/schemas";
 
 interface PlanItemProps {
   item: PlanItemData;

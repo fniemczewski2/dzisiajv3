@@ -1,13 +1,5 @@
-// hooks/useEuroRate.ts
-
 import { useState, useEffect } from "react";
-
-interface NbpResponse {
-  table: string;
-  currency: string;
-  code: string;
-  rates: { no: string; effectiveDate: string; mid: number }[];
-}
+import { NbpResponse } from "@/types/bills";
 
 export function useEuroRate() {
   const [rate, setRate] = useState<number>(0);

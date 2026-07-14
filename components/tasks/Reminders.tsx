@@ -8,7 +8,7 @@ import { useReminders } from "@/hooks/db/useReminders";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRetry } from "@/lib/withRetry";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
-import { Task } from "@/types";
+import { Task } from "@/types/tasks";
 import NoResultsState from "../ui/NoResultsState";
 import { FormButtons } from "../ui/CommonButtons";
 

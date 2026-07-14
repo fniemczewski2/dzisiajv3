@@ -1,7 +1,7 @@
 // components/people/ExportContacts.tsx
 import React from 'react';
 import { Download } from 'lucide-react';
-import { Person } from '@/types';
+import { Person } from '@/types/people';
 
 interface ExportProps {
   people: Person[];

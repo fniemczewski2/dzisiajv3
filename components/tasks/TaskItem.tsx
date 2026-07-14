@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, memo } from "react";
 import { format, parseISO, addDays } from "date-fns";
 import { Check, Minus, Plus } from "lucide-react";
-import { Task } from "@/types";
+import { Task } from "@/types/tasks";
 import { getAppDate } from "@/lib/dateUtils";
 import TimeContextBadge from "./TimeContextBadge";
 import UniversalTimer from "../ui/Timer";

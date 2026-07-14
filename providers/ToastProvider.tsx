@@ -1,46 +1,7 @@
 "use client";
 import React, { createContext, useCallback, useContext, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
-
-type ToastVariant = "success" | "error" | "info" | "loading";
-
-interface NotificationToast {
-  readonly kind: "notification";
-  readonly id: string;
-  readonly message: string;
-  readonly variant: ToastVariant;
-}
-
-interface ConfirmToast {
-  readonly kind: "confirm";
-  readonly id: string;
-  readonly message: string;
-  readonly confirmLabel: string;
-  readonly cancelLabel: string;
-  readonly resolve: (value: boolean) => void;
-}
-
-type ToastItem = NotificationToast | ConfirmToast;
-
-type ToastAction =
-  | { type: "ADD"; toast: ToastItem }
-  | { type: "REMOVE"; id: string };
-
-export interface ConfirmOptions {
-  readonly confirmLabel?: string;
-  readonly cancelLabel?: string;
-}
-
-interface ToastContextValue {
-  readonly toast: {
-    readonly success: (message: string) => void;
-    readonly error:   (message: string) => void;
-    readonly info:    (message: string) => void;
-    readonly loading: (message?: string) => string;
-    readonly dismiss: (id: string) => void;
-    readonly confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
-  };
-}
+import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, ConfirmToast, ConfirmOptions } from "@/types/toasts";
 
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {

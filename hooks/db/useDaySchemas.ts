@@ -1,7 +1,7 @@
 // hooks/useDaySchemas.ts
 
 import { useEffect, useState, useCallback } from "react";
-import { Schema } from "@/types";
+import { Schema } from "@/types/schemas";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 

@@ -1,7 +1,7 @@
 // hooks/useStreaks.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { Streak } from "@/types";
+import { Streak } from "@/types/streaks";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useProfiles, VCardProfile, NewVCardProfile } from '@/hooks/db/useProfiles';
+import { useProfiles } from '@/hooks/db/useProfiles';
 import NoResultsState from '@/components/ui/NoResultsState';
 import ProfileEditorForm from './ProfileEditorForm';
 import VCardPreview from './VCardPreview';
 import { AddButton, DeleteButton, EditButton, ShareButton } from '../ui/CommonButtons';
+import { NewVCardProfile, VCardProfile } from '@/types/profiles';
 
 type ViewState = 'list' | 'form' | 'preview';
 

@@ -6,7 +6,7 @@ import { useWorkLogs } from '@/hooks/db/useWorkLogs';
 import { useToast } from '@/providers/ToastProvider';
 import { AddButton, DeleteButton, FormButtons } from '@/components/ui/CommonButtons';
 import NoResultsState from '@/components/ui/NoResultsState';
-import { WorkLog, WorkLogInsert } from '@/types';
+import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useRetry } from '@/lib/withRetry';
 import { useAuth } from '@/providers/AuthProvider';
 

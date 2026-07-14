@@ -4,34 +4,7 @@ import { useSettings } from "./useSettings";
 import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useToast } from "@/providers/ToastProvider";
-
-export interface Departure {
-  line: string;
-  direction: string;
-  minutes: number;
-  time: string;
-  is_realtime: boolean;
-  delay?: number;
-}
-
-export interface Bollard {
-  bollard_code: string;
-  departures: Departure[];
-}
-
-export interface StopGroup {
-  stop_name: string;
-  zone_id: string;
-  distance?: number;
-  bollds?: Bollard[]; 
-  bollards: Bollard[]; 
-}
-
-export interface LocalSearchResult {
-  name: string;
-  zone_id: string;
-  displayString: string;
-}
+import { LocalSearchResult, StopGroup } from "@/types/transport";
 
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();

@@ -7,7 +7,7 @@ import { getAppDate } from "@/lib/dateUtils";
 import { useBills } from "@/hooks/db/useBills";
 import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";
-import type { Bill, BudgetCategory } from "@/types";
+import type { Bill, BudgetCategory } from "@/types/bills";
 
 interface BillFormProps {
   onChange: () => void;

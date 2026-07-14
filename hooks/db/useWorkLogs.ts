@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { WorkLog, WorkLogInsert } from '@/types';
+import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useToast } from '@/providers/ToastProvider';
 
 export function useWorkLogs(dateStr?: string, monthStr?: string) {

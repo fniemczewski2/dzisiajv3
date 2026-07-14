@@ -3,7 +3,7 @@ import { X, Plus } from "lucide-react";
 import { useReports } from "@/hooks/db/useReports";
 import ReportForm from "@/components/reports/ReportForm";
 import { generateReportPDF } from "@/lib/pdfGenerator";
-import { Report, ReportTask } from "@/types";
+import { Report, ReportTask } from "@/types/reports";
 import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "@/components/ui/CommonButtons";
 import { format } from "date-fns";
 import { useToast } from "@/providers/ToastProvider";

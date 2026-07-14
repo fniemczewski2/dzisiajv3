@@ -1,5 +1,5 @@
  import ICAL from "ical.js";
- import { Event } from "@/types";
+ import { Event } from "@/types/events";
  import { format } from "date-fns";
  import { parseEventDate } from "./dateUtils";
 

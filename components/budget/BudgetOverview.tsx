@@ -1,21 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import type { BudgetCategory } from "@/types";
+import type { BudgetCategory, SummaryItem } from "@/types/bills";
 
-interface SummaryItem {
-  category: BudgetCategory;
-  spent: number; 
-  planned: number; 
-  limit: number; 
-  remaining: number; 
-  thisMonthSpent: number;
-  thisMonthPlanned: number;
-  thisMonthLimit: number; 
-  thisMonthRemaining: number;
-}
-
-interface Props {
+interface BudgetOverviewProps {
   summary: SummaryItem[];
   uncategorised: {
     ySpent: number;
@@ -73,7 +61,7 @@ export default function BudgetOverview({
   uncategorised,
   totalIncome,
   loading,
-}: Readonly<Props>) {
+}: Readonly<BudgetOverviewProps>) {
   const [view, setView] = useState<View>("month");
   const isYear = view === "year";
 

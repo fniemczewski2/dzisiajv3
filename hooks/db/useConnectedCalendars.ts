@@ -1,21 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
-
-export interface ConnectedAccount {
-  id: string;
-  provider: 'google' | 'outlook';
-  account_email: string;
-  google_calendar_id?: string;
-}
-
-export interface ExternalCalendar {
-  id: string;
-  summary: string;
-  accountId?: string;
-  primary?: boolean;
-  primaryAccountId?: string;
-}
+import { ConnectedAccount, ExternalCalendar } from '@/types/events';
 
 export function useConnectedCalendars(expanded: boolean) {
   const { user, supabase } = useAuth();

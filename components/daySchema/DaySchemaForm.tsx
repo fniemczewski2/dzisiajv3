@@ -5,7 +5,7 @@ import { PlusCircle } from "lucide-react";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
 
-import type { ScheduleItem, Schema } from "@/types";
+import type { ScheduleItem, Schema } from "@/types/schemas";
 import { useRetry } from "@/lib/withRetry";
 
 interface DaySchemaFormProps {

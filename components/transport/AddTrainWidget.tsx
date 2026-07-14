@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { CancelButton, SaveButton } from '../ui/CommonButtons';
-import { useTicketUpload, TicketFormData } from '@/lib/trainTicketUtils'; 
+import { useTicketUpload  } from '@/lib/trainTicketUtils'; 
+import { TicketFormData } from '@/types/transport';
 
 interface AddTrainWidgetProps {
   onTrainAdded: (train: TicketFormData) => void;
@@ -37,7 +38,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
   };
 
   if (!expanded) return null;
-  
+
   return (
     <>
       {expanded && (

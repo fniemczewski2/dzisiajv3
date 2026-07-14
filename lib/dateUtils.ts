@@ -1,4 +1,4 @@
-import { Event } from "@/types";
+import { Event } from "@/types/events";
 
 export const formatTime = (timestamp: string, includeDate = false): string => {
   const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace("T", " ").slice(0, 19);

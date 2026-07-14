@@ -1,4 +1,4 @@
-import { Report } from "@/types";
+import { Report } from "@/types/reports";
 
 export const generateReportPDF = async (report: Report) => {
   if (globalThis.window === undefined) return;

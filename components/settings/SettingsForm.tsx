@@ -3,12 +3,7 @@ import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "luci
 import ThemeToggle from "./ThemeButton";
 import { DeleteButton, SaveButton } from "../ui/CommonButtons"; 
 import { useRouter } from "next/router";
-
-interface MoodOption {
-  id: string;
-  label: string;
-  color: string;
-}
+import { MoodOption } from "@/types/moods";
 
 const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 

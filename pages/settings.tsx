@@ -12,7 +12,7 @@ import PushNotificationManager from '@/components/settings/PushNotificationManag
 import LoveButton from "@/components/settings/LoveButton";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { Settings } from "@/types"; 
+import { Settings } from "@/types/settings"; 
 import Seo from "@/components/ui/SEO";
 
 export default function SettingsPage() {

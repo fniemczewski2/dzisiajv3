@@ -3,7 +3,7 @@
 import { SyntheticEvent, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
 import { FormButtons } from "../ui/CommonButtons";
-import { ShoppingList } from "@/types";
+import { ShoppingList } from "@/types/shopping";
 import { useRetry } from "@/lib/withRetry";
 
 interface ShoppingFormProps {

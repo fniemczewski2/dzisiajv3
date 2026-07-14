@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import type { Movie, MovieInsert } from "@/types";
+import type { Movie, MovieInsert } from "@/types/movies";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { useToast } from "@/providers/ToastProvider";

@@ -1,5 +1,5 @@
 import { BOILERPLATE_REGEXES, DESCRIPTION_MAPPINGS, REQUIRED_CATEGORIES } from "@/config/constants";
-import { ParsedTransaction, BudgetCategory } from "@/types";
+import { ParsedTransaction, BudgetCategory } from "@/types/bills";
 
 interface ColumnIndices {
   dateIdx: number;

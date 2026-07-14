@@ -1,6 +1,6 @@
 import React from "react";
 
-interface Props {
+interface BudgetStatsTableProps {
   rows: {
     month: number;
     monthName: string;
@@ -16,7 +16,7 @@ export default function BudgetStatsTable({
   rows,
   isEditing,
   onRateChange,
-}: Readonly<Props>) {
+}: Readonly<BudgetStatsTableProps>) {
   return (
     <div className="w-full mb-4">
       <div className="card rounded-xl shadow-sm overflow-x-auto mb-4">

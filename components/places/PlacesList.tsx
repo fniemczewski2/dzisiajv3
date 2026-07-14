@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Place } from "@/types";
+import { Place } from "@/types/places";
 import { ChevronDown, Globe, MapPin, Phone, Star, Navigation } from "lucide-react";
 import { EditButton, DeleteButton } from "../ui/CommonButtons";
 import { useSettings } from "@/hooks/db/useSettings";

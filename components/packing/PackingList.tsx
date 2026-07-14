@@ -8,13 +8,12 @@ interface PackingCategory {
 }
 
 interface PackingListProps {
-  pageTitle: string;
   headerTitle: string;
   categories: PackingCategory[];
   onBack?: () => void;
 }
 
-export default function PackingList({ pageTitle, headerTitle, categories, onBack }: Readonly<PackingListProps>) {
+export default function PackingList({ headerTitle, categories, onBack }: Readonly<PackingListProps>) {
   const [checked, setChecked] = useState<{ [key: string]: boolean }>({});
   const router = useRouter();
   const handleBack = onBack || (() => router.push("/notes"));

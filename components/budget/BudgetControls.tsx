@@ -1,7 +1,7 @@
 import { Edit2, Save, X } from "lucide-react";
 import LoadingState from "../ui/LoadingState";
 
-interface Props {
+interface BudgetControlsProps {
   isEditing: boolean;
   saving: boolean;
   onSave: () => Promise<void>;
@@ -15,7 +15,7 @@ export default function BudgetControls({
   onSave,
   onCancel,
   onEdit,
-}: Readonly<Props>) {
+}: Readonly<BudgetControlsProps>) {
   return (
     <h3 className="font-bold w-full text-text flex  items-center gap-4">
       <span>Liczba godzin pracy</span>
