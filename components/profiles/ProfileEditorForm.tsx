@@ -95,7 +95,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     setFormData(prev => ({ ...prev, public_slug: formatted }));
   };
 
-  // --- HANDLERY DYNAMICZNYCH LIST --- //
   const addPhone = () => setFormData(p => ({ ...p, phones: [...p.phones, { type: 'Komórka', number: '' }] }));
   const updatePhone = (index: number, field: string, value: string) => { const newPhones = [...formData.phones]; newPhones[index] = { ...newPhones[index], [field]: value }; setFormData(p => ({ ...p, phones: newPhones })); };
   const removePhone = (index: number) => setFormData(p => ({ ...p, phones: p.phones.filter((_, i) => i !== index) }));
@@ -273,11 +272,11 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           <div className="space-y-2">
             {formData.phones.map((phone, idx) => (
               <div key={`phone-${phone.number}`} className="flex gap-2 items-center">
-                <label className="sr-only">Typ numeru</label>
-                <input type="text" placeholder="Typ" value={phone.type} onChange={e => updatePhone(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+                <label htmlFor={`field-${phone.type}`} className="sr-only">Typ numeru</label>
+                <input id={`field-${phone.type}`} type="text" placeholder="Typ" value={phone.type} onChange={e => updatePhone(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label className="sr-only">Numer telefonu</label>
-                <input type="text" placeholder="Numer" value={phone.number} onChange={e => updatePhone(idx, 'number', e.target.value)} className="input-field flex-1" />
+                <label htmlFor={`field-${phone.number}`} className="sr-only">Numer telefonu</label>
+                <input id={`field-${phone.number}`} type="text" placeholder="Numer" value={phone.number} onChange={e => updatePhone(idx, 'number', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removePhone(idx)} small />
               </div>
@@ -291,11 +290,11 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           <div className="space-y-2">
             {formData.emails.map((email, idx) => (
               <div key={`email-${email.email}`} className="flex gap-2 items-center">
-                <label className="sr-only">Typ e-mail</label>
-                <input type="text" placeholder="Typ" value={email.type} onChange={e => updateEmail(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+                <label htmlFor={`field-${email.type}`} className="sr-only">Typ e-mail</label>
+                <input id={`field-${email.type}`} type="text" placeholder="Typ" value={email.type} onChange={e => updateEmail(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label className="sr-only">Adres e-mail</label>
-                <input type="email" placeholder="Adres e-mail" value={email.email} onChange={e => updateEmail(idx, 'email', e.target.value)} className="input-field flex-1" />
+                <label htmlFor={`field-${email.email}`} className="sr-only">Adres e-mail</label>
+                <input id={`field-${email.email}`} type="email" placeholder="Adres e-mail" value={email.email} onChange={e => updateEmail(idx, 'email', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removeEmail(idx)} small />
               </div>
@@ -309,11 +308,11 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           <div className="space-y-2">
             {formData.addresses.map((addr, idx) => (
               <div key={`addr-${addr.address}`} className="flex gap-2 items-center">
-                <label className="sr-only">Typ adresu</label>
-                <input type="text" placeholder="Typ" value={addr.type} onChange={e => updateAddress(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+                <label htmlFor={`field-${addr.type}`} className="sr-only">Typ adresu</label>
+                <input id={`field-${addr.type}`} type="text" placeholder="Typ" value={addr.type} onChange={e => updateAddress(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label className="sr-only">Adres fizyczny</label>
-                <input type="text" placeholder="Adres" value={addr.address} onChange={e => updateAddress(idx, 'address', e.target.value)} className="input-field flex-1" />
+                <label htmlFor={`field-${addr.address}`} className="sr-only">Adres fizyczny</label>
+                <input id={`field-${addr.address}`} type="text" placeholder="Adres" value={addr.address} onChange={e => updateAddress(idx, 'address', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removeAddress(idx)} small />
               </div>

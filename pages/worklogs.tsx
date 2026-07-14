@@ -41,8 +41,9 @@ const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: any) => Promis
     >
       <div className="space-y-4">
         <div>
-          <label className="form-label">Opis pracy:</label>
+          <label htmlFor="desc" className="form-label">Opis pracy:</label>
           <input 
+            id="desc"
             type="text" 
             required
             value={description}
@@ -54,8 +55,9 @@ const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: any) => Promis
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="form-label">Czas rozpoczęcia:</label>
-            <input 
+            <label htmlFor="time-start" className="form-label">Czas rozpoczęcia:</label>
+            <input
+              id="time-start"
               type="datetime-local" 
               required
               value={startTime}
@@ -64,8 +66,9 @@ const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: any) => Promis
             />
           </div>
           <div>
-            <label className="form-label">Czas zakończenia:</label>
+            <label htmlFor="time-end" className="form-label">Czas zakończenia:</label>
             <input 
+              id="time-end"
               type="datetime-local" 
               required
               value={endTime}

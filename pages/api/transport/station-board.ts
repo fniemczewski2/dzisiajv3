@@ -135,8 +135,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       items: finalItems
     });
 
-    const currentHourMinutes = nowPl.getHours() * 60 + nowPl.getMinutes();
-
   } catch {
     return res.status(500).json({ error: 'Nie udało się wygenerować tablicy stacji' });
   }
