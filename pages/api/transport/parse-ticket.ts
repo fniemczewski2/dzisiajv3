@@ -72,7 +72,7 @@ function extractStationNames(route: string) {
 
 // 2. Wydzielona funkcja 3: Parsowanie logiki biznesowej biletu
 function parseTicketData(cleanText: string) {
-  const trainMatch = /Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?\s*(.{0,100}?)\s*Wagon/.exec(cleanText);
+  const trainMatch = /Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?(.*?)Wagon/.exec(cleanText);
   const trainNumber = trainMatch ? trainMatch[1].trim() : '';
   const trainName = trainMatch ? trainMatch[2].trim() : '';
 
@@ -88,7 +88,7 @@ function parseTicketData(cleanText: string) {
   const seatMatch = /Miejsca:\s*(\d{1,10})/.exec(cleanText);
   const seat = seatMatch ? seatMatch[1] : '';
 
-  const routeMatch = /KOD\s+\d{1,20}\s+(.{1,200}?)\s+Data odjazdu/.exec(cleanText);
+  const routeMatch = /KOD\s+\d{1,20}(.*?)Data odjazdu/.exec(cleanText);
   let route = routeMatch ? routeMatch[1].trim() : '';
 
   if (route.toLowerCase().includes('podróżny')) {

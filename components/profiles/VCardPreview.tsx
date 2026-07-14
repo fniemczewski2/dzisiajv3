@@ -92,7 +92,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
     link.setAttribute('download', `${profile.full_name?.replace(/\s+/g, '_') || 'wizytowka'}.vcf`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   const copyAllData = () => {

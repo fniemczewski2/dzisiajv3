@@ -10,7 +10,6 @@ import {
   Link as LinkIcon, 
   Briefcase, 
   Image as ImageIcon,
-  PlusCircle,
   CheckCircle2,
   XCircle,
   Loader2,
