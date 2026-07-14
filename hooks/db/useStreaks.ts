@@ -114,7 +114,7 @@ export function useStreaks() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, toast]);
 
   const addStreak = async (newStreak: Omit<Streak, "id" | "user_id">) => {
     if (!userId) {
@@ -146,7 +146,10 @@ export function useStreaks() {
     try {
       const { error } = await supabase.from("streaks").delete().eq("id", id);
       if (error) throw error;
-      await fetchStreaks();
+      setStreaks((prev) => prev.filter((s) => s.id !== id));
+      toast.success("Usunięto cel");
+    } catch {
+      toast.error("Błąd usuwania celu");
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,7 @@ import { useTrains } from '@/hooks/db/useTrains';
 import { AddButton } from '../ui/CommonButtons';
 import NoResultsState from '../ui/NoResultsState';
 import LoadingState from '../ui/LoadingState';
-import { useResponsive } from '@/lib/useResponsive';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface StationBoardProps {
   readonly onTrainAdded?: () => void;

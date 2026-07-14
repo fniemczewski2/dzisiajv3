@@ -54,15 +54,15 @@ export default function StartPage() {
   return (
     <>
       <Seo
-        title="Rozpocznij - Dzisiaj v3"
-        description="Poznaj Dzisiaj v3 - kompleksową aplikację, która pomoże Ci uporządkować i zorganizować każdy dzień."
+        title="Rozpocznij | Dzisiaj.Fun"
+        description="Poznaj Dzisiaj.Fun - kompleksową aplikację, która pomoże Ci uporządkować i zorganizować każdy dzień."
         canonical="https://dzisiaj.fun/start"
         keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />
         <main id="main-content" className="max-w-4xl mx-auto">
           <section className="text-center sm:py-12 px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-text leading-snug">
-              Organizuj swój&nbsp;dzień z&nbsp;<span className="text-primary leading-snug">Dzisiaj&nbsp;v3</span>
+              Organizuj swój&nbsp;dzień z&nbsp;<span className="text-primary leading-snug">Dzisiaj.Fun</span>
             </h1>
             <p className="text-xl text-textMuted mb-8 max-w-2xl mx-auto">
               Kompleksowa aplikacja do&nbsp;zarządzania czasem, zadaniami i&nbsp;produktywnością.

@@ -13,7 +13,7 @@ export default function Layout({ children }: { readonly children: ReactNode }) {
         {children}
         <footer className="border-t border-gray-200 dark:border-gray-800 mt-10 py-4 px-4 text-center">
             <p className="text-sm text-textMuted">
-              © {new Date().getFullYear()} Dzisiaj v3
+              © {new Date().getFullYear()}Dzisiaj.Fun
               <span className="mx-2">·</span>
               <Link
                 href="/privacy"

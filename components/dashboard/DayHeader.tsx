@@ -6,7 +6,7 @@ import { getPolishHolidays } from "@/lib/holidays";
 import { Settings } from "@/types/settings";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
-import { useResponsive } from "@/lib/useResponsive";
+import { useResponsive } from "@/hooks/useResponsive";
 
 interface DayHeaderProps {
   date: Date;

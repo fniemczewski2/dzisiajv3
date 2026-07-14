@@ -122,7 +122,7 @@ const controls: TimerControls = {
   return (
     <>
       <Seo
-        title="Pomodoro - Dzisiaj v3"
+        title="Pomodoro | Dzisiaj.Fun"
         description="Skup się na pracy wykorzystując technikę Pomodoro. Ustawiaj czas głębokiej pracy i optymalizuj przerwy."
         canonical="https://dzisiaj.fun/tasks/pomodoro"
         keywords="pomodoro, technika pomodoro, skupienie, focus, timer, praca głęboka"

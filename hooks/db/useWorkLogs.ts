@@ -56,7 +56,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     } finally {
       setFetching(false);
     }
-  }, [user, dateStr, monthStr]);
+  }, [user, dateStr, monthStr, toast]);
 
   useEffect(() => {
     fetchWorkLogs();
@@ -99,17 +99,16 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     if (!ok) return;
     setLoading(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from('work_logs')
         .delete()
         .eq('id', id);
       
+      if (error) throw error
       setWorkLogs((prev) => prev.filter((log) => log.id !== id));
       toast.success('Usunięto czas pracy.');
-      return;
     } catch {
       toast.error('Błąd usuwania czasu pracy.');
-      return;
     } finally {
       setLoading(false);
     } 

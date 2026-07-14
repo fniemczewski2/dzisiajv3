@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import UniversalTimer from "@/components/ui/Timer";
-import { useIntervalTraining } from "@/lib/useIntervalTraining";
+import { useIntervalTraining } from "@/hooks/useIntervalTraining";
 import { X, Settings2 } from "lucide-react";
 import Seo from "@/components/ui/SEO";
 
@@ -50,7 +50,7 @@ export default function TrainingPage() {
   return (
     <>
       <Seo
-        title="Trening Interwałowy - Dzisiaj v3"
+        title="Trening Interwałowy | Dzisiaj.Fun"
         description="Ćwicz z wbudowanym stoperem. Skonfiguruj własne czasy pracy i przerw do treningów HIIT i Tabata."
         canonical="https://dzisiaj.fun/training"
         keywords="trening, interwały, stoper, hiit, tabata, fitness"

@@ -19,8 +19,8 @@ interface SeoProps {
 }
 
 export default function Seo({
-  title = "Dzisiaj v3 - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
-  description = "Dzisiaj v3 to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.",
+  title = "Dzisiaj.Fun - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
+  description = "Dzisiaj.Fun to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.",
   canonical = "https://dzisiaj.fun",
   ogImage = "https://dzisiaj.fun/og-image.png",
   ogType = "website",
@@ -29,17 +29,17 @@ export default function Seo({
   nofollow = false,
   structuredData,
   keywords = "zarządzanie zadaniami, produktywność, notatki, kalendarz, pomodoro, eisenhower matrix, organizacja czasu, todo list, planner",
-  author = "Dzisiaj v3",
+  author = "Dzisiaj.Fun",
   publishedTime,
   modifiedTime,
 }: Readonly<SeoProps>) {
-  const fullTitle = title.includes("Dzisiaj") ? title : `${title} - Dzisiaj v3`;
+  const fullTitle = title.includes("Dzisiaj") ? title : `${title} | Dzisiaj.Fun`;
   const robotsContent = `${noindex ? "noindex" : "index"},${nofollow ? "nofollow" : "follow"}`;
 
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "Dzisiaj v3",
+    name: "Dzisiaj.Fun",
     description: description,
     url: canonical,
     applicationCategory: "ProductivityApplication",
@@ -51,7 +51,7 @@ export default function Seo({
     },
     author: {
       "@type": "Organization",
-      name: "Dzisiaj v3",
+      name: "Dzisiaj.Fun",
     },
     inLanguage: "pl-PL",
   };
@@ -76,7 +76,7 @@ export default function Seo({
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Dzisiaj v3" />
+      <meta property="og:site_name" content="Dzisiaj.Fun" />
       <meta property="og:locale" content="pl_PL" />
 
       {ogType === "article" && publishedTime && (
@@ -101,7 +101,7 @@ export default function Seo({
       <meta name="format-detection" content="telephone=no" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="apple-mobile-web-app-title" content="Dzisiaj v3" />
+      <meta name="apple-mobile-web-app-title" content="Dzisiaj.Fun" />
 
       <script
         type="application/ld+json"
@@ -155,7 +155,7 @@ export function createArticleSchema({
     },
     publisher: {
       "@type": "Organization",
-      name: "Dzisiaj v3",
+      name: "Dzisiaj.Fun",
       logo: {
         "@type": "ImageObject",
         url: "https://dzisiaj.fun/logo.png",

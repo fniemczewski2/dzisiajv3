@@ -41,7 +41,7 @@ export function useMoods(startDate?: string, endDate?: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, user, startDate, endDate]);
+  }, [supabase, user, startDate, endDate, toast]);
 
   useEffect(() => { fetchMoods(); }, [fetchMoods]);
 

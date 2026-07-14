@@ -13,9 +13,10 @@ interface ShoppingListViewProps {
   lists: ShoppingList[];
   editShoppingList: (id: string, updates: any) => Promise<void>;
   deleteShoppingList: (id: string) => Promise<void>;
+  loading: boolean;
 }
 
-export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList }: Readonly<ShoppingListViewProps>) {
+export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList, loading }: Readonly<ShoppingListViewProps>) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
   const retry = useRetry();
@@ -133,7 +134,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                     </select>
                   </div>
                 )}
-                  <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
+                  <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading} />
               </div>
               <ul className="list-none space-y-2.5 opacity-60 pointer-events-none grayscale-[0.5]">
                 {list.elements.map((el) => (

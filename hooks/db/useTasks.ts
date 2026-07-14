@@ -75,7 +75,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     const sorted = [...rawTasks];
     if (sortFunction) sorted.sort(sortFunction);
     return sorted.sort((a, b) => (a.status === "done" ? 1 : 0) - (b.status === "done" ? 1 : 0));
-  }, [rawTasks, settings, sortFunction]);
+  }, [rawTasks, sortFunction, settings.sort_order]);
 
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
@@ -110,7 +110,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   }, [
     supabase, userId,
     settings?.show_completed,
-    dateFrom, dateTo,
+    dateFrom, dateTo, toast
   ]);
 
   const addTask = useCallback(
@@ -144,7 +144,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, fetchTasks]
+    [supabase, userId, fetchTasks, toast]
   );
 
   const editTask = useCallback(
@@ -183,7 +183,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, fetchTasks]
+    [supabase, userId, fetchTasks, toast]
   );
 
   const deleteTask = useCallback(
@@ -197,10 +197,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       );
       if (!ok) return;
       setLoading(true);
-      setRawTasks(prev => prev.filter(t => t.id !== id));
-
       try {
-        await supabase.from("tasks").delete().eq("id", id);
+        const { error } = await supabase.from("tasks").delete().eq("id", id);
+        if (error) throw error
+        setRawTasks(prev => prev.filter(t => t.id !== id));
         toast.success("Usunięto zadanie");
       } catch { 
         fetchTasks(); 
@@ -209,7 +209,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, fetchTasks]
+    [supabase, userId, fetchTasks, toast]
   );
 
   const acceptTask = useCallback(
@@ -235,7 +235,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, fetchTasks]
+    [supabase, userId, fetchTasks, toast]
   );
 
   const setDoneTask = useCallback(
@@ -256,7 +256,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, fetchTasks]
+    [supabase, userId, fetchTasks, toast]
   );
 
   const rescheduleTask = useCallback(
@@ -281,7 +281,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, fetchTasks]
+    [supabase, fetchTasks, toast]
   );
 
   useEffect(() => {

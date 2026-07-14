@@ -25,7 +25,7 @@ export function useDailyOverrides(dateStr: string) {
     if (!error && data) {
       setOverrides(data);
     }
-  }, [supabase, user, dateStr]);
+  }, [supabase, user, dateStr, toast]);
 
   useEffect(() => {
     fetchOverrides();

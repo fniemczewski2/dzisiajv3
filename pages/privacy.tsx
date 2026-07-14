@@ -5,8 +5,8 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-bg text-text font-sans">
       <Seo
-        title="Prywatność - Dzisiaj v3"
-        description="Polityka prywatności aplikacji Dzisiaj v3. Dowiedz się, jak chronimy Twoje dane, w tym dane z kalendarzy Google i Microsoft Outlook."
+        title="Prywatność | Dzisiaj.Fun"
+        description="Polityka prywatności aplikacjiDzisiaj.Fun. Dowiedz się, jak chronimy Twoje dane, w tym dane z kalendarzy Google i Microsoft Outlook."
         canonical="https://dzisiaj.fun/privacy"
         keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności, google calendar, outlook"
       />
@@ -16,12 +16,12 @@ export default function PrivacyPage() {
       <main className="max-w-3xl mx-auto py-12 px-6">
         <h1 className="text-3xl font-bold text-text mb-2">Polityka Prywatności</h1>
         <p className="text-sm text-textMuted mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
-          Obowiązuje od: 1 stycznia 2025 r. &nbsp;·&nbsp; Aplikacja: Dzisiaj v3
+          Obowiązuje od: 1 stycznia 2025 r. &nbsp;·&nbsp; Aplikacja:Dzisiaj.Fun
         </p>
 
         <Section title="1. Administrator danych">
           <p>
-            Administratorem Twoich danych osobowych przetwarzanych w aplikacji <strong>Dzisiaj v3</strong>{" "}
+            Administratorem Twoich danych osobowych przetwarzanych w aplikacji <strong>Dzisiaj.Fun</strong>{" "}
             (dostępnej pod adresem <a href="https://dzisiaj.fun" className="text-primary hover:underline">dzisiaj.fun</a>){" "}
             jest <strong>Franciszek Niemczewski - Usługi IT</strong> z siedzibą w Baranówku, NIP: 7773460003.
           </p>
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Wydarzenia z kalendarzy (Google Calendar / Microsoft Outlook):</strong>{" "}
-              <span>Za Twoją wyraźną zgodą pobieramy tytuły, godziny rozpoczęcia i zakończenia, opisy oraz lokalizacje wydarzeń w celu ich wyświetlenia na wspólnej siatce kalendarza wewnątrz aplikacji Dzisiaj v3.</span>
+              <span>Za Twoją wyraźną zgodą pobieramy tytuły, godziny rozpoczęcia i zakończenia, opisy oraz lokalizacje wydarzeń w celu ich wyświetlenia na wspólnej siatce kalendarza wewnątrz aplikacjiDzisiaj.Fun.</span>
             </Li>
             <Li>
               <strong>Tokeny autoryzacyjne (OAuth):</strong>{" "}
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           <div className="p-5 my-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
             <p className="font-semibold text-text mb-2">Klauzula Google (Google API Services User Data Policy):</p>
             <p className="text-sm">
-              Wykorzystanie przez aplikację &quot;Dzisiaj v3&quot; informacji otrzymanych z interfejsów API Google oraz ich przekazywanie do innych aplikacji będzie w pełni zgodne z <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">Zasadami dotyczącymi danych użytkownika usług interfejsu API Google</a>, w tym z wymogami ograniczonego użytkowania (Limited Use requirements). 
+              Wykorzystanie przez aplikację &quot;Dzisiaj.Fun&quot; informacji otrzymanych z interfejsów API Google oraz ich przekazywanie do innych aplikacji będzie w pełni zgodne z <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">Zasadami dotyczącymi danych użytkownika usług interfejsu API Google</a>, w tym z wymogami ograniczonego użytkowania (Limited Use requirements). 
             </p>
             <ul className="mt-3 space-y-1 text-sm list-disc pl-4">
               <li>Dane używane są <strong>wyłącznie</strong> do funkcji kalendarza.</li>

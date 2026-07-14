@@ -94,7 +94,7 @@ export function useDailyHabits(date?: string) {
     } finally {
       setLoading(false);
     }
-  }, [habits, userId, targetDate, supabase]); 
+  }, [habits, userId, targetDate, supabase, toast]); 
 
   const updateWater = useCallback(async (amount: number) => {
     if (!habits) return;
@@ -124,7 +124,7 @@ export function useDailyHabits(date?: string) {
     } finally {
       setLoading(false);
     }
-  }, [habits, userId, targetDate, supabase]);
+  }, [habits, userId, targetDate, supabase, toast]);
 
   const updateSpending = useCallback(async (amount: number) => {
     if (!habits) return;
@@ -152,7 +152,7 @@ export function useDailyHabits(date?: string) {
     } catch {
       setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
     }
-  }, [habits, userId, targetDate, supabase]);
+  }, [habits, userId, targetDate, supabase, toast]);
 
   useEffect(() => {
     fetchHabits();

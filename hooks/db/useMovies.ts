@@ -52,7 +52,7 @@ export function useMovies() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   useEffect(() => {
     fetchMovies();
@@ -78,7 +78,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const updateMovie = useCallback(
@@ -97,7 +97,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toast]
   );
 
   const deleteMovie = useCallback(
@@ -115,11 +115,14 @@ export function useMovies() {
         const { error } = await supabase.from("movies").delete().eq("id", id);
         if (error) throw error;
         setRawMovies((prev) => prev.filter((m) => m.id !== id));
+        toast.success("Usunięto wydarzenie");
+      } catch {
+        toast.error("Błąd usuwania wydarzenia");
       } finally {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toast]
   );
 
   const toggleWatched = useCallback(
@@ -137,7 +140,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [rawMovies, updateMovie]
+    [rawMovies, updateMovie, toast]
   );
 
   const updateNotes = useCallback(

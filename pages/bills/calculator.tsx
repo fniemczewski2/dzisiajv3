@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEuroRate } from "@/lib/useEuroRate";
+import { useEuroRate } from "@/hooks/useEuroRate";
 import LoadingState from "@/components/ui/LoadingState";
 import Seo from "@/components/ui/SEO";
 import { FLAT_RENTAL_DEFAULT, FLAT_FEE_DEFAULT, TAX_DEFAULT, ZUS_DEFAULT} from "@/config/limits";
@@ -174,7 +174,7 @@ export default function BillCalculator() {
   return (
     <>
     <Seo
-      title="Kalkulator - Dzisiaj v3"
+      title="Kalkulator | Dzisiaj.Fun"
       description="Szybki kalkulator wspierający zarządzanie Twoimi codziennymi wydatkami i wyliczeniami."
       canonical="https://dzisiaj.fun/bills/calculator"
       keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"

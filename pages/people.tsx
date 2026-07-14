@@ -125,6 +125,7 @@ export default function PeoplePage() {
               setIsFormOpen(false);
               setEditingPerson(null);
             }}
+            loading={loading}
           />
         ) : null}
 

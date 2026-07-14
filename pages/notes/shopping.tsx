@@ -34,7 +34,7 @@ export default function ShoppingPage() {
   return (
     <>
       <Seo
-        title="Listy Zakupów - Dzisiaj v3"
+        title="Listy Zakupów | Dzisiaj.Fun"
         description="Kategoryzuj niezbędne produkty i twórz inteligentne listy zakupów."
         canonical="https://dzisiaj.fun/notes/shopping"
         keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
@@ -62,6 +62,7 @@ export default function ShoppingPage() {
           lists={lists}
           editShoppingList={editShoppingList}
           deleteShoppingList={deleteShoppingList}
+          loading={loading}
         />
     </>
   );

@@ -22,7 +22,7 @@ import { getAppDateTime } from "@/lib/dateUtils";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
-import { useWeather } from "@/lib/useWeather";
+import { useWeather } from "@/hooks/useWeather";
 import { HourlyRow } from "@/types/weather";
 
 function WeatherIcon({ code }: { readonly code: number }) {
@@ -292,7 +292,7 @@ export default function WeatherPage() {
   return (
     <>
       <Seo
-        title="Pogoda - Dzisiaj v3"
+        title="Pogoda | Dzisiaj.Fun"
         description="Bądź na bieżąco. Sprawdź aktualną prognozę pogody, by idealnie zaplanować swój dzień."
         canonical="https://dzisiaj.fun/weather"
         keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"

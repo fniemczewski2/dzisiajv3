@@ -29,7 +29,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
 
   const {
     visibleReminders, allReminders,
-    addReminder, completeReminder, postponeReminder, deleteReminder,
+    addReminder, completeReminder, postponeReminder, deleteReminder, loading
   } = useReminders();
 
   const remindersToShow = showAll ? allReminders : visibleReminders;
@@ -205,7 +205,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
                     onChange={(e) => setForm({ ...form, powtarzanie: Number(e.target.value) })} />
                 </div>
               </div>
-              <FormButtons onClickSave={handleAdd} onClickClose={handleClose}/>
+              <FormButtons onClickSave={handleAdd} onClickClose={handleClose} loading={loading}/>
             </div>
           )}
         </div>

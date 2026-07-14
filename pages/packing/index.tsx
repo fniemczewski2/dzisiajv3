@@ -15,7 +15,7 @@ export default function PackingMenuPage() {
   return (
     <>
       <Seo
-        title="Pakowanie - Dzisiaj v3"
+        title="Pakowanie | Dzisiaj.Fun"
         description="Zaplanuj swój bagaż przed podróżą. Generuj wygodne listy rzeczy do spakowania."
         canonical="https://dzisiaj.fun/packing"
         keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"

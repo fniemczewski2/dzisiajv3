@@ -42,7 +42,7 @@ export function useDaySchemas() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, toast]);
 
   const addSchema = async (schema: Schema) => {
     if (!userId) {
@@ -106,13 +106,14 @@ export function useDaySchemas() {
 
     try {
       const { error } = await supabase.from("day_schemas").delete().eq("id", id);
-      if (error) {
-         fetchSchemas(); 
-         throw error;
+        if (error) throw error;
+        setSchemas((prev) => prev.filter((s) => s.id !== id));
+        toast.success("Usunięto schemat");
+      } catch {
+        toast.error("Błąd usuwania schematu");
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
   };
 
   useEffect(() => {

@@ -1,13 +1,12 @@
-interface LoadingStateProps {
+interface NoResultsStateProps {
   fullScreen?: boolean;
-  size?: 'sm' | 'md' | 'lg';
   text: string;
   isSearch?: boolean;
 }
 
-export default function NoResultsState({ fullScreen = false, size = 'md', text, isSearch = false }: Readonly<LoadingStateProps>) {
+export default function NoResultsState({ fullScreen = false, text, isSearch = false }: Readonly<NoResultsStateProps>) {
   const content = (
-    <div className="text-center py-10 w-md h-md rounded-lg bg-surface" >
+    <div className="text-center py-10 rounded-lg bg-surface" >
         <h3 className="text-md font-medium text-text">Brak {text} {isSearch ? "spełniających kryteria." : "do wyświetlenia."}</h3>
     </div>
   );

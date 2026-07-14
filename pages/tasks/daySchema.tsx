@@ -72,7 +72,7 @@ export default function DaySchemaPage() {
   return (
     <>
         <Seo
-          title="Schemat Dnia - Dzisiaj v3"
+          title="Schemat Dnia | Dzisiaj.Fun"
           description="Zbuduj i zautomatyzuj swój idealny schemat dnia oraz poranne lub wieczorne rutyny."
           canonical="https://dzisiaj.fun/tasks/daySchema"
           keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"

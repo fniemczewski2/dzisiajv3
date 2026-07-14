@@ -1,10 +1,10 @@
 import React from 'react';
-import { VCardProfile } from '@/hooks/db/useProfiles';
 import { QRCodeSVG } from 'qrcode.react';
 import { CopyButton, DownloadButton, CopyButtonSmall } from '../ui/CommonButtons';
 import { ChevronLeft } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/providers/ToastProvider';
+import { VCardProfile } from '@/types/profiles';
 
 interface VCardPreviewProps {
   profile: VCardProfile;

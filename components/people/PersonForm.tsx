@@ -8,9 +8,10 @@ interface PersonFormProps {
   initialData?: Person | null;
   onSave: (data: PersonInsert | Person) => void;
   onCancel: () => void;
+  loading: boolean;
 }
 
-export const PersonForm = ({ initialData, onSave, onCancel }: Readonly<PersonFormProps>) => {
+export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<PersonFormProps>) => {
   const [formData, setFormData] = useState<Partial<Person>>(initialData || {
     first_name: '', last_name: '', relationship: '', priority: 0,
     phones: [], emails: [], notes: '', birthday: '', nameday: '' // <-- Dodane nameday
@@ -133,7 +134,7 @@ export const PersonForm = ({ initialData, onSave, onCancel }: Readonly<PersonFor
         <textarea rows={3} value={formData.notes || ''} onChange={e => setFormData({...formData, notes: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
       </label>
 
-      <FormButtons onClickClose={onCancel} disabled={!formData.first_name} />
+      <FormButtons onClickClose={onCancel} disabled={!formData.first_name} loading={loading} />
     </form>
   );
 };

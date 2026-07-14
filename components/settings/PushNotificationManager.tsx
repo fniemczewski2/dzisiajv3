@@ -171,7 +171,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
         },
         body: JSON.stringify({
           userId,
-          title: "Dzisiaj v3 | Test",
+          title: "Dzisiaj.Fun | Test",
           message: "To jest powiadomienie testowe z aplikacji Dzisiaj!",
           url: "/",
         }),

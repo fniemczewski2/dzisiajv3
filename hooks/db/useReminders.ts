@@ -41,7 +41,7 @@ export function useReminders() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   const addReminder = useCallback(
     async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
@@ -63,7 +63,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const postponeReminder = useCallback(
@@ -91,7 +91,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toast]
   );
 
   const completeReminder = useCallback(
@@ -115,7 +115,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase, today]
+    [supabase, today, toast]
   );
 
   const deleteReminder = useCallback(
@@ -133,11 +133,14 @@ export function useReminders() {
         const { error } = await supabase.from("reminders").delete().eq("id", id);
         if (error) throw error;
         setReminders((prev) => prev.filter((r) => r.id !== id));
+        toast.success("Usunięto zadanie cykliczne");
+      } catch {
+        toast.error("Błąd zadania cyklicznego");
       } finally {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toast]
   );
 
   const getVisibleReminders = useCallback((): Reminder[] => {
@@ -148,7 +151,7 @@ export function useReminders() {
       nextDue.setDate(nextDue.getDate() + r.powtarzanie);
       return today >= nextDue.toISOString().slice(0, 10);
     });
-  }, [reminders, today]);
+  }, [reminders, today, toast]);
 
   useEffect(() => {
     fetchReminders();

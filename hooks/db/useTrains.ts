@@ -77,7 +77,7 @@ export function useTrains() {
     } finally {
       setFetching(false);
     }
-  }, [user, supabase]);
+  }, [user, supabase, toast]);
 
   const addTrain = async (trainData: TrainInput) => {
     if (!userId) {
@@ -154,11 +154,12 @@ export function useTrains() {
       if (error) throw error;
 
       setTrains((prev) => prev.filter((t) => t.id !== id));
+      toast.success("Usunięto pociąg");
     } catch {
-      throw new Error('Nie udało się usunąć pociągu');
+      toast.error("Błąd usuwania pociągu");
     } finally {
       setLoading(false);
-    } 
+    }
   };
 
   return {

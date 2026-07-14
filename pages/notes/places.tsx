@@ -130,7 +130,7 @@ export default function PlacesPage() {
   return (
     <>
       <Seo
-        title="Miejsca - Dzisiaj v3"
+        title="Miejsca | Dzisiaj.Fun"
         description="Zapisuj restauracje, atrakcje i lokalizacje warte odwiedzenia wraz ze współrzędnymi."
         canonical="https://dzisiaj.fun/notes/places"
         keywords="miejsca, lokalizacje, restauracje do odwiedzenia, mapa, podróże"

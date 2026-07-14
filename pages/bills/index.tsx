@@ -10,7 +10,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { getYear } from "date-fns";
 import DailySpendingForm from "@/components/widgets/DailySpendingForm";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useQuickAction } from "@/lib/useQuickAction";
+import { useQuickAction } from "@/hooks/useQuickAction";
 import type { Bill } from "@/types/bills";
 import BillListGrouped from "@/components/bills/BillListGrouped";
 import Seo from "@/components/ui/SEO";
@@ -57,7 +57,7 @@ export default function BillsPage() {
   return (
     <>
       <Seo
-        title="Rachunki - Dzisiaj v3"
+        title="Rachunki | Dzisiaj.Fun"
         description="Miej pełną kontrolę nad stałymi opłatami, śledź terminy płatności i unikaj opóźnień."
         canonical="https://dzisiaj.fun/bills"
         keywords="rachunki, płatności, opłaty stałe, finanse osobiste, przypomnienia finansowe"

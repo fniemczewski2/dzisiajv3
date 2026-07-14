@@ -37,7 +37,7 @@ export function useReports() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   const addReport = useCallback(
     async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
@@ -58,7 +58,7 @@ export function useReports() {
         setLoading(false)
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const editReport = useCallback(
@@ -81,7 +81,7 @@ export function useReports() {
         setLoading(false)
       }
     },
-    [supabase, userId]
+    [supabase, userId, toast]
   );
 
   const deleteReport = useCallback(
@@ -99,11 +99,14 @@ export function useReports() {
         const { error } = await supabase.from("reports").delete().eq("id", id);
         if (error) throw error;
         setReports((prev) => prev.filter((r) => r.id !== id));
+        toast.success("Usunięto sprawozdania");
+      } catch {
+        toast.error("Błąd usuwania sprawozdania");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toast]
   );
 
   useEffect(() => {

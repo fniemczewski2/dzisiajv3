@@ -92,9 +92,9 @@ export function usePeople() {
     if (ok) {
       setLoading(true);
       try {
-        setPeople((prev) => prev.filter((p) => p.id !== id));
         const { error } = await supabase.from("people").delete().eq("id", id);
         if (error) throw error;
+        setPeople((prev) => prev.filter((p) => p.id !== id));
         toast.success("Usunięto kontakt");
       } catch {
         toast.error("Błąd usuwania kontaktu");

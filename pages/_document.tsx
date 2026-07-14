@@ -23,7 +23,7 @@ export default class MyDocument extends Document {
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-          <meta name="apple-mobile-web-app-title" content="Dzisiaj v3" />
+          <meta name="apple-mobile-web-app-title" content="Dzisiaj.Fun" />
           <meta name="theme-color" content="#0ea5e9" />
           <meta name="msapplication-TileColor" content="#0ea5e9" />
           <meta name="msapplication-navbutton-color" content="#0ea5e9" />

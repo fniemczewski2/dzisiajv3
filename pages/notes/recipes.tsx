@@ -32,7 +32,7 @@ export default function RecipesPage() {
   return (
     <>
       <Seo
-        title="Przepisy - Dzisiaj v3"
+        title="Przepisy | Dzisiaj.Fun"
         description="Zbieraj swoje ulubione przepisy kulinarne w jednej, prostej w użyciu książce kucharskiej."
         canonical="https://dzisiaj.fun/notes/recipes"
         keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"

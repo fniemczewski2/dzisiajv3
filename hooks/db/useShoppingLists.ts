@@ -48,7 +48,7 @@ export function useShoppingLists() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, toast]);
 
   const addShoppingList = useCallback(
     async (name: string, shared_with_email: string | null): Promise<boolean> => {
@@ -79,7 +79,7 @@ export function useShoppingLists() {
       }
       return true;
     },
-    [lists.length, supabase, userId, fetchShoppingLists]
+    [lists.length, supabase, userId, fetchShoppingLists, toast]
   );
 
   const editShoppingList = async (
@@ -124,8 +124,10 @@ export function useShoppingLists() {
       const { error } = await supabase.from("shopping_lists").delete().eq("id", id);
       if (error) throw error;
       setLists((prev) => prev.filter((l) => l.id !== id));
+      toast.success("Usunięto listę zakupów");
+    } catch {
+      toast.error("Błąd usuwania listy zakupów");
     } finally {
-      await fetchShoppingLists();
       setLoading(false);
     }
   };

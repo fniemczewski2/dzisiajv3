@@ -161,7 +161,7 @@ export function useSettings() {
     loadSettings();
 
     return () => { cancelled = true; };
-  }, [loadingUser, userId, supabase]);
+  }, [loadingUser, userId, supabase, toast]);
 
   const saveSettings = useCallback(async () => {
     if (!userId) {
@@ -176,7 +176,7 @@ export function useSettings() {
       
     setLoading(false);
     return { error };
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
     if (!userId) {
@@ -196,7 +196,7 @@ export function useSettings() {
     setLoading(false);
     if (error) throw error;
     return { error };
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
     if (!userId) {

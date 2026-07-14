@@ -61,7 +61,7 @@ export function useRecipes() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
     if (!userId) {
@@ -82,7 +82,7 @@ export function useRecipes() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId]);
+  }, [supabase, userId, toast]);
 
   const refresh = useCallback(async () => {
     const [r, p] = await Promise.all([fetchRecipes(), fetchProducts()]);
@@ -158,6 +158,9 @@ export function useRecipes() {
       const { error } = await supabase.from("recipes").delete().eq("id", id);
       if (error) throw error;
       setRawRecipes((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Usunięto przepis");
+    } catch {
+      toast.error("Błąd usuwania przepisu");
     } finally {
       setLoading(false);
     }

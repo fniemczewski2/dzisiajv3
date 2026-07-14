@@ -321,7 +321,7 @@ export function useBills(options: FetchOptions = {}) {
 
       return Array.from(activeMonthIndexes).sort((a, b) => b - a);
     },
-    [userId, supabase]
+    [userId, supabase, toast]
   );
 
   return {

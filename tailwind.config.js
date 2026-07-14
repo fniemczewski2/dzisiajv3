@@ -1,5 +1,3 @@
-const { text } = require("node:stream/consumers");
-
 module.exports = {
   darkMode: 'class', 
   content: [

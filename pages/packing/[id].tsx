@@ -2,6 +2,7 @@ import React, { useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
 import PackingList from "@/components/packing/PackingList";
 import { BACKPACK, SAFETY, SUITCASE } from "@/config/packing";
+import Seo from "@/components/ui/SEO";
 
 export default function DynamicPackingPage() {
   const router = useRouter();
@@ -10,11 +11,11 @@ export default function DynamicPackingPage() {
   const listData = useMemo(() => {
     switch (id) {
       case "backpack":
-        return { pageTitle: "Plecak – Dzisiaj", headerTitle: "Plecak", categories: BACKPACK };
+        return { pageTitle: "Plecak | Dzisiaj.Fun", headerTitle: "Plecak", categories: BACKPACK };
       case "safety":
-        return { pageTitle: "Plecak Bezpieczeństwa – Dzisiaj", headerTitle: "Plecak Bezpieczeństwa", categories: SAFETY };
+        return { pageTitle: "Plecak Bezpieczeństwa | Dzisiaj.Fun", headerTitle: "Plecak Bezpieczeństwa", categories: SAFETY };
       case "suitcase":
-        return { pageTitle: "Walizka – Dzisiaj", headerTitle: "Walizka", categories: SUITCASE };
+        return { pageTitle: "Walizka | Dzisiaj.Fun", headerTitle: "Walizka", categories: SUITCASE };
       default:
         return null;
     }
@@ -29,11 +30,20 @@ export default function DynamicPackingPage() {
   if (!listData) return null;
 
   return (
-    <PackingList 
-      pageTitle={listData.pageTitle} 
-      headerTitle={listData.headerTitle} 
-      categories={listData.categories} 
-      onBack={() => router.push("/packing")}
-    />
+    <>
+      <Seo 
+        title={listData.pageTitle}  description="Spakuj wszystko, co niezbędne." />
+              <Seo
+                title="Budżet | Dzisiaj.Fun"
+                description="Analizuj swoje wydatki, przeglądaj statystyki finansowe i mądrze zaplanuj domowy budżet."
+                canonical="https://dzisiaj.fun/bills/budget"
+                keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
+              />
+      <PackingList 
+        headerTitle={listData.headerTitle} 
+        categories={listData.categories} 
+        onBack={() => router.push("/packing")}
+      />
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import { Info } from "lucide-react";
-import { useVersion } from "@/lib/useVersion";
+import { useVersion } from "@/hooks/useVersion";
 
 export default function VersionInfo() {
   const { version, commitDate, loading, error } = useVersion();

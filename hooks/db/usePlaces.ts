@@ -53,7 +53,7 @@ export function usePlaces() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, toast]);
 
   useEffect(() => {
     fetchPlaces();
@@ -118,7 +118,12 @@ export function usePlaces() {
         .eq("user_id", userId);
       if (error) throw error;
       setRawPlaces((prev) => prev.filter((p) => p.id !== id));
-    } finally { setLoading(false); }
+      toast.success("Usunięto miejsce");
+    } catch {
+      toast.error("Błąd usuwania miejsca");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const extractHours = (dayText: string): string[] => {

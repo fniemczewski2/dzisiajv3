@@ -118,12 +118,10 @@ export function useProfiles() {
 
       if (error) throw error;
       setProfiles((prev) => prev.filter((p) => p.id !== id));
-      return { success: true };
-    } catch (err: any) {
-      console.error('Błąd usuwania profilu:', err);
-      return { success: false, error: err.message };
-    }
-    finally {
+      toast.success("Usunięto wizytówkę");
+    } catch {
+      toast.error("Błąd usuwania wizytówki");
+    } finally {
       setLoading(false);
     }
   };

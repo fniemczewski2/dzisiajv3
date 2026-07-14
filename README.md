@@ -1,6 +1,6 @@
-# Dzisiaj v3 - Personal Productivity & Life Management App
+#Dzisiaj.Fun - Personal Productivity & Life Management App
 
-**Dzisiaj v3** is a comprehensive Polish-language web application for managing time, tasks, and productivity. Built with Next.js and Supabase, it offers an all-in-one solution for organizing daily life, from task management to financial tracking.
+**Dzisiaj.Fun** is a comprehensive Polish-language web application for managing time, tasks, and productivity. Built with Next.js and Supabase, it offers an all-in-one solution for organizing daily life, from task management to financial tracking.
 
 ![Version](https://img.shields.io/badge/version-1.17.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16.0.7-black)
@@ -9,7 +9,7 @@
 
 ## 🌟 Overview
 
-Dzisiaj v3 (meaning "Today v3" in Polish) is a feature-rich Progressive Web App (PWA) designed to help users organize their entire life in one place. Whether you're managing tasks, tracking expenses, planning events, or maintaining healthy habits, Dzisiaj v3 has you covered.
+Dzisiaj.Fun (meaning "Today.Fun" in Polish) is a feature-rich Progressive Web App (PWA) designed to help users organize their entire life in one place. Whether you're managing tasks, tracking expenses, planning events, or maintaining healthy habits,Dzisiaj.Fun has you covered.
 
 **Live Demo:** [https://dzisiaj.fun](https://dzisiaj.fun)
 

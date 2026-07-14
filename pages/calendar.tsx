@@ -5,7 +5,7 @@ import { useEvents } from "@/hooks/db/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useQuickAction } from "@/lib/useQuickAction";
+import { useQuickAction } from "@/hooks/useQuickAction";
 import { useMoods } from "@/hooks/db/useMoods";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
@@ -57,7 +57,7 @@ export default function CalendarPage() {
   return (
     <>
       <Seo
-        title="Kalendarz - Dzisiaj v3"
+        title="Kalendarz | Dzisiaj.Fun"
         description="Planuj nadchodzące wydarzenia, monitoruj terminy i synchronizuj swoje plany z Kalendarzem Google oraz Outlookiem."
         canonical="https://dzisiaj.fun/calendar"
         keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google, outlook"

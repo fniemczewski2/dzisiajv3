@@ -26,7 +26,7 @@ export default function MoviesPage() {
   return (
     <>
       <Seo
-        title="Filmy i Seriale - Dzisiaj v3"
+        title="Filmy i Seriale | Dzisiaj.Fun"
         description="Kataloguj produkcje do obejrzenia, wystawiaj oceny i twórz swoją prywatną filmotekę."
         canonical="https://dzisiaj.fun/notes/movies"
         keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"

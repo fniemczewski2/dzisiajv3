@@ -35,7 +35,8 @@ function TaskEditForm({
   handleCancelEdit,
   increasePriority,
   decreasePriority,
-  titleRef
+  titleRef,
+  loading
 }: Readonly<{
   task: Task;
   editedTask: Task;
@@ -48,6 +49,7 @@ function TaskEditForm({
   increasePriority: () => void;
   decreasePriority: () => void;
   titleRef: React.RefObject<HTMLInputElement | null>;
+  loading: boolean;
 }>) {
   const editPrefix = `edit-task-${task.id}`;
 
@@ -126,7 +128,7 @@ function TaskEditForm({
             rows={2} 
           />
         </div>
-          <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} />
+          <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
       </div>
     </div>
   );
@@ -409,7 +411,7 @@ function useTaskActions(props: Props) {
 }
 
 const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
-  const { task, userId, userOptions } = props;
+  const { task, userId, userOptions, loading } = props;
   const isDone = task.status === "done";
   
   const titleRef = useRef<HTMLInputElement>(null);
@@ -478,6 +480,7 @@ const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
         increasePriority={actions.increasePriority}
         decreasePriority={actions.decreasePriority}
         titleRef={titleRef}
+        loading={loading}
       />
     );
   }

@@ -62,7 +62,7 @@ export default function StreaksPage() {
   return (
     <>
     <Seo
-      title="Cele - Dzisiaj v3"
+      title="Cele | Dzisiaj.Fun"
       description="Zbuduj żelazną dyscyplinę, śledź swoje cele i przedłużaj swoje pasma sukcesów."
       canonical="https://dzisiaj.fun/streaks"
       keywords="nawyki, cele, pasma, streaks, dyscyplina"

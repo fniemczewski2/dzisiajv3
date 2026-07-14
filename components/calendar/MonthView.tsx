@@ -8,7 +8,7 @@ import {
   isBefore, isAfter, max, min, differenceInCalendarDays, format, endOfDay,
 } from "date-fns";
 import CalendarCell from "./CalendarCell";
-import { useResponsive } from "@/lib/useResponsive";
+import { useResponsive } from "@/hooks/useResponsive";
 import { getPolishHolidays } from "@/lib/holidays";
 import { parseEventDate } from "@/lib/dateUtils";
 

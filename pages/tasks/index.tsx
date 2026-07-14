@@ -14,7 +14,7 @@ import TaskList from "@/components/tasks/TaskList";
 import { useTasks } from "@/hooks/db/useTasks";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useQuickAction } from "@/lib/useQuickAction";
+import { useQuickAction } from "@/hooks/useQuickAction";
 import Reminders from "@/components/tasks/Reminders";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
@@ -90,7 +90,7 @@ export default function TasksPage() {
   return (
     <>
       <Seo
-        title="Zadania - Dzisiaj v3"
+        title="Zadania | Dzisiaj.Fun"
         description="Organizuj swoje zadania, używaj priorytetów i grupuj projekty. Zwiększ skuteczność dzięki zaawansowanej liście To-Do."
         canonical="https://dzisiaj.fun/tasks"
         keywords="zadania, lista to-do, projekty, priorytety, zarządzanie projektami"

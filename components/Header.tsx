@@ -14,7 +14,7 @@ import {
 import { useRouter } from "next/router";
 import LoadingState from "./ui/LoadingState";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
-import { useWeather } from "../lib/useWeather";
+import { useWeather } from "../hooks/useWeather";
 
 interface WeatherdetailsProps {
   currentTemp: number | null;
@@ -158,7 +158,7 @@ export default function Header() {
 
         <div className="hidden sm:flex flex-col flex-1 items-center justify-center">
           <h1 className="text-2xl font-bold text-text tracking-wider">
-            Dzisiaj <span className="text-primary opacity-80">v3</span>
+            Dzisiaj<span className="text-primary opacity-80">.Fun</span>
           </h1>
         </div>
 

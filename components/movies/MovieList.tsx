@@ -150,6 +150,7 @@ export default function MovieWatchlist({
               expandedNotes={expandedNotes}
               toggleNotes={toggleNotes}
               onSaveNotes={handleSaveNotes}
+              loading={loading}
             />
           ))
         )}

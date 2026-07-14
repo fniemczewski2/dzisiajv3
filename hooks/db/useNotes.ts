@@ -40,7 +40,7 @@ export function useNotes() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, toast]);
 
   const addNote = async (note: Note) => {
     if (!userId) {
@@ -158,10 +158,11 @@ export function useNotes() {
       `Czy chcesz usunąć notatkę?`
     );
     if (!ok) return;
-    setNotes((prev) => prev.filter((n) => n.id !== id));
     setLoading(true);
     try {
-      await supabase.from("notes").delete().eq("id", id);
+      const { error } = await supabase.from("notes").delete().eq("id", id);
+      if (error) throw error;
+      setNotes((prev) => prev.filter((n) => n.id !== id));
       toast.success("Usunięto notatkę");
     } catch {
       toast.error("Błąd usuwania notatki");

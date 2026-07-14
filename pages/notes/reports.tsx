@@ -21,6 +21,7 @@ interface ReportEditRowProps{
   topicRef: React.RefObject<HTMLInputElement | null>;
   onSave: () => void;
   onCancel: () => void;
+  loading: boolean;
   upd: (field: string, val: any) => void;
   updArr: (field: string, arr: any[]) => void;
 }
@@ -78,6 +79,7 @@ function ReportEditRow({
   topicRef,
   onSave,
   onCancel,
+  loading,
   upd,
   updArr
 }: Readonly<ReportEditRowProps>) {
@@ -200,13 +202,13 @@ function ReportEditRow({
         <textarea id={`${editPrefix}-notes`} value={editedReport.notes || ""} className="input-field" rows={4}
           onChange={handleNotesChange} />
       </div>
-      <FormButtons onClickSave={onSave} onClickClose={onCancel} />
+      <FormButtons onClickSave={onSave} onClickClose={onCancel} loading={loading} />
     </li>
   );
 }
 
 export default function ReportsPage() {
-  const { reports, fetching, fetchReports, editReport, deleteReport } = useReports();
+  const { reports, fetching, fetchReports, editReport, deleteReport, loading } = useReports();
   const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -262,7 +264,7 @@ export default function ReportsPage() {
   return (
     <>
       <Seo
-        title="Sprawozdania - Dzisiaj v3"
+        title="Sprawozdania | Dzisiaj.Fun"
         description="Twórz i przeglądaj sprawozdania ze swoich spotkań."
         canonical="https://dzisiaj.fun/notes/reports"
         keywords="raporty, podsumowania, spotkania, sprawozdania"
@@ -291,6 +293,7 @@ export default function ReportsPage() {
                   topicRef={topicRef} 
                   onSave={handleSaveEdit} 
                   onCancel={handleCancelEdit} 
+                  loading={loading}
                   upd={upd} 
                   updArr={updArr} 
                 />

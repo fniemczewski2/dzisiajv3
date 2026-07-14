@@ -152,7 +152,7 @@ export default function TransportPage() {
   return (
     <>
       <Seo
-        title="Transport - Dzisiaj v3"
+        title="Transport | Dzisiaj.Fun"
         description="Sprawdzaj rzeczywiste odjazdy komunikacji miejskiej i zarządzaj swoimi ulubionymi przystankami."
         canonical="https://dzisiaj.funransport"
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"

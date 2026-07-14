@@ -13,7 +13,7 @@ import { useTasks } from "@/hooks/db/useTasks";
 import { useEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
-import { useDashboardDnd } from "@/lib/useDashboardDnd";
+import { useDashboardDnd } from "@/hooks/useDashboardDnd";
 import { useDailyOverrides } from "@/hooks/db/useDailyOverrides";
 
 import { DayEvents } from "./DayEvents";
@@ -40,8 +40,8 @@ type DraftForm = {
   type: "task" | "event";
 };
 
-const getHourStr = (dateStr: string | null | undefined): string | null => {
-  if (!dateStr) return null;
+const getHourStr = (dateStr: string | null): string | undefined => {
+  if (!dateStr) return;
   try {
     const timePart = dateStr.replaceAll(" ", "T").split("T")[1];
     if (timePart) {
@@ -51,9 +51,8 @@ const getHourStr = (dateStr: string | null | undefined): string | null => {
       }
     }
   } catch {
-    throw new Error(`Wystąpił błąd pobierania godziny.`);
+    return;
   }
-  return null;
 };
 
 export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) {
@@ -184,7 +183,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     });
 
     scheduledTasks.forEach((task) => {
-      const h = getHourStr(task.scheduled_time);
+      if (!task.scheduled_time) return
+      const h = getHourStr(task?.scheduled_time);
       if (h) {
         const key = `${h}:00`;
         if (map[key]) {
@@ -216,7 +216,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
             
             if (item.type === "event" && item.data?.end_time) {
               const endH = getHourStr(item.data.end_time);
-              if (endH !== null) {
+              if (endH) {
                 return Number.parseInt(endH, 10) >= currentHour; 
               }
             }

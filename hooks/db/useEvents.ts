@@ -87,7 +87,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, rangeStart, rangeEnd]);
+  }, [supabase, userId, rangeStart, rangeEnd, toast]);
 
   useEffect(() => { 
     fetchEvents(); 
@@ -196,16 +196,14 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
     try {
       const originalId = id.split("_")[0];
       const { error } = await supabase.from("events").delete().eq("id", originalId);
-      if (error) {
-        toast.error('Błąd usuwania wydarzenia.');
-        throw error;
+      if (error) throw error;
+      setEvents((prev) => prev.filter((e) => e.id !== originalId));
+      toast.success("Usunięto wydarzenie");
+      } catch {
+        toast.error("Błąd usuwania wydarzenia");
+      } finally {
+        setLoading(false);
       }
-      
-    } catch {
-      fetchEvents();
-    } finally {
-      setLoading(false);
-    }
   };
 
   return { events, loading, fetching, addEvent, editEvent, deleteEvent, fetchEvents };

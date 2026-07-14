@@ -8,8 +8,8 @@ export default function GuidePage() {
   return (
     <>
      <Seo
-        title="Przewodnik - Dzisiaj v3"
-        description="Instrukcje, porady i wskazówki, jak w pełni wykorzystać potencjał aplikacji Dzisiaj v3."
+        title="Przewodnik | Dzisiaj.Fun"
+        description="Instrukcje, porady i wskazówki, jak w pełni wykorzystać potencjał aplikacjiDzisiaj.Fun."
         canonical="https://dzisiaj.fun/guide"
         keywords="przewodnik, pomoc, instrukcja obsługi, tutorial, faq"
       />

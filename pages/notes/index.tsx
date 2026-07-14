@@ -7,7 +7,7 @@ import { useNotes } from "@/hooks/db/useNotes";
 import NoteList from "@/components/notes/NoteList";
 import { useRouter } from "next/router";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useQuickAction } from "@/lib/useQuickAction";
+import { useQuickAction } from "@/hooks/useQuickAction";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO"
 const NoteForm = dynamic(() => import("@/components/notes/NoteForm"), {
@@ -45,7 +45,7 @@ export default function NotesPage() {
   return (
     <>
       <Seo
-        title="Notatki - Dzisiaj v3"
+        title="Notatki | Dzisiaj.Fun"
         description="Twórz szybkie zapiski, gromadź ważne informacje i buduj swoją podręczną bazę wiedzy."
         canonical="https://dzisiaj.fun/notes"
         keywords="notatki, second brain, baza wiedzy, zapiski, notatnik online"
