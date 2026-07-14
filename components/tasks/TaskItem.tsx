@@ -309,7 +309,7 @@ function TaskView({
 }
 
 function useTaskActions(props: Props) {
-  const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId, loading } = props;
+  const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId } = props;
   const { supabase } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);

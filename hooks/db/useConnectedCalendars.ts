@@ -88,7 +88,7 @@ export function useConnectedCalendars(expanded: boolean) {
               combinedCalendars = [...combinedCalendars, ...googleCals];
             }
           }
-        } catch (err) {
+        } catch {
           toast.error("Błąd kalendarzy Google");
         }
       }
@@ -115,7 +115,7 @@ export function useConnectedCalendars(expanded: boolean) {
               combinedCalendars = [...combinedCalendars, ...outlookCals];
             }
           }
-        } catch (err) {
+        } catch {
           toast.error("Błąd kalendarzy Outlook");
         }
       }

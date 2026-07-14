@@ -30,8 +30,8 @@ export function usePushNotifications(userId: string | undefined) {
           const subscription = await registration.pushManager.getSubscription();
           setIsSubscribed(!!subscription);
           setLoading(false);
-        } catch (err) {
-          console.error('[SW] Rejestracja nie powiodła się:', err);
+        } catch {
+          console.error('[SW] Rejestracja nie powiodła się');
           setLoading(false);
         }
       } else {

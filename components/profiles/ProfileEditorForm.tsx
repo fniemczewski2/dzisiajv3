@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { VCardProfile } from '@/hooks/db/useProfiles';
-import { FormButtons, DeleteButton } from '../ui/CommonButtons';
+import { FormButtons, DeleteButton, AddButton } from '../ui/CommonButtons';
 import { 
   User, 
   Building, 
@@ -24,7 +24,7 @@ interface ProfileEditorFormProps {
   onCancel: () => void;
 }
 
-export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: ProfileEditorFormProps) {
+export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: Readonly<ProfileEditorFormProps>) {
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { handleImageUpload, uploading } = useImages()
@@ -272,60 +272,54 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
           <span className="form-label mb-2 block font-medium">Numery telefonu</span>
           <div className="space-y-2">
             {formData.phones.map((phone, idx) => (
-              <div key={`phone-${idx}`} className="flex gap-2 items-center">
-                <label className="sr-only">Typ numeru telefonu {idx + 1}</label>
+              <div key={`phone-${phone.number}`} className="flex gap-2 items-center">
+                <label className="sr-only">Typ numeru</label>
                 <input type="text" placeholder="Typ" value={phone.type} onChange={e => updatePhone(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label className="sr-only">Numer telefonu {idx + 1}</label>
+                <label className="sr-only">Numer telefonu</label>
                 <input type="text" placeholder="Numer" value={phone.number} onChange={e => updatePhone(idx, 'number', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removePhone(idx)} small />
               </div>
             ))}
           </div>
-          <button type="button" onClick={addPhone} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-            <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj numer
-          </button>
+          <AddButton onClick={addPhone} small />
         </div>
 
         <div>
           <span className="form-label mb-2 block font-medium">Adresy e-mail</span>
           <div className="space-y-2">
             {formData.emails.map((email, idx) => (
-              <div key={`email-${idx}`} className="flex gap-2 items-center">
-                <label className="sr-only">Typ e-mail {idx + 1}</label>
+              <div key={`email-${email.email}`} className="flex gap-2 items-center">
+                <label className="sr-only">Typ e-mail</label>
                 <input type="text" placeholder="Typ" value={email.type} onChange={e => updateEmail(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label className="sr-only">Adres e-mail {idx + 1}</label>
+                <label className="sr-only">Adres e-mail</label>
                 <input type="email" placeholder="Adres e-mail" value={email.email} onChange={e => updateEmail(idx, 'email', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removeEmail(idx)} small />
               </div>
             ))}
           </div>
-          <button type="button" onClick={addEmail} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-            <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj e-mail
-          </button>
+          <AddButton onClick={addEmail} small />
         </div>
 
         <div>
           <span className="form-label mb-2 block font-medium">Adresy</span>
           <div className="space-y-2">
             {formData.addresses.map((addr, idx) => (
-              <div key={`addr-${idx}`} className="flex gap-2 items-center">
-                <label className="sr-only">Typ adresu {idx + 1}</label>
+              <div key={`addr-${addr.address}`} className="flex gap-2 items-center">
+                <label className="sr-only">Typ adresu</label>
                 <input type="text" placeholder="Typ" value={addr.type} onChange={e => updateAddress(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label className="sr-only">Adres fizyczny {idx + 1}</label>
+                <label className="sr-only">Adres fizyczny</label>
                 <input type="text" placeholder="Adres" value={addr.address} onChange={e => updateAddress(idx, 'address', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removeAddress(idx)} small />
               </div>
             ))}
           </div>
-          <button type="button" onClick={addAddress} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-            <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj adres
-          </button>
+          <AddButton onClick={addAddress} small />
         </div>
       </div>
 
@@ -336,7 +330,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
         
         <div className="space-y-3">
           {formData.social_links.map((social, idx) => (
-            <div key={`social-${idx}`} className="flex gap-2 items-center">
+            <div key={`social-${social.url}`} className="flex gap-2 items-center">
               <label className="sr-only">Platforma społecznościowa {idx + 1}</label>
               <input type="text" placeholder="np. Facebook" value={social.platform} onChange={e => updateSocialPlatform(idx, e.target.value)} className="input-field w-24 sm:w-32" />
               
@@ -348,9 +342,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: P
           ))}
         </div>
         
-        <button type="button" onClick={addSocialLink} className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-2">
-          <PlusCircle className="mr-1.5 w-4 h-4" aria-hidden="true" /> Dodaj link
-        </button>
+        <AddButton onClick={addSocialLink} small />
       </div>
 
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">

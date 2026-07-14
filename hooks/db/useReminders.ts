@@ -120,14 +120,14 @@ export function useReminders() {
 
   const deleteReminder = useCallback(
     async (id: string) => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    const ok = await toast.confirm(
-      `Czy chcesz usunąć zadanie cykliczne?`
-    );
-    if (!ok) return;
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      const ok = await toast.confirm(
+        `Czy chcesz usunąć zadanie cykliczne?`
+      );
+      if (!ok) return;
       setLoading(true);
       try {
         const { error } = await supabase.from("reminders").delete().eq("id", id);

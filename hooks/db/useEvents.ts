@@ -167,8 +167,8 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
         throw error;
       }
 
-    } catch (error) {
-      throw error;
+    } catch {
+      toast.error('Błąd edycji wydarzenia.');
     } finally {
       fetchEvents();
       setLoading(false);

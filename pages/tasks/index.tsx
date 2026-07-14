@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import {
   List,
@@ -16,7 +16,6 @@ import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/lib/useQuickAction";
 import Reminders from "@/components/tasks/Reminders";
-import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
 import Seo from "@/components/ui/SEO";
