@@ -224,7 +224,7 @@ export function useTrainStatus(train: {
           departureTime: train.departureTime,
         });
 
-        const response = await fetch(`/api/train-status?${params.toString()}`);
+        const response = await fetch(`/api/transport/train-status?${params.toString()}`);
         if (response.status === 429) {
           if (isMounted) {
             setData({ delay: 0, platform: '-', status: '429', loading: false, estimatedArrival: '', hide: false });

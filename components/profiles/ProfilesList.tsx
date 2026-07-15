@@ -44,9 +44,7 @@ export default function ProfilesList() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Czy na pewno chcesz usunąć profil: ${name}?`)) {
-      await deleteProfile(id);
-    }
+    await deleteProfile(id);
   };
 
   if (error) return <div className="p-4 text-red-500 bg-red-100 rounded">Błąd: {error}</div>;

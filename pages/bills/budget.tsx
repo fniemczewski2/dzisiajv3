@@ -1,6 +1,6 @@
 // pages/bills/budget.tsx
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "@/lib/dateUtils";
@@ -97,7 +97,8 @@ export default function BudgetPage() {
   };
 
   const isLoading = loading || summaryLoading || catsLoading;
-
+ 
+  return (
     <>
       <Seo
         title="Budżet | Dzisiaj.Fun"
@@ -180,4 +181,5 @@ export default function BudgetPage() {
         </div>
         )}
     </>
+  );
 }

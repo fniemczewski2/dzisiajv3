@@ -13,8 +13,8 @@ function parseLatLng(rawLat: unknown, rawLng: unknown): { lat: number; lng: numb
   }
   const lat = Number(rawLat);
   const lng = Number(rawLng);
-  if (!Number.isFinite(lat) || Math.abs(lat) > 0) return null;
-  if (!Number.isFinite(lng) || Math.abs(lng) > 360) return null;
+  if (!Number.isFinite(lat) || Math.abs(lat) > 90) return null;
+  if (!Number.isFinite(lng) || Math.abs(lng) > 180) return null;
   return { lat, lng };
 }
 

@@ -1,6 +1,5 @@
-import { Edit2, Save, X } from "lucide-react";
-import LoadingState from "../ui/LoadingState";
-import { CancelButton, SaveButton } from "../ui/CommonButtons";
+import { Edit2 } from "lucide-react";
+import { CancelButton, EditButton, SaveButton } from "../ui/CommonButtons";
 
 interface BudgetControlsProps {
   isEditing: boolean;
@@ -34,13 +33,7 @@ export default function BudgetControls({
           />
         </div>
       ) : (
-        <button
-          onClick={onEdit}
-          className="p-2 bg-surface text-textSecondary hover:text-primary hover:bg-surfaceHover rounded-lg transition-colors"
-          title="Edytuj stawki"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
+        <EditButton onClick={onEdit} small/>
       )}
     </h3>
   );
