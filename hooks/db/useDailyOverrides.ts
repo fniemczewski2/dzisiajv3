@@ -36,7 +36,7 @@ export function useDailyOverrides(dateStr: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, dateStr, toast]);
+  }, [supabase, userId, dateStr, toast, withRetry]);
 
   useEffect(() => {
     fetchOverrides();
@@ -92,7 +92,7 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast]
+    [supabase, userId, dateStr, overrides, toast, withRetry]
   );
 
   const moveSchema = useCallback(
@@ -151,7 +151,7 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast]
+    [supabase, userId, dateStr, overrides, toast, withRetry]
   );
 
   return { overrides, loading, fetching, hideSchema, moveSchema, fetchOverrides };

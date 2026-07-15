@@ -104,7 +104,7 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
     } finally {
       setLoading(false);
     }
-  }, [supabase, userId, year, monthIndex, categories, toast]);
+  }, [supabase, userId, year, monthIndex, categories, toast, withRetry]);
 
   useEffect(() => { compute(); }, [compute]);
 

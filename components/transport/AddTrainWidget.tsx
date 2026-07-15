@@ -24,7 +24,6 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
     seat: ''
   });
 
-  // Wstrzyknięcie funkcji modyfikujących stan do naszego hooka
   const { handleFileUpload, loading } = useTicketUpload({
     setFormData,
     setExpanded

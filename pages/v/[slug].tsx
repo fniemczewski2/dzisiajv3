@@ -2,8 +2,14 @@ import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { createClient } from '@supabase/supabase-js';
 import VCardPreview from '@/components/profiles/VCardPreview';
+import { VCardProfile } from '@/types/profiles';
 
-export default function PublicVCard({ profile, error }: any) {
+interface PublicVCardProps {
+  profile?: VCardProfile;
+  error?: boolean;
+}
+
+export default function PublicVCard({ profile, error }: Readonly<PublicVCardProps>) {
   if (error || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-neutral-900">
@@ -30,8 +36,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   if (!slug) return { notFound: true };
 
-  // Używamy anon_key, ponieważ polityka RLS w Supabase 
-  // pozwala na odczyt jeśli is_public = true
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
   const supabase = createClient(supabaseUrl, supabaseKey);

@@ -1,6 +1,4 @@
 "use client";
-
-import { useEffect } from "react";
 import {
   Sun,
   CloudSun,

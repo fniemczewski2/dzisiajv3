@@ -153,7 +153,7 @@ export function useSettings() {
     loadSettings();
 
     return () => { cancelled = true; };
-  }, [loadingUser, userId, supabase, toast]);
+  }, [loadingUser, userId, supabase, toast, withRetry]);
 
   const saveSettings = useCallback(async () => {
     if (!userId) {
@@ -174,7 +174,7 @@ export function useSettings() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, userId, toast]);
+  }, [supabase, userId, toast, withRetry]);
 
   const updateSettings = useCallback(
     async (partialSettings: Partial<Settings>) => {
@@ -204,7 +204,7 @@ export function useSettings() {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const addFavoriteStop = useCallback(
@@ -239,7 +239,7 @@ export function useSettings() {
         return false;
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const removeFavoriteStop = useCallback(
@@ -265,7 +265,7 @@ export function useSettings() {
         toast.error("Błąd usuwania przystanku.");
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const addUser = useCallback(() => {

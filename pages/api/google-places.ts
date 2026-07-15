@@ -2,9 +2,26 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { generatePlaceTags } from '@/lib/placeTagging';
-import { createServerSupabase } from '@/lib/supabase/server'; 
+import { createServerSupabase } from '@/lib/supabase/server';
+import { GoogleFindPlaceResponse, GoogleNearbyResponse, GooglePlaceDetailsResponse } from '@/types/googlePlaces';
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
+
+function parseLatLng(rawLat: unknown, rawLng: unknown): { lat: number; lng: number } | null {
+  if (Array.isArray(rawLat) || Array.isArray(rawLng) || typeof rawLat !== 'string' || typeof rawLng !== 'string') {
+    return null;
+  }
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
+  if (!Number.isFinite(lat) || Math.abs(lat) > 0) return null;
+  if (!Number.isFinite(lng) || Math.abs(lng) > 360) return null;
+  return { lat, lng };
+}
+
+function parseSingleString(raw: unknown): string | null {
+  if (typeof raw !== 'string' || raw.trim() === '') return null;
+  return raw;
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,73 +51,76 @@ export default async function handler(
 
   const { lat, lng, name } = req.query;
 
-  if (!name || !lat || !lng) {
+  const coords = parseLatLng(lat, lng);
+  const placeName = parseSingleString(name);
+
+  if (!placeName || !coords) {
     return res
       .status(400)
-      .json({ error: 'Query params name, lat, and lng are all required' });
+      .json({ error: 'Query params name, lat, and lng are all required, lat/lng muszą być liczbami (lat: -90..90, lng: -180..180)' });
   }
 
   try {
     let finalPlaceId: string | null = null;
 
-    const findPlaceUrl =
-      `https://maps.googleapis.com/maps/api/place/findplacefromtext/json` +
-      `?input=${encodeURIComponent(name as string)}` +
-      `&inputtype=textquery` +
-      `&fields=place_id,name` +
-      `&locationbias=circle:100@${lat},${lng}` +
-      `&key=${GOOGLE_PLACES_API_KEY}`;
+    const findPlaceUrl = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json');
+    findPlaceUrl.searchParams.set('input', placeName);
+    findPlaceUrl.searchParams.set('inputtype', 'textquery');
+    findPlaceUrl.searchParams.set('fields', 'place_id,name');
+    findPlaceUrl.searchParams.set('locationbias', `circle:100@${coords.lat},${coords.lng}`);
+    findPlaceUrl.searchParams.set('key', GOOGLE_PLACES_API_KEY);
 
-    const findResponse = await fetch(findPlaceUrl);
-    const findData = await findResponse.json();
+    const findResponse = await fetch(findPlaceUrl.toString());
+    const findData: GoogleFindPlaceResponse = await findResponse.json();
 
-    if (findData.status === 'OK' && findData.candidates?.length > 0) {
+    if (findData.status === 'OK' && findData.candidates && findData.candidates.length > 0) {
       finalPlaceId = findData.candidates[0].place_id;
     } else {
-      const nearbyUrl =
-        `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
-        `?location=${lat},${lng}` +
-        `&radius=100` +
-        `&keyword=${encodeURIComponent(name as string)}` +
-        `&key=${GOOGLE_PLACES_API_KEY}`;
+      const nearbyUrl = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
+      nearbyUrl.searchParams.set('location', `${coords.lat},${coords.lng}`);
+      nearbyUrl.searchParams.set('radius', '100');
+      nearbyUrl.searchParams.set('keyword', placeName);
+      nearbyUrl.searchParams.set('key', GOOGLE_PLACES_API_KEY);
 
-      const nearbyResponse = await fetch(nearbyUrl);
-      const nearbyData = await nearbyResponse.json();
+      const nearbyResponse = await fetch(nearbyUrl.toString());
+      const nearbyData: GoogleNearbyResponse = await nearbyResponse.json();
 
-      if (nearbyData.status === 'OK' && nearbyData.results?.length > 0) {
-        const nameLower = (name as string).toLowerCase();
+      if (nearbyData.status === 'OK' && nearbyData.results && nearbyData.results.length > 0) {
+        const nameLower = placeName.toLowerCase();
         const bestMatch =
           nearbyData.results.find(
-            (r: { name: string }) =>
+            (r) =>
               r.name.toLowerCase().includes(nameLower) ||
               nameLower.includes(r.name.toLowerCase())
-          ) || nearbyData.results[0];
+          ) ?? nearbyData.results[0];
 
         finalPlaceId = bestMatch.place_id;
       }
     }
 
     if (!finalPlaceId) {
-      console.warn(`[google-places] Could not find: "${name}" at ${lat},${lng}`);
+      console.warn(`[google-places] Could not find: "${placeName}" at ${coords.lat},${coords.lng}`);
 
-      const tags = await generatePlaceTags(name as string);
+      const tags = await generatePlaceTags(placeName);
       return res.status(404).json({
         error: 'Place not found in Google Places',
-        name,
-        lat,
-        lng,
+        name: placeName,
+        lat: coords.lat,
+        lng: coords.lng,
         suggested_tags: tags,
       });
     }
 
-    const detailsUrl =
-      `https://maps.googleapis.com/maps/api/place/details/json` +
-      `?place_id=${finalPlaceId}` +
-      `&fields=name,formatted_phone_number,website,rating,opening_hours,place_id,url,types,price_level,editorial_summary,vicinity` +
-      `&key=${GOOGLE_PLACES_API_KEY}`;
+    const detailsUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
+    detailsUrl.searchParams.set('place_id', finalPlaceId);
+    detailsUrl.searchParams.set(
+      'fields',
+      'name,formatted_phone_number,website,rating,opening_hours,place_id,url,types,price_level,editorial_summary,vicinity'
+    );
+    detailsUrl.searchParams.set('key', GOOGLE_PLACES_API_KEY);
 
-    const detailsResponse = await fetch(detailsUrl);
-    const detailsData = await detailsResponse.json();
+    const detailsResponse = await fetch(detailsUrl.toString());
+    const detailsData: GooglePlaceDetailsResponse = await detailsResponse.json();
 
     if (detailsData.status !== 'OK') {
       return res.status(400).json({
@@ -109,9 +129,9 @@ export default async function handler(
       });
     }
 
-    const autoTags = await generatePlaceTags(name as string, detailsData.result);
+    const autoTags = await generatePlaceTags(placeName, detailsData.result);
 
-    res.setHeader('Cache-Control', 'private, max-age=3600'); 
+    res.setHeader('Cache-Control', 'private, max-age=3600');
     return res.status(200).json({ ...detailsData, auto_tags: autoTags });
   } catch {
     return res.status(500).json({ error: "Wystąpił błąd Google Places" });

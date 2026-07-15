@@ -44,7 +44,7 @@ export function useTrains() {
   const { supabase, user } = useAuth();
   const userId = user?.id;
   const [trains, setTrains] = useState<TrackedTrain[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [fetching, setFetching] = useState<boolean>(false);
   const { toast } = useToast();
   const withRetry = useRetry();
@@ -87,12 +87,9 @@ export function useTrains() {
     } catch {
       toast.error("Błąd pobierania pociągów.");
     } finally {
-      // Poprawka: wcześniej `loading` (start: true) nie było nigdy resetowane do
-      // false po pierwszym pobraniu, jeśli nie ustawiono go tutaj również.
       setFetching(false);
-      setLoading(false);
     }
-  }, [userId, supabase, toast]);
+  }, [userId, supabase, toast, withRetry]);
 
   const addTrain = useCallback(
     async (trainData: TrainInput) => {
@@ -150,7 +147,7 @@ export function useTrains() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const deleteTrain = useCallback(
@@ -178,7 +175,7 @@ export function useTrains() {
         setLoading(false);
       }
     },
-    [userId, supabase, trains, toast]
+    [userId, supabase, trains, toast, withRetry]
   );
 
   return {
@@ -191,10 +188,6 @@ export function useTrains() {
   };
 }
 
-// Uwaga celowa: `useTrainStatus` to cichy, tła odpytujący status pojedynczego
-// pociągu (opóźnienie/peron) - nie owijamy go w `withRetry`/toasty, bo pokazywanie
-// komunikatu "ponawiam próbę..." przy każdym rutynowym odświeżeniu małego
-// wskaźnika byłoby nadmiarowe i denerwujące dla użytkownika.
 export function useTrainStatus(train: {
   trainNumber: string;
   date: string;

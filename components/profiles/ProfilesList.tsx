@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useProfiles } from '@/hooks/db/useProfiles';
 import NoResultsState from '@/components/ui/NoResultsState';
 import ProfileEditorForm from './ProfileEditorForm';
@@ -88,9 +89,9 @@ export default function ProfilesList() {
             <div key={profile.id} className="card rounded-xl p-4">
               
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
+                <div className="relative w-12 h-12 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <Image src={profile.avatar_url} alt="" fill sizes="48px" className="object-cover" />
                   ) : (
                     <span className="w-full h-full flex items-center justify-center text-neutral-400 text-xs">Brak</span>
                   )}

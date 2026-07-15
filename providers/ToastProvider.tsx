@@ -137,18 +137,6 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
     []
   );
 
-  // ---------------------------------------------------------------------------
-  // batch — grupuje wielokrotne wywołania w jeden zbiorczy toast.
-  //
-  // Jak działa:
-  //  1. Pierwsze wywołanie tick() tworzy toast z komunikatem label(1) i uruchamia timer.
-  //  2. Kolejne wywołania inkrementują licznik i aktualizują wiadomość istniejącego toasta
-  //     (bez tworzenia nowych), a timer jest resetowany (debounce).
-  //  3. Po upływie debounceMs od ostatniego tick() toast dostaje auto-dismiss.
-  //
-  // Każde wywołanie batch() zwraca NOWĄ funkcję tick() z własnym stanem —
-  // dzięki temu dwa niezależne importy działające równolegle nie kolidują.
-  // ---------------------------------------------------------------------------
   const batch = useCallback(
     (label: BatchLabel, debounceMs = 600): (() => void) => {
       let count = 0;
@@ -159,14 +147,11 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
         count += 1;
 
         if (!toastId) {
-          // Pierwszy element — tworzymy toast (bez auto-dismiss, zarządzamy sami)
           toastId = addNotification(label(count), "success", false);
         } else {
-          // Kolejne — tylko aktualizujemy tekst
           dispatch({ type: "UPDATE_MESSAGE", id: toastId, message: label(count) });
         }
 
-        // Reset timera — auto-dismiss dopiero po ciszy
         if (timerId) clearTimeout(timerId);
         timerId = setTimeout(() => {
           if (toastId) setTimeout(() => remove(toastId!), AUTO_DISMISS_MS);

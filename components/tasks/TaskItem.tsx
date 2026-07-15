@@ -359,7 +359,6 @@ function useTaskActions(props: Props) {
   };
 
   const handleComplete = async () => {
-    console.log("Completing task:", task.id);
     try {
       await setDoneTask(task.id);
       onTasksChange();

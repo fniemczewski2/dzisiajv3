@@ -57,7 +57,7 @@ export function useRecipes() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast]);
+  }, [supabase, userId, toast, withRetry]);
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
     if (!userId) {
@@ -77,7 +77,7 @@ export function useRecipes() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast]);
+  }, [supabase, userId, toast, withRetry]);
 
   const refresh = useCallback(async () => {
     const [r, p] = await Promise.all([fetchRecipes(), fetchProducts()]);
@@ -122,7 +122,7 @@ export function useRecipes() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const editRecipe = useCallback(
@@ -161,7 +161,7 @@ export function useRecipes() {
         setLoading(false);
       }
     },
-    [userId, supabase, rawRecipes, toast]
+    [userId, supabase, rawRecipes, toast, withRetry]
   );
 
   const deleteRecipe = useCallback(
@@ -187,7 +187,7 @@ export function useRecipes() {
         setLoading(false);
       }
     },
-    [userId, supabase, rawRecipes, toast]
+    [userId, supabase, rawRecipes, toast, withRetry]
   );
 
   const suggestProducts = useMemo(

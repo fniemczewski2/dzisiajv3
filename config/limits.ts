@@ -11,3 +11,5 @@ export const FLAT_RENTAL_DEFAULT = 2000;
 export const FLAT_FEE_DEFAULT = 630;
 export const TAX_DEFAULT = 8.5;
 export const ZUS_DEFAULT = 798;
+export const STATIONS_TTL_MS = 24 * 60 * 60 * 1000; 
+export const OPERATIONS_TTL_MS = 30 * 1000;

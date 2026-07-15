@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { randomBytes } from 'node:crypto';
+import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
 
 async function refreshOutlookToken(refreshToken: string) {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
@@ -45,16 +46,17 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
 
     if (dbError || !mainAcc) return res.status(404).json({ error: 'Brak konta Outlook' });
 
-    let accessToken = mainAcc.access_token;
+    let accessToken = decryptToken(mainAcc.access_token);
+    const storedRefreshToken = decryptToken(mainAcc.refresh_token);
     const isExpired = new Date(mainAcc.expires_at).getTime() < Date.now() + 60000;
 
-    if (isExpired && mainAcc.refresh_token) {
-      const tokenData = await refreshOutlookToken(mainAcc.refresh_token);
+    if (isExpired && storedRefreshToken) {
+      const tokenData = await refreshOutlookToken(storedRefreshToken);
       if (tokenData?.access_token) {
         accessToken = tokenData.access_token;
         await supabase.from('connected_calendars').update({
-          access_token: accessToken,
-          refresh_token: tokenData.refresh_token || mainAcc.refresh_token,
+          access_token: encryptToken(accessToken),
+          refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
           expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
         }).eq('id', mainAcc.id);
       }
@@ -96,7 +98,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
 
     if (!mainAcc) return res.status(500).json({ error: "Brak podłączonego konta Microsoft" });
 
-    let accessToken = mainAcc.access_token;
+    const accessToken = decryptToken(mainAcc.access_token);
     const timeMin = new Date();
     timeMin.setMonth(timeMin.getMonth() - 1);
     const timeMax = new Date();

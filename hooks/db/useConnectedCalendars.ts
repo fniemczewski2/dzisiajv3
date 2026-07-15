@@ -25,8 +25,15 @@ export function useConnectedCalendars(expanded: boolean) {
       setFetching(true);
 
       try {
+        // Jawna lista kolumn — celowo BEZ access_token/refresh_token. Klient
+        // (przeglądarka) nigdy nie potrzebuje tokenów OAuth; select('*') wysyłałoby
+        // je wprost do frontendu (widoczne w Network tab, podatne na wyciek przez XSS).
+        // Odświeżanie/używanie tokenów dzieje się wyłącznie po stronie API routes.
         const { data: accountsData, error } = await withRetry(async () =>
-          supabase.from('connected_calendars').select('*').eq('user_id', user.id)
+          supabase
+            .from('connected_calendars')
+            .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at')
+            .eq('user_id', user.id)
         );
 
         if (error) throw error;
@@ -121,7 +128,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setFetching(false);
       }
     },
-    [user, supabase, toast]
+    [user, supabase, toast, withRetry]
   );
 
   useEffect(() => {
@@ -198,7 +205,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setTogglingId(null);
       }
     },
-    [user, supabase, selectedCalendars, fetchAccountsAndCalendars, toast]
+    [user, supabase, selectedCalendars, fetchAccountsAndCalendars, toast, withRetry]
   );
 
   const handleDisconnect = useCallback(
@@ -239,7 +246,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setLoading(false);
       }
     },
-    [user, supabase, fetchAccountsAndCalendars, toast]
+    [user, supabase, fetchAccountsAndCalendars, toast, withRetry]
   );
 
   const handleConnectGoogle = useCallback(async () => {
@@ -267,7 +274,7 @@ export function useConnectedCalendars(expanded: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [user, supabase, toast]);
+  }, [user, supabase, toast, withRetry]);
 
   const handleConnectOutlook = useCallback(async () => {
     if (!user) {
@@ -297,7 +304,7 @@ export function useConnectedCalendars(expanded: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [user, supabase, toast]);
+  }, [user, supabase, toast, withRetry]);
 
   return {
     accounts,

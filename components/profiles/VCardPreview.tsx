@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
 import { CopyButton, DownloadButton, CopyButtonSmall } from '../ui/CommonButtons';
 import { ChevronLeft } from 'lucide-react';
@@ -129,9 +130,11 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
            style={{ backgroundColor: activeColor }}
        >
           {profile.avatar_url && (
-            <img 
-              src={profile.avatar_url} 
-              alt="Avatar" 
+            <Image
+              src={profile.avatar_url}
+              alt="Avatar"
+              width={80}
+              height={80}
               className="w-20 h-20 rounded-full border-4 border-white dark:border-neutral-900 object-cover absolute -bottom-10 left-6 bg-white transition-colors duration-300"
             />
           )}
@@ -209,7 +212,6 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               </div>
             )}
 
-            {/* Dane firmowe */}
             {hasBusinessData && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Dane Firmowe</h3>

@@ -4,10 +4,10 @@ import formidable from 'formidable';
 import fs from 'node:fs';
 import os from 'node:os'; 
 import { PdfReader } from 'pdfreader';
+import { createServerSupabase } from '@/lib/supabase/server';
 
 export const config = { api: { bodyParser: false } };
 
-// Zestaw przedrostków przeniesiony do domeny pliku dla lepszej wydajności
 const SUFFIXES = new Set([
   'gł.', 'główny', 'główna', 'centr.', 'centralna', 'centralny', 
   'wsch.', 'wschodni', 'wschodnia', 'zach.', 'zachodni', 'zachodnia', 
@@ -15,7 +15,6 @@ const SUFFIXES = new Set([
   'zdrój', 'miasto', 'przedmieście', 'lotnisko', 'wlkp.', 'śl.', 'maz.', 'kuj.', 'pomorski'
 ]);
 
-// 2. Wydzielona funkcja 1: Parsowanie PDF do czystego tekstu
 async function parsePdfToText(dataBuffer: Buffer): Promise<string> {
   const pdfItems: any[] = [];
 
@@ -35,7 +34,6 @@ async function parsePdfToText(dataBuffer: Buffer): Promise<string> {
   return pdfItems.map(item => item.text).join(' ').replaceAll(/\s+/g, ' ');
 }
 
-// 2. Wydzielona funkcja 2: Inteligentny podział stacji
 function extractStationNames(route: string) {
   const words = route.split(/\s+/).filter(Boolean);
   let from = '';
@@ -70,7 +68,6 @@ function extractStationNames(route: string) {
   return { from, to };
 }
 
-// 2. Wydzielona funkcja 3: Parsowanie logiki biznesowej biletu
 function parseTicketData(cleanText: string) {
   const trainMatch = /Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?(.*?)Wagon/.exec(cleanText);
   const trainNumber = trainMatch ? trainMatch[1].trim() : '';
@@ -116,6 +113,9 @@ function parseTicketData(cleanText: string) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method Not Allowed' });
+  const supabase = createServerSupabase(req, res);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
 
   const form = formidable({ 
     multiples: false,
@@ -132,7 +132,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!file) return res.status(400).json({ error: 'Brak pliku' });
 
     try {
-      // Przepływ logiki jest teraz jasny i płaski
       const dataBuffer = fs.readFileSync(file.filepath);
       const cleanText = await parsePdfToText(dataBuffer);
       const ticketData = parseTicketData(cleanText);

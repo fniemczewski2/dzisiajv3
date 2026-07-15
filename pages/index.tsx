@@ -6,17 +6,36 @@ import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 
 import LoadingState from "@/components/ui/LoadingState";
+import { SkeletonTaskList, SkeletonCalendar, SkeletonRow } from "@/components/ui/Skeleton";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "@/lib/dateUtils";
 
+function DayViewSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <SkeletonRow />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SkeletonTaskList count={4} />
+        </div>
+        <div className="lg:col-span-1 flex flex-col gap-3">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const TasksPage = dynamic(() => import("./tasks"), {
-  loading: () => <LoadingState fullScreen />,
+  loading: () => <SkeletonTaskList count={6} />,
 });
 const CalendarPage = dynamic(() => import("./calendar"), {
-  loading: () => <LoadingState fullScreen />,
+  loading: () => <SkeletonCalendar />,
 });
 const DayView = dynamic(() => import("../components/dashboard/DayView"), {
-  loading: () => <LoadingState fullScreen />,
+  loading: () => <DayViewSkeleton />,
 });
 
 interface MainViewProps {

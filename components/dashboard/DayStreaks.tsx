@@ -9,7 +9,7 @@ export const DayStreaks = React.memo(({ streaks, fetchingStreaks }: Readonly<Day
 
   return (
     <>
-        {streaks?.map((streak) => (
+        {!fetchingStreaks && streaks?.map((streak) => (
           <div key={streak.id} className="p-4 w-full card hover:border-primary transition-all flex items-center justify-between gap-3 rounded-2xl">
               <p className="font-bold text-sm sm:text-base text-text leading-tight truncate">
                 {streak.name}

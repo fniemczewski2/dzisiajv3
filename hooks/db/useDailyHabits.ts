@@ -57,7 +57,7 @@ export function useDailyHabits(date?: string) {
     } finally {
       setFetching(false);
     }
-  }, [userId, targetDate, supabase, toast]);
+  }, [userId, targetDate, supabase, toast, withRetry]);
 
   const toggleHabit = useCallback(
     async (key: HabitKey) => {
@@ -93,7 +93,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast]
+    [habits, userId, targetDate, supabase, toast, withRetry]
   );
 
   const updateWater = useCallback(
@@ -129,7 +129,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast]
+    [habits, userId, targetDate, supabase, toast, withRetry]
   );
 
   const updateSpending = useCallback(
@@ -165,7 +165,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast]
+    [habits, userId, targetDate, supabase, toast, withRetry]
   );
 
   useEffect(() => {

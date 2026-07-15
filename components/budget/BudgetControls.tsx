@@ -1,5 +1,6 @@
 import { Edit2, Save, X } from "lucide-react";
 import LoadingState from "../ui/LoadingState";
+import { CancelButton, SaveButton } from "../ui/CommonButtons";
 
 interface BudgetControlsProps {
   isEditing: boolean;
@@ -22,22 +23,15 @@ export default function BudgetControls({
       
       {isEditing ? (
         <div className="flex items-center gap-2">
-          <button
+          <SaveButton
             onClick={onSave}
-            disabled={saving}
-            className="p-2 hover:bg-primary rounded-lg bg-secondary text-white transition-colors disabled:opacity-50 flex items-center justify-center"
-            title="Zapisz"
-          >
-            {saving ? <LoadingState /> : <Save className="w-4 h-4" />}
-          </button>
-          <button
+            loading={saving}
+             small
+          />
+          <CancelButton 
             onClick={onCancel}
-            disabled={saving}
-            className="p-2 bg-surface text-textSecondary hover:bg-surfaceHover rounded-lg transition-colors disabled:opacity-50"
-            title="Anuluj"
-          >
-            <X className="w-4 h-4" />
-          </button>
+            small
+          />
         </div>
       ) : (
         <button

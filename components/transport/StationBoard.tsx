@@ -181,7 +181,7 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
           </tr>
         </thead>
         <tbody>
-          {board.items?.map((item, index) => {
+          {board.items?.map((item) => {
             const isDelayed = item.delay > 0;
             const isCancelled = item.status === 'Odwołany';
             const statusClasses = 
@@ -191,7 +191,7 @@ export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) 
 
             return (
               <tr 
-                key={`${item.trainNumber}-${index}`}
+                key={`${item.trainNumber}-${item.plannedTime}`}
                 className="h-[40px] border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface transition-colors font-medium"
               >
                 <td className={`px-1 py-1 leading-tight whitespace-nowrap w-min ${isSmallScreen && "flex flex-col"}`}>

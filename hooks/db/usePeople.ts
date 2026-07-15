@@ -32,7 +32,7 @@ export function usePeople() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast]);
+  }, [supabase, userId, toast, withRetry]);
 
   useEffect(() => {
     fetchPeople();
@@ -67,7 +67,7 @@ export function usePeople() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const editPerson = useCallback(
@@ -91,7 +91,7 @@ export function usePeople() {
         setLoading(false);
       }
     },
-    [userId, supabase, people, toast]
+    [userId, supabase, people, toast, withRetry]
   );
 
   const deletePerson = useCallback(
@@ -118,7 +118,7 @@ export function usePeople() {
         setLoading(false);
       }
     },
-    [userId, supabase, people, toast]
+    [userId, supabase, people, toast, withRetry]
   );
 
   const logContact = useCallback(
@@ -128,8 +128,6 @@ export function usePeople() {
     [editPerson]
   );
 
-  // Zmienione z funkcji wywoływanej przy każdym renderze na wartość memoizowaną
-  // przeliczaną tylko wtedy, gdy zmieni się lista kontaktów.
   const getPeopleToContact = useMemo(() => {
     const now = new Date();
     return people.filter((p) => {

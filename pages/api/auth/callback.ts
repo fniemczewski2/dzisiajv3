@@ -11,7 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let targetPath = Array.isArray(next) ? next[0] : next;
   
   if (targetPath === '/index') targetPath = '/';
-  const cleanPath = targetPath.startsWith('/') ? targetPath : `/${targetPath}`;
+  const isSafe = /^\/(?!\/)[\w\-/?=&#.%]*$/.test(targetPath);
+  const cleanPath = isSafe ? targetPath : "/";
 
   if (code && typeof code === 'string') {
     const supabase = createServerSupabase(req, res);
@@ -28,11 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               <title>Logowanie...</title>
               <script>
                 if (window.opener && window.opener !== window) {
-                  // Jeśli otwarte jako subokno w PWA, wysyłamy sygnał i zamykamy okno
                   window.opener.postMessage('auth-success', window.location.origin);
                   window.close();
                 } else {
-                  // W zwykłej karcie po prostu przekierowujemy
                   window.location.replace('${cleanPath}');
                 }
               </script>

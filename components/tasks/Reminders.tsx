@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  RefreshCw, ChevronDown, ChevronUp, Plus, Check,
+  RefreshCw, ChevronDown, ChevronUp, Check,
   Trash2, ChevronsRight, List, ListPlus,
 } from "lucide-react";
 import { useReminders } from "@/hooks/db/useReminders";

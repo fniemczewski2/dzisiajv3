@@ -1,10 +1,29 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import type { VCardProfile } from '@/types/profiles';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 );
+
+function escVCardValue(raw: string): string {
+  return raw
+    .replace(/\\/g, '\\\\')
+    .replace(/\r?\n/g, '\\n')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,');
+}
+
+function sanitizeTypeToken(raw: string): string {
+  const cleaned = raw.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
+  return cleaned || 'OTHER';
+}
+
+function safeFileName(raw: string | undefined): string {
+  const cleaned = (raw ?? '').replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '');
+  return cleaned || 'wizytowka';
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
@@ -18,51 +37,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .select('*')
     .eq('public_slug', slug)
     .eq('is_public', true)
-    .single();
+    .single<VCardProfile>();
 
   if (error || !profile) {
     return res.status(404).json({ error: 'Nie znaleziono wizytówki lub jest prywatna.' });
   }
 
-  let vcf = `BEGIN:VCARD\r\nVERSION:3.0\r\n`;
-  vcf += `FN:${profile.full_name || ''}\r\n`;
-  
+  const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
+
+  lines.push(`FN:${escVCardValue(profile.full_name || '')}`);
+
   if (profile.organization) {
-    vcf += `ORG:${profile.organization}\r\n`;
-  }
-  
-  if (profile.phones && Array.isArray(profile.phones)) {
-    profile.phones.forEach((phone: any) => {
-      const cleanNumber = phone.number.replace(/\s+/g, '');
-      vcf += `TEL;TYPE=${phone.type.toUpperCase()},VOICE:${cleanNumber}\r\n`;
-    });
-  }
-  
-  if (profile.emails && Array.isArray(profile.emails)) {
-    profile.emails.forEach((email: any) => {
-      vcf += `EMAIL;TYPE=${email.type.toUpperCase()}:${email.email}\r\n`;
-    });
+    lines.push(`ORG:${escVCardValue(profile.organization)}`);
   }
 
-if (profile.social_links) {
-  Object.entries(profile.social_links).forEach(([network, rawLink]) => {
-    const link = rawLink as any;
-
-    if (typeof link === 'string' && link.trim() !== '') {
-      vcf += `URL;TYPE=${network.toUpperCase()}:${link}\r\n`;
-    } 
-
-    else if (link && typeof link === 'object' && 'url' in link && typeof link.url === 'string' && link.url.trim() !== '') {
-      vcf += `URL;TYPE=${network.toUpperCase()}:${link.url}\r\n`;
+  if (Array.isArray(profile.phones)) {
+    for (const phone of profile.phones) {
+      if (!phone?.number) continue;
+      const cleanNumber = escVCardValue(phone.number.replace(/\s+/g, ''));
+      const type = sanitizeTypeToken(phone.type ?? '');
+      lines.push(`TEL;TYPE=${type},VOICE:${cleanNumber}`);
     }
-  });
-}
+  }
 
-  vcf += `END:VCARD\r\n`;
+  if (Array.isArray(profile.emails)) {
+    for (const email of profile.emails) {
+      if (!email?.email) continue;
+      const type = sanitizeTypeToken(email.type ?? '');
+      lines.push(`EMAIL;TYPE=${type}:${escVCardValue(email.email)}`);
+    }
+  }
 
-  const safeFilename = profile.full_name?.replace(/\s+/g, '_') || 'wizytowka';
+  if (Array.isArray(profile.social_links)) {
+    for (const link of profile.social_links) {
+      const url = link?.url?.trim();
+      if (!url) continue;
+      const type = sanitizeTypeToken(link.platform ?? '');
+      lines.push(`URL;TYPE=${type}:${escVCardValue(url)}`);
+    }
+  }
+
+  lines.push('END:VCARD', '');
+  const vcf = lines.join('\r\n');
+
+  const filename = safeFileName(profile.full_name);
   res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}.vcf"`);
-  
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}.vcf"`);
+
   res.status(200).send(vcf);
 }

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { FormButtons, DeleteButton, AddButton } from '../ui/CommonButtons';
 import { 
@@ -44,6 +45,12 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     social_links: initialData?.social_links || [],
     business_data: initialData?.business_data || { nip: '', krs: '', bank_account: '' },
   });
+  const onAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const result = await handleImageUpload(e);
+    if (result?.publicUrl) {
+      setFormData((prev) => ({ ...prev, avatar_url: result.publicUrl }));
+    }
+  };
 
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!initialData?.public_slug);
@@ -204,7 +211,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           onClick={() => fileInputRef.current?.click()}
         >
           {formData.avatar_url ? (
-            <img src={formData.avatar_url} alt="Avatar użytkownika" className="w-full h-full object-cover" />
+            <Image src={formData.avatar_url} alt="Avatar użytkownika" fill sizes="96px" className="object-cover" />
           ) : (
             <ImageIcon className="text-neutral-400 w-8 h-8" aria-hidden="true" />
           )}
@@ -212,7 +219,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
              <span className="text-white text-xs font-medium">Zmień</span>
           </div>
         </button>
-        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
+        <input type="file" accept="image/*" ref={fileInputRef} onChange={onAvatarFileChange} className="hidden" />
         {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
       </div>
 

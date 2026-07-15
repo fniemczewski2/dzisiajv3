@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
-import { Calendar, ListTodo, SaveAll, Trophy, X } from "lucide-react";
+import { Calendar, ListTodo, SaveAll, Trophy } from "lucide-react";
 import {
   DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
 } from "@dnd-kit/core";
@@ -410,7 +410,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                   if (id.startsWith("schema-")) {
                     await hideSchema(id);
                   } else {
-                    console.log("Marking task as done from DailyPlan:", id);
                     await setDoneTask(id);
                     fetchTasks();
                   }

@@ -33,7 +33,6 @@ export default function ShoppingPage() {
         {showForm && (
           <div className="mb-6">
             <ShoppingForm
-              lists={lists}
               loading={loading}
               addShoppingList={addShoppingList}
               onChange={() => setShowForm(false)}

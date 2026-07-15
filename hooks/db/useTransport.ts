@@ -188,7 +188,7 @@ export function useTransport(autoRefresh = false) {
 
     const debounce = setTimeout(loadSuggestions, 300);
     return () => clearTimeout(debounce);
-  }, [searchQuery, supabase]);
+  }, [searchQuery, supabase, withRetry]);
 
   const handleSuggestionClick = useCallback(
     (value: string) => {

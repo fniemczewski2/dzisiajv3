@@ -49,7 +49,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, dateStr, monthStr, toast]);
+  }, [userId, supabase, dateStr, monthStr, toast, withRetry]);
 
   useEffect(() => {
     fetchWorkLogs();
@@ -82,7 +82,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
         setLoading(false);
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const deleteWorkLog = useCallback(
@@ -108,7 +108,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
         setLoading(false);
       }
     },
-    [userId, supabase, workLogs, toast]
+    [userId, supabase, workLogs, toast, withRetry]
   );
 
   return {

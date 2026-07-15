@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { Schema, ScheduleItem } from "@/types/schemas";

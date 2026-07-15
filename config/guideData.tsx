@@ -83,7 +83,7 @@ export const guideSections: GuideSection[] = [
         <K>Wiele schematów.</K> Możesz mieć wiele schematów przypisanych do różnych dni. Jeśli dany dzień pasuje do kilku schematów, wyświetlony zostanie pierwszy pasujący.
       </>,
       <>
-        <K>Różnica między schematem a zadaniem.</K> Schematy to stałe rutyny — nie mają statusu "wykonane" i wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
+        <K>Różnica między schematem a zadaniem.</K> Schematy to stałe rutyny — nie mają statusu &quot;wykonane&quot; i wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
       </>,
     ],
   },
@@ -311,13 +311,13 @@ export const guideSections: GuideSection[] = [
         <K>Grupowanie po miesiącach.</K> Rachunki automatycznie grupowane są według miesięcy, posortowane chronologicznie w obrębie każdej grupy.
       </>,
       <>
-        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki</em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie "bieżące".
+        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki</em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie &quot;bieżące&quot;.
       </>,
       <>
-        <K>Import wyciągów bankowych.</K> Nowa funkcja "Wczytaj CSV" pozwala wgrać plik z mBanku. Algorytm automatycznie kategoryzuje wydatki i dodaje je do tabeli rachunków.
+        <K>Import wyciągów bankowych.</K> Nowa funkcja &quot;Wczytaj CSV&quot; pozwala wgrać plik z mBanku. Algorytm automatycznie kategoryzuje wydatki i dodaje je do tabeli rachunków.
       </>,
       <>
-        <K>Edytor kategorii.</K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w "Kategorie", aby dodać własne.
+        <K>Edytor kategorii.</K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w &quot;Kategorie&quot;, aby dodać własne.
       </>,
     ],
   },
@@ -359,7 +359,7 @@ export const guideSections: GuideSection[] = [
         <K>Obsługa walut.</K> Dochód każdej osoby można wpisać w PLN lub EUR. Kurs EUR/PLN pobierany jest automatycznie z API NBP. Możesz go też wpisać ręcznie.
       </>,
       <>
-        <K>Podatki i ZUS.</K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto "na rękę". Kalkulator pokaże kwotę podatku i wynikowy dochód.
+        <K>Podatki i ZUS.</K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto &quot;na rękę&quot;. Kalkulator pokaże kwotę podatku i wynikowy dochód.
       </>,
     ],
   },
@@ -587,7 +587,7 @@ export const guideSections: GuideSection[] = [
         <K>Zaufani użytkownicy.</K> Dodaj adresy email osób, z którymi chcesz współdzielić dane. Osoba musi mieć aktywne konto. Możesz dodać do 10 adresów.
       </>,
       <>
-        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne. Wymagane dla: Pogody, sortowania Miejsc po odległości i sekcji "Najbliżej" w Transporcie.
+        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne. Wymagane dla: Pogody, sortowania Miejsc po odległości i sekcji &quot;Najbliżej&quot; w Transporcie.
       </>,
       <>
         <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie usuwa żadnych danych użytkownika.

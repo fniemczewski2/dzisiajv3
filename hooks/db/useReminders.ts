@@ -37,7 +37,7 @@ export function useReminders() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast]);
+  }, [supabase, userId, toast, withRetry]);
 
   const addReminder = useCallback(
     async (tytul: string, dataPoczatkowa: string, powtarzanie: number) => {
@@ -76,7 +76,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const postponeReminder = useCallback(
@@ -107,7 +107,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase, userId, reminders, toast]
+    [supabase, userId, reminders, toast, withRetry]
   );
 
   const completeReminder = useCallback(
@@ -134,7 +134,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase, userId, today, reminders, toast]
+    [supabase, userId, today, reminders, toast, withRetry]
   );
 
   const deleteReminder = useCallback(
@@ -160,7 +160,7 @@ export function useReminders() {
         setLoading(false);
       }
     },
-    [supabase, userId, reminders, toast]
+    [supabase, userId, reminders, toast, withRetry]
   );
 
   const visibleReminders = useMemo(() => {

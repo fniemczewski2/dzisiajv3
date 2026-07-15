@@ -78,7 +78,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       return monthData;
     },
-    [userId, year, supabase, toast]
+    [userId, year, supabase, toast, withRetry]
   );
 
   const fetchRates = useCallback(async (): Promise<Record<number, number>> => {
@@ -97,7 +97,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       rates[i] = ratesData[`${MONTH_KEYS[i - 1]}_rate`] || 0;
     }
     return rates;
-  }, [userId, supabase, toast]);
+  }, [userId, supabase, toast, withRetry]);
 
   const loadData = useCallback(async () => {
     if (!userId) {
@@ -164,7 +164,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     } finally {
       setLoading(false);
     }
-  }, [userId, data, supabase, toast]);
+  }, [userId, data, supabase, toast, withRetry]);
 
   useEffect(() => {
     loadData();

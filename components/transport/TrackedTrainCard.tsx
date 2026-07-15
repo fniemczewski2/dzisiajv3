@@ -20,9 +20,6 @@ interface TrackedTrainProps {
 
 export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
   const { delay, platform, status, loading, hide } = useTrainStatus(train);
-
-  console.log(delay, platform, status, loading, hide)
-
   if (hide) return null;
   const isRateLimited = status === 'Zbyt wiele zapytań';
   const isCancelled = status?.toLowerCase().includes('odwołany');

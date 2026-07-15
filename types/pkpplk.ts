@@ -42,3 +42,11 @@ export interface OperationsResponse {
   trainStatus?: string;
   trains?: TrainOperation[];
 }
+
+export interface TrainStatusResponse {
+  delay: number;
+  platform: string;
+  status: string;
+  estimatedArrival: string;
+  hide: boolean;
+}

@@ -34,9 +34,9 @@ export const DailyPlan = React.memo(({
 
             return (
               <DroppableHourSlot key={timeKey} time={timeKey}>
-                {items.map((item, idx) => (
+                {items.map((item) => (
                   <DraggablePlanItem
-                    key={`${item.id}-${idx}`}
+                    key={`${item.type}-${item.id}`}
                     id={`plan-${item.type}-${item.id}`}
                     type={item.type}
                   >

@@ -1,7 +1,9 @@
+import { useCallback } from "react";
+
 const RETRY_DELAY_MS = 1500;
 
 export function useRetry() {
-  return async function withRetry<T>(operation: () => Promise<T>): Promise<T> {
+  return useCallback(async function withRetry<T>(operation: () => Promise<T>): Promise<T> {
     try {
       return await operation();
     } catch {
@@ -13,5 +15,5 @@ export function useRetry() {
         throw secondError;
       }
     }
-  };
+  }, []);
 }

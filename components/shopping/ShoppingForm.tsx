@@ -8,12 +8,11 @@ import { ShoppingList } from "@/types/shopping";
 interface ShoppingFormProps {
   onChange: () => void;
   onCancel?: () => void;
-  lists: ShoppingList[];
   loading: boolean;
   addShoppingList: (name: string, shared_with_email: string | null) => Promise<boolean>;
 }
 
-export default function ShoppingForm({ onChange, onCancel, lists, loading, addShoppingList }: Readonly<ShoppingFormProps>) {
+export default function ShoppingForm({ onChange, onCancel, loading, addShoppingList }: Readonly<ShoppingFormProps>) {
   const { settings } = useSettings();
   const [name, setName] = useState("");
   const [share, setShare] = useState("");

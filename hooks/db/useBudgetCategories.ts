@@ -41,7 +41,7 @@ export function useBudgetCategories(year: number) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, year, toast]);
+  }, [supabase, userId, year, toast, withRetry]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
@@ -96,7 +96,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, year, categories.length, toast]
+    [supabase, userId, year, categories.length, toast, withRetry]
   );
 
   const updateCategory = useCallback(
@@ -125,7 +125,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, categories, toast]
+    [supabase, userId, categories, toast, withRetry]
   );
 
   const deleteCategory = useCallback(
@@ -153,7 +153,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, categories, toast]
+    [supabase, userId, categories, toast, withRetry]
   );
 
   const reorderCategories = useCallback(
@@ -184,7 +184,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, categories, toast]
+    [supabase, userId, categories, toast, withRetry]
   );
 
   const seedDefaults = useCallback(
@@ -217,7 +217,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, year, toast]
+    [supabase, userId, year, toast, withRetry]
   );
 
   return {

@@ -50,7 +50,7 @@ export function usePlaces() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, toast]);
+  }, [userId, supabase, toast, withRetry]);
 
   useEffect(() => {
     fetchPlaces();
@@ -81,7 +81,7 @@ export function usePlaces() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const updatePlace = useCallback(
@@ -114,7 +114,7 @@ export function usePlaces() {
         setLoading(false);
       }
     },
-    [userId, supabase, rawPlaces, toast]
+    [userId, supabase, rawPlaces, toast, withRetry]
   );
 
   const deletePlace = useCallback(
@@ -143,7 +143,7 @@ export function usePlaces() {
         setLoading(false);
       }
     },
-    [userId, supabase, rawPlaces, toast]
+    [userId, supabase, rawPlaces, toast, withRetry]
   );
 
   const extractHours = useCallback((dayText: string): string[] => {
@@ -204,7 +204,7 @@ export function usePlaces() {
         return null;
       }
     },
-    [extractHours]
+    [extractHours, withRetry]
   );
 
   const findExistingPlace = useCallback(
@@ -235,7 +235,7 @@ export function usePlaces() {
       );
       return nameMatches?.length ? nameMatches[0] : null;
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const enrichPlaceData = useCallback(
@@ -284,7 +284,7 @@ export function usePlaces() {
       const { error } = await withRetry(async () => supabase.from("places").insert([{ ...baseData, tags }]));
       return error ? "error" : "imported";
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   const importFromGoogleMaps = useCallback(

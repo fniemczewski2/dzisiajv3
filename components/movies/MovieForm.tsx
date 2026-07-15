@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import { Loader2, Search } from "lucide-react";
 import { FormButtons } from "../ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider"; 
@@ -167,7 +168,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
                   className="w-full text-left p-3 card hover:bg-surfaceHover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
                   <div className="flex gap-3">
                     {movie.poster_path && (
-                      <img src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
+                      <Image src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
                         alt={movie.title} loading="lazy" width={48} height={72}
                         className="w-12 object-cover rounded shadow-sm shrink-0" />
                     )}

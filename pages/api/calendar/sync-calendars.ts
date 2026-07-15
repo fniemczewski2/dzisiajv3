@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
 
 const supabaseService = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,16 +66,17 @@ async function refreshOutlookToken(refreshToken: string) {
 
 async function getAccessToken(acc: any, accounts: any[], tokenCache: Record<string, string>, mainAccountsCache: Record<string, any>): Promise<string | null> {
   const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
-  if (!mainAcc?.refresh_token) return null;
+  const storedRefreshToken = decryptToken(mainAcc?.refresh_token);
+  if (!storedRefreshToken) return null;
 
   const cacheKey = `${acc.provider}-${mainAcc.account_email}`;
   if (tokenCache[cacheKey]) return tokenCache[cacheKey];
 
   let accessToken = '';
   if (acc.provider === 'google') {
-    accessToken = (await refreshGoogleToken(mainAcc.refresh_token)) || '';
+    accessToken = (await refreshGoogleToken(storedRefreshToken)) || '';
   } else if (acc.provider === 'outlook') {
-    const tokenData = await refreshOutlookToken(mainAcc.refresh_token);
+    const tokenData = await refreshOutlookToken(storedRefreshToken);
     accessToken = tokenData ? tokenData.access_token : '';
   }
   
@@ -184,7 +186,7 @@ async function updateMainTokens(tokenCache: Record<string, string>, mainAccounts
     const mainAcc = mainAccountsCache[key];
     if (mainAcc) {
        await supabaseService.from("connected_calendars")
-        .update({ access_token: token, expires_at: new Date(Date.now() + 3600000).toISOString() })
+        .update({ access_token: encryptToken(token), expires_at: new Date(Date.now() + 3600000).toISOString() })
         .eq("id", mainAcc.id);
     }
   }

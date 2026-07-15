@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
+import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
@@ -73,16 +74,22 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
   const { data } = await query.limit(1).maybeSingle();
 
   if (!data) return null;
-  if (data.expires_at && Date.now() < new Date(data.expires_at).getTime() - 60_000) return data.access_token;
-  if (!data.refresh_token) return null;
 
-  const fresh = await refreshGoogleToken(data.refresh_token);
+  const storedAccessToken = decryptToken(data.access_token);
+  if (data.expires_at && Date.now() < new Date(data.expires_at).getTime() - 60_000) {
+    return storedAccessToken;
+  }
+
+  const storedRefreshToken = decryptToken(data.refresh_token);
+  if (!storedRefreshToken) return null;
+
+  const fresh = await refreshGoogleToken(storedRefreshToken);
   if (!fresh) return null;
 
   await sb.from("connected_calendars")
-    .update({ access_token: fresh, expires_at: new Date(Date.now() + 3_600_000).toISOString() })
+    .update({ access_token: encryptToken(fresh), expires_at: new Date(Date.now() + 3_600_000).toISOString() })
     .eq("id", data.id);
-    
+
   return fresh;
 }
 
@@ -117,7 +124,6 @@ const toRFC3339 = (ts: string): string => {
   }
 };
 
-// --- FIX: Secure State Generation ---
 async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const nonce = randomBytes(24).toString("base64url");
   res.setHeader("Set-Cookie", `gcal_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);

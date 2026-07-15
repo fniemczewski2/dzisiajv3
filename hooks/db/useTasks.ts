@@ -58,19 +58,30 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const userEmailsRef = useRef<Record<string, string>>({});
 
-  const sortFunction = useMemo(() => {
+  // Jeden komparator zamiast dwóch osobnych sort() (jedno przejście O(n log n)
+  // zamiast dwóch) — status "done" jest pierwszym kluczem porównania, a dopiero
+  // gdy oba zadania mają ten sam status "done", rozstrzyga sortFunction
+  // (priorytet/data/alfabetycznie zależnie od settings.sort_order).
+  const comparator = useMemo(() => {
     if (!settings) return null;
-    return createSortFunction(settings.sort_order, getPriority);
-  }, [settings?.sort_order]);
+    const sortFn = createSortFunction(settings.sort_order, getPriority);
+    return (a: Task, b: Task) => {
+      const doneA = a.status === "done" ? 1 : 0;
+      const doneB = b.status === "done" ? 1 : 0;
+      if (doneA !== doneB) return doneA - doneB;
+      return sortFn(a, b);
+    };
+    // Deps zawężone do konkretnych pól ustawień wpływających na sortowanie
+    // (zamiast całego obiektu `settings`) — komparator przelicza się tylko,
+    // gdy realnie mogłaby się zmienić kolejność, nie przy każdej zmianie
+    // dowolnego innego ustawienia w aplikacji.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings?.sort_order, settings?.show_completed]);
 
-  // `settings` (nie tylko `settings.sort_order`) w zależnościach - lista ma się
-  // przeliczyć od razu po każdej zmianie ustawień wpływającej na sortowanie.
   const tasks = useMemo(() => {
-    if (!settings) return rawTasks;
-    const sorted = [...rawTasks];
-    if (sortFunction) sorted.sort(sortFunction);
-    return sorted.sort((a, b) => (a.status === "done" ? 1 : 0) - (b.status === "done" ? 1 : 0));
-  }, [rawTasks, sortFunction, settings]);
+    if (!comparator) return rawTasks;
+    return [...rawTasks].sort(comparator);
+  }, [rawTasks, comparator]);
 
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
@@ -102,7 +113,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, settings, dateFrom, dateTo, toast]);
+  }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry]);
 
   const addTask = useCallback(
     async (task: Partial<Task> & { shared_with_email?: string }) => {
@@ -146,7 +157,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const editTask = useCallback(
@@ -189,7 +200,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast]
+    [supabase, userId, rawTasks, toast, withRetry]
   );
 
   const deleteTask = useCallback(
@@ -215,7 +226,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast]
+    [supabase, userId, rawTasks, toast, withRetry]
   );
 
   const acceptTask = useCallback(
@@ -244,7 +255,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast]
+    [supabase, userId, rawTasks, toast, withRetry]
   );
 
   const setDoneTask = useCallback(
@@ -270,7 +281,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast]
+    [supabase, userId, rawTasks, toast, withRetry]
   );
 
   const rescheduleTask = useCallback(
@@ -297,7 +308,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast]
+    [supabase, userId, rawTasks, toast, withRetry]
   );
 
   useEffect(() => {

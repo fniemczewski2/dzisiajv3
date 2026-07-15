@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabase } from '@/lib/supabase/server';
+import { encryptToken } from '@/lib/server/tokenCrypto';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, state } = req.query;
@@ -44,8 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user_id: user.id, 
       provider: 'google',
       account_email: email,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || '', 
+      access_token: encryptToken(tokens.access_token || ''),
+      refresh_token: encryptToken(tokens.refresh_token || ''), 
       expires_at: expiresAt,
       google_calendar_id: '@account_connection',  
       calendar_name: 'Połączenie Google'         
