@@ -42,7 +42,7 @@ export function useShoppingLists() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast]);
 
   const addShoppingList = useCallback(
     async (name: string, sharedWithEmail: string | null): Promise<boolean> => {
@@ -79,7 +79,7 @@ export function useShoppingLists() {
         setLoading(false);
       }
     },
-    [lists.length, supabase, userId, fetchShoppingLists, toast, withRetry]
+    [lists.length, supabase, userId, fetchShoppingLists, toast]
   );
 
   const editShoppingList = useCallback(
@@ -113,7 +113,7 @@ export function useShoppingLists() {
         setLoading(false);
       }
     },
-    [userId, supabase, lists, fetchShoppingLists, toast, withRetry]
+    [userId, supabase, lists, fetchShoppingLists, toast]
   );
 
   const deleteShoppingList = useCallback(
@@ -139,7 +139,7 @@ export function useShoppingLists() {
         setLoading(false);
       }
     },
-    [userId, supabase, lists, toast, withRetry]
+    [userId, supabase, lists, toast]
   );
 
   useEffect(() => {

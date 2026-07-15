@@ -40,7 +40,7 @@ export function useDaySchemas() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast]);
 
   const addSchema = useCallback(
     async (schema: Schema) => {
@@ -71,7 +71,7 @@ export function useDaySchemas() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const updateSchema = useCallback(
@@ -100,7 +100,7 @@ export function useDaySchemas() {
         setLoading(false);
       }
     },
-    [userId, supabase, schemas, toast, withRetry]
+    [userId, supabase, schemas, toast]
   );
 
   const deleteSchema = useCallback(
@@ -127,7 +127,7 @@ export function useDaySchemas() {
         setLoading(false);
       }
     },
-    [userId, supabase, schemas, toast, withRetry]
+    [userId, supabase, schemas, toast]
   );
 
   useEffect(() => {

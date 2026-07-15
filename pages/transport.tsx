@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import SearchBar from "@/components/ui/SearchBar";
 import { useTransport } from "@/hooks/db/useTransport";
 import NoResultsState from "@/components/ui/NoResultsState";
+import { SkeletonStopCard } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
 import { AddButton, DeleteButton, FavButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
@@ -44,11 +45,6 @@ export default function TransportPage() {
   }, [refresh, toast]);
 
   const loading = trainsLoading || loadingNearby || loadingFavorites;
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (loading) toastId = toast.loading("Ładowanie...");
-    return () => { if (toastId) toast.dismiss(toastId); };
-  }, [loading, toast]);
 
   useEffect(() => {
     if (transportError) {
@@ -62,7 +58,13 @@ export default function TransportPage() {
 
   let favoritesContent;
 
-  if (favoriteStops.length === 0) {
+  if (loadingFavorites) {
+    favoritesContent = (
+      <div className="space-y-4">
+        {Array.from({ length: 2 }).map((_, i) => <SkeletonStopCard key={i} departures={4} />)}
+      </div>
+    );
+  } else if (favoriteStops.length === 0) {
     favoritesContent = <NoResultsState text="ulubionych przystanków" />;
   } else if (visibleFavorites.length === 0) {
     favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
@@ -100,7 +102,13 @@ export default function TransportPage() {
 
   let nearbyContent;
 
-  if (locationError) {
+  if (loadingNearby) {
+    nearbyContent = (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => <SkeletonStopCard key={i} departures={5} />)}
+      </div>
+    );
+  } else if (locationError) {
     nearbyContent = (
       <div className="text-center py-10 w-full" >
           <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>

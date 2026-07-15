@@ -110,7 +110,7 @@ export function useStreaks() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast]);
 
   const addStreak = useCallback(
     async (newStreak: Omit<Streak, "id" | "user_id">) => {
@@ -137,7 +137,7 @@ export function useStreaks() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const deleteStreak = useCallback(
@@ -163,7 +163,7 @@ export function useStreaks() {
         setLoading(false);
       }
     },
-    [userId, supabase, streaks, toast, withRetry]
+    [userId, supabase, streaks, toast]
   );
 
   const updateStreak = useCallback(
@@ -187,7 +187,7 @@ export function useStreaks() {
         setLoading(false);
       }
     },
-    [userId, supabase, streaks, toast, withRetry]
+    [userId, supabase, streaks, toast]
   );
 
   useEffect(() => {

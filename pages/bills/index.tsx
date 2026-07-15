@@ -1,18 +1,18 @@
 // pages/bills/index.tsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { Calculator, ChartColumnBig } from "lucide-react";
 import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { useRouter } from "next/router";
-import { useToast } from "@/providers/ToastProvider";
 import { getYear } from "date-fns";
 import DailySpendingForm from "@/components/widgets/DailySpendingForm";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/hooks/useQuickAction";
 import type { Bill } from "@/types/bills";
 import BillListGrouped from "@/components/bills/BillListGrouped";
+import { SkeletonList } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
 
 const BillForm = dynamic(() => import("@/components/bills/BillForm"), {
@@ -26,7 +26,6 @@ const currentYear = getYear(new Date());
 
 export default function BillsPage() {
   const router = useRouter();
-  const { toast } = useToast();
 
   const [showForm, setShowForm] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
@@ -39,20 +38,6 @@ export default function BillsPage() {
   useQuickAction({ onActionAdd: () => setShowForm(true) });
 
   const isLoading = fetching || catsLoading;
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    
-    if (isLoading && toast.loading) {
-      toastId = toast.loading("Ładowanie rachunków...");
-    }
-
-    return () => {
-      if (toastId && toast.dismiss) {
-        toast.dismiss(toastId);
-      }
-    };
-  }, [isLoading, toast]);
 
   return (
     <>
@@ -109,7 +94,10 @@ export default function BillsPage() {
         <DailySpendingForm />
         <BankCsvImporter year={currentYear} />
 
-        <BillListGrouped year={currentYear} />
+        {isLoading
+          ? <SkeletonList count={6} variant="row" />
+          : <BillListGrouped year={currentYear} />
+        }
     </>
   );
 }

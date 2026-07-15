@@ -8,6 +8,7 @@ import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "@/c
 import { format } from "date-fns";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
+import { SkeletonReport } from "@/components/ui/Skeleton";
 
 interface ReportViewRowProps {
   report: Report;
@@ -241,21 +242,6 @@ export default function ReportsPage() {
     generateReportPDF(report);
   };
   
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie sprawozdań...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching]);
-
-  return (
     <>
       <Seo
         title="Sprawozdania | Dzisiaj.Fun"
@@ -277,6 +263,11 @@ export default function ReportsPage() {
           </div>
         )}
 
+        {fetching ? (
+          <div className="space-y-4 lg:columns-2 gap-4 block">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonReport key={i} />)}
+          </div>
+        ) : (
         <ul className="space-y-4 lg:columns-2 gap-4 block">
           {reports.map((r) => {
             if (editingId === r.id && editedReport) {
@@ -304,6 +295,7 @@ export default function ReportsPage() {
             );
           })}
         </ul>
+        )}
     </>
   );
 }

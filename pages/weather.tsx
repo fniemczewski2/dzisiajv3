@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { getAppDateTime } from "@/lib/dateUtils";
 import NoResultsState from "@/components/ui/NoResultsState";
-import { useToast } from "@/providers/ToastProvider";
+import { SkeletonWeather } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
 import { useWeather } from "@/hooks/useWeather";
 import { HourlyRow } from "@/types/weather";
@@ -74,16 +74,8 @@ function evaluateBiomet(forecast: any) {
 }
 
 export default function WeatherPage() {
-  const { toast } = useToast();
 
   const { forecast, air, loading, error } = useWeather();
-
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (loading) toastId = toast.loading("Ładowanie pogody...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loading, toast]);
-
   const hourlyData: HourlyRow[] = (() => {
     if (!forecast?.hourly) return [];
     const now = getAppDateTime();
@@ -105,7 +97,9 @@ export default function WeatherPage() {
 
   let content;
 
-  if (error) {
+  if (loading) {
+    content = <SkeletonWeather />;
+  } else if (error) {
     content = <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>;
   } else if (forecast && air) {
     content = (

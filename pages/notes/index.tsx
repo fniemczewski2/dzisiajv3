@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { Clapperboard, MapPin } from "lucide-react";
 import { useNotes } from "@/hooks/db/useNotes";
@@ -8,8 +8,8 @@ import NoteList from "@/components/notes/NoteList";
 import { useRouter } from "next/router";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/hooks/useQuickAction";
-import { useToast } from "@/providers/ToastProvider";
-import Seo from "@/components/ui/SEO"
+import { SkeletonList } from "@/components/ui/Skeleton";
+import Seo from "@/components/ui/SEO";
 const NoteForm = dynamic(() => import("@/components/notes/NoteForm"), {
   ssr: false,
 });
@@ -17,30 +17,11 @@ const NoteForm = dynamic(() => import("@/components/notes/NoteForm"), {
 export default function NotesPage() {
   const { notes, fetching, fetchNotes } = useNotes();
   const router = useRouter();
-  const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
 
-  const openNew = () => {
-    setShowForm(true);
-  };
+  const openNew = () => setShowForm(true);
 
-  useQuickAction({
-    onActionAdd: () => setShowForm(true),
-  });
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    
-    if (fetching && toast.loading) {
-      toastId = toast.loading("Ładowanie notatek...");
-    }
-
-    return () => {
-      if (toastId && toast.dismiss) {
-        toast.dismiss(toastId);
-      }
-    };
-  }, [fetching]);
+  useQuickAction({ onActionAdd: () => setShowForm(true) });
 
   return (
     <>
@@ -88,10 +69,14 @@ export default function NotesPage() {
           </div>
         )}
 
-        <NoteList
-          notes={notes}
-          onNotesChange={fetchNotes}
-        />
+        {fetching ? (
+          <SkeletonList count={6} variant="card" />
+        ) : (
+          <NoteList
+            notes={notes}
+            onNotesChange={fetchNotes}
+          />
+        )}
     </>
   );
 }

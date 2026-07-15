@@ -3,7 +3,7 @@ import NoResultsState from "../ui/NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import TaskItem from "../tasks/TaskItem"; 
 import { Task } from "@/types/tasks";
-
+import { SkeletonTaskList } from "@/components/ui/Skeleton";
 
 interface DayTasksProps {
   loadingTasks: boolean;
@@ -31,6 +31,10 @@ export const DayTasks = React.memo(({
   userOptions
 }: Readonly<DayTasksProps>) => {
 
+  if (fetchingTasks) {
+    return <SkeletonTaskList count={3} />;
+  }
+
   return (
     <div className="mb-6">
       <div className="space-y-3">
@@ -53,7 +57,7 @@ export const DayTasks = React.memo(({
             </DraggablePlanItem>
           );
         })}
-        {!fetchingTasks && tasks.length === 0 && <NoResultsState text="zadań" />}
+        {tasks.length === 0 && <NoResultsState text="zadań" />}
       </div>
     </div>
   );

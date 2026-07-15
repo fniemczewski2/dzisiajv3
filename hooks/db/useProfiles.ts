@@ -39,7 +39,7 @@ export function useProfiles() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast, withRetry]);
+  }, [supabase, userId, toast]);
 
   const addProfile = useCallback(
     async (profileData: NewVCardProfile) => {
@@ -74,7 +74,7 @@ export function useProfiles() {
         setLoading(false);
       }
     },
-    [userId, profiles.length, supabase, toast, withRetry]
+    [userId, profiles.length, supabase, toast]
   );
 
   const updateProfile = useCallback(
@@ -105,7 +105,7 @@ export function useProfiles() {
         setLoading(false);
       }
     },
-    [userId, supabase, profiles, toast, withRetry]
+    [userId, supabase, profiles, toast]
   );
 
   const deleteProfile = useCallback(
@@ -134,7 +134,7 @@ export function useProfiles() {
         setLoading(false);
       }
     },
-    [userId, supabase, profiles, toast, withRetry]
+    [userId, supabase, profiles, toast]
   );
 
   useEffect(() => {

@@ -30,13 +30,9 @@ export default function SettingsPage() {
   } = useSettings();
 
   const handleSave = async (updatedData: Settings) => {
-    const { error } = await updateSettings(updatedData);
-    if (error) {
-      toast.error("Wystąpił błąd podczas zapisywania.");
-    } else {
-      toast.success("Zapisano ustawienia!");
-    }
+    await updateSettings(updatedData);
   };
+  
   const handleRestoreDefaults = async () => {
     const ok = await toast.confirm(
       "Czy na pewno chcesz przywrócić domyślne ustawienia? Zmiany zostaną od razu zapisane."

@@ -7,6 +7,7 @@ import { useStreaks } from "@/hooks/db/useStreaks";
 import { Streak } from "@/types/streaks";
 import { AddButton } from "@/components/ui/CommonButtons";
 import NoResultsState from "@/components/ui/NoResultsState";
+import { SkeletonList } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 
@@ -45,21 +46,6 @@ export default function StreaksPage() {
   };
 
     
-    useEffect(() => {
-        let toastId: string | undefined;
-        
-        if (fetching && toast.loading) {
-          toastId = toast.loading("Ładowanie celów...");
-        }
-    
-        return () => {
-          if (toastId && toast.dismiss) {
-            toast.dismiss(toastId);
-          }
-        };
-    }, [fetching]);
-
-  return (
     <>
     <Seo
       title="Cele | Dzisiaj.Fun"
@@ -80,7 +66,9 @@ export default function StreaksPage() {
             onCancel={() => setShowForm(false)}
           />
         )}
-        {streaks ? (
+        {fetching ? (
+          <SkeletonList count={3} variant="streak" />
+        ) : streaks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {streaks.map((streak) => (
               <StreakCard

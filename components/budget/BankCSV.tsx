@@ -75,6 +75,8 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
   };
 
   const insertBills = async (transactions: ParsedTransaction[], availableCategories: BudgetCategory[]) => {
+    const tick = toast.batch((n) => `Dodano rachunki (${n})`);
+
     for (const t of transactions) {
       const catTarget = t.mappedCategory.trim().toLowerCase();
       const categoryObj = availableCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
@@ -93,6 +95,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
           is_income: false,
           done: true, 
         });
+        tick();
       } catch (billError: any) {
         if (billError?.code === "23503") {
           throw new Error(`Błąd połączenia z kategorią "${categoryObj.name}". Odśwież stronę (klawisz F5) i spróbuj ponownie.`);

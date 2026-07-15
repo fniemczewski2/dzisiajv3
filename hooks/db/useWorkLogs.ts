@@ -12,7 +12,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-  
+
   const fetchWorkLogs = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");
@@ -49,7 +49,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, dateStr, monthStr, toast, withRetry]);
+  }, [userId, supabase, dateStr, monthStr, toast]);
 
   useEffect(() => {
     fetchWorkLogs();
@@ -82,7 +82,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const deleteWorkLog = useCallback(
@@ -108,7 +108,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
         setLoading(false);
       }
     },
-    [userId, supabase, workLogs, toast, withRetry]
+    [userId, supabase, workLogs, toast]
   );
 
   return {

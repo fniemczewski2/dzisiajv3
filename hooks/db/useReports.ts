@@ -33,7 +33,7 @@ export function useReports() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast, withRetry]);
+  }, [supabase, userId, toast]);
 
   const addReport = useCallback(
     async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
@@ -60,7 +60,7 @@ export function useReports() {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const editReport = useCallback(
@@ -87,7 +87,7 @@ export function useReports() {
         setLoading(false);
       }
     },
-    [supabase, userId, reports, toast, withRetry]
+    [supabase, userId, reports, toast]
   );
 
   const deleteReport = useCallback(
@@ -113,7 +113,7 @@ export function useReports() {
         setLoading(false);
       }
     },
-    [supabase, userId, reports, toast, withRetry]
+    [supabase, userId, reports, toast]
   );
 
   useEffect(() => {

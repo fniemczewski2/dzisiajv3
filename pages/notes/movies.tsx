@@ -1,28 +1,13 @@
 // pages/movies.tsx
-import React, { useEffect } from "react";
+import React from "react";
 import MovieWatchlist from "@/components/movies/MovieList";
+import { SkeletonList } from "@/components/ui/Skeleton";
 import { useMovies } from "@/hooks/db/useMovies";
-import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 
 export default function MoviesPage() {
   const { movies, fetching, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
-  const { toast } = useToast();
 
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie filmów...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching]);
-  
   return (
     <>
       <Seo
@@ -31,7 +16,10 @@ export default function MoviesPage() {
         canonical="https://dzisiaj.fun/notes/movies"
         keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"
       />
-      <MovieWatchlist movies={movies} addMovie={addMovie} updateMovie={updateMovie} deleteMovie={deleteMovie} toggleWatched={toggleWatched} updateNotes={updateNotes} loading={loading}/>
+      {fetching
+        ? <SkeletonList count={4} variant="movie" />
+        : <MovieWatchlist movies={movies} addMovie={addMovie} updateMovie={updateMovie} deleteMovie={deleteMovie} toggleWatched={toggleWatched} updateNotes={updateNotes} loading={loading}/>
+      }
     </>
   );
 }

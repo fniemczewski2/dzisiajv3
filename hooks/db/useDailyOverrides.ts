@@ -36,7 +36,7 @@ export function useDailyOverrides(dateStr: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, dateStr, toast, withRetry]);
+  }, [supabase, userId, dateStr, toast]);
 
   useEffect(() => {
     fetchOverrides();
@@ -48,8 +48,6 @@ export function useDailyOverrides(dateStr: string) {
         toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
       }
-      const ok = await toast.confirm(`Czy ukryć rutynę?`);
-      if (!ok) return;
 
       setLoading(true);
       const previous = overrides;
@@ -94,7 +92,7 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast, withRetry]
+    [supabase, userId, dateStr, overrides, toast]
   );
 
   const moveSchema = useCallback(
@@ -153,7 +151,7 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast, withRetry]
+    [supabase, userId, dateStr, overrides, toast]
   );
 
   return { overrides, loading, fetching, hideSchema, moveSchema, fetchOverrides };

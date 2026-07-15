@@ -126,7 +126,7 @@ export function useBills(options: FetchOptions = {}) {
         setFetching(false);
       }
     },
-    [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry]
+    [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast]
   );
 
   useEffect(() => {
@@ -190,7 +190,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const editBill = useCallback(
@@ -245,7 +245,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const deleteBill = useCallback(
@@ -283,7 +283,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const markAsDone = useCallback(
@@ -309,7 +309,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const fetchActiveMonths = useCallback(
@@ -341,7 +341,7 @@ export function useBills(options: FetchOptions = {}) {
         return [];
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   return {

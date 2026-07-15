@@ -8,6 +8,7 @@ import { getAppDateTime } from "@/lib/dateUtils";
 import DaySchemaForm from "@/components/daySchema/DaySchemaForm";
 import { AddButton, EditButton, DeleteButton } from "@/components/ui/CommonButtons";
 import NoResultsState from "@/components/ui/NoResultsState";
+import { SkeletonDaySchema } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 
@@ -54,20 +55,6 @@ export default function DaySchemaPage() {
     }
   };
   
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie schematów...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching]);
-  
 
   return (
     <>
@@ -95,6 +82,9 @@ export default function DaySchemaPage() {
           </section>
         )}
 
+        {fetching ? (
+          <SkeletonDaySchema rows={4} />
+        ) : (
         <ul className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {schemas.map((schema) => (
             <li
@@ -112,6 +102,7 @@ export default function DaySchemaPage() {
             <NoResultsState text="schematów dnia" />
           )}
         </ul>
+        )}
 
         <div className="mb-6 card p-5 rounded-2xl shadow-sm">
           {sortedEntries.length > 0 ? (

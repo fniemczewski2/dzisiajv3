@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { SkeletonList } from "@/components/ui/Skeleton";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useToast } from "@/providers/ToastProvider";
 import { useRecipes } from "@/hooks/db/useRecipes";
 import Seo from "@/components/ui/SEO";
 
@@ -12,24 +12,8 @@ export default function RecipesPage() {
   const [showForm, setShowForm] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const triggerRefresh = useCallback(() => setRefreshToken((t) => t + 1), []);
-  const { toast } = useToast();
   const { fetching } = useRecipes();
   
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie przepisów...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching]);
-  
-  return (
     <>
       <Seo
         title="Przepisy | Dzisiaj.Fun"
@@ -55,7 +39,10 @@ export default function RecipesPage() {
         )}
 
         <section>
-          <RecipesList refreshToken={refreshToken} />
+          {fetching
+            ? <SkeletonList count={4} variant="card" />
+            : <RecipesList refreshToken={refreshToken} />
+          }
         </section>
     </>
   );

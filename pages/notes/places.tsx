@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { usePlaces } from "@/hooks/db/usePlaces";
 import PlaceFilters from "@/components/places/PlaceFilters";
 import PlacesList from "@/components/places/PlacesList";
+import { SkeletonList } from "@/components/ui/Skeleton";
 import { Place, TimeFilter, ViewMode } from "@/types/places";
 import { Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
@@ -113,21 +114,6 @@ export default function PlacesPage() {
     }
   };
   
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie miejsc...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching]);
-
-  return (
     <>
       <Seo
         title="Miejsca | Dzisiaj.Fun"
@@ -170,7 +156,9 @@ export default function PlacesPage() {
         Wyświetlam: {filteredPlaces.length} z {places.length}
       </div>
 
-      {viewMode === "list" ? (
+      {fetching ? (
+        <SkeletonList count={5} variant="row" />
+      ) : viewMode === "list" ? (
         <PlacesList
           places={filteredPlaces}
           onEdit={setEditingPlace}

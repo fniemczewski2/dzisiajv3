@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useCallback, useContext, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
-import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, ConfirmToast, ConfirmOptions } from "@/types/toasts";
+import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, ConfirmToast, ConfirmOptions, BatchLabel } from "@/types/toasts";
 
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {
@@ -9,6 +9,12 @@ function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
       return [...state.slice(-4), action.toast];
     case "REMOVE":
       return state.filter((t) => t.id !== action.id);
+    case "UPDATE_MESSAGE":
+      return state.map((t) =>
+        t.id === action.id && t.kind === "notification"
+          ? { ...t, message: action.message }
+          : t
+      );
     default:
       return state;
   }
@@ -131,6 +137,45 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
     []
   );
 
+  // ---------------------------------------------------------------------------
+  // batch — grupuje wielokrotne wywołania w jeden zbiorczy toast.
+  //
+  // Jak działa:
+  //  1. Pierwsze wywołanie tick() tworzy toast z komunikatem label(1) i uruchamia timer.
+  //  2. Kolejne wywołania inkrementują licznik i aktualizują wiadomość istniejącego toasta
+  //     (bez tworzenia nowych), a timer jest resetowany (debounce).
+  //  3. Po upływie debounceMs od ostatniego tick() toast dostaje auto-dismiss.
+  //
+  // Każde wywołanie batch() zwraca NOWĄ funkcję tick() z własnym stanem —
+  // dzięki temu dwa niezależne importy działające równolegle nie kolidują.
+  // ---------------------------------------------------------------------------
+  const batch = useCallback(
+    (label: BatchLabel, debounceMs = 600): (() => void) => {
+      let count = 0;
+      let toastId: string | undefined;
+      let timerId: ReturnType<typeof setTimeout> | undefined;
+
+      return function tick() {
+        count += 1;
+
+        if (!toastId) {
+          // Pierwszy element — tworzymy toast (bez auto-dismiss, zarządzamy sami)
+          toastId = addNotification(label(count), "success", false);
+        } else {
+          // Kolejne — tylko aktualizujemy tekst
+          dispatch({ type: "UPDATE_MESSAGE", id: toastId, message: label(count) });
+        }
+
+        // Reset timera — auto-dismiss dopiero po ciszy
+        if (timerId) clearTimeout(timerId);
+        timerId = setTimeout(() => {
+          if (toastId) setTimeout(() => remove(toastId!), AUTO_DISMISS_MS);
+        }, debounceMs);
+      };
+    },
+    [addNotification, remove]
+  );
+
   const value = useMemo(() => ({
     toast: {
       success: (m: string) => { addNotification(m, "success"); },
@@ -139,8 +184,9 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
       loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
       dismiss: (id: string) => remove(id),
       confirm,
+      batch,
     }
-  }), [addNotification, remove, confirm]);
+  }), [addNotification, remove, confirm, batch]);
 
   return (
     <ToastContext.Provider value={value}>

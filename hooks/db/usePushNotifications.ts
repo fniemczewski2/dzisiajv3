@@ -110,7 +110,7 @@ export function usePushNotifications(userId: string | undefined) {
     } finally {
       setLoading(false)
     }
-  }, [userId, supabase, toast, withRetry])
+  }, [userId, supabase, toast])
 
   const unsubscribeFromPush = useCallback(async () => {
     if (!userId) {
@@ -153,7 +153,7 @@ export function usePushNotifications(userId: string | undefined) {
     } finally {
       setLoading(false)
     }
-  }, [userId, supabase, toast, withRetry])
+  }, [userId, supabase, toast])
 
   return { isSubscribed, loading, subscribeToPush, unsubscribeFromPush }
 }

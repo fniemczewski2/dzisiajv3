@@ -50,7 +50,7 @@ export function useMovies() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast, withRetry]);
+  }, [supabase, userId, toast]);
 
   useEffect(() => {
     fetchMovies();
@@ -83,7 +83,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const updateMovie = useCallback(
@@ -108,7 +108,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [supabase, userId, rawMovies, toast, withRetry]
+    [supabase, userId, rawMovies, toast]
   );
 
   const deleteMovie = useCallback(
@@ -135,7 +135,7 @@ export function useMovies() {
         setLoading(false);
       }
     },
-    [supabase, userId, rawMovies, toast, withRetry]
+    [supabase, userId, rawMovies, toast]
   );
 
   const toggleWatched = useCallback(

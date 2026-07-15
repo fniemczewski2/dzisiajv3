@@ -58,7 +58,7 @@ export function useVirtualBirthdayEvents(): Event[] {
     } catch {
       toast.error("Błąd pobierania dat urodzin/imienin.");
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast]);
 
   useEffect(() => {
     fetchVirtualEvents();
@@ -117,7 +117,7 @@ export function useEvents(
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, rangeStart, rangeEnd, toast, withRetry]);
+  }, [supabase, userId, rangeStart, rangeEnd, toast]);
 
   useEffect(() => {
     fetchEvents();
@@ -166,7 +166,7 @@ export function useEvents(
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const editEvent = useCallback(
@@ -208,7 +208,7 @@ export function useEvents(
         setLoading(false);
       }
     },
-    [supabase, userId, rawEvents, toast, withRetry]
+    [supabase, userId, rawEvents, toast]
   );
 
   const deleteEvent = useCallback(
@@ -239,7 +239,7 @@ export function useEvents(
         setLoading(false);
       }
     },
-    [supabase, userId, rawEvents, toast, withRetry]
+    [supabase, userId, rawEvents, toast]
   );
 
   return { events, loading, fetching, addEvent, editEvent, deleteEvent, fetchEvents };

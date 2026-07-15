@@ -92,8 +92,6 @@ export function useSettings() {
     let cancelled = false;
 
     const loadSettings = async () => {
-      // Brak zalogowanego użytkownika to normalny stan (np. ekran logowania),
-      // a nie błąd - nie pokazujemy toastu ani nie rzucamy wyjątku.
       if (!userId) {
         setFetching(false);
         return;
@@ -155,7 +153,7 @@ export function useSettings() {
     loadSettings();
 
     return () => { cancelled = true; };
-  }, [loadingUser, userId, supabase, toast, withRetry]);
+  }, [loadingUser, userId, supabase, toast]);
 
   const saveSettings = useCallback(async () => {
     if (!userId) {
@@ -176,7 +174,7 @@ export function useSettings() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, userId, toast, withRetry]);
+  }, [supabase, userId, toast]);
 
   const updateSettings = useCallback(
     async (partialSettings: Partial<Settings>) => {
@@ -206,7 +204,7 @@ export function useSettings() {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const addFavoriteStop = useCallback(
@@ -241,7 +239,7 @@ export function useSettings() {
         return false;
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const removeFavoriteStop = useCallback(
@@ -267,7 +265,7 @@ export function useSettings() {
         toast.error("Błąd usuwania przystanku.");
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const addUser = useCallback(() => {

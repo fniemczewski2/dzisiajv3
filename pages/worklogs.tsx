@@ -6,6 +6,7 @@ import { useWorkLogs } from '@/hooks/db/useWorkLogs';
 import { useToast } from '@/providers/ToastProvider';
 import { AddButton, DeleteButton, FormButtons } from '@/components/ui/CommonButtons';
 import NoResultsState from '@/components/ui/NoResultsState';
+import { SkeletonList } from "@/components/ui/Skeleton";
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useRetry } from '@/lib/withRetry';
 import { useAuth } from '@/providers/AuthProvider';
@@ -121,13 +122,6 @@ export default function WorkLogsPage() {
   const handleAddLog = async (log: any) => {
     await retry(() => addWorkLog(log));
   };
-
-    useEffect(() => {
-      let toastId: string | undefined;
-      if (loading && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-    }, [loading, toast]);
-
   const handleDelete = async (log: WorkLog) => {
     const ok = await toast.confirm("Czy na pewno chcesz usunąć ten wpis?");
       if (!ok) return;
@@ -176,7 +170,9 @@ const sumText = totalMonthHours > 0
         {isFormOpen && <WorkLogForm onAdd={handleAddLog} onCancel={() => setIsFormOpen(false)} loading={loading} />}
 
         <section>
-          {workLogs.length === 0 ? (
+          {loading && workLogs.length === 0 ? (
+            <SkeletonList count={4} variant="card" />
+          ) : workLogs.length === 0 ? (
             <NoResultsState text='wpisów' />
           ) : (
             <>

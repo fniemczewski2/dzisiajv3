@@ -10,6 +10,7 @@ import BudgetCategoriesEditor from "@/components/budget/BudgetCategoriesEditor";
 import BudgetOverview from "@/components/budget/BudgetOverview";
 import BudgetStatsTable from "@/components/budget/StatsTable";
 import SummaryTable from "@/components/budget/SummaryTable";
+import { SkeletonBudgetTable } from "@/components/ui/Skeleton";
 import { useBudgetData } from "@/hooks/db/useBudget";
 import BudgetControls from "@/components/budget/BudgetControls";
 import { useToast } from "@/providers/ToastProvider";
@@ -97,21 +98,6 @@ export default function BudgetPage() {
 
   const isLoading = loading || summaryLoading || catsLoading;
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    
-    if (isLoading && toast.loading) {
-      toastId = toast.loading("Ładowanie budżetu...");
-    }
-
-    return () => {
-      if (toastId && toast.dismiss) {
-        toast.dismiss(toastId);
-      }
-    };
-  }, [isLoading, toast]);
-
-  return (
     <>
       <Seo
         title="Budżet | Dzisiaj.Fun"
@@ -158,6 +144,11 @@ export default function BudgetPage() {
           <div className="w-10" />
         </div>
 
+        {isLoading ? (
+          <div className="max-w-2xl mx-auto w-full">
+            <SkeletonBudgetTable rows={6} />
+          </div>
+        ) : (
         <div className="max-w-2xl mx-auto w-full space-y-6 mb-6">
           <BudgetOverview
             summary={summary}
@@ -173,7 +164,9 @@ export default function BudgetPage() {
             onCategoriesChange={handleCategoriesChange}
           />
         </div>
+        )}
 
+        {!isLoading && (
         <div className="flex flex-wrap gap-2 sm:gap-6 w-full justify-center">
             <BudgetControls
               isEditing={isEditing}
@@ -185,6 +178,7 @@ export default function BudgetPage() {
             <BudgetStatsTable rows={rows} isEditing={isEditing} onRateChange={updateRate} />
             <SummaryTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
         </div>
+        )}
     </>
   );
 }

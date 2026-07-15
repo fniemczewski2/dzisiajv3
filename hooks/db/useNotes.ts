@@ -32,7 +32,7 @@ export function useNotes() {
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast]);
 
   useEffect(() => {
     fetchNotes();
@@ -67,7 +67,7 @@ export function useNotes() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const editNote = useCallback(
@@ -105,7 +105,7 @@ export function useNotes() {
         setLoading(false);
       }
     },
-    [userId, supabase, notes, toast, withRetry]
+    [userId, supabase, notes, toast]
   );
 
   const togglePin = useCallback(
@@ -134,7 +134,7 @@ export function useNotes() {
         setLoading(false);
       }
     },
-    [userId, supabase, notes, toast, withRetry]
+    [userId, supabase, notes, toast]
   );
 
   const toggleArchive = useCallback(
@@ -163,7 +163,7 @@ export function useNotes() {
         setLoading(false);
       }
     },
-    [userId, supabase, notes, toast, withRetry]
+    [userId, supabase, notes, toast]
   );
 
   const deleteNote = useCallback(
@@ -190,7 +190,7 @@ export function useNotes() {
         setLoading(false);
       }
     },
-    [userId, supabase, notes, toast, withRetry]
+    [userId, supabase, notes, toast]
   );
 
   return { notes, loading, fetching, fetchNotes, addNote, editNote, deleteNote, togglePin, toggleArchive };

@@ -102,7 +102,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry]);
+  }, [supabase, userId, settings, dateFrom, dateTo, toast]);
 
   const addTask = useCallback(
     async (task: Partial<Task> & { shared_with_email?: string }) => {
@@ -146,7 +146,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast]
   );
 
   const editTask = useCallback(
@@ -189,7 +189,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, rawTasks, toast]
   );
 
   const deleteTask = useCallback(
@@ -215,7 +215,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, rawTasks, toast]
   );
 
   const acceptTask = useCallback(
@@ -244,7 +244,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, rawTasks, toast]
   );
 
   const setDoneTask = useCallback(
@@ -270,7 +270,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, rawTasks, toast]
   );
 
   const rescheduleTask = useCallback(
@@ -297,7 +297,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, rawTasks, toast]
   );
 
   useEffect(() => {

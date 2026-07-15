@@ -92,7 +92,7 @@ export function useTrains() {
       setFetching(false);
       setLoading(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast]);
 
   const addTrain = useCallback(
     async (trainData: TrainInput) => {
@@ -150,7 +150,7 @@ export function useTrains() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const deleteTrain = useCallback(
@@ -178,7 +178,7 @@ export function useTrains() {
         setLoading(false);
       }
     },
-    [userId, supabase, trains, toast, withRetry]
+    [userId, supabase, trains, toast]
   );
 
   return {

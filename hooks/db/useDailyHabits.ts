@@ -32,7 +32,7 @@ export function useDailyHabits(date?: string) {
   const [habits, setHabits] = useState<DailyHabitsRow | null>(null);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const fetchHabits = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");
@@ -57,7 +57,7 @@ export function useDailyHabits(date?: string) {
     } finally {
       setFetching(false);
     }
-  }, [userId, targetDate, supabase, toast, withRetry]);
+  }, [userId, targetDate, supabase, toast]);
 
   const toggleHabit = useCallback(
     async (key: HabitKey) => {
@@ -93,7 +93,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast, withRetry]
+    [habits, userId, targetDate, supabase, toast]
   );
 
   const updateWater = useCallback(
@@ -129,7 +129,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast, withRetry]
+    [habits, userId, targetDate, supabase, toast]
   );
 
   const updateSpending = useCallback(
@@ -165,7 +165,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast, withRetry]
+    [habits, userId, targetDate, supabase, toast]
   );
 
   useEffect(() => {

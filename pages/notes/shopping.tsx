@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useShoppingLists } from "@/hooks/db/useShoppingLists";
 import ShoppingForm from "@/components/shopping/ShoppingForm";
 import ShoppingListView from "@/components/shopping/ShoppingListView";
+import { SkeletonList, SkeletonShoppingList } from "@/components/ui/Skeleton";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 
 export default function ShoppingPage() {
@@ -15,23 +15,7 @@ export default function ShoppingPage() {
     setShowForm(true);
   };
 
-  const { toast } = useToast();
   
-  useEffect(() => {
-      let toastId: string | undefined;
-      
-      if (fetching && toast.loading) {
-        toastId = toast.loading("Ładowanie list zakupów...");
-      }
-  
-      return () => {
-        if (toastId && toast.dismiss) {
-          toast.dismiss(toastId);
-        }
-      };
-  }, [fetching]);
-
-  return (
     <>
       <Seo
         title="Listy Zakupów | Dzisiaj.Fun"
@@ -58,12 +42,18 @@ export default function ShoppingPage() {
           </div>
         )}
         
-        <ShoppingListView 
-          lists={lists}
-          editShoppingList={editShoppingList}
-          deleteShoppingList={deleteShoppingList}
-          loading={loading}
-        />
+        {fetching ? (
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }).map((_, i) => <SkeletonShoppingList key={i} />)}
+          </div>
+        ) : (
+          <ShoppingListView
+            lists={lists}
+            editShoppingList={editShoppingList}
+            deleteShoppingList={deleteShoppingList}
+            loading={loading}
+          />
+        )}
     </>
   );
 }

@@ -35,7 +35,7 @@ export function useMoods(startDate?: string, endDate?: string) {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, startDate, endDate, toast, withRetry]);
+  }, [supabase, userId, startDate, endDate, toast]);
 
   useEffect(() => { fetchMoods(); }, [fetchMoods]);
 
@@ -78,7 +78,7 @@ export function useMoods(startDate?: string, endDate?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, moods, toast, withRetry]
+    [supabase, userId, moods, toast]
   );
 
   return { moods, loading, fetching, logMood, fetchMoods };

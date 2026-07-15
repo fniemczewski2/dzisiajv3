@@ -35,7 +35,7 @@ export default function IndexPage() {
   const { user, loadingUser } = useAuth();
   const router = useRouter();
   const [viewDate, setViewDate] = useState(getAppDateTime());
-  const { settings, loading: loadingSettings } = useSettings();
+  const { settings, loading: loadingSettings, fetching: fetchingSettings } = useSettings();
 
   useEffect(() => {
     if (!loadingUser && !user) {
@@ -43,7 +43,7 @@ export default function IndexPage() {
     }
   }, [user, loadingUser, router]);
 
-  if (loadingUser || (user && loadingSettings)) {
+  if (loadingUser || (user && fetchingSettings)) {
     return <LoadingState fullScreen />;
   }
 

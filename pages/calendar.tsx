@@ -1,7 +1,8 @@
 import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "@/components/calendar/MonthView";
-import { useEvents, useVirtualBirthdayEvents } from "@/hooks/db/useEvents";
+import { SkeletonCalendar } from "@/components/ui/Skeleton";
+import { useEvents } from "@/hooks/db/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import { AddButton } from "@/components/ui/CommonButtons";
@@ -9,7 +10,6 @@ import { useQuickAction } from "@/hooks/useQuickAction";
 import { useMoods } from "@/hooks/db/useMoods";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
-import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 import { useRouter } from "next/router";
 
@@ -24,11 +24,10 @@ export default function CalendarPage() {
 
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
-  const virtualEvents = useVirtualBirthdayEvents();
-  const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd, virtualEvents);
+
+  const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
 
   const { moods } = useMoods();
-  const { toast } = useToast();
 
   const goToPrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
@@ -40,13 +39,6 @@ export default function CalendarPage() {
   const handleCancelForm = useCallback(() => setShowForm(false), []);
 
   useQuickAction({ onActionAdd: () => setShowForm(true) });
-    
-  useEffect(() => {
-      let toastId: string | undefined;
-      if (fetching && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
-      return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching]);
-
   useEffect(() => {
     if (router.query.reset === "true") {
       setSelectedDate(null); 
@@ -80,7 +72,10 @@ export default function CalendarPage() {
 
           {!selectedDate && <CalendarHeader currentDate={currentDate} onPrev={goToPrevMonth} onNext={goToNextMonth} />}
 
-          <MonthView currentDate={currentDate} events={events} onSelectDate={(date) => setSelectedDate(date)} moods={moods} DEFAULT_MOODS={DEFAULT_MOODS} />
+          {fetching
+            ? <SkeletonCalendar />
+            : <MonthView currentDate={currentDate} events={events} onSelectDate={(date) => setSelectedDate(date)} moods={moods} DEFAULT_MOODS={DEFAULT_MOODS} />
+          }
         </>
         )}
         {!selectedDate && (

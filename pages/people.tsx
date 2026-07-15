@@ -32,8 +32,10 @@ export default function PeoplePage() {
   };
 
   const handleImport = async (contacts: any[]) => {
+    const tick = toast.batch((n) => `Zaimportowano kontakty (${n})`);
     for (const contact of contacts) {
       await addPerson(contact);
+      tick();
     }
   };
 

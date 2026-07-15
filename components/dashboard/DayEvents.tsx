@@ -1,8 +1,8 @@
 import React from "react";
 import { Event } from "@/types/events";
- 
 import NoResultsState from "../ui/NoResultsState";
 import EventItem from "../calendar/EventItem";
+import { SkeletonRow } from "@/components/ui/Skeleton";
 
 interface DayEventsProps {
   events: Event[];
@@ -15,6 +15,15 @@ interface DayEventsProps {
 }
 
 export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, onDeleteEvent, onEventsChange, userOptions }: Readonly<DayEventsProps>) {
+
+  if (fetchingEvents) {
+    return (
+      <div className="grid grid-cols-1 gap-3">
+        <SkeletonRow />
+        <SkeletonRow />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-3">
@@ -29,7 +38,7 @@ export function DayEvents({ events, fetchingEvents, loadingEvents, onEditEvent, 
               userOptions={userOptions}
             />
       ))}
-      {!fetchingEvents && events.length === 0 && <NoResultsState text="wydarzeń" />}
+      {events.length === 0 && <NoResultsState text="wydarzeń" />}
     </div>
   );
 }

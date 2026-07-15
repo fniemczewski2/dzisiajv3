@@ -14,6 +14,7 @@ import TaskList from "@/components/tasks/TaskList";
 import { useTasks } from "@/hooks/db/useTasks";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { AddButton } from "@/components/ui/CommonButtons";
+import { SkeletonTaskList } from "@/components/ui/Skeleton";
 import { useQuickAction } from "@/hooks/useQuickAction";
 import Reminders from "@/components/tasks/Reminders";
 import { useAuth } from "@/providers/AuthProvider";
@@ -38,7 +39,7 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   
-  const { tasks, loading, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
+  const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { user } = useAuth();
   const { settings } = useSettings();
 
@@ -140,17 +141,21 @@ export default function TasksPage() {
           </div>
         )}
           <div className="space-y-6">
-            <TaskList   
-              tasks={filteredTasks} 
-              acceptTask={acceptTask}
-              setDoneTask={setDoneTask}
-              editTask={editTask}
-              deleteTask={deleteTask}
-              onTasksChange={fetchTasks}
-              userId={userId} 
-              userOptions={userOptions}
-              loading={loading}
-            />
+            {fetching ? (
+              <SkeletonTaskList count={6} />
+            ) : (
+              <TaskList
+                tasks={filteredTasks}
+                acceptTask={acceptTask}
+                setDoneTask={setDoneTask}
+                editTask={editTask}
+                deleteTask={deleteTask}
+                onTasksChange={fetchTasks}
+                userId={userId}
+                userOptions={userOptions}
+                loading={loading}
+              />
+            )}
             <Reminders onTasksChange={fetchTasks} addTask={addTask} />
           </div>
     </>

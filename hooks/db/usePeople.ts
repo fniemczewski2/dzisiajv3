@@ -32,7 +32,7 @@ export function usePeople() {
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast, withRetry]);
+  }, [supabase, userId, toast]);
 
   useEffect(() => {
     fetchPeople();
@@ -67,7 +67,7 @@ export function usePeople() {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast]
   );
 
   const editPerson = useCallback(
@@ -91,7 +91,7 @@ export function usePeople() {
         setLoading(false);
       }
     },
-    [userId, supabase, people, toast, withRetry]
+    [userId, supabase, people, toast]
   );
 
   const deletePerson = useCallback(
@@ -118,7 +118,7 @@ export function usePeople() {
         setLoading(false);
       }
     },
-    [userId, supabase, people, toast, withRetry]
+    [userId, supabase, people, toast]
   );
 
   const logContact = useCallback(

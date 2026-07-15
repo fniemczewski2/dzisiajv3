@@ -121,7 +121,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setFetching(false);
       }
     },
-    [user, supabase, toast, withRetry]
+    [user, supabase, toast]
   );
 
   useEffect(() => {
@@ -198,7 +198,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setTogglingId(null);
       }
     },
-    [user, supabase, selectedCalendars, fetchAccountsAndCalendars, toast, withRetry]
+    [user, supabase, selectedCalendars, fetchAccountsAndCalendars, toast]
   );
 
   const handleDisconnect = useCallback(
@@ -239,7 +239,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setLoading(false);
       }
     },
-    [user, supabase, fetchAccountsAndCalendars, toast, withRetry]
+    [user, supabase, fetchAccountsAndCalendars, toast]
   );
 
   const handleConnectGoogle = useCallback(async () => {
@@ -267,7 +267,7 @@ export function useConnectedCalendars(expanded: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [user, supabase, toast, withRetry]);
+  }, [user, supabase, toast]);
 
   const handleConnectOutlook = useCallback(async () => {
     if (!user) {
@@ -297,7 +297,7 @@ export function useConnectedCalendars(expanded: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [user, supabase, toast, withRetry]);
+  }, [user, supabase, toast]);
 
   return {
     accounts,
