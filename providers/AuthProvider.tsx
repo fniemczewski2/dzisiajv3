@@ -32,6 +32,20 @@ export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode 
       }
     );
 
+    const bc = new BroadcastChannel('supabase-auth-channel');
+    bc.onmessage = (event) => {
+      if (event.data === 'auth-success') {
+        window.location.reload();
+      }
+    };
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'auth-success') {
+        window.location.reload();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
     const handleMessage = (event: MessageEvent) => {
       if (event.origin === window.location.origin && event.data === 'auth-success') {
         window.location.reload(); 
@@ -41,6 +55,8 @@ export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode 
 
     return () => {
       subscription.unsubscribe();
+      bc.close();
+      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('message', handleMessage);
     };
   }, [supabase]); 

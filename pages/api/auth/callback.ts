@@ -28,11 +28,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             <head>
               <title>Logowanie...</title>
               <script>
+                try {
+                  const bc = new BroadcastChannel('supabase-auth-channel');
+                  bc.postMessage('auth-success');
+                } catch(e) {}
+
+                try {
+                  localStorage.setItem('auth-success', Date.now().toString());
+                } catch(e) {}
+
                 if (window.opener && window.opener !== window) {
-                  window.opener.postMessage('auth-success', window.location.origin);
+                  try {
+                    window.opener.postMessage('auth-success', window.location.origin);
+                  } catch(e) {}
                   window.close();
                 } else {
-                  window.location.replace('${cleanPath}');
+                  setTimeout(() => {
+                    window.location.replace('${cleanPath}');
+                  }, 300);
                 }
               </script>
             </head>
