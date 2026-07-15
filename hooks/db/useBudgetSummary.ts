@@ -6,6 +6,7 @@ import type { BudgetCategory, RawBillRow } from "@/types/bills";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 
 export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
   const { user, supabase } = useAuth();
@@ -16,9 +17,11 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
   const [loading, setLoading] = useState(true);
 
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (loading  && toast.loading) toastId = toast.loading("Ładowanie statystyk...");
+    if (loading && toast.loading) toastId = toast.loading("Ładowanie statystyk...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [loading, toast]);
 
@@ -39,26 +42,25 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
     setLoading(true);
     try {
       const yearStart = `${year}-01-01`;
-      const yearEnd   = `${year}-12-31`;
-      
+      const yearEnd = `${year}-12-31`;
+
       const targetDateForMonth = new Date(year, monthIndex, 1);
-      
       const monthStart = format(startOfMonth(targetDateForMonth), "yyyy-MM-dd");
-      const monthEnd   = format(endOfMonth(targetDateForMonth),   "yyyy-MM-dd");
-      
-      const { data, error } = await supabase
-        .from("bills")
-        .select("amount, date, category_id, is_income, done")
-        .eq("user_id", userId)
-        .gte("date", yearStart)
-        .lte("date", yearEnd);
+      const monthEnd = format(endOfMonth(targetDateForMonth), "yyyy-MM-dd");
+
+      const { data, error } = await withRetry(async () =>
+        supabase
+          .from("bills")
+          .select("amount, date, category_id, is_income, done")
+          .eq("user_id", userId)
+          .gte("date", yearStart)
+          .lte("date", yearEnd)
+      );
 
       if (error) throw error;
 
       const bills = (data ?? []) as RawBillRow[];
-      const income = bills
-        .filter((b) => b.is_income)
-        .reduce((sum, b) => sum + b.amount, 0);
+      const income = bills.filter((b) => b.is_income).reduce((sum, b) => sum + b.amount, 0);
       setTotalIncome(income);
 
       const expenses = bills.filter((b) => !b.is_income);
@@ -79,35 +81,37 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       }
 
       const result = categories.map((cat) => {
-        const spent    = spendMap[cat.id]?.ySpent  ?? 0;
-        const planned  = spendMap[cat.id]?.yPlan   ?? 0;
-        const mSpent   = spendMap[cat.id]?.mSpent  ?? 0;
-        const mPlanned = spendMap[cat.id]?.mPlan   ?? 0;
-        
-        const limit  = calculateExpectedYearlyLimit(cat, monthIndex, year);
-        const mLimit = cat.is_monthly 
-          ? (cat.monthly_amounts?.[monthIndex] || 0) 
+        const spent = spendMap[cat.id]?.ySpent ?? 0;
+        const planned = spendMap[cat.id]?.yPlan ?? 0;
+        const mSpent = spendMap[cat.id]?.mSpent ?? 0;
+        const mPlanned = spendMap[cat.id]?.mPlan ?? 0;
+
+        const limit = calculateExpectedYearlyLimit(cat, monthIndex, year);
+        const mLimit = cat.is_monthly
+          ? cat.monthly_amounts?.[monthIndex] || 0
           : (cat.monthly_amounts?.[0] || 0) / 12;
 
         return {
-          category:           cat,
+          category: cat,
           spent,
           planned,
           limit,
-          remaining:          limit - spent - planned,
-          thisMonthSpent:     mSpent,
-          thisMonthPlanned:   mPlanned,
-          thisMonthLimit:     mLimit,
+          remaining: limit - spent - planned,
+          thisMonthSpent: mSpent,
+          thisMonthPlanned: mPlanned,
+          thisMonthLimit: mLimit,
           thisMonthRemaining: mLimit - mSpent - mPlanned,
         };
       });
 
       setSummary(result);
       setUncategorised(spendMap["__none__"] ?? { ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
+    } catch {
+      toast.error("Błąd pobierania statystyk budżetu.");
     } finally {
       setLoading(false);
     }
-  }, [supabase, userId, year, monthIndex, categories, toast]);
+  }, [supabase, userId, year, monthIndex, categories, toast, withRetry]);
 
   useEffect(() => { compute(); }, [compute]);
 

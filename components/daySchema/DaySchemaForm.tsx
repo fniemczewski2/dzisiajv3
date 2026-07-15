@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, SyntheticEvent } from "react";
-import { PlusCircle } from "lucide-react";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
-import { DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
-
+import { AddButton, DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
 import type { ScheduleItem, Schema } from "@/types/schemas";
-import { useRetry } from "@/lib/withRetry";
 
 interface DaySchemaFormProps {
   initialSchema?: Schema | null;
@@ -22,7 +19,6 @@ export default function DaySchemaForm({
   onCancel,
 }: Readonly<DaySchemaFormProps>) {
   const { addSchema, updateSchema } = useDaySchemas();
-  const retry = useRetry();
   const isEdit = !!initialSchema?.id;
 
   const [schemaName, setSchemaName] = useState("");
@@ -44,16 +40,13 @@ export default function DaySchemaForm({
     setLoading(true);
     const payload = { name: schemaName.trim(), days, entries };
 
-    await retry(
-      () => isEdit && initialSchema?.id
-        ? updateSchema(initialSchema.id, payload)
-        : addSchema(payload as any)
-    );
+    isEdit && initialSchema?.id
+        ? await updateSchema(initialSchema.id, payload)
+        : await addSchema(payload as any)
     setLoading(false);
     onSchemaSaved();
     onCancel?.();
   };
-
   const toggleDay = (day: number) =>
     setDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
 
@@ -120,10 +113,7 @@ export default function DaySchemaForm({
             </div>
           ))}
         </div>
-        <button type="button" onClick={addEntry}
-          className="flex items-center text-sm font-medium text-primary hover:text-secondary transition-colors mt-3">
-          <PlusCircle className="mr-1.5 w-4 h-4" /> Dodaj nowy wpis
-        </button>
+        <AddButton onClick={addEntry} small />
       </div>
       <FormButtons onClickClose={onCancel} loading={loading} />
     </form>

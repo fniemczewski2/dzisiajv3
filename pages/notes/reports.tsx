@@ -177,10 +177,7 @@ function ReportEditRow({
                 <input type="text" value={task.zadanie} aria-label="Zadanie" placeholder="Zadanie" className="input-field py-1.5 bg-surface"
                   onChange={(e) => updateTask(i, "zadanie", e.target.value)} />
                 {(editedReport.tasks?.length || 0) > 1 && (
-                  <button type="button" onClick={() => removeTask(i)}
-                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors">
-                    <X className="w-4 h-4" />
-                  </button>
+                  <DeleteButton onClick={() => removeTask(i)} small />
                 )}
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -191,10 +188,7 @@ function ReportEditRow({
               </div>
             </div>
           ))}
-          <button type="button" onClick={addTask}
-            className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary flex items-center gap-1 mt-2">
-            <Plus className="w-4 h-4" /> Dodaj zadanie
-          </button>
+          <AddButton onClick={addTask} small />
         </div>
       </div>
       <div>

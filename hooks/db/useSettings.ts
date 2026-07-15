@@ -7,6 +7,7 @@ import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 
 const safeParseArray = (data: unknown): any[] => {
   if (!data) return [];
@@ -25,10 +26,12 @@ const safeParseArray = (data: unknown): any[] => {
 
 const normalizeFavoriteStops = (data: unknown) => {
   const parsed = safeParseArray(data);
-  return parsed.map((item: any) => {
-    if (typeof item === 'string') return { name: item, zone_id: 'AUTO' };
-    return { name: item?.name || '', zone_id: item?.zone_id || 'AUTO' };
-  }).filter((item: any) => item.name !== '');
+  return parsed
+    .map((item: any) => {
+      if (typeof item === "string") return { name: item, zone_id: "AUTO" };
+      return { name: item?.name || "", zone_id: item?.zone_id || "AUTO" };
+    })
+    .filter((item: any) => item.name !== "");
 };
 
 const DEFAULT_SETTINGS: Settings = {
@@ -47,8 +50,8 @@ const DEFAULT_SETTINGS: Settings = {
   notif_water: true,
   notif_habits: true,
   notif_evening: true,
-  notif_birthdays: true, 
-  notif_contact:  true,
+  notif_birthdays: true,
+  notif_contact: true,
   sort_notes: "updated_desc",
   sort_shopping: "updated_desc",
   sort_movies: "rating",
@@ -65,7 +68,7 @@ const DEFAULT_SETTINGS: Settings = {
   mood_options: DEFAULT_MOODS,
   main_view: "calendar",
   sort_people: "alphabetical",
-  hide_priority_5: false
+  hide_priority_5: false,
 };
 
 export function useSettings() {
@@ -80,9 +83,11 @@ export function useSettings() {
   const settingsRef = useRef(settings);
 
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie ustawień...");
+    if (fetching && toast.loading) toastId = toast.loading("Ładowanie ustawień...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
@@ -93,25 +98,20 @@ export function useSettings() {
     let cancelled = false;
 
     const loadSettings = async () => {
+      // Brak zalogowanego użytkownika to normalny stan (np. ekran logowania),
+      // a nie błąd - nie pokazujemy toastu ani nie rzucamy wyjątku.
       if (!userId) {
-        toast.error("Zaloguj się!");
-        throw new Error("Unauthorized");
+        setFetching(false);
+        return;
       }
       setFetching(true);
       try {
-        const { data, error } = await supabase
-          .from("settings")
-          .select("*")
-          .eq("user_id", userId)
-          .maybeSingle();
+        const { data, error } = await withRetry(async () =>
+          supabase.from("settings").select("*").eq("user_id", userId).maybeSingle()
+        );
 
         if (cancelled) return;
-
-        if (error) {
-          console.error("[useSettings] Fetch error:", error.message);
-          setFetching(false);
-          return;
-        }
+        if (error) throw error;
 
         if (data) {
           setSettings({
@@ -130,7 +130,7 @@ export function useSettings() {
             notif_water: data.notif_water ?? true,
             notif_habits: data.notif_habits ?? true,
             notif_evening: data.notif_evening ?? true,
-            notif_birthdays: data.notif_birthdays ?? true, 
+            notif_birthdays: data.notif_birthdays ?? true,
             notif_contact: data.notif_contact ?? true,
             sort_notes: data.sort_notes ?? "updated_desc",
             sort_shopping: data.sort_shopping ?? "updated_desc",
@@ -148,11 +148,11 @@ export function useSettings() {
             mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
             main_view: data.main_view ?? "calendar",
             sort_people: data.sort_people ?? "alphabetical",
-            hide_priority_5: data.hide_priority_5 ?? false
+            hide_priority_5: data.hide_priority_5 ?? false,
           });
         }
       } catch {
-        console.error("Wystąpił błąd ustawień.")
+        if (!cancelled) toast.error("Błąd pobierania ustawień.");
       } finally {
         if (!cancelled) setFetching(false);
       }
@@ -161,7 +161,7 @@ export function useSettings() {
     loadSettings();
 
     return () => { cancelled = true; };
-  }, [loadingUser, userId, supabase, toast]);
+  }, [loadingUser, userId, supabase, toast, withRetry]);
 
   const saveSettings = useCallback(async () => {
     if (!userId) {
@@ -169,124 +169,168 @@ export function useSettings() {
       throw new Error("Unauthorized");
     }
     setLoading(true);
-    
-    const { error } = await supabase
-      .from("settings")
-      .upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" });
-      
-    setLoading(false);
-    return { error };
-  }, [supabase, userId, toast]);
-
-  const updateSettings = useCallback(async (partialSettings: Partial<Settings>) => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
+    try {
+      const { error } = await withRetry(async () =>
+        supabase.from("settings").upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" })
+      );
+      if (error) throw error;
+      toast.success("Zapisano ustawienia");
+      return { error: null };
+    } catch (error) {
+      toast.error("Błąd zapisu ustawień.");
+      return { error };
+    } finally {
+      setLoading(false);
     }
-    setLoading(true);
+  }, [supabase, userId, toast, withRetry]);
 
-    const updated = { ...settingsRef.current, ...partialSettings };
-    setSettings(updated);
-    globalThis.dispatchEvent(new CustomEvent('settingsUpdated', { detail: updated }));
-    
-    const { error } = await supabase
-      .from("settings")
-      .upsert({ user_id: userId, ...updated }, { onConflict: "user_id" });
+  const updateSettings = useCallback(
+    async (partialSettings: Partial<Settings>) => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      setLoading(true);
+      const previous = settingsRef.current;
+      const updated = { ...settingsRef.current, ...partialSettings };
+      setSettings(updated);
+      globalThis.dispatchEvent(new CustomEvent("settingsUpdated", { detail: updated }));
 
-    setLoading(false);
-    if (error) throw error;
-    return { error };
-  }, [supabase, userId, toast]);
+      try {
+        const { error } = await withRetry(async () =>
+          supabase.from("settings").upsert({ user_id: userId, ...updated }, { onConflict: "user_id" })
+        );
+        if (error) throw error;
+        toast.success("Zaktualizowano ustawienia");
+        return { error: null };
+      } catch (error) {
+        setSettings(previous);
+        globalThis.dispatchEvent(new CustomEvent("settingsUpdated", { detail: previous }));
+        toast.error("Błąd aktualizacji ustawień.");
+        return { error };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [supabase, userId, toast, withRetry]
+  );
 
-  const addFavoriteStop = async (name: string, zone_id = "AUTO"): Promise<boolean> => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    const stops = settingsRef.current.favorite_stops;
-    if (stops.some((s: any) => (s.name || s) === name)) return true;
-    if (stops.length >= MAX_FAVORITE_STOPS) return false;
+  const addFavoriteStop = useCallback(
+    async (name: string, zone_id = "AUTO"): Promise<boolean> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      const stops = settingsRef.current.favorite_stops;
+      if (stops.some((s: any) => (s.name || s) === name)) return true;
+      if (stops.length >= MAX_FAVORITE_STOPS) {
+        toast.error(`Osiągnięto limit ${MAX_FAVORITE_STOPS} ulubionych przystanków.`);
+        return false;
+      }
 
-    const updated = [...stops, { name, zone_id }];
-    setSettings((prev) => ({ ...prev, favorite_stops: updated }));
+      const previous = stops;
+      const updated = [...stops, { name, zone_id }];
+      setSettings((prev) => ({ ...prev, favorite_stops: updated }));
 
-    const { error } = await supabase
-      .from("settings")
-      .upsert({
-        user_id: userId,
-        favorite_stops: JSON.stringify(updated)
-      }, { onConflict: "user_id" });
+      try {
+        const { error } = await withRetry(async () =>
+          supabase
+            .from("settings")
+            .upsert({ user_id: userId, favorite_stops: JSON.stringify(updated) }, { onConflict: "user_id" })
+        );
+        if (error) throw error;
+        toast.success("Dodano ulubiony przystanek");
+        return true;
+      } catch {
+        setSettings((prev) => ({ ...prev, favorite_stops: previous }));
+        toast.error("Błąd dodawania przystanku.");
+        return false;
+      }
+    },
+    [userId, supabase, toast, withRetry]
+  );
 
-    if (error) throw error;
-    return true;
-  };
+  const removeFavoriteStop = useCallback(
+    async (name: string) => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      const previous = settingsRef.current.favorite_stops;
+      const updated = previous.filter((s: any) => (s.name || s) !== name);
+      setSettings((prev) => ({ ...prev, favorite_stops: updated }));
 
-  const removeFavoriteStop = async (name: string) => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    const updated = settingsRef.current.favorite_stops.filter(
-      (s: any) => (s.name || s) !== name
-    );
-    setSettings((prev) => ({ ...prev, favorite_stops: updated }));
+      try {
+        const { error } = await withRetry(async () =>
+          supabase
+            .from("settings")
+            .upsert({ user_id: userId, favorite_stops: JSON.stringify(updated) }, { onConflict: "user_id" })
+        );
+        if (error) throw error;
+        toast.success("Usunięto ulubiony przystanek");
+      } catch {
+        setSettings((prev) => ({ ...prev, favorite_stops: previous }));
+        toast.error("Błąd usuwania przystanku.");
+      }
+    },
+    [userId, supabase, toast, withRetry]
+  );
 
-    const { error } = await supabase
-      .from("settings")
-      .upsert({
-        user_id: userId,
-        favorite_stops: JSON.stringify(updated)
-      }, { onConflict: "user_id" });
-
-    if (error) throw error;
-  };
-
-  const addUser = () => {
-    if (settings.users.length < MAX_TRUSTED_USERS)
+  const addUser = useCallback(() => {
+    if (settings.users.length < MAX_TRUSTED_USERS) {
       setSettings((s) => ({ ...s, users: [...s.users, ""] }));
-  };
+    } else {
+      toast.error(`Osiągnięto limit ${MAX_TRUSTED_USERS} zaufanych użytkowników.`);
+    }
+  }, [settings.users.length, toast]);
 
-  const removeUser = (idx: number) =>
-    setSettings((s) => ({ ...s, users: s.users.filter((_, i) => i !== idx) }));
+  const removeUser = useCallback(
+    (idx: number) => setSettings((s) => ({ ...s, users: s.users.filter((_, i) => i !== idx) })),
+    []
+  );
 
-  const updateUser = (idx: number, value: string) =>
+  const updateUser = useCallback((idx: number, value: string) => {
     setSettings((s) => {
       const updated = [...s.users];
       updated[idx] = value;
       return { ...s, users: updated };
     });
+  }, []);
 
-  const requestGeolocation = (onSuccess?: (coords: {lat: number, lng: number}) => void) => {
-    requestSmartLocation({
-      forcePrompt: true, 
-      onSuccess: (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocationStatus(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-        if (typeof onSuccess === 'function') {
-          onSuccess({ lat: latitude, lng: longitude });
-        }
-      },
-      onError: (err) => {
-        const errorMessages: Record<number, string> = {
-          1: "Odmowa dostępu. Zezwól na lokalizację.",
-          2: "Lokalizacja niedostępna.",
-          3: "Przekroczono czas oczekiwania.",
-        };
-        setLocationStatus(errorMessages[err.code] || "Nieznany błąd lokalizacji.");
-      }
-    });
-  };
+  const requestGeolocation = useCallback(
+    (onSuccess?: (coords: { lat: number; lng: number }) => void) => {
+      requestSmartLocation({
+        forcePrompt: true,
+        onSuccess: (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationStatus(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          if (typeof onSuccess === "function") onSuccess({ lat: latitude, lng: longitude });
+        },
+        onError: (err) => {
+          const errorMessages: Record<number, string> = {
+            1: "Odmowa dostępu. Zezwól na lokalizację.",
+            2: "Lokalizacja niedostępna.",
+            3: "Przekroczono czas oczekiwania.",
+          };
+          const message = errorMessages[err.code] || "Nieznany błąd lokalizacji.";
+          setLocationStatus(message);
+          toast.error(message);
+        },
+      });
+    },
+    [toast]
+  );
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch {
-      console.error("Wystąpił błąd wylogowywania.");
+      toast.error("Błąd wylogowywania.");
     } finally {
       globalThis.location.href = "/start";
     }
-  };
+  }, [supabase, toast]);
 
   return {
     settings,

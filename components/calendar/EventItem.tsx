@@ -5,7 +5,6 @@ import { useAuth } from "@/providers/AuthProvider";
 import { formatTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
-import { useRetry } from "@/lib/withRetry";
 
 interface EventItemProps {
   event: Event;
@@ -25,7 +24,6 @@ export default function EventItem({
   userOptions
 }: Readonly<EventItemProps>) {
   const { supabase } = useAuth();
-  const retry = useRetry();
   const [isEditing, setIsEditing] = useState(false);
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
   const [sharedEmail, setSharedEmail] = useState("");
@@ -50,9 +48,7 @@ export default function EventItem({
 
   const handleSaveEdit = async () => {
     if (!editedEvent) return;
-    await retry(
-      () => onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
-    );
+    await onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
     setIsEditing(false);
     setEditedEvent(null);
     setSharedEmail("");
@@ -60,9 +56,7 @@ export default function EventItem({
   };
 
   const handleDelete = async () => {
-      await retry(
-        () => onDeleteEvent(event.id)
-      );
+      await onDeleteEvent(event.id)
       onEventsChange();
   };
 
@@ -190,7 +184,7 @@ export default function EventItem({
   }
 
   return (
-    <div className="p-4 w-full max-w-md card rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all flex flex-col">
+    <div className="p-4 w-full max-w-md card rounded-2xl transition-all flex flex-col">
       <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
         <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
       </div>

@@ -1,9 +1,11 @@
+// components/Navbar.tsx
 import { Calendar, Coins, LayoutDashboard, ListTodo, Menu, Pen } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Settings } from "../types/settings";
 import { useEffect, useState } from "react";
 import { useSettings } from "../hooks/db/useSettings";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface NavLinkProps {
   href: string;
@@ -12,9 +14,23 @@ interface NavLinkProps {
   currentPath: string;
 }
 
-export default function Navbar() {
+function DefaultNav() {
   const router = useRouter();
-  const { settings: dbSettings, DEFAULT_SETTINGS } = useSettings();
+  
+  return (
+    <>
+      <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
+      <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
+      <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
+      <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
+      <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
+    </>
+  );
+}
+
+function AuthenticatedNav() {
+  const router = useRouter();
+  const { settings: dbSettings, DEFAULT_SETTINGS } = useSettings(); // Bezpieczne - renderowane tylko przy aktywnej sesji
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
@@ -33,55 +49,49 @@ export default function Navbar() {
     return () => globalThis.removeEventListener("settingsUpdated", handleSettingsChange);
   }, []);
 
-  const renderMenuItems = (): React.ReactNode => {
-    switch(settings.main_view){
-        case "tasks":
-          return (
-            <>
-              <NavLink href="/" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-              <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-              <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
-              <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
-              <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
-            </>
-          )
-        
-        case "calendar": 
-          return (
-            <>
-              <NavLink href="/" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
-              <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-              <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-              <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
-              <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
-            </>
-          )
-        case "day_view":
-          return (
-            <>
-              <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
-              <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-              <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-              <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
-              <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
-            </>
-          )
-        default:
-          return (
-            <div className="flex justify-between w-full items-center gap-1 sm:gap-2">
-              <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
-              <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-              <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-              <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
-              <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
-            </div>
-          )
-      }
-    }
+  switch(settings.main_view) {
+    case "tasks":
+      return (
+        <>
+          <NavLink href="/" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
+          <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
+          <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
+          <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
+          <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
+        </>
+      );
+    case "calendar": 
+      return (
+        <>
+          <NavLink href="/" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
+          <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
+          <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
+          <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
+          <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
+        </>
+      );
+    case "day_view":
+      return (
+        <>
+          <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
+          <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
+          <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
+          <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
+          <NavLink href="/settings" Icon={Menu} label="Menu" currentPath={router.pathname} />
+        </>
+      );
+    default:
+      return <DefaultNav />;
+  }
+}
+
+export default function Navbar() {
+  const { user } = useAuth();
+
   return (
     <nav className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg card backdrop-blur-xl p-2 shadow-2xl rounded-2xl z-50 transition-colors">
       <div className="flex justify-between items-center gap-1 sm:gap-2">
-        {renderMenuItems()}
+        {user ? <AuthenticatedNav /> : <DefaultNav />}
       </div>
     </nav>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { BudgetCategory, SummaryItem } from "@/types/bills";
+import type { SummaryItem } from "@/types/bills";
 
 interface BudgetOverviewProps {
   summary: SummaryItem[];

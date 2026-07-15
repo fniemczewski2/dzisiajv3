@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { useSettings } from "@/hooks/db/useSettings";
-import { useRetry } from "@/lib/withRetry";
 import { AddButton } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
 import MovieAddForm from "./MovieForm";
@@ -26,7 +25,6 @@ export default function MovieWatchlist({
 }: Readonly<MoviesProps>) {
   
   const { settings } = useSettings();
-  const retry = useRetry();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
@@ -73,24 +71,24 @@ export default function MovieWatchlist({
   }, [filteredMovies.length]);
 
   const handleAddMovie = async (movieData: NewMovieData) => {
-    await retry(() => addMovie({ ...movieData, watched: false, notes: "" }));
+    await addMovie({ ...movieData, watched: false, notes: "" });
     setShowAddForm(false);
   };
 
   const handleToggleWatched = async (id: string) => {
-    await retry(() => toggleWatched(id));
+    await toggleWatched(id);
   };
 
   const handleDelete = async (id: string) => {
-    await retry(() => deleteMovie(id));
+    await deleteMovie(id);
   };
 
   const handleUpdate = async (movie: Movie) => {
-    await retry(() => updateMovie(movie));
+    await updateMovie(movie);
   };
 
   const handleSaveNotes = async (movieId: string, notes: string) => {
-    await retry(() => updateNotes(movieId, notes));
+    await updateNotes(movieId, notes);
   };
 
   const toggleNotes = (movieId: string) => {

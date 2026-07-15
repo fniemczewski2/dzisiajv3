@@ -5,7 +5,6 @@ import { Place } from "@/types/places";
 import { ChevronDown, Globe, MapPin, Phone, Star, Navigation } from "lucide-react";
 import { EditButton, DeleteButton } from "../ui/CommonButtons";
 import { useSettings } from "@/hooks/db/useSettings";
-import { useRetry } from "@/lib/withRetry";
 import NoResultsState from "../ui/NoResultsState";
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -34,7 +33,6 @@ const DAY_ORDER = ["monday","tuesday","wednesday","thursday","friday","saturday"
 export default function PlacesList({ places, onEdit, onDelete }: Readonly<PlacesListProps>) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { settings, requestGeolocation } = useSettings();
-  const retry = useRetry();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
@@ -70,7 +68,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
   };
 
   const handleDelete = async (id: string) => {
-    await retry(async () => { await onDelete(id); });
+    await onDelete(id);
   };
 
   if (places.length === 0) return <NoResultsState text="miejsc" isSearch />;

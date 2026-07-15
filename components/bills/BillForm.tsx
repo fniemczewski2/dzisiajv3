@@ -5,7 +5,6 @@ import { Minus, Plus, RefreshCw } from "lucide-react";
 import { format, endOfYear } from "date-fns";
 import { getAppDate } from "@/lib/dateUtils";
 import { useBills } from "@/hooks/db/useBills";
-import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";
 import type { Bill, BudgetCategory } from "@/types/bills";
 
@@ -23,7 +22,6 @@ export default function BillForm({
   categories
 }: Readonly<BillFormProps>) {
   const isEdit = !!initial;
-  const retry = useRetry();
   const { addBill, editBill, loading } = useBills();
 
   const yearEnd = format(endOfYear(new Date()), "yyyy-MM-dd");
@@ -64,13 +62,9 @@ export default function BillForm({
     } as Omit<Bill, "id" | "user_id" | "parent_bill_id">;
 
     if (isEdit && initial) {
-      await retry(
-        () => editBill({ ...initial, ...payload }, { updateFutureRecurring: updateFuture })
-      );
+      await editBill({ ...initial, ...payload }, { updateFutureRecurring: updateFuture })
     } else {
-      await retry(
-        () => addBill(payload)
-      );
+      await addBill(payload)
     }
 
     if (!isEdit) {

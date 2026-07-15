@@ -1,26 +1,28 @@
 // hooks/useReminders.ts
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Reminder } from "@/types/reminders";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 
 export function useReminders() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
-  
+
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [fetching, setFetching] = useState(false); 
-  const [loading, setLoading] = useState(false);   
+  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie zadań cyklicznych...");
+    if (fetching && toast.loading) toastId = toast.loading("Ładowanie zadań cyklicznych...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
-  
+
   const today = getAppDate();
 
   const fetchReminders = useCallback(async () => {
@@ -30,40 +32,57 @@ export function useReminders() {
     }
     setFetching(true);
     try {
-      const { data, error } = await supabase
-        .from("reminders")
-        .select("*")
-        .eq("user_id", userId)
-        .order("data_poczatkowa", { ascending: true });
-        
+      const { data, error } = await withRetry(async () =>
+        supabase.from("reminders").select("*").eq("user_id", userId).order("data_poczatkowa", { ascending: true })
+      );
+
       if (error) throw error;
-      if (data) setReminders(data as Reminder[]);
+      setReminders((data as Reminder[]) || []);
+    } catch {
+      toast.error("Błąd pobierania zadań cyklicznych.");
     } finally {
       setFetching(false);
     }
-  }, [supabase, userId, toast]);
+  }, [supabase, userId, toast, withRetry]);
 
   const addReminder = useCallback(
-    async (tytul: string, data_poczatkowa: string, powtarzanie: number) => {
+    async (tytul: string, dataPoczatkowa: string, powtarzanie: number) => {
       if (!userId) {
         toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
       }
       setLoading(true);
+      const tempId = `temp-${Date.now()}`;
+      const optimisticReminder = {
+        id: tempId,
+        user_id: userId,
+        tytul,
+        data_poczatkowa: dataPoczatkowa,
+        powtarzanie,
+        done: null,
+      } as Reminder;
+      setReminders((prev) => [...prev, optimisticReminder]);
+
       try {
-        const { data, error } = await supabase
-          .from("reminders")
-          .insert({ user_id: userId, tytul, data_poczatkowa, powtarzanie, done: null })
-          .select()
-          .single();
-          
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from("reminders")
+            .insert({ user_id: userId, tytul, data_poczatkowa: dataPoczatkowa, powtarzanie, done: null })
+            .select()
+            .single()
+        );
+
         if (error) throw error;
-        if (data) setReminders((prev) => [...prev, data as Reminder]);
+        setReminders((prev) => prev.map((r) => (r.id === tempId ? (data as Reminder) : r)));
+        toast.success("Dodano zadanie cykliczne");
+      } catch {
+        setReminders((prev) => prev.filter((r) => r.id !== tempId));
+        toast.error("Błąd dodawania zadania cyklicznego.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const postponeReminder = useCallback(
@@ -73,25 +92,28 @@ export function useReminders() {
         throw new Error("Unauthorized");
       }
       setLoading(true);
+      const previous = reminders;
+
       try {
         const dt = getAppDateTime();
         dt.setDate(dt.getDate() + 1 - powtarzanie);
         const done = dt.toISOString().slice(0, 10);
 
-        const { data, error } = await supabase
-          .from("reminders")
-          .update({ done })
-          .eq("id", id)
-          .select()
-          .single();
-          
+        const { data, error } = await withRetry(async () =>
+          supabase.from("reminders").update({ done }).eq("id", id).select().single()
+        );
+
         if (error) throw error;
-        if (data) setReminders((prev) => prev.map((r) => (r.id === id ? (data as Reminder) : r)));
+        setReminders((prev) => prev.map((r) => (r.id === id ? (data as Reminder) : r)));
+        toast.success("Przełożono zadanie cykliczne");
+      } catch {
+        setReminders(previous);
+        toast.error("Błąd przekładania zadania cyklicznego.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, toast]
+    [supabase, userId, reminders, toast, withRetry]
   );
 
   const completeReminder = useCallback(
@@ -101,21 +123,24 @@ export function useReminders() {
         throw new Error("Unauthorized");
       }
       setLoading(true);
+      const previous = reminders;
+
       try {
-        const { data, error } = await supabase
-          .from("reminders")
-          .update({ done: today })
-          .eq("id", id)
-          .select()
-          .single();
-          
+        const { data, error } = await withRetry(async () =>
+          supabase.from("reminders").update({ done: today }).eq("id", id).select().single()
+        );
+
         if (error) throw error;
-        if (data) setReminders((prev) => prev.map((r) => (r.id === id ? (data as Reminder) : r)));
+        setReminders((prev) => prev.map((r) => (r.id === id ? (data as Reminder) : r)));
+        toast.success("Wykonano zadanie cykliczne");
+      } catch {
+        setReminders(previous);
+        toast.error("Błąd wykonania zadania cyklicznego.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, today, toast]
+    [supabase, userId, today, reminders, toast, withRetry]
   );
 
   const deleteReminder = useCallback(
@@ -124,26 +149,27 @@ export function useReminders() {
         toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
       }
-      const ok = await toast.confirm(
-        `Czy chcesz usunąć zadanie cykliczne?`
-      );
+      const ok = await toast.confirm(`Czy chcesz usunąć zadanie cykliczne?`);
       if (!ok) return;
       setLoading(true);
+      const previous = reminders;
+      setReminders((prev) => prev.filter((r) => r.id !== id));
+
       try {
-        const { error } = await supabase.from("reminders").delete().eq("id", id);
+        const { error } = await withRetry(async () => supabase.from("reminders").delete().eq("id", id));
         if (error) throw error;
-        setReminders((prev) => prev.filter((r) => r.id !== id));
         toast.success("Usunięto zadanie cykliczne");
       } catch {
-        toast.error("Błąd zadania cyklicznego");
+        setReminders(previous);
+        toast.error("Błąd usuwania zadania cyklicznego.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, toast]
+    [supabase, userId, reminders, toast, withRetry]
   );
 
-  const getVisibleReminders = useCallback((): Reminder[] => {
+  const visibleReminders = useMemo(() => {
     return reminders.filter((r) => {
       if (r.data_poczatkowa > today) return false;
       if (!r.done) return true;
@@ -151,7 +177,7 @@ export function useReminders() {
       nextDue.setDate(nextDue.getDate() + r.powtarzanie);
       return today >= nextDue.toISOString().slice(0, 10);
     });
-  }, [reminders, today, toast]);
+  }, [reminders, today]);
 
   useEffect(() => {
     fetchReminders();
@@ -159,13 +185,13 @@ export function useReminders() {
 
   return {
     allReminders: reminders,
-    visibleReminders: getVisibleReminders(),
+    visibleReminders,
     addReminder,
     completeReminder,
     postponeReminder,
     deleteReminder,
     fetchReminders,
-    fetching, 
-    loading,  
+    fetching,
+    loading,
   };
 }

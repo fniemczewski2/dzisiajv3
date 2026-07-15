@@ -8,7 +8,6 @@ import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 
 import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
-import { useRetry } from "@/lib/withRetry";
 
 interface BillListProps {
   year: number;
@@ -123,7 +122,6 @@ function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccord
 }
 
 function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContentProps>) {
-  const retry = useRetry();
   const [page, setPage] = useState(1);
   const limit = 20;
 
@@ -150,7 +148,7 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
 
   const handleDelete = async (bill: Bill) => {
 
-    await retry(() => deleteBill(bill.id));
+    await deleteBill(bill.id);
     handleRefresh();
   };
 
@@ -158,14 +156,14 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
     if (!editedBill) return;
     const finalBill = { ...editedBill, category_id: editedBill.category_id || null };
     
-    await retry(() => editBill(finalBill));
+    await editBill(finalBill);
     setEditingId(null);
     setEditedBill(null);
     handleRefresh();
   };
 
   const handleMarkDone = async (bill: Bill) => {
-    await retry(() => markAsDone(bill.id));
+    await markAsDone(bill.id);
     handleRefresh();
   };
   

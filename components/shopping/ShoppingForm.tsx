@@ -4,7 +4,6 @@ import { SyntheticEvent, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
 import { FormButtons } from "../ui/CommonButtons";
 import { ShoppingList } from "@/types/shopping";
-import { useRetry } from "@/lib/withRetry";
 
 interface ShoppingFormProps {
   onChange: () => void;
@@ -19,11 +18,10 @@ export default function ShoppingForm({ onChange, onCancel, lists, loading, addSh
   const [name, setName] = useState("");
   const [share, setShare] = useState("");
   const userOptions = settings?.users ?? [];
-  const retry = useRetry();
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await retry(() => addShoppingList(name.trim(), share.trim() || null));
+    await addShoppingList(name.trim(), share.trim() || null);
     setName(""); setShare("");
     onChange();
     onCancel?.();

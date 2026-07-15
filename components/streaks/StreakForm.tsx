@@ -8,7 +8,6 @@ import {
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
-import { useRetry } from "@/lib/withRetry";
 
 interface StreakFormProps {
   onChange: () => void;
@@ -30,8 +29,6 @@ const ICONS = [
 
 export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormProps>) {
   const { addStreak } = useStreaks();
-  const retry = useRetry();
-
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(getAppDate());
   const [icon, setIcon] = useState("flame");
@@ -40,7 +37,7 @@ export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormPr
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     setLoading(true);
-    await retry(() => addStreak({ name: name.trim(), start_date: startDate, icon }));
+    await addStreak({ name: name.trim(), start_date: startDate, icon });
     setName("");
     setStartDate(getAppDate());
     setIcon("flame");

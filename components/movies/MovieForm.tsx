@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import { FormButtons } from "../ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider"; 
-import { useRetry } from "@/lib/withRetry";
 import { NewMovieData, TmdbDetails, TmdbMovie, TmdbSearchResult, TmdbWatchProviders } from "@/types/movies";
 
 interface MovieAddFormProps {
@@ -38,7 +37,6 @@ const GENRE_MAP: Record<number, string> = {
 
 export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Readonly<MovieAddFormProps>) {
   const { toast } = useToast();
-  const retry = useRetry();
 
   const [formData, setFormData] = useState({
     title: "", genre: "", rating: "", platform: "", description: "",
@@ -116,15 +114,13 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    await retry(
-      () => onSubmit({
+    await onSubmit({
         title: formData.title.trim(),
         genre: formData.genre.trim() || null,
         rating: formData.rating ? Number.parseFloat(formData.rating.replaceAll(",", ".")) : null,
         platform: formData.platform.trim() || null,
         description: formData.description.trim() || null,
       })
-    );
     
     setFormData({ title: "", genre: "", rating: "", platform: "", description: "" });
     setMovieOptions([]);

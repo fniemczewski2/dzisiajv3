@@ -21,7 +21,7 @@ import { DailyPlan } from "./DailyPlan";
 import { DayTasks } from "./DayTasks";
 import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
-import { AddButton } from "../ui/CommonButtons";
+import { AddButton, CancelButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
 import { useWorkLogs } from "@/hooks/db/useWorkLogs";
 
@@ -382,13 +382,9 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 <SaveAll className="w-5 h-5" />
               </button>
               
-              <button 
+              <CancelButton
                 onClick={() => setDraftForms([])} 
-                className="flex justify-center items-center gap-2 w-full sm:w-1/3 py-3 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg border border-gray-200 dark:border-gray-800 text-sm font-bold tracking-wider transition-colors"
-              >
-                Zamknij
-                <X className="w-5 h-5" />
-              </button>
+              />
             </div>
           </div>
         )}

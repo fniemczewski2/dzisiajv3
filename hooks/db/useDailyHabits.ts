@@ -3,6 +3,7 @@ import { getAppDate } from "@/lib/dateUtils";
 import { DailyHabitsRow, HabitKey } from "@/types/habits";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
   date: date,
@@ -18,10 +19,12 @@ const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
   water_amount: 0,
   daily_spending: 0,
 });
+
 export function useDailyHabits(date?: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
+  const withRetry = useRetry();
 
   const today = getAppDate();
   const targetDate = date ?? today;
@@ -32,7 +35,7 @@ export function useDailyHabits(date?: string) {
 
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie celów...");
+    if (fetching && toast.loading) toastId = toast.loading("Ładowanie nawyków...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
@@ -43,12 +46,9 @@ export function useDailyHabits(date?: string) {
     }
     setFetching(true);
     try {
-      const { data, error } = await supabase
-        .from("daily_habits")
-        .select("*")
-        .eq("date", targetDate)
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data, error } = await withRetry(async () =>
+        supabase.from("daily_habits").select("*").eq("date", targetDate).eq("user_id", userId).maybeSingle()
+      );
 
       if (error) throw error;
 
@@ -59,100 +59,120 @@ export function useDailyHabits(date?: string) {
       );
     } catch {
       setHabits(getDefaultHabits(targetDate, userId));
-      toast.error('Błąd ładowania nawyków');
+      toast.error("Błąd ładowania nawyków.");
     } finally {
       setFetching(false);
     }
-  }, [userId, targetDate, supabase, toast]);
+  }, [userId, targetDate, supabase, toast, withRetry]);
 
-  const toggleHabit = useCallback(async (key: HabitKey) => {
-    if (!habits) return;
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    setLoading(true);
-    const prevValue = habits[key] as boolean;
-    const newValue = !prevValue;
+  const toggleHabit = useCallback(
+    async (key: HabitKey) => {
+      if (!habits) return;
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      setLoading(true);
+      const prevValue = habits[key] as boolean;
+      const newValue = !prevValue;
 
-    setHabits((h) => (h ? { ...h, [key]: newValue } : h));
+      setHabits((h) => (h ? { ...h, [key]: newValue } : h));
 
-    try {
-      const { error } = await supabase.from("daily_habits").upsert(
-        {
-          date: targetDate,
-          user_id: userId,
-          [key]: newValue,
-          water_amount: habits.water_amount ?? 0,
-          daily_spending: habits.daily_spending ?? 0,
-        },
-        { onConflict: "date,user_id" }
-      );
-      if (error) throw error;
-    } catch {
-      setHabits((h) => (h ? { ...h, [key]: prevValue } : h));
-    } finally {
-      setLoading(false);
-    }
-  }, [habits, userId, targetDate, supabase, toast]); 
+      try {
+        const { error } = await withRetry(async () =>
+          supabase.from("daily_habits").upsert(
+            {
+              date: targetDate,
+              user_id: userId,
+              [key]: newValue,
+              water_amount: habits.water_amount ?? 0,
+              daily_spending: habits.daily_spending ?? 0,
+            },
+            { onConflict: "date,user_id" }
+          )
+        );
+        if (error) throw error;
+      } catch {
+        setHabits((h) => (h ? { ...h, [key]: prevValue } : h));
+        toast.error("Błąd zapisu nawyku.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [habits, userId, targetDate, supabase, toast, withRetry]
+  );
 
-  const updateWater = useCallback(async (amount: number) => {
-    if (!habits) return;
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    setLoading(true);
-    const validAmount = Number.isNaN(amount) ? 0 : amount;
-    const prevAmount = habits.water_amount;
+  const updateWater = useCallback(
+    async (amount: number) => {
+      if (!habits) return;
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      setLoading(true);
+      const validAmount = Number.isNaN(amount) ? 0 : amount;
+      const prevAmount = habits.water_amount;
 
-    setHabits((h) => (h ? { ...h, water_amount: validAmount } : h));
+      setHabits((h) => (h ? { ...h, water_amount: validAmount } : h));
 
-    try {
-      const { error } = await supabase.from("daily_habits").upsert(
-        {
-          date: targetDate,
-          user_id: userId,
-          water_amount: validAmount,
-          daily_spending: habits.daily_spending ?? 0,
-        },
-        { onConflict: "date,user_id" }
-      );
-      if (error) throw error;
-    } catch {
-      setHabits((h) => (h ? { ...h, water_amount: prevAmount } : h));
-    } finally {
-      setLoading(false);
-    }
-  }, [habits, userId, targetDate, supabase, toast]);
+      try {
+        const { error } = await withRetry(async () =>
+          supabase.from("daily_habits").upsert(
+            {
+              date: targetDate,
+              user_id: userId,
+              water_amount: validAmount,
+              daily_spending: habits.daily_spending ?? 0,
+            },
+            { onConflict: "date,user_id" }
+          )
+        );
+        if (error) throw error;
+      } catch {
+        setHabits((h) => (h ? { ...h, water_amount: prevAmount } : h));
+        toast.error("Błąd zapisu ilości wody.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [habits, userId, targetDate, supabase, toast, withRetry]
+  );
 
-  const updateSpending = useCallback(async (amount: number) => {
-    if (!habits) return;
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
+  const updateSpending = useCallback(
+    async (amount: number) => {
+      if (!habits) return;
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      setLoading(true);
+      const validAmount = Number.isNaN(amount) ? 0 : amount;
+      const prevAmount = habits.daily_spending;
 
-    const validAmount = Number.isNaN(amount) ? 0 : amount;
-    const prevAmount = habits.daily_spending;
+      setHabits((h) => (h ? { ...h, daily_spending: validAmount } : h));
 
-    setHabits((h) => (h ? { ...h, daily_spending: validAmount } : h));
-
-    try {
-      const { error } = await supabase.from("daily_habits").upsert(
-        {
-          date: targetDate,
-          user_id: userId,
-          daily_spending: validAmount,
-          water_amount: habits.water_amount ?? 0,
-        },
-        { onConflict: "date,user_id" }
-      );
-      if (error) throw error;
-    } catch {
-      setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
-    }
-  }, [habits, userId, targetDate, supabase, toast]);
+      try {
+        const { error } = await withRetry(async () =>
+          supabase.from("daily_habits").upsert(
+            {
+              date: targetDate,
+              user_id: userId,
+              daily_spending: validAmount,
+              water_amount: habits.water_amount ?? 0,
+            },
+            { onConflict: "date,user_id" }
+          )
+        );
+        if (error) throw error;
+      } catch {
+        setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
+        toast.error("Błąd zapisu wydatków dnia.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [habits, userId, targetDate, supabase, toast, withRetry]
+  );
 
   useEffect(() => {
     fetchHabits();

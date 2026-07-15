@@ -5,7 +5,6 @@ import { Search } from "lucide-react";
 import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
 import { useSettings } from "@/hooks/db/useSettings";
-import { useRetry } from "@/lib/withRetry";
 import SearchBar from "../ui/SearchBar";
 import NoteCard from "./NoteCard";
 import NoteEditForm from "./NoteEditForm";
@@ -28,8 +27,6 @@ const COLOR_MAP: { [key: string]: string } = {
 export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProps>) {
   const { deleteNote, editNote, togglePin, toggleArchive, loading } = useNotes();
   const { settings } = useSettings();
-  const retry = useRetry();
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<Note | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +66,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   }, [filteredNotes.length]);
 
   const handleDelete = async (id: string) => {
-    await retry(() => deleteNote(id));
+    await deleteNote(id);
     onNotesChange();
   };
 
@@ -84,19 +81,19 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   };
 
   const handleSaveEdit = async (note: Note) => {
-    await retry(() => editNote(note));
+    await editNote(note);
     setEditingId(null);
     setEditedNote(null);
     onNotesChange();
   };
 
   const handleTogglePin = async (id: string) => {
-    await retry(() => togglePin(id));
+    await togglePin(id);
     onNotesChange();
   };
 
   const handleToggleArchive = async (id: string) => {
-    await retry(() => toggleArchive(id));
+    await toggleArchive(id);
     onNotesChange();
   };
 

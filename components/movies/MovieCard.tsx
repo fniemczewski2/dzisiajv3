@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";
 import type { Movie } from "@/types/movies";
 import { EditButton, DeleteButton, SaveButton, WatchButton, UnwatchButton, FormButtons } from "../ui/CommonButtons";
-import { useRetry } from "@/lib/withRetry";
 
 interface MovieCardProps {
   movie: Movie;
@@ -27,8 +26,6 @@ export default function MovieCard({
   onSaveNotes,
   loading
 }: Readonly<MovieCardProps>) {
-  const retry = useRetry();
-
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     title: movie.title,
@@ -42,9 +39,7 @@ export default function MovieCard({
 
   const handleSaveEdit = async () => {
     const normalizedRating = editForm.rating.replaceAll(",", ".");
-    await retry(
-      async () => {
-        await onUpdate({
+    await onUpdate({
           ...movie,
           title: editForm.title,
           genre: editForm.genre || null,
@@ -52,8 +47,6 @@ export default function MovieCard({
           platform: editForm.platform || null,
           description: editForm.description || null,
         });
-      }
-    );
     setIsEditing(false);
   };
 
@@ -69,11 +62,11 @@ export default function MovieCard({
   };
 
   const handleSaveNotes = async () => {
-    await retry(async () => { await onSaveNotes(movie.id, notesText); });
+    await onSaveNotes(movie.id, notesText);
   };
 
   const handleDelete = async () => {
-    await retry(async () => { await onDelete(); });
+    await onDelete();
   };
 
   const editPrefix = `edit-movie-${movie.id}`;

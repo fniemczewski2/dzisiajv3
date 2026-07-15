@@ -4,9 +4,7 @@ import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";
 import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
-
 import { useAuth } from "@/providers/AuthProvider";
-import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";
 
 interface NoteFormProps {
@@ -25,7 +23,6 @@ const COLOR_MAP: { [key: string]: string } = {
 export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>) {
   const { addNote, loading } = useNotes();
   const { user } = useAuth();
-  const retry = useRetry();
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
   const [bgColor, setBgColor] = useState("zinc-50");
@@ -56,7 +53,7 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
       bg_color: bgColor,
     } as Note;
 
-    await retry(() => addNote(payload));
+    await addNote(payload);
     onChange();
     onCancel?.();
   };

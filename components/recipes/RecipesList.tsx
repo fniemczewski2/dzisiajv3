@@ -5,7 +5,6 @@ import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types/recipes";
 import { useRecipes } from "@/hooks/db/useRecipes";
 import { useSettings } from "@/hooks/db/useSettings";
-import { useRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
 import NoResultsState from "../ui/NoResultsState";
@@ -21,8 +20,6 @@ interface RecipesListProps {
 export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>) {
   const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
   const { settings } = useSettings();
-  const retry = useRetry();
-
   const [qText, setQText] = useState("");
   const [prodFilter, setProdFilter] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -74,7 +71,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
   const toggleOpen = (id: string) => setOpenId((prev) => prev === id ? null : id);
 
   const handleDelete = async (id: string) => {
-    await retry(async () => { await deleteRecipe(id); });
+    await deleteRecipe(id);
   };
 
   const handleEdit = (recipe: Recipe) => {
@@ -87,7 +84,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
 
   const handleSaveEdit = async () => {
     if (!editedRecipe) return;
-    await retry(async () => { await editRecipe(editedRecipe); });
+    await editRecipe(editedRecipe);
     setEditingId(null); setEditedRecipe(null); setProdInput("");
   };
 

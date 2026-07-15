@@ -4,6 +4,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 
 export function useShoppingLists() {
   const { user, supabase } = useAuth();
@@ -14,9 +15,11 @@ export function useShoppingLists() {
 
   const userEmailsRef = useRef<Record<string, string>>({});
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie zakupów...");
+    if (fetching && toast.loading) toastId = toast.loading("Ładowanie zakupów...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
@@ -27,110 +30,123 @@ export function useShoppingLists() {
     }
     setFetching(true);
     try {
-      const { data, error } = await supabase
-        .from("shopping_lists")
-        .select("*")
-        .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
-        .limit(MAX_SHOPPING_LISTS);
+      const { data, error } = await withRetry(async () =>
+        supabase
+          .from("shopping_lists")
+          .select("*")
+          .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
+          .limit(MAX_SHOPPING_LISTS)
+      );
 
       if (error) throw error;
 
       const fetchedLists = (data || []) as ShoppingList[];
-
-      const listsWithDisplayInfo = await resolveSharedEmails(
-        fetchedLists,
-        userId,
-        supabase,
-        userEmailsRef
-      );
-
+      const listsWithDisplayInfo = await resolveSharedEmails(fetchedLists, userId, supabase, userEmailsRef);
       setLists(listsWithDisplayInfo);
+    } catch {
+      toast.error("Błąd pobierania list zakupów.");
     } finally {
       setFetching(false);
     }
-  }, [userId, supabase, toast]);
+  }, [userId, supabase, toast, withRetry]);
 
   const addShoppingList = useCallback(
-    async (name: string, shared_with_email: string | null): Promise<boolean> => {
+    async (name: string, sharedWithEmail: string | null): Promise<boolean> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      if (lists.length >= MAX_SHOPPING_LISTS) {
+        toast.error(`Osiągnięto limit ${MAX_SHOPPING_LISTS} list zakupów.`);
+        return false;
+      }
+      setLoading(true);
+
+      try {
+        let sharedWithUuid: string | null = null;
+        if (sharedWithEmail !== undefined && sharedWithEmail !== null) {
+          sharedWithUuid = await getUserIdByEmail(sharedWithEmail, supabase);
+        }
+
+        const { error } = await withRetry(async () =>
+          supabase
+            .from("shopping_lists")
+            .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }])
+        );
+        if (error) throw error;
+
+        await fetchShoppingLists();
+        toast.success("Dodano listę zakupów");
+        return true;
+      } catch {
+        toast.error("Błąd dodawania listy zakupów.");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [lists.length, supabase, userId, fetchShoppingLists, toast, withRetry]
+  );
+
+  const editShoppingList = useCallback(
+    async (id: string, updates: Partial<ShoppingList> & { shared_with_email?: string }) => {
       if (!userId) {
         toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      if (lists.length >= MAX_SHOPPING_LISTS) {
-        setLoading(false);
-        return false;
-      }
+      const previous = lists;
+      const { shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...finalUpdates } =
+        updates as any;
+      setLists((prev) => prev.map((l) => (l.id === id ? { ...l, ...finalUpdates } : l)));
 
-      let sharedWithUuid: string | null = null;
-      if (shared_with_email !== undefined && shared_with_email !== null) {
-        sharedWithUuid = await getUserIdByEmail(shared_with_email, supabase);
-      }
-      
       try {
-        const { error } = await supabase
-          .from("shopping_lists")
-          .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }]);
+        if (sharedWithEmail !== undefined) {
+          finalUpdates.shared_with_id = await getUserIdByEmail(sharedWithEmail, supabase);
+        }
 
+        const { error } = await withRetry(async () =>
+          supabase.from("shopping_lists").update(finalUpdates).eq("id", id)
+        );
         if (error) throw error;
-      } finally {
+
         await fetchShoppingLists();
+        toast.success("Zaktualizowano listę zakupów");
+      } catch {
+        setLists(previous);
+        toast.error("Błąd aktualizacji listy zakupów.");
+      } finally {
         setLoading(false);
       }
-      return true;
     },
-    [lists.length, supabase, userId, fetchShoppingLists, toast]
+    [userId, supabase, lists, fetchShoppingLists, toast, withRetry]
   );
 
-  const editShoppingList = async (
-    id: string,
-    updates: Partial<ShoppingList> & { shared_with_email?: string }
-  ) => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    setLoading(true);
-    const { shared_with_email, display_share_info, ...finalUpdates } = updates as any;
-
-    if (shared_with_email !== undefined) {
-      finalUpdates.shared_with_id = await getUserIdByEmail(shared_with_email, supabase);
-    }
-    
-    try {
-      const { error } = await supabase
-        .from("shopping_lists")
-        .update(finalUpdates)
-        .eq("id", id);
-
-      if (error) throw error;  
-    } finally {
-      await fetchShoppingLists();
-      setLoading(false);
-    }
-  };
-
-  const deleteShoppingList = async (id: string) => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    const ok = await toast.confirm(
-      `Czy chcesz usunąć listę zakupów?`
-    );
-    if (!ok) return;
-    setLoading(true);
-    try {
-      const { error } = await supabase.from("shopping_lists").delete().eq("id", id);
-      if (error) throw error;
+  const deleteShoppingList = useCallback(
+    async (id: string) => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+      const ok = await toast.confirm(`Czy chcesz usunąć listę zakupów?`);
+      if (!ok) return;
+      setLoading(true);
+      const previous = lists;
       setLists((prev) => prev.filter((l) => l.id !== id));
-      toast.success("Usunięto listę zakupów");
-    } catch {
-      toast.error("Błąd usuwania listy zakupów");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      try {
+        const { error } = await withRetry(async () => supabase.from("shopping_lists").delete().eq("id", id));
+        if (error) throw error;
+        toast.success("Usunięto listę zakupów");
+      } catch {
+        setLists(previous);
+        toast.error("Błąd usuwania listy zakupów.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId, supabase, lists, toast, withRetry]
+  );
 
   useEffect(() => {
     fetchShoppingLists();

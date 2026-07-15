@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 import { LocalSearchResult, StopGroup } from "@/types/transport";
 
 export function useTransport(autoRefresh = false) {
@@ -20,27 +21,32 @@ export function useTransport(autoRefresh = false) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LocalSearchResult[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  
+
   const lastFetchTime = useRef<Record<string, number>>({});
   const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
 
-  const nearbyAbortRef    = useRef<AbortController | null>(null);
+  const nearbyAbortRef = useRef<AbortController | null>(null);
   const favoritesAbortRef = useRef<AbortController | null>(null);
 
   const { toast } = useToast();
-  
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (loadingFavorites  && toast.loading) toastId = toast.loading("Ładowanie ulubionych przystanków...");
+    if (loadingFavorites && toast.loading) toastId = toast.loading("Ładowanie ulubionych przystanków...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [loadingFavorites, toast]);
 
   useEffect(() => {
     let toastId: string | undefined;
-    if (loadingNearby  && toast.loading) toastId = toast.loading("Ładowanie przystanków w pobliżu...");
+    if (loadingNearby && toast.loading) toastId = toast.loading("Ładowanie przystanków w pobliżu...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [loadingNearby, toast]);
 
+  // Wywołania Supabase Edge Functions poniżej celowo NIE są owinięte w `withRetry`:
+  // korzystają z AbortController do anulowania nieaktualnych żądań (np. przy szybkiej
+  // zmianie lokalizacji), a automatyczny retry z toastem kolidowałby z tym mechanizmem
+  // i pokazywałby błędy przy zwykłym, zamierzonym anulowaniu.
   const fetchNearbyData = useCallback(async () => {
     if (!lastCoords.current) {
       setLoadingNearby(false);
@@ -54,19 +60,12 @@ export function useTransport(autoRefresh = false) {
     setLoadingNearby(true);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke(
-        "get-transitland-times",
-        {
-          body: {
-            lat: lastCoords.current.lat,
-            lon: lastCoords.current.lng,
-          },
-          signal: controller.signal
-        }
-      );
+      const { data, error: invokeError } = await supabase.functions.invoke("get-transitland-times", {
+        body: { lat: lastCoords.current.lat, lon: lastCoords.current.lng },
+        signal: controller.signal,
+      });
 
       if (controller.signal.aborted) return;
-
       if (invokeError) throw new Error("Błąd sieciowy podczas łączenia z funkcją.");
 
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
@@ -86,72 +85,79 @@ export function useTransport(autoRefresh = false) {
     }
   }, [supabase]);
 
-  const initLocationAndFetch = useCallback((forcePrompt = false) => {
-    setLoadingNearby(true);
-    setLocationError(null);
+  const initLocationAndFetch = useCallback(
+    (forcePrompt = false) => {
+      setLoadingNearby(true);
+      setLocationError(null);
 
-    requestSmartLocation({
-      forcePrompt,
-      onSuccess: (position) => {
-        lastCoords.current = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        fetchNearbyData();
-      },
-      onError: (err) => {
-        setLoadingNearby(false);
-        lastCoords.current = null;
-        if (err.code === 1) {
-          setLocationError("Brak zgody na lokalizację. Odblokuj w ustawieniach przeglądarki.");
-        } else {
-          setLocationError("Nie udało się pobrać lokalizacji GPS.");
-        }
-      }
-    });
-  }, [fetchNearbyData]);
-
-  const fetchFavorites = useCallback(async (stops: { name: string; zone_id: string }[]) => {
-    if (!stops?.length) {
-      setFavoritesGroups([]);
-      return;
-    }
-    const now = Date.now();
-    const cacheKey = JSON.stringify(stops);
-    if (lastFetchTime.current[cacheKey] && now - lastFetchTime.current[cacheKey] < 5000) return;
-
-    favoritesAbortRef.current?.abort();
-    const controller = new AbortController();
-    favoritesAbortRef.current = controller;
-
-    setLoadingFavorites(true);
-    setTransportError(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("get-transitland-times", {
-        body: { stopNames: stops, lat: lastCoords.current?.lat, lon: lastCoords.current?.lng },
-        signal: controller.signal
+      requestSmartLocation({
+        forcePrompt,
+        onSuccess: (position) => {
+          lastCoords.current = { lat: position.coords.latitude, lng: position.coords.longitude };
+          fetchNearbyData();
+        },
+        onError: (err) => {
+          setLoadingNearby(false);
+          lastCoords.current = null;
+          setLocationError(
+            err.code === 1
+              ? "Brak zgody na lokalizację. Odblokuj w ustawieniach przeglądarki."
+              : "Nie udało się pobrać lokalizacji GPS."
+          );
+        },
       });
-      
-      if (error) throw error;
-      setFavoritesGroups(data?.success || []);
-      lastFetchTime.current[cacheKey] = now;
-    } catch {
-      setTransportError(`Błąd pobierania ulubionych odjazdów.`);
-    } finally {
-      setLoadingFavorites(false)
-    }
-  }, [supabase]);
+    },
+    [fetchNearbyData]
+  );
 
-  const favoriteStops = Array.isArray(settings.favorite_stops) ? settings.favorite_stops : [];
-  const favoritesJSON = JSON.stringify(favoriteStops);
-  
+  const fetchFavorites = useCallback(
+    async (stops: { name: string; zone_id: string }[]) => {
+      if (!stops?.length) {
+        setFavoritesGroups([]);
+        return;
+      }
+      const now = Date.now();
+      const cacheKey = JSON.stringify(stops);
+      if (lastFetchTime.current[cacheKey] && now - lastFetchTime.current[cacheKey] < 5000) return;
+
+      favoritesAbortRef.current?.abort();
+      const controller = new AbortController();
+      favoritesAbortRef.current = controller;
+
+      setLoadingFavorites(true);
+      setTransportError(null);
+      try {
+        const { data, error } = await supabase.functions.invoke("get-transitland-times", {
+          body: { stopNames: stops, lat: lastCoords.current?.lat, lon: lastCoords.current?.lng },
+          signal: controller.signal,
+        });
+
+        if (error) throw error;
+        setFavoritesGroups(data?.success || []);
+        lastFetchTime.current[cacheKey] = now;
+      } catch {
+        if (controller.signal.aborted) return;
+        setTransportError(`Błąd pobierania ulubionych odjazdów.`);
+      } finally {
+        setLoadingFavorites(false);
+      }
+    },
+    [supabase]
+  );
+
+  const favoriteStops = useMemo(
+    () => (Array.isArray(settings.favorite_stops) ? settings.favorite_stops : []),
+    [settings.favorite_stops]
+  );
+  const favoritesJSON = useMemo(() => JSON.stringify(favoriteStops), [favoriteStops]);
+
   useEffect(() => {
     if (settingsLoading) return;
     try {
       const stops = JSON.parse(favoritesJSON);
       fetchFavorites(stops);
     } catch {
-      setTransportError("Wystąpił błąd parsowania przystanków");
+      setTransportError("Wystąpił błąd parsowania przystanków.");
     }
   }, [favoritesJSON, fetchFavorites, settingsLoading]);
 
@@ -159,67 +165,64 @@ export function useTransport(autoRefresh = false) {
     const loadSuggestions = async () => {
       if (!searchQuery || searchQuery.trim().length < 2) {
         setSuggestions([]);
-        searchResults.length > 0 && setSearchResults([]); 
+        setSearchResults((prev) => (prev.length > 0 ? [] : prev));
         return;
       }
 
-      const { data, error } = await supabase
-        .from("stops")
-        .select("stop_name, zone_id")
-        .ilike("stop_name", `%${searchQuery}%`)
-        .limit(TRANSPORT_API_LIMIT);
+      try {
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from("stops")
+            .select("stop_name, zone_id")
+            .ilike("stop_name", `%${searchQuery}%`)
+            .limit(TRANSPORT_API_LIMIT)
+        );
 
-      if (error || !data) {
-        console.error("Błąd wyszukiwania przystanków:", error);
+        if (error || !data) {
+          setSuggestions([]);
+          setSearchResults([]);
+          return;
+        }
+
+        const uniqueStops = new Map<string, LocalSearchResult>();
+        (data as any[]).forEach((stop) => {
+          if (!stop.stop_name) return;
+          if (!uniqueStops.has(stop.stop_name)) {
+            const isSzczecin = stop.zone_id === "S";
+            const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id || ""}`;
+            const displayString = `${stop.stop_name} (${cityName})`.trim();
+            uniqueStops.set(stop.stop_name, { name: stop.stop_name, zone_id: stop.zone_id || "AUTO", displayString });
+          }
+        });
+
+        const resultsArray = Array.from(uniqueStops.values()).slice(0, TRANSPORT_SUGGESTIONS_LIMIT);
+        setSearchResults(resultsArray);
+        setSuggestions(resultsArray.map((r) => r.displayString));
+      } catch {
         setSuggestions([]);
         setSearchResults([]);
-        return;
       }
-
-      const uniqueStops = new Map<string, LocalSearchResult>();
-
-      (data as any[]).forEach((stop) => {
-        if (!stop.stop_name) return;
-
-        if (!uniqueStops.has(stop.stop_name)) {
-          const isSzczecin = stop.zone_id === "S";
-          const cityName = isSzczecin ? "Szczecin" : `Poznań ${stop.zone_id || ""}`;
-          const displayString = `${stop.stop_name} (${cityName})`.trim();
-
-          uniqueStops.set(stop.stop_name, {
-            name: stop.stop_name,
-            zone_id: stop.zone_id || "AUTO",
-            displayString: displayString,
-          });
-        }
-      });
-
-      const resultsArray = Array.from(uniqueStops.values()).slice(0, TRANSPORT_SUGGESTIONS_LIMIT);
-      setSearchResults(resultsArray);
-      setSuggestions(resultsArray.map((r) => r.displayString));
     };
 
     const debounce = setTimeout(loadSuggestions, 300);
     return () => clearTimeout(debounce);
-  }, [searchQuery, supabase, searchResults.length]);
+  }, [searchQuery, supabase, withRetry]);
 
-  const handleSuggestionClick = (value: string) => {
-    const selectedStop = searchResults.find((s) => s.displayString === value);
-    
-    if (selectedStop) {
-      addFavoriteStop(selectedStop.name, selectedStop.zone_id);
-    } 
-    
-    setSearchQuery("");
-    setSuggestions([]);
-    setSearchResults([]);
-  };
+  const handleSuggestionClick = useCallback(
+    (value: string) => {
+      const selectedStop = searchResults.find((s) => s.displayString === value);
+      if (selectedStop) addFavoriteStop(selectedStop.name, selectedStop.zone_id);
+      setSearchQuery("");
+      setSuggestions([]);
+      setSearchResults([]);
+    },
+    [searchResults, addFavoriteStop]
+  );
 
   useEffect(() => {
     initLocationAndFetch();
 
     let intervalId: ReturnType<typeof setInterval> | null = null;
-
     if (autoRefresh) {
       intervalId = setInterval(() => {
         if (lastCoords.current) fetchNearbyData();
@@ -247,6 +250,6 @@ export function useTransport(autoRefresh = false) {
     removeFavoriteStop,
     loadingNearby,
     loadingFavorites,
-    transportError
+    transportError,
   };
 }

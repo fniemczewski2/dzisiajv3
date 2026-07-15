@@ -5,7 +5,6 @@ import { Plus, User } from "lucide-react";
 import { ShoppingList } from "@/types/shopping";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { useRetry } from "@/lib/withRetry";
 import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 
@@ -19,8 +18,6 @@ interface ShoppingListViewProps {
 export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList, loading }: Readonly<ShoppingListViewProps>) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
-  const retry = useRetry();
-
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editedList, setEditedList] = useState<ShoppingList | null>(null);
   const [sharedEmail, setSharedEmail] = useState("");
@@ -76,7 +73,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
 
     const listId = editedList.id;
 
-    await retry(() => editShoppingList(listId, updates));
+    await editShoppingList(listId, updates);
     
     setEditingId(undefined); 
     setEditedList(null); 
@@ -87,9 +84,9 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     const isOwner = list.user_id === user?.id;
 
     if (isOwner) {
-      await retry(() => deleteShoppingList(list.id!));
+      await deleteShoppingList(list.id!);
     } else {
-      await retry(() => editShoppingList(list.id!, { shared_with_id: list.user_id }));
+      await editShoppingList(list.id!, { shared_with_id: list.user_id });
     }
   };
 

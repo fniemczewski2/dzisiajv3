@@ -4,13 +4,11 @@ import {
   Trash2, ChevronsRight, List, ListPlus,
 } from "lucide-react";
 import { useReminders } from "@/hooks/db/useReminders";
-
 import { useAuth } from "@/providers/AuthProvider";
-import { useRetry } from "@/lib/withRetry";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { Task } from "@/types/tasks";
 import NoResultsState from "../ui/NoResultsState";
-import { FormButtons } from "../ui/CommonButtons";
+import { AddButton, FormButtons } from "../ui/CommonButtons";
 
 interface RemindersProps {
   addTask: (task: Task) => Promise<unknown>;
@@ -23,7 +21,6 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   const [showAll, setShowAll] = useState(false);
 
   const { user } = useAuth();
-  const retry = useRetry();
   const userId = user?.id;
   const today = getAppDate();
 
@@ -103,7 +100,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     } as Task;
 
     try {
-      await retry(() => addTask(newTask));
+      await addTask(newTask);
       
       await completeReminder(reminder.id);
       
@@ -173,10 +170,8 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
 
           {!showForm && (
             <div className="px-4 py-3 flex justify-between bg-card border-t border-gray-100 dark:border-gray-800">
-              <button className="text-sm font-medium flex items-center text-primary hover:text-secondary transition-colors"
-                onClick={() => setShowForm(true)}>
-                <Plus className="w-4 h-4 mr-1" /> Dodaj
-              </button>
+              <AddButton small onClick={() => setShowForm(true)}/>
+
               <button onClick={() => setShowAll(!showAll)}
                 className="text-sm font-medium flex items-center text-textMuted hover:text-text transition-colors">
                 <List className="w-4 h-4 mr-1.5" />

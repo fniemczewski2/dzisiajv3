@@ -1,8 +1,16 @@
 // hooks/useBudget.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 import { MonthData, YearData } from "@/types/bills";
+
+const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+const getEmptyMonthData = (): MonthData => ({
+  sum: 0, rate: 0, budget: 0, income: 0,
+  doneExpense: 0, plannedExpense: 0, monthlySpending: 0,
+});
 
 export function useBudgetData(year: number, monthRange?: [number, number]) {
   const { user, supabase } = useAuth();
@@ -12,95 +20,95 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   const [loading, setLoading] = useState(false);
   const [loadedMonths, setLoadedMonths] = useState<Set<number>>(new Set());
 
-  const keys = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
   const startMonth = monthRange?.[0] ?? 1;
   const endMonth = monthRange?.[1] ?? 12;
 
-  const getEmptyMonthData = (): MonthData => ({
-    sum: 0, rate: 0, budget: 0, income: 0,
-    doneExpense: 0, plannedExpense: 0, monthlySpending: 0,
-  });
-  
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie budżetu...");
+    if (fetching && toast.loading) toastId = toast.loading("Ładowanie budżetu...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
-  const fetchMonthData = async (month: number): Promise<MonthData> => {
+  const fetchMonthData = useCallback(
+    async (month: number): Promise<MonthData> => {
+      if (!userId) {
+        toast.error("Zaloguj się!");
+        throw new Error("Unauthorized");
+      }
+
+      const monthStr = String(month).padStart(2, "0");
+      const dateStart = `${year}-${monthStr}-01`;
+      const nextMonth = month === 12 ? 1 : month + 1;
+      const nextYear = month === 12 ? year + 1 : year;
+      const nextMonthStr = String(nextMonth).padStart(2, "0");
+      const dateEnd = `${nextYear}-${nextMonthStr}-01`;
+
+      const { data: bills, error: billsError } = await withRetry(async () =>
+        supabase
+          .from("bills")
+          .select("amount,date,is_income,description,done")
+          .eq("user_id", userId)
+          .gte("date", dateStart)
+          .lt("date", dateEnd)
+      );
+      if (billsError) throw billsError;
+
+      const { data: habits, error: habitsError } = await withRetry(async () =>
+        supabase
+          .from("daily_habits")
+          .select("date,daily_spending")
+          .eq("user_id", userId)
+          .gte("date", dateStart)
+          .lt("date", dateEnd)
+      );
+      if (habitsError) throw habitsError;
+
+      const monthData = getEmptyMonthData();
+
+      (bills as any[])?.forEach(({ amount, is_income, done: isDone }) => {
+        if (is_income) {
+          monthData.income += amount;
+        } else {
+          monthData.sum += amount;
+          if (isDone) monthData.doneExpense += amount;
+          else monthData.plannedExpense += amount;
+        }
+      });
+
+      (habits as any[])?.forEach(({ daily_spending }) => {
+        monthData.monthlySpending += daily_spending;
+      });
+
+      return monthData;
+    },
+    [userId, year, supabase, toast, withRetry]
+  );
+
+  const fetchRates = useCallback(async (): Promise<Record<number, number>> => {
     if (!userId) {
       toast.error("Zaloguj się!");
       throw new Error("Unauthorized");
     }
-    setFetching(true)
-
-    const monthStr = String(month).padStart(2, "0");
-    const dateStart = `${year}-${monthStr}-01`;
-    const nextMonth = month === 12 ? 1 : month + 1;
-    const nextYear = month === 12 ? year + 1 : year;
-    const nextMonthStr = String(nextMonth).padStart(2, "0");
-    const dateEnd = `${nextYear}-${nextMonthStr}-01`;
-
-    const { data: bills } = await supabase
-      .from("bills")
-      .select("amount,date,is_income,description,done")
-      .eq("user_id", userId) 
-      .gte("date", dateStart)
-      .lt("date", dateEnd);
-
-    const { data: habits } = await supabase
-      .from("daily_habits")
-      .select("date,daily_spending")
-      .eq("user_id", userId) 
-      .gte("date", dateStart)
-      .lt("date", dateEnd);
-
-    const monthData = getEmptyMonthData();
-
-    (bills as any[])?.forEach(({ amount, is_income, description, done: isDone }) => {
-      if (is_income) {
-        monthData.income += amount;
-      } else {
-        monthData.sum += amount;
-        if (isDone) monthData.doneExpense += amount;
-        else monthData.plannedExpense += amount;        
-      } 
-    });
-
-    (habits as any[])?.forEach(({ daily_spending }) => {
-      monthData.monthlySpending += daily_spending;
-    });
-    setFetching(false)
-
-    return monthData;
-  };
-
-  const fetchRates = async () => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    setFetching(true)
-    const { data: ratesData } = await supabase
-      .from("budgets")
-      .select("*")
-      .eq("user_id", userId) 
-      .maybeSingle();
+    const { data: ratesData, error } = await withRetry(async () =>
+      supabase.from("budgets").select("*").eq("user_id", userId).maybeSingle()
+    );
+    if (error) throw error;
 
     if (!ratesData) return {};
     const rates: Record<number, number> = {};
     for (let i = 1; i <= 12; i++) {
-      rates[i] = ratesData[`${keys[i - 1]}_rate`] || 0;
+      rates[i] = ratesData[`${MONTH_KEYS[i - 1]}_rate`] || 0;
     }
-    setFetching(false)
     return rates;
-  };
+  }, [userId, supabase, toast, withRetry]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
+      setFetching(false);
+      return;
     }
     setFetching(true);
     try {
@@ -119,25 +127,21 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         monthsToLoad.forEach((m) => s.add(m));
         return s;
       });
+    } catch {
+      toast.error("Błąd pobierania danych budżetu.");
     } finally {
       setFetching(false);
     }
-  };
+  }, [userId, startMonth, endMonth, fetchRates, fetchMonthData, toast]);
 
-  const updateRate = (month: number, rate: number) => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
-    setLoading(true);
+  const updateRate = useCallback((month: number, rate: number) => {
     setData((prev) => ({
       ...prev,
       [month]: { ...(prev[month] || getEmptyMonthData()), rate },
     }));
-    setLoading(false);
-  };
+  }, []);
 
-  const saveRates = async () => {
+  const saveRates = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");
       throw new Error("Unauthorized");
@@ -147,40 +151,30 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const payload: any = { user_id: userId };
       Object.entries(data).forEach(([monthStr, monthData]) => {
         const m = Number.parseInt(monthStr);
-
-        if (m >= 1 && m <= 12) payload[`${keys[m - 1]}_rate`] = Number(monthData.rate) || 0;
+        if (m >= 1 && m <= 12) payload[`${MONTH_KEYS[m - 1]}_rate`] = Number(monthData.rate) || 0;
       });
 
-      const { data: existing } = await supabase
-        .from("budgets")
-        .select("id")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data: existing, error: selectError } = await withRetry(async () =>
+        supabase.from("budgets").select("id").eq("user_id", userId).maybeSingle()
+      );
+      if (selectError) throw selectError;
 
-      let dbError;
-
-      if (existing?.id) {
-        const { error } = await supabase
-          .from("budgets")
-          .update(payload)
-          .eq("id", existing.id);
-        dbError = error;
-      } else {
-        const { error } = await supabase
-          .from("budgets")
-          .insert([payload]);
-        dbError = error;
-      }
+      const { error: dbError } = existing?.id
+        ? await withRetry(async () => supabase.from("budgets").update(payload).eq("id", existing.id))
+        : await withRetry(async () => supabase.from("budgets").insert([payload]));
 
       if (dbError) throw dbError;
+      toast.success("Zapisano stawki budżetu");
+    } catch {
+      toast.error("Błąd zapisu stawek budżetu.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, data, supabase, toast, withRetry]);
 
   useEffect(() => {
     loadData();
-  }, [userId, year, startMonth, endMonth]);
+  }, [loadData]);
 
   return { data, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
 }

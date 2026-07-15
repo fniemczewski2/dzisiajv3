@@ -6,6 +6,7 @@ import type { Bill } from "@/types/bills";
 import { addMonths, format, parseISO, isAfter } from "date-fns";
 import { BILLS_PAGE_LIMIT } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/lib/withRetry";
 
 function getRecurringDates(startDate: string, recurringUntil: string): string[] {
   const dates: string[] = [];
@@ -87,10 +88,11 @@ export function useBills(options: FetchOptions = {}) {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
-  
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (fetching  && toast.loading) toastId = toast.loading("Ładowanie rachunków...");
+    if (fetching && toast.loading) toastId = toast.loading("Ładowanie rachunków...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [fetching, toast]);
 
@@ -98,26 +100,25 @@ export function useBills(options: FetchOptions = {}) {
     async (append = false, page = 1, limit = BILLS_PAGE_LIMIT) => {
       if (!userId || settings == null) return;
       setFetching(true);
-      
+
       try {
         const from = (page - 1) * limit;
         const to = from + limit - 1;
-        const query = buildFetchBillsQuery(supabase, userId, options).range(from, to);
 
-        const { data, error, count } = await query;
-        if (error) {
-          toast.error('Błąd pobierania rachunków.');
-          throw error;
-        }
+        const { data, error, count } = await withRetry(async () =>
+          buildFetchBillsQuery(supabase, userId, options).range(from, to)
+        );
+
+        if (error) throw error;
 
         const bills = (data ?? []) as Bill[];
         const incomes = bills.filter((b) => b.is_income);
         const expenses = bills.filter((b) => !b.is_income);
 
-        setIncomeItems((prev) => append ? [...prev, ...incomes] : incomes);
-        
+        setIncomeItems((prev) => (append ? [...prev, ...incomes] : incomes));
+
         if (settings.show_budget_items) {
-          setExpenseItems((prev) => append ? [...prev, ...expenses] : expenses);
+          setExpenseItems((prev) => (append ? [...prev, ...expenses] : expenses));
         } else {
           setExpenseItems([]);
         }
@@ -125,11 +126,13 @@ export function useBills(options: FetchOptions = {}) {
         if (count !== null) {
           setHasMore(from + bills.length < count);
         }
+      } catch {
+        toast.error("Błąd pobierania rachunków.");
       } finally {
         setFetching(false);
       }
     },
-    [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId]
+    [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry]
   );
 
   useEffect(() => {
@@ -143,24 +146,23 @@ export function useBills(options: FetchOptions = {}) {
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      
-      try {
-        const { data, error } = await supabase
-          .from("bills")
-          .insert({ ...bill, user_id: userId, parent_bill_id: null })
-          .select()
-          .single();
 
-        if (error) {
-          toast.error('Błąd dodawania rachunku.');
-          throw error;
-        }
+      try {
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from("bills")
+            .insert({ ...bill, user_id: userId, parent_bill_id: null })
+            .select()
+            .single()
+        );
+
+        if (error) throw error;
         const parent = data as Bill;
 
         if (parent.is_income) {
-           setIncomeItems(prev => [parent, ...prev]);
+          setIncomeItems((prev) => [parent, ...prev]);
         } else {
-           setExpenseItems(prev => [parent, ...prev]);
+          setExpenseItems((prev) => [parent, ...prev]);
         }
 
         if (bill.is_recurring && bill.recurring_until) {
@@ -178,11 +180,13 @@ export function useBills(options: FetchOptions = {}) {
               recurring_until: null,
               parent_bill_id: parent.id,
             }));
-            const { error: childError } = await supabase.from("bills").insert(children);
+            const { error: childError } = await withRetry(async () =>
+              supabase.from("bills").insert(children)
+            );
             if (childError) throw childError;
           }
         }
-        
+
         toast.success("Dodano rachunek");
         return parent;
       } catch (error) {
@@ -192,7 +196,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const editBill = useCallback(
@@ -203,36 +207,40 @@ export function useBills(options: FetchOptions = {}) {
       }
       setLoading(true);
 
-      setIncomeItems((prev) => prev.map((b) => b.id === bill.id ? { ...b, ...bill } : b));
-      setExpenseItems((prev) => prev.map((b) => b.id === bill.id ? { ...b, ...bill } : b));
-      
+      setIncomeItems((prev) => prev.map((b) => (b.id === bill.id ? { ...b, ...bill } : b)));
+      setExpenseItems((prev) => prev.map((b) => (b.id === bill.id ? { ...b, ...bill } : b)));
+
       try {
-        const { data, error } = await supabase
-          .from("bills")
-          .update({
-            amount: bill.amount,
-            description: bill.description,
-            date: bill.date,
-            is_income: bill.is_income,
-            done: bill.done,
-            category_id: bill.category_id,
-            is_recurring: bill.is_recurring,
-            recurring_until: bill.recurring_until,
-          })
-          .eq("id", bill.id)
-          .eq("user_id", userId)
-          .select()
-          .single();
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from("bills")
+            .update({
+              amount: bill.amount,
+              description: bill.description,
+              date: bill.date,
+              is_income: bill.is_income,
+              done: bill.done,
+              category_id: bill.category_id,
+              is_recurring: bill.is_recurring,
+              recurring_until: bill.recurring_until,
+            })
+            .eq("id", bill.id)
+            .eq("user_id", userId)
+            .select()
+            .single()
+        );
 
         if (error) throw error;
-        
+
         if (editOptions.updateFutureRecurring) {
           const today = format(new Date(), "yyyy-MM-dd");
-          await supabase
-            .from("bills")
-            .update({ amount: bill.amount, description: bill.description, category_id: bill.category_id })
-            .eq("parent_bill_id", bill.id)
-            .gte("date", today);
+          await withRetry(async () =>
+            supabase
+              .from("bills")
+              .update({ amount: bill.amount, description: bill.description, category_id: bill.category_id })
+              .eq("parent_bill_id", bill.id)
+              .gte("date", today)
+          );
         }
         toast.success("Zaktualizowano rachunek");
         return data as Bill;
@@ -243,7 +251,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const deleteBill = useCallback(
@@ -253,21 +261,25 @@ export function useBills(options: FetchOptions = {}) {
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(
-      `Czy chcesz usunąć rachunek?${deleteFutureRecurring ? " (wraz z przyszłymi powtarzającymi się)" : ""}`
+        `Czy chcesz usunąć rachunek?${deleteFutureRecurring ? " (wraz z kolejnymi z serii)" : ""}`
       );
       if (!ok) return;
       setLoading(true);
 
       setIncomeItems((prev) => prev.filter((b) => b.id !== id));
       setExpenseItems((prev) => prev.filter((b) => b.id !== id));
-      
+
       try {
         if (deleteFutureRecurring) {
           const today = format(new Date(), "yyyy-MM-dd");
-          await supabase.from("bills").delete().eq("parent_bill_id", id).gte("date", today);
+          await withRetry(async () =>
+            supabase.from("bills").delete().eq("parent_bill_id", id).gte("date", today)
+          );
         }
 
-        const { error } = await supabase.from("bills").delete().eq("id", id).eq("user_id", userId);
+        const { error } = await withRetry(async () =>
+          supabase.from("bills").delete().eq("id", id).eq("user_id", userId)
+        );
         if (error) throw error;
 
         toast.success("Usunięto rachunek");
@@ -277,7 +289,7 @@ export function useBills(options: FetchOptions = {}) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const markAsDone = useCallback(
@@ -287,18 +299,23 @@ export function useBills(options: FetchOptions = {}) {
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      
+
       try {
-        const { error } = await supabase.from("bills").update({ done: true }).eq("id", id).eq("user_id", userId);
+        const { error } = await withRetry(async () =>
+          supabase.from("bills").update({ done: true }).eq("id", id).eq("user_id", userId)
+        );
         if (error) throw error;
-        
+
         setIncomeItems((prev) => prev.filter((b) => b.id !== id));
         setExpenseItems((prev) => prev.filter((b) => b.id !== id));
+        toast.success("Oznaczono jako opłacony");
+      } catch {
+        toast.error("Błąd aktualizacji rachunku");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, withRetry]
   );
 
   const fetchActiveMonths = useCallback(
@@ -307,21 +324,30 @@ export function useBills(options: FetchOptions = {}) {
         toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
       }
-      
-      const query = buildActiveMonthsQuery(supabase, userId, year, categoryId);
-      const { data, error } = await query;
-      
-      if (error || !data) return [];
 
-      const activeMonthIndexes = new Set<number>();
-      data.forEach((item: { date: string }) => {
-        const month = parseISO(item.date).getMonth();
-        activeMonthIndexes.add(month);
-      });
+      try {
+        const { data, error } = await withRetry(async () =>
+          buildActiveMonthsQuery(supabase, userId, year, categoryId)
+        );
 
-      return Array.from(activeMonthIndexes).sort((a, b) => b - a);
+        if (error || !data) {
+          toast.error("Błąd pobierania danych.");
+          return [];
+        }
+
+        const activeMonthIndexes = new Set<number>();
+        data.forEach((item: { date: string }) => {
+          const month = parseISO(item.date).getMonth();
+          activeMonthIndexes.add(month);
+        });
+
+        return Array.from(activeMonthIndexes).sort((a, b) => b - a);
+      } catch {
+        toast.error("Błąd pobierania danych.");
+        return [];
+      }
     },
-    [userId, supabase, toast]
+    [userId, supabase, toast, withRetry]
   );
 
   return {

@@ -4,7 +4,6 @@ import React, { useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types/recipes";
 import { useRecipes } from "@/hooks/db/useRecipes";
-import { useRetry } from "@/lib/withRetry";
 import { FormButtons } from "../ui/CommonButtons";
 
 interface RecipeFormProps {
@@ -18,8 +17,6 @@ const CATEGORIES: RecipeCategory[] = [
 
 export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormProps>) {
   const { addRecipe, loading, products: allProducts } = useRecipes();
-  const retry = useRetry();
-
   const [name, setName] = useState("");
   const [category, setCategory] = useState<RecipeCategory>("śniadanie");
   const [description, setDescription] = useState("");
@@ -54,14 +51,13 @@ export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormPr
     e.preventDefault();
     if (!canSave) return;
 
-    await retry(
-      () => addRecipe({
+    await addRecipe({
         name: name.trim(),
         category,
         products: picked.map((p) => p.trim()),
         description: description.trim(),
       } as Recipe)
-    );
+      
     setName(""); setCategory("śniadanie"); setDescription(""); setPicked([]); setProdInput("");
     onChange();
     onCancel?.();

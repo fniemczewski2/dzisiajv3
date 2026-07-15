@@ -9,7 +9,6 @@ import { format } from "date-fns";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
-import { useRetry } from "@/lib/withRetry";
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -33,7 +32,6 @@ export default function EventForm({
   addAnother
 }: Readonly<EventsFormProps>) {
   const { user } = useAuth();
-  const retry = useRetry();
   const userId = user?.id;
   const { settings } = useSettings();
   
@@ -83,9 +81,7 @@ export default function EventForm({
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    await retry(
-      async () => {
-        await addEvent({
+    await addEvent({
           title: title.trim(),
           description: description.trim(),
           start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
@@ -95,8 +91,6 @@ export default function EventForm({
           repeat,
           user_id: userId,
         } as any);
-      }
-    );
 
     resetForm();
     onEventsChange();

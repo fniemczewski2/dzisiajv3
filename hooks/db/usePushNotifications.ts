@@ -1,10 +1,11 @@
 // hooks/usePushNotifications.ts
 
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'
 import { useToast } from '@/providers/ToastProvider'
+import { useRetry } from '@/lib/withRetry'
 
 export function usePushNotifications(userId: string | undefined) {
   const { supabase } = useAuth()
@@ -12,9 +13,11 @@ export function usePushNotifications(userId: string | undefined) {
   const [loading, setLoading] = useState(false)
 
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   useEffect(() => {
     let toastId: string | undefined;
-    if (loading  && toast.loading) toastId = toast.loading("Ładowanie powiadomień...");
+    if (loading && toast.loading) toastId = toast.loading("Ładowanie powiadomień...");
     return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
   }, [loading, toast]);
 
@@ -25,26 +28,26 @@ export function usePushNotifications(userId: string | undefined) {
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
           });
-          
+
           await registration.update();
           const subscription = await registration.pushManager.getSubscription();
           setIsSubscribed(!!subscription);
-          setLoading(false);
         } catch {
           console.error('[SW] Rejestracja nie powiodła się');
+        } finally {
           setLoading(false);
         }
       } else {
         setLoading(false);
       }
     }
-    
+
     if (userId) {
       initSW();
     }
   }, [userId]);
 
-  async function subscribeToPush() {
+  const subscribeToPush = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");
       throw new Error("Unauthorized");
@@ -70,11 +73,9 @@ export function usePushNotifications(userId: string | undefined) {
       const subscriptionJSON = subscription.toJSON()
       const endpoint = subscriptionJSON.endpoint
 
-      const { data: allSubs, error: fetchError } = await supabase
-        .from('push_subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-
+      const { data: allSubs, error: fetchError } = await withRetry(async () =>
+        supabase.from('push_subscriptions').select('*').eq('user_id', userId)
+      );
       if (fetchError) throw fetchError
 
       const existing = (allSubs as any[])?.find((sub) => {
@@ -86,33 +87,38 @@ export function usePushNotifications(userId: string | undefined) {
       })
 
       if (existing) {
-        const { error } = await supabase
-          .from('push_subscriptions')
-          .update({
-            subscription: subscriptionJSON,
-            user_agent: navigator.userAgent,
-            last_used: new Date().toISOString(),
-          })
-          .eq('id', existing.id)
+        const { error } = await withRetry(async () =>
+          supabase
+            .from('push_subscriptions')
+            .update({
+              subscription: subscriptionJSON,
+              user_agent: navigator.userAgent,
+              last_used: new Date().toISOString(),
+            })
+            .eq('id', existing.id)
+        );
         if (error) throw error
       } else {
-        const { error } = await supabase
-          .from('push_subscriptions')
-          .insert({
+        const { error } = await withRetry(async () =>
+          supabase.from('push_subscriptions').insert({
             user_id: userId,
             subscription: subscriptionJSON,
             user_agent: navigator.userAgent,
           })
+        );
         if (error) throw error
       }
 
       setIsSubscribed(true)
+      toast.success("Włączono powiadomienia push");
+    } catch (err: any) {
+      toast.error(err?.message || "Błąd włączania powiadomień.");
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId, supabase, toast, withRetry])
 
-  async function unsubscribeFromPush() {
+  const unsubscribeFromPush = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");
       throw new Error("Unauthorized");
@@ -126,10 +132,9 @@ export function usePushNotifications(userId: string | undefined) {
         const endpoint = subscription.toJSON().endpoint
         await subscription.unsubscribe()
 
-        const { data: allSubs } = await supabase
-          .from('push_subscriptions')
-          .select('*')
-          .eq('user_id', userId)
+        const { data: allSubs } = await withRetry(async () =>
+          supabase.from('push_subscriptions').select('*').eq('user_id', userId)
+        );
 
         const toDelete = (allSubs as any[])?.find((sub) => {
           const subData =
@@ -140,19 +145,21 @@ export function usePushNotifications(userId: string | undefined) {
         })
 
         if (toDelete) {
-          const { error } = await supabase
-            .from('push_subscriptions')
-            .delete()
-            .eq('id', toDelete.id)
+          const { error } = await withRetry(async () =>
+            supabase.from('push_subscriptions').delete().eq('id', toDelete.id)
+          );
           if (error) throw error
         }
       }
 
       setIsSubscribed(false)
+      toast.success("Wyłączono powiadomienia push");
+    } catch {
+      toast.error("Błąd wyłączania powiadomień.");
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId, supabase, toast, withRetry])
 
   return { isSubscribed, loading, subscribeToPush, unsubscribeFromPush }
 }

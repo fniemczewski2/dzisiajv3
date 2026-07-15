@@ -5,13 +5,32 @@ import { format } from "date-fns";
 import { eventSpansDate, getAppDate } from "@/lib/dateUtils";
 import { Cake, Star, Gift, Heart } from "lucide-react";
 import { getPolishHolidays } from "@/lib/holidays"; 
+import { useAuth } from "@/providers/AuthProvider";
 
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
-export default function BirthdayIndicator({ date }: {readonly date?: string}) {
-  const dateStr = date || getAppDate(); 
-  const dateObj = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
-  
+function HolidayIndicator({ dateStr, dateObj }: { dateStr: string, dateObj: Date }) {
+  const holiday = useMemo(() => {
+    const holidaysMap = getPolishHolidays(dateObj.getFullYear());
+    return holidaysMap[dateStr] || null;
+  }, [dateObj, dateStr]);
+
+  if (!holiday) return null;
+
+  return (
+    <div className="space-y-1">
+      <span
+        className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
+        title={holiday}
+      >
+        <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 shrink-0" /> 
+        <span className="truncate">{holiday}</span>
+      </span>
+    </div>
+  );
+}
+
+function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { dateStr: string, dateObj: Date }) {
   const monthStart = useMemo(() => 
     format(new Date(dateObj.getFullYear(), dateObj.getMonth(), 1), "yyyy-MM-dd"),
     [dateObj]
@@ -22,6 +41,7 @@ export default function BirthdayIndicator({ date }: {readonly date?: string}) {
     [dateObj]
   );
   
+  // Ten hook jest teraz całkowicie bezpieczny - wywoła się tylko dla zalogowanego użytkownika
   const { events, loading } = useEvents(monthStart, monthEnd);
 
   const specialEvents = useMemo(() => {
@@ -38,7 +58,6 @@ export default function BirthdayIndicator({ date }: {readonly date?: string}) {
     return holidaysMap[dateStr] || null;
   }, [dateObj, dateStr]);
 
-  // Funkcja dobierająca ikonę w zależności od typu wydarzenia
   const getEventIcon = (title: string, description: string = "") => {
     const text = `${title} ${description}`.toLowerCase();
     if (text.includes("imieniny")) return <Gift className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 shrink-0" />;
@@ -63,7 +82,7 @@ export default function BirthdayIndicator({ date }: {readonly date?: string}) {
       {specialEvents.map((event) => (
         <span
           key={event.id}
-          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase y-0.5"
+          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase py-0.5"
           title={event.description || event.title}
         >
           {getEventIcon(event.title, event.description)}
@@ -74,4 +93,16 @@ export default function BirthdayIndicator({ date }: {readonly date?: string}) {
       ))}
     </div>
   );
+}
+
+export default function BirthdayIndicator({ date }: {readonly date?: string}) {
+  const dateStr = date || getAppDate(); 
+  const { user } = useAuth();
+  const dateObj = useMemo(() => new Date(`${dateStr}T00:00:00`), [dateStr]);
+  
+  if (!user) {
+    return <HolidayIndicator dateStr={dateStr} dateObj={dateObj} />;
+  }
+
+  return <AuthenticatedBirthdayIndicator dateStr={dateStr} dateObj={dateObj} />;
 }

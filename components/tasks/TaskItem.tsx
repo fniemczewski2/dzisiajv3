@@ -261,7 +261,7 @@ function TaskView({
   handleReschedule: (days: number) => void;
 }>) {
   return (
-    <div className="card min-w-0 p-4 w-full rounded-2xl hover:border-primary transition-all flex flex-col text-left">
+    <div className="card min-w-0 p-4 w-full rounded-2xl transition-all flex flex-col text-left">
       <div className="space-y-3 flex-1">
         
         <button 
