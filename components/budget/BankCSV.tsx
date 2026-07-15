@@ -55,7 +55,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
           monthly_amounts: new Array(12).fill(0), 
           is_monthly: isMonthly 
         });
-        updatedCategories.push(newCat);
+        if (newCat) updatedCategories.push(newCat);
       } catch (error: any) {
         if (error?.code === "23505" || error?.message?.includes("duplicate key")) {
           const { data } = await supabase
