@@ -10,7 +10,7 @@ import {
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useTasks } from "@/hooks/db/useTasks";
-import { useEvents } from "@/hooks/db/useEvents";
+import { useEvents, useVirtualBirthdayEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { useDashboardDnd } from "@/hooks/useDashboardDnd";
@@ -92,7 +92,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       dateStr, 
       dateStr,
     );
-  const { events, fetchEvents, addEvent, deleteEvent, editEvent, fetching: fetchingEvents, loading: loadingEvents } = useEvents(dateStr, dateStr);
+  const virtualEvents = useVirtualBirthdayEvents();
+  const { events, fetchEvents, addEvent, deleteEvent, editEvent, fetching: fetchingEvents, loading: loadingEvents } = useEvents(dateStr, dateStr, virtualEvents);
   const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
   const { schemas } = useDaySchemas();
   const { workLogs } = useWorkLogs(dateStr);

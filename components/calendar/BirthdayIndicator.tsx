@@ -1,6 +1,6 @@
 // components/calendar/BirthdayIndicator.tsx
 import { useMemo } from "react";
-import { useEvents } from "@/hooks/db/useEvents";
+import { useEvents, useVirtualBirthdayEvents } from "@/hooks/db/useEvents";
 import { format } from "date-fns";
 import { eventSpansDate, getAppDate } from "@/lib/dateUtils";
 import { Cake, Star, Gift, Heart } from "lucide-react";
@@ -40,9 +40,8 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { dateStr: string,
     format(new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0), "yyyy-MM-dd"),
     [dateObj]
   );
-  
-  // Ten hook jest teraz całkowicie bezpieczny - wywoła się tylko dla zalogowanego użytkownika
-  const { events, loading } = useEvents(monthStart, monthEnd);
+  const virtualEvents = useVirtualBirthdayEvents();
+  const { events, loading } = useEvents(monthStart, monthEnd, virtualEvents);
 
   const specialEvents = useMemo(() => {
     return events.filter((event) => {

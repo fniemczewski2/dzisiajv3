@@ -14,12 +14,6 @@ export function useDailyOverrides(dateStr: string) {
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie rutyn dnia...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchOverrides = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

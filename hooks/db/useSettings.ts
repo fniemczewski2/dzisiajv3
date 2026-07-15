@@ -85,12 +85,6 @@ export function useSettings() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie ustawień...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
   useEffect(() => {

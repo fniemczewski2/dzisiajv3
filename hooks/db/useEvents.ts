@@ -1,13 +1,84 @@
 // hooks/useEvents.ts
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
+import { Person } from "@/types/people";
 import { expandRepeatingEvents } from "@/lib/eventUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/lib/withRetry";
 
-export function useEvents(rangeStart: string, rangeEnd: string) {
+export function useVirtualBirthdayEvents(): Event[] {
+  const { user, supabase } = useAuth();
+  const userId = user?.id;
+  const withRetry = useRetry();
+  const { toast } = useToast();
+
+  const [virtualEvents, setVirtualEvents] = useState<Event[]>([]);
+
+  const fetchVirtualEvents = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const { data, error } = await withRetry(async () =>
+        supabase
+          .from("people")
+          .select("id, first_name, last_name, birthday, nameday, priority")
+          .eq("user_id", userId)
+          .in("priority", [0, 1, 2])
+      );
+      if (error) throw error;
+
+      const generated: Event[] = [];
+      (data as Pick<Person, "id" | "first_name" | "last_name" | "birthday" | "nameday">[]).forEach((person) => {
+        const fullName = `${person.first_name} ${person.last_name || ""}`.trim();
+        if (person.birthday) {
+          generated.push({
+            id: `bday_${person.id}`,
+            title: `🎂 Urodziny: ${fullName}`,
+            start_time: `${person.birthday}T00:00:00`,
+            end_time: `${person.birthday}T23:59:59`,
+            user_id: userId,
+            repeat: "yearly",
+          });
+        }
+        if (person.nameday) {
+          generated.push({
+            id: `nday_${person.id}`,
+            title: `🎉 Imieniny: ${fullName}`,
+            start_time: `${person.nameday}T00:00:00`,
+            end_time: `${person.nameday}T23:59:59`,
+            user_id: userId,
+            repeat: "yearly",
+          });
+        }
+      });
+
+      setVirtualEvents(generated);
+    } catch {
+      toast.error("Błąd pobierania dat urodzin/imienin.");
+    }
+  }, [userId, supabase, toast, withRetry]);
+
+  useEffect(() => {
+    fetchVirtualEvents();
+  }, [fetchVirtualEvents]);
+
+  // Odśwież wirtualne eventy gdy zmienią się kontakty (np. edycja daty urodzin)
+  useEffect(() => {
+    const handler = () => fetchVirtualEvents();
+    globalThis.addEventListener("refreshPeople", handler);
+    return () => globalThis.removeEventListener("refreshPeople", handler);
+  }, [fetchVirtualEvents]);
+
+  return virtualEvents;
+}
+
+export function useEvents(
+  rangeStart: string,
+  rangeEnd: string,
+  virtualEvents: Event[] = []
+) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [rawEvents, setRawEvents] = useState<Event[]>([]);
@@ -17,20 +88,13 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
 
-  // Rozwijanie wydarzeń cyklicznych liczone jest tylko wtedy, gdy realnie zmienią się
-  // dane źródłowe lub zakres dat - nie przy każdym renderze.
   const events = useMemo(() => {
     if (!rangeStart || !rangeEnd) return rawEvents;
     const start = new Date(`${rangeStart}T00:00:00`);
     const end = new Date(`${rangeEnd}T23:59:59`);
-    return expandRepeatingEvents(rawEvents, start, end);
-  }, [rawEvents, rangeStart, rangeEnd]);
+    return expandRepeatingEvents([...rawEvents, ...virtualEvents], start, end);
+  }, [rawEvents, virtualEvents, rangeStart, rangeEnd]);
 
   const fetchEvents = useCallback(async () => {
     if (!rangeStart || !rangeEnd) return;
@@ -47,38 +111,7 @@ export function useEvents(rangeStart: string, rangeEnd: string) {
 
       const fetchedEvents = (data || []) as Event[];
       const eventsWithDisplayInfo = await resolveSharedEmails(fetchedEvents, userId, supabase, userEmailsRef);
-
-      const { data: peopleData, error: peopleError } = await withRetry(async () =>
-        supabase.from("people").select("*").eq("user_id", userId).in("priority", [0, 1, 2])
-      );
-
-      const virtualEvents: Event[] = [];
-      if (!peopleError && peopleData) {
-        peopleData.forEach((person: any) => {
-          if (person.birthday) {
-            virtualEvents.push({
-              id: `bday_${person.id}`,
-              title: `🎂 Urodziny: ${person.first_name} ${person.last_name || ""}`.trim(),
-              start_time: `${person.birthday}T00:00:00`,
-              end_time: `${person.birthday}T23:59:59`,
-              user_id: userId,
-              repeat: "yearly",
-            });
-          }
-          if (person.nameday) {
-            virtualEvents.push({
-              id: `nday_${person.id}`,
-              title: `🎉 Imieniny: ${person.first_name} ${person.last_name || ""}`.trim(),
-              start_time: `${person.nameday}T00:00:00`,
-              end_time: `${person.nameday}T23:59:59`,
-              user_id: userId,
-              repeat: "yearly",
-            });
-          }
-        });
-      }
-
-      setRawEvents([...eventsWithDisplayInfo, ...virtualEvents]);
+      setRawEvents(eventsWithDisplayInfo);
     } catch {
       toast.error("Błąd pobierania wydarzeń.");
     } finally {

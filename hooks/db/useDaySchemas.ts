@@ -22,12 +22,6 @@ export function useDaySchemas() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie schematów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchSchemas = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

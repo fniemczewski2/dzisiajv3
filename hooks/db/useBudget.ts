@@ -26,12 +26,6 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie budżetu...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchMonthData = useCallback(
     async (month: number): Promise<MonthData> => {
       if (!userId) {
@@ -49,7 +43,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const { data: bills, error: billsError } = await withRetry(async () =>
         supabase
           .from("bills")
-          .select("amount,date,is_income,description,done")
+          .select("amount,date,is_income,done")
           .eq("user_id", userId)
           .gte("date", dateStart)
           .lt("date", dateEnd)
@@ -176,5 +170,5 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     loadData();
   }, [loadData]);
 
-  return { data, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
+  return { data, fetching, loading, loadedMonths, updateRate, saveRates, refetch: loadData };
 }

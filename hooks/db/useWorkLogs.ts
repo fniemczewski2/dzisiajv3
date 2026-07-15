@@ -12,13 +12,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie logów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
+  
   const fetchWorkLogs = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

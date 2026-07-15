@@ -1,23 +1,15 @@
 export interface Departure {
-  id: string;
-  line: string;
-  destination: string;
-  time: string;
-  type: "tram" | "bus" | "train";
-}
-
-export interface StopRow {
-  stop_name: string;
-  zone_id: string;
-}
-
-export interface Departure {
   line: string;
   direction: string;
   minutes: number;
   time: string;
   is_realtime: boolean;
   delay?: number;
+}
+
+export interface StopRow {
+  stop_name: string;
+  zone_id: string;
 }
 
 export interface Bollard {
@@ -29,8 +21,7 @@ export interface StopGroup {
   stop_name: string;
   zone_id: string;
   distance?: number;
-  bollds?: Bollard[]; 
-  bollards: Bollard[]; 
+  bollards: Bollard[];
 }
 
 export interface LocalSearchResult {

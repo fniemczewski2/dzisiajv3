@@ -66,7 +66,7 @@ export default function DaySchemaPage() {
           toast.dismiss(toastId);
         }
       };
-  }, [fetching, toast]);
+  }, [fetching]);
   
 
   return (

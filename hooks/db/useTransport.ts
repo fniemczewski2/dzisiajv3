@@ -27,26 +27,8 @@ export function useTransport(autoRefresh = false) {
 
   const nearbyAbortRef = useRef<AbortController | null>(null);
   const favoritesAbortRef = useRef<AbortController | null>(null);
-
-  const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (loadingFavorites && toast.loading) toastId = toast.loading("Ładowanie ulubionych przystanków...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loadingFavorites, toast]);
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (loadingNearby && toast.loading) toastId = toast.loading("Ładowanie przystanków w pobliżu...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loadingNearby, toast]);
-
-  // Wywołania Supabase Edge Functions poniżej celowo NIE są owinięte w `withRetry`:
-  // korzystają z AbortController do anulowania nieaktualnych żądań (np. przy szybkiej
-  // zmianie lokalizacji), a automatyczny retry z toastem kolidowałby z tym mechanizmem
-  // i pokazywałby błędy przy zwykłym, zamierzonym anulowaniu.
   const fetchNearbyData = useCallback(async () => {
     if (!lastCoords.current) {
       setLoadingNearby(false);

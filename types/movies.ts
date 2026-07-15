@@ -34,5 +34,5 @@ export interface TmdbWatchProviders {
   results?: { PL?: { flatrate?: TmdbProvider[]; rent?: TmdbProvider[]; buy?: TmdbProvider[]; }; };
 }
 
-export type MovieInsert = Omit<Movie, "id" | "created_at" | "updated_at">;
+export type MovieInsert = Omit<Movie, "id" | "user_id" | "created_at" | "updated_at">;
 export type MovieUpdate = Partial<MovieInsert> & { id: string };

@@ -16,12 +16,6 @@ export function usePushNotifications(userId: string | undefined) {
   const withRetry = useRetry();
 
   useEffect(() => {
-    let toastId: string | undefined;
-    if (loading && toast.loading) toastId = toast.loading("Ładowanie powiadomień...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loading, toast]);
-
-  useEffect(() => {
     async function initSW() {
       if ('serviceWorker' in navigator) {
         try {

@@ -12,7 +12,7 @@ import type { Movie, MovieInsert, NewMovieData } from "@/types/movies";
 
 interface MoviesProps {
   movies: Movie[];
-  addMovie: (movie: Omit<MovieInsert, "user_id">)=> Promise<Movie>;
+  addMovie: (movie: MovieInsert)=> Promise<Movie | undefined>;
   updateMovie: (movie: Movie) => Promise<void>;
   deleteMovie: (id: string) => Promise<void>;
   toggleWatched: (id: string) => Promise<void>;

@@ -21,7 +21,7 @@ export default function MoviesPage() {
           toast.dismiss(toastId);
         }
       };
-  }, [fetching, toast]);
+  }, [fetching]);
   
   return (
     <>

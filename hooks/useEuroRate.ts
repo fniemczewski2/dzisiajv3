@@ -7,11 +7,15 @@ export function useEuroRate() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchRate = async () => {
       try {
         const response = await fetch(
-          "https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json"
+          "https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json",
+          { signal: controller.signal }
         );
+
         if (!response.ok) {
           throw new Error(`NBP API error: ${response.status}`);
         }
@@ -24,7 +28,8 @@ export function useEuroRate() {
         }
 
         setRate(currentRate);
-      } catch  {
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
         setError("Wystąpił błąd pobierania kursu.");
       } finally {
         setLoading(false);
@@ -32,6 +37,8 @@ export function useEuroRate() {
     };
 
     fetchRate();
+
+    return () => controller.abort();
   }, []);
 
   return { rate, loading, error };

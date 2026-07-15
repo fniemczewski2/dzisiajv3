@@ -57,7 +57,7 @@ export default function StreaksPage() {
             toast.dismiss(toastId);
           }
         };
-    }, [fetching, toast]);
+    }, [fetching]);
 
   return (
     <>

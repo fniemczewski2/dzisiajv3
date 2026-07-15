@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "@/components/calendar/MonthView";
-import { useEvents } from "@/hooks/db/useEvents";
+import { useEvents, useVirtualBirthdayEvents } from "@/hooks/db/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import { AddButton } from "@/components/ui/CommonButtons";
@@ -24,8 +24,8 @@ export default function CalendarPage() {
 
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
-
-  const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
+  const virtualEvents = useVirtualBirthdayEvents();
+  const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd, virtualEvents);
 
   const { moods } = useMoods();
   const { toast } = useToast();
@@ -45,7 +45,7 @@ export default function CalendarPage() {
       let toastId: string | undefined;
       if (fetching && toast.loading) toastId = toast.loading("Ładowanie wydarzeń...");
       return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
+  }, [fetching]);
 
   useEffect(() => {
     if (router.query.reset === "true") {

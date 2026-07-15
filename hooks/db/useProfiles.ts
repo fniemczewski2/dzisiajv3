@@ -13,15 +13,8 @@ export function useProfiles() {
   const [fetching, setFetching] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
   const { toast } = useToast();
   const withRetry = useRetry();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie profili...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
 
   const fetchProfiles = useCallback(async () => {
     if (!userId) {

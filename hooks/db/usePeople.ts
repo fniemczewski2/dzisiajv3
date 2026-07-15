@@ -14,12 +14,6 @@ export function usePeople() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie kontaktów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchPeople = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

@@ -18,12 +18,6 @@ export function useBudgetCategories(year: number) {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie kategorii...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchCategories = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

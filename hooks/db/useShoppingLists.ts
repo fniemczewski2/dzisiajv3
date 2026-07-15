@@ -17,12 +17,6 @@ export function useShoppingLists() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie zakupów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchShoppingLists = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

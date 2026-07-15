@@ -27,7 +27,7 @@ export default function RecipesPage() {
           toast.dismiss(toastId);
         }
       };
-  }, [fetching, toast]);
+  }, [fetching]);
   
   return (
     <>

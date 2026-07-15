@@ -40,7 +40,7 @@ export default function NotesPage() {
         toast.dismiss(toastId);
       }
     };
-  }, [fetching, toast]);
+  }, [fetching]);
 
   return (
     <>

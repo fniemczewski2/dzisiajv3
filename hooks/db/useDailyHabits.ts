@@ -32,13 +32,7 @@ export function useDailyHabits(date?: string) {
   const [habits, setHabits] = useState<DailyHabitsRow | null>(null);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie nawyków...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
+  
   const fetchHabits = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

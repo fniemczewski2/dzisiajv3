@@ -7,6 +7,39 @@ import { useToast } from '@/providers/ToastProvider';
 import { useRetry } from '@/lib/withRetry';
 import { TrackedTrain, TrainInput } from '@/types/transport';
 
+function mapDbRowToTrain(row: {
+  id: string;
+  user_id: string;
+  train_number: string;
+  train_name: string;
+  date: string;
+  departure_time: string;
+  from_station: string;
+  to_station: string;
+  wagon: string;
+  seat: string;
+  created_at: string;
+}): TrackedTrain {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    trainNumber: row.train_number,
+    trainName: row.train_name,
+    date: row.date,
+    departureTime: row.departure_time,
+    from: row.from_station,
+    to: row.to_station,
+    wagon: row.wagon,
+    seat: row.seat,
+    createdAt: row.created_at,
+  };
+}
+
+const sortByDepartureAsc = (a: TrackedTrain, b: TrackedTrain): number =>
+  a.date !== b.date
+    ? a.date.localeCompare(b.date)
+    : a.departureTime.localeCompare(b.departureTime);
+
 export function useTrains() {
   const { supabase, user } = useAuth();
   const userId = user?.id;
@@ -15,12 +48,6 @@ export function useTrains() {
   const [fetching, setFetching] = useState<boolean>(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (loading && toast.loading) toastId = toast.loading("Ładowanie pociągów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loading, toast]);
 
   const fetchTrains = useCallback(async () => {
     if (!userId) {
@@ -47,20 +74,8 @@ export function useTrains() {
 
       if (error) throw error;
 
-      const mappedData: TrackedTrain[] = (data || [])
-        .map((item: any) => ({
-          id: item.id,
-          userId: item.user_id,
-          trainNumber: item.train_number,
-          trainName: item.train_name,
-          date: item.date,
-          departureTime: item.departure_time,
-          from: item.from_station,
-          to: item.to_station,
-          wagon: item.wagon,
-          seat: item.seat,
-          createdAt: item.created_at,
-        }))
+      const mappedData = (data || [])
+        .map(mapDbRowToTrain)
         .filter((train) => {
           const [year, month, day] = train.date.split('-').map(Number);
           const [hours, minutes] = train.departureTime.split(':').map(Number);
@@ -100,11 +115,7 @@ export function useTrains() {
         seat: trainData.seat,
         createdAt: new Date().toISOString(),
       };
-      setTrains((prev) =>
-        [...prev, optimisticTrain].sort((a, b) =>
-          a.date !== b.date ? a.date.localeCompare(b.date) : a.departureTime.localeCompare(b.departureTime)
-        )
-      );
+      setTrains((prev) => [...prev, optimisticTrain].sort(sortByDepartureAsc));
 
       try {
         const { data, error } = await withRetry(async () =>
@@ -126,26 +137,8 @@ export function useTrains() {
         );
         if (error) throw error;
 
-        const newTrain: TrackedTrain = {
-          id: data.id,
-          userId: data.user_id,
-          trainNumber: data.train_number,
-          trainName: data.train_name,
-          date: data.date,
-          departureTime: data.departure_time,
-          from: data.from_station,
-          to: data.to_station,
-          wagon: data.wagon,
-          seat: data.seat,
-          createdAt: data.created_at,
-        };
-
         setTrains((prev) =>
-          prev
-            .map((t) => (t.id === tempId ? newTrain : t))
-            .sort((a, b) =>
-              a.date !== b.date ? a.date.localeCompare(b.date) : a.departureTime.localeCompare(b.departureTime)
-            )
+          prev.map((t) => (t.id === tempId ? mapDbRowToTrain(data) : t)).sort(sortByDepartureAsc)
         );
         toast.success("Dodano pociąg");
         return true;

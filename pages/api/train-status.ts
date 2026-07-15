@@ -2,7 +2,11 @@ import { getAppDateTime } from '@/lib/dateUtils';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const { trainNumber, from, to, trainName } = req.query;
+  if (!trainNumber || !from || !to || Array.isArray(from) || Array.isArray(to) || Array.isArray(trainNumber)) {
+    return res.status(400).json({ error: 'Wymagane parametry: trainNumber, from, to' });
+  }
   const apiKey = process.env.PLK_API_KEY || '';
   try {
     const headers = {

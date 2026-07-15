@@ -90,12 +90,6 @@ export function useBills(options: FetchOptions = {}) {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie rachunków...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchBills = useCallback(
     async (append = false, page = 1, limit = BILLS_PAGE_LIMIT) => {
       if (!userId || settings == null) return;

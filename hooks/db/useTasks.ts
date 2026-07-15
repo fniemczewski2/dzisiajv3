@@ -56,12 +56,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie zadań...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const userEmailsRef = useRef<Record<string, string>>({});
 
   const sortFunction = useMemo(() => {

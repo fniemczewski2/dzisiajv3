@@ -29,7 +29,7 @@ export default function ShoppingPage() {
           toast.dismiss(toastId);
         }
       };
-  }, [fetching, toast]);
+  }, [fetching]);
 
   return (
     <>

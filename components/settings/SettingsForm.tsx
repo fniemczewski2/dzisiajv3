@@ -4,6 +4,7 @@ import ThemeToggle from "./ThemeButton";
 import { DeleteButton, SaveButton } from "../ui/CommonButtons"; 
 import { useRouter } from "next/router";
 import { MoodOption } from "@/types/moods";
+import { Settings } from "@/types/settings";
 
 const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
@@ -13,10 +14,15 @@ const DEFAULT_MOODS: MoodOption[] = [
   { id: "m5", label: "Okropnie", color: "#ef4444" },  
 ];
 
+type BooleanSettingsKey = Extract<
+  { [K in keyof Settings]: Settings[K] extends boolean ? K : never }[keyof Settings],
+  keyof Settings
+>;
+
 interface SettingsFormProps {
-  settings: any;
+  settings: Settings;
   loading: boolean;
-  onSave: (updatedSettings: any) => void;
+  onSave: (updatedSettings: Settings) => void;
   onRestoreDefaults: () => void;
 }
 
@@ -29,14 +35,14 @@ export default function SettingsForm({
   
   const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
   const router = useRouter();
-  const [localSettings, setLocalSettings] = useState(initialSettings);
+  const [localSettings, setLocalSettings] = useState<Settings>(initialSettings);
 
   useEffect(() => {
     setLocalSettings(initialSettings);
   }, [initialSettings]);
 
-  const updateLocalField = (field: string, value: any) => {
-    setLocalSettings((prev: any) => ({ ...prev, [field]: value }));
+  const updateLocalField = <K extends keyof Settings>(field: K, value: Settings[K]) => {
+    setLocalSettings((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -44,7 +50,7 @@ export default function SettingsForm({
     onSave(localSettings);
   };
 
-  const renderSwitch = (id: string, label: string) => {
+  const renderSwitch = (id: BooleanSettingsKey, label: string) => {
     const isChecked = localSettings[id] !== false;
 
     return (
@@ -358,7 +364,7 @@ export default function SettingsForm({
                 
                 <DeleteButton 
                   onClick={() => {
-                    const newUsers = localSettings.users.filter((_: any, i: number) => i !== idx);
+                    const newUsers = localSettings.users.filter((_, i) => i !== idx);
                     updateLocalField("users", newUsers);
                   }}
                   small

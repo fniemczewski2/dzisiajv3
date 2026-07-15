@@ -125,7 +125,7 @@ export default function PlacesPage() {
           toast.dismiss(toastId);
         }
       };
-  }, [fetching, toast]);
+  }, [fetching]);
 
   return (
     <>

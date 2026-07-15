@@ -15,16 +15,9 @@ export function usePlaces() {
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
   const { toast } = useToast();
   const withRetry = useRetry();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie miejsc...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
+  
   const places = useMemo(() => {
     if (!settings) return rawPlaces;
     const sorted = [...rawPlaces];

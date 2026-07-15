@@ -14,16 +14,10 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
   const [summary, setSummary] = useState<any[]>([]);
   const [uncategorised, setUncategorised] = useState<any>({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
   const [totalIncome, setTotalIncome] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
   const withRetry = useRetry();
-
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (loading && toast.loading) toastId = toast.loading("Ładowanie statystyk...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [loading, toast]);
 
   const compute = useCallback(async () => {
     if (!userId) {
@@ -35,7 +29,6 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       setSummary([]);
       setUncategorised({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
       setTotalIncome(0);
-      setLoading(false);
       return;
     }
 

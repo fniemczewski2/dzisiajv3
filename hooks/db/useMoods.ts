@@ -14,12 +14,6 @@ export function useMoods(startDate?: string, endDate?: string) {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie nastrojów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchMoods = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

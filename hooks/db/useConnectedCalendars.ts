@@ -16,12 +16,6 @@ export function useConnectedCalendars(expanded: boolean) {
   const [fetching, setFetching] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie kont i kalendarzy...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchAccountsAndCalendars = useCallback(
     async (onlyAccounts = false) => {
       if (!user) {
@@ -62,7 +56,7 @@ export function useConnectedCalendars(expanded: boolean) {
             if (res.ok) {
               const data = await res.json();
               if (data.calendars) {
-                const googleCals = data.calendars.map((cal: any) => {
+                const googleCals = data.calendars.map((cal: ExternalCalendar) => {
                   const dbMatch = fetchedAccounts.find(
                     (acc) => acc.account_email === primaryGoogleAccount.account_email && acc.google_calendar_id === cal.id
                   );
@@ -95,7 +89,7 @@ export function useConnectedCalendars(expanded: boolean) {
             if (res.ok) {
               const data = await res.json();
               if (data.calendars) {
-                const outlookCals = data.calendars.map((cal: any) => {
+                const outlookCals = data.calendars.map((cal: ExternalCalendar) => {
                   const dbMatch = fetchedAccounts.find(
                     (acc) => acc.account_email === primaryOutlookAccount.account_email && acc.google_calendar_id === cal.id
                   );
@@ -131,14 +125,8 @@ export function useConnectedCalendars(expanded: boolean) {
   );
 
   useEffect(() => {
-    if (expanded) {
-      fetchAccountsAndCalendars();
-    }
+    fetchAccountsAndCalendars(!expanded);
   }, [expanded, fetchAccountsAndCalendars]);
-
-  useEffect(() => {
-    fetchAccountsAndCalendars(true);
-  }, [fetchAccountsAndCalendars]);
 
   const handleToggleCalendar = useCallback(
     async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {

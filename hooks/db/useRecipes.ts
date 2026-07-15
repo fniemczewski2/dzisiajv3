@@ -19,11 +19,6 @@ export function useRecipes() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie przepisów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
 
   const recipes = useMemo(() => {
     if (!settings) return rawRecipes;

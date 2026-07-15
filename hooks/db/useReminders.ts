@@ -17,12 +17,6 @@ export function useReminders() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie zadań cyklicznych...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const today = getAppDate();
 
   const fetchReminders = useCallback(async () => {

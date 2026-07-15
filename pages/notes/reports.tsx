@@ -253,7 +253,7 @@ export default function ReportsPage() {
           toast.dismiss(toastId);
         }
       };
-  }, [fetching, toast]);
+  }, [fetching]);
 
   return (
     <>

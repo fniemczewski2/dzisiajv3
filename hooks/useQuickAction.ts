@@ -24,7 +24,7 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
         );
       }
     }
-  }, [router, onActionAdd, removeQueryAfterTrigger]);
+  }, [router.query.action, onActionAdd, removeQueryAfterTrigger]);
 
   return {
     isQuickAction: router.query.action === "add",

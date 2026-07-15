@@ -14,12 +14,6 @@ export function useNotes() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie notatek...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const fetchNotes = useCallback(async () => {
     if (!userId) {
       toast.error("Zaloguj się!");

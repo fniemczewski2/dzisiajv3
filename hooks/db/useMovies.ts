@@ -16,12 +16,6 @@ export function useMovies() {
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  useEffect(() => {
-    let toastId: string | undefined;
-    if (fetching && toast.loading) toastId = toast.loading("Ładowanie filmów...");
-    return () => { if (toastId && toast.dismiss) toast.dismiss(toastId); };
-  }, [fetching, toast]);
-
   const movies = useMemo(() => {
     if (!settings) return rawMovies;
     const sorted = [...rawMovies];
@@ -63,7 +57,7 @@ export function useMovies() {
   }, [fetchMovies]);
 
   const addMovie = useCallback(
-    async (movie: Omit<MovieInsert, "user_id">): Promise<Movie | undefined> => {
+    async (movie: MovieInsert) => {
       if (!userId) {
         toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
