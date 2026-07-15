@@ -15,7 +15,7 @@ export default function ShoppingPage() {
     setShowForm(true);
   };
 
-  
+  return (
     <>
       <Seo
         title="Listy Zakupów | Dzisiaj.Fun"

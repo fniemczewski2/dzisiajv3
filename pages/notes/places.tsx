@@ -113,7 +113,7 @@ export default function PlacesPage() {
       toast.error("Wystąpił błąd podczas usuwania miejsca.");
     }
   };
-  
+  return (
     <>
       <Seo
         title="Miejsca | Dzisiaj.Fun"
@@ -180,5 +180,5 @@ export default function PlacesPage() {
         />
       )}
     </>
-  );
+    );
 }

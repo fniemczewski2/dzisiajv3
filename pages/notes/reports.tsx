@@ -241,7 +241,7 @@ export default function ReportsPage() {
   const handleGenerate = async (report: Report) => {
     generateReportPDF(report);
   };
-  
+  return (
     <>
       <Seo
         title="Sprawozdania | Dzisiaj.Fun"

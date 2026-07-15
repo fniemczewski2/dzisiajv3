@@ -14,6 +14,7 @@ export default function RecipesPage() {
   const triggerRefresh = useCallback(() => setRefreshToken((t) => t + 1), []);
   const { fetching } = useRecipes();
   
+  return (
     <>
       <Seo
         title="Przepisy | Dzisiaj.Fun"
@@ -45,5 +46,5 @@ export default function RecipesPage() {
           }
         </section>
     </>
-  );
+    );
 }

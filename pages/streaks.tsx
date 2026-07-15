@@ -45,7 +45,7 @@ export default function StreaksPage() {
     setShowForm(false);
   };
 
-    
+  return (
     <>
     <Seo
       title="Cele | Dzisiaj.Fun"

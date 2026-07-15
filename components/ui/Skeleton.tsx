@@ -1,12 +1,7 @@
 // components/ui/Skeleton.tsx
-// Zestaw komponentów szkieletowych — zastępują toast.loading przy ładowaniu danych.
-// Używaj: jeśli hook zwraca fetching=true, pokaż odpowiedni szkielet zamiast treści.
 
 import React from "react";
 
-// ---------------------------------------------------------------------------
-// Primitive — pojedyncza animowana belka
-// ---------------------------------------------------------------------------
 function Bar({ className = "" }: { className?: string }) {
   return (
     <div
@@ -15,9 +10,6 @@ function Bar({ className = "" }: { className?: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Karta z tytułem i kilkoma liniami tekstu — notatki, raporty, przepisy
-// ---------------------------------------------------------------------------
 export function SkeletonCard({ lines = 2 }: { lines?: number }) {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
@@ -32,9 +24,6 @@ export function SkeletonCard({ lines = 2 }: { lines?: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Karta pozioma z ikoną i tekstem — pociągi, rachunki, kontakty
-// ---------------------------------------------------------------------------
 export function SkeletonRow() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex items-center gap-4">
@@ -47,9 +36,6 @@ export function SkeletonRow() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Karta streaka / celu — duża ikona + tytuł + licznik dni
-// ---------------------------------------------------------------------------
 export function SkeletonStreakCard() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm flex gap-4 items-center">
@@ -63,9 +49,6 @@ export function SkeletonStreakCard() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Karta filmu — plakat po lewej, info po prawej
-// ---------------------------------------------------------------------------
 export function SkeletonMovieCard() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex gap-4 items-start">
@@ -80,9 +63,6 @@ export function SkeletonMovieCard() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Lista zakupów — tytuł + kilka checkboxów
-// ---------------------------------------------------------------------------
 export function SkeletonShoppingList() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
@@ -90,26 +70,21 @@ export function SkeletonShoppingList() {
       {[85, 70, 60].map((w) => (
         <div key={w} className="flex items-center gap-3">
           <Bar className="h-4 w-4 shrink-0 rounded" />
-          <Bar className="h-3 flex-1" style={{ maxWidth: `${w}%` }} />
+          <Bar className="h-3 w-6 flex-1"/>
         </div>
       ))}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Siatka kalendarza — komórki dni
-// ---------------------------------------------------------------------------
 export function SkeletonCalendar() {
   return (
     <div className="flex flex-col gap-1">
-      {/* Nagłówki dni tygodnia */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {Array.from({ length: 7 }).map((_, i) => (
           <Bar key={i} className="h-6 w-full" />
         ))}
       </div>
-      {/* 5 tygodni */}
       {Array.from({ length: 5 }).map((_, week) => (
         <div key={week} className="grid grid-cols-7 gap-1">
           {Array.from({ length: 7 }).map((_, day) => (
@@ -121,9 +96,6 @@ export function SkeletonCalendar() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Lista zadań — wiersze z checkboxem i priorytetem
-// ---------------------------------------------------------------------------
 export function SkeletonTaskList({ count = 5 }: { count?: number }) {
   return (
     <div className="flex flex-col gap-2">
@@ -141,9 +113,6 @@ export function SkeletonTaskList({ count = 5 }: { count?: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tabela budżetu — wiersze z kwotami
-// ---------------------------------------------------------------------------
 export function SkeletonBudgetTable({ rows = 6 }: { rows?: number }) {
   return (
     <div className="flex flex-col gap-2">
@@ -167,9 +136,6 @@ export function SkeletonBudgetTable({ rows = 6 }: { rows?: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Transport — karta przystanku z odjazdami
-// ---------------------------------------------------------------------------
 export function SkeletonStopCard({ departures = 4 }: { departures?: number }) {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
@@ -188,9 +154,6 @@ export function SkeletonStopCard({ departures = 4 }: { departures?: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Pogoda — główna karta z temperaturą i prognozą
-// ---------------------------------------------------------------------------
 export function SkeletonWeather() {
   return (
     <div className="flex flex-col gap-4">
@@ -218,9 +181,6 @@ export function SkeletonWeather() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Profil / wizytówka
-// ---------------------------------------------------------------------------
 export function SkeletonProfile() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm flex flex-col gap-4">
@@ -242,9 +202,6 @@ export function SkeletonProfile() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Raport — nagłówek + kilka paragrafów
-// ---------------------------------------------------------------------------
 export function SkeletonReport() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm flex flex-col gap-3">
@@ -259,9 +216,6 @@ export function SkeletonReport() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Schemat dnia — belka z godziną i tytułem
-// ---------------------------------------------------------------------------
 export function SkeletonDaySchema({ rows = 5 }: { rows?: number }) {
   return (
     <div className="flex flex-col gap-2">
@@ -279,9 +233,6 @@ export function SkeletonDaySchema({ rows = 5 }: { rows?: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Lista — generyczna, kiedy żaden inny wariant nie pasuje
-// ---------------------------------------------------------------------------
 export function SkeletonList({
   count = 4,
   variant = "card",
