@@ -58,10 +58,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const userEmailsRef = useRef<Record<string, string>>({});
 
-  // Jeden komparator zamiast dwóch osobnych sort() (jedno przejście O(n log n)
-  // zamiast dwóch) — status "done" jest pierwszym kluczem porównania, a dopiero
-  // gdy oba zadania mają ten sam status "done", rozstrzyga sortFunction
-  // (priorytet/data/alfabetycznie zależnie od settings.sort_order).
   const comparator = useMemo(() => {
     if (!settings) return null;
     const sortFn = createSortFunction(settings.sort_order, getPriority);
@@ -71,11 +67,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       if (doneA !== doneB) return doneA - doneB;
       return sortFn(a, b);
     };
-    // Deps zawężone do konkretnych pól ustawień wpływających na sortowanie
-    // (zamiast całego obiektu `settings`) — komparator przelicza się tylko,
-    // gdy realnie mogłaby się zmienić kolejność, nie przy każdej zmianie
-    // dowolnego innego ustawienia w aplikacji.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings?.sort_order, settings?.show_completed]);
 
   const tasks = useMemo(() => {
@@ -236,8 +227,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      // Poprawka: wcześniej `cleanId` był liczony tylko do aktualizacji stanu lokalnego,
-      // a zapytanie do Supabase i tak wysyłało oryginalne, nieprzycięte `id`.
       const cleanId = id.startsWith("task-") ? id.replace("task-", "") : id;
       const previous = rawTasks;
       setRawTasks((prev) => prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "accepted" } : t)));

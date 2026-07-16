@@ -44,8 +44,6 @@ export default function TransportPage() {
     fetchAll();
   }, [refresh, toast]);
 
-  const loading = trainsLoading || loadingNearby || loadingFavorites;
-
   useEffect(() => {
     if (transportError) {
       toast.error(transportError);
@@ -191,7 +189,7 @@ export default function TransportPage() {
                {nearbyContent}
             </div>
           </section>
-        <StationBoardWidget onTrainAdded={refresh} /> 
+        <StationBoardWidget /> 
         <section>
           <div className="flex items-center justify-between mb-3">
              <h3 className="text-lg font-semibold">

@@ -80,7 +80,6 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                     className="input-field py-1.5 w-full" 
                     required 
                   />
-                  {/* Czas nie ma osobnego labela widocznego, więc używamy aria-label dla czytników */}
                   <input 
                     type="time" 
                     aria-label="Godzina odjazdu"

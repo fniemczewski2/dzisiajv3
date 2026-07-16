@@ -54,7 +54,7 @@ export default function IndexPage() {
   const { user, loadingUser } = useAuth();
   const router = useRouter();
   const [viewDate, setViewDate] = useState(getAppDateTime());
-  const { settings, loading: loadingSettings, fetching: fetchingSettings } = useSettings();
+  const { settings, fetching: fetchingSettings } = useSettings();
 
   useEffect(() => {
     if (!loadingUser && !user) {

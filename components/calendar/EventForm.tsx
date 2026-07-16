@@ -75,7 +75,7 @@ export default function EventForm({
   const resetForm = () => {
     setTitle(""); setDescription(""); setStart(""); setEnd("");
     setPlace(""); setShare("null"); setRepeat("none"); 
-    setSelectedCalendar("local"); // ZMIANA: reset wyboru
+    setSelectedCalendar("local"); 
   };
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -131,7 +131,6 @@ export default function EventForm({
         </div>
       </div>
       
-      {/* ZMIANA: Miejsce i Dodaj do: w gridzie */}
       <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>
           <label htmlFor="place" className="form-label">Miejsce:</label>

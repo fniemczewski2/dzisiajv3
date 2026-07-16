@@ -30,7 +30,7 @@ function DefaultNav() {
 
 function AuthenticatedNav() {
   const router = useRouter();
-  const { settings: dbSettings, DEFAULT_SETTINGS } = useSettings(); // Bezpieczne - renderowane tylko przy aktywnej sesji
+  const { settings: dbSettings, DEFAULT_SETTINGS } = useSettings(); 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {

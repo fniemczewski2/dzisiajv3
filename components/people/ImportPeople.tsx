@@ -29,7 +29,6 @@ const parseCSVRow = (str: string) => {
   return result;
 };
 
-// Extracted logic to keep nesting shallow and readable
 const processCSVText = (text: string): PersonInsert[] => {
   const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
   if (lines.length < 2) return [];
@@ -37,7 +36,6 @@ const processCSVText = (text: string): PersonInsert[] => {
   const headers = parseCSVRow(lines[0]);
   const getIndex = (name: string) => headers.indexOf(name);
 
-  // Podstawowe dane
   const idxFirstName = getIndex('First Name');
   const idxLastName = getIndex('Last Name');
   const idxNamePrefix = getIndex('Name Prefix');       
@@ -86,7 +84,6 @@ export const ImportPeople = ({ onImport }: ImportProps) => {
     if (!file) return;
 
     try {
-      // Use Blob#text() via file.text() instead of FileReader callbacks
       const text = await file.text();
       const newContacts = processCSVText(text);
       
@@ -96,7 +93,6 @@ export const ImportPeople = ({ onImport }: ImportProps) => {
     } catch (error) {
       console.error("Failed to parse CSV file:", error);
     } finally {
-      // Clean up the input so the same file can be uploaded again if needed
       if (fileRef.current) {
         fileRef.current.value = '';
       }

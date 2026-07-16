@@ -172,5 +172,5 @@ export function useDailyHabits(date?: string) {
     fetchHabits();
   }, [fetchHabits]);
 
-  return { habits, loading, fetchHabits, toggleHabit, updateWater, updateSpending };
+  return { habits, fetching, loading, fetchHabits, toggleHabit, updateWater, updateSpending };
 }

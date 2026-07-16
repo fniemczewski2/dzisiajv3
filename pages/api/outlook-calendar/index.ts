@@ -184,7 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { action } = req.query;
 
   if (action === 'auth-url') {
-    return handleAuthUrl(req, res); // Nie musimy już przekazywać userId do auth-url!
+    return handleAuthUrl(req, res); 
   }
   
   if (action === 'list-calendars') return handleListCalendars(req, res, supabase, user);

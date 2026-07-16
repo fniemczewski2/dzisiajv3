@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
   const { secret, userId, action } = req.body;
+
   const expectedSecret = process.env.SHORTCUTS_API_SECRET;
   
   if (!expectedSecret) {
@@ -21,11 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const providedSecret = secret || "";
 
-  if (
-    expectedSecret.length !== providedSecret.length || 
-    !crypto.timingSafeEqual(Buffer.from(expectedSecret), Buffer.from(providedSecret))
-  ) {
-    return res.status(401).json({ error: `Unauthorized.` });
+  const expectedHash = crypto.createHash('sha256').update(expectedSecret).digest();
+  const providedHash = crypto.createHash('sha256').update(providedSecret).digest();
+
+  if (!crypto.timingSafeEqual(expectedHash, providedHash)) {
+    return res.status(401).json({ error: 'Unauthorized.' });
   }
 
   if (!userId || !action) {

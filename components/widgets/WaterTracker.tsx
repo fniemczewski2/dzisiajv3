@@ -60,7 +60,7 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
           disabled={loading && localWater === null}
           onChange={handleSliderChange}
           onPointerUp={handleSliderRelease} 
-          onKeyUp={handleSliderRelease} // ZMIANA: Dodano zapis po puszczeniu klawisza (np. strzałki)
+          onKeyUp={handleSliderRelease}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 touch-none"
         />
       </div>

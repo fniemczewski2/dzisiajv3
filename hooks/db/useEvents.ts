@@ -64,7 +64,6 @@ export function useVirtualBirthdayEvents(): Event[] {
     fetchVirtualEvents();
   }, [fetchVirtualEvents]);
 
-  // Odśwież wirtualne eventy gdy zmienią się kontakty (np. edycja daty urodzin)
   useEffect(() => {
     const handler = () => fetchVirtualEvents();
     globalThis.addEventListener("refreshPeople", handler);

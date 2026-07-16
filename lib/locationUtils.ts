@@ -10,7 +10,7 @@ export const getGpsCookie = (): GpsPermission => {
 
 export const setGpsCookie = (value: 'granted' | 'denied') => {
   const d = new Date();
-  d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000)); // Ważne przez 30 dni
+  d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000)); 
   document.cookie = `gps_permission=${value};expires=${d.toUTCString()};path=/`;
 };
 

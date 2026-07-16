@@ -176,12 +176,6 @@ const ICON_ACTION_VARIANTS: Record<IconActionVariant, string> = {
   danger: "text-textMuted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20",
 };
 
-/**
- * Kompaktowy, ikonowy przycisk akcji do wierszy list (np. pozycja przypomnienia,
- * pole formularza do usunięcia). Ujednolica powtarzające się wzorce typu
- * `<button className="p-2 text-X hover:bg-X/10 rounded-lg ..."><Icon/></button>`.
- * Dla większych, opisanych przycisków akcji (karty, stopki) użyj np. EditButton/DeleteButton.
- */
 export const IconActionButton = ({ onClick, Icon, title, variant = "default", disabled = false }: Readonly<IconActionButtonProps>) => (
   <button
     type="button"
@@ -195,10 +189,6 @@ export const IconActionButton = ({ onClick, Icon, title, variant = "default", di
   </button>
 );
 
-/**
- * Przełączalny "chip" (pigułka) do filtrów/wyboru wielokrotnego, np. filtrowanie
- * przepisów po składnikach. Ujednolica wzorzec aktywny/nieaktywny używany w kilku miejscach.
- */
 export const ToggleChip = ({ label, active, onClick, disabled = false }: Readonly<ToggleChipProps>) => (
   <button
     type="button"
@@ -215,10 +205,6 @@ export const ToggleChip = ({ label, active, onClick, disabled = false }: Readonl
   </button>
 );
 
-/**
- * Przełącznik binarny (switch) używany w ustawieniach. Ujednolica identyczny
- * wcześniej powielony w kilku miejscach markup przełącznika iOS-owego.
- */
 export const ToggleSwitch = ({ id, checked, onChange, disabled = false }: Readonly<ToggleSwitchProps>) => (
   <button
     id={id}

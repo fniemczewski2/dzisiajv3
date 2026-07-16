@@ -25,10 +25,6 @@ export function useConnectedCalendars(expanded: boolean) {
       setFetching(true);
 
       try {
-        // Jawna lista kolumn — celowo BEZ access_token/refresh_token. Klient
-        // (przeglądarka) nigdy nie potrzebuje tokenów OAuth; select('*') wysyłałoby
-        // je wprost do frontendu (widoczne w Network tab, podatne na wyciek przez XSS).
-        // Odświeżanie/używanie tokenów dzieje się wyłącznie po stronie API routes.
         const { data: accountsData, error } = await withRetry(async () =>
           supabase
             .from('connected_calendars')
@@ -144,8 +140,6 @@ export function useConnectedCalendars(expanded: boolean) {
       const key = `${primaryAccountForEmail.id}:::${cal.id}`;
       setTogglingId(cal.id);
       const previousSelected = selectedCalendars;
-
-      // Optymistyczna aktualizacja - UI reaguje natychmiast, przed odpowiedzią sieci.
       setSelectedCalendars((prev) => (isCurrentlyOn ? prev.filter((id) => id !== key) : [...prev, key]));
 
       try {
@@ -311,6 +305,7 @@ export function useConnectedCalendars(expanded: boolean) {
     calendars,
     selectedCalendars,
     loading,
+    fetching,
     togglingId,
     handleToggleCalendar,
     handleDisconnect,

@@ -24,7 +24,7 @@ export interface Settings {
   notif_water: boolean;
   notif_habits: boolean;
   notif_evening: boolean;
-  notif_birthdays: boolean; // <-- DODANO
+  notif_birthdays: boolean; 
   notif_contact: boolean;
 
   habit_pills: boolean;

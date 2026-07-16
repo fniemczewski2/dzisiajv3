@@ -53,7 +53,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return { 
     props: { 
-      profile: structuredClone(profile) // Bezpieczna serializacja
+      profile: structuredClone(profile) 
     } 
   };
 };

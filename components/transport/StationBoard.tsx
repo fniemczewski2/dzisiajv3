@@ -8,10 +8,6 @@ import NoResultsState from '../ui/NoResultsState';
 import LoadingState from '../ui/LoadingState';
 import { useResponsive } from '@/hooks/useResponsive';
 
-interface StationBoardProps {
-  readonly onTrainAdded?: () => void;
-}
-
 const renderStatusInfo = (status: string, statusClasses: string) => {
     return (
       <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusClasses}`}>
@@ -55,9 +51,9 @@ const getStatusBadgeClassesSmall = (status: string, isCancelled: boolean, isDela
     return 'bg-green-500';
 };
 
-export default function StationBoardWidget({ onTrainAdded }: StationBoardProps) {
+export default function StationBoardWidget() {
   const { addTrain } = useTrains();
-  const isSmallScreen = useResponsive(721);
+  const isSmallScreen = useResponsive();
   
   const [selectedStations, setSelectedStations] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');

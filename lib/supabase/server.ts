@@ -1,4 +1,4 @@
-import { createServerClient, serializeCookieHeader, type CookieOptions } from '@supabase/ssr' // Import typu CookieOptions
+import { createServerClient, serializeCookieHeader, type CookieOptions } from '@supabase/ssr' 
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next'
 
 interface CookieItem {

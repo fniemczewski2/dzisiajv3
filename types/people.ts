@@ -4,7 +4,7 @@ export interface Person {
   first_name: string;
   last_name: string;
   relationship: string;
-  priority: number; // 0, 1, 2, 3, 4, 5
+  priority: number; 
   birthday?: string | null;
   nameday?: string | null;
   phones: string[];
@@ -15,6 +15,4 @@ export interface Person {
   updated_at?: string;
 }
 
-// user_id jest dodawane wewnątrz usePeople() na podstawie zalogowanego użytkownika —
-// żaden formularz/import nie powinien go dostarczać ani znać.
 export type PersonInsert = Omit<Person, "id" | "user_id" | "created_at" | "updated_at">;

@@ -1,6 +1,4 @@
 import Seo from "@/components/ui/SEO";
-import Navbar from "@/components/Navbar"; // Jeśli używasz Navbaru na tej stronie
-
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-bg text-text font-sans">
@@ -10,8 +8,6 @@ export default function PrivacyPage() {
         canonical="https://dzisiaj.fun/privacy"
         keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności, google calendar, outlook"
       />
-      
-      <Navbar />
 
       <main className="max-w-3xl mx-auto py-12 px-6">
         <h1 className="text-3xl font-bold text-text mb-2">Polityka Prywatności</h1>
@@ -158,7 +154,6 @@ export default function PrivacyPage() {
   );
 }
 
-// Komponenty pomocnicze zachowane dla spójnego i przejrzystego interfejsu
 function Section({ title, children }: { readonly title: string; readonly children: React.ReactNode }) {
   return (
     <section className="mb-10">

@@ -222,6 +222,7 @@ export function useBudgetCategories(year: number) {
 
   return {
     categories,
+    fetching,
     loading,
     maxReached: categories.length >= MAX_CATEGORIES,
     fetchCategories,

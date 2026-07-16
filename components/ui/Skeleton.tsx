@@ -10,8 +10,6 @@ function Bar({ className = "" }: { className?: string }) {
   );
 }
 
-// Publiczny alias Bar do doraźnych, jednowierszowych placeholderów (np. status
-// dociągany asynchronicznie obok pola, które samo w sobie już jest używalne).
 export const SkeletonLine = Bar;
 
 export function SkeletonCard({ lines = 2 }: { lines?: number }) {

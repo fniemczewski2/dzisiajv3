@@ -97,9 +97,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { schemas } = useDaySchemas();
   const { workLogs } = useWorkLogs(dateStr);
 
-  // Zapamiętuje daty dla których dane już raz dotarły — zapobiega
-  // miganiu skeleton przy przełączaniu dni (dane są w stanie hooka,
-  // ale fetchingTasks/fetchingEvents jest true przez chwilę przy refetch).
   const loadedDatesRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!fetchingTasks && !fetchingEvents) {

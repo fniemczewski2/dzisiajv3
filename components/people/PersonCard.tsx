@@ -14,7 +14,7 @@ interface PersonCardProps {
 
 export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCardProps) => {
   const [showQR, setShowQR] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false); // Domyślnie zwinięte
+  const [isExpanded, setIsExpanded] = useState(false); 
 
   const getVCardData = () => {
     let vcard = `BEGIN:VCARD\nVERSION:3.0\n`;

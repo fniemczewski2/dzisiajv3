@@ -1,4 +1,4 @@
-"use client"; // Pamiętaj o tej dyrektywie, jeśli używasz Next.js App Router i komponent korzysta ze stanu/hooków
+"use client"; 
 
 import React, { useState } from "react";
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
@@ -34,14 +34,10 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
       }
 
       toastId = toast.loading(`Importowanie ${jsonData.features.length} miejsc...`);
-
-      // Wywołanie onImport z aktualnym stanem przełączników
       const count = await onImport(jsonData, fetchGoogleData, autoTagEnabled);
 
       if (toastId && toast.dismiss) toast.dismiss(toastId);
       toast.success(`Pomyślnie zaimportowano ${count} miejsc.`);
-
-      // Wyczyszczenie inputa, aby użytkownik mógł wgrać ten sam plik ponownie, jeśli zajdzie taka potrzeba
       e.target.value = "";
     } catch (error) {
       console.error("Błąd podczas odczytu/importu pliku:", error);

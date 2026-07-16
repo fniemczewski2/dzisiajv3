@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
-// 1. Zmiana na preferowane importy node:*
 import fs from 'node:fs';
 import os from 'node:os'; 
 import { PdfReader } from 'pdfreader';
