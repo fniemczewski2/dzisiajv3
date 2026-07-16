@@ -35,7 +35,7 @@ export function usePlaces() {
 
   const fetchPlaces = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -59,7 +59,7 @@ export function usePlaces() {
   const addPlace = useCallback(
     async (place: PlaceInsert) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -87,7 +87,7 @@ export function usePlaces() {
   const updatePlace = useCallback(
     async (id: string, updates: Partial<Place>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -120,7 +120,7 @@ export function usePlaces() {
   const deletePlace = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć miejsce?`);
@@ -210,7 +210,7 @@ export function usePlaces() {
   const findExistingPlace = useCallback(
     async (name: string, lat: number, lng: number): Promise<Place | null> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const threshold = 0.0001;
@@ -264,7 +264,7 @@ export function usePlaces() {
   const savePlaceRecord = useCallback(
     async (existing: Place | null, baseData: any, tags: string[]) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       if (existing) {
@@ -290,7 +290,7 @@ export function usePlaces() {
   const importFromGoogleMaps = useCallback(
     async (jsonData: any, fetchGoogleData = true, autoTag = true): Promise<number> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);

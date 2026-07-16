@@ -83,7 +83,7 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: Readonl
     className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} hover:bg-primary bg-secondary text-white font-medium rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
     aria-label="dodaj"
   >
-    Dodaj
+    {!small && "Dodaj"}
     <PlusCircleIcon className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
   </button>
 );

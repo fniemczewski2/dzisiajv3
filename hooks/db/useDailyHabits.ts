@@ -35,7 +35,7 @@ export function useDailyHabits(date?: string) {
 
   const fetchHabits = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -63,7 +63,7 @@ export function useDailyHabits(date?: string) {
     async (key: HabitKey) => {
       if (!habits) return;
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -100,7 +100,7 @@ export function useDailyHabits(date?: string) {
     async (amount: number) => {
       if (!habits) return;
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -136,7 +136,7 @@ export function useDailyHabits(date?: string) {
     async (amount: number) => {
       if (!habits) return;
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);

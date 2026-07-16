@@ -24,7 +24,7 @@ export function useDaySchemas() {
 
   const fetchSchemas = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -45,7 +45,7 @@ export function useDaySchemas() {
   const addSchema = useCallback(
     async (schema: Schema) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -77,7 +77,7 @@ export function useDaySchemas() {
   const updateSchema = useCallback(
     async (id: string, payload: Omit<Schema, "id">) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -106,7 +106,7 @@ export function useDaySchemas() {
   const deleteSchema = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć schemat?`);

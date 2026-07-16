@@ -29,7 +29,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   const fetchMonthData = useCallback(
     async (month: number): Promise<MonthData> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
 
@@ -83,7 +83,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
   const fetchRates = useCallback(async (): Promise<Record<number, number>> => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     const { data: ratesData, error } = await withRetry(async () =>
@@ -137,7 +137,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
   const saveRates = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setLoading(true);

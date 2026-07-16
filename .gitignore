@@ -3,7 +3,7 @@ node_modules/
 
 # Next.js build output
 .next/
-out/222222
+out/
 build/
 .next/trace
 .next/cache/webpack/client-development/index.pack.gz
@@ -15,6 +15,7 @@ build/
 .env.test.local
 .env.production.local
 .env*
+!.env.example
 
 # Supabase CLI artifacts (if using supabase locally)
 .supabase/

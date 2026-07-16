@@ -109,7 +109,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const addTask = useCallback(
     async (task: Partial<Task> & { shared_with_email?: string }) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -154,7 +154,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const editTask = useCallback(
     async (task: Task & { shared_with_email?: string }) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -197,7 +197,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć zadanie?`);
@@ -223,7 +223,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const acceptTask = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -250,7 +250,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const setDoneTask = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -276,7 +276,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const rescheduleTask = useCallback(
     async (taskId: string, newDate: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);

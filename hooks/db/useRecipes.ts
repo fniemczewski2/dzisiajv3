@@ -41,7 +41,7 @@ export function useRecipes() {
 
   const fetchRecipes = useCallback(async (): Promise<Recipe[]> => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -61,7 +61,7 @@ export function useRecipes() {
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -88,7 +88,7 @@ export function useRecipes() {
   const addRecipe = useCallback(
     async (r: NewRecipe): Promise<Recipe | undefined> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -128,7 +128,7 @@ export function useRecipes() {
   const editRecipe = useCallback(
     async (recipe: Recipe): Promise<Recipe | undefined> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -167,7 +167,7 @@ export function useRecipes() {
   const deleteRecipe = useCallback(
     async (id: string): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć przepis?`);

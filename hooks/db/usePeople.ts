@@ -16,7 +16,7 @@ export function usePeople() {
 
   const fetchPeople = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -41,7 +41,7 @@ export function usePeople() {
   const addPerson = useCallback(
     async (person: PersonInsert) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -73,7 +73,7 @@ export function usePeople() {
   const editPerson = useCallback(
     async (id: string, updates: Partial<Person>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -97,7 +97,7 @@ export function usePeople() {
   const deletePerson = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm("Czy na pewno chcesz usunąć kontakt?");

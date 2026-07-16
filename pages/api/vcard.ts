@@ -2,26 +2,21 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import type { VCardProfile } from '@/types/profiles';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-);
-
-function escVCardValue(raw: string): string {
+export function escVCardValue(raw: string): string {
   return raw
-    .replaceAll(/\\/g, '\\\\')
-    .replaceAll(/\r?\n/g, '\\n')
-    .replaceAll(/;/g, '\\;')
-    .replaceAll(/,/g, '\\,');
+    .replace(/\\/g, '\\\\')
+    .replace(/\r?\n/g, '\\n')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,');
 }
 
-function sanitizeTypeToken(raw: string): string {
-  const cleaned = raw.replaceAll(/[^A-Za-z0-9-]/g, '').toUpperCase();
+export function sanitizeTypeToken(raw: string): string {
+  const cleaned = raw.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
   return cleaned || 'OTHER';
 }
 
-function safeFileName(raw: string | undefined): string {
-  const cleaned = (raw ?? '').replaceAll(/[^\p{L}\p{N}_-]+/gu, '_').replaceAll(/^_+|_+$/g, '');
+export function safeFileName(raw: string | undefined): string {
+  const cleaned = (raw ?? '').replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '');
   return cleaned || 'wizytowka';
 }
 
@@ -32,6 +27,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!slug || typeof slug !== 'string') {
     return res.status(400).json({ error: 'No slug' });
   }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
 
   const { data: profile, error } = await supabase
     .from('vcard_profiles')
@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
-  lines.push(`N:;${escVCardValue(profile.full_name || '')};;;`);
+
   lines.push(`FN:${escVCardValue(profile.full_name || '')}`);
 
   if (profile.organization) {
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (Array.isArray(profile.phones)) {
     for (const phone of profile.phones) {
       if (!phone?.number) continue;
-      const cleanNumber = escVCardValue(phone.number.replaceAll(/\s+/g, ''));
+      const cleanNumber = escVCardValue(phone.number.replace(/\s+/g, ''));
       const type = sanitizeTypeToken(phone.type ?? '');
       lines.push(`TEL;TYPE=${type},VOICE:${cleanNumber}`);
     }

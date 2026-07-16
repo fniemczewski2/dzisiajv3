@@ -15,7 +15,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
 
   const fetchWorkLogs = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -58,7 +58,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const addWorkLog = useCallback(
     async (log: Omit<WorkLogInsert, 'user_id'>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -88,7 +88,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const deleteWorkLog = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć czas pracy?`);

@@ -25,6 +25,9 @@ import {
   UsersRound,
   Calculator,
   Bus,
+  Clock,
+  User,
+  IdCard,
   LucideIcon
 } from "lucide-react";
 
@@ -78,6 +81,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Logs,
         category: "Produktywność",
         path: "/tasks/daySchema",
+      },
+      {
+        title: "Czas Pracy",
+        description: "Rejestruj godziny pracy ręcznie lub automatycznie przez Skróty (Shortcuts) na telefonie. Zobacz sumę godzin za bieżący miesiąc.",
+        icon: Clock,
+        category: "Produktywność",
+        path: "/worklogs",
+        badge: "Nowe",
       },
     ],
   },
@@ -134,6 +145,13 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Shield,
         category: "Organizacja",
         path: "/packing/safety",
+      },
+      {
+        title: "Osoby i Relacje",
+        description: "Nie zapomnij odezwać się do bliskich. Ustaw priorytet kontaktu, a aplikacja przypomni Ci, gdy minie odpowiedni czas.",
+        icon: User,
+        category: "Organizacja",
+        path: "/people",
       },
     ],
   },
@@ -259,6 +277,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Settings,
         category: "Narzędzia",
         path: "/settings",
+      },
+      {
+        title: "Cyfrowa Wizytówka",
+        description: "Stwórz wizytówkę z kodem QR i udostępnij ją publicznym linkiem — nawet osobom bez konta w aplikacji.",
+        icon: IdCard,
+        category: "Narzędzia",
+        path: "/profiles",
+        badge: "Nowe",
       },
     ],
   },

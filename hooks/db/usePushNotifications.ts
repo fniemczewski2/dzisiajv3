@@ -43,7 +43,7 @@ export function usePushNotifications(userId: string | undefined) {
 
   const subscribeToPush = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setLoading(true)
@@ -114,7 +114,7 @@ export function usePushNotifications(userId: string | undefined) {
 
   const unsubscribeFromPush = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setLoading(true)

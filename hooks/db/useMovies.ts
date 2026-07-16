@@ -35,7 +35,7 @@ export function useMovies() {
 
   const fetchMovies = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -59,7 +59,7 @@ export function useMovies() {
   const addMovie = useCallback(
     async (movie: MovieInsert) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -89,7 +89,7 @@ export function useMovies() {
   const updateMovie = useCallback(
     async (movie: Movie, options: { silent?: boolean } = {}): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -114,7 +114,7 @@ export function useMovies() {
   const deleteMovie = useCallback(
     async (id: string): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć film?`);

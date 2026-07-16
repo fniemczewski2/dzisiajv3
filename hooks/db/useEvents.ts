@@ -98,7 +98,7 @@ export function useEvents(
   const fetchEvents = useCallback(async () => {
     if (!rangeStart || !rangeEnd) return;
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -131,7 +131,7 @@ export function useEvents(
   const addEvent = useCallback(
     async (event: Event & { shared_with_email?: string }) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -175,7 +175,7 @@ export function useEvents(
         return;
       }
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -217,7 +217,7 @@ export function useEvents(
         return;
       }
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć wydarzenie?`);

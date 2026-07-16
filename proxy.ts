@@ -39,7 +39,7 @@ export default async function proxy(request: NextRequest) {
     path.startsWith('/api') || 
     path.startsWith('/auth') || 
     path === '/privacy' ||
-    path.startsWith('/.well-known')
+    path.startsWith('/.well-known') ||
     path.startsWith('/v/')
 
   if (!user && !isPublicRoute) {

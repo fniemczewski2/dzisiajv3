@@ -16,7 +16,7 @@ export function useDailyOverrides(dateStr: string) {
 
   const fetchOverrides = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -45,7 +45,7 @@ export function useDailyOverrides(dateStr: string) {
   const hideSchema = useCallback(
     async (schemaId: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
 
@@ -98,7 +98,7 @@ export function useDailyOverrides(dateStr: string) {
   const moveSchema = useCallback(
     async (schemaId: string, newTime: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
 

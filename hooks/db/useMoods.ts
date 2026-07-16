@@ -16,7 +16,7 @@ export function useMoods(startDate?: string, endDate?: string) {
 
   const fetchMoods = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -42,7 +42,7 @@ export function useMoods(startDate?: string, endDate?: string) {
   const logMood = useCallback(
     async (date: string, moodId: string | null) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);

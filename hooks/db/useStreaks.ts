@@ -95,7 +95,7 @@ export function useStreaks() {
 
   const fetchStreaks = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -115,7 +115,7 @@ export function useStreaks() {
   const addStreak = useCallback(
     async (newStreak: Omit<Streak, "id" | "user_id">) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -143,7 +143,7 @@ export function useStreaks() {
   const deleteStreak = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć cel?`);
@@ -169,7 +169,7 @@ export function useStreaks() {
   const updateStreak = useCallback(
     async (id: string, updates: Partial<Streak>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);

@@ -17,6 +17,9 @@ export function useProfiles() {
   const withRetry = useRetry();
 
   const fetchProfiles = useCallback(async () => {
+    if (!userId) {
+      return
+    }
     setFetching(true);
     setError(null);
     try {
@@ -40,7 +43,7 @@ export function useProfiles() {
   const addProfile = useCallback(
     async (profileData: NewVCardProfile) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       if (profiles.length >= 5) {
@@ -76,7 +79,7 @@ export function useProfiles() {
   const updateProfile = useCallback(
     async (id: string, updates: Partial<VCardProfile>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -107,7 +110,7 @@ export function useProfiles() {
   const deleteProfile = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć profil?`);

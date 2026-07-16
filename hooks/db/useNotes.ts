@@ -16,7 +16,7 @@ export function useNotes() {
 
   const fetchNotes = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -41,7 +41,7 @@ export function useNotes() {
   const addNote = useCallback(
     async (note: Note) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -73,7 +73,7 @@ export function useNotes() {
   const editNote = useCallback(
     async (note: Note) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -111,7 +111,7 @@ export function useNotes() {
   const togglePin = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const note = notes.find((n) => n.id === id);
@@ -140,7 +140,7 @@ export function useNotes() {
   const toggleArchive = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const note = notes.find((n) => n.id === id);
@@ -169,7 +169,7 @@ export function useNotes() {
   const deleteNote = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć notatkę?`);

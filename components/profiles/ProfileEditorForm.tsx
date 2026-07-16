@@ -268,13 +268,16 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         </div>
       </div>
 
-      <div className="space-y-6 border-t pt-6 dark:border-neutral-800">
+      <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
         <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
           <Phone size={18} className="text-neutral-400" aria-hidden="true" /> Dane kontaktowe
         </h3>
 
         <div>
-          <span className="form-label mb-2 block font-medium">Numery telefonu</span>
+          <div className='flex items-center justify-between mb-2'>
+            <span className="form-label mb-2 block font-medium">Numery telefonu</span>
+            <AddButton onClick={addPhone} small />
+          </div>
           <div className="space-y-2">
             {formData.phones.map((phone, idx) => (
               <div key={`phone-${phone.number}`} className="flex gap-2 items-center">
@@ -288,11 +291,13 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
               </div>
             ))}
           </div>
-          <AddButton onClick={addPhone} small />
         </div>
 
         <div>
-          <span className="form-label mb-2 block font-medium">Adresy e-mail</span>
+          <div className='flex items-center justify-between mb-2'>
+            <span className="form-label mb-2 block font-medium">Adresy e-mail</span>
+            <AddButton onClick={addEmail} small />
+          </div>
           <div className="space-y-2">
             {formData.emails.map((email, idx) => (
               <div key={`email-${email.email}`} className="flex gap-2 items-center">
@@ -306,11 +311,13 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
               </div>
             ))}
           </div>
-          <AddButton onClick={addEmail} small />
         </div>
 
         <div>
-          <span className="form-label mb-2 block font-medium">Adresy</span>
+          <div className='flex items-center justify-between mb-2'>
+            <span className="form-label mb-2 block font-medium">Adresy</span>
+            <AddButton onClick={addAddress} small />
+          </div>
           <div className="space-y-2">
             {formData.addresses.map((addr, idx) => (
               <div key={`addr-${addr.address}`} className="flex gap-2 items-center">
@@ -324,13 +331,15 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
               </div>
             ))}
           </div>
-          <AddButton onClick={addAddress} small />
         </div>
       </div>
 
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
-        <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <LinkIcon size={18} className="text-neutral-400" aria-hidden="true" /> Linki i Media Społecznościowe
+        <h3 className="flex items-center justify-between">
+          <div className='font-semibold text-base flex items-center gap-2 dark:text-neutral-200'>
+            <LinkIcon size={18} className="text-neutral-400" aria-hidden="true" /> Linki i Media Społecznościowe
+          </div>
+          <AddButton onClick={addSocialLink} small />
         </h3>
         
         <div className="space-y-3">
@@ -346,8 +355,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             </div>
           ))}
         </div>
-        
-        <AddButton onClick={addSocialLink} small />
       </div>
 
       <div className="space-y-4 border-t pt-6 dark:border-neutral-800">

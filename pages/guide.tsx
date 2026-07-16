@@ -33,8 +33,8 @@ export default function GuidePage() {
               </h2>
               
               <ul className="space-y-3 text-textSecondary list-none marker:text-primary">
-                {section.listItems.map((item) => (
-                  <li key={`guide-${item}`} className="leading-relaxed">{item}</li>
+                {section.listItems.map((item, i) => (
+                  <li key={`${section.id}-${i}`} className="leading-relaxed">{item}</li>
                 ))}
               </ul>
             </section>

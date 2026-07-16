@@ -51,7 +51,7 @@ export function useTrains() {
 
   const fetchTrains = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
 
@@ -94,7 +94,7 @@ export function useTrains() {
   const addTrain = useCallback(
     async (trainData: TrainInput) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -153,7 +153,7 @@ export function useTrains() {
   const deleteTrain = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć pociąg?`);

@@ -24,6 +24,9 @@ import {
   RefreshCw,
   Trophy,
   Smile,
+  Clock,
+  User,
+  IdCard,
 } from 'lucide-react';
 
 export type GuideSection = {
@@ -83,7 +86,7 @@ export const guideSections: GuideSection[] = [
         <K>Wiele schematów.</K> Możesz mieć wiele schematów przypisanych do różnych dni. Jeśli dany dzień pasuje do kilku schematów, wyświetlony zostanie pierwszy pasujący.
       </>,
       <>
-        <K>Różnica między schematem a zadaniem.</K> Schematy to stałe rutyny — nie mają statusu &quot;wykonane&quot; i wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
+        <K>Różnica między schematem a zadaniem. </K> Schematy to stałe rutyny - nie mają statusu &quot;wykonane&quot; i wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
       </>,
     ],
   },
@@ -101,10 +104,10 @@ export const guideSections: GuideSection[] = [
         <K>Dane historyczne.</K> Widok szczegółów dnia w kalendarzu pokazuje, które nawyki były odhaczone w wybranym dniu. Możesz wracać do poprzednich dat i uzupełniać zaległe wpisy.
       </>,
       <>
-        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki — ikona zniknie z kokpitu. Nie powoduje to usunięcia historycznych danych.
+        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki - ikona zniknie z kokpitu. Nie powoduje to usunięcia historycznych danych.
       </>,
       <>
-        <K>Reset.</K> Reset następuje automatycznie o północy — każdy dzień zaczyna się od zera.
+        <K>Reset.</K> Reset następuje automatycznie o północy - każdy dzień zaczyna się od zera.
       </>,
     ],
   },
@@ -137,7 +140,7 @@ export const guideSections: GuideSection[] = [
         <K>Dzienne oznaczenie.</K> Widget nastroju pokazuje kolorowe przyciski z etykietami. Kliknij jeden, by zapisać nastrój na dziś. Kliknięcie tego samego przycisku ponownie cofnie wybór.
       </>,
       <>
-        <K>Widoczność w kalendarzu.</K> Każdy dzień z zapisanym nastrojem jest oznaczony kolorową kropką w komórce kalendarza miesięcznego — na komputerze w rogu, na telefonie jako mały wskaźnik.
+        <K>Widoczność w kalendarzu.</K> Każdy dzień z zapisanym nastrojem jest oznaczony kolorową kropką w komórce kalendarza miesięcznego - na komputerze w rogu, na telefonie jako mały wskaźnik.
       </>,
       <>
         <K>Konfiguracja.</K> W Ustawieniach możesz zmieniać etykiety, kolory (6 gotowych presetów + dowolny color picker) oraz usuwać lub dodawać opcje (limit 10). Zmiany są widoczne natychmiast.
@@ -155,7 +158,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-green-500',
     listItems: [
       <>
-        <K>Priorytety 1–5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz sortować zadania według priorytetu, daty lub alfabetycznie — wybierz w Ustawieniach.
+        <K>Priorytety 1–5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz sortować zadania według priorytetu, daty lub alfabetycznie - wybierz w Ustawieniach.
       </>,
       <>
         <K>Filtry czasowe.</K> Pasek filtrów nad listą pozwala wyświetlić zadania z: wczoraj, dzisiaj, jutra, pojutrze lub wszystkie naraz. 
@@ -171,9 +174,6 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Udostępnianie zadań.</K> Przy tworzeniu lub edycji możesz przypisać zadanie innemu użytkownikowi z listy zaufanych. Pojawi się u niego ze statusem <em>Oczekuje akceptacji</em> i wymaga potwierdzenia.
-      </>,
-      <>
-        <K>Animacja ukończenia.</K> Odhaczenie zadania wyzwala animację konfetti z dźwiękiem — ton akordu zmienia się w zależności od priorytetu.
       </>,
     ],
   },
@@ -218,13 +218,34 @@ export const guideSections: GuideSection[] = [
   },
 
   {
+    id: 'worklogs',
+    title: 'Czas pracy',
+    mainIcon: <Clock className="w-6 h-6" />,
+    iconColorClass: 'text-cyan-500',
+    listItems: [
+      <>
+        <K>Ręczne wpisy czasu pracy.</K> Kliknij <em>Dodaj</em>, opisz czynność i podaj czas rozpoczęcia oraz zakończenia. Wpisy są pogrupowane i sumowane w ramach bieżącego miesiąca.
+      </>,
+      <>
+        <K>Podsumowanie miesięczne.</K> Nagłówek strony pokazuje łączny czas przepracowany w wybranym miesiącu (godziny i minuty). Strzałkami przechodzisz między miesiącami, by zobaczyć historię.
+      </>,
+      <>
+        <K>Automatyzacja przez Skróty (Shortcuts).</K> Dedykowany, zabezpieczony osobnym sekretem endpoint pozwala rozpocząć i zakończyć wpis automatycznie - np. skrótem uruchamianym po dotarciu do biura (geofencing) lub jednym dotknięciem na ekranie głównym telefonu, bez otwierania aplikacji.
+      </>,
+      <>
+        <K>Ochrona przed duplikatami.</K> Aplikacja nie pozwoli rozpocząć nowego wpisu, dopóki poprzedni pozostaje otwarty (brak zapisanego czasu zakończenia) - także przy wpisach dodanych automatycznie.
+      </>,
+    ],
+  },
+
+  {
     id: 'notes',
     title: 'Notatki',
     mainIcon: <Pen className="w-6 h-6" />,
     iconColorClass: 'text-purple-500',
     listItems: [
       <>
-        <K>Format listowy.</K> Notatki to listy punktowane — każda linia to osobny element. Ułatwia to edycję, przeglądanie na telefonie i późniejsze rozwijanie treści.
+        <K>Format listowy.</K> Notatki to listy punktowane - każda linia to osobny element. Ułatwia to edycję, przeglądanie na telefonie i późniejsze rozwijanie treści.
       </>,
       <>
         <K>Automatyczne rozpoznawanie linków.</K> Jeśli wpiszesz URL (z http:// lub bez), aplikacja automatycznie zamieni go w klikalny link otwierający się w nowej karcie.
@@ -233,7 +254,7 @@ export const guideSections: GuideSection[] = [
         <K>Kolory tła.</K> Każdej notatce można przypisać jeden z 5 kolorów: biały, żółty, zielony, niebieski, czerwony. W trybie ciemnym kolory są subtelnie przyciemnione.
       </>,
       <>
-        <K>Przypinanie i archiwizacja.</K> Przypięte notatki wyświetlają się zawsze na górze listy. Zarchiwizowane są ukryte (nie usunięte) — przywrócisz je przyciskiem <em>Pokaż</em>.
+        <K>Przypinanie i archiwizacja.</K> Przypięte notatki wyświetlają się zawsze na górze listy. Zarchiwizowane są ukryte (nie usunięte) - przywrócisz je przyciskiem <em>Pokaż</em>.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie po dacie aktualizacji (domyślnie) lub alfabetycznie. Przypięte notatki zawsze są na górze niezależnie od wybranego sortowania.
@@ -254,7 +275,7 @@ export const guideSections: GuideSection[] = [
         <K>Struktura protokołu.</K> Każde sprawozdanie zawiera: temat i datę spotkania, agendę (lista punktów), uczestników (z rolami moderatora i sprawozdawcy dla pierwszych dwóch pozycji) oraz zadania z osobą odpowiedzialną i datą.
       </>,
       <>
-        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie sprawozdania, by pobrać gotowy, sformatowany dokument — idealny do wysłania mailem lub archiwizacji.
+        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie sprawozdania, by pobrać gotowy, sformatowany dokument - idealny do wysłania mailem lub archiwizacji.
       </>,
       <>
         <K>Edycja po fakcie.</K> Możesz wracać do sprawozdań i uzupełniać brakujące dane. Każdą sekcję można rozszerzać o kolejne punkty agendy, uczestników lub zadania za pomocą przycisku <em>Dodaj</em>.
@@ -269,10 +290,10 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-purple-500',
     listItems: [
       <>
-        <K>Widok miesięczny.</K> Kalendarz pokazuje cały miesiąc z naniesionymi wydarzeniami. Wielodniowe wydarzenia rozciągają się na kilka komórek. W komórkach widoczna jest liczba zadań i nadmiarowych wydarzeń (+N).
+        <K>Widok miesięczny.</K> Kalendarz pokazuje cały miesiąc z naniesionymi wydarzeniami. Wielodniowe wydarzenia rozciągają się na kilka komórek. W komórkach widoczna jest liczba nadmiarowych wydarzeń (+N).
       </>,
       <>
-        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome — Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są automatycznie obliczane i oznaczane czerwonym kolorem w kalendarzu oraz w nagłówku aplikacji.
+        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome - Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są automatycznie obliczane i oznaczane czerwonym kolorem w kalendarzu oraz w nagłówku aplikacji.
       </>,
       <>
         <K>Szczegóły dnia.</K> Kliknij dowolny dzień, by zobaczyć pełną listę wydarzeń, zadania z tego dnia oraz widgety nawyków, wody, nastroju i dziennych wydatków.
@@ -287,7 +308,7 @@ export const guideSections: GuideSection[] = [
         <K>Eksport .ics.</K> Każde wydarzenie możesz pobrać jako plik .ics i dodać do dowolnego kalendarza zewnętrznego.
       </>,
       <>
-        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych — wydarzenie pojawi się w jego kalendarzu.
+        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych - wydarzenie pojawi się w jego kalendarzu.
       </>,
     ],
   },
@@ -305,19 +326,19 @@ export const guideSections: GuideSection[] = [
         <K>Oznaczanie jako zapłacone.</K> Wydatki mają przycisk <em>Opłać</em>. Po kliknięciu wpis znika z głównej listy (jest schowany, nie usunięty), dzięki czemu lista zawiera wyłącznie nieuregulowane pozycje.
       </>,
       <>
-        <K>Udostępnij.</K> Kliknij <em>Wyślij</em> przy rachunku, by skopiować lub wysłać gotową wiadomość z kwotą i opisem — przydatne do żądania zwrotów.
+        <K>Udostępnij.</K> Kliknij <em>Wyślij</em> przy rachunku, by skopiować lub wysłać gotową wiadomość z kwotą i opisem - przydatne do żądania zwrotów.
       </>,
       <>
         <K>Grupowanie po miesiącach.</K> Rachunki automatycznie grupowane są według miesięcy, posortowane chronologicznie w obrębie każdej grupy.
       </>,
       <>
-        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki</em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie &quot;bieżące&quot;.
+        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki </em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie &quot;bieżące&quot;.
       </>,
       <>
-        <K>Import wyciągów bankowych.</K> Nowa funkcja &quot;Wczytaj CSV&quot; pozwala wgrać plik z mBanku. Algorytm automatycznie kategoryzuje wydatki i dodaje je do tabeli rachunków.
+        <K>Import wyciągów bankowych. </K> Nowa funkcja &quot;Wczytaj CSV&quot; pozwala wgrać plik z mBanku. Algorytm automatycznie kategoryzuje wydatki i dodaje je do tabeli rachunków.
       </>,
       <>
-        <K>Edytor kategorii.</K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w &quot;Kategorie&quot;, aby dodać własne.
+        <K>Edytor kategorii. </K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w &quot;Kategorie&quot;, aby dodać własne.
       </>,
     ],
   },
@@ -353,13 +374,13 @@ export const guideSections: GuideSection[] = [
         <K>Do czego służy.</K> Narzędzie do sprawiedliwego podziału wspólnych kosztów mieszkania (wynajem, czynsz, media) między dwie osoby z uwzględnieniem różnicy w dochodach.
       </>,
       <>
-        <K>Algorytm hybrydowy.</K> Każda osoba płaci połowę kwoty stałej (50/50) plus dodatkową część proporcjonalną do swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej — uczciwie, nie po równo.
+        <K>Algorytm hybrydowy.</K> Każda osoba płaci połowę kwoty stałej (50/50) plus dodatkową część proporcjonalną do swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej - uczciwie, nie po równo.
       </>,
       <>
         <K>Obsługa walut.</K> Dochód każdej osoby można wpisać w PLN lub EUR. Kurs EUR/PLN pobierany jest automatycznie z API NBP. Możesz go też wpisać ręcznie.
       </>,
       <>
-        <K>Podatki i ZUS.</K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto &quot;na rękę&quot;. Kalkulator pokaże kwotę podatku i wynikowy dochód.
+        <K>Podatki i ZUS. </K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto &quot;na rękę&quot;. Kalkulator pokaże kwotę podatku i wynikowy dochód.
       </>,
     ],
   },
@@ -377,7 +398,7 @@ export const guideSections: GuideSection[] = [
         <K>Odhaczanie produktów.</K> Kliknij checkbox lub tekst produktu, by go przekreślić. Odhaczone produkty zostają na liście (możesz odkliknąć), dzięki czemu lista jest wielokrotnego użytku.
       </>,
       <>
-        <K>Udostępnianie w czasie rzeczywistym.</K> Udostępnij listę innemu użytkownikowi — oboje widzicie te same zmiany natychmiast, bez ręcznego odświeżania.
+        <K>Udostępnianie w czasie rzeczywistym.</K> Udostępnij listę innemu użytkownikowi - oboje widzicie te same zmiany natychmiast, bez ręcznego odświeżania.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub alfabetycznie.
@@ -440,10 +461,10 @@ export const guideSections: GuideSection[] = [
         <K>Ulubione przystanki.</K> Moduł obsługuje przystanki w Poznaniu i Szczecinie. Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS.
       </>,
       <>
-        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku — aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do ulubionych.
+        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku - aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do ulubionych.
       </>,
       <>
-        <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare — rozkładowe.
+        <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare - rozkładowe.
       </>,
     ],
   },
@@ -455,19 +476,19 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-pink-500',
     listItems: [
       <>
-        <K>Dwa widoki.</K> Lista miejsc i widok mapy Leaflet. Przełączaj się przyciskiem w pasku filtrów. Na mapie każde miejsce to marker — kliknięcie otwiera popup z nazwą, adresem i przyciskiem <em>Szczegóły</em>.
+        <K>Dwa widoki.</K> Lista miejsc i widok mapy Leaflet. Przełączaj się przyciskiem w pasku filtrów. Na mapie każde miejsce to marker - kliknięcie otwiera popup z nazwą, adresem i przyciskiem <em>Szczegóły</em>.
       </>,
       <>
         <K>Import z Google Maps.</K> Wejdź na <em>Google Takeout</em>, wybierz <em>Mapy (Twoje miejsca)</em>, pobierz archiwum ZIP i wypakuj plik JSON. Wgraj go przez przycisk <em>Importuj</em> w aplikacji.
       </>,
       <>
-        <K>Automatyczne wzbogacanie danych.</K> Przy imporcie możesz włączyć opcję <em>Dociągnij dane</em> — aplikacja pobierze numer telefonu, stronę www i godziny otwarcia z Google Places. Opcja <em>Automatyczne tagi</em> przypisze etykiety na podstawie rodzaju miejsca.
+        <K>Automatyczne wzbogacanie danych.</K> Przy imporcie możesz włączyć opcję <em>Dociągnij dane</em> - aplikacja pobierze numer telefonu, stronę www i godziny otwarcia z Google Places. Opcja <em>Automatyczne tagi</em> przypisze etykiety na podstawie rodzaju miejsca.
       </>,
       <>
         <K>Filtry.</K> Filtruj miejsca po tagach lub godzinach otwarcia. Filtr czasowy pozwala znaleźć miejsca otwarte w konkretny dzień tygodnia i przedział godzinowy.
       </>,
       <>
-        <K>Sortowanie po odległości.</K> W Ustawieniach wybierz <em>Odległość (najbliższe)</em> — aplikacja użyje GPS i wzoru Haversine do obliczenia odległości do każdego miejsca.
+        <K>Sortowanie po odległości.</K> W Ustawieniach wybierz <em>Odległość (najbliższe)</em> - aplikacja użyje GPS i wzoru Haversine do obliczenia odległości do każdego miejsca.
       </>,
       <>
         <K>Nawigacja.</K> Przycisk <em>Nawiguj</em> na karcie miejsca otwiera Google Maps z wyznaczoną trasą.
@@ -482,7 +503,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-rose-500',
     listItems: [
       <>
-        <K>Czym są cele.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie wymaga codziennego odhaczania — automatycznie przelicza dni od daty startu.
+        <K>Czym są cele.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie wymaga codziennego odhaczania - automatycznie przelicza dni od daty startu.
       </>,
       <>
         <K>Kamienie milowe.</K> Algorytm gratuluje Ci: pierwszego tygodnia (7 dni), okrągłych liczb dni (100, 200...), miesięcznic i rocznic. Gratulacje pojawiają się na karcie celu i na kokpicie w sekcji <em>Postępy</em>.
@@ -509,10 +530,10 @@ export const guideSections: GuideSection[] = [
         <K>Długa przerwa między cyklami.</K> Jeśli ustawisz więcej niż 1 cykl, pojawi się pole na długą przerwę (np. 90 sekund). Wstawiana jest automatycznie po każdym ukończonym cyklu serii.
       </>,
       <>
-        <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach aktywuje Wake Lock — ekran nie będzie gasł podczas treningu.
+        <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach aktywuje Wake Lock - ekran nie będzie gasł podczas treningu.
       </>,
       <>
-        <K>Konfiguracja.</K> Panel ustawień jest dostępny. Można w nim dowolnie modysikować długość ćwiczeń, przerw, a także ilość powtórzeń. 
+        <K>Konfiguracja.</K> Panel ustawień jest dostępny. Można w nim dowolnie modyfikować długość ćwiczeń, przerw, a także ilość powtórzeń. 
       </>,
     ],
   },
@@ -566,6 +587,57 @@ export const guideSections: GuideSection[] = [
   },
 
   {
+    id: 'people',
+    title: 'Osoby i relacje',
+    mainIcon: <User className="w-6 h-6" />,
+    iconColorClass: 'text-rose-500',
+    listItems: [
+      <>
+        <K>Baza kontaktów.</K> Imię, nazwisko, relacja (np. Mama, Kolega), dowolna liczba telefonów i adresów e-mail, data urodzin i imienin oraz notatki.
+      </>,
+      <>
+        <K>Priorytet przypominania.</K> Każdej osobie przypisujesz priorytet 0–5, który decyduje, jak często aplikacja przypomni Ci o kontakcie: 1 - co 2 tygodnie, 2 - raz w miesiącu, 3 - co ok. 2 miesiące, 4 - raz w roku. Priorytety 0 i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
+      </>,
+      <>
+        <K>Zaloguj kontakt.</K> Przycisk przy karcie osoby zapisuje bieżącą datę jako <em>ostatni kontakt</em> i odlicza od niej termin kolejnego przypomnienia.
+      </>,
+      <>
+        <K>QR i vCard.</K> Każda karta ma kod QR generowany z danych kontaktowych - zeskanowany telefonem od razu proponuje zapis kontaktu (standard vCard).
+      </>,
+      <>
+        <K>Import i eksport CSV.</K> Zaimportuj kontakty wyeksportowane z Kontaktów Google (plik .csv) albo wyeksportuj swoją bazę do pliku, by zrobić kopię zapasową.
+      </>,
+      <>
+        <K>Szukaj.</K> Pole wyszukiwania filtruje listę po imieniu i nazwisku w czasie rzeczywistym.
+      </>,
+    ],
+  },
+
+  {
+    id: 'profiles',
+    title: 'Cyfrowa wizytówka',
+    mainIcon: <IdCard className="w-6 h-6" />,
+    iconColorClass: 'text-teal-500',
+    listItems: [
+      <>
+        <K>Wiele wizytówek.</K> Stwórz osobne profile na różne okazje, np. <em>Służbowa</em> i <em>Prywatna</em> - każdy z własnym imieniem, organizacją, telefonami, e-mailami, adresami i linkami do social mediów.
+      </>,
+      <>
+        <K>Dane firmowe.</K> Opcjonalna sekcja z NIP-em, numerem KRS i numerem konta bankowego - przydatna przy wizytówce firmowej.
+      </>,
+      <>
+        <K>Własne kolory.</K> Wybierz kolor tła wizytówki osobno dla trybu jasnego i ciemnego.
+      </>,
+      <>
+        <K>Publiczny link.</K> Włącz przełącznik <em>Publiczna</em>, a wizytówka będzie dostępna pod adresem <em>dzisiaj.fun/v/twoj-link</em> - możesz nim swobodnie się dzielić, także z osobami bez konta w aplikacji. Wyłączona wizytówka jest widoczna tylko dla Ciebie.
+      </>,
+      <>
+        <K>QR, vCard i udostępnianie.</K> Podgląd wizytówki generuje kod QR oraz plik .vcf do pobrania, a przycisk <em>Udostępnij</em> korzysta z natywnego menu udostępniania telefonu.
+      </>,
+    ],
+  },
+
+  {
     id: 'system',
     title: 'Ustawienia i konfiguracja',
     mainIcon: <Settings className="w-6 h-6" />,
@@ -578,22 +650,22 @@ export const guideSections: GuideSection[] = [
         <K>Tryb ciemny i jasny.</K> Przełącznik w prawym górnym rogu formularza ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.
       </>,
       <>
-        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów i miejsc.
+        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów, miejsc i osób.
       </>,
       <>
-        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z 6 typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie.
+        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie.
       </>,
       <>
         <K>Zaufani użytkownicy.</K> Dodaj adresy email osób, z którymi chcesz współdzielić dane. Osoba musi mieć aktywne konto. Możesz dodać do 10 adresów.
       </>,
       <>
-        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne. Wymagane dla: Pogody, sortowania Miejsc po odległości i sekcji &quot;Najbliżej&quot; w Transporcie.
+        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację </em> odświeża GPS i wyświetla aktualne współrzędne. Wymagane dla: Pogody, sortowania Miejsc po odległości i sekcji &quot;Najbliżej&quot; w Transporcie.
       </>,
       <>
         <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie usuwa żadnych danych użytkownika.
       </>,
       <>
-        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia — pobierane na żywo z GitHub.
+        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia - pobierane na żywo z GitHub.
       </>,
     ],
   },

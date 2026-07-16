@@ -20,7 +20,7 @@ export function useBudgetCategories(year: number) {
 
   const fetchCategories = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -48,7 +48,7 @@ export function useBudgetCategories(year: number) {
   const addCategory = useCallback(
     async (payload: { name: string; monthly_amounts: number[]; is_monthly: boolean }): Promise<BudgetCategory | undefined> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       if (categories.length >= MAX_CATEGORIES) {
@@ -105,7 +105,7 @@ export function useBudgetCategories(year: number) {
       updates: Partial<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">>
     ): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -131,7 +131,7 @@ export function useBudgetCategories(year: number) {
   const deleteCategory = useCallback(
     async (id: string): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć kategorię?`);
@@ -159,7 +159,7 @@ export function useBudgetCategories(year: number) {
   const reorderCategories = useCallback(
     async (reordered: BudgetCategory[]): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const previous = categories;
@@ -190,7 +190,7 @@ export function useBudgetCategories(year: number) {
   const seedDefaults = useCallback(
     async (defaults: Array<{ name: string; monthly_amounts: number[]; is_monthly: boolean }>): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);

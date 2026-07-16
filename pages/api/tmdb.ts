@@ -9,7 +9,7 @@ const ALLOWED_PATH_PREFIXES = [
   "/movie/",
 ];
 
-function isAllowedPath(path: string): boolean {
+export function isAllowedPath(path: string): boolean {
   return ALLOWED_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 

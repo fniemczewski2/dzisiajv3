@@ -157,7 +157,7 @@ export function useSettings() {
 
   const saveSettings = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setLoading(true);
@@ -179,7 +179,7 @@ export function useSettings() {
   const updateSettings = useCallback(
     async (partialSettings: Partial<Settings>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -210,7 +210,7 @@ export function useSettings() {
   const addFavoriteStop = useCallback(
     async (name: string, zone_id = "AUTO"): Promise<boolean> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const stops = settingsRef.current.favorite_stops;
@@ -245,7 +245,7 @@ export function useSettings() {
   const removeFavoriteStop = useCallback(
     async (name: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const previous = settingsRef.current.favorite_stops;

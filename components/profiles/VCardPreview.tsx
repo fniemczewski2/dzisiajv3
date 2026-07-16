@@ -113,12 +113,14 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
     ? (profile.color_dark || '#171717') 
     : (profile.color_light || '#3b82f6');
 
+  const organizations: string[] = profile.organization?.split(",") || [""]; 
+
   return (
     <div className="max-w-md mx-auto p-4 flex flex-col gap-6">
         {onBack && 
         <button
           onClick={onBack}
-          className="flex p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+          className="flex items-center p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
           title="Wróć do listy wizytówek"
         >
           <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" /> <p>Wróć</p>
@@ -145,7 +147,9 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold">{profile.full_name || 'Brak danych'}</h2>
-              {profile.organization && <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{profile.organization}</p>}
+              {organizations?.map((o: string) => (
+                <p key={o} className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{o}</p>
+              ))}
             </div>
             <CopyButtonSmall text={`${profile.full_name}\n${profile.organization || ''}`} label="Imię i firmę" />
           </div>
@@ -155,7 +159,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               <div className="space-y-2">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Kontakt</h3>
                 {profile.phones?.map((p) => (
-                  <div key={`tel-${p.number}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
+                  <div key={`tel-${p.number}`} className="flex flex-col sm:flex-row justify-between sm:items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{p.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
                       <a href={`tel:${p.number.replace(/\s+/g, '')}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
@@ -166,10 +170,10 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                   </div>
                 ))}
                 {profile.emails?.map((e) => (
-                  <div key={`email-${e.email}`} className="flex flex-col sm:flex-row justify-between items-center text-sm py-1">
+                  <div key={`email-${e.email}`} className="flex flex-col sm:flex-row justify-between sm:items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{e.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
-                      <a href={`mailto:${e.email}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[180px]">
+                      <a href={`mailto:${e.email}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate">
                         {e.email}
                       </a>
                       <CopyButtonSmall text={e.email} label="e-mail" />
@@ -183,10 +187,10 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Adresy</h3>
                 {profile.addresses.map((a) => (
-                  <div key={`addr-${a.address}`} className="flex flex-col sm:flex-row justify-between items-start text-sm py-1">
+                  <div key={`addr-${a.address}`} className="flex flex-row justify-between items-start text-sm py-1">
                     <span className="opacity-70 text-xs w-20 mt-1">{a.type}</span>
                     <div className="flex-1 flex justify-end items-start gap-2 text-right">
-                      <span className="font-medium max-w-[180px]">{a.address}</span>
+                      <span className="font-medium">{a.address}</span>
                       <CopyButtonSmall text={a.address} label="adres" />
                     </div>
                   </div>
@@ -238,7 +242,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                   <div className="flex justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">Nr Konta</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
-                      <span className="font-mono text-right max-w-[160px] truncate" title={bizData.bank_account}>{bizData.bank_account}</span>
+                      <span className="font-mono text-right truncate" title={bizData.bank_account}>{bizData.bank_account}</span>
                       <CopyButtonSmall text={bizData.bank_account} label="Nr konta" />
                     </div>
                   </div>

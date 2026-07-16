@@ -136,7 +136,6 @@ export function useBills(options: FetchOptions = {}) {
   const addBill = useCallback(
     async (bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">): Promise<Bill> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -196,7 +195,7 @@ export function useBills(options: FetchOptions = {}) {
   const editBill = useCallback(
     async (bill: Bill, editOptions: { updateFutureRecurring?: boolean } = {}): Promise<Bill> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -251,7 +250,7 @@ export function useBills(options: FetchOptions = {}) {
   const deleteBill = useCallback(
     async (id: string, deleteFutureRecurring = false): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(
@@ -289,7 +288,7 @@ export function useBills(options: FetchOptions = {}) {
   const markAsDone = useCallback(
     async (id: string): Promise<void> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -315,7 +314,7 @@ export function useBills(options: FetchOptions = {}) {
   const fetchActiveMonths = useCallback(
     async (year: number, categoryId: string = "all"): Promise<number[]> => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
 

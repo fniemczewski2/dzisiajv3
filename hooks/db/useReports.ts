@@ -18,7 +18,7 @@ export function useReports() {
 
   const fetchReports = useCallback(async () => {
     if (!userId) {
-      toast.error("Zaloguj się!");
+
       throw new Error("Unauthorized");
     }
     setFetching(true);
@@ -38,7 +38,7 @@ export function useReports() {
   const addReport = useCallback(
     async (payload: Omit<Report, "id" | "inserted_at" | "updated_at">) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -66,7 +66,7 @@ export function useReports() {
   const editReport = useCallback(
     async (id: string, updates: Partial<Report>) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -93,7 +93,7 @@ export function useReports() {
   const deleteReport = useCallback(
     async (id: string) => {
       if (!userId) {
-        toast.error("Zaloguj się!");
+  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć raport?`);

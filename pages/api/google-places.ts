@@ -7,7 +7,7 @@ import { GoogleFindPlaceResponse, GoogleNearbyResponse, GooglePlaceDetailsRespon
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 
-function parseLatLng(rawLat: unknown, rawLng: unknown): { lat: number; lng: number } | null {
+export function parseLatLng(rawLat: unknown, rawLng: unknown): { lat: number; lng: number } | null {
   if (Array.isArray(rawLat) || Array.isArray(rawLng) || typeof rawLat !== 'string' || typeof rawLng !== 'string') {
     return null;
   }
@@ -18,7 +18,7 @@ function parseLatLng(rawLat: unknown, rawLng: unknown): { lat: number; lng: numb
   return { lat, lng };
 }
 
-function parseSingleString(raw: unknown): string | null {
+export function parseSingleString(raw: unknown): string | null {
   if (typeof raw !== 'string' || raw.trim() === '') return null;
   return raw;
 }
