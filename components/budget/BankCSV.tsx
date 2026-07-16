@@ -43,7 +43,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
   };
 
   const ensureCategoriesExist = async (missing: string[]): Promise<BudgetCategory[]> => {
-    let updatedCategories = [...categories];
+    const updatedCategories = [...categories];
     for (const missingCat of missing) {
       const targetName = missingCat.toLowerCase().trim();
       if (updatedCategories.some(c => c.name.toLowerCase().trim() === targetName)) continue;

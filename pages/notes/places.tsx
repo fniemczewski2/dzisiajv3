@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { usePlaces } from "@/hooks/db/usePlaces";
 import PlaceFilters from "@/components/places/PlaceFilters";

@@ -1,21 +1,19 @@
 import { getAppDateTime } from '@/lib/dateUtils';
+import { createServerSupabase } from '@/lib/supabase/server';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { stationName } = req.query;
   const apiKey = process.env.PLK_API_KEY;
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  const supabase = createServerSupabase(req, res);
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return res.status(401).json({ error: "Unauthorized" });
 
-  if (!stationName) {
-    return res.status(400).json({ error: 'Brak parametru stationName' });
-  }
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Błąd konfiguracji serwera' });
-  }
+  if (!stationName) return res.status(400).json({ error: 'No stationName' });
+  
+  if (!apiKey) return res.status(500).json({ error: 'Server config error' });
 
   try {
     const headers = {

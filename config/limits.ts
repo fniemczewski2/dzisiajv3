@@ -13,3 +13,4 @@ export const TAX_DEFAULT = 8.5;
 export const ZUS_DEFAULT = 798;
 export const STATIONS_TTL_MS = 24 * 60 * 60 * 1000; 
 export const OPERATIONS_TTL_MS = 30 * 1000;
+export const RETRY_DELAY_MS = 1500;

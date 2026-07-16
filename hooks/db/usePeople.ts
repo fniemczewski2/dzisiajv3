@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Person, PersonInsert } from "@/types/people";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function usePeople() {
   const { user, supabase } = useAuth();

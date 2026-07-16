@@ -6,7 +6,7 @@ import { expandRepeatingEvents } from "@/lib/eventUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useVirtualBirthdayEvents(): Event[] {
   const { user, supabase } = useAuth();

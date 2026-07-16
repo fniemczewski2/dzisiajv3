@@ -3,7 +3,7 @@ import type { Movie, MovieInsert } from "@/types/movies";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useMovies() {
   const { user, supabase } = useAuth();

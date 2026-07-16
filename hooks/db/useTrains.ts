@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { getAppDateTime } from '@/lib/dateUtils';
 import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/lib/withRetry';
+import { useRetry } from '@/hooks/useRetry';
 import { TrackedTrain, TrainInput } from '@/types/transport';
 
 function mapDbRowToTrain(row: {

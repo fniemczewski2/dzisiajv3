@@ -6,7 +6,7 @@ import type { Bill } from "@/types/bills";
 import { addMonths, format, parseISO, isAfter } from "date-fns";
 import { BILLS_PAGE_LIMIT } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 function getRecurringDates(startDate: string, recurringUntil: string): string[] {
   const dates: string[] = [];

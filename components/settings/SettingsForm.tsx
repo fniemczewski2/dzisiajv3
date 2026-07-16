@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
 import ThemeToggle from "./ThemeButton";
-import { DeleteButton, SaveButton } from "../ui/CommonButtons"; 
+import { DeleteButton, SaveButton, ToggleSwitch } from "../ui/CommonButtons"; 
 import { useRouter } from "next/router";
 import { MoodOption } from "@/types/moods";
 import { Settings } from "@/types/settings";
@@ -58,23 +58,7 @@ export default function SettingsForm({
         <label htmlFor={id} className="text-sm font-medium text-text cursor-pointer select-none">
           {label}
         </label>
-        <button
-          id={id}
-          type="button"
-          onClick={() => updateLocalField(id, !isChecked)}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-            isChecked ? 'bg-secondary' : 'bg-gray-300 dark:bg-gray-700'
-          }`}
-          role="switch"
-          aria-checked={isChecked}
-        >
-          <span
-            aria-hidden="true"
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-              isChecked ? 'translate-x-5' : 'translate-x-0'
-            }`}
-          />
-        </button>
+        <ToggleSwitch id={id} checked={isChecked} onChange={(value) => updateLocalField(id, value)} />
       </div>
     );
   };
@@ -118,22 +102,7 @@ export default function SettingsForm({
           <label htmlFor="show_mood_tracker" className="text-sm font-medium text-text cursor-pointer select-none">
             Pokaż śledzenie nastroju
           </label>
-          <button
-            id="show_mood_tracker"
-            type="button"
-            onClick={() => updateLocalField("show_mood_tracker", !moodEnabled)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              moodEnabled ? 'bg-secondary' : 'bg-gray-300 dark:bg-gray-700'
-            }`}
-            role="switch"
-            aria-checked={moodEnabled}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                moodEnabled ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
-          </button>
+          <ToggleSwitch id="show_mood_tracker" checked={moodEnabled} onChange={(value) => updateLocalField("show_mood_tracker", value)} />
         </div>
 
         {localSettings.show_habits && (

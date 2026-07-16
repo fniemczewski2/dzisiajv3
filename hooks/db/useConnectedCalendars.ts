@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/lib/withRetry';
+import { useRetry } from '@/hooks/useRetry';
 import { ConnectedAccount, ExternalCalendar } from '@/types/events';
 
 export function useConnectedCalendars(expanded: boolean) {

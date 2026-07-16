@@ -4,7 +4,7 @@ import { Reminder } from "@/types/reminders";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useReminders() {
   const { user, supabase } = useAuth();

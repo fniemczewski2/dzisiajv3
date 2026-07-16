@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useRef, useState, SyntheticEvent } from "react";
+import React, { useRef, useState, SyntheticEvent, Dispatch, SetStateAction } from "react";
 import { Plus, X } from "lucide-react";
 import { Report } from "@/types/reports";
 import { useReports } from "@/hooks/db/useReports";
 import { getAppDate } from "@/lib/dateUtils";
-import { FormButtons } from "../ui/CommonButtons";
+import { FormButtons, IconActionButton } from "../ui/CommonButtons";
 
 interface ReportFormProps {
   onChange: () => void;
@@ -54,7 +54,11 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
     onCancel?.();
   };
 
-  const removeItem = (arr: any[], setter: any, idToRemove: string) => {
+  const removeItem = <T extends { id: string }>(
+    arr: T[],
+    setter: Dispatch<SetStateAction<T[]>>,
+    idToRemove: string
+  ) => {
     if (arr.length > 1) setter(arr.filter((item) => item.id !== idToRemove));
   };
 
@@ -82,9 +86,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
                   onChange={(e) => { const c = [...agenda]; c[i].value = e.target.value; setAgenda(c); }}
                   placeholder={`Punkt agendy ${i + 1}`} disabled={loading} />
                 {agenda.length > 1 && (
-                  <button type="button" onClick={() => removeItem(agenda, setAgenda, a.id)} className="text-textMuted hover:text-red-500 shrink-0">
-                    <X className="w-5 h-5" />
-                  </button>
+                  <IconActionButton onClick={() => removeItem(agenda, setAgenda, a.id)} title="Usuń punkt agendy" Icon={X} variant="danger" disabled={loading} />
                 )}
               </div>
             ))}
@@ -103,9 +105,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
                   onChange={(e) => { const c = [...participants]; c[i].value = e.target.value; setParticipants(c); }}
                   placeholder={`Uczestnik ${i + 1}`} disabled={loading} />
                 {participants.length > 1 && (
-                  <button type="button" onClick={() => removeItem(participants, setParticipants, p.id)} className="text-textMuted hover:text-red-500 shrink-0">
-                    <X className="w-5 h-5" />
-                  </button>
+                  <IconActionButton onClick={() => removeItem(participants, setParticipants, p.id)} title="Usuń uczestnika" Icon={X} variant="danger" disabled={loading} />
                 )}
               </div>
             ))}
@@ -127,9 +127,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
                   onChange={(e) => { const c = [...tasks]; c[i].zadanie = e.target.value; setTasks(c); }}
                   disabled={loading} />
                 {tasks.length > 1 && (
-                  <button type="button" onClick={() => removeItem(tasks, setTasks, t.id)} className="text-textMuted hover:text-red-500 shrink-0">
-                    <X className="w-5 h-5" />
-                  </button>
+                  <IconActionButton onClick={() => removeItem(tasks, setTasks, t.id)} title="Usuń zadanie" Icon={X} variant="danger" disabled={loading} />
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

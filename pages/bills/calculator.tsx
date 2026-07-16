@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEuroRate } from "@/hooks/useEuroRate";
-import LoadingState from "@/components/ui/LoadingState";
+import { SkeletonLine } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
 import { FLAT_RENTAL_DEFAULT, FLAT_FEE_DEFAULT, TAX_DEFAULT, ZUS_DEFAULT} from "@/config/limits";
 
@@ -224,7 +224,6 @@ export default function BillCalculator() {
 
               <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showExchangeRate ? 'max-h-40 opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
                 <div className="bg-surface p-4 rounded-xl border border-gray-200 dark:border-gray-700 relative">
-                  {rateLoading && <LoadingState />}
                   <InputField 
                     label="Kurs EUR/PLN"
                     inputRef={exchangeRateRef} 
@@ -232,7 +231,8 @@ export default function BillCalculator() {
                     icon={<ArrowRightLeft size={16} />}
                     onChange={calculate} 
                   />
-                  {fetchedEuroRate && (
+                  {rateLoading && <SkeletonLine className="h-3 w-40 mt-2 ml-1" />}
+                  {!rateLoading && fetchedEuroRate && (
                       <p className="text-[10px] font-bold uppercase tracking-wider text-primary mt-2 ml-1">
                           Aktualny kurs z NBP: {fetchedEuroRate} zł
                       </p>

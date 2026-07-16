@@ -5,7 +5,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory } from "@/types/bills";
 import { MAX_CATEGORIES } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useBudgetCategories(year: number) {
   const { user, supabase } = useAuth();

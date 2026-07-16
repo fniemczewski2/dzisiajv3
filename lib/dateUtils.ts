@@ -26,7 +26,7 @@ export const localDateTimeToISO = (localDateTime: string): string => {
 
 
 export const parseEventDate = (timestamp: string): Date => {
-  let cleanTimestamp = timestamp
+  const cleanTimestamp = timestamp
     .replace(" ", "T")
     .replace(/\+\d{2}$/, "")
     .split(".")[0];

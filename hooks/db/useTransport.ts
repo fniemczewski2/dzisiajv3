@@ -3,8 +3,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
-import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 import { LocalSearchResult, StopGroup } from "@/types/transport";
 
 export function useTransport(autoRefresh = false) {

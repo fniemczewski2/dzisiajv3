@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Report } from "@/types/reports";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useReports() {
   const { user, supabase } = useAuth();

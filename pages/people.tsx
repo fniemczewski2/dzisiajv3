@@ -7,13 +7,13 @@ import { ExportPeople } from '@/components/people/ExportPeople';
 import { AddButton } from '@/components/ui/CommonButtons';
 import SearchBar from '@/components/ui/SearchBar'; 
 import { Person, PersonInsert } from '@/types/people';
-import LoadingState from '@/components/ui/LoadingState';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import NoResultsState from '@/components/ui/NoResultsState';
 import Seo from '@/components/ui/SEO';
 import { useToast } from '@/providers/ToastProvider';
 
 export default function PeoplePage() {
-  const { people, loading, addPerson, editPerson, deletePerson, logContact } = usePeople();
+  const { people, loading, fetching, addPerson, editPerson, deletePerson, logContact } = usePeople();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
@@ -31,7 +31,7 @@ export default function PeoplePage() {
     setEditingPerson(null);
   };
 
-  const handleImport = async (contacts: any[]) => {
+  const handleImport = async (contacts: PersonInsert[]) => {
     const tick = toast.batch((n) => `Zaimportowano kontakty (${n})`);
     for (const contact of contacts) {
       await addPerson(contact);
@@ -70,7 +70,13 @@ export default function PeoplePage() {
     });
 
     const renderPeopleList = () => {
-      if (loading) return (<LoadingState/>)
+      if (fetching) {
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={2} />)}
+          </div>
+        );
+      }
 
       if (filteredAndSortedPeople.length === 0) {
         return ( <NoResultsState text="kontaktów" isSearch={!!searchQuery} />)
@@ -82,10 +88,7 @@ export default function PeoplePage() {
                 key={person.id}
                 person={person}
                 onEdit={() => setEditingPerson(person)}
-                onDelete={async () => {
-                  const ok = await toast.confirm('Na pewno chcesz usunąć ten kontakt?'); 
-                  if(ok) {deletePerson(person.id);}
-                }}
+                onDelete={() => deletePerson(person.id)}
                 onLogContact={() => logContact(person.id)}
               />
             ))}
@@ -114,7 +117,7 @@ export default function PeoplePage() {
           <div className="w-full">
             <SearchBar 
               value={searchQuery} 
-              onChange={(e: any) => setSearchQuery(e?.target ? e.target.value : e)} 
+              onChange={setSearchQuery} 
               placeholder="Szukaj osoby..."
             />
           </div>

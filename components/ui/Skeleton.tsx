@@ -10,6 +10,10 @@ function Bar({ className = "" }: { className?: string }) {
   );
 }
 
+// Publiczny alias Bar do doraźnych, jednowierszowych placeholderów (np. status
+// dociągany asynchronicznie obok pola, które samo w sobie już jest używalne).
+export const SkeletonLine = Bar;
+
 export function SkeletonCard({ lines = 2 }: { lines?: number }) {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
@@ -229,6 +233,38 @@ export function SkeletonDaySchema({ rows = 5 }: { rows?: number }) {
           <Bar className="h-6 w-6 shrink-0 rounded-full" />
         </div>
       ))}
+    </div>
+  );
+}
+
+export function SkeletonSettings() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="card rounded-2xl shadow-sm p-3">
+        <Bar className="h-3 w-16 mb-3" />
+        <div className="grid grid-cols-4 gap-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Bar key={i} className="h-14 w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <div className="card rounded-xl shadow-sm p-4 flex flex-col gap-4">
+        <Bar className="h-5 w-2/5" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between">
+            <Bar className="h-3 w-2/5" />
+            <Bar className="h-6 w-11 rounded-full" />
+          </div>
+        ))}
+      </div>
+      <div className="card rounded-xl shadow-sm p-4 flex items-center gap-4">
+        <Bar className="h-10 w-10 shrink-0 rounded-lg" />
+        <Bar className="h-4 flex-1" />
+      </div>
+      <div className="card rounded-xl shadow-sm p-4 flex items-center gap-4">
+        <Bar className="h-10 w-10 shrink-0 rounded-lg" />
+        <Bar className="h-4 flex-1" />
+      </div>
     </div>
   );
 }

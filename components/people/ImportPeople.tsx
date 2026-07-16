@@ -1,9 +1,10 @@
 // components/people/ImportPeople.tsx
 import React, { useRef } from 'react';
 import { Upload } from 'lucide-react';
+import { PersonInsert } from '@/types/people';
 
 interface ImportProps {
-  onImport: (people: any[]) => void;
+  onImport: (people: PersonInsert[]) => void;
 }
 
 const parseCSVRow = (str: string) => {
@@ -29,7 +30,7 @@ const parseCSVRow = (str: string) => {
 };
 
 // Extracted logic to keep nesting shallow and readable
-const processCSVText = (text: string) => {
+const processCSVText = (text: string): PersonInsert[] => {
   const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
   if (lines.length < 2) return [];
 

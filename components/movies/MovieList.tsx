@@ -94,7 +94,11 @@ export default function MovieWatchlist({
   const toggleNotes = (movieId: string) => {
     setExpandedNotes((prev) => {
       const next = new Set(prev);
-      next.has(movieId) ? next.delete(movieId) : next.add(movieId);
+      if (next.has(movieId)) {
+        next.delete(movieId)
+      } else {
+        next.add(movieId);
+      } 
       return next;
     });
   };

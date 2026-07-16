@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/lib/withRetry';
+import { useRetry } from '@/hooks/useRetry';
 import { DailyOverride } from '@/types/schemas';
 
 export function useDailyOverrides(dateStr: string) {

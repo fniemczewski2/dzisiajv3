@@ -1,7 +1,7 @@
 // pages/settings.tsx
 import React from "react";
 import InstallButton from "@/components/settings/InstallButton";
-import LoadingState from "@/components/ui/LoadingState";
+import { SkeletonSettings } from "@/components/ui/Skeleton";
 import VersionInfo from "@/components/settings/Versioninfo";
 import MenuGrid from "@/components/settings/MenuGrid";
 import SettingsForm from "@/components/settings/SettingsForm";
@@ -62,7 +62,7 @@ export default function SettingsPage() {
           <InstallButton />
         </div>
         {loading ? 
-        <LoadingState fullScreen /> 
+        <SkeletonSettings /> 
         : (
         <>
           

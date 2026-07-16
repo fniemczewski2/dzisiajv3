@@ -4,7 +4,7 @@ import { useSettings } from "./useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {

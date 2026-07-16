@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/lib/withRetry';
+import { useRetry } from '@/hooks/useRetry';
 
 export function useWorkLogs(dateStr?: string, monthStr?: string) {
   const { user, supabase } = useAuth();

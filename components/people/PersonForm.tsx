@@ -11,84 +11,109 @@ interface PersonFormProps {
   loading: boolean;
 }
 
-export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<PersonFormProps>) => {
-  const [formData, setFormData] = useState<Partial<Person>>(initialData || {
-    first_name: '', last_name: '', relationship: '', priority: 0,
-    phones: [], emails: [], notes: '', birthday: '', nameday: '' // <-- Dodane nameday
-  });
+const EMPTY_PERSON: PersonInsert = {
+  first_name: '',
+  last_name: '',
+  relationship: '',
+  priority: 0,
+  phones: [],
+  emails: [],
+  notes: '',
+  birthday: '',
+  nameday: '',
+};
 
+export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<PersonFormProps>) => {
+  const [formData, setFormData] = useState<PersonInsert | Person>(initialData ?? EMPTY_PERSON);
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as PersonInsert);
+    onSave(formData);
   };
 
   const handleAddPhone = () => {
-    if (newPhone) {
-      setFormData(prev => ({ ...prev, phones: [...(prev.phones || []), newPhone] }));
-      setNewPhone('');
-    }
+    if (!newPhone.trim()) return;
+    setFormData((prev) => ({ ...prev, phones: [...(prev.phones || []), newPhone.trim()] }));
+    setNewPhone('');
   };
 
   const handleRemovePhone = (phoneToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      phones: prev.phones?.filter(p => p !== phoneToRemove)
-    }));
+    setFormData((prev) => ({ ...prev, phones: prev.phones?.filter((p) => p !== phoneToRemove) }));
   };
 
   const handleAddEmail = () => {
-    if (newEmail) {
-      setFormData(prev => ({ ...prev, emails: [...(prev.emails || []), newEmail] }));
-      setNewEmail('');
-    }
+    if (!newEmail.trim()) return;
+    setFormData((prev) => ({ ...prev, emails: [...(prev.emails || []), newEmail.trim()] }));
+    setNewEmail('');
   };
 
   const handleRemoveEmail = (emailToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      emails: prev.emails?.filter(e => e !== emailToRemove)
-    }));
+    setFormData((prev) => ({ ...prev, emails: prev.emails?.filter((e) => e !== emailToRemove) }));
   };
 
-  const renderPhoneItem = (p: string) => (
-    <div key={p} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-      {p} 
-      <X className="w-4 h-4 cursor-pointer text-red-500" onClick={() => handleRemovePhone(p)} />
-    </div>
-  );
-
-  const renderEmailItem = (e: string) => (
-    <div key={e} className="flex justify-between items-center text-sm p-2 bg-gray-50 dark:bg-gray-900 rounded-md">
-      {e} 
-      <X className="w-4 h-4 cursor-pointer text-red-500" onClick={() => handleRemoveEmail(e)} />
-    </div>
+  const renderChip = (value: string, onRemove: () => void) => (
+    <span
+      key={value}
+      className="px-3 py-1 bg-surface text-textSecondary border border-gray-200 dark:border-gray-700 rounded-full text-sm flex items-center gap-1.5"
+    >
+      {value}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Usuń ${value}`}
+        className="text-textMuted hover:text-red-500 transition-colors"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </span>
   );
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 bg-surface p-4 rounded-xl shadow border border-gray-200 dark:border-gray-800">
-      <div className="grid grid-cols-2 gap-4">
-        <label className="flex flex-col text-sm font-medium">
-          {"Imię *"}
-          <input required value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
-        </label>
-        <label className="flex flex-col text-sm font-medium">
-          {"Nazwisko"}
-          <input value={formData.last_name || ''} onChange={e => setFormData({...formData, last_name: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
-        </label>
+    <form onSubmit={handleSubmit} className="form-card">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="first_name" className="form-label">Imię *</label>
+          <input
+            id="first_name"
+            required
+            value={formData.first_name}
+            onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
+            className="input-field"
+          />
+        </div>
+        <div>
+          <label htmlFor="last_name" className="form-label">Nazwisko</label>
+          <input
+            id="last_name"
+            value={formData.last_name || ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
+            className="input-field"
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <label className="flex flex-col text-sm font-medium">
-          {"Relacja"}
-          <input placeholder="np. Mama, Kolega" value={formData.relationship || ''} onChange={e => setFormData({...formData, relationship: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
-        </label>
-        
-        <label className="flex flex-col text-sm font-medium">
-          {"Priorytet kontaktu"}
-          <select value={formData.priority} onChange={e => setFormData({...formData, priority: Number.parseInt(e.target.value, 10)})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="relationship" className="form-label">Relacja</label>
+          <input
+            id="relationship"
+            placeholder="np. Mama, Kolega"
+            value={formData.relationship || ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, relationship: e.target.value }))}
+            className="input-field"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="priority" className="form-label">Priorytet kontaktu</label>
+          <select
+            id="priority"
+            value={formData.priority}
+            onChange={(e) => setFormData((prev) => ({ ...prev, priority: Number.parseInt(e.target.value, 10) }))}
+            className="input-field"
+          >
             <option value={0}>0 - Brak przypomnienia</option>
             <option value={1}>1 - Raz na 2 tygodnie</option>
             <option value={2}>2 - Raz na miesiąc</option>
@@ -96,43 +121,80 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
             <option value={4}>4 - Raz na rok</option>
             <option value={5}>5 - Brak przypomnienia</option>
           </select>
-        </label>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <label className="flex flex-col text-sm font-medium">
-          {"Data urodzin"}
-          <input type="date" value={formData.birthday || ''} onChange={e => setFormData({...formData, birthday: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
-        </label>
-        <label className="flex flex-col text-sm font-medium">
-          {"Data imienin"}
-          <input type="date" value={formData.nameday || ''} onChange={e => setFormData({...formData, nameday: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
-        </label>
-      </div>
-
-      {/* Numery Telefonu */}
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Telefony</span>
-        {formData.phones?.map(renderPhoneItem)}
-        <div className="flex gap-2">
-          <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="Nowy numer" className="flex-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm" />
-          <AddButton onClick={handleAddPhone} small={true} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="birthday" className="form-label">Data urodzin</label>
+          <input
+            id="birthday"
+            type="date"
+            value={formData.birthday || ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, birthday: e.target.value }))}
+            className="input-field"
+          />
+        </div>
+        <div>
+          <label htmlFor="nameday" className="form-label">Data imienin</label>
+          <input
+            id="nameday"
+            type="date"
+            value={formData.nameday || ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, nameday: e.target.value }))}
+            className="input-field"
+          />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Emaile</span>
-        {formData.emails?.map(renderEmailItem)}
+        <span className="form-label mb-0">Telefony</span>
+        {formData.phones && formData.phones.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {formData.phones.map((p) => renderChip(p, () => handleRemovePhone(p)))}
+          </div>
+        )}
         <div className="flex gap-2">
-          <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Nowy email" className="flex-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm" />
-          <AddButton onClick={handleAddEmail} small/>
+          <input
+            type="tel"
+            value={newPhone}
+            onChange={(e) => setNewPhone(e.target.value)}
+            placeholder="Nowy numer"
+            className="input-field flex-1"
+          />
+          <AddButton onClick={handleAddPhone} small />
         </div>
       </div>
 
-      <label className="flex flex-col text-sm font-medium">
-        {"Notatki"}
-        <textarea rows={3} value={formData.notes || ''} onChange={e => setFormData({...formData, notes: e.target.value})} className="mt-1 p-2 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700" />
-      </label>
+      <div className="flex flex-col gap-2">
+        <span className="form-label mb-0">Emaile</span>
+        {formData.emails && formData.emails.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {formData.emails.map((e) => renderChip(e, () => handleRemoveEmail(e)))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="Nowy email"
+            className="input-field flex-1"
+          />
+          <AddButton onClick={handleAddEmail} small />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="notes" className="form-label">Notatki</label>
+        <textarea
+          id="notes"
+          rows={3}
+          value={formData.notes || ''}
+          onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+          className="input-field"
+        />
+      </div>
 
       <FormButtons onClickClose={onCancel} disabled={!formData.first_name} loading={loading} />
     </form>

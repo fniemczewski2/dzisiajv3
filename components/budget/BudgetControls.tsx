@@ -1,4 +1,3 @@
-import { Edit2 } from "lucide-react";
 import { CancelButton, EditButton, SaveButton } from "../ui/CommonButtons";
 
 interface BudgetControlsProps {

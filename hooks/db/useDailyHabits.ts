@@ -3,7 +3,7 @@ import { getAppDate } from "@/lib/dateUtils";
 import { DailyHabitsRow, HabitKey } from "@/types/habits";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
   date: date,

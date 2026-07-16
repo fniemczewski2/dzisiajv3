@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useShoppingLists } from "@/hooks/db/useShoppingLists";
 import ShoppingForm from "@/components/shopping/ShoppingForm";
 import ShoppingListView from "@/components/shopping/ShoppingListView";
-import { SkeletonList, SkeletonShoppingList } from "@/components/ui/Skeleton";
+import { SkeletonShoppingList } from "@/components/ui/Skeleton";
 import { AddButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
 

@@ -15,7 +15,7 @@ interface VCardPreviewProps {
 const getUsernameFromUrl = (url: string, platform: string) => {
   try {
     const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-    let path = urlObj.pathname.replace(/\/$/, '');
+    const path = urlObj.pathname.replace(/\/$/, '');
     const parts = path.split('/').filter(Boolean);
     const p = platform.toLowerCase();
 

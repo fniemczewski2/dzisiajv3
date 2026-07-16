@@ -40,9 +40,11 @@ export default function DaySchemaForm({
     setLoading(true);
     const payload = { name: schemaName.trim(), days, entries };
 
-    isEdit && initialSchema?.id
-        ? await updateSchema(initialSchema.id, payload)
-        : await addSchema(payload as any)
+    if (isEdit && initialSchema?.id) {
+      await updateSchema(initialSchema.id, payload);
+    } else {
+      await addSchema(payload);
+    }
     setLoading(false);
     onSchemaSaved();
     onCancel?.();

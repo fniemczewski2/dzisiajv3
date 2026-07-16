@@ -6,7 +6,7 @@ import type { BudgetCategory, RawBillRow } from "@/types/bills";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
   const { user, supabase } = useAuth();

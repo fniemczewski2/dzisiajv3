@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Streak } from "@/types/streaks";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 const getMonthsLabel = (m: number) => {
   const d = m % 10, td = m % 100;

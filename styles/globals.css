@@ -55,14 +55,6 @@
     @apply w-full px-1.5 py-1 md:px-3 md:py-2 text-base rounded-lg bg-transparent border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent text-text transition-all;
   }
 
-  .auth-button {
-    @apply w-full py-2 rounded-md bg-secondary hover:bg-secondary text-white font-medium transition-colors;
-  }
-
-  .link-text {
-    @apply text-primary hover:text-secondary hover:underline cursor-pointer font-medium transition-colors;
-  }
-  
   .form-card {
     @apply bg-card border border-gray-200 dark:border-gray-700 p-4 md:p-6 rounded-xl shadow-sm transition-colors flex flex-col gap-2 md:gap-4 max-w-lg animate-fadeIn;
   }

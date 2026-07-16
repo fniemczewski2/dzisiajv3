@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'
 import { useToast } from '@/providers/ToastProvider'
-import { useRetry } from '@/lib/withRetry'
+import { useRetry } from '@/hooks/useRetry'
 
 export function usePushNotifications(userId: string | undefined) {
   const { supabase } = useAuth()

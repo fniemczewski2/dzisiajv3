@@ -15,4 +15,6 @@ export interface Person {
   updated_at?: string;
 }
 
-export type PersonInsert = Omit<Person, "id" | "created_at" | "updated_at">;
+// user_id jest dodawane wewnątrz usePeople() na podstawie zalogowanego użytkownika —
+// żaden formularz/import nie powinien go dostarczać ani znać.
+export type PersonInsert = Omit<Person, "id" | "user_id" | "created_at" | "updated_at">;

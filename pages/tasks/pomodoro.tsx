@@ -167,7 +167,7 @@ const controls: TimerControls = {
                 type="number"
                 value={focusSeconds / 60}
                 onChange={(e) => setFocusSeconds(Number(e.target.value) * 60)}
-                className="border rounded px-2 py-1 w-20 text-right"
+                className="input-field w-20 text-center tabular-nums py-1.5"
                 min={1}
               />
             </label>
@@ -177,7 +177,7 @@ const controls: TimerControls = {
                 type="number"
                 value={breakSeconds / 60}
                 onChange={(e) => setBreakSeconds(Number(e.target.value) * 60)}
-                className="border rounded px-2 py-1 w-20 text-right"
+                className="input-field w-20 text-center tabular-nums py-1.5"
                 min={1}
               />
             </label>

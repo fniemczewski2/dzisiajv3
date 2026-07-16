@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { MoodEntry } from "@/types/moods";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();

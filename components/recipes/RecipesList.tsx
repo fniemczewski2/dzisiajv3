@@ -5,7 +5,7 @@ import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
 import type { Recipe, RecipeCategory } from "@/types/recipes";
 import { useRecipes } from "@/hooks/db/useRecipes";
 import { useSettings } from "@/hooks/db/useSettings";
-import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
+import { EditButton, DeleteButton, FormButtons, ToggleChip } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
 import NoResultsState from "../ui/NoResultsState";
 
@@ -34,7 +34,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
     if (refreshToken !== undefined) {
       refresh();
     }
-  }, [refreshToken]);
+  }, [refreshToken, refresh]);
 
   useEffect(() => {
     if (editingId && nameRef.current) nameRef.current.focus();
@@ -125,10 +125,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
           <span className="text-[11px] font-bold uppercase tracking-wider text-textMuted mb-3 block">Filtruj po składnikach:</span>
           <div className="flex flex-wrap gap-2">
             {products.map((p) => (
-              <button key={p} onClick={() => toggleProd(p)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
-                  prodFilter.includes(p) ? "bg-secondary text-white border-primary shadow-sm" : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
-                }`}>{p}</button>
+              <ToggleChip key={p} label={p} active={prodFilter.includes(p)} onClick={() => toggleProd(p)} />
             ))}
           </div>
           {prodFilter.length > 0 && (

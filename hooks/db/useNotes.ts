@@ -3,7 +3,7 @@ import { Note } from "@/types/notes";
 import { getAppDateTime } from "@/lib/dateUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useNotes() {
   const { user, supabase } = useAuth();

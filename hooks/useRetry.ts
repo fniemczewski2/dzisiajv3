@@ -1,6 +1,5 @@
+import { RETRY_DELAY_MS } from "@/config/limits";
 import { useCallback } from "react";
-
-const RETRY_DELAY_MS = 1500;
 
 export function useRetry() {
   return useCallback(async function withRetry<T>(operation: () => Promise<T>): Promise<T> {

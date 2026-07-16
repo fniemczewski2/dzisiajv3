@@ -4,7 +4,7 @@ import { generatePlaceTags } from "@/lib/placeTagging";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function usePlaces() {
   const { user, supabase } = useAuth();

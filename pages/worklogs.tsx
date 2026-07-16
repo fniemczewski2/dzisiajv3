@@ -3,15 +3,13 @@ import { format, subMonths, addMonths } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Clock, Calendar} from 'lucide-react';
 import { useWorkLogs } from '@/hooks/db/useWorkLogs';
-import { useToast } from '@/providers/ToastProvider';
 import { AddButton, DeleteButton, FormButtons } from '@/components/ui/CommonButtons';
 import NoResultsState from '@/components/ui/NoResultsState';
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
-import { useRetry } from '@/lib/withRetry';
 import { useAuth } from '@/providers/AuthProvider';
 
-const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: any) => Promise<void>, onCancel: () => void, loading: boolean }) => {
+const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: Omit<WorkLogInsert, 'user_id'>) => Promise<void>, onCancel: () => void, loading: boolean }) => {
   const { user } = useAuth();
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
@@ -86,13 +84,11 @@ const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: any) => Promis
 };
 
 export default function WorkLogsPage() {
-  const { toast } = useToast();
-  const retry = useRetry();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const monthStr = format(currentDate, 'yyyy-MM');
-  const { workLogs, loading, fetchWorkLogs, addWorkLog, deleteWorkLog } = useWorkLogs(undefined, monthStr);
+  const { workLogs, loading, addWorkLog, deleteWorkLog } = useWorkLogs(undefined, monthStr);
 
   const onNext = () => setCurrentDate(addMonths(currentDate, 1));
   const onPrev = () => setCurrentDate(subMonths(currentDate, 1));
@@ -119,15 +115,11 @@ export default function WorkLogsPage() {
     return acc + (end - start) / 60000;
   }, 0);
 
-  const handleAddLog = async (log: any) => {
-    await retry(() => addWorkLog(log));
+  const handleAddLog = async (log: Omit<WorkLogInsert, 'user_id'>) => {
+    await addWorkLog(log);
   };
   const handleDelete = async (log: WorkLog) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć ten wpis?");
-      if (!ok) return;
     await deleteWorkLog(log.id);
-    toast.success("Usunięto pomyślnie.");
-    fetchWorkLogs();
   }
 
 const totalMonthHours = Math.floor(totalMonthMinutes / 60);

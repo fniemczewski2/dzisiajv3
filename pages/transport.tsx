@@ -37,8 +37,8 @@ export default function TransportPage() {
     const fetchAll = async () => {
       try {
         await refresh();
-      } catch (error: any) {
-        toast.error(error.message || "Nie udało się pobrać pociągów");
+      } catch {
+        toast.error("Błąd pobierania pociągów");
       }
     };
     fetchAll();

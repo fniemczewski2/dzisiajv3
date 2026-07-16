@@ -7,8 +7,9 @@ import { useReminders } from "@/hooks/db/useReminders";
 import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { Task } from "@/types/tasks";
+import { Reminder } from "@/types/reminders";
 import NoResultsState from "../ui/NoResultsState";
-import { AddButton, FormButtons } from "../ui/CommonButtons";
+import { AddButton, FormButtons, IconActionButton } from "../ui/CommonButtons";
 
 interface RemindersProps {
   addTask: (task: Task) => Promise<unknown>;
@@ -67,7 +68,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     setShowForm(false);
   }
 
-  const handleAddTask = async (reminder: any) => {
+  const handleAddTask = async (reminder: Reminder) => {
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
 
@@ -145,22 +146,10 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => handleAddTask(r)} title="Dodaj jako zadanie"
-                        className="p-2 text-primary hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-colors">
-                        <ListPlus className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleComplete(r.id)} title="Zakończ zadanie"
-                        className="p-2 text-green-600 hover:bg-green-600/10 rounded-lg transition-colors">
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handlePostpone(r.id, r.powtarzanie)} title="Odłóż na później"
-                        className="p-2 text-yellow-600 hover:bg-yellow-600/10 rounded-lg transition-colors">
-                        <ChevronsRight className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(r.id)} title="Usuń całkowicie"
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <IconActionButton onClick={() => handleAddTask(r)} title="Dodaj jako zadanie" Icon={ListPlus} variant="primary" disabled={loading} />
+                      <IconActionButton onClick={() => handleComplete(r.id)} title="Zakończ zadanie" Icon={Check} variant="success" disabled={loading} />
+                      <IconActionButton onClick={() => handlePostpone(r.id, r.powtarzanie)} title="Odłóż na później" Icon={ChevronsRight} variant="warning" disabled={loading} />
+                      <IconActionButton onClick={() => handleDelete(r.id)} title="Usuń całkowicie" Icon={Trash2} variant="danger" disabled={loading} />
                     </div>
                   </li>
                 ))}

@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Schema } from "@/types/schemas";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 function parseSchema<T extends { days: any; entries: any }>(raw: T): T {
   return {

@@ -25,8 +25,7 @@ export function useImages() {
       const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
       toast.success('Przesłano zdjęcie zostało wgrane!');
       return publicUrlData;
-    } catch (error: any) {
-      console.error(error);
+    } catch {
       toast.error('Bład przesyłania zdjęcia.');
     } finally {
       setUploading(false);

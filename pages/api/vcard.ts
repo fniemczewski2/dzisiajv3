@@ -26,10 +26,11 @@ function safeFileName(raw: string | undefined): string {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const { slug } = req.query;
 
   if (!slug || typeof slug !== 'string') {
-    return res.status(400).json({ error: 'Brak parametru slug' });
+    return res.status(400).json({ error: 'No slug' });
   }
 
   const { data: profile, error } = await supabase

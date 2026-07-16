@@ -4,7 +4,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/lib/withRetry";
+import { useRetry } from "@/hooks/useRetry";
 
 export function useShoppingLists() {
   const { user, supabase } = useAuth();

@@ -6,7 +6,6 @@ import { generateReportPDF } from "@/lib/pdfGenerator";
 import { Report, ReportTask } from "@/types/reports";
 import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "@/components/ui/CommonButtons";
 import { format } from "date-fns";
-import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 import { SkeletonReport } from "@/components/ui/Skeleton";
 
@@ -23,8 +22,8 @@ interface ReportEditRowProps{
   onSave: () => void;
   onCancel: () => void;
   loading: boolean;
-  upd: (field: string, val: any) => void;
-  updArr: (field: string, arr: any[]) => void;
+  upd: <K extends keyof Report>(field: K, val: Report[K]) => void;
+  updArr: <K extends keyof Report>(field: K, arr: Report[K]) => void;
 }
 
 function ReportViewRow({
@@ -204,7 +203,6 @@ function ReportEditRow({
 
 export default function ReportsPage() {
   const { reports, fetching, fetchReports, editReport, deleteReport, loading } = useReports();
-  const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedReport, setEditedReport] = useState<Report | null>(null);
@@ -220,23 +218,17 @@ export default function ReportsPage() {
 
   const handleSaveEdit = async () => {
     if (!editedReport) return;
-    try {
-      await editReport(editedReport.id, editedReport);
-      toast.success("Zmieniono pomyślnie.");
-      setEditingId(null);
-      setEditedReport(null);
-    } catch { toast.error("Wystąpił błąd podczas zapisywania."); }
+    await editReport(editedReport.id, editedReport);
+    setEditingId(null);
+    setEditedReport(null);
   };
 
   const handleDelete = async (id: string) => {
-    const ok = await toast.confirm("Czy na pewno chcesz usunąć to sprawozdanie?");
-    if (!ok) return;
-    try { await deleteReport(id); toast.success("Usunięto pomyślnie."); }
-    catch { toast.error("Wystąpił błąd podczas usuwania."); }
+    await deleteReport(id);
   };
 
-  const upd = (field: string, val: any) => setEditedReport((r) => r ? { ...r, [field]: val } : r);
-  const updArr = (field: string, arr: any[]) => upd(field, arr);
+  const upd = <K extends keyof Report>(field: K, val: Report[K]) => setEditedReport((r) => r ? { ...r, [field]: val } : r);
+  const updArr = <K extends keyof Report>(field: K, arr: Report[K]) => upd(field, arr);
 
   const handleGenerate = async (report: Report) => {
     generateReportPDF(report);
