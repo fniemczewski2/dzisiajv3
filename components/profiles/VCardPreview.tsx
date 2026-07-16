@@ -53,10 +53,12 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
   const publicLink = profile.is_public && profile.public_slug 
     ? `${appUrl}/v/${profile.public_slug}` 
     : `${appUrl}/vcard-preview`;
-
+    
   const downloadVCard = () => {
     let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
+    vcf += `N:;${profile.full_name || ''};;;\n`; 
     vcf += `FN:${profile.full_name || ''}\n`;
+    
     if (profile.organization) vcf += `ORG:${profile.organization}\n`;
     
     profile.phones?.forEach(phone => {
@@ -72,18 +74,18 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
       vcf += `ADR;TYPE=${addr.type.toUpperCase()}:;;${addr.address};;;;\n`;
     });
 
-  if (profile.social_links) {
-      Object.entries(profile.social_links).forEach(([network, rawLink]) => {
-        const link = rawLink as any;
-
-        if (typeof link === 'string' && link.trim() !== '') {
-          vcf += `URL;TYPE=${network.toUpperCase()}:${link}\r\n`;
-        } 
-        else if (link && typeof link === 'object' && typeof link.url === 'string' && link.url.trim() !== '') {
-          vcf += `URL;TYPE=${network.toUpperCase()}:${link.url}\r\n`;
+    // Poprawiona iteracja po tablicy social_links
+    if (profile.social_links && Array.isArray(profile.social_links)) {
+      profile.social_links.forEach((link) => {
+        if (link && link.url && link.platform) {
+          const url = typeof link.url === 'string' ? link.url.trim() : '';
+          if (url !== '') {
+            vcf += `URL;TYPE=${link.platform.toUpperCase()}:${url}\r\n`;
+          }
         }
       });
     }
+    
     vcf += `END:VCARD`;
 
     const blob = new Blob([vcf], { type: 'text/vcard;charset=utf-8' });

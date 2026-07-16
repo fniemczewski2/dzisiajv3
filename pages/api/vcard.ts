@@ -45,9 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
-
+  lines.push(`N:;${escVCardValue(profile.full_name || '')};;;`);
   lines.push(`FN:${escVCardValue(profile.full_name || '')}`);
-
+  
   if (profile.organization) {
     lines.push(`ORG:${escVCardValue(profile.organization)}`);
   }

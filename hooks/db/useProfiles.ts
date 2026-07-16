@@ -17,10 +17,6 @@ export function useProfiles() {
   const withRetry = useRetry();
 
   const fetchProfiles = useCallback(async () => {
-    if (!userId) {
-      toast.error("Zaloguj się!");
-      throw new Error("Unauthorized");
-    }
     setFetching(true);
     setError(null);
     try {
