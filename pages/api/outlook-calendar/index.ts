@@ -2,8 +2,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { randomBytes } from 'node:crypto';
 import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
+import { User, SupabaseClient } from '@supabase/supabase-js';
+import { ConnectedCalendarRow } from '@/types/connectedCalendars';
+import { OutlookTokenResponse, OutlookEventsResponse, OutlookCalendarsResponse } from '@/types/outlookCalendar';
 
-async function refreshOutlookToken(refreshToken: string) {
+async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenResponse | null> {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -34,7 +37,7 @@ function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
   return res.status(200).json({ url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}` });
 }
 
-async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, supabase: any, user: any) {
+async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   try {
     const { data: mainAcc, error: dbError } = await supabase
       .from('connected_calendars')
@@ -42,13 +45,13 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
       .eq('user_id', user.id)
       .eq('provider', 'outlook')
       .eq('google_calendar_id', '@account_connection')
-      .maybeSingle();
+      .maybeSingle<ConnectedCalendarRow>();
 
     if (dbError || !mainAcc) return res.status(404).json({ error: 'Brak konta Outlook' });
 
     let accessToken = decryptToken(mainAcc.access_token);
     const storedRefreshToken = decryptToken(mainAcc.refresh_token);
-    const isExpired = new Date(mainAcc.expires_at).getTime() < Date.now() + 60000;
+    const isExpired = new Date(mainAcc.expires_at ?? 0).getTime() < Date.now() + 60000;
 
     if (isExpired && storedRefreshToken) {
       const tokenData = await refreshOutlookToken(storedRefreshToken);
@@ -57,7 +60,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
         await supabase.from('connected_calendars').update({
           access_token: encryptToken(accessToken),
           refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
-          expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
+          expires_at: new Date(Date.now() + (tokenData.expires_in ?? 3600) * 1000).toISOString()
         }).eq('id', mainAcc.id);
       }
     }
@@ -67,9 +70,9 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
     });
 
     if (!response.ok) { return res.status(500).json({ error: "Wystąpił błąd Microsoft" });}
-    const data = await response.json();
+    const data: OutlookCalendarsResponse = await response.json();
     
-    const calendars = (data.value || []).map((cal: any) => ({
+    const calendars = (data.value || []).map((cal) => ({
       id: cal.id,
       summary: cal.name,
       primary: cal.isDefaultCalendar,
@@ -82,7 +85,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
   }
 }
 
-async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase: any, user: any) {
+async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona' });
 
   try {
@@ -94,7 +97,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
       .eq('user_id', user.id)
       .eq('provider', 'outlook')
       .eq('google_calendar_id', '@account_connection')
-      .maybeSingle();
+      .maybeSingle<ConnectedCalendarRow>();
 
     if (!mainAcc) return res.status(500).json({ error: "Brak podłączonego konta Microsoft" });
 
@@ -113,7 +116,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
       });
           
       if (!msRes.ok) break;
-      const data: any = await msRes.json();
+      const data: OutlookEventsResponse = await msRes.json();
       const eventsToInsert = [];
       
       for (const ev of data.value || []) {
@@ -159,7 +162,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
   }
 }
 
-async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supabase: any, user: any) {
+async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   try {
     const { subCalendarId, email } = req.query;
     if (subCalendarId) {

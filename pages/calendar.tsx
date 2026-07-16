@@ -8,6 +8,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/hooks/useQuickAction";
 import { useMoods } from "@/hooks/db/useMoods";
+import { useSettings } from "@/hooks/db/useSettings";
 import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import Seo from "@/components/ui/SEO";
@@ -28,6 +29,8 @@ export default function CalendarPage() {
   const { events, fetching, addEvent, fetchEvents } = useEvents(rangeStart, rangeEnd);
 
   const { moods } = useMoods();
+  const { settings } = useSettings();
+  const moodOptions = settings.mood_options?.length ? settings.mood_options : DEFAULT_MOODS;
 
   const goToPrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
@@ -74,7 +77,7 @@ export default function CalendarPage() {
 
           {fetching
             ? <SkeletonCalendar />
-            : <MonthView currentDate={currentDate} events={events} onSelectDate={(date) => setSelectedDate(date)} moods={moods} DEFAULT_MOODS={DEFAULT_MOODS} />
+            : <MonthView currentDate={currentDate} events={events} onSelectDate={(date) => setSelectedDate(date)} moods={moods} moodOptions={moodOptions} />
           }
         </>
         )}

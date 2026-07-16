@@ -7,6 +7,8 @@ import { AddButton } from '../ui/CommonButtons';
 import NoResultsState from '../ui/NoResultsState';
 import LoadingState from '../ui/LoadingState';
 import { useResponsive } from '@/hooks/useResponsive';
+import { StationBoardItem, StationBoardResponse } from '@/types/pkpplk';
+import { TrainInput } from '@/types/transport';
 
 const renderStatusInfo = (status: string, statusClasses: string) => {
     return (
@@ -57,7 +59,7 @@ export default function StationBoardWidget() {
   
   const [selectedStations, setSelectedStations] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
-  const [boardsData, setBoardsData] = useState<Record<string, { items: any[]; loading: boolean; error: string }>>({});
+  const [boardsData, setBoardsData] = useState<Record<string, { items: StationBoardItem[]; loading: boolean; error: string }>>({});
 
     const fetchBoard = useCallback(async (stationName: string) => {
     setBoardsData(prev => ({
@@ -74,10 +76,10 @@ export default function StationBoardWidget() {
       }));
       }
       if (!res.ok) {
-        const errData = await res.json();
+        const errData: { error?: string } = await res.json();
         throw new Error(errData.error || 'Błąd pobierania tablicy');
       }
-      const data = await res.json();
+      const data: StationBoardResponse = await res.json();
       
       setBoardsData(prev => ({
         ...prev,
@@ -128,8 +130,8 @@ export default function StationBoardWidget() {
     });
   };
 
-  const handleTrackTrain = async (item: any) => {
-    const trainData = {
+  const handleTrackTrain = async (item: StationBoardItem) => {
+    const trainData: TrainInput = {
       trainNumber: item.trainNumber,
       trainName: item.trainName,
       date: item.date,
@@ -143,7 +145,7 @@ export default function StationBoardWidget() {
     await addTrain(trainData); 
   };
 
-  const renderBoardState = (board: { items: any[]; loading: boolean; error: string }) => {
+  const renderBoardState = (board: { items: StationBoardItem[]; loading: boolean; error: string }) => {
     if (board.error) {
       return (
         <div className="p-6 text-center text-sm text-red-500 flex items-center justify-center gap-2">

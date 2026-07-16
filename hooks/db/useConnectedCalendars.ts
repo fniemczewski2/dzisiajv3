@@ -12,7 +12,7 @@ export function useConnectedCalendars(expanded: boolean) {
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [calendars, setCalendars] = useState<ExternalCalendar[]>([]);
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 

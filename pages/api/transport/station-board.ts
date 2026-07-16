@@ -1,8 +1,29 @@
 import { getAppDateTime } from '@/lib/dateUtils';
 import { createServerSupabase } from '@/lib/supabase/server';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import type {
+  StationsDictionaryResponse,
+  SchedulesResponse,
+  OperationsResponse,
+  StationBoardItem,
+  StationBoardResponse,
+} from '@/types/pkpplk';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+type ApiError = { error: string };
+
+const STATUS_LABELS: Record<string, string> = {
+  S: 'Nie zaczął',
+  P: 'W trasie',
+  C: 'Zakończył',
+  F: 'Zakończył',
+  X: 'Odwołany',
+  Q: 'Cz. odwołany',
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<StationBoardResponse | ApiError>
+) {
   const { stationName } = req.query;
   const apiKey = process.env.PLK_API_KEY;
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
@@ -11,8 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return res.status(401).json({ error: "Unauthorized" });
 
-  if (!stationName) return res.status(400).json({ error: 'No stationName' });
-  
+  if (!stationName || Array.isArray(stationName)) return res.status(400).json({ error: 'No stationName' });
+
   if (!apiKey) return res.status(500).json({ error: 'Server config error' });
 
   try {
@@ -21,14 +42,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Accept': 'application/json',
     };
 
-    const searchWord = (stationName as string);
-    const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(searchWord)}&pageSize=10`, { headers });
+    const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(stationName)}&pageSize=10`, { headers });
     if(stationsRes.status === 429) { return res.status(429).json({ error: "Spróbuj ponownie później" });}
     if (!stationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
-    const stationsData = await stationsRes.json();
+    const stationsData: StationsDictionaryResponse = await stationsRes.json();
     
-    const normalizedInput = (stationName as string).toLowerCase().replaceAll('gł.', 'główny');
-    const station = stationsData.stations?.find((s: any) => 
+    const normalizedInput = stationName.toLowerCase().replaceAll('gł.', 'główny');
+    const station = stationsData.stations?.find((s) => 
       s.name.toLowerCase().includes(normalizedInput) || normalizedInput.includes(s.name.toLowerCase())
     ) || stationsData.stations?.[0];
 
@@ -45,39 +65,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(schedulesRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
     if (!schedulesRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
 
-    const schedulesData = await schedulesRes.json();
+    const schedulesData: SchedulesResponse = await schedulesRes.json();
 
     const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers });
     if(operationsRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
     
     if (!operationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
-    const operationsData = await operationsRes.json();
+    const operationsData: OperationsResponse = await operationsRes.json();
     const stationsDict = operationsData.stations || {};
 
-    const getStationName = (id: number) => stationsDict[id];
+    const getStationName = (id: string) => stationsDict[id];
 
-    const boardItems: any[] = [];
+    const boardItems: StationBoardItem[] = [];
 
-    (schedulesData.routes || []).forEach((route: any) => {
-      const plannedStation = route.stations?.find((s: any) => s.stationId === stationId);
+    (schedulesData.routes || []).forEach((route) => {
+      const plannedStation = route.stations?.find((s) => s.stationId === stationId);
       if (!plannedStation) return; 
 
-      const liveTrain = operationsData.trains?.find((t: any) => t.scheduleId === route.scheduleId && t.orderId === route.orderId);
-      const opStation = liveTrain?.stations?.find((s: any) => s.stationId === stationId);
-      const destinationStationId = liveTrain?.stations?.[liveTrain.stations.length - 1].stationId;
-      const destinationName = destinationStationId ? getStationName(destinationStationId) : '-';
+      const liveTrain = operationsData.trains?.find((t) => t.scheduleId === route.scheduleId && t.orderId === route.orderId);
+      const opStation = liveTrain?.stations?.find((s) => s.stationId === stationId);
+      const lastStation = liveTrain?.stations?.[liveTrain.stations.length - 1];
+      const destinationName = lastStation ? getStationName(lastStation.stationId) : '-';
       
       let status = 'Brak danych';
       if (liveTrain) {
-        const statusMap: Record<string, string> = {
-          'S': 'Nie zaczął',
-          'P': 'W trasie',
-          'C': 'Zakończył',
-          'F': 'Zakończył',
-          'X': 'Odwołany',
-          'Q': 'Cz. odwołany'
-        };
-        status = statusMap[liveTrain.trainStatus] || 'W trasie';
+        status = STATUS_LABELS[liveTrain.trainStatus ?? ''] || 'W trasie';
         if (opStation?.isCancelled) status = 'Odwołany';
       }
 
@@ -96,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         delay,
         platform,
         status,
-        to: destinationName,
+        to: destinationName || '-',
         currentStation: actualStationName,
         date,
         actualDeparture: opStation?.actualDeparture || null 

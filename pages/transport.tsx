@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import SearchBar from "@/components/ui/SearchBar";
 import { useTransport } from "@/hooks/db/useTransport";
 import NoResultsState from "@/components/ui/NoResultsState";
-import { SkeletonStopCard } from "@/components/ui/Skeleton";
+import { SkeletonStopCard, SkeletonTrainCard } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
 import { AddButton, DeleteButton, FavButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
@@ -31,7 +31,7 @@ export default function TransportPage() {
     transportError
   } = useTransport(true);
 
-  const { trains, addTrain, deleteTrain, refresh, loading: trainsLoading } = useTrains();
+  const { trains, addTrain, deleteTrain, refresh, fetching: trainsFetching } = useTrains();
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -155,6 +155,27 @@ export default function TransportPage() {
     ));
   }
 
+  let trainsContent;
+
+  if (trainsFetching) {
+    trainsContent = (
+      <>
+        <SkeletonTrainCard />
+        <SkeletonTrainCard />
+      </>
+    );
+  } else if (trains.length === 0) {
+    trainsContent = <NoResultsState text="zaplanowanych podróży kolejowych" />;
+  } else {
+    trainsContent = trains.map((train) => (
+      <TrackedTrainCard 
+        key={train.id} 
+        train={train} 
+        onDelete={deleteTrain}
+      />
+    ));
+  }
+
   return (
     <>
       <Seo
@@ -204,17 +225,7 @@ export default function TransportPage() {
           <AddTrainForm onTrainAdded={addTrain} expanded={expanded} setExpanded={setExpanded}/>
           <div className="grid md:grid-cols-2 gap-6 items-start mt-4">
             <div className="space-y-4">
-              {trains.length === 0 ? (
-                <NoResultsState text="zaplanowanych podróży kolejowych" />
-              ) : (
-                trains.map((train) => (
-                  <TrackedTrainCard 
-                    key={train.id} 
-                    train={train} 
-                    onDelete={deleteTrain}
-                  />
-                ))
-              )}
+              {trainsContent}
             </div>
           </div>
         </section>

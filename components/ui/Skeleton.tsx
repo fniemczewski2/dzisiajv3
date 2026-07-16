@@ -267,6 +267,33 @@ export function SkeletonSettings() {
   );
 }
 
+export function SkeletonTrainCard() {
+  return (
+    <div className="p-4 pt-10 w-full card rounded-xl relative overflow-hidden">
+      <Bar className="absolute top-0 left-0 w-full h-6 rounded-none" />
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex flex-col gap-2">
+          <Bar className="h-7 w-16" />
+          <Bar className="h-5 w-24 rounded-md" />
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Bar className="h-5 w-14" />
+          <Bar className="h-3 w-10" />
+        </div>
+      </div>
+      <div className="flex items-center gap-3 mb-4 px-1">
+        <Bar className="h-4 flex-1 max-w-[40%]" />
+        <Bar className="h-px flex-1" />
+        <Bar className="h-4 flex-1 max-w-[40%]" />
+      </div>
+      <div className="flex gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 mt-2">
+        <Bar className="h-12 flex-1 rounded-lg" />
+        <Bar className="h-12 flex-1 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
 export function SkeletonList({
   count = 4,
   variant = "card",

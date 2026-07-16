@@ -126,7 +126,7 @@ export function useBills(options: FetchOptions = {}) {
         setFetching(false);
       }
     },
-    [userId, settings, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry]
+    [userId, settings.show_budget_items, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry]
   );
 
   useEffect(() => {

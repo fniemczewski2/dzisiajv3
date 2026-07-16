@@ -17,7 +17,7 @@ interface MonthViewProps {
   currentDate: Date;
   onSelectDate: (date: Date) => void;
   moods: MoodEntry[];
-  DEFAULT_MOODS: MoodOption[];
+  moodOptions: MoodOption[];
 }
 
 const weekdayNamesPL = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
@@ -103,7 +103,7 @@ const MonthView = memo(function MonthView({
   currentDate,
   onSelectDate,
   moods,
-  DEFAULT_MOODS,
+  moodOptions,
 }: Readonly<MonthViewProps>) {
   const isMobile = useResponsive();
 
@@ -170,7 +170,7 @@ const MonthView = memo(function MonthView({
         {weekdayNamesPL.map((d) => <div key={d} className="py-1">{d}</div>)}
       </div>
 
-      {weekData.map(({ week, limitedEvents, overflowCounts }, wIdx) => (
+      {weekData.map(({ week, limitedEvents, overflowCounts }, _wIdx) => (
         <div key={`week-${week}`} className="relative">
           <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {week.map((day) => {
@@ -184,7 +184,7 @@ const MonthView = memo(function MonthView({
                   currentMonth={currentDate.getMonth()}
                   eCount={overflowCounts[week.indexOf(day)] ?? null}
                   dayMood={moodMap[dateStr]}
-                  DEFAULT_MOODS={DEFAULT_MOODS}
+                  moodOptions={moodOptions}
                   holiday={holidaysMap[dateStr]}
                 />
               );

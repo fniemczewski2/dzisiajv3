@@ -2,6 +2,9 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
+import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from '@/types/connectedCalendars';
+import { GoogleTokenResponse, GoogleEventDateTime, GoogleEventsListResponse } from '@/types/googleCalendar';
+import { OutlookTokenResponse, OutlookEventsResponse } from '@/types/outlookCalendar';
 
 const supabaseService = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +16,7 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const OUTLOOK_CLIENT_ID = process.env.OUTLOOK_CLIENT_ID!;
 const OUTLOOK_CLIENT_SECRET = process.env.OUTLOOK_CLIENT_SECRET!;
 
-const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined, isEndTime = false): string => {
+const toSupabaseTime = (dt: GoogleEventDateTime | undefined, isEndTime = false): string => {
   if (!dt) return new Date().toISOString().slice(0, 19);
   if (dt.dateTime) {
     const localTimeRaw = dt.dateTime.split(/[+-Z]/)[0];
@@ -45,11 +48,11 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
     }),
   });
   if (!r.ok) return null;
-  const d = await r.json();
+  const d: GoogleTokenResponse = await r.json();
   return d.access_token ?? null;
 }
 
-async function refreshOutlookToken(refreshToken: string) {
+async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenResponse | null> {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -64,10 +67,15 @@ async function refreshOutlookToken(refreshToken: string) {
   return await r.json();
 }
 
-async function getAccessToken(acc: any, accounts: any[], tokenCache: Record<string, string>, mainAccountsCache: Record<string, any>): Promise<string | null> {
+async function getAccessToken(
+  acc: ConnectedCalendarRow,
+  accounts: ConnectedCalendarRow[],
+  tokenCache: TokenCache,
+  mainAccountsCache: MainAccountsCache
+): Promise<string | null> {
   const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
   const storedRefreshToken = decryptToken(mainAcc?.refresh_token);
-  if (!storedRefreshToken) return null;
+  if (!storedRefreshToken || !mainAcc) return null;
 
   const cacheKey = `${acc.provider}-${mainAcc.account_email}`;
   if (tokenCache[cacheKey]) return tokenCache[cacheKey];
@@ -77,9 +85,9 @@ async function getAccessToken(acc: any, accounts: any[], tokenCache: Record<stri
     accessToken = (await refreshGoogleToken(storedRefreshToken)) || '';
   } else if (acc.provider === 'outlook') {
     const tokenData = await refreshOutlookToken(storedRefreshToken);
-    accessToken = tokenData ? tokenData.access_token : '';
+    accessToken = tokenData?.access_token ?? '';
   }
-  
+
   if (accessToken) {
     tokenCache[cacheKey] = accessToken;
     mainAccountsCache[cacheKey] = mainAcc;
@@ -87,7 +95,7 @@ async function getAccessToken(acc: any, accounts: any[], tokenCache: Record<stri
   return accessToken || null;
 }
 
-async function syncGoogleCalendar(acc: any, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
+async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
   let importedCount = 0;
   const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
   const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
@@ -110,7 +118,7 @@ async function syncGoogleCalendar(acc: any, accessToken: string, timeMin: Date, 
     });
 
     if (!googleRes.ok) break;
-    const data = await googleRes.json();
+    const data: GoogleEventsListResponse = await googleRes.json();
     pageToken = data.nextPageToken;
 
     for (const ev of data.items || []) {
@@ -141,18 +149,18 @@ async function syncGoogleCalendar(acc: any, accessToken: string, timeMin: Date, 
   return importedCount;
 }
 
-async function syncOutlookCalendar(acc: any, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
+async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
   let importedCount = 0;
   let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
-  
+
   while (fetchUrl) {
     const msRes: Response = await fetch(fetchUrl, {
       headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
     });
-    
+
     if (!msRes.ok) break;
-    const data: any = await msRes.json();
-    
+    const data: OutlookEventsResponse = await msRes.json();
+
     for (const ev of data.value || []) {
       if (ev.isCancelled) continue;
       const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
@@ -181,7 +189,7 @@ async function syncOutlookCalendar(acc: any, accessToken: string, timeMin: Date,
   return importedCount;
 }
 
-async function updateMainTokens(tokenCache: Record<string, string>, mainAccountsCache: Record<string, any>) {
+async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainAccountsCache) {
   for (const [key, token] of Object.entries(tokenCache)) {
     const mainAcc = mainAccountsCache[key];
     if (mainAcc) {
@@ -195,7 +203,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const expectedSecret = process.env.CRON_SECRET;
-  
+
   if (!expectedSecret) {
     console.error("[CRON] No CRON_SECRET defined.");
     return res.status(500).json({ error: "Server configuration error" });
@@ -212,14 +220,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { data: accounts, error: dbError } = await supabaseService.from("connected_calendars").select("*");
+    const { data: accounts, error: dbError } = await supabaseService
+      .from("connected_calendars")
+      .select("*")
+      .returns<ConnectedCalendarRow[]>();
 
     if (dbError) throw dbError;
     if (!accounts || accounts.length === 0) return res.json({ message: "No accounts to synchronize." });
 
     let totalImported = 0;
-    const tokenCache: Record<string, string> = {}; 
-    const mainAccountsCache: Record<string, any> = {};
+    const tokenCache: TokenCache = {};
+    const mainAccountsCache: MainAccountsCache = {};
 
     const timeMin = new Date();
     timeMin.setMonth(timeMin.getMonth() - 1);
@@ -242,8 +253,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await updateMainTokens(tokenCache, mainAccountsCache);
 
     return res.json({ success: true, imported: totalImported });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[CRON ERROR]:", error);
-    return res.status(500).json({ error: error.message });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return res.status(500).json({ error: message });
   }
 }

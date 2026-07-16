@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
+import { ConnectedCalendarRow } from "@/types/connectedCalendars";
+import { GoogleTokenResponse, GoogleEventDateTime, GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
+import { ExternalCalendar } from "@/types/events";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
@@ -45,7 +48,7 @@ async function refreshGoogleToken(refreshToken: string): Promise<string | null> 
     }),
   });
   if (!r.ok) return null;
-  const d = await r.json();
+  const d: GoogleTokenResponse = await r.json();
   return d.access_token ?? null;
 }
 
@@ -58,20 +61,22 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
       .select("account_email")
       .eq("id", accountId)
       .eq("user_id", auth.user.id)
-      .maybeSingle();
+      .maybeSingle<Pick<ConnectedCalendarRow, "account_email">>();
     
     if (calInfo) targetEmail = calInfo.account_email;
   }
 
   let query = sb.from("connected_calendars")
-    .select("id, access_token, refresh_token, expires_at")
+    .select("id, access_token, refresh_token, expires_at, account_email")
     .eq("user_id", auth.user.id)
     .eq("provider", "google")
     .eq("google_calendar_id", "@account_connection");
 
   if (targetEmail) query = query.eq("account_email", targetEmail);
 
-  const { data } = await query.limit(1).maybeSingle();
+  const { data } = await query.limit(1).maybeSingle<
+    Pick<ConnectedCalendarRow, "id" | "access_token" | "refresh_token" | "expires_at" | "account_email">
+  >();
 
   if (!data) return null;
 
@@ -93,7 +98,7 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
   return fresh;
 }
 
-const toSupabaseTime = (dt: { dateTime?: string; date?: string } | undefined, isEndTime = false): string => {
+const toSupabaseTime = (dt: GoogleEventDateTime | undefined, isEndTime = false): string => {
   if (!dt) return new Date().toISOString().slice(0, 19);
   if (dt.dateTime) return dt.dateTime.slice(0, 19) + "+00:00";
   if (dt.date) {
@@ -124,7 +129,7 @@ const toRFC3339 = (ts: string): string => {
   }
 };
 
-async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
   const nonce = randomBytes(24).toString("base64url");
   res.setHeader("Set-Cookie", `gcal_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
 
@@ -157,11 +162,12 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
     .select("id, account_email")
     .eq("user_id", auth.user.id)
     .eq("provider", "google")
-    .eq("google_calendar_id", "@account_connection"); 
+    .eq("google_calendar_id", "@account_connection")
+    .returns<Pick<ConnectedCalendarRow, "id" | "account_email">[]>();
 
   if (!mainAccounts || mainAccounts.length === 0) return res.json({ connected: false, calendars: [] });
 
-  const allCalendars: any[] = [];
+  const allCalendars: ExternalCalendar[] = [];
 
   for (const mainAcc of mainAccounts) {
     const accessToken = await getValidGoogleToken(auth, mainAcc.id);
@@ -170,11 +176,11 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
     const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", { headers: { Authorization: `Bearer ${accessToken}` } });
 
     if (r.ok) {
-      const data = await r.json();
+      const data: GoogleCalendarListResponse = await r.json();
       
-      const items = data.items?.filter((c: any) => !c.id.includes("addressbook#birthdays")) || [];
+      const items = data.items?.filter((c) => !c.id.includes("addressbook#birthdays")) || [];
 
-      items.forEach((c: any) => allCalendars.push({ ...c, primaryAccountId: mainAcc.id }));
+      items.forEach((c) => allCalendars.push({ id: c.id, summary: c.summary ?? "", primary: c.primary, primaryAccountId: mainAcc.id }));
 
       allCalendars.push({
         id: "google_birthdays",
@@ -214,7 +220,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
     url.searchParams.set("eventTypes", "default");
   }
 
-  let allItems: any[] = [];
+  const allItems: GoogleCalendarEvent[] = [];
   let pageToken: string | undefined = undefined;
 
   do {
@@ -225,7 +231,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
 
     if (!r.ok) return res.status(r.status).json({ error: "Failed to fetch from Google" });
 
-    const data = await r.json();
+    const data: GoogleEventsListResponse = await r.json();
     allItems.push(...(data.items || []));
     pageToken = data.nextPageToken;
   } while (pageToken);
@@ -303,6 +309,25 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth:
   return res.json({ ok: true });
 }
 
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const auth = await getUserFromBearer(req);
+    if (!auth) return res.status(401).json({ error: "Unauthorized" });
+
+    const { action } = req.query;
+    if (action === "auth-url" && req.method === "GET") return await handleAuthUrl(req, res);
+    if (action === "list-calendars" && req.method === "GET") return await handleListCalendars(req, res, auth);
+    if (action === "import" && req.method === "POST") return await handleImport(req, res, auth);
+    if (action === "export" && req.method === "POST") return await handleExport(req, res, auth);
+    if (action === "disconnect" && req.method === "DELETE") return await handleDisconnect(req, res, auth);
+    return res.status(404).json({ error: "Unknown action" });
+  } catch (error) {
+    console.error("[GOOGLE-CALENDAR ERROR]:", error);
+    const message = error instanceof Error ? error.message : "Wystąpił nieoczekiwany błąd";
+    return res.status(500).json({ error: message });
+  }
+}
+
 async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, eventIds, accountId } = req.body ?? {};
   if (!calendarId) return res.status(400).json({ error: "calendarId required" });
@@ -337,17 +362,4 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
     } else skipped++;
   }
   return res.json({ exported, skipped });
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const auth = await getUserFromBearer(req);
-  if (!auth) return res.status(401).json({ error: "Unauthorized" });
-
-  const { action } = req.query;
-  if (action === "auth-url" && req.method === "GET") return handleAuthUrl(req, res, auth);
-  if (action === "list-calendars" && req.method === "GET") return handleListCalendars(req, res, auth);
-  if (action === "import" && req.method === "POST") return handleImport(req, res, auth);
-  if (action === "export" && req.method === "POST") return handleExport(req, res, auth);
-  if (action === "disconnect" && req.method === "DELETE") return handleDisconnect(req, res, auth);
-  return res.status(404).json({ error: "Unknown action" });
 }

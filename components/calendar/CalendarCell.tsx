@@ -4,7 +4,6 @@ import { isSameDay, parseISO } from "date-fns";
 import { Calendar } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { getAppDate } from "@/lib/dateUtils";
-import { useSettings } from "@/hooks/db/useSettings";
 import { MoodEntry, MoodOption } from "@/types/moods";
 
 interface Props {
@@ -14,7 +13,7 @@ interface Props {
   isMobile: boolean;
   onClick: () => void;
   dayMood?: MoodEntry | null;
-  DEFAULT_MOODS: MoodOption[];
+  moodOptions: MoodOption[];
   holiday?: string;
 }
 
@@ -26,6 +25,7 @@ function areEqual(prev: Props, next: Props): boolean {
     prev.isMobile === next.isMobile &&
     prev.onClick === next.onClick &&
     prev.dayMood?.mood_id === next.dayMood?.mood_id &&
+    prev.moodOptions === next.moodOptions &&
     prev.holiday === next.holiday
   );
 }
@@ -37,22 +37,17 @@ const CalendarCell = memo(function CalendarCell({
   isMobile,
   onClick,
   dayMood,
-  DEFAULT_MOODS,
+  moodOptions,
   holiday,
 }: Readonly<Props>) {
   const today = parseISO(getAppDate());
   const isOutside = date.getMonth() !== currentMonth;
   const isToday = isSameDay(date, today);
-  const { settings } = useSettings();
 
   const moodOption = useMemo(() => {
     if (!dayMood) return null;
-    return (
-      settings?.mood_options?.find(
-        (o: MoodOption) => o.id === dayMood.mood_id
-      ) ?? DEFAULT_MOODS.find((o) => o.id === dayMood.mood_id)
-    );
-  }, [dayMood, settings?.mood_options, DEFAULT_MOODS]);
+    return moodOptions.find((o) => o.id === dayMood.mood_id) ?? null;
+  }, [dayMood, moodOptions]);
 
   return (
     <button
