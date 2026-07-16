@@ -82,9 +82,10 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       const categoryObj = availableCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
       
       if (!categoryObj?.id) {
-        console.warn("Pominięto operację - brak prawidłowego ID kategorii", t);
+        console.warn("Pominięto operację", t);
         continue;
       }
+      console.log(t.amount, t.is_income)
 
       try {
         await addBill({
@@ -92,13 +93,13 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
           date: t.date,
           category_id: categoryObj.id,
           description: t.description.substring(0, 50),
-          is_income: false,
+          is_income: t.is_income,
           done: true, 
         });
         tick();
       } catch (billError: any) {
         if (billError?.code === "23503") {
-          throw new Error(`Błąd połączenia z kategorią "${categoryObj.name}". Odśwież stronę (klawisz F5) i spróbuj ponownie.`);
+          throw new Error(`Błąd połączenia z kategorią`);
         }
         throw billError;
       }

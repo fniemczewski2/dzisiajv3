@@ -82,7 +82,7 @@ const extractAmountAndCategory = (cols: string[], indices: ColumnIndices) => {
 const isExcludedTransaction = (rawDesc: string, catRaw: string): boolean => {
   const rawLower = rawDesc.toLowerCase();
   const catLower = catRaw.toLowerCase();
-  const keywords = ["przelew", "bankomat", "bankomacie", "wpłata", "wpłatomat"];
+  const keywords = ["bankomat", "bankomacie", "wpłata", "wpłatomat"];
   return keywords.some(kw => rawLower.includes(kw) || catLower.includes(kw));
 };
 
@@ -98,12 +98,15 @@ const parseTransactionLine = (cols: string[], indices: ColumnIndices): ParsedTra
   const cleanKwota = kwotaStr.replaceAll(/[\s\u00A0]/g, "").replaceAll(/(zł|pln)/gi, "").replaceAll(",", ".");        
   const amount = Number.parseFloat(cleanKwota);
 
-  if (Number.isNaN(amount) || amount >= 0) return null;
+  if (Number.isNaN(amount)) return null;
   if (isExcludedTransaction(rawDesc, catRaw)) return null;
-
+ 
+  console.log(amount)
+  console.log(amount >=0)
   return {
     date: formattedDate,
     description: cleanDescription(rawDesc),
+    is_income: (amount >=0),
     amount: Math.abs(amount),
     mappedCategory: mapCategory(catRaw, rawDesc),
   };

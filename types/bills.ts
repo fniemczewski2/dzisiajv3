@@ -24,6 +24,7 @@ export interface RawBillRow {
 export interface ParsedTransaction {
   date: string; 
   description: string;
+  is_income: boolean;
   amount: number;
   mappedCategory: string;
 }
