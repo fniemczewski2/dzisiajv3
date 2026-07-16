@@ -9,7 +9,7 @@ import { useAuth } from "@/providers/AuthProvider";
 
 const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
 
-function HolidayIndicator({ dateStr, dateObj }: { dateStr: string, dateObj: Date }) {
+function HolidayIndicator({ dateStr, dateObj }: { readonly dateStr: string, readonly dateObj: Date }) {
   const holiday = useMemo(() => {
     const holidaysMap = getPolishHolidays(dateObj.getFullYear());
     return holidaysMap[dateStr] || null;
@@ -30,7 +30,7 @@ function HolidayIndicator({ dateStr, dateObj }: { dateStr: string, dateObj: Date
   );
 }
 
-function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { dateStr: string, dateObj: Date }) {
+function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr: string, readonly dateObj: Date }) {
   const monthStart = useMemo(() => 
     format(new Date(dateObj.getFullYear(), dateObj.getMonth(), 1), "yyyy-MM-dd"),
     [dateObj]

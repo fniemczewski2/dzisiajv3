@@ -113,6 +113,24 @@ export default function PlacesPage() {
       toast.error("Wystąpił błąd podczas usuwania miejsca.");
     }
   };
+
+  const renderPlaces = () => {
+    return (
+    viewMode === "list" ? (
+        <PlacesList
+          places={filteredPlaces}
+          onEdit={setEditingPlace}
+          onDelete={handleDeletePlace}
+        />
+      ) : (
+        <PlacesMap
+          places={filteredPlaces}
+          onPlaceClick={setEditingPlace}
+        />
+      )
+    );
+  }
+  
   return (
     <>
       <Seo
@@ -158,18 +176,9 @@ export default function PlacesPage() {
 
       {fetching ? (
         <SkeletonList count={5} variant="row" />
-      ) : viewMode === "list" ? (
-        <PlacesList
-          places={filteredPlaces}
-          onEdit={setEditingPlace}
-          onDelete={handleDeletePlace}
-        />
-      ) : (
-        <PlacesMap
-          places={filteredPlaces}
-          onPlaceClick={setEditingPlace}
-        />
-      )}
+      ) : 
+        renderPlaces()
+      }
 
       {editingPlace && (
         <PlaceForm

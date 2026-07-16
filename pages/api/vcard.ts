@@ -9,19 +9,19 @@ const supabase = createClient(
 
 function escVCardValue(raw: string): string {
   return raw
-    .replace(/\\/g, '\\\\')
-    .replace(/\r?\n/g, '\\n')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,');
+    .replaceAll(/\\/g, '\\\\')
+    .replaceAll(/\r?\n/g, '\\n')
+    .replaceAll(/;/g, '\\;')
+    .replaceAll(/,/g, '\\,');
 }
 
 function sanitizeTypeToken(raw: string): string {
-  const cleaned = raw.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
+  const cleaned = raw.replaceAll(/[^A-Za-z0-9-]/g, '').toUpperCase();
   return cleaned || 'OTHER';
 }
 
 function safeFileName(raw: string | undefined): string {
-  const cleaned = (raw ?? '').replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '');
+  const cleaned = (raw ?? '').replaceAll(/[^\p{L}\p{N}_-]+/gu, '_').replaceAll(/^_+|_+$/g, '');
   return cleaned || 'wizytowka';
 }
 
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
   lines.push(`N:;${escVCardValue(profile.full_name || '')};;;`);
   lines.push(`FN:${escVCardValue(profile.full_name || '')}`);
-  
+
   if (profile.organization) {
     lines.push(`ORG:${escVCardValue(profile.organization)}`);
   }
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (Array.isArray(profile.phones)) {
     for (const phone of profile.phones) {
       if (!phone?.number) continue;
-      const cleanNumber = escVCardValue(phone.number.replace(/\s+/g, ''));
+      const cleanNumber = escVCardValue(phone.number.replaceAll(/\s+/g, ''));
       const type = sanitizeTypeToken(phone.type ?? '');
       lines.push(`TEL;TYPE=${type},VOICE:${cleanNumber}`);
     }

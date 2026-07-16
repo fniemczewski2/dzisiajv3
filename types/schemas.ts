@@ -1,5 +1,3 @@
-import { Task } from "./tasks";
-
 export interface ScheduleItem {
   id?: string;
   time: string;

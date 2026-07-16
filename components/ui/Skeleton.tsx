@@ -1,8 +1,8 @@
 // components/ui/Skeleton.tsx
 
-import React from "react";
+import React, { useId, useMemo } from "react";
 
-function Bar({ className = "" }: { className?: string }) {
+function Bar({ className = "" }: { readonly className?: string }) {
   return (
     <div
       className={`animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 ${className}`}
@@ -12,13 +12,16 @@ function Bar({ className = "" }: { className?: string }) {
 
 export const SkeletonLine = Bar;
 
-export function SkeletonCard({ lines = 2 }: { lines?: number }) {
+export function SkeletonCard({ lines = 2 }: { readonly lines?: number }) {
+  const id = useId();
+  const lineIds = useMemo(() => Array.from({ length: lines }, (_, i) => `${id}-line-${i}`), [lines, id]);
+
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
       <Bar className="h-4 w-2/5" />
-      {Array.from({ length: lines }).map((_, i) => (
+      {lineIds.map((lineId, i) => (
         <Bar
-          key={i}
+          key={lineId}
           className={`h-3 ${i === lines - 1 ? "w-3/5" : "w-full"}`}
         />
       ))}
@@ -72,7 +75,7 @@ export function SkeletonShoppingList() {
       {[85, 70, 60].map((w) => (
         <div key={w} className="flex items-center gap-3">
           <Bar className="h-4 w-4 shrink-0 rounded" />
-          <Bar className="h-3 w-6 flex-1"/>
+          <Bar className="h-3 w-6 flex-1" />
         </div>
       ))}
     </div>
@@ -80,17 +83,21 @@ export function SkeletonShoppingList() {
 }
 
 export function SkeletonCalendar() {
+  const id = useId();
+  const dayIds = useMemo(() => Array.from({ length: 7 }, (_, i) => `${id}-day-${i}`), [id]);
+  const weekIds = useMemo(() => Array.from({ length: 5 }, (_, i) => `${id}-week-${i}`), [id]);
+
   return (
     <div className="flex flex-col gap-1">
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Bar key={i} className="h-6 w-full" />
+        {dayIds.map((dayId) => (
+          <Bar key={`header-${dayId}`} className="h-6 w-full" />
         ))}
       </div>
-      {Array.from({ length: 5 }).map((_, week) => (
-        <div key={week} className="grid grid-cols-7 gap-1">
-          {Array.from({ length: 7 }).map((_, day) => (
-            <Bar key={day} className="h-16 w-full rounded-lg" />
+      {weekIds.map((weekId) => (
+        <div key={weekId} className="grid grid-cols-7 gap-1">
+          {dayIds.map((dayId) => (
+            <Bar key={dayId} className="h-16 w-full rounded-lg" />
           ))}
         </div>
       ))}
@@ -98,12 +105,15 @@ export function SkeletonCalendar() {
   );
 }
 
-export function SkeletonTaskList({ count = 5 }: { count?: number }) {
+export function SkeletonTaskList({ count = 5 }: { readonly count?: number }) {
+  const id = useId();
+  const taskIds = useMemo(() => Array.from({ length: count }, (_, i) => `${id}-task-${i}`), [count, id]);
+
   return (
     <div className="flex flex-col gap-2">
-      {Array.from({ length: count }).map((_, i) => (
+      {taskIds.map((taskId, i) => (
         <div
-          key={i}
+          key={taskId}
           className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3"
         >
           <Bar className="h-5 w-5 shrink-0 rounded" />
@@ -115,17 +125,21 @@ export function SkeletonTaskList({ count = 5 }: { count?: number }) {
   );
 }
 
-export function SkeletonBudgetTable({ rows = 6 }: { rows?: number }) {
+export function SkeletonBudgetTable({ rows = 6 }: { readonly rows?: number }) {
+  const id = useId();
+  const cols = useMemo(() => ["w-24", "w-16", "w-20", "w-16"].map((w, i) => ({ id: `${id}-col-${i}`, w })), [id]);
+  const rowIds = useMemo(() => Array.from({ length: rows }, (_, i) => `${id}-row-${i}`), [rows, id]);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-4 gap-4 px-4 py-2">
-        {["w-24", "w-16", "w-20", "w-16"].map((w, i) => (
-          <Bar key={i} className={`h-3 ${w}`} />
+        {cols.map(({ id: colId, w }) => (
+          <Bar key={colId} className={`h-3 ${w}`} />
         ))}
       </div>
-      {Array.from({ length: rows }).map((_, i) => (
+      {rowIds.map((rowId) => (
         <div
-          key={i}
+          key={rowId}
           className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-gray-200 dark:border-gray-700 rounded-lg"
         >
           <Bar className="h-4 w-full" />
@@ -138,15 +152,18 @@ export function SkeletonBudgetTable({ rows = 6 }: { rows?: number }) {
   );
 }
 
-export function SkeletonStopCard({ departures = 4 }: { departures?: number }) {
+export function SkeletonStopCard({ departures = 4 }: { readonly departures?: number }) {
+  const id = useId();
+  const depIds = useMemo(() => Array.from({ length: departures }, (_, i) => `${id}-dep-${i}`), [departures, id]);
+
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
       <div className="flex items-center gap-3">
         <Bar className="h-8 w-8 shrink-0 rounded-lg" />
         <Bar className="h-4 w-1/3" />
       </div>
-      {Array.from({ length: departures }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 pl-2">
+      {depIds.map((depId) => (
+        <div key={depId} className="flex items-center gap-3 pl-2">
           <Bar className="h-6 w-12 shrink-0 rounded-md" />
           <Bar className="h-3 flex-1" />
           <Bar className="h-4 w-10 shrink-0" />
@@ -157,6 +174,9 @@ export function SkeletonStopCard({ departures = 4 }: { departures?: number }) {
 }
 
 export function SkeletonWeather() {
+  const id = useId();
+  const forecastIds = useMemo(() => Array.from({ length: 5 }, (_, i) => `${id}-forecast-${i}`), [id]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-6 flex items-center gap-6">
@@ -168,9 +188,9 @@ export function SkeletonWeather() {
         </div>
       </div>
       <div className="grid grid-cols-5 gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {forecastIds.map((forecastId) => (
           <div
-            key={i}
+            key={forecastId}
             className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex flex-col items-center gap-2"
           >
             <Bar className="h-3 w-8" />
@@ -184,6 +204,9 @@ export function SkeletonWeather() {
 }
 
 export function SkeletonProfile() {
+  const id = useId();
+  const itemIds = useMemo(() => Array.from({ length: 3 }, (_, i) => `${id}-item-${i}`), [id]);
+
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm flex flex-col gap-4">
       <div className="flex items-center gap-4">
@@ -194,8 +217,8 @@ export function SkeletonProfile() {
         </div>
       </div>
       <Bar className="h-px w-full" />
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3">
+      {itemIds.map((itemId) => (
+        <div key={itemId} className="flex items-center gap-3">
           <Bar className="h-4 w-4 shrink-0 rounded" />
           <Bar className="h-3 w-1/2" />
         </div>
@@ -218,12 +241,15 @@ export function SkeletonReport() {
   );
 }
 
-export function SkeletonDaySchema({ rows = 5 }: { rows?: number }) {
+export function SkeletonDaySchema({ rows = 5 }: { readonly rows?: number }) {
+  const id = useId();
+  const rowIds = useMemo(() => Array.from({ length: rows }, (_, i) => `${id}-schema-${i}`), [rows, id]);
+
   return (
     <div className="flex flex-col gap-2">
-      {Array.from({ length: rows }).map((_, i) => (
+      {rowIds.map((rowId) => (
         <div
-          key={i}
+          key={rowId}
           className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex items-center gap-4"
         >
           <Bar className="h-10 w-14 shrink-0 rounded-lg" />
@@ -236,20 +262,24 @@ export function SkeletonDaySchema({ rows = 5 }: { rows?: number }) {
 }
 
 export function SkeletonSettings() {
+  const id = useId();
+  const gridIds = useMemo(() => Array.from({ length: 8 }, (_, i) => `${id}-grid-${i}`), [id]);
+  const listIds = useMemo(() => Array.from({ length: 5 }, (_, i) => `${id}-list-${i}`), [id]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="card rounded-2xl shadow-sm p-3">
         <Bar className="h-3 w-16 mb-3" />
         <div className="grid grid-cols-4 gap-2">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Bar key={i} className="h-14 w-full rounded-lg" />
+          {gridIds.map((gridId) => (
+            <Bar key={gridId} className="h-14 w-full rounded-lg" />
           ))}
         </div>
       </div>
       <div className="card rounded-xl shadow-sm p-4 flex flex-col gap-4">
         <Bar className="h-5 w-2/5" />
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex items-center justify-between">
+        {listIds.map((listId) => (
+          <div key={listId} className="flex items-center justify-between">
             <Bar className="h-3 w-2/5" />
             <Bar className="h-6 w-11 rounded-full" />
           </div>
@@ -301,6 +331,9 @@ export function SkeletonList({
   count?: number;
   variant?: "card" | "row" | "streak" | "movie";
 }) {
+  const id = useId();
+  const listIds = useMemo(() => Array.from({ length: count }, (_, i) => `${id}-list-${i}`), [count, id]);
+
   const Item = {
     card: SkeletonCard,
     row: SkeletonRow,
@@ -310,8 +343,8 @@ export function SkeletonList({
 
   return (
     <div className="flex flex-col gap-3">
-      {Array.from({ length: count }).map((_, i) => (
-        <Item key={i} />
+      {listIds.map((listId) => (
+        <Item key={listId} />
       ))}
     </div>
   );

@@ -53,7 +53,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
   const publicLink = profile.is_public && profile.public_slug 
     ? `${appUrl}/v/${profile.public_slug}` 
     : `${appUrl}/vcard-preview`;
-    
+
   const downloadVCard = () => {
     let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
     vcf += `N:;${profile.full_name || ''};;;\n`; 
@@ -74,10 +74,9 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
       vcf += `ADR;TYPE=${addr.type.toUpperCase()}:;;${addr.address};;;;\n`;
     });
 
-    // Poprawiona iteracja po tablicy social_links
     if (profile.social_links && Array.isArray(profile.social_links)) {
       profile.social_links.forEach((link) => {
-        if (link && link.url && link.platform) {
+        if (link?.url && link?.platform) {
           const url = typeof link.url === 'string' ? link.url.trim() : '';
           if (url !== '') {
             vcf += `URL;TYPE=${link.platform.toUpperCase()}:${url}\r\n`;

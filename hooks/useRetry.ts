@@ -7,12 +7,7 @@ export function useRetry() {
       return await operation();
     } catch {
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-
-      try {
-        return await operation();
-      } catch (secondError) {
-        throw secondError;
-      }
+      return await operation();
     }
   }, []);
 }

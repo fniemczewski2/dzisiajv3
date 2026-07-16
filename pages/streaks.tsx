@@ -31,6 +31,27 @@ export default function StreaksPage() {
     setShowForm(false);
   };
 
+  const renderStreaks = () => {
+    return (
+        streaks.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {streaks.map((streak) => (
+              <StreakCard
+                key={streak.id}
+                streak={streak}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                getMilestoneMessage={getMilestoneMessage}
+                loading={loading}
+              />
+            ))}
+          </div>
+        ) : (
+          <NoResultsState text="celów" />
+        )
+    );
+  }
+
   return (
     <>
     <Seo
@@ -52,24 +73,11 @@ export default function StreaksPage() {
             onCancel={() => setShowForm(false)}
           />
         )}
-        {fetching ? (
+        {fetching ? 
           <SkeletonList count={3} variant="streak" />
-        ) : streaks.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {streaks.map((streak) => (
-              <StreakCard
-                key={streak.id}
-                streak={streak}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                getMilestoneMessage={getMilestoneMessage}
-                loading={loading}
-              />
-            ))}
-          </div>
-        ) : (
-          <NoResultsState text="celów" />
-        )}
+        : 
+          renderStreaks()
+        }
     </>
   );
 }

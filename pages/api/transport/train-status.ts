@@ -25,8 +25,7 @@ async function getStationsDictionary(
 ): Promise<{ stations: Station[] | null; rateLimited: boolean; upstreamError: boolean }> {
   const isFresh = stationsCache && Date.now() - stationsFetchedAt < STATIONS_TTL_MS;
   if (isFresh) return { stations: stationsCache, rateLimited: false, upstreamError: false };
-  if (!stationsInFlight) {
-    stationsInFlight = (async () => {
+    stationsInFlight ??= (async () => {
       const res = await fetch(
         `https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?pageSize=10000`,
         { headers }
@@ -44,7 +43,7 @@ async function getStationsDictionary(
     })().finally(() => {
       stationsInFlight = null;
     });
-  }
+  
 
   try {
     const stations = await stationsInFlight;
