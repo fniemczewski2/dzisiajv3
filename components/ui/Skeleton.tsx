@@ -328,8 +328,8 @@ export function SkeletonList({
   count = 4,
   variant = "card",
 }: {
-  count?: number;
-  variant?: "card" | "row" | "streak" | "movie";
+  readonly count?: number;
+  readonly variant?: "card" | "row" | "streak" | "movie";
 }) {
   const id = useId();
   const listIds = useMemo(() => Array.from({ length: count }, (_, i) => `${id}-list-${i}`), [count, id]);

@@ -192,9 +192,9 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
   const appUrl = typeof window !== 'undefined' ? window.location.hostname : 'twojadomena.pl';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl mx-auto p-4 sm:p-6 bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
+    <form onSubmit={handleSubmit} className="form-card">
       
-      <div className="flex items-center gap-3 border-b pb-4 dark:border-neutral-800">
+      <div className="flex items-center gap-2">
         <div className="p-2 bg-primary/10 rounded-lg text-primary">
           <User size={24} />
         </div>
@@ -203,7 +203,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         </h2>
       </div>
 
-      <div className="flex flex-col items-center gap-4 pb-6 border-b dark:border-neutral-800">
+      <div className="flex flex-col items-center gap-4">
         <button 
           type="button"
           aria-label="Zmień zdjęcie profilowe"
@@ -213,7 +213,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           {formData.avatar_url ? (
             <Image src={formData.avatar_url} alt="Avatar użytkownika" fill sizes="96px" className="object-cover" />
           ) : (
-            <ImageIcon className="text-neutral-400 w-8 h-8" aria-hidden="true" />
+            <ImageIcon className=" w-8 h-8" aria-hidden="true" />
           )}
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
              <span className="text-white text-xs font-medium">Zmień</span>
@@ -222,12 +222,10 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         <input type="file" accept="image/*" ref={fileInputRef} onChange={onAvatarFileChange} className="hidden" />
         {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
       </div>
-
-      <div className="space-y-4">
-        <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <User size={18} className="text-neutral-400" aria-hidden="true" /> Podstawowe informacje
+        <h3 className="font-semibold text-base flex items-center gap-2">
+          <User size={18} className="" aria-hidden="true" /> Podstawowe informacje
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <label className="block">
             <span className="form-label mb-1 block">Nazwa profilu (wymagane)</span>
             <input required type="text" placeholder="np. Służbowa, Prywatna" value={formData.profile_name} onChange={e => setFormData(prev => ({ ...prev, profile_name: e.target.value }))} className="input-field w-full" />
@@ -239,46 +237,40 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           <label className="md:col-span-2 block">
             <span className="form-label mb-1 block">Organizacja / Firma</span>
             <div className="relative">
-               <Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
+               <Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 " aria-hidden="true" />
                <input type="text" value={formData.organization} onChange={e => setFormData(prev => ({ ...prev, organization: e.target.value }))} className="input-field w-full pl-9" placeholder="Nazwa firmy lub organizacji" />
             </div>
           </label>
         </div>
-      </div>
-
-      <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
-        <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Palette size={18} className="text-neutral-400" aria-hidden="true" /> Kolorystyka wizytówki
+        <h3 className="font-semibold text-base flex items-center gap-2 ">
+          <Palette size={18} className="" aria-hidden="true" /> Kolorystyka wizytówki
         </h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
           <label className="block">
             <span className="form-label mb-1 block">Wersja jasna</span>
             <div className="flex gap-3 items-center">
-              <input type="color" value={formData.color_light} onChange={e => setFormData(prev => ({ ...prev, color_light: e.target.value }))} className="w-12 h-12 p-1 bg-white dark:bg-neutral-800 border rounded cursor-pointer dark:border-neutral-700" />
-              <span className="text-sm font-mono text-neutral-500">{formData.color_light}</span>
+              <input type="color" value={formData.color_light} onChange={e => setFormData(prev => ({ ...prev, color_light: e.target.value }))} className="w-12 h-12 rounded cursor-pointer" />
+              <span className="text-sm font-mono">{formData.color_light}</span>
             </div>
           </label>
           <label className="block">
             <span className="form-label mb-1 block">Wersja ciemna</span>
             <div className="flex gap-3 items-center">
-              <input type="color" value={formData.color_dark} onChange={e => setFormData(prev => ({ ...prev, color_dark: e.target.value }))} className="w-12 h-12 p-1 bg-white dark:bg-neutral-800 border rounded cursor-pointer dark:border-neutral-700" />
-              <span className="text-sm font-mono text-neutral-500">{formData.color_dark}</span>
+              <input type="color" value={formData.color_dark} onChange={e => setFormData(prev => ({ ...prev, color_dark: e.target.value }))} className="w-12 h-12 rounded cursor-pointer" />
+              <span className="text-sm font-mono">{formData.color_dark}</span>
             </div>
           </label>
         </div>
-      </div>
-
-      <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
-        <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Phone size={18} className="text-neutral-400" aria-hidden="true" /> Dane kontaktowe
+        <h3 className="font-semibold text-base flex items-center gap-2 ">
+          <Phone size={18} className="" aria-hidden="true" /> Dane kontaktowe
         </h3>
 
-        <div>
-          <div className='flex items-center justify-between mb-2'>
+        <div className="space-y-2">
+          <div className='flex items-center justify-between mb-1'>
             <span className="form-label mb-2 block font-medium">Numery telefonu</span>
             <AddButton onClick={addPhone} small />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {formData.phones.map((phone, idx) => (
               <div key={`phone-${phone.number}`} className="flex gap-2 items-center">
                 <label htmlFor={`field-${phone.type}`} className="sr-only">Typ numeru</label>
@@ -291,14 +283,13 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
               </div>
             ))}
           </div>
-        </div>
 
         <div>
-          <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center justify-between mb-1'>
             <span className="form-label mb-2 block font-medium">Adresy e-mail</span>
             <AddButton onClick={addEmail} small />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {formData.emails.map((email, idx) => (
               <div key={`email-${email.email}`} className="flex gap-2 items-center">
                 <label htmlFor={`field-${email.type}`} className="sr-only">Typ e-mail</label>
@@ -314,7 +305,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         </div>
 
         <div>
-          <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center justify-between mb-1'>
             <span className="form-label mb-2 block font-medium">Adresy</span>
             <AddButton onClick={addAddress} small />
           </div>
@@ -333,33 +324,29 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           </div>
         </div>
       </div>
-
-      <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
         <h3 className="flex items-center justify-between">
-          <div className='font-semibold text-base flex items-center gap-2 dark:text-neutral-200'>
-            <LinkIcon size={18} className="text-neutral-400" aria-hidden="true" /> Linki i Media Społecznościowe
+          <div className='font-semibold text-base flex items-center gap-2 '>
+            <LinkIcon size={18} className="" aria-hidden="true" /> Linki i Media Społecznościowe
           </div>
           <AddButton onClick={addSocialLink} small />
         </h3>
         
-        <div className="space-y-3">
+        <div className="space-y-1">
           {formData.social_links.map((social, idx) => (
             <div key={`social-${social.url}`} className="flex gap-2 items-center">
               <label className="sr-only">Platforma społecznościowa {idx + 1}</label>
-              <input type="text" placeholder="np. Facebook" value={social.platform} onChange={e => updateSocialPlatform(idx, e.target.value)} className="input-field w-24 sm:w-32" />
+              <input type="text" placeholder="np. Facebook" value={`${social.platform}-${idx}`} onChange={e => updateSocialPlatform(idx, e.target.value)} className="input-field w-24 sm:w-32" />
               
               <label className="sr-only">Adres URL profilu {idx + 1}</label>
-              <input type="text" placeholder="Wklej adres profilu (URL)" value={social.url} onChange={e => updateSocialUrl(idx, e.target.value)} onBlur={() => handleSocialBlur(idx)} className="input-field flex-1" />
+              <input type="text" placeholder="Wklej adres profilu (URL)" value={`${social.url}-${idx}`} onChange={e => updateSocialUrl(idx, e.target.value)} onBlur={() => handleSocialBlur(idx)} className="input-field flex-1" />
               
               <DeleteButton onClick={() => removeSocialLink(idx)} small />
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
-        <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Briefcase size={18} className="text-neutral-400" aria-hidden="true" /> Dodatkowe dane firmy
+        <h3 className="font-semibold text-base flex items-center gap-2">
+          <Briefcase size={18}  aria-hidden="true" /> Dodatkowe dane firmy
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block">
@@ -375,41 +362,39 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             <input type="text" value={(formData.business_data as any).bank_account || ''} onChange={e => updateBusinessData('bank_account', e.target.value)} className="input-field w-full font-mono text-sm" placeholder="IBAN / Numer konta" />
           </label>
         </div>
-      </div>
 
-      <div className="space-y-4 border-t pt-6 dark:border-neutral-800">
-        <h3 className="font-semibold text-base flex items-center gap-2 dark:text-neutral-200">
-          <Globe size={18} className="text-neutral-400" aria-hidden="true" /> Prywatność i Udostępnianie
+        <h3 className="font-semibold text-base flex items-center gap-2">
+          <Globe size={18} aria-hidden="true" /> Prywatność i Udostępnianie
         </h3>
         
-        <div className="flex items-start gap-3 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border dark:border-neutral-800">
+        <div className="flex items-start gap-2">
           <input
             type="checkbox"
             id="is_public"
             checked={formData.is_public}
             onChange={e => setFormData(prev => ({ ...prev, is_public: e.target.checked }))}
-            className="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+            className="w-5 h-5 mt-0.5 rounded text-primary cursor-pointer"
           />
-          <label htmlFor="is_public" className="text-sm dark:text-neutral-300 cursor-pointer select-none">
-            <span className="font-semibold block mb-1 text-neutral-900 dark:text-white">Udostępnij publicznie</span>
+          <label htmlFor="is_public" className="text-sm cursor-pointer select-none">
+            <span className="font-semibold block mb-1">Udostępnij publicznie</span>
           </label>
         </div>
 
         {formData.is_public && (
-          <div className="mt-4 animate-in fade-in slide-in-from-top-2">
+          <div>
             <label className="block">
               <span className="form-label mb-1 block">Adres URL wizytówki:</span>
-              <div className="flex items-center overflow-hidden border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-shadow">
-                <span className="px-3 py-2.5 text-sm text-neutral-500 bg-neutral-100 dark:bg-neutral-800 border-r dark:border-neutral-700 select-none hidden sm:inline-block">
+              <div className="flex items-center overflow-hidden">
+                <span className="px-3 py-2.5 text-sm select-none hidden sm:inline-block">
                   {appUrl}/v/
                 </span>
-                <span className="px-2 text-neutral-400 sm:hidden" aria-hidden="true">/v/</span>
+                <span className="px-2 sm:hidden" aria-hidden="true">/v/</span>
                 <input
                   type="text"
                   required={formData.is_public}
                   value={formData.public_slug}
                   onChange={handleSlugChange}
-                  className="flex-1 p-2.5 bg-transparent text-sm font-medium dark:text-white outline-none w-full"
+                  className="input-field p-2.5 w-full"
                   placeholder="np. jan-kowalski"
                 />
 
@@ -426,15 +411,11 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             )}
           </div>
         )}
-      </div>
-
-      <div className="pt-6 border-t dark:border-neutral-800">
         <FormButtons 
           onClickClose={onCancel} 
           loading={isSubmitting} 
           disabled={formData.is_public && slugStatus === 'taken'}
         />
-      </div>
     </form>
   );
 }
