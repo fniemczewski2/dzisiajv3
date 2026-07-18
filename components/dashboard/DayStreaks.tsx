@@ -1,7 +1,8 @@
 import React from 'react';
+import { Streak } from '@/types/streaks';
 
 interface DayStreaksProps {
-  streaks: any[];
+  streaks: (Streak & { milestoneMessage: string })[];
   fetchingStreaks: boolean;
 }
 

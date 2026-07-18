@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { MonthData, YearData } from "@/types/bills";
+import { MonthData, YearData, RawBillRow } from "@/types/bills";
 
 const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
@@ -62,23 +62,23 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
       const monthData = getEmptyMonthData();
 
-      (bills as any[])?.forEach(({ amount, is_income, done: isDone }) => {
+      (bills as RawBillRow[])?.forEach(({ amount, is_income, done: isDone }) => {
         if (is_income) {
           monthData.income += amount;
         } else {
-          monthData.sum += amount;
+          monthData.sum = (monthData.sum ?? 0) + amount;
           if (isDone) monthData.doneExpense += amount;
           else monthData.plannedExpense += amount;
         }
       });
 
-      (habits as any[])?.forEach(({ daily_spending }) => {
-        monthData.monthlySpending += daily_spending;
+      (habits as { daily_spending: number }[])?.forEach(({ daily_spending }) => {
+        monthData.monthlySpending = (monthData.monthlySpending ?? 0) + daily_spending;
       });
 
       return monthData;
     },
-    [userId, year, supabase, toast, withRetry]
+    [userId, year, supabase, withRetry]
   );
 
   const fetchRates = useCallback(async (): Promise<Record<number, number>> => {
@@ -97,7 +97,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       rates[i] = ratesData[`${MONTH_KEYS[i - 1]}_rate`] || 0;
     }
     return rates;
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, withRetry]);
 
   const loadData = useCallback(async () => {
     if (!userId) {
@@ -142,7 +142,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     }
     setLoading(true);
     try {
-      const payload: any = { user_id: userId };
+      const payload: Record<string, string | number> = { user_id: userId };
       Object.entries(data).forEach(([monthStr, monthData]) => {
         const m = Number.parseInt(monthStr);
         if (m >= 1 && m <= 12) payload[`${MONTH_KEYS[m - 1]}_rate`] = Number(monthData.rate) || 0;

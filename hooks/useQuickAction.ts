@@ -16,7 +16,7 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
     if (router.query.action === "add" && onActionAdd) {
       onActionAdd();
       if (removeQueryAfterTrigger) {
-        const { action, ...rest } = router.query;
+        const { action: _action, ...rest } = router.query;
         router.replace(
           { pathname: router.pathname, query: rest },
           undefined,
@@ -24,7 +24,7 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
         );
       }
     }
-  }, [router.query.action, onActionAdd, removeQueryAfterTrigger]);
+  }, [router, onActionAdd, removeQueryAfterTrigger]);
 
   return {
     isQuickAction: router.query.action === "add",

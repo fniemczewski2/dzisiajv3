@@ -44,7 +44,7 @@ export default function TrainingPage() {
     stop,
     next,
     prev,
-    jumpToPhase: (i: number) => {},
+    jumpToPhase: (_i: number) => {},
   };
 
   return (

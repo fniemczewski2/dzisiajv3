@@ -59,7 +59,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
       releaseWakeLock();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [running, paused]);
+  }, [running, paused, toast]);
 
   const playSound = () => {
     if (audioRef.current) {

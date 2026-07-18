@@ -6,6 +6,7 @@ import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "
 import type { Bill, BudgetCategory } from "@/types/bills";
 import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 
+import { useSettings } from "@/hooks/db/useSettings";
 import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import { isValidAmountInput, parseAmountInput } from "@/lib/amountUtils";
@@ -15,17 +16,30 @@ interface BillListProps {
   onBillsChange?: () => void;
 }
 
-interface MonthAccordionProps {
-  monthData: any;
-  onBillsChange?: () => void;
-  year: number 
-} 
+interface FetchOptions {
+  dateFrom?: string;
+  dateTo?: string;
+  includeRecurringChildren?: boolean;
+  categoryId?: string;
+}
 
-interface MonthContentProps {
-  dateFrom: string;
-  dateTo: string;
+interface MonthData {
+  id: number;
+  date: Date;
+  label: string;
+  isCurrentMonth: boolean;
+}
+
+interface AccordionShellProps {
+  label: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}
+
+interface BillGroupContentProps {
+  fetchOptions: FetchOptions;
   onBillsChange?: () => void;
-  year: number
+  year: number;
 }
 
 function CategoryBadge({ category }: { readonly category?: BudgetCategory | null }) {
@@ -51,14 +65,44 @@ function RecurringBadge() {
   );
 }
 
+// Wspólna "skorupa" akordeonu, współdzielona przez widok wg miesięcy i wg kategorii -
+// różni je tylko etykieta nagłówka i domyślny stan (miesiąc bieżący jest domyślnie otwarty).
+function AccordionShell({ label, defaultOpen = false, children }: Readonly<AccordionShellProps>) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="card rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex justify-between items-center p-4 bg-surface hover:bg-surfaceHover transition-colors"
+      >
+        <h4 className="text-sm font-bold text-textSecondary uppercase tracking-wider">
+          {label}
+        </h4>
+        {isOpen ? <ChevronUp className="w-5 h-5 text-textMuted" /> : <ChevronDown className="w-5 h-5 text-textMuted" />}
+      </button>
+
+      {isOpen && <div className="p-4">{children}</div>}
+    </div>
+  );
+}
+
 export default function BillListGrouped({ year, onBillsChange }: Readonly<BillListProps>) {
-  const [activeMonths, setActiveMonths] = useState<{ id: number, date: Date, label: string, isCurrentMonth: boolean }[]>([]);
-  const { fetchActiveMonths } = useBills(); 
+  const { settings } = useSettings();
+  const sortMode = settings.sort_bills === "category" ? "category" : "month";
+
+  const [activeMonths, setActiveMonths] = useState<MonthData[]>([]);
+  const [activeCategories, setActiveCategories] = useState<{ id: string, name: string }[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+
+  const { fetchActiveMonths, fetchActiveCategories } = useBills(); 
+  const { categories, loading: categoriesLoading } = useBudgetCategories(year);
 
   useEffect(() => {
     const loadMonths = async () => {
+      setGroupsLoading(true);
       const activeIndexes = await fetchActiveMonths(year);
-      
+
       const generatedMonths = activeIndexes.map((monthIndex) => {
         const date = new Date(year, monthIndex, 1);
         return {
@@ -70,10 +114,66 @@ export default function BillListGrouped({ year, onBillsChange }: Readonly<BillLi
       });
 
       setActiveMonths(generatedMonths);
+      setGroupsLoading(false);
     };
 
-    loadMonths();
-  }, [year, fetchActiveMonths]);
+    if (sortMode === "month") loadMonths();
+  }, [year, sortMode, fetchActiveMonths]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setGroupsLoading(true);
+      const activeIds = await fetchActiveCategories(year);
+
+      const generatedCategories = activeIds
+        .map((id) => {
+          if (id === "none") return { id: "none", name: "Inne" };
+          const cat = categories.find((c) => c.id === id);
+          return cat ? { id: cat.id, name: cat.name } : null;
+        })
+        .filter((c): c is { id: string; name: string } => c !== null)
+        .sort((a, b) => {
+          if (a.id === "none") return 1;
+          if (b.id === "none") return -1;
+          return a.name.localeCompare(b.name, "pl");
+        });
+
+      setActiveCategories(generatedCategories);
+      setGroupsLoading(false);
+    };
+
+    if (sortMode === "category" && !categoriesLoading) loadCategories();
+  }, [year, sortMode, categoriesLoading, categories, fetchActiveCategories]);
+
+  if (groupsLoading || categoriesLoading) return null;
+
+  if (sortMode === "category") {
+    if (activeCategories.length === 0) {
+      return <NoResultsState text="rachunków w wybranym roku" />;
+    }
+
+    const yearStart = `${year}-01-01`;
+    const yearEnd = `${year}-12-31`;
+
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        {activeCategories.map((cat) => (
+          <AccordionShell key={cat.id} label={cat.name}>
+            <BillGroupContent
+              fetchOptions={{
+                dateFrom: yearStart,
+                dateTo: yearEnd,
+                includeRecurringChildren: true,
+                categoryId: cat.id,
+              }}
+              onBillsChange={onBillsChange}
+              year={year}
+            />
+          </AccordionShell>
+        ))}
+      </div>
+    );
+  }
 
   if (activeMonths.length === 0) {
     return <NoResultsState text="rachunków w wybranym roku" />;
@@ -82,55 +182,29 @@ export default function BillListGrouped({ year, onBillsChange }: Readonly<BillLi
   return (
     <div className="max-w-2xl mx-auto space-y-4">
       {activeMonths.map((m) => (
-        <MonthAccordion
-          key={m.id}
-          monthData={m}
-          onBillsChange={onBillsChange}
-          year={year} 
-        />
+        <AccordionShell key={m.id} label={m.label} defaultOpen={m.isCurrentMonth}>
+          <BillGroupContent
+            fetchOptions={{
+              dateFrom: format(startOfMonth(m.date), "yyyy-MM-dd"),
+              dateTo: format(endOfMonth(m.date), "yyyy-MM-dd"),
+              includeRecurringChildren: true,
+            }}
+            onBillsChange={onBillsChange}
+            year={year}
+          />
+        </AccordionShell>
       ))}
     </div>
   );
 }
 
-function MonthAccordion({ monthData, onBillsChange, year }: Readonly<MonthAccordionProps>) {
-  const [isOpen, setIsOpen] = useState(monthData.isCurrentMonth);
-
-  return (
-    <div className="card rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center p-4 bg-surface hover:bg-surfaceHover transition-colors"
-      >
-        <h4 className="text-sm font-bold text-textSecondary uppercase tracking-wider">
-          {monthData.label}
-        </h4>
-        {isOpen ? <ChevronUp className="w-5 h-5 text-textMuted" /> : <ChevronDown className="w-5 h-5 text-textMuted" />}
-      </button>
-      
-      {isOpen && (
-        <div className="p-4">
-          <MonthContent
-            dateFrom={format(startOfMonth(monthData.date), "yyyy-MM-dd")}
-            dateTo={format(endOfMonth(monthData.date), "yyyy-MM-dd")}
-            onBillsChange={onBillsChange}
-            year={year}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthContentProps>) {
+// Treść jednego akordeonu (lista rachunków + akcje) - używana zarówno przez widok
+// miesięczny, jak i kategoriowy; różni je tylko przekazany fetchOptions.
+function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGroupContentProps>) {
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const { loading, fetching, incomeItems, expenseItems, hasMore, fetchBills, deleteBill, editBill, markAsDone } = useBills({
-    dateFrom,
-    dateTo,
-    includeRecurringChildren: true,
-  });
+  const { loading, fetching, incomeItems, expenseItems, hasMore, fetchBills, deleteBill, editBill, markAsDone } = useBills(fetchOptions);
 
   const { categories, loading: categoriesLoading } = useBudgetCategories(year);
 
@@ -206,7 +280,7 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
   };
 
   if (expenseItems.length === 0 && incomeItems.length === 0) {
-    return <NoResultsState text="wpisów w tym miesiącu" />;
+    return <NoResultsState text="wpisów w tej grupie" />;
   }
 
   const renderBill = (b: Bill) => {

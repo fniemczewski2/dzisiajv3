@@ -10,9 +10,16 @@ import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
 
+interface ConnectedCalendarOption {
+  id: string;
+  calendar_name: string | null;
+  google_calendar_id: string;
+  provider: "google" | "outlook";
+}
+
 interface EventsFormProps {
   onEventsChange: () => void;
-  addEvent: (event: Event & { shared_with_email?: string }) => Promise<any>;
+  addEvent: (event: Event & { shared_with_email?: string }) => Promise<Event | undefined>;
   onCancel?: () => void;
   currentDate: Date | null;
   selectedDate: Date | null;
@@ -47,7 +54,7 @@ export default function EventForm({
   const [share, setShare] = useState("null");
   const [repeat, setRepeat] = useState<Event["repeat"]>("none");
 
-  const [calendars, setCalendars] = useState<any[]>([]);
+  const [calendars, setCalendars] = useState<ConnectedCalendarOption[]>([]);
   const [selectedCalendar, setSelectedCalendar] = useState("local");
 
   useEffect(() => {
@@ -82,6 +89,7 @@ export default function EventForm({
     e.preventDefault();
 
     await addEvent({
+          id: "",
           title: title.trim(),
           description: description.trim(),
           start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
@@ -89,8 +97,8 @@ export default function EventForm({
           place: place.trim(),
           shared_with_email: share === "null" ? "" : share,
           repeat,
-          user_id: userId,
-        } as any);
+          user_id: userId || "",
+        });
 
     resetForm();
     onEventsChange();

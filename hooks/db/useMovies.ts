@@ -31,7 +31,7 @@ export function useMovies() {
       );
     }
     return sorted;
-  }, [rawMovies, settings?.sort_movies]);
+  }, [rawMovies, settings]);
 
   const fetchMovies = useCallback(async () => {
     if (!userId) {

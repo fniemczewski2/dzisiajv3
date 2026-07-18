@@ -6,6 +6,12 @@ import { useAuth } from '@/providers/AuthProvider'
 import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'
 import { useToast } from '@/providers/ToastProvider'
 import { useRetry } from '@/hooks/useRetry'
+import { getErrorMessage } from '@/lib/errorUtils'
+
+interface PushSubscriptionRow {
+  id: string;
+  subscription: string | { endpoint: string };
+}
 
 export function usePushNotifications(userId: string | undefined) {
   const { supabase } = useAuth()
@@ -72,7 +78,7 @@ export function usePushNotifications(userId: string | undefined) {
       );
       if (fetchError) throw fetchError
 
-      const existing = (allSubs as any[])?.find((sub) => {
+      const existing = (allSubs as PushSubscriptionRow[])?.find((sub) => {
         const subData =
           typeof sub.subscription === 'string'
             ? JSON.parse(sub.subscription)
@@ -105,8 +111,8 @@ export function usePushNotifications(userId: string | undefined) {
 
       setIsSubscribed(true)
       toast.success("Włączono powiadomienia push");
-    } catch (err: any) {
-      toast.error(err?.message || "Błąd włączania powiadomień.");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Błąd włączania powiadomień."));
     } finally {
       setLoading(false)
     }
@@ -130,7 +136,7 @@ export function usePushNotifications(userId: string | undefined) {
           supabase.from('push_subscriptions').select('*').eq('user_id', userId)
         );
 
-        const toDelete = (allSubs as any[])?.find((sub) => {
+        const toDelete = (allSubs as PushSubscriptionRow[])?.find((sub) => {
           const subData =
             typeof sub.subscription === 'string'
               ? JSON.parse(sub.subscription)

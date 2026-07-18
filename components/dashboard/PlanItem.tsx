@@ -40,8 +40,8 @@ const getLabel = (item: PlanItemData): string => {
   }
 };
 
-const getTimes = (e: any) => {
-  if (e.start_time && e.end_time) {
+const getTimes = (e: PlanItemData["data"]) => {
+  if (e?.start_time && e?.end_time) {
       const isSameDay = e.start_time.slice(0, 10) === e.end_time.slice(0, 10);
     
       const renderedTime = isSameDay ? (
@@ -74,8 +74,8 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
           {item.title}
         </p>
         <p className="flex items-center flex-wrap gap-2">
-          {item.type === "task" && <TimeContextBadge dueDate={item.data.due_date} small />}
-          {(item.type === 'event' || item.type === 'worklog') && getTimes(item)}
+          {item.type === "task" && <TimeContextBadge dueDate={item.data?.due_date ?? ""} small />}
+          {(item.type === 'event' || item.type === 'worklog') && getTimes(item.data)}
           <span className="text-[8px] font-semibold uppercase tracking-wider text-textMuted">
             {getLabel(item)}
           </span>

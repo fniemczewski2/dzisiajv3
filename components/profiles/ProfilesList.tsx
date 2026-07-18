@@ -43,7 +43,7 @@ export default function ProfilesList() {
     return result;
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: string) => {
     await deleteProfile(id);
   };
 
@@ -113,7 +113,7 @@ export default function ProfilesList() {
                   onClick={() => handleEditClick(profile)}
                 />
                 <DeleteButton 
-                  onClick={() => handleDelete(profile.id, profile.profile_name)}
+                  onClick={() => handleDelete(profile.id)}
                 />
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getAppDateTime } from '@/lib/dateUtils';
+import { getErrorMessage } from '@/lib/errorUtils';
 import crypto from 'node:crypto';
 
 const supabaseAdmin = createClient(
@@ -88,8 +89,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       return res.status(400).json({ error: 'Unknown action.' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Błąd worklogs auto:', error);
-    return res.status(500).json({ error: error.message || 'Server error.' });
+    return res.status(500).json({ error: getErrorMessage(error, 'Server error.') });
   }
 }

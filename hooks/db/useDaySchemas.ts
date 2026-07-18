@@ -1,11 +1,11 @@
 // hooks/useDaySchemas.ts
 import { useEffect, useState, useCallback } from "react";
-import { Schema } from "@/types/schemas";
+import { Schema, ScheduleItem } from "@/types/schemas";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 
-function parseSchema<T extends { days: any; entries: any }>(raw: T): T {
+function parseSchema<T extends { days: string | number[]; entries: string | ScheduleItem[] }>(raw: T): T {
   return {
     ...raw,
     days: typeof raw.days === "string" ? JSON.parse(raw.days) : raw.days,

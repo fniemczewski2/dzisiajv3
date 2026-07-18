@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 
+interface NotificationPayload {
+  new?: {
+    type?: string;
+    title?: string;
+  };
+}
+
 export default function LoveCat() {
   const { user, supabase } = useAuth();
   const [show, setShow] = useState(false);
@@ -40,7 +47,7 @@ const channel = supabase
       table: "notifications",
       filter: `user_id=eq.${user.id}`,
     },
-    (payload: any) => {
+    (payload: NotificationPayload) => {
       const type = payload.new?.type || "";
       const title = payload.new?.title || "";
 

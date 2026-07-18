@@ -5,7 +5,7 @@ import { differenceInDays, parseISO } from "date-fns";
 import { 
   Flame, Trophy, Target, Heart, Cigarette, Beer,
   UtensilsCrossed, Dumbbell, PiggyBank,
-  BriefcaseMedical,
+  BriefcaseMedical, type LucideIcon,
 } from "lucide-react";
 import { Streak } from "@/types/streaks";
 import { DeleteButton, EditButton, FormButtons } from "../ui/CommonButtons";
@@ -18,7 +18,7 @@ interface StreakCardProps {
   loading: boolean;
 }
 
-const ICON_MAP: { [key: string]: React.ComponentType<any> } = {
+const ICON_MAP: { [key: string]: LucideIcon } = {
   flame: Flame, trophy: Trophy, target: Target, heart: Heart,
   cigarette: Cigarette, beer: Beer, utensils: UtensilsCrossed,
   dumbbell: Dumbbell, piggybank: PiggyBank, medical: BriefcaseMedical,

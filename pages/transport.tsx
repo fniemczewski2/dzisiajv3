@@ -51,7 +51,7 @@ export default function TransportPage() {
   }, [transportError, toast]);
 
   const visibleFavorites = favoritesGroups.filter((group) => 
-    favoriteStops.some((stop: any) => stop.name === group.stop_name)
+    favoriteStops.some((stop) => stop.name === group.stop_name)
   );
 
   let favoritesContent;
@@ -75,13 +75,13 @@ export default function TransportPage() {
         </div>
         
         <div className="grid gap-3">
-          {group.bollards?.map((bollard: any) => (
+          {group.bollards?.map((bollard) => (
             <div key={bollard.bollard_code} className="">
               <span className="text-[10px] uppercase text-textSecondary font-mono">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1">
-                {bollard.departures.map((dep: any) => (
+                {bollard.departures.map((dep) => (
                   <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
                     <span className="font-medium w-8">{dep.line}</span>
                     <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>
@@ -116,7 +116,7 @@ export default function TransportPage() {
   } else if (nearbyGroups.length === 0) {
     nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
   } else {
-    nearbyContent = nearbyGroups.map((group: any) => (
+    nearbyContent = nearbyGroups.map((group) => (
       <div key={`nearby_group_${group.stop_name}`} className="card rounded-xl p-4">
         <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
           <h4 className="font-bold text-primary">{group.stop_name}</h4>
@@ -132,13 +132,13 @@ export default function TransportPage() {
         </div>
         
         <div className="grid gap-3">
-          {group.bollards?.map((bollard: any) => (
+          {group.bollards?.map((bollard) => (
             <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg">
               <span className="text-[10px] uppercase text-textSecondary font-mono">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1">
-                {bollard.departures.map((dep: any) => (
+                {bollard.departures.map((dep) => (
                   <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="flex justify-between text-sm py-1 border-b border-border/50 last:border-0">
                     <span className="font-medium w-8">{dep.line}</span>
                     <span className="flex-1 truncate px-2 text-textSecondary">{dep.direction}</span>

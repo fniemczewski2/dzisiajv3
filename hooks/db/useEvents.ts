@@ -141,7 +141,7 @@ export function useEvents(
       setRawEvents((prev) => [...prev, optimisticEvent]);
 
       try {
-        let targetSharedId = (eventData as any).shared_with_id || null;
+        let targetSharedId = eventData.shared_with_id || null;
         if (sharedWithEmail) {
           targetSharedId = await getUserIdByEmail(sharedWithEmail, supabase);
         }
@@ -185,7 +185,7 @@ export function useEvents(
       try {
         const originalId = event.id.split("_")[0];
         const { id: _id, shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...eventData } = event;
-        let targetSharedId = (eventData as any).shared_with_id || null;
+        let targetSharedId = eventData.shared_with_id || null;
 
         if (sharedWithEmail !== undefined) {
           targetSharedId = sharedWithEmail.trim() === "" ? null : await getUserIdByEmail(sharedWithEmail, supabase);

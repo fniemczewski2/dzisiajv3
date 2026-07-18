@@ -1,4 +1,7 @@
 // lib/placeTagging.ts
+import type { GooglePlaceDetailsResult } from "@/types/googlePlaces";
+
+export type GooglePlaceData = GooglePlaceDetailsResult;
 
 export const GOOGLE_TYPE_TO_TAGS: Record<string, string[]> = {
 
@@ -127,7 +130,7 @@ export const RATING_TO_TAGS = (rating: number): string[] => {
   return tags;
 };
 
-export function extractTagsFromGooglePlace(placeData: any): string[] {
+export function extractTagsFromGooglePlace(placeData: GooglePlaceData): string[] {
   const tags = new Set<string>();
   
   if (placeData.types && Array.isArray(placeData.types)) {
@@ -166,7 +169,7 @@ export function extractTagsFromGooglePlace(placeData: any): string[] {
   if (placeData.opening_hours) {
     if (placeData.opening_hours.periods) {
       const has24h = placeData.opening_hours.periods.some(
-        (p: any) => !p.close
+        (p) => !p.close
       );
       if (has24h) tags.add("24h");
     }
@@ -195,7 +198,7 @@ export function analyzeNameForTags(name: string): string[] {
 
 export async function generatePlaceTags(
   placeName: string,
-  googlePlaceData?: any
+  googlePlaceData?: GooglePlaceData
 ): Promise<string[]> {
   const allTags = new Set<string>();
 

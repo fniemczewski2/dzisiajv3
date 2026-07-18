@@ -4,6 +4,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { useRetry } from '@/hooks/useRetry';
 import { NewVCardProfile, VCardProfile } from '@/types/profiles';
+import { getErrorMessage, getPostgresErrorCode } from '@/lib/errorUtils';
 
 export function useProfiles() {
   const { user, supabase } = useAuth();
@@ -64,9 +65,9 @@ export function useProfiles() {
         setProfiles((prev) => prev.map((p) => (p.id === tempId ? data : p)));
         toast.success("Dodano wizytówkę");
         return { success: true, data };
-      } catch (err: any) {
+      } catch (err) {
         setProfiles((prev) => prev.filter((p) => p.id !== tempId));
-        const message = err.code === '23505' ? 'Ten publiczny link jest już zajęty.' : err.message;
+        const message = getPostgresErrorCode(err) === '23505' ? 'Ten publiczny link jest już zajęty.' : getErrorMessage(err);
         toast.error(message || 'Błąd dodawania wizytówki.');
         return { success: false, error: message };
       } finally {
@@ -95,9 +96,9 @@ export function useProfiles() {
         setProfiles((prev) => prev.map((p) => (p.id === id ? data : p)));
         toast.success("Zaktualizowano wizytówkę");
         return { success: true, data };
-      } catch (err: any) {
+      } catch (err) {
         setProfiles(previous);
-        const message = err.code === '23505' ? 'Ten publiczny link jest już zajęty.' : err.message;
+        const message = getPostgresErrorCode(err) === '23505' ? 'Ten publiczny link jest już zajęty.' : getErrorMessage(err);
         toast.error(message || 'Błąd edycji wizytówki.');
         return { success: false, error: message };
       } finally {

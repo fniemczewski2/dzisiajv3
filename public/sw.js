@@ -1,5 +1,5 @@
 // public/custom-sw.js
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function() {
   return; 
 });
 

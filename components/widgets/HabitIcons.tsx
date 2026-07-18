@@ -3,12 +3,13 @@
 import {
   Pill, Bath, Dumbbell, Users,
   Briefcase, Home, Leaf, Languages,
+  type LucideIcon,
 } from "lucide-react";
 import { useDailyHabits } from "@/hooks/db/useDailyHabits";
 import { useSettings } from "@/hooks/db/useSettings";
 import type { HabitKey } from "@/types/habits";
 
-const items: { key: HabitKey; Icon: React.ComponentType<any> }[] = [
+const items: { key: HabitKey; Icon: LucideIcon }[] = [
   { key: "pills", Icon: Pill },
   { key: "bath", Icon: Bath },
   { key: "workout", Icon: Dumbbell },

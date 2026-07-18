@@ -37,7 +37,7 @@ export function useRecipes() {
       );
     }
     return sorted;
-  }, [rawRecipes, settings?.sort_recipes]);
+  }, [rawRecipes, settings]);
 
   const fetchRecipes = useCallback(async (): Promise<Recipe[]> => {
     if (!userId) {

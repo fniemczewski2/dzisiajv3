@@ -5,7 +5,7 @@ import { useDraggable } from "@dnd-kit/core";
 
 interface DraggablePlanItemProps {
   id: string; 
-  type: 'event' | 'schema' | 'task';
+  type: 'event' | 'schema' | 'task' | 'worklog';
   children: React.ReactNode;
 }
 

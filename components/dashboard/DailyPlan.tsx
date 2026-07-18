@@ -3,9 +3,10 @@ import { Calendar } from "lucide-react";
 import { DroppableHourSlot } from "./DroppableHourSlot";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import { PlanItem } from "./PlanItem";
+import { PlanItemData } from "@/types/schemas";
 
 interface DailyPlanProps {
-  planByHour: Record<string, any[]>;
+  planByHour: Record<string, PlanItemData[]>;
   handleMarkAsDone: (id: string) => void;
   handleRemoveFromSchedule: (id: string) => void;
 }

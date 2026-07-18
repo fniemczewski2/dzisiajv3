@@ -9,7 +9,7 @@ import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
 
 interface TaskFormProps {
-  addTask: (task: Task) => Promise<unknown>;
+  addTask: (task: Partial<Task> & { shared_with_email?: string }) => Promise<unknown>;
   onTasksChange: () => void;
   onCancel?: () => void;
   selectedDate?: string;
@@ -38,7 +38,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
     const selectedValue = forUserRef.current?.value || userId;
     const isEmail = selectedValue?.includes("@");
 
-    const taskData: any = {
+    const taskData: Partial<Task> & { shared_with_email?: string } = {
       title: titleRef.current?.value || "",
       category: categoryRef.current?.value || "inne",
       priority,

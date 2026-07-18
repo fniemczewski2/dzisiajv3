@@ -2,17 +2,24 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import type { BudgetCategory, RawBillRow } from "@/types/bills";
+import type { BudgetCategory, RawBillRow, SummaryItem } from "@/types/bills";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 
+interface SpendBucket {
+  ySpent: number;
+  yPlan: number;
+  mSpent: number;
+  mPlan: number;
+}
+
 export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
-  const [summary, setSummary] = useState<any[]>([]);
-  const [uncategorised, setUncategorised] = useState<any>({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
+  const [summary, setSummary] = useState<SummaryItem[]>([]);
+  const [uncategorised, setUncategorised] = useState<SpendBucket>({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
   const [totalIncome, setTotalIncome] = useState(0);
   const [loading, setLoading] = useState(false);
 

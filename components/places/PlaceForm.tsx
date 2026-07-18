@@ -46,7 +46,7 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly
   const handleSubmit = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
 
-    const updates: any = {
+    const updates: Partial<Place> = {
       tags,
       notes: notes.trim() || null,
       opening_hours: Object.keys(openingHours).length > 0 ? openingHours : null,

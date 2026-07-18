@@ -10,7 +10,7 @@ import NoResultsState from "../ui/NoResultsState";
 
 interface ShoppingListViewProps {
   lists: ShoppingList[];
-  editShoppingList: (id: string, updates: any) => Promise<void>;
+  editShoppingList: (id: string, updates: Partial<ShoppingList> & { shared_with_email?: string }) => Promise<void>;
   deleteShoppingList: (id: string) => Promise<void>;
   loading: boolean;
 }
@@ -33,8 +33,8 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     return [...lists].sort((a, b) => {
       if (sortType === "alphabetical") return a.name.localeCompare(b.name, "pl");
       return (
-        new Date((b as any).updated_at || (b as any).created_at || 0).getTime() -
-        new Date((a as any).updated_at || (a as any).created_at || 0).getTime()
+        new Date(b.updated_at || b.inserted_at || 0).getTime() -
+        new Date(a.updated_at || a.inserted_at || 0).getTime()
       );
     });
   }, [lists, settings?.sort_shopping]);
@@ -65,7 +65,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     if (!editedList?.id) return;
     
     const isOwner = editedList.user_id === user?.id;
-    const updates: any = { name: editedList.name };
+    const updates: Partial<ShoppingList> & { shared_with_email?: string } = { name: editedList.name };
     
     if (isOwner) {
       updates.shared_with_email = sharedEmail;

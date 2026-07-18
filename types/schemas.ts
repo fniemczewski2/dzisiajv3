@@ -18,7 +18,7 @@ export interface PlanItemData {
   id: string;
   title: string;
   type: "event" | "schema" | "task" | "worklog";
-  data?: any;
+  data?: { category?: string; start_time?: string; end_time?: string; priority?: number; due_date?: string };
 }
 
 export type DailyOverride = {

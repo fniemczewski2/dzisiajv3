@@ -170,7 +170,7 @@ const MonthView = memo(function MonthView({
         {weekdayNamesPL.map((d) => <div key={d} className="py-1">{d}</div>)}
       </div>
 
-      {weekData.map(({ week, limitedEvents, overflowCounts }, _wIdx) => (
+      {weekData.map(({ week, limitedEvents, overflowCounts }) => (
         <div key={`week-${week}`} className="relative">
           <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {week.map((day) => {

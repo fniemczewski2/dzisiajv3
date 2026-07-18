@@ -34,7 +34,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
         if (error) throw error;
 
-        const fetchedAccounts = accountsData as any[];
+        const fetchedAccounts = accountsData as ConnectedAccount[];
         setAccounts(fetchedAccounts);
 
         if (onlyAccounts || fetchedAccounts.length === 0) {
@@ -115,8 +115,8 @@ export function useConnectedCalendars(expanded: boolean) {
         setCalendars(combinedCalendars);
 
         const alreadySavedKeys = combinedCalendars
-          .filter((c: any) => c.accountId)
-          .map((c: any) => `${c.primaryAccountId}:::${c.id}`);
+          .filter((c: ExternalCalendar) => c.accountId)
+          .map((c: ExternalCalendar) => `${c.primaryAccountId}:::${c.id}`);
         setSelectedCalendars(alreadySavedKeys);
       } catch {
         toast.error("Błąd podczas pobierania kalendarzy.");

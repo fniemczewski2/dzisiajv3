@@ -91,7 +91,7 @@ export function useShoppingLists() {
       setLoading(true);
       const previous = lists;
       const { shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...finalUpdates } =
-        updates as any;
+        updates;
       setLists((prev) => prev.map((l) => (l.id === id ? { ...l, ...finalUpdates } : l)));
 
       try {

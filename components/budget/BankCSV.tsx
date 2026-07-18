@@ -10,12 +10,7 @@ import { FormButtons } from "../ui/CommonButtons";
 import { BudgetCategory, ParsedTransaction } from "@/types/bills";
 import { processCsvText, readFileAsText } from "@/lib/csvUtils";
 import { BILLS_DEDUP_FETCH_LIMIT } from "@/config/limits";
-
-function getPostgresErrorCode(error: unknown): string | undefined {
-  return typeof error === "object" && error !== null && "code" in error
-    ? String((error as { code?: unknown }).code)
-    : undefined;
-}
+import { getPostgresErrorCode } from "@/lib/errorUtils";
 
 export default function BankCsvImporter({ year }: { readonly year: number }) {
   const { user, supabase } = useAuth(); 

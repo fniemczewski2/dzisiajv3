@@ -190,7 +190,7 @@ export default function BudgetCategoriesEditor({
       onCategoriesChange?.();
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: string) => {
       await deleteCategory(id);
       onCategoriesChange?.();
   };
@@ -285,7 +285,7 @@ export default function BudgetCategoriesEditor({
                   </div>
 
                   <EditButton onClick={() => {setEditingId(cat.id); setShowAddForm(false);}} small />
-                  <DeleteButton onClick={() => handleDelete(cat.id, cat.name)} small />
+                  <DeleteButton onClick={() => handleDelete(cat.id)} small />
                 </>
               )}
             </div>

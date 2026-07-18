@@ -14,6 +14,8 @@ import { useEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { useDashboardDnd } from "@/hooks/useDashboardDnd";
+import { PlanItemData } from "@/types/schemas";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { useDailyOverrides } from "@/hooks/db/useDailyOverrides";
 
 import { DayEvents } from "./DayEvents";
@@ -152,7 +154,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
 
   const planByHour = useMemo(() => {
-    const map: Record<string, any[]> = {};
+    const map: Record<string, PlanItemData[]> = {};
     HOURS.forEach((h) => { map[`${String(h).padStart(2, "0")}:00`] = []; });
     
     const todaySchema = schemas.find((s) => s.days?.includes(currentDayOfWeek));
@@ -174,7 +176,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
             id: schemaId, 
             title: entry.label, 
             type: "schema", 
-            color: "bg-surface border border-dashed border-gray-200 dark:border-gray-700 text-textSecondary" 
           });
         }
       });
@@ -185,7 +186,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       if (h) {
         const key = `${h}:00`;
         if (map[key]) {
-          map[key].push({ id: event.id, title: event.title, type: "event", color: "card shadow-sm text-text", data: event });
+          map[key].push({ id: event.id, title: event.title, type: "event", data: event });
         }
       }
     });
@@ -196,7 +197,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       if (h) {
         const key = `${h}:00`;
         if (map[key]) {
-          map[key].push({ id: String(task.id), title: task.title, type: "task", color: "card shadow-sm text-text", data: task });
+          map[key].push({ id: String(task.id), title: task.title, type: "task", data: task });
         }
       }
     });
@@ -206,14 +207,14 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       if (h) {
         const key = `${h}:00`;
         if (map[key]) {
-          map[key].push({ id: String(w.id), title: w.description, type: "worklog", color: "card shadow-sm text-text", data: w });
+          map[key].push({ id: String(w.id), title: w.description, type: "worklog", data: w });
         }
       }
     });
 
     if (isToday) {
       const currentHour = new Date().getHours();
-      const filteredMap: Record<string, any[]> = {};
+      const filteredMap: Record<string, PlanItemData[]> = {};
       
       Object.keys(map).forEach((timeKey) => {
         const hourNum = Number.parseInt(timeKey.split(":")[0], 10);
@@ -254,7 +255,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       .filter(streak => streak.milestoneMessage !== "");
   }, [streaks, getMilestoneMessage]);
 
-  const handleDragStartCustom = (event: any) => {
+  const handleDragStartCustom = (event: DragStartEvent) => {
     const { active } = event;
     const activeId = String(active.id);
     
@@ -271,7 +272,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     }
   };
 
-  const handleDragEndCustom = async (event: any) => {
+  const handleDragEndCustom = async (event: DragEndEvent) => {
     const { active, over } = event;
     setDraggedSchemaTitle(null); 
 

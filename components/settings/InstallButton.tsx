@@ -3,15 +3,26 @@
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
+// "beforeinstallprompt" i navigator.standalone (iOS) nie są częścią standardowych
+// typów DOM w TypeScript - są specyficzne dla przeglądarek wspierających instalację PWA.
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
 export default function InstallPromptButton() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    const handler = (e: any) => {
+    const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallButton(true);
     };
 
@@ -20,7 +31,7 @@ export default function InstallPromptButton() {
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
     const standalone =
-      "standalone" in navigator && (navigator as any).standalone;
+      "standalone" in navigator && (navigator as NavigatorWithStandalone).standalone;
 
     setIsIOS(ios);
 

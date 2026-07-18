@@ -100,7 +100,7 @@ export default function NoteCard({
           </p>
         ) : (
           <ul className="list-disc pl-5 my-2 space-y-1.5">
-            {note.items.map((item, i) => {
+            {note.items.map((item, _i) => {
               const itemKey = `${note.id}-item-${item}`;
               return (
                 <li

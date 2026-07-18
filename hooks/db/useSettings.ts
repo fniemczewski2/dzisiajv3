@@ -9,7 +9,7 @@ import { requestSmartLocation } from "@/lib/locationUtils";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 
-const safeParseArray = (data: unknown): any[] => {
+const safeParseArray = <T = unknown>(data: unknown): T[] => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
   if (typeof data === "string") {
@@ -24,14 +24,14 @@ const safeParseArray = (data: unknown): any[] => {
   return [];
 };
 
-const normalizeFavoriteStops = (data: unknown) => {
-  const parsed = safeParseArray(data);
+const normalizeFavoriteStops = (data: unknown): { name: string; zone_id: string }[] => {
+  const parsed = safeParseArray<string | { name?: string; zone_id?: string }>(data);
   return parsed
-    .map((item: any) => {
+    .map((item) => {
       if (typeof item === "string") return { name: item, zone_id: "AUTO" };
       return { name: item?.name || "", zone_id: item?.zone_id || "AUTO" };
     })
-    .filter((item: any) => item.name !== "");
+    .filter((item) => item.name !== "");
 };
 
 const DEFAULT_SETTINGS: Settings = {
@@ -216,7 +216,7 @@ export function useSettings() {
         throw new Error("Unauthorized");
       }
       const stops = settingsRef.current.favorite_stops;
-      if (stops.some((s: any) => (s.name || s) === name)) return true;
+      if (stops.some((s: { name: string }) => s.name === name)) return true;
       if (stops.length >= MAX_FAVORITE_STOPS) {
         toast.error(`Osiągnięto limit ${MAX_FAVORITE_STOPS} ulubionych przystanków.`);
         return false;
@@ -251,7 +251,7 @@ export function useSettings() {
         throw new Error("Unauthorized");
       }
       const previous = settingsRef.current.favorite_stops;
-      const updated = previous.filter((s: any) => (s.name || s) !== name);
+      const updated = previous.filter((s: { name: string }) => s.name !== name);
       setSettings((prev) => ({ ...prev, favorite_stops: updated }));
 
       try {

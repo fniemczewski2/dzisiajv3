@@ -3,6 +3,22 @@ export interface OpeningHours {
   [key: string]: string[];
 }
 
+export interface GoogleMapsImportFeature {
+  properties?: {
+    location?: {
+      name?: string;
+      address?: string;
+    };
+  };
+  geometry?: {
+    coordinates?: [number, number];
+  };
+}
+
+export interface GoogleMapsImportData {
+  features?: GoogleMapsImportFeature[];
+}
+
 export interface Place {
   id: string;
   user_id: string;
@@ -11,12 +27,12 @@ export interface Place {
   lat: number;
   lng: number;
   tags: string[];
-  phone_number?: string;
-  website?: string;
-  rating?: number;
-  notes?: string;
+  phone_number?: string | null;
+  website?: string | null;
+  rating?: number | null;
+  notes?: string | null;
   google_place_id?: string;
-  opening_hours?: OpeningHours;
+  opening_hours?: OpeningHours | null;
   created_at: string;
   updated_at: string;
 }

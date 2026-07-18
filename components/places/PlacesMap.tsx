@@ -4,6 +4,34 @@ import { Place } from "@/types/places";
 import { escapeHtml, validateUuid } from "@/lib/sanitize";
 import NoResultsState from "../ui/NoResultsState";
 
+// Leaflet jest wczytywany globalnie przez <script> (nie jako moduł ES), więc
+// nie mamy dostępu do @types/leaflet - poniżej minimalny zestaw typów pokrywający
+// dokładnie tę część API Leaflet, z której korzysta ten komponent.
+interface LeafletMarker {
+  addTo: (map: LeafletMap) => LeafletMarker;
+  bindPopup: (html: string, options?: { maxWidth?: number }) => LeafletMarker;
+  remove: () => void;
+}
+
+interface LeafletMap {
+  setView: (center: [number, number], zoom: number) => LeafletMap;
+  remove: () => void;
+  fitBounds: (bounds: unknown, options?: { padding?: [number, number]; maxZoom?: number }) => void;
+}
+
+interface LeafletNamespace {
+  map: (el: HTMLElement) => LeafletMap;
+  tileLayer: (url: string, options?: { attribution?: string }) => { addTo: (map: LeafletMap) => void };
+  marker: (latLng: [number, number]) => LeafletMarker;
+  latLngBounds: (points: [number, number][]) => unknown;
+}
+
+declare global {
+  interface Window {
+    L?: LeafletNamespace;
+  }
+}
+
 interface PlacesMapProps {
   places: Place[];
   onPlaceClick?: (place: Place) => void;
@@ -12,8 +40,8 @@ interface PlacesMapProps {
 export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapProps>) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const [mapInstance, setMapInstance] = useState<LeafletMap | null>(null);
+  const markersRef = useRef<LeafletMarker[]>([]);
 
   useEffect(() => {
     if (globalThis.window === undefined || mapLoaded) return;
@@ -59,9 +87,10 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   useEffect(() => {
     if (!mapLoaded || !mapRef.current || mapInstance) return;
 
-    const L = (window as any).L;
-    const center =
-      places.length > 0 && [places[0].lat, places[0].lng];
+    const L = window.L;
+    if (!L) return;
+    const center: [number, number] =
+      places.length > 0 ? [places[0].lat, places[0].lng] : [0, 0];
     const map = L.map(mapRef.current).setView(center, 13);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -73,12 +102,16 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
     return () => {
       map.remove();
     };
-  }, [mapLoaded, places.length]);
+    // Celowo zależymy od places.length, nie całej tablicy `places` - inaczej
+    // mapa byłaby tworzona od nowa przy każdej zmianie referencji tablicy,
+    // nawet gdy jej zawartość się nie zmieniła.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapLoaded, places.length, mapInstance]);
 
   useEffect(() => {
     if (!mapInstance || !mapLoaded) return;
 
-    const L = (window as any).L;
+    const L = window.L;
     if (!L) return;
 
     markersRef.current.forEach((marker) => marker?.remove());
@@ -142,7 +175,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
           return null;
         }
       })
-      .filter(Boolean);
+      .filter((m): m is LeafletMarker => m !== null);
 
     markersRef.current = newMarkers;
 

@@ -16,14 +16,14 @@ import {
   Globe
 } from 'lucide-react';
 import { useImages } from '@/lib/imgUtils';
-import { VCardProfile } from '@/types/profiles';
+import { VCardProfile, NewVCardProfile } from '@/types/profiles';
 
 // Importowane, aby generować unikalne ID dla list (rozwiązuje problem z focusem)
 import { v4 as uuidv4 } from 'uuid';
 
 interface ProfileEditorFormProps {
   initialData?: VCardProfile;
-  onSubmit: (data: any) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (data: NewVCardProfile) => Promise<{ success: boolean; error?: string }>;
   onCancel: () => void;
 }
 
@@ -38,8 +38,8 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     full_name: initialData?.full_name || '',
     avatar_url: initialData?.avatar_url || '',
     organization: initialData?.organization || '',
-    color_light: (initialData as any)?.color_light || '#ffffff',
-    color_dark: (initialData as any)?.color_dark || '#171717',
+    color_light: initialData?.color_light || '#ffffff',
+    color_dark: initialData?.color_dark || '#171717',
     is_public: initialData?.is_public || false,
     public_slug: initialData?.public_slug || '',
     
@@ -369,15 +369,15 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block">
             <span className="form-label mb-1 block">NIP</span>
-            <input type="text" value={(formData.business_data as any).nip || ''} onChange={e => updateBusinessData('nip', e.target.value)} className="input-field w-full" placeholder="np. 1234567890" />
+            <input type="text" value={formData.business_data.nip || ''} onChange={e => updateBusinessData('nip', e.target.value)} className="input-field w-full" placeholder="np. 1234567890" />
           </label>
           <label className="block">
             <span className="form-label mb-1 block">KRS</span>
-            <input type="text" value={(formData.business_data as any).krs || ''} onChange={e => updateBusinessData('krs', e.target.value)} className="input-field w-full" placeholder="np. 0000123456" />
+            <input type="text" value={formData.business_data.krs || ''} onChange={e => updateBusinessData('krs', e.target.value)} className="input-field w-full" placeholder="np. 0000123456" />
           </label>
           <label className="sm:col-span-2 block">
             <span className="form-label mb-1 block">Numer konta bankowego</span>
-            <input type="text" value={(formData.business_data as any).bank_account || ''} onChange={e => updateBusinessData('bank_account', e.target.value)} className="input-field w-full font-mono text-sm" placeholder="IBAN / Numer konta" />
+            <input type="text" value={formData.business_data.bank_account || ''} onChange={e => updateBusinessData('bank_account', e.target.value)} className="input-field w-full font-mono text-sm" placeholder="IBAN / Numer konta" />
           </label>
         </div>
 

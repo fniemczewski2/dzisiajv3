@@ -1,6 +1,7 @@
 // hooks/useBills.ts
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useSettings } from "./useSettings";
 import type { Bill } from "@/types/bills";
 import { addMonths, format, parseISO, isAfter } from "date-fns";
@@ -20,7 +21,7 @@ function getRecurringDates(startDate: string, recurringUntil: string): string[] 
   return dates;
 }
 
-function buildFetchBillsQuery(supabase: any, userId: string, options: FetchOptions) {
+function buildFetchBillsQuery(supabase: SupabaseClient, userId: string, options: FetchOptions) {
   let query = supabase
     .from("bills")
     .select(`*, category:budget_categories(*)`, { count: "exact" })
@@ -48,7 +49,7 @@ function buildFetchBillsQuery(supabase: any, userId: string, options: FetchOptio
   return query;
 }
 
-function buildActiveMonthsQuery(supabase: any, userId: string, year: number, categoryId: string) {
+function buildActiveMonthsQuery(supabase: SupabaseClient, userId: string, year: number, categoryId: string) {
   const startDate = `${year}-01-01`;
   const endDate = `${year}-12-31`;
 
@@ -70,7 +71,7 @@ function buildActiveMonthsQuery(supabase: any, userId: string, year: number, cat
   return query;
 }
 
-function buildActiveCategoriesQuery(supabase: any, userId: string, year: number) {
+function buildActiveCategoriesQuery(supabase: SupabaseClient, userId: string, year: number) {
   const startDate = `${year}-01-01`;
   const endDate = `${year}-12-31`;
 
@@ -141,6 +142,11 @@ export function useBills(options: FetchOptions = {}) {
         setFetching(false);
       }
     },
+    // Celowo zależymy od pojedynczych pól `settings`/`options`, nie całych
+    // obiektów - inaczej fetchBills dostawałby nową referencję przy każdej
+    // niezwiązanej zmianie ustawień, wywołując zbędne ponowne pobrania
+    // wszędzie tam, gdzie fetchBills jest zależnością innego efektu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId, settings.show_budget_items, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry]
   );
 

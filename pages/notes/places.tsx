@@ -5,7 +5,7 @@ import { usePlaces } from "@/hooks/db/usePlaces";
 import PlaceFilters from "@/components/places/PlaceFilters";
 import PlacesList from "@/components/places/PlacesList";
 import { SkeletonList } from "@/components/ui/Skeleton";
-import { Place, TimeFilter, ViewMode } from "@/types/places";
+import { Place, TimeFilter, ViewMode, GoogleMapsImportData } from "@/types/places";
 import { Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
@@ -101,7 +101,7 @@ export default function PlacesPage() {
     }
   };
 
-  const handleImport = async (jsonData: any, fetchGoogleData: boolean, autoTag: boolean): Promise<number> => {
+  const handleImport = async (jsonData: GoogleMapsImportData, fetchGoogleData: boolean, autoTag: boolean): Promise<number> => {
     const count = await importFromGoogleMaps(jsonData, fetchGoogleData, autoTag);
     return count || 0;
   };

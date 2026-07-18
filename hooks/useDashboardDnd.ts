@@ -2,15 +2,16 @@
 import { useState, useCallback } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { Task } from "@/types/tasks";
+import { Event } from "@/types/events";
 import { dateToTimestamp } from "@/lib/dateUtils";
 
 interface UseDashboardDndProps {
   tasks: Task[];
-  events: any[];
+  events: Event[];
   userId: string | undefined;
   date: Date;
-  editTask: (task: any) => Promise<void>;
-  editEvent: (event: any) => Promise<void>;
+  editTask: (task: Task & { shared_with_email?: string }) => Promise<void>;
+  editEvent: (event: Event & { shared_with_email?: string }) => Promise<void>;
 }
 
 export function useDashboardDnd({

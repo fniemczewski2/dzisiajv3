@@ -1,6 +1,6 @@
 import typography from '@tailwindcss/typography';
 
-export default {
+const tailwindConfig = {
   darkMode: 'class', 
   content: [
     "./pages/**/*.{js,jsx,ts,tsx}",
@@ -50,3 +50,5 @@ export default {
     typography
   ],
 };
+
+export default tailwindConfig;

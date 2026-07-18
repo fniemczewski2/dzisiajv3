@@ -6,6 +6,10 @@ import { usePushNotifications } from "@/hooks/db/usePushNotifications";
 import { useToast } from "@/providers/ToastProvider";
 import NotificationPreferences from "./NotificationPreferencesForm";
 
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
 interface PushNotificationManagerProps {
   readonly userId?: string;
 }
@@ -21,7 +25,7 @@ const getPlatform = (): string => {
 const checkIsStandalone = (): boolean => {
   if (globalThis === undefined) return false;
   const matchMediaMatches = typeof globalThis.matchMedia === "function" && globalThis.matchMedia("(display-mode: standalone)").matches;
-  const navigatorStandalone = (globalThis.navigator as any)?.standalone === true;
+  const navigatorStandalone = (globalThis.navigator as NavigatorWithStandalone)?.standalone === true;
   return matchMediaMatches || navigatorStandalone;
 };
 

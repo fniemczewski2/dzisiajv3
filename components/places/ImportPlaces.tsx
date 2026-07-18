@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import { CloseButton } from "../ui/CommonButtons";
+import { GoogleMapsImportData } from "@/types/places";
 
 interface ImportPlacesProps {
-  onImport: (jsonData: any, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;
+  onImport: (jsonData: GoogleMapsImportData, fetchGoogleData: boolean, autoTag: boolean) => Promise<number>;
   onCollapse: () => void;
 }
 

@@ -67,7 +67,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       if (doneA !== doneB) return doneA - doneB;
       return sortFn(a, b);
     };
-  }, [settings?.sort_order, settings?.show_completed]);
+  }, [settings]);
 
   const tasks = useMemo(() => {
     if (!comparator) return rawTasks;

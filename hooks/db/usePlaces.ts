@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Place, PlaceInsert, OpeningHours } from "@/types/places";
+import { Place, PlaceInsert, OpeningHours, GoogleMapsImportData } from "@/types/places";
 import { generatePlaceTags } from "@/lib/placeTagging";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
@@ -31,7 +31,7 @@ export function usePlaces() {
       );
     }
     return sorted;
-  }, [rawPlaces, settings?.sort_places]);
+  }, [rawPlaces, settings]);
 
   const fetchPlaces = useCallback(async () => {
     if (!userId) {
@@ -235,7 +235,7 @@ export function usePlaces() {
       );
       return nameMatches?.length ? nameMatches[0] : null;
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, withRetry]
   );
 
   const enrichPlaceData = useCallback(
@@ -262,7 +262,7 @@ export function usePlaces() {
   );
 
   const savePlaceRecord = useCallback(
-    async (existing: Place | null, baseData: any, tags: string[]) => {
+    async (existing: Place | null, baseData: Partial<PlaceInsert>, tags: string[]) => {
       if (!userId) {
   
         throw new Error("Unauthorized");
@@ -284,11 +284,11 @@ export function usePlaces() {
       const { error } = await withRetry(async () => supabase.from("places").insert([{ ...baseData, tags }]));
       return error ? "error" : "imported";
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, withRetry]
   );
 
   const importFromGoogleMaps = useCallback(
-    async (jsonData: any, fetchGoogleData = true, autoTag = true): Promise<number> => {
+    async (jsonData: GoogleMapsImportData, fetchGoogleData = true, autoTag = true): Promise<number> => {
       if (!userId) {
   
         throw new Error("Unauthorized");
@@ -319,8 +319,8 @@ export function usePlaces() {
             lat,
             lng,
             user_id: userId,
-            address: feature.properties.location.address || undefined,
-            ...(googleDetails ? (({ google_data, ...rest }) => rest)(googleDetails) : {}),
+            address: feature.properties?.location?.address || undefined,
+            ...(googleDetails ? (({ google_data: _google_data, ...rest }) => rest)(googleDetails) : {}),
           };
 
           const result = await savePlaceRecord(existing, baseData, tags);

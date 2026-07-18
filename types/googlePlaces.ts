@@ -19,12 +19,12 @@ export interface GoogleNearbyResponse {
   results?: GoogleNearbyResult[];
 }
 
-interface GooglePlaceDetailsResult {
+export interface GooglePlaceDetailsResult {
   name?: string;
   formatted_phone_number?: string;
   website?: string;
   rating?: number;
-  opening_hours?: unknown;
+  opening_hours?: { periods?: { open?: { time?: string }; close?: unknown }[] };
   place_id?: string;
   url?: string;
   types?: string[];

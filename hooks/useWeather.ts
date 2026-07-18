@@ -69,8 +69,8 @@ export function useWeather() {
               error: null,
             });
           }
-        } catch (error: any) {
-          if (error.name === 'AbortError') return; 
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') return; 
           
           if (isMounted) {
             setState(prev => ({

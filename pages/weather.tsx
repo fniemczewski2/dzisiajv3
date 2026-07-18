@@ -21,7 +21,7 @@ import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonWeather } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
 import { useWeather } from "@/hooks/useWeather";
-import { HourlyRow } from "@/types/weather";
+import { HourlyRow, WeatherData } from "@/types/weather";
 
 function WeatherIcon({ code }: { readonly code: number }) {
   if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
@@ -43,7 +43,7 @@ function airQualityColor(value: number): string {
   return "text-red-600 dark:text-red-400";
 }
 
-function evaluateBiomet(forecast: any) {
+function evaluateBiomet(forecast: WeatherData) {
   const t = forecast?.hourly.temperature_2m?.[0];
   const p = forecast?.hourly.pressure_msl?.[0];
   const h = forecast?.hourly.relative_humidity_2m?.[0];

@@ -166,7 +166,7 @@ export function useTransport(autoRefresh = false) {
         }
 
         const uniqueStops = new Map<string, LocalSearchResult>();
-        (data as any[]).forEach((stop) => {
+        (data as { stop_name: string; zone_id: string }[]).forEach((stop) => {
           if (!stop.stop_name) return;
           if (!uniqueStops.has(stop.stop_name)) {
             const isSzczecin = stop.zone_id === "S";

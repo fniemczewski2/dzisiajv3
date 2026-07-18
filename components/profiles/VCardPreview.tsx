@@ -103,7 +103,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
     toast.success('Skopiowano!')
   };
 
-  const bizData = profile.business_data as any || {};
+  const bizData = profile.business_data || {};
   const hasBusinessData = bizData.nip || bizData.krs || bizData.bank_account;
 
   const { resolvedTheme } = useTheme();

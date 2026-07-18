@@ -26,7 +26,7 @@ export function useIntervalTraining(cfg: IntervalConfig) {
       p.push({ label: "Długa przerwa", seconds: cfg.longRestSeconds });
     }
     return p;
-  }, [cfg.workSeconds, cfg.restSeconds, cfg.sets, cfg.cycles, cfg.longRestSeconds, cfg.longRestAfterCycles]);
+  }, [cfg.workSeconds, cfg.restSeconds, cfg.sets, cfg.longRestSeconds, cfg.longRestAfterCycles]);
 
   const engine = useTimerEngine(phases, cfg.cycles);
 
