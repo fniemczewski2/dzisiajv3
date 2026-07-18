@@ -28,11 +28,12 @@
     "lucide-react": "^0.475.0",
     "next": "^16.2.10",
     "next-themes": "^0.4.4",
+    "pdf-parse": "^2.4.5",
     "pdfmake": "^0.2.20",
-    "pdfreader": "^3.0.8",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
@@ -43,6 +44,7 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.18.0",

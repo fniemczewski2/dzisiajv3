@@ -9,12 +9,19 @@ import { useToast } from "@/providers/ToastProvider";
 import { FormButtons } from "../ui/CommonButtons";
 import { BudgetCategory, ParsedTransaction } from "@/types/bills";
 import { processCsvText, readFileAsText } from "@/lib/csvUtils";
+import { BILLS_DEDUP_FETCH_LIMIT } from "@/config/limits";
+
+function getPostgresErrorCode(error: unknown): string | undefined {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String((error as { code?: unknown }).code)
+    : undefined;
+}
 
 export default function BankCsvImporter({ year }: { readonly year: number }) {
   const { user, supabase } = useAuth(); 
   const { toast } = useToast();
   const { categories, addCategory } = useBudgetCategories(year);
-  const { addBill, expenseItems } = useBills(); 
+  const { addBill, fetchBills } = useBills(); 
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [parsedData, setParsedData] = useState<ParsedTransaction[]>([]);
@@ -28,7 +35,8 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
     
     try {
       const text = await readFileAsText(file);
-      const result = processCsvText(text, expenseItems, categories);
+      const { incomes, expenses } = await fetchBills(false, 1, BILLS_DEDUP_FETCH_LIMIT);
+      const result = processCsvText(text, [...incomes, ...expenses], categories);
 
       if (result.transactions) {
         setParsedData(result.transactions);
@@ -56,8 +64,10 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
           is_monthly: isMonthly 
         });
         if (newCat) updatedCategories.push(newCat);
-      } catch (error: any) {
-        if (error?.code === "23505" || error?.message?.includes("duplicate key")) {
+      } catch (error) {
+        const code = getPostgresErrorCode(error);
+        const message = error instanceof Error ? error.message : "";
+        if (code === "23505" || message.includes("duplicate key")) {
           const { data } = await supabase
             .from("budget_categories")
             .select("*")
@@ -85,7 +95,6 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
         console.warn("Pominięto operację", t);
         continue;
       }
-      console.log(t.amount, t.is_income)
 
       try {
         await addBill({
@@ -95,10 +104,10 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
           description: t.description.substring(0, 50),
           is_income: t.is_income,
           done: true, 
-        });
+        }, { silent: true });
         tick();
-      } catch (billError: any) {
-        if (billError?.code === "23503") {
+      } catch (billError) {
+        if (getPostgresErrorCode(billError) === "23503") {
           throw new Error(`Błąd połączenia z kategorią`);
         }
         throw billError;
@@ -109,10 +118,15 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
   const handleImport = async () => {
     if (parsedData.length === 0) return;
     setLoading(true);
-    const updatedCategories = await ensureCategoriesExist(missingCategories);
-    await insertBills(parsedData, updatedCategories);
-    handleCancel();
-    setLoading(false);
+    try {
+      const updatedCategories = await ensureCategoriesExist(missingCategories);
+      await insertBills(parsedData, updatedCategories);
+      handleCancel();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Wystąpił błąd podczas importu.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {

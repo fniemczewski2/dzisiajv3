@@ -11,9 +11,11 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import NoResultsState from '@/components/ui/NoResultsState';
 import Seo from '@/components/ui/SEO';
 import { useToast } from '@/providers/ToastProvider';
+import { useSettings } from '@/hooks/db/useSettings';
 
 export default function PeoplePage() {
   const { people, loading, fetching, addPerson, editPerson, deletePerson, logContact } = usePeople();
+  const { settings } = useSettings();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
@@ -46,25 +48,27 @@ export default function PeoplePage() {
 
   const filteredAndSortedPeople = [...people]
     .filter(person => {
+      if (settings.hide_priority_5 && person.priority === 5) return false;
+
       const query = searchQuery.toLowerCase();
       const fullName = `${person.first_name || ''} ${person.last_name || ''}`.toLowerCase();
       return fullName.includes(query);
     })
     .sort((a, b) => {
-      const isA5 = a.priority === 5;
-      const isB5 = b.priority === 5;
-
-      if (isA5 && !isB5) return 1;  
-      if (!isA5 && isB5) return -1; 
-
       const lastNameA = (a.last_name || '').trim().toLowerCase();
       const firstNameA = (a.first_name || '').trim().toLowerCase();
-      
+
       const lastNameB = (b.last_name || '').trim().toLowerCase();
       const firstNameB = (b.first_name || '').trim().toLowerCase();
 
       const nameA = `${lastNameA} ${firstNameA}`.trim();
       const nameB = `${lastNameB} ${firstNameB}`.trim();
+
+      if (settings.sort_people === 'priority') {
+        const priorityDiff = (a.priority ?? 0) - (b.priority ?? 0);
+        if (priorityDiff !== 0) return priorityDiff;
+        return nameA.localeCompare(nameB);
+      }
 
       return nameA.localeCompare(nameB);
     });

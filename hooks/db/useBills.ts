@@ -70,6 +70,18 @@ function buildActiveMonthsQuery(supabase: any, userId: string, year: number, cat
   return query;
 }
 
+function buildActiveCategoriesQuery(supabase: any, userId: string, year: number) {
+  const startDate = `${year}-01-01`;
+  const endDate = `${year}-12-31`;
+
+  return supabase
+    .from("bills")
+    .select("category_id")
+    .eq("user_id", userId)
+    .gte("date", startDate)
+    .lte("date", endDate);
+}
+
 interface FetchOptions {
   dateFrom?: string;
   dateTo?: string;
@@ -91,8 +103,8 @@ export function useBills(options: FetchOptions = {}) {
   const withRetry = useRetry();
 
   const fetchBills = useCallback(
-    async (append = false, page = 1, limit = BILLS_PAGE_LIMIT) => {
-      if (!userId || settings == null) return;
+    async (append = false, page = 1, limit = BILLS_PAGE_LIMIT): Promise<{ incomes: Bill[]; expenses: Bill[] }> => {
+      if (!userId || settings == null) return { incomes: [], expenses: [] };
       setFetching(true);
 
       try {
@@ -120,8 +132,11 @@ export function useBills(options: FetchOptions = {}) {
         if (count !== null) {
           setHasMore(from + bills.length < count);
         }
+
+        return { incomes, expenses };
       } catch {
         toast.error("Błąd pobierania rachunków.");
+        return { incomes: [], expenses: [] };
       } finally {
         setFetching(false);
       }
@@ -134,7 +149,10 @@ export function useBills(options: FetchOptions = {}) {
   }, [fetchBills]);
 
   const addBill = useCallback(
-    async (bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">): Promise<Bill> => {
+    async (
+      bill: Omit<Bill, "id" | "user_id" | "parent_bill_id">,
+      options: { silent?: boolean } = {}
+    ): Promise<Bill> => {
       if (!userId) {
         throw new Error("Unauthorized");
       }
@@ -180,10 +198,10 @@ export function useBills(options: FetchOptions = {}) {
           }
         }
 
-        toast.success("Dodano rachunek");
+        if (!options.silent) toast.success("Dodano rachunek");
         return parent;
       } catch (error) {
-        toast.error("Błąd dodawania rachunku");
+        if (!options.silent) toast.error("Błąd dodawania rachunku");
         throw error;
       } finally {
         setLoading(false);
@@ -343,9 +361,40 @@ export function useBills(options: FetchOptions = {}) {
     [userId, supabase, toast, withRetry]
   );
 
+  const fetchActiveCategories = useCallback(
+    async (year: number): Promise<string[]> => {
+      if (!userId) {
+        throw new Error("Unauthorized");
+      }
+
+      try {
+        const { data, error } = await withRetry(async () =>
+          buildActiveCategoriesQuery(supabase, userId, year)
+        );
+
+        if (error || !data) {
+          toast.error("Błąd pobierania danych.");
+          return [];
+        }
+
+        // "none" oznacza rachunki bez przypisanej kategorii ("Inne").
+        const activeCategoryIds = new Set<string>();
+        data.forEach((item: { category_id: string | null }) => {
+          activeCategoryIds.add(item.category_id ?? "none");
+        });
+
+        return Array.from(activeCategoryIds);
+      } catch {
+        toast.error("Błąd pobierania danych.");
+        return [];
+      }
+    },
+    [userId, supabase, toast, withRetry]
+  );
+
   return {
     incomeItems, expenseItems, loading, fetching, hasMore,
     fetchBills, addBill, editBill, deleteBill, markAsDone,
-    fetchActiveMonths,
+    fetchActiveMonths, fetchActiveCategories,
   };
 }

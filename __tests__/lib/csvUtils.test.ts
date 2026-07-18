@@ -29,21 +29,23 @@ describe("processCsvText", () => {
     });
   });
 
-  it("excludes bank transfers and ATM withdrawals, not just card purchases", () => {
+  it("excludes only ATM cash withdrawals/deposits, not regular bank transfers", () => {
     const csv = buildCsv([
       `"2024-03-16";"PRZELEW NA RACHUNEK ZUS";"Przelewy";"-500,00 PLN"`,
       `"2024-03-16";"WYPLATA W BANKOMACIE";"Bankomaty";"-200,00 PLN"`,
     ]);
     const result = processCsvText(csv, [], noCategories);
-    expect(result.transactions).toHaveLength(0);
+    expect(result.transactions).toHaveLength(1);
+    expect(result.transactions?.[0].description).toMatch(/ZUS/i);
   });
 
-  it("excludes positive amounts (income), keeping only expenses", () => {
+  it("includes positive amounts as income rather than dropping them", () => {
     const csv = buildCsv([
       `"2024-03-17";"WYNAGRODZENIE MARZEC";"Wpływy";"5000,00 PLN"`,
     ]);
     const result = processCsvText(csv, [], noCategories);
-    expect(result.transactions).toHaveLength(0);
+    expect(result.transactions).toHaveLength(1);
+    expect(result.transactions?.[0].is_income).toBe(true);
   });
 
   it("maps a subscription merchant to Rozrywka via the category column", () => {
@@ -61,12 +63,34 @@ describe("processCsvText", () => {
     const csv = buildCsv([
       `"2024-03-15";"ZAKUP PRZY UŻYCIU KARTY W KRAJU BIEDRONKA 123 WARSZAWA";"Supermarkety";"-25,50 PLN"`,
     ]);
-    const existing = [{ amount: 25.5, date: "2024-03-15", description: "Biedronka" }];
+    const existing = [{ amount: 25.5, date: "2024-03-15", description: "Biedronka", is_income: false }];
     const result = processCsvText(csv, existing, noCategories);
 
     expect(result.transactions).toHaveLength(0);
     expect(result.dupes).toBe(1);
     expect(result.info).toMatch(/już zaimportowane/);
+  });
+
+  it("detects a duplicate income transaction against existing income bills", () => {
+    const csv = buildCsv([
+      `"2026-06-27";"PRZELEW PRZYCHODZĄCY WYNAGRODZENIE";"Wpływy";"5000,00 PLN"`,
+    ]);
+    const existing = [{ amount: 5000, date: "2026-06-27", description: "PRZELEW PRZYCHODZĄCY WYNAGRODZENIE", is_income: true }];
+    const result = processCsvText(csv, existing, noCategories);
+
+    expect(result.transactions).toHaveLength(0);
+    expect(result.dupes).toBe(1);
+  });
+
+  it("does not treat an expense and an income with the same amount/date/description as duplicates of each other", () => {
+    const csv = buildCsv([
+      `"2026-06-27";"ZWROT";"Inne";"-100,00 PLN"`,
+    ]);
+    const existing = [{ amount: 100, date: "2026-06-27", description: "ZWROT", is_income: true }];
+    const result = processCsvText(csv, existing, noCategories);
+
+    expect(result.dupes).toBe(0);
+    expect(result.transactions).toHaveLength(1);
   });
 
   it("reports missing required categories that the user has not created yet", () => {

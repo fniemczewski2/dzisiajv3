@@ -18,6 +18,9 @@ import {
 import { useImages } from '@/lib/imgUtils';
 import { VCardProfile } from '@/types/profiles';
 
+// Importowane, aby generować unikalne ID dla list (rozwiązuje problem z focusem)
+import { v4 as uuidv4 } from 'uuid';
+
 interface ProfileEditorFormProps {
   initialData?: VCardProfile;
   onSubmit: (data: any) => Promise<{ success: boolean; error?: string }>;
@@ -39,12 +42,16 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     color_dark: (initialData as any)?.color_dark || '#171717',
     is_public: initialData?.is_public || false,
     public_slug: initialData?.public_slug || '',
-    phones: initialData?.phones || [],
-    emails: initialData?.emails || [],
-    addresses: initialData?.addresses || [],
-    social_links: initialData?.social_links || [],
+    
+    // Dodajemy unikalne id (_id) wewnętrznie dla Reacta, żeby rozwiązać problem focusa
+    phones: (initialData?.phones || []).map(p => ({ ...p, _id: uuidv4() })),
+    emails: (initialData?.emails || []).map(e => ({ ...e, _id: uuidv4() })),
+    addresses: (initialData?.addresses || []).map(a => ({ ...a, _id: uuidv4() })),
+    social_links: (initialData?.social_links || []).map(s => ({ ...s, _id: uuidv4() })),
+    
     business_data: initialData?.business_data || { nip: '', krs: '', bank_account: '' },
   });
+  
   const onAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = await handleImageUpload(e);
     if (result?.publicUrl) {
@@ -101,22 +108,23 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     setFormData(prev => ({ ...prev, public_slug: formatted }));
   };
 
-  const addPhone = () => setFormData(p => ({ ...p, phones: [...p.phones, { type: 'Komórka', number: '' }] }));
+  // Dodawanie elementów (dodajemy _id)
+  const addPhone = () => setFormData(p => ({ ...p, phones: [...p.phones, { type: 'Komórka', number: '', _id: uuidv4() }] }));
   const updatePhone = (index: number, field: string, value: string) => { const newPhones = [...formData.phones]; newPhones[index] = { ...newPhones[index], [field]: value }; setFormData(p => ({ ...p, phones: newPhones })); };
   const removePhone = (index: number) => setFormData(p => ({ ...p, phones: p.phones.filter((_, i) => i !== index) }));
   
-  const addEmail = () => setFormData(p => ({ ...p, emails: [...p.emails, { type: 'Prywatny', email: '' }] }));
+  const addEmail = () => setFormData(p => ({ ...p, emails: [...p.emails, { type: 'Prywatny', email: '', _id: uuidv4() }] }));
   const updateEmail = (index: number, field: string, value: string) => { const newEmails = [...formData.emails]; newEmails[index] = { ...newEmails[index], [field]: value }; setFormData(p => ({ ...p, emails: newEmails })); };
   const removeEmail = (index: number) => setFormData(p => ({ ...p, emails: p.emails.filter((_, i) => i !== index) }));
   
-  const addAddress = () => setFormData(p => ({ ...p, addresses: [...p.addresses, { type: 'Biuro', address: '' }] }));
+  const addAddress = () => setFormData(p => ({ ...p, addresses: [...p.addresses, { type: 'Biuro', address: '', _id: uuidv4() }] }));
   const updateAddress = (index: number, field: string, value: string) => { const newAddresses = [...formData.addresses]; newAddresses[index] = { ...newAddresses[index], [field]: value }; setFormData(p => ({ ...p, addresses: newAddresses })); };
   const removeAddress = (index: number) => setFormData(p => ({ ...p, addresses: p.addresses.filter((_, i) => i !== index) }));
 
   const addSocialLink = () => {
     setFormData(p => ({
       ...p,
-      social_links: [...(p.social_links || []), { platform: 'Strona WWW', url: '' }]
+      social_links: [...(p.social_links || []), { platform: 'Strona WWW', url: '', _id: uuidv4() }]
     }));
   };
   
@@ -181,10 +189,16 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         url: item.url.trim()
       }));
 
-    await onSubmit({
+    // Usuwamy _id przed wysyłką do bazy (opcjonalne)
+    const cleanData = {
       ...formData,
+      phones: formData.phones.map(({_id, ...rest}) => rest),
+      emails: formData.emails.map(({_id, ...rest}) => rest),
+      addresses: formData.addresses.map(({_id, ...rest}) => rest),
       social_links: validSocialLinks
-    });
+    }
+
+    await onSubmit(cleanData);
     
     setIsSubmitting(false);
   };
@@ -216,12 +230,13 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             <ImageIcon className=" w-8 h-8" aria-hidden="true" />
           )}
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-             <span className="text-white text-xs font-medium">Zmień</span>
+              <span className="text-white text-xs font-medium">Zmień</span>
           </div>
         </button>
         <input type="file" accept="image/*" ref={fileInputRef} onChange={onAvatarFileChange} className="hidden" />
         {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
       </div>
+
         <h3 className="font-semibold text-base flex items-center gap-2">
           <User size={18} className="" aria-hidden="true" /> Podstawowe informacje
         </h3>
@@ -242,6 +257,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             </div>
           </label>
         </div>
+
         <h3 className="font-semibold text-base flex items-center gap-2 ">
           <Palette size={18} className="" aria-hidden="true" /> Kolorystyka wizytówki
         </h3>
@@ -261,6 +277,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             </div>
           </label>
         </div>
+
         <h3 className="font-semibold text-base flex items-center gap-2 ">
           <Phone size={18} className="" aria-hidden="true" /> Dane kontaktowe
         </h3>
@@ -272,12 +289,12 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           </div>
           <div className="space-y-1">
             {formData.phones.map((phone, idx) => (
-              <div key={`phone-${phone.number}`} className="flex gap-2 items-center">
-                <label htmlFor={`field-${phone.type}`} className="sr-only">Typ numeru</label>
-                <input id={`field-${phone.type}`} type="text" placeholder="Typ" value={phone.type} onChange={e => updatePhone(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+              <div key={phone._id} className="flex gap-2 items-center">
+                <label htmlFor={`field-type-${phone._id}`} className="sr-only">Typ numeru</label>
+                <input id={`field-type-${phone._id}`} type="text" placeholder="Typ" value={phone.type} onChange={e => updatePhone(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label htmlFor={`field-${phone.number}`} className="sr-only">Numer telefonu</label>
-                <input id={`field-${phone.number}`} type="text" placeholder="Numer" value={phone.number} onChange={e => updatePhone(idx, 'number', e.target.value)} className="input-field flex-1" />
+                <label htmlFor={`field-number-${phone._id}`} className="sr-only">Numer telefonu</label>
+                <input id={`field-number-${phone._id}`} type="text" placeholder="Numer" value={phone.number} onChange={e => updatePhone(idx, 'number', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removePhone(idx)} small />
               </div>
@@ -291,12 +308,12 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           </div>
           <div className="space-y-1">
             {formData.emails.map((email, idx) => (
-              <div key={`email-${email.email}`} className="flex gap-2 items-center">
-                <label htmlFor={`field-${email.type}`} className="sr-only">Typ e-mail</label>
-                <input id={`field-${email.type}`} type="text" placeholder="Typ" value={email.type} onChange={e => updateEmail(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+              <div key={email._id} className="flex gap-2 items-center">
+                <label htmlFor={`field-type-${email._id}`} className="sr-only">Typ e-mail</label>
+                <input id={`field-type-${email._id}`} type="text" placeholder="Typ" value={email.type} onChange={e => updateEmail(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label htmlFor={`field-${email.email}`} className="sr-only">Adres e-mail</label>
-                <input id={`field-${email.email}`} type="email" placeholder="Adres e-mail" value={email.email} onChange={e => updateEmail(idx, 'email', e.target.value)} className="input-field flex-1" />
+                <label htmlFor={`field-email-${email._id}`} className="sr-only">Adres e-mail</label>
+                <input id={`field-email-${email._id}`} type="email" placeholder="Adres e-mail" value={email.email} onChange={e => updateEmail(idx, 'email', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removeEmail(idx)} small />
               </div>
@@ -311,12 +328,12 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           </div>
           <div className="space-y-2">
             {formData.addresses.map((addr, idx) => (
-              <div key={`addr-${addr.address}`} className="flex gap-2 items-center">
-                <label htmlFor={`field-${addr.type}`} className="sr-only">Typ adresu</label>
-                <input id={`field-${addr.type}`} type="text" placeholder="Typ" value={addr.type} onChange={e => updateAddress(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
+              <div key={addr._id} className="flex gap-2 items-center">
+                <label htmlFor={`field-type-${addr._id}`} className="sr-only">Typ adresu</label>
+                <input id={`field-type-${addr._id}`} type="text" placeholder="Typ" value={addr.type} onChange={e => updateAddress(idx, 'type', e.target.value)} className="input-field w-24 sm:w-32" />
                 
-                <label htmlFor={`field-${addr.address}`} className="sr-only">Adres fizyczny</label>
-                <input id={`field-${addr.address}`} type="text" placeholder="Adres" value={addr.address} onChange={e => updateAddress(idx, 'address', e.target.value)} className="input-field flex-1" />
+                <label htmlFor={`field-address-${addr._id}`} className="sr-only">Adres fizyczny</label>
+                <input id={`field-address-${addr._id}`} type="text" placeholder="Adres" value={addr.address} onChange={e => updateAddress(idx, 'address', e.target.value)} className="input-field flex-1" />
                 
                 <DeleteButton onClick={() => removeAddress(idx)} small />
               </div>
@@ -324,6 +341,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           </div>
         </div>
       </div>
+
         <h3 className="flex items-center justify-between">
           <div className='font-semibold text-base flex items-center gap-2 '>
             <LinkIcon size={18} className="" aria-hidden="true" /> Linki i Media Społecznościowe
@@ -333,12 +351,12 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         
         <div className="space-y-1">
           {formData.social_links.map((social, idx) => (
-            <div key={`social-${social.url}`} className="flex gap-2 items-center">
-              <label className="sr-only">Platforma społecznościowa {idx + 1}</label>
-              <input type="text" placeholder="np. Facebook" value={`${social.platform}-${idx}`} onChange={e => updateSocialPlatform(idx, e.target.value)} className="input-field w-24 sm:w-32" />
+            <div key={social._id} className="flex gap-2 items-center">
+              <label htmlFor={`social-platform-${social._id}`} className="sr-only">Platforma społecznościowa {idx + 1}</label>
+              <input id={`social-platform-${social._id}`} type="text" placeholder="np. Facebook" value={social.platform} onChange={e => updateSocialPlatform(idx, e.target.value)} className="input-field w-24 sm:w-32" />
               
-              <label className="sr-only">Adres URL profilu {idx + 1}</label>
-              <input type="text" placeholder="Wklej adres profilu (URL)" value={`${social.url}-${idx}`} onChange={e => updateSocialUrl(idx, e.target.value)} onBlur={() => handleSocialBlur(idx)} className="input-field flex-1" />
+              <label htmlFor={`social-url-${social._id}`} className="sr-only">Adres URL profilu {idx + 1}</label>
+              <input id={`social-url-${social._id}`} type="text" placeholder="Wklej adres profilu (URL)" value={social.url} onChange={e => updateSocialUrl(idx, e.target.value)} onBlur={() => handleSocialBlur(idx)} className="input-field flex-1" />
               
               <DeleteButton onClick={() => removeSocialLink(idx)} small />
             </div>
@@ -346,7 +364,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         </div>
 
         <h3 className="font-semibold text-base flex items-center gap-2">
-          <Briefcase size={18}  aria-hidden="true" /> Dodatkowe dane firmy
+          <Briefcase size={18}  aria-hidden="true" /> Dodatkowe dane
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="block">
@@ -394,7 +412,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
                   required={formData.is_public}
                   value={formData.public_slug}
                   onChange={handleSlugChange}
-                  className="input-field p-2.5 w-full"
+                  className="input-field w-full"
                   placeholder="np. jan-kowalski"
                 />
 

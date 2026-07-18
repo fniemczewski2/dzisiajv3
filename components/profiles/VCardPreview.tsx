@@ -143,7 +143,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
           )}
         </div>
         
-        <div className="pt-12 pb-6 px-6">
+        <div className="pt-12 pb-6 px-4">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold">{profile.full_name || 'Brak danych'}</h2>
@@ -219,7 +219,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
 
             {hasBusinessData && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
-                <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Dane Firmowe</h3>
+                <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Pozostałe Dane</h3>
                 {bizData.nip && (
                   <div className="flex justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">NIP</span>
@@ -240,9 +240,9 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                 )}
                 {bizData.bank_account && (
                   <div className="flex justify-between items-center text-sm py-1">
-                    <span className="opacity-70 text-xs w-20">Nr Konta</span>
-                    <div className="flex-1 flex justify-end items-center gap-2">
-                      <span className="font-mono text-right truncate" title={bizData.bank_account}>{bizData.bank_account}</span>
+                    <span className="opacity-70 text-xs">Nr Konta</span>
+                    <div className="flex-1 flex justify-end items-center gap-2 w-full">
+                      <span className="font-mono text-right text-wrap w-fit" title={bizData.bank_account}>{bizData.bank_account}</span>
                       <CopyButtonSmall text={bizData.bank_account} label="Nr konta" />
                     </div>
                   </div>

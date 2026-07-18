@@ -41,6 +41,8 @@ export interface Settings {
 
   sort_people: string;
   hide_priority_5: boolean;
+
+  sort_bills: string;
 }
 
 export interface EmailByIdRow {

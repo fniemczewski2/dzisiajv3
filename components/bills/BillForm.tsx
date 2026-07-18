@@ -7,6 +7,7 @@ import { getAppDate } from "@/lib/dateUtils";
 import { useBills } from "@/hooks/db/useBills";
 import { FormButtons } from "../ui/CommonButtons";
 import type { Bill, BudgetCategory } from "@/types/bills";
+import { isValidAmountInput, parseAmountInput } from "@/lib/amountUtils";
 
 interface BillFormProps {
   onChange: () => void;
@@ -51,7 +52,7 @@ export default function BillForm({
     e.preventDefault();
 
     const payload = {
-      amount:          Number.parseFloat(amount) || 0,
+      amount:          parseAmountInput(amount),
       description:     description.trim() || null,
       date,
       is_income:       isIncome,
@@ -101,11 +102,14 @@ export default function BillForm({
           </button>
           <input
             id="amount"
-            type="number"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
             placeholder="Kwota"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (isValidAmountInput(raw)) setAmount(raw);
+            }}
             className="input-field flex-1"
             required
             disabled={loading}

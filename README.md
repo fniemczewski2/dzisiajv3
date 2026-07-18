@@ -74,7 +74,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 | Drag & drop | `@dnd-kit` |
 | Mapy | `leaflet` |
 | Daty | `date-fns` |
-| PDF / kalendarz | `pdfmake`, `pdfreader`, `ical.js` |
+| PDF / kalendarz | `pdfmake`, `ical.js` |
 | QR / vCard | `qrcode.react` |
 | Logowanie | `@react-oauth/google`, Supabase Auth |
 | Testy | `vitest`, `@testing-library/react` |

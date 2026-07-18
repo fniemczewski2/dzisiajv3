@@ -298,6 +298,18 @@ export default function SettingsForm({
               <option value="priority">Priorytet 0→5</option>
             </select>
           </div>
+          <div>
+            <label htmlFor="sort_bills" className="form-label text-xs">Rachunki:</label>
+            <select
+              id="sort_bills"
+              value={localSettings.sort_bills || "month"}
+              onChange={(e) => updateLocalField("sort_bills", e.target.value)}
+              className="input-field"
+            >
+              <option value="month">Wg miesięcy</option>
+              <option value="category">Wg kategorii</option>
+            </select>
+          </div>
         </div>
       </div>
 

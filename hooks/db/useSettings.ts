@@ -69,6 +69,7 @@ const DEFAULT_SETTINGS: Settings = {
   main_view: "calendar",
   sort_people: "alphabetical",
   hide_priority_5: false,
+  sort_bills: "month",
 };
 
 export function useSettings() {
@@ -141,6 +142,7 @@ export function useSettings() {
             main_view: data.main_view ?? "calendar",
             sort_people: data.sort_people ?? "alphabetical",
             hide_priority_5: data.hide_priority_5 ?? false,
+            sort_bills: data.sort_bills ?? "month",
           });
         }
       } catch {

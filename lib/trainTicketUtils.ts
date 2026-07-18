@@ -34,15 +34,13 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
         if (toastId && toast.dismiss) toast.dismiss(toastId);
         toast.success('Bilet odczytany');
         
-        const stations = data.route?.split(/ (?=[A-Z])/) || [];
-
         setFormData({
           trainNumber: data.trainNumber || '',
           trainName: data.trainName || '',
           date: data.date ? data.date.split('.').reverse().join('-') : '', 
           departureTime: data.departureTime || '',
-          from: stations[0] || '',
-          to: stations[1] || '',
+          from: data.from || '',
+          to: data.to || '',
           wagon: data.wagon || '',
           seat: data.seat || ''
         });

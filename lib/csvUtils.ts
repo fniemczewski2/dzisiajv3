@@ -1,5 +1,5 @@
 import { BOILERPLATE_REGEXES, DESCRIPTION_MAPPINGS, REQUIRED_CATEGORIES } from "@/config/constants";
-import { ParsedTransaction, BudgetCategory } from "@/types/bills";
+import { ParsedTransaction, BudgetCategory, Bill } from "@/types/bills";
 
 interface ColumnIndices {
   dateIdx: number;
@@ -100,9 +100,7 @@ const parseTransactionLine = (cols: string[], indices: ColumnIndices): ParsedTra
 
   if (Number.isNaN(amount)) return null;
   if (isExcludedTransaction(rawDesc, catRaw)) return null;
- 
-  console.log(amount)
-  console.log(amount >=0)
+
   return {
     date: formattedDate,
     description: cleanDescription(rawDesc),
@@ -112,9 +110,11 @@ const parseTransactionLine = (cols: string[], indices: ColumnIndices): ParsedTra
   };
 };
 
-const isDuplicateTransaction = (parsed: ParsedTransaction, expenseItems: any[]) => {
-  return expenseItems.some(
-    (b) => b.amount === parsed.amount && b.date === parsed.date && 
+type ExistingBillForDedup = Pick<Bill, "amount" | "date" | "description" | "is_income">;
+
+const isDuplicateTransaction = (parsed: ParsedTransaction, existingBills: ExistingBillForDedup[]) => {
+  return existingBills.some(
+    (b) => b.is_income === parsed.is_income && b.amount === parsed.amount && b.date === parsed.date && 
     (b.description === parsed.description || b.description?.includes(parsed.description.substring(0, 10)))
   );
 };
@@ -150,7 +150,7 @@ const extractTransactionsFromLines = (
   lines: string[],
   startIndex: number,
   indices: ColumnIndices,
-  expenseItems: any[]
+  existingBills: ExistingBillForDedup[]
 ) => {
   const transactions: ParsedTransaction[] = [];
   let dupes = 0;
@@ -165,7 +165,7 @@ const extractTransactionsFromLines = (
     const parsed = parseTransactionLine(cols, indices);
     if (!parsed) continue;
 
-    if (isDuplicateTransaction(parsed, expenseItems)) {
+    if (isDuplicateTransaction(parsed, existingBills)) {
       dupes++;
     } else {
       transactions.push(parsed);
@@ -177,7 +177,7 @@ const extractTransactionsFromLines = (
 
 export const processCsvText = (
   text: string, 
-  expenseItems: any[], 
+  existingBills: ExistingBillForDedup[], 
   categories: BudgetCategory[]
 ) => {
   const lines = text.split("\n");
@@ -194,7 +194,7 @@ export const processCsvText = (
     lines, 
     headerIdx + 1, 
     indices, 
-    expenseItems
+    existingBills
   );
 
   let info;

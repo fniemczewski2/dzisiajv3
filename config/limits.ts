@@ -5,6 +5,10 @@ export const MAX_HISTORY = 5;
 export const MAX_SEARCH_SUGGESTIONS = 5;
 export const MAX_TRUSTED_USERS = 10;
 export const BILLS_PAGE_LIMIT = 20;
+// Osobny, wysoki limit używany wyłącznie przy imporcie CSV do pobrania KOMPLETNEGO
+// zestawu istniejących rachunków na potrzeby wykrywania duplikatów - BILLS_PAGE_LIMIT
+// (stronicowanie widoku) nie wystarcza, bo obejmuje tylko najnowszą stronę wyników.
+export const BILLS_DEDUP_FETCH_LIMIT = 5000;
 export const TRANSPORT_API_LIMIT = 30;
 export const TRANSPORT_SUGGESTIONS_LIMIT = 10;
 export const FLAT_RENTAL_DEFAULT = 2000;

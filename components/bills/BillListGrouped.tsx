@@ -8,6 +8,7 @@ import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 
 import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
+import { isValidAmountInput, parseAmountInput } from "@/lib/amountUtils";
 
 interface BillListProps {
   year: number;
@@ -135,11 +136,30 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedBill, setEditedBill] = useState<Bill | null>(null);
+  const [amountText, setAmountText] = useState<string>("");
   const amountRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editingId && amountRef.current) amountRef.current.focus();
   }, [editingId]);
+
+  // Kwota jest trzymana jako osobny string podczas edycji, żeby nie zamieniać
+  // jej na liczbę przy każdym naciśnięciu klawisza - to właśnie uniemożliwiało
+  // wpisanie przecinka/kropki (przeglądarka natychmiast "ucinała" znak, którego
+  // parseFloat jeszcze nie umiał doliczyć do wartości) i pokazywało samotne "0"
+  // zaraz po wyczyszczeniu pola.
+  const handleAmountChange = (raw: string) => {
+    if (!isValidAmountInput(raw)) return;
+    setAmountText(raw);
+    if (!editedBill) return;
+    setEditedBill({ ...editedBill, amount: parseAmountInput(raw) });
+  };
+
+  const startEditing = (bill: Bill) => {
+    setEditingId(bill.id);
+    setEditedBill(bill);
+    setAmountText(String(bill.amount).replace('.', ','));
+  };
 
   const handleRefresh = useCallback(() => {
     fetchBills(false, 1, page * limit);
@@ -214,11 +234,11 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
                 <input
                   id="amount"
                   ref={amountRef}
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="Kwota"
-                  value={editedBill.amount}
-                  onChange={(e) => setEditedBill({ ...editedBill, amount: Number.parseFloat(e.target.value) || 0 })}
+                  value={amountText}
+                  onChange={(e) => handleAmountChange(e.target.value)}
                   className="input-field flex-1"
                   required
                 />
@@ -297,7 +317,7 @@ function MonthContent({ dateFrom, dateTo, onBillsChange, year }: Readonly<MonthC
             </button>
           )}
           <ShareButton onClick={() => handleShare(b)} />
-          <EditButton onClick={() => { setEditingId(b.id); setEditedBill(b); }} />
+          <EditButton onClick={() => startEditing(b)} />
           <DeleteButton onClick={() => handleDelete(b)} />
         </div>
       </li>
