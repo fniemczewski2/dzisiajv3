@@ -1,9 +1,11 @@
 // hooks/useStreaks.ts
-import { useState, useEffect, useCallback } from "react";
+//
+// Migracja na wspólną fabrykę CRUD — audyt 3.2. getMilestoneMessage i cała
+// logika kamieni milowych zostają bez zmian (czyste funkcje, niezależne
+// od stanu hooka).
+import { useCallback } from "react";
 import { Streak } from "@/types/streaks";
-import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/hooks/useRetry";
+import { useCrudResource } from "./useCrudResource";
 
 const getMonthsLabel = (m: number) => {
   const d = m % 10, td = m % 100;
@@ -84,125 +86,43 @@ export const getMilestoneMessage = (
   return "";
 };
 
+type StreakInsert = Omit<Streak, "id" | "user_id">;
+
+const MESSAGES = {
+  fetchError: "Błąd pobierania celów.",
+  added: "Dodano cel",
+  addError: "Błąd dodawania celu.",
+  edited: "Zaktualizowano cel",
+  editError: "Błąd aktualizacji celu.",
+  deleted: "Usunięto cel",
+  deleteError: "Błąd usuwania celu.",
+  confirmDelete: "Czy chcesz usunąć cel?",
+};
+
 export function useStreaks() {
-  const { user, supabase } = useAuth();
-  const userId = user?.id;
-  const [streaks, setStreaks] = useState<Streak[]>([]);
-  const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const withRetry = useRetry();
-
-  const fetchStreaks = useCallback(async () => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("streaks").select("*").eq("user_id", userId).order("start_date", { ascending: false })
-      );
-      if (error) throw error;
-      setStreaks(data || []);
-    } catch {
-      toast.error("Błąd pobierania celów.");
-    } finally {
-      setFetching(false);
-    }
-  }, [userId, supabase, toast, withRetry]);
-
-  const addStreak = useCallback(
-    async (newStreak: Omit<Streak, "id" | "user_id">) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const tempId = `temp-${Date.now()}`;
-      const optimisticStreak = { ...newStreak, id: tempId, user_id: userId } as Streak;
-      setStreaks((prev) => [optimisticStreak, ...prev]);
-
-      try {
-        const { data, error } = await withRetry(async () =>
-          supabase.from("streaks").insert([{ ...newStreak, user_id: userId }]).select().single()
-        );
-        if (error) throw error;
-        setStreaks((prev) => prev.map((s) => (s.id === tempId ? (data as Streak) : s)));
-        toast.success("Dodano cel");
-      } catch {
-        setStreaks((prev) => prev.filter((s) => s.id !== tempId));
-        toast.error("Błąd dodawania celu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, toast, withRetry]
-  );
+  const crud = useCrudResource<Streak, StreakInsert>({
+    table: "streaks",
+    order: { column: "start_date", ascending: false },
+    insertPosition: "start",
+    messages: MESSAGES,
+  });
 
   const deleteStreak = useCallback(
-    async (id: string) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      const ok = await toast.confirm(`Czy chcesz usunąć cel?`);
-      if (!ok) return;
-      setLoading(true);
-      const previous = streaks;
-      setStreaks((prev) => prev.filter((s) => s.id !== id));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from("streaks").delete().eq("id", id));
-        if (error) throw error;
-        toast.success("Usunięto cel");
-      } catch {
-        setStreaks(previous);
-        toast.error("Błąd usuwania celu.");
-      } finally {
-        setLoading(false);
-      }
+    async (id: string): Promise<void> => {
+      await crud.remove(id);
     },
-    [userId, supabase, streaks, toast, withRetry]
+    [crud]
   );
-
-  const updateStreak = useCallback(
-    async (id: string, updates: Partial<Streak>) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const previous = streaks;
-      setStreaks((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from("streaks").update(updates).eq("id", id));
-        if (error) throw error;
-        toast.success("Zaktualizowano cel");
-      } catch {
-        setStreaks(previous);
-        toast.error("Błąd aktualizacji celu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, streaks, toast, withRetry]
-  );
-
-  useEffect(() => {
-    fetchStreaks();
-  }, [fetchStreaks]);
 
   return {
-    streaks,
-    loading,
-    fetching,
-    fetchStreaks,
-    refetch: fetchStreaks,
-    addStreak,
+    streaks: crud.items,
+    loading: crud.loading,
+    fetching: crud.fetching,
+    fetchStreaks: crud.refetch,
+    refetch: crud.refetch,
+    addStreak: crud.add,
     deleteStreak,
-    updateStreak,
+    updateStreak: crud.patch,
     getMilestoneMessage,
   };
 }

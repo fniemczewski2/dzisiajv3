@@ -1,28 +1,62 @@
 "use client";
+// hooks/db/useRecipes.ts
+//
+// Migracja CZĘŚCIOWA na wspólną fabrykę CRUD — audyt 3.2.
+//
+// Ten hook zarządza DWOMA zasobami: `recipes` (pełny CRUD, id-based —
+// migrowany na fabrykę) i `products` (tylko odczyt do podpowiedzi
+// autouzupełniania, zapytanie zwraca same stringi bez kolumny id — nie
+// spełnia wymaganego przez fabrykę `T extends { id: string }`). Products
+// zostaje więc bespoke, tak jak zalecał audyt: "logika domenowa zostaje
+// jako warstwa na wierzchu".
 import { useEffect, useState, useMemo, useCallback } from "react";
 import type { NewRecipe, Recipe } from "@/types/recipes";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
+import { useCrudResource } from "./useCrudResource";
+
+const MESSAGES = {
+  fetchError: "Błąd pobierania przepisów.",
+  added: "Dodano przepis",
+  addError: "Błąd dodawania przepisu.",
+  edited: "Zaktualizowano przepis",
+  editError: "Błąd aktualizacji przepisu.",
+  deleted: "Usunięto przepis",
+  deleteError: "Błąd usuwania przepisu.",
+  confirmDelete: "Czy chcesz usunąć przepis?",
+};
 
 export function useRecipes() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
-
-  const [rawRecipes, setRawRecipes] = useState<Recipe[]>([]);
-  const [products, setProducts] = useState<string[]>([]);
-  const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal: getProductsSignal } = useAbortController();
 
+  const crud = useCrudResource<Recipe, NewRecipe>({
+    table: "recipes",
+    insertPosition: "start",
+    prepareInsert: (r, uId) => ({
+      user_id: uId,
+      name: r.name,
+      category: r.category,
+      products: r.products,
+      description: r.description,
+    }),
+    applyServerRowOnEdit: true,
+    messages: MESSAGES,
+  });
+
+  const [products, setProducts] = useState<string[]>([]);
 
   const recipes = useMemo(() => {
-    if (!settings) return rawRecipes;
-    const sorted = [...rawRecipes];
+    if (!settings) return crud.items;
+    const sorted = [...crud.items];
     if (settings.sort_recipes === "category") {
       sorted.sort((a, b) => {
         const catCompare = (a.category || "").localeCompare(b.category || "", "pl");
@@ -37,158 +71,48 @@ export function useRecipes() {
       );
     }
     return sorted;
-  }, [rawRecipes, settings]);
-
-  const fetchRecipes = useCallback(async (): Promise<Recipe[]> => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("recipes").select("*").eq("user_id", userId)
-      );
-      if (error) throw error;
-      return (data || []) as Recipe[];
-    } catch {
-      toast.error("Błąd pobierania przepisów.");
-      return [];
-    } finally {
-      setFetching(false);
-    }
-  }, [supabase, userId, toast, withRetry]);
+  }, [crud.items, settings]);
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    setFetching(true);
+    if (!userId) return [];
+    const signal = getProductsSignal();
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("products").select("name").eq("user_id", userId).order("name", { ascending: true })
+      const { data, error } = await withRetry(
+        async () =>
+          supabase.from("products").select("name").eq("user_id", userId).order("name", { ascending: true }).abortSignal(signal),
+        signal
       );
       if (error) throw error;
       return ((data ?? []) as { name: string }[]).map((p) => p.name);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return [];
       toast.error("Błąd pobierania produktów.");
       return [];
-    } finally {
-      setFetching(false);
     }
-  }, [supabase, userId, toast, withRetry]);
-
-  const refresh = useCallback(async () => {
-    const [r, p] = await Promise.all([fetchRecipes(), fetchProducts()]);
-    setRawRecipes(r);
-    setProducts(p);
-  }, [fetchRecipes, fetchProducts]);
-
-  const addRecipe = useCallback(
-    async (r: NewRecipe): Promise<Recipe | undefined> => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const tempId = `temp-${Date.now()}`;
-      const optimisticRecipe = { ...r, id: tempId, user_id: userId } as Recipe;
-      setRawRecipes((prev) => [optimisticRecipe, ...prev]);
-
-      try {
-        const { data, error } = await withRetry(async () =>
-          supabase
-            .from("recipes")
-            .insert({
-              user_id: userId,
-              name: r.name,
-              category: r.category,
-              products: r.products,
-              description: r.description,
-            })
-            .select()
-            .single()
-        );
-        if (error) throw error;
-        const newRecipe = data as Recipe;
-        setRawRecipes((prev) => prev.map((rec) => (rec.id === tempId ? newRecipe : rec)));
-        toast.success("Dodano przepis");
-        return newRecipe;
-      } catch {
-        setRawRecipes((prev) => prev.filter((rec) => rec.id !== tempId));
-        toast.error("Błąd dodawania przepisu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, toast, withRetry]
-  );
+  }, [supabase, userId, toast, withRetry, getProductsSignal]);
 
   const editRecipe = useCallback(
-    async (recipe: Recipe): Promise<Recipe | undefined> => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const previous = rawRecipes;
-      setRawRecipes((prev) => prev.map((r) => (r.id === recipe.id ? recipe : r)));
-
-      try {
-        const { data, error } = await withRetry(async () =>
-          supabase
-            .from("recipes")
-            .update({
-              name: recipe.name,
-              category: recipe.category,
-              products: recipe.products,
-              description: recipe.description,
-            })
-            .eq("id", recipe.id)
-            .select()
-            .single()
-        );
-        if (error) throw error;
-        const updated = data as Recipe;
-        setRawRecipes((prev) => prev.map((r) => (r.id === recipe.id ? updated : r)));
-        toast.success("Zaktualizowano przepis");
-        return updated;
-      } catch {
-        setRawRecipes(previous);
-        toast.error("Błąd aktualizacji przepisu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, rawRecipes, toast, withRetry]
+    async (recipe: Recipe): Promise<Recipe | undefined> =>
+      crud.patch(recipe.id, {
+        name: recipe.name,
+        category: recipe.category,
+        products: recipe.products,
+        description: recipe.description,
+      }),
+    [crud]
   );
 
   const deleteRecipe = useCallback(
     async (id: string): Promise<void> => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      const ok = await toast.confirm(`Czy chcesz usunąć przepis?`);
-      if (!ok) return;
-      setLoading(true);
-      const previous = rawRecipes;
-      setRawRecipes((prev) => prev.filter((r) => r.id !== id));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from("recipes").delete().eq("id", id));
-        if (error) throw error;
-        toast.success("Usunięto przepis");
-      } catch {
-        setRawRecipes(previous);
-        toast.error("Błąd usuwania przepisu.");
-      } finally {
-        setLoading(false);
-      }
+      await crud.remove(id);
     },
-    [userId, supabase, rawRecipes, toast, withRetry]
+    [crud]
   );
+
+  const refresh = useCallback(async () => {
+    const [p] = await Promise.all([fetchProducts(), crud.refetch()]);
+    setProducts(p);
+  }, [fetchProducts, crud]);
 
   const suggestProducts = useMemo(
     () => (query: string) => {
@@ -200,16 +124,16 @@ export function useRecipes() {
   );
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    fetchProducts().then(setProducts);
+  }, [fetchProducts]);
 
   return {
     recipes,
     products,
-    loading,
-    fetching,
+    loading: crud.loading,
+    fetching: crud.fetching,
     refresh,
-    addRecipe,
+    addRecipe: crud.add,
     editRecipe,
     deleteRecipe,
     suggestProducts,

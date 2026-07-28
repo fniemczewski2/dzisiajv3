@@ -5,6 +5,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { getAppDateTime } from '@/lib/dateUtils';
 import { useToast } from '@/providers/ToastProvider';
 import { useRetry } from '@/hooks/useRetry';
+import { useAbortController } from '@/hooks/useAbortController';
+import { isAbortError } from '@/lib/abortUtils';
 import { TrackedTrain, TrainInput } from '@/types/transport';
 
 function mapDbRowToTrain(row: {
@@ -48,6 +50,7 @@ export function useTrains() {
   const [fetching, setFetching] = useState<boolean>(false);
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const fetchTrains = useCallback(async () => {
     if (!userId) {
@@ -55,6 +58,7 @@ export function useTrains() {
       throw new Error("Unauthorized");
     }
 
+    const signal = getSignal();
     setFetching(true);
     try {
       const now = getAppDateTime();
@@ -62,14 +66,17 @@ export function useTrains() {
       const limitFuture = now.getTime() + 6 * 60 * 60 * 1000;
       const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from('user_trains')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('date', todayStr)
-          .order('date', { ascending: true })
-          .order('departure_time', { ascending: true })
+      const { data, error } = await withRetry(
+        async () =>
+          supabase
+            .from('user_trains')
+            .select('*')
+            .eq('user_id', userId)
+            .gte('date', todayStr)
+            .order('date', { ascending: true })
+            .order('departure_time', { ascending: true })
+            .abortSignal(signal),
+        signal
       );
 
       if (error) throw error;
@@ -84,12 +91,13 @@ export function useTrains() {
         });
 
       setTrains(mappedData);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania pociągów.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast, withRetry, getSignal]);
 
   const addTrain = useCallback(
     async (trainData: TrainInput) => {
@@ -206,11 +214,15 @@ export function useTrainStatus(train: {
   });
 
   useEffect(() => {
-    let isMounted = true;
+    // AbortController lokalny do tego przebiegu efektu — zamiast tylko
+    // ignorować spóźnioną odpowiedź (isMounted), realnie przerywa fetch przy
+    // zmianie propsów pociągu (np. przy szybkim przewijaniu listy kart)
+    // lub odmontowaniu.
+    const controller = new AbortController();
 
     const fetchStatus = async () => {
       if (!train.trainNumber || !train.date || !train.from || !train.to) {
-        if (isMounted) setData((prev) => ({ ...prev, loading: false }));
+        setData((prev) => ({ ...prev, loading: false }));
         return;
       }
 
@@ -224,36 +236,33 @@ export function useTrainStatus(train: {
           departureTime: train.departureTime,
         });
 
-        const response = await fetch(`/api/transport/train-status?${params.toString()}`);
+        const response = await fetch(`/api/transport/train-status?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (response.status === 429) {
-          if (isMounted) {
-            setData({ delay: 0, platform: '-', status: '429', loading: false, estimatedArrival: '', hide: false });
-          }
+          setData({ delay: 0, platform: '-', status: '429', loading: false, estimatedArrival: '', hide: false });
           return;
         }
 
         if (!response.ok) throw new Error('Błąd pobierania statusu');
 
         const result = await response.json();
-        if (isMounted) {
-          setData({
-            delay: result.delay || 0,
-            platform: result.platform || '-',
-            status: result.status || '',
-            loading: false,
-            estimatedArrival: result.estimatedArrival || '',
-            hide: result.hide || false,
-          });
-        }
-      } catch {
-        if (isMounted) {
-          setData({ delay: 0, platform: '-', status: 'Błąd połączenia', loading: false, estimatedArrival: '', hide: false });
-        }
+        setData({
+          delay: result.delay || 0,
+          platform: result.platform || '-',
+          status: result.status || '',
+          loading: false,
+          estimatedArrival: result.estimatedArrival || '',
+          hide: result.hide || false,
+        });
+      } catch (err) {
+        if (isAbortError(err)) return;
+        setData({ delay: 0, platform: '-', status: 'Błąd połączenia', loading: false, estimatedArrival: '', hide: false });
       }
     };
 
     fetchStatus();
-    return () => { isMounted = false; };
+    return () => controller.abort();
   }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName]);
 
   return data;

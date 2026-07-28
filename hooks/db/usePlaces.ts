@@ -5,6 +5,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 export function usePlaces() {
   const { user, supabase } = useAuth();
@@ -17,6 +19,7 @@ export function usePlaces() {
   const [message, setMessage] = useState("");
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const places = useMemo(() => {
     if (!settings) return rawPlaces;
@@ -38,19 +41,22 @@ export function usePlaces() {
 
       throw new Error("Unauthorized");
     }
+    const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("places").select("*").eq("user_id", userId)
+      const { data, error } = await withRetry(
+        async () => supabase.from("places").select("*").eq("user_id", userId).abortSignal(signal),
+        signal
       );
       if (error) throw error;
       setRawPlaces(data || []);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania miejsc.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast, withRetry, getSignal]);
 
   useEffect(() => {
     fetchPlaces();

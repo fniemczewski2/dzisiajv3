@@ -31,29 +31,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const tokens = await tokenResponse.json();
 
+    if (!tokenResponse.ok || !tokens.access_token) {
+      console.error("[outlook] Token exchange failed:", tokens.error_description ?? tokens.error ?? tokenResponse.status);
+      return res.redirect('/calendar?error=token_exchange_failed');
+    }
+
     const profileResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
+    if (!profileResponse.ok) {
+      console.error("[outlook] Profile fetch failed:", profileResponse.status);
+      return res.redirect('/calendar?error=profile_fetch_failed');
+    }
     const profile = await profileResponse.json();
     const email = profile.mail || profile.userPrincipalName;
+    if (!email) {
+      console.error("[outlook] Profile response without email.");
+      return res.redirect('/calendar?error=profile_fetch_failed');
+    }
 
-    const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+    const expiresInSec = typeof tokens.expires_in === 'number' ? tokens.expires_in : 3600;
+    const expiresAt = new Date(Date.now() + expiresInSec * 1000).toISOString();
 
-    const { error } = await supabase.from('connected_calendars').upsert({
+    const row: Record<string, unknown> = {
       user_id: user.id, 
       provider: 'outlook',
       account_email: email,
-      access_token: encryptToken(tokens.access_token || ''),
-      refresh_token: encryptToken(tokens.refresh_token || ''), 
+      access_token: encryptToken(tokens.access_token),
       expires_at: expiresAt,
       google_calendar_id: '@account_connection',  
       calendar_name: 'Połączenie Outlook'         
-    }, { onConflict: 'user_id, account_email, google_calendar_id' });
+    };
+    // Nie nadpisuj istniejącego refresh_tokena pustą wartością.
+    if (tokens.refresh_token) {
+      row.refresh_token = encryptToken(tokens.refresh_token);
+    }
+
+    const { error } = await supabase.from('connected_calendars').upsert(row, {
+      onConflict: 'user_id, account_email, google_calendar_id',
+    });
 
     if (error) console.error("[outlook] DB upsert error:", error);
 
     res.redirect('/calendar?sync=success');
-  } catch {
+  } catch (error) {
+    console.error("[outlook] Callback error:", error);
     res.redirect('/calendar?error=auth_failed');
   }
 }

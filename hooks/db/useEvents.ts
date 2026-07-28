@@ -7,25 +7,32 @@ import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 export function useVirtualBirthdayEvents(): Event[] {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const withRetry = useRetry();
   const { toast } = useToast();
+  const { getSignal } = useAbortController();
 
   const [virtualEvents, setVirtualEvents] = useState<Event[]>([]);
 
   const fetchVirtualEvents = useCallback(async () => {
     if (!userId) return;
 
+    const signal = getSignal();
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from("people")
-          .select("id, first_name, last_name, birthday, nameday, priority")
-          .eq("user_id", userId)
-          .in("priority", [0, 1, 2])
+      const { data, error } = await withRetry(
+        async () =>
+          supabase
+            .from("people")
+            .select("id, first_name, last_name, birthday, nameday, priority")
+            .eq("user_id", userId)
+            .in("priority", [0, 1, 2])
+            .abortSignal(signal),
+        signal
       );
       if (error) throw error;
 
@@ -55,10 +62,11 @@ export function useVirtualBirthdayEvents(): Event[] {
       });
 
       setVirtualEvents(generated);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania dat urodzin/imienin.");
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast, withRetry, getSignal]);
 
   useEffect(() => {
     fetchVirtualEvents();
@@ -86,6 +94,7 @@ export function useEvents(
   const userEmailsRef = useRef<Record<string, string>>({});
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
 
   const events = useMemo(() => {
@@ -101,22 +110,26 @@ export function useEvents(
 
       throw new Error("Unauthorized");
     }
+    const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("events").select("*").or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
+      const { data, error } = await withRetry(
+        async () =>
+          supabase.from("events").select("*").or(`user_id.eq.${userId},shared_with_id.eq.${userId}`).abortSignal(signal),
+        signal
       );
       if (error) throw error;
 
       const fetchedEvents = (data || []) as Event[];
       const eventsWithDisplayInfo = await resolveSharedEmails(fetchedEvents, userId, supabase, userEmailsRef);
-      setRawEvents(eventsWithDisplayInfo);
-    } catch {
+      if (!signal.aborted) setRawEvents(eventsWithDisplayInfo);
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania wydarzeń.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [supabase, userId, rangeStart, rangeEnd, toast, withRetry]);
+  }, [supabase, userId, rangeStart, rangeEnd, toast, withRetry, getSignal]);
 
   useEffect(() => {
     fetchEvents();

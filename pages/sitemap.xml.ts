@@ -2,33 +2,20 @@ import type { GetServerSideProps } from "next";
 
 const BASE_URL = "https://dzisiaj.fun";
 
+// Wyłącznie strony faktycznie publiczne. Poprzednia wersja wystawiała
+// crawlerom /settings, /tasks, /bills itd. — proxy.ts i tak przekierowuje
+// niezalogowanych na /start, więc Googlebot widział same redirecty (szum
+// w Search Console). Był tam też /login (nie istnieje — routing to /start)
+// i /packing/backpack|suitcase|safety zamiast realnego /packing/[id].
 const STATIC_PAGES: Array<{
   url: string;
   priority: string;
   changefreq: string;
 }> = [
-  { url: "",                    priority: "1.0", changefreq: "daily"   },
-  { url: "/tasks",              priority: "0.9", changefreq: "daily"   },
-  { url: "/tasks/daySchema",    priority: "0.8", changefreq: "daily"   },
-  { url: "/tasks/pomodoro",     priority: "0.8", changefreq: "weekly"  },
-  { url: "/notes",              priority: "0.9", changefreq: "daily"   },
-  { url: "/notes/shopping",     priority: "0.7", changefreq: "weekly"  },
-  { url: "/notes/recipes",      priority: "0.7", changefreq: "weekly"  },
-  { url: "/notes/places",       priority: "0.7", changefreq: "weekly"  },
-  { url: "/notes/movies",       priority: "0.7", changefreq: "weekly"  },
-  { url: "/packing/backpack",   priority: "0.7", changefreq: "weekly"  },
-  { url: "/packing/suitcase",   priority: "0.7", changefreq: "weekly"  },
-  { url: "/packing/safety",     priority: "0.7", changefreq: "weekly"  },
-  { url: "/calendar",           priority: "0.9", changefreq: "daily"   },
-  { url: "/bills",              priority: "0.8", changefreq: "weekly"  },
-  { url: "/bills/budget",       priority: "0.8", changefreq: "weekly"  },
-  { url: "/notes/reports",      priority: "0.7", changefreq: "weekly"  },
-  { url: "/weather",            priority: "0.9", changefreq: "hourly"  },
-  { url: "/training",           priority: "0.7", changefreq: "weekly"  },
-  { url: "/streaks",            priority: "0.7", changefreq: "weekly"  },
-  { url: "/transport",          priority: "0.7", changefreq: "daily"   },
-  { url: "/settings",           priority: "0.6", changefreq: "monthly" },
-  { url: "/login",              priority: "0.5", changefreq: "monthly" },
+  { url: "",         priority: "1.0", changefreq: "weekly"  },
+  { url: "/start",   priority: "0.9", changefreq: "monthly" },
+  { url: "/guide",   priority: "0.7", changefreq: "monthly" },
+  { url: "/privacy", priority: "0.3", changefreq: "yearly"  },
 ];
 
 function generateSiteMap(): string {
@@ -63,7 +50,6 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   res.end();
   return { props: {} };
 };
-
 
 export default function SiteMap() {
   return null;

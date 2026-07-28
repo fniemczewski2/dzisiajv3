@@ -1,122 +1,60 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
+import { useCallback } from 'react';
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
-import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/hooks/useRetry';
+import { useCrudResource } from './useCrudResource';
+
+// hooks/db/useWorkLogs.ts
+//
+// Migracja na wspólną fabrykę CRUD — audyt 3.2. Dynamiczne filtry
+// (dateStr/monthStr) przekazane przez buildQuery + queryKey (wymusza
+// nowy fetch i nowy klucz race-protection przy zmianie parametrów —
+// dokładnie to samo zjawisko co realna anulacja AbortController dodana
+// wcześniej dla tego hooka).
+
+const MESSAGES = {
+  fetchError: 'Błąd pobierania czasu pracy.',
+  added: 'Dodano czas pracy.',
+  addError: 'Błąd dodawania czasu pracy.',
+  edited: 'Zaktualizowano czas pracy.',
+  editError: 'Błąd aktualizacji czasu pracy.',
+  deleted: 'Usunięto czas pracy.',
+  deleteError: 'Błąd usuwania czasu pracy.',
+  confirmDelete: 'Czy chcesz usunąć czas pracy?',
+};
 
 export function useWorkLogs(dateStr?: string, monthStr?: string) {
-  const { user, supabase } = useAuth();
-  const userId = user?.id;
-  const [workLogs, setWorkLogs] = useState<WorkLog[]>([]);
-  const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const withRetry = useRetry();
+  const crud = useCrudResource<WorkLog, Omit<WorkLogInsert, 'user_id'>>({
+    table: 'work_logs',
+    queryKey: `${dateStr ?? ''}:${monthStr ?? ''}`,
+    buildQuery: (q, userId) => {
+      let query = q.eq('user_id', userId).order('start_time', { ascending: true });
 
-  const fetchWorkLogs = useCallback(async () => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    setFetching(true);
-
-    try {
-      const { data, error } = await withRetry(async () => {
-        let query = supabase
-          .from('work_logs')
-          .select('*')
-          .eq('user_id', userId)
-          .order('start_time', { ascending: true });
-
-        if (dateStr) {
-          query = query.gte('start_time', `${dateStr}T00:00:00.000Z`).lte('start_time', `${dateStr}T23:59:59.999Z`);
-        }
-
-        if (monthStr) {
-          const [year, month] = monthStr.split('-');
-          const startDate = new Date(Number.parseInt(year), Number.parseInt(month) - 1, 1);
-          const endDate = new Date(Number.parseInt(year), Number.parseInt(month), 0, 23, 59, 59, 999);
-          query = query.gte('start_time', startDate.toISOString()).lte('start_time', endDate.toISOString());
-        }
-
-        return query;
-      });
-
-      if (error) throw error;
-      setWorkLogs(data || []);
-    } catch {
-      toast.error('Błąd pobierania czasu pracy.');
-    } finally {
-      setFetching(false);
-    }
-  }, [userId, supabase, dateStr, monthStr, toast, withRetry]);
-
-  useEffect(() => {
-    fetchWorkLogs();
-  }, [fetchWorkLogs]);
-
-  const addWorkLog = useCallback(
-    async (log: Omit<WorkLogInsert, 'user_id'>) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
+      if (dateStr) {
+        query = query.gte('start_time', `${dateStr}T00:00:00.000Z`).lte('start_time', `${dateStr}T23:59:59.999Z`);
       }
-      setLoading(true);
-      const tempId = `temp-${Date.now()}`;
-      const optimisticLog = { ...log, id: tempId, user_id: userId } as WorkLog;
-      setWorkLogs((prev) => [...prev, optimisticLog]);
-
-      try {
-        const { data, error } = await withRetry(async () =>
-          supabase.from('work_logs').insert([{ ...log, user_id: userId }]).select().single()
-        );
-        if (error) throw error;
-
-        setWorkLogs((prev) => prev.map((l) => (l.id === tempId ? (data as WorkLog) : l)));
-        toast.success('Dodano czas pracy.');
-        return { data };
-      } catch {
-        setWorkLogs((prev) => prev.filter((l) => l.id !== tempId));
-        toast.error('Błąd dodawania czasu pracy.');
-      } finally {
-        setLoading(false);
+      if (monthStr) {
+        const [year, month] = monthStr.split('-');
+        const startDate = new Date(Number.parseInt(year), Number.parseInt(month) - 1, 1);
+        const endDate = new Date(Number.parseInt(year), Number.parseInt(month), 0, 23, 59, 59, 999);
+        query = query.gte('start_time', startDate.toISOString()).lte('start_time', endDate.toISOString());
       }
+      return query;
     },
-    [userId, supabase, toast, withRetry]
-  );
+    messages: MESSAGES,
+  });
 
   const deleteWorkLog = useCallback(
-    async (id: string) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      const ok = await toast.confirm(`Czy chcesz usunąć czas pracy?`);
-      if (!ok) return;
-      setLoading(true);
-      const previous = workLogs;
-      setWorkLogs((prev) => prev.filter((log) => log.id !== id));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from('work_logs').delete().eq('id', id));
-        if (error) throw error;
-        toast.success('Usunięto czas pracy.');
-      } catch {
-        setWorkLogs(previous);
-        toast.error('Błąd usuwania czasu pracy.');
-      } finally {
-        setLoading(false);
-      }
+    async (id: string): Promise<void> => {
+      await crud.remove(id);
     },
-    [userId, supabase, workLogs, toast, withRetry]
+    [crud]
   );
 
   return {
-    workLogs,
-    loading,
-    fetching,
-    fetchWorkLogs,
-    addWorkLog,
+    workLogs: crud.items,
+    loading: crud.loading,
+    fetching: crud.fetching,
+    fetchWorkLogs: crud.refetch,
+    addWorkLog: crud.add,
     deleteWorkLog,
   };
 }

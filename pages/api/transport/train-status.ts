@@ -1,4 +1,5 @@
 import { getAppDateTime } from '@/lib/dateUtils';
+import { createServerSupabase } from '@/lib/supabase/server';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type {
   Station,
@@ -120,6 +121,12 @@ export default async function handler(
   res: NextApiResponse<TrainStatusResponse | ApiError>
 ) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Endpoint proxuje serwerowy PLK_API_KEY — bez autoryzacji był otwartym,
+  // nieuwierzytelnionym proxy do API PKP PLK (limity/koszty na nasz klucz).
+  const supabase = createServerSupabase(req, res);
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
   const { trainNumber, from, to, trainName } = req.query;
   if (

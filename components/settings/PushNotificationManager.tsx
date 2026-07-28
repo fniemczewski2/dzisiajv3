@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
 import { usePushNotifications } from "@/hooks/db/usePushNotifications";
+import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import NotificationPreferences from "./NotificationPreferencesForm";
 
@@ -14,16 +15,21 @@ interface PushNotificationManagerProps {
   readonly userId?: string;
 }
 
-const getPlatform = (): string => {
-  if (globalThis?.navigator) return "desktop";
-  const ua = globalThis.navigator.userAgent.toLowerCase();
+type Platform = "ios" | "android" | "desktop";
+
+const getPlatform = (): Platform => {
+  // Uwaga: poprzednia wersja miała odwrócony warunek
+  // (`if (globalThis?.navigator) return "desktop"`), przez co w przeglądarce
+  // ZAWSZE zwracała "desktop", a detekcja iOS/Android była martwym kodem.
+  if (typeof navigator === "undefined") return "desktop";
+  const ua = navigator.userAgent.toLowerCase();
   if (/iphone|ipad|ipod/.test(ua)) return "ios";
   if (/android/.test(ua)) return "android";
   return "desktop";
 };
 
 const checkIsStandalone = (): boolean => {
-  if (globalThis === undefined) return false;
+  if (typeof window === "undefined") return false;
   const matchMediaMatches = typeof globalThis.matchMedia === "function" && globalThis.matchMedia("(display-mode: standalone)").matches;
   const navigatorStandalone = (globalThis.navigator as NavigatorWithStandalone)?.standalone === true;
   return matchMediaMatches || navigatorStandalone;
@@ -114,6 +120,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
   }, []);
 
   const { isSubscribed, loading, subscribeToPush, unsubscribeFromPush } = usePushNotifications(userId);
+  const { supabase } = useAuth();
   const { toast } = useToast();
 
   const [showDetails, setShowDetails] = useState(false);
@@ -164,17 +171,23 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
   const handleTestNotification = async () => {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-      if (!supabaseUrl || !supabaseKey) throw new Error("Błąd konfiguracji Supabase");
+      if (!supabaseUrl) throw new Error("Błąd konfiguracji Supabase");
+
+      // BEZPIECZEŃSTWO: autoryzujemy JWT-em sesji zalogowanego użytkownika,
+      // NIE publicznym kluczem publishable (ten jest w bundlu JS i pozwalałby
+      // każdemu wysyłać powiadomienia do dowolnego userId z body).
+      // Edge Function `send-push` MUSI wyprowadzać odbiorcę z JWT
+      // (`supabase.auth.getUser(jwt)`), a nie z body żądania.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Brak aktywnej sesji");
 
       const response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${supabaseKey}`,
+          Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId,
           title: "Dzisiaj.Fun | Test",
           message: "To jest powiadomienie testowe z aplikacji Dzisiaj!",
           url: "/",

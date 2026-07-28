@@ -4,6 +4,7 @@ export const MAX_CATEGORIES = 20;
 export const MAX_HISTORY = 5;
 export const MAX_SEARCH_SUGGESTIONS = 5;
 export const MAX_TRUSTED_USERS = 10;
+export const MAX_LETTER_PDF_SIZE_MB = 10;
 export const BILLS_PAGE_LIMIT = 20;
 // Osobny, wysoki limit używany wyłącznie przy imporcie CSV do pobrania KOMPLETNEGO
 // zestawu istniejących rachunków na potrzeby wykrywania duplikatów - BILLS_PAGE_LIMIT

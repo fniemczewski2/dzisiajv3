@@ -7,6 +7,8 @@ import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 interface SpendBucket {
   ySpent: number;
@@ -25,6 +27,7 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
 
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const compute = useCallback(async () => {
     if (!userId) {
@@ -39,6 +42,7 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       return;
     }
 
+    const signal = getSignal();
     setLoading(true);
     try {
       const yearStart = `${year}-01-01`;
@@ -48,13 +52,16 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       const monthStart = format(startOfMonth(targetDateForMonth), "yyyy-MM-dd");
       const monthEnd = format(endOfMonth(targetDateForMonth), "yyyy-MM-dd");
 
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from("bills")
-          .select("amount, date, category_id, is_income, done")
-          .eq("user_id", userId)
-          .gte("date", yearStart)
-          .lte("date", yearEnd)
+      const { data, error } = await withRetry(
+        async () =>
+          supabase
+            .from("bills")
+            .select("amount, date, category_id, is_income, done")
+            .eq("user_id", userId)
+            .gte("date", yearStart)
+            .lte("date", yearEnd)
+            .abortSignal(signal),
+        signal
       );
 
       if (error) throw error;
@@ -106,12 +113,13 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
 
       setSummary(result);
       setUncategorised(spendMap["__none__"] ?? { ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania statystyk budżetu.");
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
-  }, [supabase, userId, year, monthIndex, categories, toast, withRetry]);
+  }, [supabase, userId, year, monthIndex, categories, toast, withRetry, getSignal]);
 
   useEffect(() => { compute(); }, [compute]);
 

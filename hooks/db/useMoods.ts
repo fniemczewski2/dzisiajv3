@@ -4,6 +4,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { MoodEntry } from "@/types/moods";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();
@@ -13,29 +15,32 @@ export function useMoods(startDate?: string, endDate?: string) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const fetchMoods = useCallback(async () => {
     if (!userId) {
 
       throw new Error("Unauthorized");
     }
+    const signal = getSignal();
     setFetching(true);
     try {
       const { data, error } = await withRetry(async () => {
         let query = supabase.from("mood_entries").select("*").eq("user_id", userId);
         if (startDate) query = query.gte("date", startDate);
         if (endDate) query = query.lte("date", endDate);
-        return query;
-      });
+        return query.abortSignal(signal);
+      }, signal);
 
       if (error) throw error;
       setMoods(data || []);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania nastrojów.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [supabase, userId, startDate, endDate, toast, withRetry]);
+  }, [supabase, userId, startDate, endDate, toast, withRetry, getSignal]);
 
   useEffect(() => { fetchMoods(); }, [fetchMoods]);
 

@@ -1,138 +1,67 @@
 // hooks/useDaySchemas.ts
-import { useEffect, useState, useCallback } from "react";
+//
+// Migracja na wspólną fabrykę CRUD — audyt 3.2.
+//
+// UWAGA TYPÓW: `Schema.id` jest opcjonalne w types/schemas.ts (id?: string),
+// a fabryka wymaga `T extends { id: string }` (id zawsze obecne — to właśnie
+// to, co zapewnia jej logika tempId/rollback). Wewnętrznie hook operuje więc
+// na `SchemaRow` (Schema z wymaganym id) — bezpieczne zawężenie, bo każdy
+// wiersz z bazy i każdy optymistyczny wpis faktycznie ma id. `SchemaRow[]`
+// jest strukturalnie zgodne z `Schema[]` wszędzie, gdzie ten typ był używany.
+import { useCallback } from "react";
 import { Schema, ScheduleItem } from "@/types/schemas";
-import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/hooks/useRetry";
+import { useCrudResource } from "./useCrudResource";
 
-function parseSchema<T extends { days: string | number[]; entries: string | ScheduleItem[] }>(raw: T): T {
+type SchemaRow = Schema & { id: string };
+
+function parseSchema(raw: { days: string | number[]; entries: string | ScheduleItem[] }): SchemaRow {
   return {
     ...raw,
     days: typeof raw.days === "string" ? JSON.parse(raw.days) : raw.days,
     entries: typeof raw.entries === "string" ? JSON.parse(raw.entries) : raw.entries,
-  };
+  } as SchemaRow;
 }
 
+const MESSAGES = {
+  fetchError: "Błąd pobierania schematów.",
+  added: "Dodano schemat",
+  addError: "Błąd dodawania schematu.",
+  edited: "Zaktualizowano schemat",
+  editError: "Błąd aktualizacji schematu.",
+  deleted: "Usunięto schemat",
+  deleteError: "Błąd usuwania schematu.",
+  confirmDelete: "Czy chcesz usunąć schemat?",
+};
+
 export function useDaySchemas() {
-  const { user, supabase } = useAuth();
-  const userId = user?.id;
-  const [schemas, setSchemas] = useState<Schema[]>([]);
-  const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const withRetry = useRetry();
-
-  const fetchSchemas = useCallback(async () => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("day_schemas").select("*").eq("user_id", userId)
-      );
-
-      if (error) throw error;
-      setSchemas((data ?? []).map(parseSchema));
-    } catch {
-      toast.error("Błąd pobierania schematów.");
-    } finally {
-      setFetching(false);
-    }
-  }, [userId, supabase, toast, withRetry]);
-
-  const addSchema = useCallback(
-    async (schema: Schema) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const tempId = `temp-${Date.now()}`;
-      const optimisticSchema = { ...schema, id: tempId } as Schema;
-      setSchemas((prev) => [...prev, optimisticSchema]);
-
-      try {
-        const { data, error } = await withRetry(async () =>
-          supabase
-            .from("day_schemas")
-            .insert({ user_id: userId, name: schema.name, days: schema.days, entries: schema.entries })
-            .select()
-            .single()
-        );
-        if (error) throw error;
-        setSchemas((prev) => prev.map((s) => (s.id === tempId ? parseSchema(data) : s)));
-        toast.success("Dodano schemat");
-      } catch {
-        setSchemas((prev) => prev.filter((s) => s.id !== tempId));
-        toast.error("Błąd dodawania schematu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, toast, withRetry]
-  );
-
-  const updateSchema = useCallback(
-    async (id: string, payload: Omit<Schema, "id">) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const previous = schemas;
-      setSchemas((prev) => prev.map((s) => (s.id === id ? { ...s, ...payload } : s)));
-
-      try {
-        const { error } = await withRetry(async () =>
-          supabase
-            .from("day_schemas")
-            .update({ name: payload.name, days: payload.days, entries: payload.entries })
-            .eq("id", id)
-        );
-        if (error) throw error;
-        toast.success("Zaktualizowano schemat");
-      } catch {
-        setSchemas(previous);
-        toast.error("Błąd aktualizacji schematu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, schemas, toast, withRetry]
-  );
+  const crud = useCrudResource<SchemaRow, Schema>({
+    table: "day_schemas",
+    transformRow: (row) => parseSchema(row as { days: string | number[]; entries: string | ScheduleItem[] }),
+    prepareInsert: (payload, userId) => ({
+      user_id: userId,
+      name: payload.name,
+      days: payload.days,
+      entries: payload.entries,
+    }),
+    buildOptimistic: (payload, tempId) => ({ ...payload, id: tempId }) as SchemaRow,
+    prepareUpdate: (updates) => ({ name: updates.name, days: updates.days, entries: updates.entries }),
+    messages: MESSAGES,
+  });
 
   const deleteSchema = useCallback(
-    async (id: string) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      const ok = await toast.confirm(`Czy chcesz usunąć schemat?`);
-      if (!ok) return;
-
-      setLoading(true);
-      const previous = schemas;
-      setSchemas((prev) => prev.filter((s) => s.id !== id));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from("day_schemas").delete().eq("id", id));
-        if (error) throw error;
-        toast.success("Usunięto schemat");
-      } catch {
-        setSchemas(previous);
-        toast.error("Błąd usuwania schematu.");
-      } finally {
-        setLoading(false);
-      }
+    async (id: string): Promise<void> => {
+      await crud.remove(id);
     },
-    [userId, supabase, schemas, toast, withRetry]
+    [crud]
   );
 
-  useEffect(() => {
-    fetchSchemas();
-  }, [fetchSchemas]);
-
-  return { schemas, loading, fetching, fetchSchemas, addSchema, updateSchema, deleteSchema };
+  return {
+    schemas: crud.items,
+    loading: crud.loading,
+    fetching: crud.fetching,
+    fetchSchemas: crud.refetch,
+    addSchema: crud.add,
+    updateSchema: crud.patch,
+    deleteSchema,
+  };
 }

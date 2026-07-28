@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { useRetry } from '@/hooks/useRetry';
+import { useAbortController } from '@/hooks/useAbortController';
+import { isAbortError } from '@/lib/abortUtils';
 import { NewVCardProfile, VCardProfile } from '@/types/profiles';
 import { getErrorMessage, getPostgresErrorCode } from '@/lib/errorUtils';
 
@@ -16,30 +18,36 @@ export function useProfiles() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const fetchProfiles = useCallback(async () => {
     if (!userId) {
       return
     }
+    const signal = getSignal();
     setFetching(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await withRetry(async () =>
-        supabase
-          .from('vcard_profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: true })
+      const { data, error: fetchError } = await withRetry(
+        async () =>
+          supabase
+            .from('vcard_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true })
+            .abortSignal(signal),
+        signal
       );
 
       if (fetchError) throw fetchError;
       setProfiles(data || []);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error('Błąd pobierania profili.');
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [supabase, userId, toast, withRetry]);
+  }, [supabase, userId, toast, withRetry, getSignal]);
 
   const addProfile = useCallback(
     async (profileData: NewVCardProfile) => {

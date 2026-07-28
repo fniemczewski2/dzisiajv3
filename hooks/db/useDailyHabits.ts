@@ -4,6 +4,8 @@ import { DailyHabitsRow, HabitKey } from "@/types/habits";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
   date: date,
@@ -25,6 +27,7 @@ export function useDailyHabits(date?: string) {
   const userId = user?.id;
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const today = getAppDate();
   const targetDate = date ?? today;
@@ -38,10 +41,16 @@ export function useDailyHabits(date?: string) {
 
       throw new Error("Unauthorized");
     }
+    // Realna anulacja: szybka nawigacja między dniami przerywa poprzednie,
+    // jeszcze niedokończone zapytanie zamiast pozwolić mu dobiec i nadpisać
+    // stan nowszym-ale-wolniejszym wynikiem.
+    const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("daily_habits").select("*").eq("date", targetDate).eq("user_id", userId).maybeSingle()
+      const { data, error } = await withRetry(
+        async () =>
+          supabase.from("daily_habits").select("*").eq("date", targetDate).eq("user_id", userId).abortSignal(signal).maybeSingle(),
+        signal
       );
 
       if (error) throw error;
@@ -51,13 +60,17 @@ export function useDailyHabits(date?: string) {
           ? { ...data, water_amount: data.water_amount ?? 0, daily_spending: data.daily_spending ?? 0 }
           : getDefaultHabits(targetDate, userId)
       );
-    } catch {
+    } catch (err) {
+      // Przerwane celowo (unmount / szybsza zmiana dnia) — NIE resetuj do
+      // wartości domyślnych, bo to nadpisałoby stan ustawiony przez nowsze,
+      // wciąż trwające zapytanie.
+      if (isAbortError(err)) return;
       setHabits(getDefaultHabits(targetDate, userId));
       toast.error("Błąd ładowania nawyków.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [userId, targetDate, supabase, toast, withRetry]);
+  }, [userId, targetDate, supabase, toast, withRetry, getSignal]);
 
   const toggleHabit = useCallback(
     async (key: HabitKey) => {

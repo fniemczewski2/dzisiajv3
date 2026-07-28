@@ -5,6 +5,8 @@ import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 export function useShoppingLists() {
   const { user, supabase } = useAuth();
@@ -16,33 +18,39 @@ export function useShoppingLists() {
   const userEmailsRef = useRef<Record<string, string>>({});
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const fetchShoppingLists = useCallback(async () => {
     if (!userId) {
 
       throw new Error("Unauthorized");
     }
+    const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from("shopping_lists")
-          .select("*")
-          .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
-          .limit(MAX_SHOPPING_LISTS)
+      const { data, error } = await withRetry(
+        async () =>
+          supabase
+            .from("shopping_lists")
+            .select("*")
+            .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
+            .limit(MAX_SHOPPING_LISTS)
+            .abortSignal(signal),
+        signal
       );
 
       if (error) throw error;
 
       const fetchedLists = (data || []) as ShoppingList[];
       const listsWithDisplayInfo = await resolveSharedEmails(fetchedLists, userId, supabase, userEmailsRef);
-      setLists(listsWithDisplayInfo);
-    } catch {
+      if (!signal.aborted) setLists(listsWithDisplayInfo);
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania list zakupów.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [userId, supabase, toast, withRetry]);
+  }, [userId, supabase, toast, withRetry, getSignal]);
 
   const addShoppingList = useCallback(
     async (name: string, sharedWithEmail: string | null): Promise<boolean> => {

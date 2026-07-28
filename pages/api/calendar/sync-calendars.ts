@@ -2,69 +2,56 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
+import { refreshGoogleToken, refreshOutlookToken } from '@/lib/server/oauthTokens';
+import { toSupabaseTime, outlookToSupabaseTime } from '@/lib/server/calendarTime';
 import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from '@/types/connectedCalendars';
-import { GoogleTokenResponse, GoogleEventDateTime, GoogleEventsListResponse } from '@/types/googleCalendar';
-import { OutlookTokenResponse, OutlookEventsResponse } from '@/types/outlookCalendar';
+import { GoogleEventsListResponse } from '@/types/googleCalendar';
+import { OutlookEventsResponse } from '@/types/outlookCalendar';
 
 const supabaseService = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
 );
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const OUTLOOK_CLIENT_ID = process.env.OUTLOOK_CLIENT_ID!;
-const OUTLOOK_CLIENT_SECRET = process.env.OUTLOOK_CLIENT_SECRET!;
-
-const toSupabaseTime = (dt: GoogleEventDateTime | undefined, isEndTime = false): string => {
-  if (!dt) return new Date().toISOString().slice(0, 19);
-  if (dt.dateTime) {
-    const localTimeRaw = dt.dateTime.split(/[+-Z]/)[0];
-    return localTimeRaw.slice(0, 19);
-  }
-  if (dt.date) {
-    if (isEndTime) {
-      const d = new Date(dt.date);
-      d.setDate(d.getDate() - 1);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}T23:59:59`;
-    }
-    return `${dt.date}T00:00:00`;
-  }
-  return new Date().toISOString().slice(0, 19);
-};
-
-async function refreshGoogleToken(refreshToken: string): Promise<string | null> {
-  const r = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-  if (!r.ok) return null;
-  const d: GoogleTokenResponse = await r.json();
-  return d.access_token ?? null;
+// Kształt wiersza wstawianego do `events` przy imporcie.
+interface ImportedEventRow {
+  user_id: string;
+  calendar_id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  place: string;
+  repeat: 'none';
+  google_event_id: string;
+  shared_with_id: null;
 }
 
-async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenResponse | null> {
-  const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: OUTLOOK_CLIENT_ID,
-      client_secret: OUTLOOK_CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
-  });
-  if (!r.ok) return null;
-  return await r.json();
+/**
+ * Batch upsert zamiast N+1 (osobny SELECT dedup + INSERT per event).
+ * Wymaga częściowego indeksu unikalnego (zob. supabase/migrations/
+ * 20260720120000_events_dedup_index.sql):
+ *   CREATE UNIQUE INDEX events_calendar_google_event_uidx
+ *     ON events (calendar_id, google_event_id)
+ *     WHERE google_event_id IS NOT NULL;
+ * `ignoreDuplicates: true` = "ON CONFLICT DO NOTHING", więc istniejące
+ * wydarzenia nie są nadpisywane (zachowuje dotychczasowe zachowanie dedup).
+ */
+async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
+
+  const { error } = await supabaseService
+    .from('events')
+    .upsert(rows, {
+      onConflict: 'calendar_id,google_event_id',
+      ignoreDuplicates: true,
+    });
+
+  if (error) {
+    console.error('[CRON] events upsert error:', error.message);
+    return 0;
+  }
+  return rows.length;
 }
 
 async function getAccessToken(
@@ -121,16 +108,14 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const data: GoogleEventsListResponse = await googleRes.json();
     pageToken = data.nextPageToken;
 
+    const rows: ImportedEventRow[] = [];
     for (const ev of data.items || []) {
       if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
       const isBirthdayEvent = ev.eventType === "birthday";
       if (isBirthdayVirtual && !isBirthdayEvent) continue;
       if (!isBirthdayVirtual && isBirthdayEvent) continue;
 
-      const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
-      if (dup) continue;
-
-      await supabaseService.from("events").insert({
+      rows.push({
         user_id: acc.user_id,
         calendar_id: acc.id,
         title: ev.summary || "(bez tytułu)",
@@ -142,8 +127,8 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
         google_event_id: ev.id,
         shared_with_id: null,
       });
-      importedCount++;
     }
+    importedCount += await upsertImportedEvents(rows);
   } while (pageToken);
 
   return importedCount;
@@ -161,28 +146,24 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
     if (!msRes.ok) break;
     const data: OutlookEventsResponse = await msRes.json();
 
+    const rows: ImportedEventRow[] = [];
     for (const ev of data.value || []) {
       if (ev.isCancelled) continue;
-      const { data: dup } = await supabaseService.from("events").select("id").eq("google_event_id", ev.id).eq("calendar_id", acc.id).maybeSingle();
-      if (dup) continue;
 
-      const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
-      const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
-
-      await supabaseService.from("events").insert({
+      rows.push({
         user_id: acc.user_id,
         calendar_id: acc.id,
         title: ev.subject || "(bez tytułu)",
         description: ev.bodyPreview || "",
-        start_time: startTime,
-        end_time: endTime,
+        start_time: outlookToSupabaseTime(ev.start.dateTime),
+        end_time: outlookToSupabaseTime(ev.end.dateTime),
         place: ev.location?.displayName || "",
         repeat: "none",
         google_event_id: ev.id,
         shared_with_id: null,
       });
-      importedCount++;
     }
+    importedCount += await upsertImportedEvents(rows);
     fetchUrl = data['@odata.nextLink'];
   }
 

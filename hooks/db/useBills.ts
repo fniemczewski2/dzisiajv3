@@ -8,6 +8,8 @@ import { addMonths, format, parseISO, isAfter } from "date-fns";
 import { BILLS_PAGE_LIMIT } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 function getRecurringDates(startDate: string, recurringUntil: string): string[] {
   const dates: string[] = [];
@@ -102,18 +104,27 @@ export function useBills(options: FetchOptions = {}) {
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
+  // Trzy niezależne kontrolery: fetchBills, fetchActiveMonths i
+  // fetchActiveCategories są wołane niezależnie z różnych miejsc UI
+  // (lista rachunków, dropdown miesięcy, filtr kategorii) — wspólny
+  // kontroler przerywałby jedno zapytanie w chwili startu drugiego.
+  const { getSignal: getBillsSignal } = useAbortController();
+  const { getSignal: getActiveMonthsSignal } = useAbortController();
+  const { getSignal: getActiveCategoriesSignal } = useAbortController();
 
   const fetchBills = useCallback(
     async (append = false, page = 1, limit = BILLS_PAGE_LIMIT): Promise<{ incomes: Bill[]; expenses: Bill[] }> => {
       if (!userId || settings == null) return { incomes: [], expenses: [] };
+      const signal = getBillsSignal();
       setFetching(true);
 
       try {
         const from = (page - 1) * limit;
         const to = from + limit - 1;
 
-        const { data, error, count } = await withRetry(async () =>
-          buildFetchBillsQuery(supabase, userId, options).range(from, to)
+        const { data, error, count } = await withRetry(
+          async () => buildFetchBillsQuery(supabase, userId, options).range(from, to).abortSignal(signal),
+          signal
         );
 
         if (error) throw error;
@@ -135,11 +146,12 @@ export function useBills(options: FetchOptions = {}) {
         }
 
         return { incomes, expenses };
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return { incomes: [], expenses: [] };
         toast.error("Błąd pobierania rachunków.");
         return { incomes: [], expenses: [] };
       } finally {
-        setFetching(false);
+        if (!signal.aborted) setFetching(false);
       }
     },
     // Celowo zależymy od pojedynczych pól `settings`/`options`, nie całych
@@ -147,7 +159,7 @@ export function useBills(options: FetchOptions = {}) {
     // niezwiązanej zmianie ustawień, wywołując zbędne ponowne pobrania
     // wszędzie tam, gdzie fetchBills jest zależnością innego efektu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userId, settings.show_budget_items, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry]
+    [userId, settings.show_budget_items, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry, getBillsSignal]
   );
 
   useEffect(() => {
@@ -342,13 +354,15 @@ export function useBills(options: FetchOptions = {}) {
         throw new Error("Unauthorized");
       }
 
+      const signal = getActiveMonthsSignal();
       try {
-        const { data, error } = await withRetry(async () =>
-          buildActiveMonthsQuery(supabase, userId, year, categoryId)
+        const { data, error } = await withRetry(
+          async () => buildActiveMonthsQuery(supabase, userId, year, categoryId).abortSignal(signal),
+          signal
         );
 
         if (error || !data) {
-          toast.error("Błąd pobierania danych.");
+          if (!signal.aborted) toast.error("Błąd pobierania danych.");
           return [];
         }
 
@@ -359,12 +373,13 @@ export function useBills(options: FetchOptions = {}) {
         });
 
         return Array.from(activeMonthIndexes).sort((a, b) => b - a);
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return [];
         toast.error("Błąd pobierania danych.");
         return [];
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast, withRetry, getActiveMonthsSignal]
   );
 
   const fetchActiveCategories = useCallback(
@@ -373,13 +388,15 @@ export function useBills(options: FetchOptions = {}) {
         throw new Error("Unauthorized");
       }
 
+      const signal = getActiveCategoriesSignal();
       try {
-        const { data, error } = await withRetry(async () =>
-          buildActiveCategoriesQuery(supabase, userId, year)
+        const { data, error } = await withRetry(
+          async () => buildActiveCategoriesQuery(supabase, userId, year).abortSignal(signal),
+          signal
         );
 
         if (error || !data) {
-          toast.error("Błąd pobierania danych.");
+          if (!signal.aborted) toast.error("Błąd pobierania danych.");
           return [];
         }
 
@@ -390,12 +407,13 @@ export function useBills(options: FetchOptions = {}) {
         });
 
         return Array.from(activeCategoryIds);
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return [];
         toast.error("Błąd pobierania danych.");
         return [];
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast, withRetry, getActiveCategoriesSignal]
   );
 
   return {

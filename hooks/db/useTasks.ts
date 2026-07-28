@@ -5,6 +5,30 @@ import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
+import { readCache, writeCache } from "@/lib/offlineCache";
+
+// ZMIANY WZGLĘDEM POPRZEDNIEJ WERSJI (wzorzec do powielenia w pozostałych
+// hookach z hooks/db/*):
+//
+// 1. Stabilne callbacki mutacji. Wcześniej edit/delete/accept/... miały
+//    `rawTasks` w zależnościach useCallback (przez `const previous = rawTasks`),
+//    więc KAŻDA zmiana listy tworzyła nowe funkcje i unieważniała
+//    React.memo(TaskItem) dla wszystkich itemów. Teraz snapshot do rollbacku
+//    robimy wewnątrz funkcyjnego setState — callbacki zależą tylko od
+//    [supabase, userId, toast, withRetry] i są stabilne między renderami.
+//
+// 2. Ochrona przed race condition w fetchu. Szybka zmiana zakresu dat
+//    odpalała kilka fetchy; wolniejsza, starsza odpowiedź mogła nadpisać
+//    nowszą. Teraz numer żądania (fetchSeqRef) odrzuca przeterminowane wyniki.
+//
+// 3. Hydratacja offline (lib/offlineCache.ts): stan jest wypełniany
+//    z IndexedDB NATYCHMIAST po mount (zero skeletona przy powrocie do
+//    aplikacji), a odpowiedź sieci — gdy dotrze — podmienia go i odświeża
+//    cache. Offline sieć i tak zwróci dane (warstwa network-first w sw.js),
+//    ale hydratacja daje pierwszy render bez czekania nawet na Service
+//    Workera. Świeże dane NIGDY nie są nadpisywane przez cache (freshDataRef).
 
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {
@@ -45,6 +69,10 @@ const formatDate = (date: string | Date | undefined): string | undefined => {
 
 const getPriority = (task: Task): number => (task.status === "waiting_for_acceptance" ? 0 : 1);
 
+// Wejście mutacji: Partial<Task> + pole formularza. Dzięki jawnemu typowi
+// znikają rzutowania `(taskData as Partial<Task>)` z poprzedniej wersji.
+type TaskInput = Partial<Task> & { shared_with_email?: string };
+
 export function useTasks(dateFrom?: string, dateTo?: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -55,8 +83,18 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const userEmailsRef = useRef<Record<string, string>>({});
+  // Snapshot listy do rollbacku optymistycznych aktualizacji — trzymany w
+  // ref, żeby callbacki mutacji nie musiały zależeć od rawTasks.
+  const rollbackRef = useRef<Task[]>([]);
+  // Numer sekwencyjny fetchy — starsze odpowiedzi są odrzucane.
+  const fetchSeqRef = useRef(0);
+  // Czy dotarły już świeże dane z sieci (blokuje spóźnioną hydratację z cache).
+  const freshDataRef = useRef(false);
+
+  const cacheKey = userId ? `tasks:${userId}:${dateFrom ?? ""}:${dateTo ?? ""}` : null;
 
   const comparator = useMemo(() => {
     if (!settings) return null;
@@ -76,6 +114,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
+    const seq = ++fetchSeqRef.current;
+    // Realna anulacja sieciowa: szybka zmiana dateFrom/dateTo (nawigacja po
+    // kalendarzu) przerywa poprzednie, jeszcze niedokończone zapytanie,
+    // zamiast pozwolić mu dokończyć i zostać zignorowanym przez fetchSeqRef.
+    const signal = getSignal();
     setFetching(true);
     try {
       const { data, error: queryError } = await withRetry(async () => {
@@ -83,8 +126,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         if (dateFrom) query = query.gte("due_date", dateFrom);
         if (dateTo) query = query.lte("due_date", dateTo);
         if (!settings.show_completed) query = query.neq("status", "done");
-        return query;
-      });
+        return query.abortSignal(signal);
+      }, signal);
 
       if (queryError) throw queryError;
 
@@ -96,20 +139,46 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         display_share_info: resolvedTasks[i].display_share_info,
       }));
 
-      setRawTasks(tasksWithDisplayInfo);
+      // Odrzuć wynik, jeśli w międzyczasie wystartował nowszy fetch.
+      if (seq === fetchSeqRef.current) {
+        freshDataRef.current = true;
+        setRawTasks(tasksWithDisplayInfo);
+        // Persist do IndexedDB dla natychmiastowej hydratacji przy kolejnym
+        // uruchomieniu; fire-and-forget — błąd cache nie psuje ścieżki głównej.
+        if (cacheKey) void writeCache(cacheKey, tasksWithDisplayInfo);
+      }
       return tasksWithDisplayInfo;
-    } catch {
-      toast.error("Błąd pobierania zadań.");
+    } catch (err) {
+      if (isAbortError(err)) return [];
+      if (seq === fetchSeqRef.current) {
+        toast.error("Błąd pobierania zadań.");
+      }
       return [];
     } finally {
-      setFetching(false);
+      if (seq === fetchSeqRef.current) {
+        setFetching(false);
+      }
     }
-  }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry]);
+  }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry, cacheKey, getSignal]);
+
+  // Hydratacja z cache offline: natychmiastowy render ostatnich znanych
+  // danych, dopóki sieć nie odpowie. Zmiana zakresu dat = nowy klucz =
+  // ponowna hydratacja dla tego zakresu.
+  useEffect(() => {
+    if (!cacheKey) return;
+    freshDataRef.current = false;
+    let cancelled = false;
+    void readCache<Task[]>(cacheKey).then((cached) => {
+      // Cache przegrywa z każdą świeżą odpowiedzią, która zdążyła dotrzeć.
+      if (cancelled || !cached || freshDataRef.current) return;
+      setRawTasks(cached);
+    });
+    return () => { cancelled = true; };
+  }, [cacheKey]);
 
   const addTask = useCallback(
-    async (task: Partial<Task> & { shared_with_email?: string }) => {
+    async (task: TaskInput) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       setLoading(true);
@@ -119,7 +188,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setRawTasks((prev) => [...prev, optimisticTask]);
 
       try {
-        let finalForUserId: string = (taskData as Partial<Task>).for_user_id || userId;
+        let finalForUserId: string = taskData.for_user_id || userId;
         if (sharedWithEmail !== undefined) {
           const fetchedId = await getUserIdByEmail(sharedWithEmail, supabase);
           if (fetchedId) finalForUserId = fetchedId;
@@ -132,7 +201,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
               ...taskData,
               user_id: userId,
               for_user_id: finalForUserId,
-              due_date: formatDate((taskData as Partial<Task>).due_date),
+              due_date: formatDate(taskData.due_date),
             })
             .select()
             .single()
@@ -154,16 +223,17 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const editTask = useCallback(
     async (task: Task & { shared_with_email?: string }) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      const previous = rawTasks;
-      setRawTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, ...task } : t)));
+      setRawTasks((prev) => {
+        rollbackRef.current = prev;
+        return prev.map((t) => (t.id === task.id ? { ...t, ...task } : t));
+      });
 
       try {
         const { shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...taskData } = task;
-        let finalForUserId = (taskData as Partial<Task>).for_user_id;
+        let finalForUserId = taskData.for_user_id;
 
         if (sharedWithEmail !== undefined) {
           const fetchedId = await getUserIdByEmail(sharedWithEmail, supabase);
@@ -177,7 +247,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
               ...taskData,
               user_id: userId,
               for_user_id: finalForUserId,
-              due_date: formatDate((taskData as Partial<Task>).due_date),
+              due_date: formatDate(taskData.due_date),
             })
             .eq("id", task.id)
         );
@@ -185,51 +255,53 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
         toast.success("Zaktualizowano zadanie");
       } catch {
-        setRawTasks(previous);
+        setRawTasks(rollbackRef.current);
         toast.error("Błąd aktualizacji zadania.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, toast, withRetry]
   );
 
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       const ok = await toast.confirm(`Czy chcesz usunąć zadanie?`);
       if (!ok) return;
       setLoading(true);
-      const previous = rawTasks;
-      setRawTasks((prev) => prev.filter((t) => t.id !== id));
+      setRawTasks((prev) => {
+        rollbackRef.current = prev;
+        return prev.filter((t) => t.id !== id);
+      });
 
       try {
         const { error } = await withRetry(async () => supabase.from("tasks").delete().eq("id", id));
         if (error) throw error;
         toast.success("Usunięto zadanie");
       } catch {
-        setRawTasks(previous);
+        setRawTasks(rollbackRef.current);
         toast.error("Błąd usuwania zadania.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, toast, withRetry]
   );
 
   const acceptTask = useCallback(
     async (id: string) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       setLoading(true);
       const cleanId = id.startsWith("task-") ? id.replace("task-", "") : id;
-      const previous = rawTasks;
-      setRawTasks((prev) => prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "accepted" } : t)));
+      setRawTasks((prev) => {
+        rollbackRef.current = prev;
+        return prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "accepted" } : t));
+      });
 
       try {
         const { error } = await withRetry(async () =>
@@ -238,24 +310,25 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         if (error) throw error;
         toast.success("Zaakceptowano zadanie");
       } catch {
-        setRawTasks(previous);
+        setRawTasks(rollbackRef.current);
         toast.error("Błąd akceptacji zadania.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, toast, withRetry]
   );
 
   const setDoneTask = useCallback(
     async (id: string) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      const previous = rawTasks;
-      setRawTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "done" } : t)));
+      setRawTasks((prev) => {
+        rollbackRef.current = prev;
+        return prev.map((t) => (t.id === id ? { ...t, status: "done" } : t));
+      });
 
       try {
         const { error } = await withRetry(async () =>
@@ -264,24 +337,25 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         if (error) throw error;
         toast.success("Wykonano zadanie");
       } catch {
-        setRawTasks(previous);
+        setRawTasks(rollbackRef.current);
         toast.error("Błąd wykonania zadania.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, toast, withRetry]
   );
 
   const rescheduleTask = useCallback(
     async (taskId: string, newDate: string) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      const previous = rawTasks;
-      setRawTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, due_date: newDate } : t)));
+      setRawTasks((prev) => {
+        rollbackRef.current = prev;
+        return prev.map((t) => (t.id === taskId ? { ...t, due_date: newDate } : t));
+      });
 
       try {
         const { data, error } = await withRetry(async () =>
@@ -291,13 +365,13 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         toast.success("Zmieniono termin zadania");
         return data;
       } catch {
-        setRawTasks(previous);
+        setRawTasks(rollbackRef.current);
         toast.error("Błąd zmiany terminu zadania.");
       } finally {
         setLoading(false);
       }
     },
-    [supabase, userId, rawTasks, toast, withRetry]
+    [supabase, userId, toast, withRetry]
   );
 
   useEffect(() => {

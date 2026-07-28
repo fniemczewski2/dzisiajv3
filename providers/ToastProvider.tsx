@@ -1,12 +1,21 @@
 "use client";
-import React, { createContext, useCallback, useContext, useReducer, useRef, useMemo } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, ConfirmToast, ConfirmOptions, BatchLabel } from "@/types/toasts";
 
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {
-    case "ADD":
-      return [...state.slice(-4), action.toast];
+    case "ADD": {
+      // Limit dotyczy wyłącznie notyfikacji. Confirm nie może zostać
+      // wypchnięty z kolejki — zostawiłby na zawsze nierozwiązany Promise.
+      const confirms = state.filter((t) => t.kind === "confirm");
+      const notifications = state.filter((t) => t.kind !== "confirm");
+      const next =
+        action.toast.kind === "confirm"
+          ? [...notifications, ...confirms, action.toast]
+          : [...notifications.slice(-4), ...confirms, action.toast];
+      return next;
+    }
     case "REMOVE":
       return state.filter((t) => t.id !== action.id);
     case "UPDATE_MESSAGE":
@@ -60,23 +69,41 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
 }
 
 function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: (id: string) => void }>) {
+  // Natywny <dialog> zamiast toastu z aria-modal="false":
+  // - showModal() daje darmowy focus trap i obsługę Escape,
+  // - fokus jest przenoszony do dialogu (użytkownik klawiatury i screen
+  //   readera faktycznie dowiaduje się o pytaniu; wcześniej fokus zostawał
+  //   na przycisku kosza, a pytanie czekało niezauważone w rogu ekranu),
+  // - ::backdrop wizualnie sygnalizuje modalność destrukcyjnej decyzji.
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const answeredRef = useRef(false);
+
   const answer = (value: boolean) => {
+    if (answeredRef.current) return;
+    answeredRef.current = true;
     item.resolve(value);
     onRemove(item.id);
   };
 
+  useEffect(() => {
+    dialogRef.current?.showModal();
+  }, []);
+
   return (
-    <div
-      role="alertdialog"
-      aria-modal="false"
-      className="flex flex-col gap-3 w-full px-4 py-3 rounded-xl border shadow-lg text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 bg-card border-gray-200 dark:border-gray-700"
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={`confirm-msg-${item.id}`}
+      onClose={() => answer(false)}
+      onCancel={() => answer(false)}
+      className="flex flex-col gap-3 w-full max-w-sm px-4 py-4 rounded-xl border shadow-lg text-sm font-medium bg-card border-gray-200 dark:border-gray-700 backdrop:bg-black/40 open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
     >
       <div className="flex items-start gap-3">
-        <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
-        <span className="flex-1 leading-snug text-text">{item.message}</span>
+        <AlertTriangle aria-hidden="true" className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+        <span id={`confirm-msg-${item.id}`} className="flex-1 leading-snug text-text">{item.message}</span>
       </div>
       <div className="flex gap-2 justify-end">
         <button
+          autoFocus
           onClick={() => answer(false)}
           className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-surface hover:bg-surfaceHover text-textSecondary transition-colors border border-gray-200 dark:border-gray-700"
         >
@@ -89,7 +116,7 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
           {item.confirmLabel}
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }
 

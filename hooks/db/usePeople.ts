@@ -1,131 +1,48 @@
 // hooks/usePeople.ts
-import { useState, useEffect, useCallback, useMemo } from "react";
+//
+// Migracja na wspólną fabrykę CRUD — audyt 3.2. Sortowanie alfabetyczne
+// (wcześniej wymuszane ręcznie przy każdym insert/update wewnątrz setState)
+// przeniesione do warstwy prezentacji jako useMemo — ten sam efekt końcowy,
+// bez sprzęgania fabryki z regułą sortowania specyficzną dla tej domeny.
+import { useCallback, useMemo } from "react";
 import { Person, PersonInsert } from "@/types/people";
-import { useAuth } from "@/providers/AuthProvider";
-import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/hooks/useRetry";
+import { useCrudResource } from "./useCrudResource";
+
+const MESSAGES = {
+  fetchError: "Błąd pobierania kontaktów.",
+  added: "Dodano kontakt",
+  addError: "Błąd dodawania kontaktu.",
+  edited: "Zaktualizowano kontakt",
+  editError: "Błąd aktualizacji kontaktu.",
+  deleted: "Usunięto kontakt",
+  deleteError: "Błąd usuwania kontaktu.",
+  confirmDelete: "Czy na pewno chcesz usunąć kontakt?",
+};
 
 export function usePeople() {
-  const { user, supabase } = useAuth();
-  const userId = user?.id;
-  const [people, setPeople] = useState<Person[]>([]);
-  const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const withRetry = useRetry();
+  const crud = useCrudResource<Person, PersonInsert>({
+    table: "people",
+    order: { column: "first_name", ascending: true },
+    messages: MESSAGES,
+  });
 
-  const fetchPeople = useCallback(async () => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from("people").select("*").eq("user_id", userId).order("first_name", { ascending: true })
-      );
-
-      if (error) throw error;
-      setPeople(data || []);
-    } catch {
-      toast.error("Błąd pobierania kontaktów.");
-    } finally {
-      setFetching(false);
-    }
-  }, [supabase, userId, toast, withRetry]);
-
-  useEffect(() => {
-    fetchPeople();
-  }, [fetchPeople]);
-
-  const addPerson = useCallback(
-    async (person: PersonInsert) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const tempId = `temp-${Date.now()}`;
-      const optimisticPerson = { ...person, id: tempId, user_id: userId } as Person;
-      setPeople((prev) =>
-        [...prev, optimisticPerson].sort((a, b) => a.first_name.localeCompare(b.first_name))
-      );
-
-      try {
-        const { data, error } = await withRetry(async () =>
-          supabase.from("people").insert({ ...person, user_id: userId }).select().single()
-        );
-        if (error) throw error;
-        setPeople((prev) =>
-          prev.map((p) => (p.id === tempId ? data : p)).sort((a, b) => a.first_name.localeCompare(b.first_name))
-        );
-        toast.success("Dodano kontakt");
-      } catch {
-        setPeople((prev) => prev.filter((p) => p.id !== tempId));
-        toast.error("Błąd dodawania kontaktu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, toast, withRetry]
-  );
-
-  const editPerson = useCallback(
-    async (id: string, updates: Partial<Person>) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const previous = people;
-      setPeople((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from("people").update(updates).eq("id", id));
-        if (error) throw error;
-        toast.success("Zaktualizowano kontakt");
-      } catch {
-        setPeople(previous);
-        toast.error("Błąd aktualizacji kontaktu.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, supabase, people, toast, withRetry]
+  const people = useMemo(
+    () => [...crud.items].sort((a, b) => a.first_name.localeCompare(b.first_name)),
+    [crud.items]
   );
 
   const deletePerson = useCallback(
-    async (id: string) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      const ok = await toast.confirm("Czy na pewno chcesz usunąć kontakt?");
-      if (!ok) return;
-
-      setLoading(true);
-      const previous = people;
-      setPeople((prev) => prev.filter((p) => p.id !== id));
-
-      try {
-        const { error } = await withRetry(async () => supabase.from("people").delete().eq("id", id));
-        if (error) throw error;
-        toast.success("Usunięto kontakt");
-      } catch {
-        setPeople(previous);
-        toast.error("Błąd usuwania kontaktu.");
-      } finally {
-        setLoading(false);
-      }
+    async (id: string): Promise<void> => {
+      await crud.remove(id);
     },
-    [userId, supabase, people, toast, withRetry]
+    [crud]
   );
 
   const logContact = useCallback(
     async (id: string) => {
-      await editPerson(id, { last_contact_date: new Date().toISOString() });
+      await crud.patch(id, { last_contact_date: new Date().toISOString() });
     },
-    [editPerson]
+    [crud]
   );
 
   const getPeopleToContact = useMemo(() => {
@@ -133,10 +50,8 @@ export function usePeople() {
     return people.filter((p) => {
       if (p.priority === 0 || p.priority === 5) return false;
       if (!p.last_contact_date) return true;
-
       const lastContact = new Date(p.last_contact_date);
       const diffDays = Math.ceil(Math.abs(now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
-
       switch (p.priority) {
         case 1: return diffDays >= 14;
         case 2: return diffDays >= 30;
@@ -149,13 +64,13 @@ export function usePeople() {
 
   return {
     people,
-    loading,
-    fetching,
-    addPerson,
-    editPerson,
+    loading: crud.loading,
+    fetching: crud.fetching,
+    addPerson: crud.add,
+    editPerson: crud.patch,
     deletePerson,
     logContact,
     getPeopleToContact,
-    fetchPeople,
+    fetchPeople: crud.refetch,
   };
 }

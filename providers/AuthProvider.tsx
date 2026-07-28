@@ -3,7 +3,8 @@
 
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/client'; 
+import { createClient } from '@/lib/supabase/client';
+import { clearOfflineCache } from '@/lib/offlineCache';
 
 type AuthContextType = {
   readonly user: User | null;
@@ -26,9 +27,17 @@ export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode 
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setUser(session?.user ?? null);
         setLoadingUser(false);
+
+        // BEZPIECZEŃSTWO OFFLINE: przy wylogowaniu czyścimy IndexedDB oraz
+        // (przez postMessage w clearOfflineCache) cache odpowiedzi Supabase
+        // w Service Workerze — kolejny użytkownik na tym samym urządzeniu
+        // nie może zobaczyć danych poprzedniego.
+        if (event === 'SIGNED_OUT') {
+          void clearOfflineCache();
+        }
       }
     );
 

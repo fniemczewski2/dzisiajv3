@@ -2,12 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
+import { refreshGoogleToken } from "@/lib/server/oauthTokens";
+import { toSupabaseTime } from "@/lib/server/calendarTime";
 import { ConnectedCalendarRow } from "@/types/connectedCalendars";
-import { GoogleTokenResponse, GoogleEventDateTime, GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
+import { GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
 import { ExternalCalendar } from "@/types/events";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
@@ -35,22 +36,6 @@ async function getUserFromBearer(req: NextApiRequest) {
 }
 
 type AuthContext = NonNullable<Awaited<ReturnType<typeof getUserFromBearer>>>;
-
-async function refreshGoogleToken(refreshToken: string): Promise<string | null> {
-  const r = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-  if (!r.ok) return null;
-  const d: GoogleTokenResponse = await r.json();
-  return d.access_token ?? null;
-}
 
 async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promise<string | null> {
   const sb = getServiceSupabase(auth.token);
@@ -97,23 +82,6 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
 
   return fresh;
 }
-
-const toSupabaseTime = (dt: GoogleEventDateTime | undefined, isEndTime = false): string => {
-  if (!dt) return new Date().toISOString().slice(0, 19);
-  if (dt.dateTime) return dt.dateTime.slice(0, 19) + "+00:00";
-  if (dt.date) {
-    if (isEndTime) {
-      const d = new Date(dt.date);
-      d.setDate(d.getDate() - 1);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}T23:59:59`;
-    }
-    return `${dt.date}T00:00:00`;
-  }
-  return new Date().toISOString().slice(0, 19);
-};
 
 const toRFC3339 = (ts: string): string => {
   try {
@@ -237,26 +205,23 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   } while (pageToken);
 
   const sb = getServiceSupabase(auth.token);
-  let imported = 0, skipped = 0;
+  let skipped = 0;
 
+  // Batch upsert zamiast N+1 (SELECT dedup + INSERT per event).
+  // Wymaga indeksu unikalnego (calendar_id, google_event_id) — zob.
+  // supabase/migrations/20260720120000_events_dedup_index.sql.
+  // ignoreDuplicates = ON CONFLICT DO NOTHING (istniejące nie są nadpisywane).
+  const rows = [];
   for (const ev of allItems) {
     if (ev.status === "cancelled" || !ev.start || !ev.end) { skipped++; continue; }
-    
+
     const isBirthdayEvent = ev.eventType === "birthday";
     if (isBirthdayVirtual && !isBirthdayEvent) { skipped++; continue; }
     if (!isBirthdayVirtual && isBirthdayEvent) { skipped++; continue; }
 
-    const { data: dup } = await sb.from("events")
-      .select("id")
-      .eq("google_event_id", ev.id)
-      .eq("calendar_id", accountId) 
-      .maybeSingle();
-      
-    if (dup) { skipped++; continue; }
-
-    const { error } = await sb.from("events").insert({
+    rows.push({
       user_id: auth.user.id,
-      calendar_id: accountId,       
+      calendar_id: accountId,
       title: ev.summary || "(bez tytułu)",
       description: ev.description || "",
       start_time: toSupabaseTime(ev.start),
@@ -266,8 +231,22 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
       google_event_id: ev.id,
       shared_with_id: null,
     });
-    
-    if (error) skipped++; else imported++;
+  }
+
+  let imported = 0;
+  const BATCH_SIZE = 500;
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    const { error } = await sb.from("events").upsert(batch, {
+      onConflict: "calendar_id,google_event_id",
+      ignoreDuplicates: true,
+    });
+    if (error) {
+      console.error("[gcal import] upsert error:", error.message);
+      skipped += batch.length;
+    } else {
+      imported += batch.length;
+    }
   }
   return res.json({ imported, skipped });
 }

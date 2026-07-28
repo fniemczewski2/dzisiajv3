@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getAppDateTime } from '@/lib/dateUtils';
 import { getErrorMessage } from '@/lib/errorUtils';
+import { validateUuid } from '@/lib/sanitize';
 import crypto from 'node:crypto';
 
 const supabaseAdmin = createClient(
@@ -12,16 +13,23 @@ const supabaseAdmin = createClient(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
-  const { secret, userId, action } = req.body;
+  const { userId, action } = req.body ?? {};
 
   const expectedSecret = process.env.SHORTCUTS_API_SECRET;
-  
+
   if (!expectedSecret) {
     console.error("[SHORTCUTS] No SHORTCUTS_API_SECRET defined.");
     return res.status(500).json({ error: "Server configuration error." });
   }
 
-  const providedSecret = secret || "";
+  // Sekret w nagłówku, nie w body — body częściej trafia do logów, narzędzi
+  // typu request inspector i historii Shortcuts.
+  // TODO(migracja): fallback na `secret` z body zostawiony tymczasowo dla
+  // istniejących Shortcuts — po zaktualizowaniu ich na nagłówek usuń go.
+  const headerSecret = req.headers['x-api-secret'];
+  const providedSecret =
+    (typeof headerSecret === 'string' ? headerSecret : '') ||
+    (typeof req.body?.secret === 'string' ? req.body.secret : '');
 
   const expectedHash = crypto.createHash('sha256').update(expectedSecret).digest();
   const providedHash = crypto.createHash('sha256').update(providedSecret).digest();
@@ -30,7 +38,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
-  if (!userId || !action) {
+  // Sekret autoryzuje operacje na wskazanym userId, więc przynajmniej
+  // walidujemy format zanim dotkniemy bazy kluczem serwisowym.
+  const validUserId = validateUuid(userId);
+  if (!validUserId || !action) {
     return res.status(400).json({ error: 'No required data.' });
   }
 
@@ -41,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data: existing } = await supabaseAdmin
         .from('work_logs')
         .select('id')
-        .eq('user_id', userId)
+        .eq('user_id', validUserId)
         .is('end_time', null) 
         .maybeSingle();
 
@@ -52,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data, error } = await supabaseAdmin
         .from('work_logs')
         .insert([{
-          user_id: userId,
+          user_id: validUserId,
           description: "Wpis automatyczny",
           start_time: now,
         }])
@@ -66,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data: openLog, error: fetchError } = await supabaseAdmin
         .from('work_logs')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', validUserId)
         .is('end_time', null)
         .order('start_time', { ascending: false })
         .limit(1)

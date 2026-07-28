@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 import { MonthData, YearData, RawBillRow } from "@/types/bills";
 
 const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -25,9 +27,15 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
   const { toast } = useToast();
   const withRetry = useRetry();
+  // Jeden sygnał na całe loadData(): fetchRates + fetchMonthData(...) dla
+  // wszystkich miesięcy to jedna logiczna operacja odświeżenia — nowe
+  // wywołanie loadData (np. zmiana roku) przerywa WSZYSTKIE poprzednie
+  // zapytania naraz. Signal jest przekazywany jako parametr, bo fetchRates
+  // i fetchMonthData nie są eksponowane na zewnątrz hooka (tylko loadData).
+  const { getSignal } = useAbortController();
 
   const fetchMonthData = useCallback(
-    async (month: number): Promise<MonthData> => {
+    async (month: number, signal: AbortSignal): Promise<MonthData> => {
       if (!userId) {
   
         throw new Error("Unauthorized");
@@ -40,23 +48,29 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const nextMonthStr = String(nextMonth).padStart(2, "0");
       const dateEnd = `${nextYear}-${nextMonthStr}-01`;
 
-      const { data: bills, error: billsError } = await withRetry(async () =>
-        supabase
-          .from("bills")
-          .select("amount,date,is_income,done")
-          .eq("user_id", userId)
-          .gte("date", dateStart)
-          .lt("date", dateEnd)
+      const { data: bills, error: billsError } = await withRetry(
+        async () =>
+          supabase
+            .from("bills")
+            .select("amount,date,is_income,done")
+            .eq("user_id", userId)
+            .gte("date", dateStart)
+            .lt("date", dateEnd)
+            .abortSignal(signal),
+        signal
       );
       if (billsError) throw billsError;
 
-      const { data: habits, error: habitsError } = await withRetry(async () =>
-        supabase
-          .from("daily_habits")
-          .select("date,daily_spending")
-          .eq("user_id", userId)
-          .gte("date", dateStart)
-          .lt("date", dateEnd)
+      const { data: habits, error: habitsError } = await withRetry(
+        async () =>
+          supabase
+            .from("daily_habits")
+            .select("date,daily_spending")
+            .eq("user_id", userId)
+            .gte("date", dateStart)
+            .lt("date", dateEnd)
+            .abortSignal(signal),
+        signal
       );
       if (habitsError) throw habitsError;
 
@@ -81,35 +95,40 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
     [userId, year, supabase, withRetry]
   );
 
-  const fetchRates = useCallback(async (): Promise<Record<number, number>> => {
-    if (!userId) {
+  const fetchRates = useCallback(
+    async (signal: AbortSignal): Promise<Record<number, number>> => {
+      if (!userId) {
 
-      throw new Error("Unauthorized");
-    }
-    const { data: ratesData, error } = await withRetry(async () =>
-      supabase.from("budgets").select("*").eq("user_id", userId).maybeSingle()
-    );
-    if (error) throw error;
+        throw new Error("Unauthorized");
+      }
+      const { data: ratesData, error } = await withRetry(
+        async () => supabase.from("budgets").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
+        signal
+      );
+      if (error) throw error;
 
-    if (!ratesData) return {};
-    const rates: Record<number, number> = {};
-    for (let i = 1; i <= 12; i++) {
-      rates[i] = ratesData[`${MONTH_KEYS[i - 1]}_rate`] || 0;
-    }
-    return rates;
-  }, [userId, supabase, withRetry]);
+      if (!ratesData) return {};
+      const rates: Record<number, number> = {};
+      for (let i = 1; i <= 12; i++) {
+        rates[i] = ratesData[`${MONTH_KEYS[i - 1]}_rate`] || 0;
+      }
+      return rates;
+    },
+    [userId, supabase, withRetry]
+  );
 
   const loadData = useCallback(async () => {
     if (!userId) {
       setFetching(false);
       return;
     }
+    const signal = getSignal();
     setFetching(true);
     try {
-      const rates = await fetchRates();
+      const rates = await fetchRates(signal);
       const monthsToLoad = Array.from({ length: endMonth - startMonth + 1 }, (_, i) => startMonth + i);
       const monthResults = await Promise.all(
-        monthsToLoad.map((month) => fetchMonthData(month).then((d) => ({ month, data: d })))
+        monthsToLoad.map((month) => fetchMonthData(month, signal).then((d) => ({ month, data: d })))
       );
       const newData: YearData = {};
       monthResults.forEach(({ month, data: monthData }) => {
@@ -121,12 +140,13 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         monthsToLoad.forEach((m) => s.add(m));
         return s;
       });
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania danych budżetu.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [userId, startMonth, endMonth, fetchRates, fetchMonthData, toast]);
+  }, [userId, startMonth, endMonth, fetchRates, fetchMonthData, toast, getSignal]);
 
   const updateRate = useCallback((month: number, rate: number) => {
     setData((prev) => ({

@@ -25,6 +25,7 @@ import {
   User,
   IdCard,
   Clock,
+  Gavel,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -60,6 +61,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
       { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
       { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
+      { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma" },
       { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
     
     ],

@@ -8,6 +8,8 @@ import { MAX_FAVORITE_STOPS, MAX_TRUSTED_USERS } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 const safeParseArray = <T = unknown>(data: unknown): T[] => {
   if (!data) return [];
@@ -85,6 +87,7 @@ export function useSettings() {
 
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
@@ -97,10 +100,12 @@ export function useSettings() {
         setFetching(false);
         return;
       }
+      const signal = getSignal();
       setFetching(true);
       try {
-        const { data, error } = await withRetry(async () =>
-          supabase.from("settings").select("*").eq("user_id", userId).maybeSingle()
+        const { data, error } = await withRetry(
+          async () => supabase.from("settings").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
+          signal
         );
 
         if (cancelled) return;
@@ -145,7 +150,8 @@ export function useSettings() {
             sort_bills: data.sort_bills ?? "month",
           });
         }
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return;
         if (!cancelled) toast.error("Błąd pobierania ustawień.");
       } finally {
         if (!cancelled) setFetching(false);
@@ -155,7 +161,7 @@ export function useSettings() {
     loadSettings();
 
     return () => { cancelled = true; };
-  }, [loadingUser, userId, supabase, toast, withRetry]);
+  }, [loadingUser, userId, supabase, toast, withRetry, getSignal]);
 
   const saveSettings = useCallback(async () => {
     if (!userId) {

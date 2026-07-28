@@ -6,6 +6,8 @@ import type { BudgetCategory } from "@/types/bills";
 import { MAX_CATEGORIES } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
 
 export function useBudgetCategories(year: number) {
   const { user, supabase } = useAuth();
@@ -17,31 +19,37 @@ export function useBudgetCategories(year: number) {
 
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const fetchCategories = useCallback(async () => {
     if (!userId) {
 
       throw new Error("Unauthorized");
     }
+    const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from("budget_categories")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("year", year)
-          .order("sort_order", { ascending: true })
+      const { data, error } = await withRetry(
+        async () =>
+          supabase
+            .from("budget_categories")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("year", year)
+            .order("sort_order", { ascending: true })
+            .abortSignal(signal),
+        signal
       );
 
       if (error) throw error;
       setCategories((data ?? []) as BudgetCategory[]);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania kategorii.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [supabase, userId, year, toast, withRetry]);
+  }, [supabase, userId, year, toast, withRetry, getSignal]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 

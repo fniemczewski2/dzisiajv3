@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { useRetry } from '@/hooks/useRetry';
+import { useAbortController } from '@/hooks/useAbortController';
+import { isAbortError } from '@/lib/abortUtils';
 import { ConnectedAccount, ExternalCalendar } from '@/types/events';
 
 export function useConnectedCalendars(expanded: boolean) {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
 
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [calendars, setCalendars] = useState<ExternalCalendar[]>([]);
@@ -22,14 +25,22 @@ export function useConnectedCalendars(expanded: boolean) {
   
         throw new Error("Unauthorized");
       }
+      // Jeden sygnał obejmuje CAŁY łańcuch (select kont + oba fetche list
+      // kalendarzy) — to jedna logiczna operacja odświeżenia, więc nowe
+      // wywołanie fetchAccountsAndCalendars powinno przerwać wszystkie
+      // poprzednie kroki naraz, nie tylko pierwszy.
+      const signal = getSignal();
       setFetching(true);
 
       try {
-        const { data: accountsData, error } = await withRetry(async () =>
-          supabase
-            .from('connected_calendars')
-            .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at')
-            .eq('user_id', user.id)
+        const { data: accountsData, error } = await withRetry(
+          async () =>
+            supabase
+              .from('connected_calendars')
+              .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at')
+              .eq('user_id', user.id)
+              .abortSignal(signal),
+          signal
         );
 
         if (error) throw error;
@@ -51,10 +62,13 @@ export function useConnectedCalendars(expanded: boolean) {
           fetchedAccounts.find((acc) => acc.provider === 'google');
         if (primaryGoogleAccount) {
           try {
-            const res = await withRetry(async () =>
-              fetch('/api/google-calendar?action=list-calendars', {
-                headers: { Authorization: `Bearer ${session.access_token}` },
-              })
+            const res = await withRetry(
+              async () =>
+                fetch('/api/google-calendar?action=list-calendars', {
+                  headers: { Authorization: `Bearer ${session.access_token}` },
+                  signal,
+                }),
+              signal
             );
             if (res.ok) {
               const data = await res.json();
@@ -74,7 +88,8 @@ export function useConnectedCalendars(expanded: boolean) {
                 combinedCalendars = [...combinedCalendars, ...googleCals];
               }
             }
-          } catch {
+          } catch (err) {
+            if (isAbortError(err)) throw err;
             toast.error("Błąd kalendarzy Google.");
           }
         }
@@ -84,10 +99,13 @@ export function useConnectedCalendars(expanded: boolean) {
           fetchedAccounts.find((acc) => acc.provider === 'outlook');
         if (primaryOutlookAccount) {
           try {
-            const res = await withRetry(async () =>
-              fetch('/api/outlook-calendar?action=list-calendars', {
-                headers: { Authorization: `Bearer ${session.access_token}` },
-              })
+            const res = await withRetry(
+              async () =>
+                fetch('/api/outlook-calendar?action=list-calendars', {
+                  headers: { Authorization: `Bearer ${session.access_token}` },
+                  signal,
+                }),
+              signal
             );
             if (res.ok) {
               const data = await res.json();
@@ -107,7 +125,8 @@ export function useConnectedCalendars(expanded: boolean) {
                 combinedCalendars = [...combinedCalendars, ...outlookCals];
               }
             }
-          } catch {
+          } catch (err) {
+            if (isAbortError(err)) throw err;
             toast.error("Błąd kalendarzy Outlook.");
           }
         }
@@ -118,13 +137,14 @@ export function useConnectedCalendars(expanded: boolean) {
           .filter((c: ExternalCalendar) => c.accountId)
           .map((c: ExternalCalendar) => `${c.primaryAccountId}:::${c.id}`);
         setSelectedCalendars(alreadySavedKeys);
-      } catch {
+      } catch (err) {
+        if (isAbortError(err)) return;
         toast.error("Błąd podczas pobierania kalendarzy.");
       } finally {
-        setFetching(false);
+        if (!signal.aborted) setFetching(false);
       }
     },
-    [user, supabase, toast, withRetry]
+    [user, supabase, toast, withRetry, getSignal]
   );
 
   useEffect(() => {

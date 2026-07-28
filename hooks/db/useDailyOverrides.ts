@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { useRetry } from '@/hooks/useRetry';
+import { useAbortController } from '@/hooks/useAbortController';
+import { isAbortError } from '@/lib/abortUtils';
 import { DailyOverride } from '@/types/schemas';
 
 export function useDailyOverrides(dateStr: string) {
@@ -10,6 +12,7 @@ export function useDailyOverrides(dateStr: string) {
   const userId = user?.id;
   const { toast } = useToast();
   const withRetry = useRetry();
+  const { getSignal } = useAbortController();
   const [overrides, setOverrides] = useState<DailyOverride[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,24 +22,29 @@ export function useDailyOverrides(dateStr: string) {
 
       throw new Error("Unauthorized");
     }
+    const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from('daily_overrides')
-          .select('schema_id, new_time, is_hidden')
-          .eq('user_id', userId)
-          .eq('date', dateStr)
+      const { data, error } = await withRetry(
+        async () =>
+          supabase
+            .from('daily_overrides')
+            .select('schema_id, new_time, is_hidden')
+            .eq('user_id', userId)
+            .eq('date', dateStr)
+            .abortSignal(signal),
+        signal
       );
 
       if (error) throw error;
       setOverrides(data || []);
-    } catch {
+    } catch (err) {
+      if (isAbortError(err)) return;
       toast.error("Błąd pobierania rutyn dnia.");
     } finally {
-      setFetching(false);
+      if (!signal.aborted) setFetching(false);
     }
-  }, [supabase, userId, dateStr, toast, withRetry]);
+  }, [supabase, userId, dateStr, toast, withRetry, getSignal]);
 
   useEffect(() => {
     fetchOverrides();
