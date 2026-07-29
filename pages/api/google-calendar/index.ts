@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
 import { refreshGoogleToken } from "@/lib/server/oauthTokens";
-import { toSupabaseTime } from "@/lib/server/calendarTime";
+import { toSupabaseTime, warsawNaiveToRFC3339 } from "@/lib/server/calendarTime";
 import { ConnectedCalendarRow } from "@/types/connectedCalendars";
 import { GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
 import { ExternalCalendar } from "@/types/events";
@@ -83,19 +83,6 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
   return fresh;
 }
 
-const toRFC3339 = (ts: string): string => {
-  try {
-    const localStr = ts.replace(" ", "T").replace(/([+-]\d{2}:\d{2}|[+-]\d{2}|Z)$/, "");
-    const refDate = new Date(localStr + "Z"); 
-    const offsetStr = new Intl.DateTimeFormat("en", { timeZone: "Europe/Warsaw", timeZoneName: "shortOffset" }).formatToParts(refDate).find((p) => p.type === "timeZoneName")?.value ?? "GMT+1";
-    const match = /GMT([+-])(\d+)/.exec(offsetStr);
-    const sign = match?.[1] ?? "+";
-    const hrs = String( Number.parseInt(match?.[2] ?? "1")).padStart(2, "0");
-    return localStr + sign + hrs + ":00"; 
-  } catch {
-    return new Date().toISOString();
-  }
-};
 
 async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
   const nonce = randomBytes(24).toString("base64url");
@@ -329,7 +316,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
 
   let exported = 0, skipped = 0;
   for (const ev of events) {
-    const body = { summary: ev.title, description: ev.description || "", location: ev.place || "", start: { dateTime: toRFC3339(ev.start_time), timeZone: "Europe/Warsaw" }, end: { dateTime: toRFC3339(ev.end_time), timeZone: "Europe/Warsaw" } };
+    const body = { summary: ev.title, description: ev.description || "", location: ev.place || "", start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: "Europe/Warsaw" }, end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: "Europe/Warsaw" } };
     const method = ev.google_event_id ? "PUT" : "POST";
     const endpoint = ev.google_event_id ? `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${ev.google_event_id}` : `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
 

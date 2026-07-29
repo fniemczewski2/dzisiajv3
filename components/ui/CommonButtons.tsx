@@ -19,7 +19,8 @@ import {
   Loader2,
   Bell,
   BellOff,
-  Copy
+  Copy,
+  ChartNoAxesCombined
 } from "lucide-react";
 import { NextRouter } from "next/router";
 import { useToast } from "@/providers/ToastProvider";
@@ -343,6 +344,19 @@ export const ShareButton = ({ onClick, small = false }: { onClick: () => void; s
     <Share className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
     {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyślij</span>}
   </button>
+);
+
+export const ShowResultsButton = ({ href, small = false }: { href: string; small?: boolean }) => (
+  <a
+    href={href}
+    type="button"
+    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    aria-label="pokaż wyniki"
+    title="Pokaż wyniki"
+  >
+    <ChartNoAxesCombined className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyniki</span>}
+  </a>
 );
 
 export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned: boolean }) => (

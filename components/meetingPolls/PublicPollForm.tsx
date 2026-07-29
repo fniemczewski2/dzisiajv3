@@ -1,0 +1,177 @@
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { usePublicMeetingPoll } from "@/hooks/usePublicMeetingPoll";
+import { generateTimeSlots, slotKey } from "@/lib/meetingPollGrid";
+import type { MeetingPollSlot } from "@/types/meetingPolls";
+import { SaveButton } from "../ui/CommonButtons";
+
+interface PublicPollFormProps {
+  token: string;
+}
+
+const PRIMARY_BUTTON_CLASS =
+  "px-4 py-2 bg-secondary hover:bg-primary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow";
+
+export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>) {
+  const { poll, loading, notFound, submitting, submitted, hasExistingResponse, existingResponse, submitResponse } =
+    usePublicMeetingPoll(token);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragModeRef = React.useRef<"select" | "deselect">("select");
+
+  useEffect(() => {
+    const handleUp = () => setIsDragging(false);
+    window.addEventListener("mouseup", handleUp);
+    return () => window.removeEventListener("mouseup", handleUp);
+  }, []);
+
+  useEffect(() => {
+    if (!existingResponse) return;
+    setName(existingResponse.respondent_name);
+    setEmail(existingResponse.respondent_email ?? "");
+    setSelected(new Set(existingResponse.slots.map((s) => slotKey(s.date, s.start_time))));
+  }, [existingResponse]);
+
+  const times = useMemo(
+    () => (poll ? generateTimeSlots(poll.time_start, poll.time_end, poll.slot_duration_minutes) : []),
+    [poll]
+  );
+
+  const applyMode = (key: string, mode: "select" | "deselect") => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (mode === "select") next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  };
+
+  const handleCellMouseDown = (date: string, time: string) => {
+    const key = slotKey(date, time);
+    const mode: "select" | "deselect" = selected.has(key) ? "deselect" : "select";
+    dragModeRef.current = mode;
+    setIsDragging(true);
+    applyMode(key, mode);
+  };
+
+  const handleCellMouseEnter = (date: string, time: string) => {
+    if (!isDragging) return;
+    applyMode(slotKey(date, time), dragModeRef.current);
+  };
+
+  const handleSubmit = async () => {
+    if (!poll) return;
+    const slots: MeetingPollSlot[] = Array.from(selected).map((key) => {
+      const [date, start_time] = key.split("|");
+      return { date, start_time };
+    });
+    await submitResponse(name, email, slots);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-textMuted" />
+      </div>
+    );
+  }
+
+  if (notFound || !poll) {
+    return <p className="text-textMuted text-center py-16">Ta ankieta nie istnieje albo została usunięta.</p>;
+  }
+
+  if (poll.status === "closed") {
+    return <p className="text-textMuted text-center py-16">Ta ankieta nie przyjmuje już odpowiedzi.</p>;
+  }
+
+  if (submitted) {
+    return (
+      <div className="text-center space-y-3 py-16">
+        <CheckCircle2 className="w-10 h-10 text-primary mx-auto" />
+        <p className="text-lg font-bold text-text">Dziękujemy!</p>
+        <p className="text-sm text-textSecondary">Twoja dostępność została zapisana.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto p-4 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-text">{poll.title}</h1>
+        {poll.description && <p className="text-sm text-textSecondary mt-1">{poll.description}</p>}
+        {hasExistingResponse && (
+          <p className="text-xs text-primary mt-2">
+            Znaleźliśmy Twoją wcześniejszą odpowiedź — możesz ją tu poprawić.
+          </p>
+        )}
+      </div>
+
+      <div className="form-card grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="pp-name" className="form-label">Imię:</label>
+          <input
+            id="pp-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Twoje imię"
+            className="input-field"
+          />
+        </div>
+        <div>
+          <label htmlFor="pp-email" className="form-label">E-mail (opcjonalnie):</label>
+          <input
+            id="pp-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="twoj@email.pl"
+            className="input-field"
+          />
+        </div>
+      </div>
+
+      <div>
+        <div className="card rounded-2xl shadow-sm p-4 overflow-x-auto">
+          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()}>
+            <thead>
+              <tr>
+                <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left" />
+                {poll.dates.map((d) => (
+                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-[4.5rem]">{d.split('-')[2] + "." + d.split('-')[1]}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {times.map((time) => (
+                <tr key={time}>
+                  <td className="sticky left-0 bg-card text-xs text-textMuted p-1 pr-2 whitespace-nowrap">{time}</td>
+                  {poll.dates.map((date) => {
+                    const isSelected = selected.has(slotKey(date, time));
+                    return (
+                      <td
+                        key={date}
+                        onMouseDown={() => handleCellMouseDown(date, time)}
+                        onMouseEnter={() => handleCellMouseEnter(date, time)}
+                        className={`w-12 h-8 text-center cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
+                          isSelected ? "bg-primary" : "bg-surface hover:bg-surfaceHover"
+                        }`}
+                      />
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <SaveButton onClick={() => void handleSubmit()} disabled={submitting} />
+    </div>
+  );
+}

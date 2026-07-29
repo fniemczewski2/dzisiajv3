@@ -85,3 +85,29 @@ export function outlookToSupabaseTime(dateTime: string): string {
   if (Number.isNaN(parsed.getTime())) return instantToWarsawNaive(new Date());
   return instantToWarsawNaive(parsed);
 }
+
+/**
+ * Naiwny czas lokalny Europe/Warsaw (tak jak przechowywany w kolumnach
+ * events.start_time/end_time) -> pełny RFC3339 z poprawnym offsetem
+ * (uwzględnia zmianę czasu letni/zimowy). Kierunek ODWROTNY do funkcji
+ * powyżej (te importują Z zewnątrz DO aplikacji; ta eksportuje Z aplikacji
+ * NA ZEWNĄTRZ — do Google/Outlook). Wcześniej zduplikowana lokalnie w
+ * pages/api/google-calendar/index.ts jako `toRFC3339`; teraz też używana
+ * przez eksport do Outlook (pages/api/outlook-calendar/index.ts).
+ */
+export function warsawNaiveToRFC3339(naiveLocal: string): string {
+  try {
+    const localStr = naiveLocal.replace(" ", "T").replace(/([+-]\d{2}:\d{2}|[+-]\d{2}|Z)$/, "");
+    const refDate = new Date(`${localStr}Z`);
+    const offsetStr =
+      new Intl.DateTimeFormat("en", { timeZone: "Europe/Warsaw", timeZoneName: "shortOffset" })
+        .formatToParts(refDate)
+        .find((p) => p.type === "timeZoneName")?.value ?? "GMT+1";
+    const match = /GMT([+-])(\d+)/.exec(offsetStr);
+    const sign = match?.[1] ?? "+";
+    const hrs = String(Number.parseInt(match?.[2] ?? "1", 10)).padStart(2, "0");
+    return `${localStr}${sign}${hrs}:00`;
+  } catch {
+    return new Date().toISOString();
+  }
+}

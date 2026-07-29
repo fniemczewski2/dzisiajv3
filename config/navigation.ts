@@ -5,8 +5,6 @@ import {
   Timer,
   Edit2,
   Backpack,
-  Luggage,
-  Siren,
   Calendar,
   ScrollText,
   Sun,
@@ -26,6 +24,7 @@ import {
   IdCard,
   Clock,
   Gavel,
+  CalendarClock,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -45,58 +44,59 @@ export interface NavigationCategory {
 
 export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
-    name: "Zadania i Produktywność",
+    name: "Zadania",
     items: [
       {path: "/", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
       { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
-      { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy" },
-     
     ],
   },
   {
-    name: "Notatki i planowanie",
+    name: "Spotkania",
     items: [
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
-      { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
+      { path: "/meetings", title: "Terminy zespołowe", icon: CalendarClock, label: "Terminy" },
       { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
-      { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma" },
-      { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
+      { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
+    ]
+  },
+  {
+    name: "Notatki",
+    items: [
+      { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
+      { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
+      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },   
+      { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
     
     ],
   },
-    {
-    name: "Finanse i Dom",
+  {
+    name: "Finanse",
     items: [
       { path: "/bills", title: "Finanse", icon: Coins, label: "Finanse" },
       { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
       { path: "/bills/calculator", title: "Kalkulator", icon: Calculator, label: "Kalkulator" },
-      { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
-      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
-      
+      { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy" },
     ],
   },
   { name: "Wyjścia i wyjazdy",
     items: [
-      { path: "/packing/backpack", title: "Plecak", icon: Backpack, label: "Plecak" },
-      { path: "/packing/suitcase", title: "Walizka", icon: Luggage, label: "Walizka" },
-      { path: "/packing/safety", title: "Plecak bezpieczeństwa", icon: Siren, label: "Safety" },
+      { path: "/packing", title: "Pakowanie", icon: Backpack, label: "Pakowanie" },
       {path: "/transport", title: "Transport", icon: BusFront, label: "Transport" },
       { path: "/notes/places", title: "Miejsca", icon: MapPin, label: "Miejsca" },
+      { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
     ],
   },
   {
-    name: "Rozrywka",
+    name: "Osobiste",
     items: [
-
-      { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
-      { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
-      { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
-      { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
       { path: "/profiles", title: "Wizytówka", icon: IdCard, label: "Wizytówka" },
-    ],
-  },
+      { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
+      { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
+      { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma" },
+    ]
+  }
 ];
 
 export const QUICK_ACTIONS: NavigationButton[] = [

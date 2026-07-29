@@ -40,7 +40,8 @@ export default async function proxy(request: NextRequest) {
     path.startsWith('/auth') || 
     path === '/privacy' ||
     path.startsWith('/.well-known') ||
-    path.startsWith('/v/')
+    path.startsWith('/v/') ||
+    path.startsWith('/meet/')
 
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone()
