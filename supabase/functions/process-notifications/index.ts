@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
         let activeDays: string[] = [];
         try {
           activeDays = typeof schema.days === 'string' ? JSON.parse(schema.days) : (schema.days || []);
-        } catch (e) { continue; }
+        } catch { continue; }
 
         if (!activeDays.includes(currentDayIndex)) {
           continue;
@@ -379,7 +379,7 @@ Deno.serve(async (req) => {
         let entries: any[] = [];
         try {
           entries = typeof schema.entries === 'string' ? JSON.parse(schema.entries) : (schema.entries || []);
-        } catch (e) { continue; }
+        } catch { continue; }
 
         const itemsToNotify = entries.filter((item: any) =>
           item.notify === true && Math.abs(timeToMinutes(item.time) - currentMinutes) <= 1

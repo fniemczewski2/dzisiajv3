@@ -13,6 +13,3 @@ export interface Task {
   scheduled_time?: string | null;
   user_id: string;
 }
-
-export const TASK_COLUMNS =
-  "id, user_id, for_user_id, title, description, due_date, due_time, priority, category, done, created_at, status" as const;

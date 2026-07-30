@@ -19,6 +19,8 @@ import {
   CookingPot,
   ChartColumnBig,
   Calculator,
+  CalendarClock,
+  Gavel,
   Bus,
   MapPin,
   Droplet,
@@ -286,6 +288,30 @@ export const guideSections: GuideSection[] = [
   },
 
   {
+    id: 'letters',
+    title: 'Pisma urzędowe',
+    mainIcon: <Gavel className="w-6 h-6" />,
+    iconColorClass: 'text-slate-500',
+    listItems: [
+      <>
+        <K>Rejestr korespondencji.</K> Ewidencjonuj pisma wychodzące do urzędów i instytucji: adresat, opis sprawy, data wystawienia.
+      </>,
+      <>
+        <K>Automatyczna sygnatura.</K> Każde pismo dostaje sygnaturę w formacie <em>nr/mm/rrrr/KOD</em> z numeracją ciągłą w ramach roku. Kategorii i sygnatury nie można zmienić po utworzeniu; sygnaturę skopiujesz jednym kliknięciem.
+      </>,
+      <>
+        <K>Kategorie i terminy odpowiedzi.</K> Dostępne kategorie: UDIP, wniosek, skarga, wykroczenie drogowe, wykroczenie, przestępstwo oraz własna. Aplikacja podpowiada termin odpowiedzi na podstawie kategorii (np. 14 dni dla UDIP, 31 dla wniosku lub skargi) - pole pozostaje edytowalne.
+      </>,
+      <>
+        <K>Dane zdarzenia.</K> Dla zgłoszeń wykroczeń możesz dodać numer rejestracyjny pojazdu oraz datę i miejsce zdarzenia.
+      </>,
+      <>
+        <K>Pliki i wyszukiwarka.</K> Do wpisu podepniesz plik pisma oraz plik otrzymanej odpowiedzi. Wyszukiwarka filtruje po sygnaturze, adresacie i opisie.
+      </>,
+    ],
+  },
+
+  {
     id: 'calendar',
     title: 'Kalendarz',
     mainIcon: <Calendar className="w-6 h-6" />,
@@ -311,6 +337,33 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych - wydarzenie pojawi się w jego kalendarzu.
+      </>,
+      <>
+        <K>Synchronizacja z Google i Outlookiem.</K> W sekcji <em>Połączone kalendarze</em> podłączysz konto Google lub Microsoft 365 - wydarzenia synchronizują się dwukierunkowo, a tokeny dostępu są przechowywane w formie zaszyfrowanej.
+      </>,
+    ],
+  },
+
+  {
+    id: 'meetings',
+    title: 'Terminy zespołowe',
+    mainIcon: <CalendarClock className="w-6 h-6" />,
+    iconColorClass: 'text-purple-500',
+    listItems: [
+      <>
+        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu - aplikacja zbuduje z tego siatkę dostępności.
+      </>,
+      <>
+        <K>Publiczny link.</K> Każda ankieta ma link <em>/meet/…</em>, który możesz wysłać uczestnikom - odpowiadają bez zakładania konta, podając tylko imię (e-mail opcjonalnie).
+      </>,
+      <>
+        <K>Edycja odpowiedzi.</K> Po wysłaniu odpowiedzi uczestnik może do niej wrócić na tym samym urządzeniu i ją poprawić.
+      </>,
+      <>
+        <K>Wyniki.</K> Widok wyników to mapa cieplna - im ciemniejsze pole, tym więcej osób jest dostępnych w danym slocie.
+      </>,
+      <>
+        <K>Finalizacja.</K> Wybierz zwycięski termin, a aplikacja utworzy wydarzenie w Twoim kalendarzu oraz w kalendarzach uczestników, którzy mają konto w aplikacji.
       </>,
     ],
   },
@@ -454,19 +507,22 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-primary',
     listItems: [
       <>
-        <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską na całym świecie. Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
+        <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską w Poznaniu (dane PEKA) i Szczecinie (dane ZDiTM). Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
       </>,
       <>
         <K>Odjazdy GPS.</K> Sekcja <em>Najbliżej (GPS)</em> automatycznie wykrywa Twoją lokalizację i wyświetla przystanki w pobliżu z odległością w metrach.
       </>,
       <>
-        <K>Ulubione przystanki.</K> Moduł obsługuje przystanki w Poznaniu i Szczecinie. Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS.
+        <K>Ulubione przystanki.</K> Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS.
       </>,
       <>
         <K>Wyszukiwarka.</K> Wpisz nazwę przystanku - aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do ulubionych.
       </>,
       <>
         <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare - rozkładowe.
+      </>,
+      <>
+        <K>Pociągi PKP.</K> Na tej samej stronie dodasz pociąg do śledzenia - ręcznie lub importując bilet PDF, z którego dane odczytają się automatycznie. Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK.
       </>,
     ],
   },

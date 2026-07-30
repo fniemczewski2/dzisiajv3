@@ -33,11 +33,11 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   } = useReminders();
 
   const remindersToShow = showAll ? allReminders : visibleReminders;
-  const [form, setForm] = useState({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
+  const [form, setForm] = useState({ title: "", start_date: today, repeat_days: 1 });
 
   const handleAdd = async () => {
-      await addReminder(form.tytul, form.data_poczatkowa, form.powtarzanie);
-      setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
+      await addReminder(form.title, form.start_date, form.repeat_days);
+      setForm({ title: "", start_date: today, repeat_days: 1 });
       setShowForm(false);
   };
 
@@ -49,9 +49,9 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     }
   };
 
-  const handlePostpone = async (id: string, powtarzanie: number) => {
+  const handlePostpone = async (id: string, repeat_days: number) => {
     try {
-      await postponeReminder(id, powtarzanie);
+      await postponeReminder(id, repeat_days);
     } catch {
       return;
     }
@@ -66,7 +66,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
   };
 
   const handleClose = () => {
-    setForm({ tytul: "", data_poczatkowa: today, powtarzanie: 1 });
+    setForm({ title: "", start_date: today, repeat_days: 1 });
     setShowForm(false);
   }
 
@@ -74,7 +74,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
 
-    const startDate = new Date(reminder.data_poczatkowa);
+    const startDate = new Date(reminder.start_date);
     startDate.setHours(0, 0, 0, 0);
     const doneDate = reminder.done ? new Date(reminder.done) : null;
     if (doneDate) doneDate.setHours(0, 0, 0, 0);
@@ -82,7 +82,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     let nextDate: Date;
     if (doneDate) {
       nextDate = new Date(doneDate);
-      nextDate.setDate(nextDate.getDate() + reminder.powtarzanie);
+      nextDate.setDate(nextDate.getDate() + reminder.repeat_days);
     } else {
       nextDate = new Date(startDate);
     }
@@ -92,11 +92,11 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
     const localDateString = `${nextDate.getFullYear()}-${pad(nextDate.getMonth() + 1)}-${pad(nextDate.getDate())}`;
 
     const newTask = {
-      title: reminder.tytul,
+      title: reminder.title,
       for_user_id: userId,
       category: "cykliczne",
       priority: 1,
-      description: `Cykliczne (co ${reminder.powtarzanie} dni)`,
+      description: `Cykliczne (co ${reminder.repeat_days} dni)`,
       due_date: localDateString,
       status: "pending",
       user_id: userId,
@@ -142,15 +142,15 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
                 {remindersToShow.map((r) => (
                   <li key={r.id} className="flex justify-between items-center gap-3 card p-3 rounded-lg shadow-sm">
                     <div className="flex-1">
-                      <div className="font-medium text-text">{r.tytul}</div>
+                      <div className="font-medium text-text">{r.title}</div>
                       <div className="text-xs font-medium text-primary mt-0.5">
-                        Powtarza się co {r.powtarzanie} {r.powtarzanie === 1 ? "dzień" : "dni"}
+                        Powtarza się co {r.repeat_days} {r.repeat_days === 1 ? "dzień" : "dni"}
                       </div>
                     </div>
                     <div className="flex gap-1">
                       <IconActionButton onClick={() => handleAddTask(r)} title="Dodaj jako zadanie" Icon={ListPlus} variant="primary" disabled={loading} />
                       <IconActionButton onClick={() => handleComplete(r.id)} title="Zakończ zadanie" Icon={Check} variant="success" disabled={loading} />
-                      <IconActionButton onClick={() => handlePostpone(r.id, r.powtarzanie)} title="Odłóż na później" Icon={ChevronsRight} variant="warning" disabled={loading} />
+                      <IconActionButton onClick={() => handlePostpone(r.id, r.repeat_days)} title="Odłóż na później" Icon={ChevronsRight} variant="warning" disabled={loading} />
                       <IconActionButton onClick={() => handleDelete(r.id)} title="Usuń całkowicie" Icon={Trash2} variant="danger" disabled={loading} />
                     </div>
                   </li>
@@ -179,19 +179,19 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
               <div>
                 <label htmlFor="title" className="form-label">Tytuł zadania:</label>
                 <input id="title" type="text" placeholder="np. Wymień filtry do wody"
-                  className="input-field" value={form.tytul}
-                  onChange={(e) => setForm({ ...form, tytul: e.target.value })} />
+                  className="input-field" value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })} />
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label htmlFor="start_date" className="form-label">Data rozpoczęcia:</label>
-                  <input id="start_date" type="date" className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" value={form.data_poczatkowa}
-                    onChange={(e) => setForm({ ...form, data_poczatkowa: e.target.value })} />
+                  <input id="start_date" type="date" className="input-field h-min sm:h-[48px] w-full min-w-0 px-1 text-xs" value={form.start_date}
+                    onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
                 </div>
                 <div className="flex-1">
                   <label htmlFor="repeat" className="form-label">Co (dni):</label>
-                  <input id="repeat" type="number" min={1} max={365} className="input-field" value={form.powtarzanie}
-                    onChange={(e) => setForm({ ...form, powtarzanie: Number(e.target.value) })} />
+                  <input id="repeat" type="number" min={1} max={365} className="input-field" value={form.repeat_days}
+                    onChange={(e) => setForm({ ...form, repeat_days: Number(e.target.value) })} />
                 </div>
               </div>
               <FormButtons onClickSave={handleAdd} onClickClose={handleClose} loading={loading}/>

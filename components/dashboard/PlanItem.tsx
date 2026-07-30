@@ -1,7 +1,7 @@
 ﻿// components/dashboard/PlanItem.tsx
 
 import React from "react";
-import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Check } from "lucide-react";
+import { Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText } from "lucide-react";
 import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { formatTime } from "@/lib/dateUtils";
@@ -87,14 +87,14 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
       <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
         {quickLink && (
           <Link href={quickLink.path} title={quickLink.label}
-            className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-blue-100 dark:hover:bg-blue-900 text-textSecondary hover:text-primary transition-colors border">
+            className="flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg transition-colors border disabled:opacity-50 disabled:cursor-not-allowed bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border-transparent hover:border-blue-600 dark:hover:border-blue-400">
             {quickLink.icon}
           </Link>
         )}
 
         {item.type === "event" && (
           <Link href="/calendar" title="Pokaż w kalendarzu"
-            className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-blue-100 dark:hover:bg-blue-900 text-textSecondary hover:text-primary transition-colors border">
+            className="flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg transition-colors border disabled:opacity-50 disabled:cursor-not-allowed bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border-transparent hover:border-blue-600 dark:hover:border-blue-400">
             <Calendar className="w-4 h-4" />
           </Link>
         )}

@@ -28,7 +28,7 @@ export default function MeetingsPage() {
         keywords="ustalanie terminu, ankieta dostępności, spotkanie zespołu, planowanie spotkań"
       />
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-text">Terminy zespołowe</h2>
+        <h2 className="text-2xl font-bold text-text">Terminy</h2>
         {!showForm && <AddButton onClick={() => setShowForm(true)} />}
       </div>
 

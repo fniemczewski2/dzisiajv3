@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, isSameMonth, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Check, Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "lucide-react";
+import { Minus, Plus, ChevronDown, ChevronUp, RefreshCw, Loader2 } from "lucide-react";
 import type { Bill, BudgetCategory } from "@/types/bills";
 import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 

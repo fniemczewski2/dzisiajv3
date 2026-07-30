@@ -9,6 +9,7 @@ const eslintConfig = [
   ...nextTypescript,
   {
     files: ["**/*.ts", "**/*.tsx"],
+    ignores: ["supabase/functions/**"],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -49,7 +50,7 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": "error",
-      "no-console": "off", // logi w Edge Functions są celowe
+      "no-console": "off", 
     },
   },
   {

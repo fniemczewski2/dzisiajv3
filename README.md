@@ -38,9 +38,11 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 ### 🗓️ Organizacja
 - **Kalendarz** — wydarzenia z dwukierunkową synchronizacją Google Calendar i Outlook/Microsoft Graph
+- **Terminy zespołowe** — ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników
 - **Notatki**, **Sprawozdania** (agenda, uczestnicy, zadania → eksport PDF), **Przypomnienia** cykliczne
 - **Listy pakowania** — plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
 - **Osoby i relacje** — kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
+- **Pisma** — rejestr pism urzędowych z automatyczną sygnaturą (nr/mm/rrrr/KOD) i pilnowaniem ustawowych terminów odpowiedzi
 
 ### 💰 Finanse
 - **Rachunki** i **Budżet roczny** — kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
@@ -163,7 +165,7 @@ npm run test
 
 ## 🗄️ Baza danych
 
-PostgreSQL przez Supabase. Główne tabele: `tasks`, `events`, `notes`, `reports`, `reminders`, `day_schemas`, `bills`, `budgets`, `budget_categories`, `shopping_lists`, `recipes`, `places`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `connected_calendars`, `work_logs`, `user_trains`, `stops`, `push_subscriptions`, `settings`. Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych użytkowników, którym jawnie udostępniono dane).
+PostgreSQL przez Supabase. Główne tabele: `tasks`, `events`, `notes`, `letters`, `reports`, `reminders`, `meeting_polls` (z tabelami `meeting_poll_*` dla dat, odpowiedzi i dostępności), `day_schemas`, `bills`, `budgets`, `budget_categories`, `shopping_lists`, `recipes`, `places`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `connected_calendars`, `work_logs`, `user_trains`, `stops`, `push_subscriptions`, `notifications`, `settings`. Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych użytkowników, którym jawnie udostępniono dane).
 
 ## 📱 PWA
 

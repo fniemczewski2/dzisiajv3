@@ -1,7 +1,7 @@
 ﻿// pages/_app.tsx
 
 import { useEffect, useState } from "react";
-import App, { type AppContext, type AppProps } from "next/app";
+import {type AppProps } from "next/app";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";

@@ -374,9 +374,9 @@ create sequence if not exists public.notifications_id_seq;
 
 create table if not exists public.reminders (
   id integer not null default nextval('public.notifications_id_seq'),
-  tytul text,
-  data_poczatkowa date,
-  powtarzanie integer,
+  title text,
+  start_date date,
+  repeat_days integer,
   done text,
   user_id uuid default auth.uid(),
   primary key (id)

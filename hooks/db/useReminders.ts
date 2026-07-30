@@ -23,21 +23,21 @@ export function useReminders() {
 
   const crud = useCrudResource<Reminder, ReminderInsert>({
     table: "reminders",
-    order: { column: "data_poczatkowa", ascending: true },
+    order: { column: "start_date", ascending: true },
     applyServerRowOnEdit: true,
     messages: MESSAGES,
   });
 
   const addReminder = useCallback(
-    async (tytul: string, dataPoczatkowa: string, powtarzanie: number) =>
-      crud.add({ tytul, data_poczatkowa: dataPoczatkowa, powtarzanie, done: null }),
+    async (title: string, dataPoczatkowa: string, repeat_days: number) =>
+      crud.add({ title, start_date: dataPoczatkowa, repeat_days, done: null }),
     [crud]
   );
 
   const postponeReminder = useCallback(
-    async (id: string, powtarzanie: number) => {
+    async (id: string, repeat_days: number) => {
       const dt = getAppDateTime();
-      dt.setDate(dt.getDate() + 1 - powtarzanie);
+      dt.setDate(dt.getDate() + 1 - repeat_days);
       const done = dt.toISOString().slice(0, 10);
       await crud.patch(id, { done }, {
         successMessage: "Przełożono zadanie cykliczne",
@@ -66,10 +66,10 @@ export function useReminders() {
 
   const visibleReminders = useMemo(() => {
     return crud.items.filter((r) => {
-      if (r.data_poczatkowa > today) return false;
+      if (r.start_date > today) return false;
       if (!r.done) return true;
       const nextDue = new Date(r.done);
-      nextDue.setDate(nextDue.getDate() + r.powtarzanie);
+      nextDue.setDate(nextDue.getDate() + r.repeat_days);
       return today >= nextDue.toISOString().slice(0, 10);
     });
   }, [crud.items, today]);

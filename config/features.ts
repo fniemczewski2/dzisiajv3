@@ -25,6 +25,8 @@ import {
   Timer, 
   UsersRound,
   Calculator,
+  CalendarClock,
+  Gavel,
   Bus,
   Clock,
   User,
@@ -99,11 +101,19 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Kalendarz",
-        description: "Planuj wydarzenia z pełną dwukierunkową synchronizacją z Google Calendar.",
+        description: "Planuj wydarzenia z dwukierunkową synchronizacją z Google Calendar i Outlookiem (Microsoft 365).",
         icon: Calendar,
         category: "Organizacja",
         path: "/calendar",
         badge: "Popularne",
+      },
+      {
+        title: "Terminy Zespołowe",
+        description: "Ustal termin spotkania ankietą z siatką dostępności. Publiczny link działa bez konta, a finalizacja tworzy wydarzenia w kalendarzach.",
+        icon: CalendarClock,
+        category: "Organizacja",
+        path: "/meetings",
+        badge: "Nowe",
       },
       {
         title: "Notatki",
@@ -153,6 +163,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: User,
         category: "Organizacja",
         path: "/people",
+      },
+      {
+        title: "Pisma",
+        description: "Rejestr pism urzędowych z automatyczną sygnaturą (nr/mm/rrrr/KOD) i podpowiedzią ustawowego terminu odpowiedzi.",
+        icon: Gavel,
+        category: "Organizacja",
+        path: "/notes/letters",
+        badge: "Nowe",
       },
     ],
   },
@@ -233,7 +251,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Transport Miejski",
-        description: "Tablice odjazdów autobusów i tramwajów na żywo. Odczyt po GPS lub ulubione.",
+        description: "Tablice odjazdów autobusów i tramwajów na żywo (GPS lub ulubione) oraz śledzenie pociągów PKP z importem biletu.",
         icon: Bus,
         category: "Styl życia",
         path: "/transport",

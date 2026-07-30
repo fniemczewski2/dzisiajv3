@@ -57,7 +57,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     name: "Spotkania",
     items: [
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
-      { path: "/meetings", title: "Terminy zespołowe", icon: CalendarClock, label: "Terminy" },
+      { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy" },
       { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
       { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
     ]
@@ -92,9 +92,9 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
     name: "Osobiste",
     items: [
-      { path: "/profiles", title: "Wizytówka", icon: IdCard, label: "Wizytówka" },
+      { path: "/profiles", title: "Wizytówki", icon: IdCard, label: "Wizytówki" },
       { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
-      { path: "/streaks", title: "Cele", icon: Target, label: "Cele" },
+      { path: "/streaks", title: "Postępy", icon: Target, label: "Postępy" },
       { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma" },
     ]
   }

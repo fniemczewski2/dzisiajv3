@@ -3,8 +3,8 @@
 export interface Reminder {
   id: string;
   user_id: string;
-  tytul: string;
-  data_poczatkowa: string;
-  powtarzanie: number;
+  title: string;
+  start_date: string;
+  repeat_days: number;
   done: string | null;
 }

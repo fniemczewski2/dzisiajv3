@@ -31,14 +31,14 @@ Deno.serve(async (req) => {
     const processed = [];
 
     for (const r of reminders || []) {
-      if (!r.data_poczatkowa || !r.powtarzanie) continue;
+      if (!r.start_date || !r.repeat_days) continue;
 
-      const referenceDateStr = r.done ? r.done : r.data_poczatkowa;
+      const referenceDateStr = r.done ? r.done : r.start_date;
 
       const referenceDate = new Date(`${referenceDateStr}T00:00:00Z`);
       const nextExecutionDate = new Date(referenceDate);
 
-      nextExecutionDate.setUTCDate(referenceDate.getUTCDate() + r.powtarzanie);
+      nextExecutionDate.setUTCDate(referenceDate.getUTCDate() + r.repeat_days);
       const nextExecutionStr = nextExecutionDate.toISOString().split("T")[0];
 
       if (nextExecutionStr <= todayStr && r.done !== todayStr) {
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
         }
 
         const { error: insError } = await supabase.from("tasks").insert({
-          title: r.tytul,
+          title: r.title,
           due_date: todayStr,
           category: "cykliczne",
           priority: 1,
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
         if (insError) {
           console.error(`Błąd tworzenia zadania dla przypomnienia ${r.id}:`, insError);
         } else {
-          processed.push(r.tytul);
+          processed.push(r.title);
         }
       }
     }

@@ -56,7 +56,7 @@ export default function MeetingPollList({ refreshToken }: Readonly<MeetingPollLi
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2 justify-between pt-1">
                 <ShowResultsButton href={`/meetings/${poll.id}`} />
                 <DeleteButton onClick={() => void deletePoll(poll.id)} />
             </div>

@@ -55,14 +55,14 @@ export default function StreaksPage() {
   return (
     <>
     <Seo
-      title="Cele | Dzisiaj.Fun"
-      description="Zbuduj żelazną dyscyplinę, śledź swoje cele i przedłużaj swoje pasma sukcesów."
+      title="Postępy | Dzisiaj.Fun"
+      description="Zbuduj żelazną dyscyplinę, śledź i przedłużaj swoje pasma sukcesów."
       canonical="https://dzisiaj.fun/streaks"
-      keywords="nawyki, cele, pasma, streaks, dyscyplina"
+      keywords="nawyki, cele, postępy, postanowienia, pasma, streaks, dyscyplina"
     />
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
-            Cele
+            Postępy
           </h2>
           {!showForm && <AddButton onClick={() => setShowForm(true)} />}
         </div>
