@@ -1,4 +1,4 @@
-"use client";
+﻿// components/budget/BudgetCategoriesEditor.tsx
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
@@ -140,12 +140,12 @@ function formatAmount(cat: BudgetCategory, selectedMonth: number): string {
   const limits = cat.monthly_amounts || new Array(12).fill(0);
   
   if (!cat.is_monthly) {
-    if (limits[0] === 0) return "—";
+    if (limits[0] === 0) return "-";
     return `${Math.round(limits[0]).toLocaleString("pl-PL")} zł`;
   }
 
   const val = limits[selectedMonth] || 0;
-  if (val === 0) return "—";
+  if (val === 0) return "-";
   return `${Math.round(val).toLocaleString("pl-PL")} zł`;
 }
 

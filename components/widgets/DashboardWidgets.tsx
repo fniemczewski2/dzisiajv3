@@ -1,3 +1,5 @@
+﻿// components/widgets/DashboardWidgets.tsx
+
 import React from 'react';
 import TaskIcons from "./HabitIcons";
 import WaterTracker from "./WaterTracker";

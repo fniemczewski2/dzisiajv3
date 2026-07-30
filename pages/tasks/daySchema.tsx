@@ -1,4 +1,4 @@
-"use client";
+﻿// pages/tasks/daySchema.tsx
 
 import React, { useMemo, useState } from "react";
 import { format } from "date-fns";

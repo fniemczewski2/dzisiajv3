@@ -1,4 +1,5 @@
-// hooks/useMoods.ts
+﻿// hooks/db/useMoods.ts
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { MoodEntry } from "@/types/moods";

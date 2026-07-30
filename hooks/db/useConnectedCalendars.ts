@@ -1,3 +1,5 @@
+﻿// hooks/db/useConnectedCalendars.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';

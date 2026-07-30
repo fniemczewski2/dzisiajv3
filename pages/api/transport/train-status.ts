@@ -1,3 +1,5 @@
+﻿// pages/api/transport/train-status.ts
+
 import { getAppDateTime } from '@/lib/dateUtils';
 import { createServerSupabase } from '@/lib/supabase/server';
 import type { NextApiRequest, NextApiResponse } from 'next';

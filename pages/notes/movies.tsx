@@ -1,4 +1,5 @@
-// pages/movies.tsx
+﻿// pages/notes/movies.tsx
+
 import React from "react";
 import MovieWatchlist from "@/components/movies/MovieList";
 import { SkeletonList } from "@/components/ui/Skeleton";

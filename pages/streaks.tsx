@@ -1,4 +1,4 @@
-"use client";
+﻿// pages/streaks.tsx
 
 import { useState } from "react";
 import StreakCard from "@/components/streaks/StreakCard";

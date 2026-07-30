@@ -1,4 +1,4 @@
-// lib/sanitize.ts
+﻿// lib/sanitize.ts
 
 const SAFE_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
@@ -44,4 +44,25 @@ const UUID_REGEX =
 export function validateUuid(id: unknown): string | null {
   if (typeof id !== "string") return null;
   return UUID_REGEX.test(id) ? id : null;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+const MAX_EMAIL_LENGTH = 254;   // RFC 5321
+
+export function validateEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed || trimmed.length > MAX_EMAIL_LENGTH || !EMAIL_RE.test(trimmed)) return null;
+  return trimmed;
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const HHMM_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+export function validateSlot(value: unknown): { date: string; start_time: string } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { date, start_time } = value as Record<string, unknown>;
+  if (typeof date !== "string" || !ISO_DATE_RE.test(date)) return null;
+  if (typeof start_time !== "string" || !HHMM_RE.test(start_time)) return null;
+  return { date, start_time };
 }

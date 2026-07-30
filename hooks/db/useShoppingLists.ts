@@ -1,3 +1,5 @@
+﻿// hooks/db/useShoppingLists.ts
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingList } from "@/types/shopping";
 import { useAuth } from "@/providers/AuthProvider";

@@ -1,4 +1,4 @@
-"use client";
+﻿// components/notes/NoteForm.tsx
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import clsx from "clsx";

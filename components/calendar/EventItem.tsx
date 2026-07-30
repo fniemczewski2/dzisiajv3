@@ -1,3 +1,5 @@
+﻿// components/calendar/EventItem.tsx
+
 import React, { useState, useRef, useEffect } from "react";
 import { Clock, MapPin, User, Globe } from "lucide-react";
 import { Event } from "@/types/events";
@@ -68,9 +70,9 @@ export default function EventItem({
   const isSameDay = event.start_time.slice(0, 10) === event.end_time.slice(0, 10);
 
   const renderedTime = isSameDay ? (
-    <>{formatTime(event.start_time)} – {formatTime(event.end_time)}</>
+    <>{formatTime(event.start_time)} - {formatTime(event.end_time)}</>
   ) : (
-    <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
+    <>{formatTime(event.start_time, true)} - {formatTime(event.end_time, true)}</>
   );
 
   const fixedPlace = event?.place?.startsWith("https://") ? 

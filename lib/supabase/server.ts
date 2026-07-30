@@ -1,3 +1,5 @@
+﻿// lib/supabase/server.ts
+
 import { createServerClient, serializeCookieHeader, type CookieOptions } from '@supabase/ssr' 
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next'
 

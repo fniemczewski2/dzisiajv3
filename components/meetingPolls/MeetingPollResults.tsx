@@ -1,4 +1,4 @@
-"use client";
+﻿// components/meetingPolls/MeetingPollResults.tsx
 
 import React, { useEffect, useMemo, useState } from "react";
 import { CalendarCheck2, Trash2 } from "lucide-react";
@@ -284,8 +284,8 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       {selection && (
         <div className="form-card space-y-3">
           <p className="text-sm text-text">
-            <strong>{selection.date}</strong>, {times[selection.startIndex]}–
-            {addMinutesToTime(times[selection.endIndex], data.poll.slot_duration_minutes)} — dostępnych:{" "}
+            <strong>{selection.date}</strong>, {times[selection.startIndex]}-
+            {addMinutesToTime(times[selection.endIndex], data.poll.slot_duration_minutes)} - dostępnych:{" "}
             <strong>{selectionAvailableCount}</strong> / {totalResponses}
           </p>
 
@@ -360,8 +360,8 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             {pendingSlots.map((s, i) => (
               <li key={`${s.date}-${s.start_time}`} className="flex items-center justify-between text-sm gap-2">
                 <span className="min-w-0">
-                  <span className="font-semibold text-text">{s.title}</span> — {s.date}, {s.start_time}–{s.end_time}
-                  <span className="text-textMuted"> · {calendarLabel(s.calendarChoice)}</span>
+                  <span className="font-semibold text-text">{s.title}</span> - {s.date}, {s.start_time}-{s.end_time}
+                  <span className="text-textMuted"> • {calendarLabel(s.calendarChoice)}</span>
                 </span>
                 <IconActionButton onClick={() => removePending(i)} Icon={Trash2} title="Usuń z listy" variant="danger" />
               </li>
@@ -383,7 +383,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
           <ul className="text-sm space-y-1">
             {finalizedResults.map((r) => (
               <li key={`${r.date}-${r.start_time}`}>
-                {r.date}, {r.start_time}–{r.end_time} — zaproszono {r.invitedParticipants} zalogowanych uczestników.
+                {r.date}, {r.start_time}-{r.end_time} - zaproszono {r.invitedParticipants} zalogowanych uczestników.
               </li>
             ))}
           </ul>

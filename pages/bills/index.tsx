@@ -1,4 +1,4 @@
-// pages/bills/index.tsx
+﻿// pages/bills/index.tsx
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";

@@ -1,3 +1,5 @@
+﻿// components/settings/SettingsForm.tsx
+
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
 import ThemeToggle from "./ThemeButton";
@@ -10,7 +12,7 @@ const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
   { id: "m2", label: "Dobrze", color: "#3b82f6" },    
   { id: "m3", label: "Neutralnie", color: "#eab308" },
-  { id: "m4", label: "Źle", color: "#f97316" },       
+  { id: "m4", label: "Ĺąle", color: "#f97316" },       
   { id: "m5", label: "Okropnie", color: "#ef4444" },  
 ];
 
@@ -215,7 +217,7 @@ export default function SettingsForm({
             >
               <option value="priority">Priorytet</option>
               <option value="due_date">Data wykonania</option>
-              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="alphabetical">Alfabetycznie</option>
               <option value="due_date_alphabetical">Data i alfabetycznie</option>
             </select>
           </div>
@@ -229,7 +231,7 @@ export default function SettingsForm({
               className="input-field"
             >
               <option value="updated_desc">Data aktualizacji</option>
-              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="alphabetical">Alfabetycznie</option>
             </select>
           </div>
 
@@ -242,7 +244,7 @@ export default function SettingsForm({
               className="input-field"
             >
               <option value="updated_desc">Data aktualizacji</option>
-              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="alphabetical">AlfabetycznieZ</option>
             </select>
           </div>
 
@@ -255,7 +257,7 @@ export default function SettingsForm({
               className="input-field"
             >
               <option value="updated_desc">Data aktualizacji</option>
-              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="alphabetical">Alfabetycznie</option>
               <option value="rating">Wg oceny</option>
             </select>
           </div>
@@ -269,7 +271,7 @@ export default function SettingsForm({
               className="input-field"
             >
               <option value="category">Kategorie</option>
-              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="alphabetical">Alfabetycznie</option>
               <option value="created_desc">Data dodania</option>
             </select>
           </div>
@@ -282,7 +284,7 @@ export default function SettingsForm({
               onChange={(e) => updateLocalField("sort_places", e.target.value)}
               className="input-field"
             >
-              <option value="alphabetical">Alfabetycznie A→Z</option>
+              <option value="alphabetical">Alfabetycznie</option>
               <option value="distance">Odległość (najbliższe)</option>
             </select>
           </div>
@@ -294,8 +296,8 @@ export default function SettingsForm({
               onChange={(e) => updateLocalField("sort_people", e.target.value)}
               className="input-field"
             >
-              <option value="alphabetical">Alfabetycznie A→Z</option>
-              <option value="priority">Priorytet 0→5</option>
+              <option value="alphabetical">Alfabetycznie<option>
+              <option value="priority">Priorytet</option>
             </select>
           </div>
           <div>

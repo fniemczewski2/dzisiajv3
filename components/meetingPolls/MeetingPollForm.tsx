@@ -1,4 +1,4 @@
-"use client";
+﻿// components/meetingPolls/MeetingPollForm.tsx
 
 import React, { useState } from "react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
@@ -32,7 +32,11 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
 
   const addDate = () => {
     if (!dateToAdd) return;
-    setDates((prev) => (prev.includes(dateToAdd) ? prev : [...prev, dateToAdd].sort()));
+    setDates((prev) => 
+      prev.includes(dateToAdd) 
+        ? prev 
+        : [...prev, dateToAdd].sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    );
   };
 
   const removeDate = (date: string) => {

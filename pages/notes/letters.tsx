@@ -1,3 +1,5 @@
+﻿// pages/notes/letters.tsx
+
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
 import { SkeletonList } from "@/components/ui/Skeleton";
@@ -18,7 +20,7 @@ export default function LettersPage() {
     <>
       <Seo
         title="Pisma urzędowe | Dzisiaj.Fun"
-        description="Śledź wnioski UDIP, skargi, wykroczenia i inną korespondencję urzędową wraz z terminami odpowiedzi i załącznikami."
+        description="Ĺšledź wnioski UDIP, skargi, wykroczenia i inną korespondencję urzędową wraz z terminami odpowiedzi i załącznikami."
         canonical="https://dzisiaj.fun/notes/letters"
         keywords="UDIP, wniosek, skarga, wykroczenie, pismo urzędowe, korespondencja"
       />

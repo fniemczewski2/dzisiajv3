@@ -1,4 +1,4 @@
-// hooks/db/useCrudResource.ts
+﻿// hooks/db/useCrudResource.ts
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";

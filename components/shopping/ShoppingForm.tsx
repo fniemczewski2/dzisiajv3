@@ -1,4 +1,4 @@
-"use client";
+﻿// components/shopping/ShoppingForm.tsx
 
 import { SyntheticEvent, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";

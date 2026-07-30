@@ -1,3 +1,5 @@
+﻿// types/profiles.ts
+
 export interface PhoneItem { type: string; number: string; }
 export interface EmailItem { type: string; email: string; }
 export interface AddressItem { type: string; address: string; }

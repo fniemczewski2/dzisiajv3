@@ -1,4 +1,5 @@
-// components/calendar/BirthdayIndicator.tsx
+﻿// components/calendar/BirthdayIndicator.tsx
+
 import { useMemo } from "react";
 import { useEvents, useVirtualBirthdayEvents } from "@/hooks/db/useEvents";
 import { format } from "date-fns";
@@ -86,7 +87,7 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
         >
           {getEventIcon(event.title, event.description)}
           <span className="truncate">
-             {event.title.replace(/🎂 |🎉 /g, '')}
+             {event.title.replace(/đźŽ‚ |đźŽ‰ /g, '')}
           </span>
         </span>
       ))}

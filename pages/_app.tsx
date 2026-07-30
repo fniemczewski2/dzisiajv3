@@ -1,5 +1,6 @@
-// pages/_app.tsx
-import { useEffect } from "react";
+﻿// pages/_app.tsx
+
+import { useEffect, useState } from "react";
 import App, { type AppContext, type AppProps } from "next/app";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/providers/AuthProvider";
@@ -16,15 +17,13 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-interface MyAppProps extends AppProps {
-  nonce?: string;
-}
-
-export default function MyApp({ Component, pageProps, nonce }: Readonly<MyAppProps>) {
+export default function MyApp({ Component, pageProps}: Readonly<AppProps>) {
+  const [nonce, setNonce] = useState<string | undefined>();
+  
   useEffect(() => {
+    setNonce(document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]')?.content);
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
+      navigator.serviceWorker.register("/sw.js", { scope: "/" })
         .catch((error) => console.warn("[SW] Rejestracja nie powiodła się:", error));
     }
   }, []);
@@ -46,9 +45,3 @@ export default function MyApp({ Component, pageProps, nonce }: Readonly<MyAppPro
     </ThemeProvider>
   );
 }
-
-MyApp.getInitialProps = async (appContext: AppContext) => {
-  const appProps = await App.getInitialProps(appContext);
-  const nonce = appContext.ctx.res?.getHeader("x-nonce") as string | undefined;
-  return { ...appProps, nonce };
-};

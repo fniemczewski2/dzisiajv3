@@ -1,3 +1,5 @@
+﻿// lib/pdfGenerator.ts
+
 import { Report } from "@/types/reports";
 
 export const generateReportPDF = async (report: Report) => {

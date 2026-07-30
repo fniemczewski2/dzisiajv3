@@ -1,3 +1,5 @@
+﻿// __tests__/components/CommonButtons.test.tsx
+
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

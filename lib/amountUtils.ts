@@ -1,3 +1,5 @@
+﻿// lib/amountUtils.ts
+
 export function isValidAmountInput(raw: string): boolean {
   return /^\d*[.,]?\d*$/.test(raw);
 }

@@ -1,4 +1,4 @@
-// lib/server/calendarTime.ts
+﻿// lib/server/calendarTime.ts
 
 import type { GoogleEventDateTime } from "@/types/googleCalendar";
 

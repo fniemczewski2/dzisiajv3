@@ -1,4 +1,5 @@
-// hooks/useBills.ts
+﻿// hooks/db/useBills.ts
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { SupabaseClient } from "@supabase/supabase-js";

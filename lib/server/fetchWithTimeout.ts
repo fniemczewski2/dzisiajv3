@@ -1,3 +1,5 @@
+﻿// lib/server/fetchWithTimeout.ts
+
 const DEFAULT_TIMEOUT_MS = 15_000;
 
 export async function fetchWithTimeout(

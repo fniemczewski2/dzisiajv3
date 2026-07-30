@@ -1,3 +1,5 @@
+﻿// lib/dateUtils.ts
+
 import { Event } from "@/types/events";
 
 export const formatTime = (timestamp: string, includeDate = false): string => {

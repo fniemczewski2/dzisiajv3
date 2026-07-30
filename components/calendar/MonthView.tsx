@@ -1,4 +1,4 @@
-// components/calendar/MonthView.tsx
+﻿// components/calendar/MonthView.tsx
 
 import React, { useMemo, memo } from "react";
 import { Event, PlacedEvent } from "@/types/events";

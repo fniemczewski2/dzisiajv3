@@ -1,3 +1,5 @@
+﻿// components/tasks/TimeContextBadge.tsx
+
 import { getTimeContext } from '@/lib/timeContext';
 
 interface TimeContextBadgeProps {

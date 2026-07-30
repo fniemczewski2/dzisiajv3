@@ -1,3 +1,5 @@
+﻿// pages/guide.tsx
+
 import React from 'react';
 import Seo from '@/components/ui/SEO';
 import { BookOpen } from 'lucide-react';

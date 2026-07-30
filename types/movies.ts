@@ -1,3 +1,5 @@
+﻿// types/movies.ts
+
 
 export interface Movie {
   id: string;

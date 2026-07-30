@@ -1,3 +1,5 @@
+﻿// __tests__/pages/api/vcard.test.ts
+
 import { describe, it, expect } from "vitest";
 import { escVCardValue, sanitizeTypeToken, safeFileName } from "@/pages/api/vcard";
 
@@ -38,6 +40,6 @@ describe("safeFileName", () => {
   });
 
   it("keeps Polish diacritics, which are valid in filenames", () => {
-    expect(safeFileName("Świątecka")).toBe("Świątecka");
+    expect(safeFileName("Ĺšwiątecka")).toBe("Ĺšwiątecka");
   });
 });

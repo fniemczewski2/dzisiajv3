@@ -1,5 +1,7 @@
+﻿// hooks/db/useTasks.ts
+
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Task } from "@/types/tasks";
+import { Task, TASK_COLUMNS } from "@/types/tasks";
 import { useSettings } from "./useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
@@ -92,7 +94,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     setFetching(true);
     try {
       const { data, error: queryError } = await withRetry(async () => {
-        let query = supabase.from("tasks").select("*").or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
+        let query = supabase.from("tasks").select(TASK_COLUMNS).or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
         if (dateFrom) query = query.gte("due_date", dateFrom);
         if (dateTo) query = query.lte("due_date", dateTo);
         if (!settings.show_completed) query = query.neq("status", "done");

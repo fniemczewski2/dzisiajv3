@@ -1,4 +1,4 @@
-"use client";
+﻿// components/dashboard/DraggingItem.tsx
 
 import React from "react";
 import { Calendar, ListTodo } from "lucide-react";

@@ -1,4 +1,4 @@
-// components/ui/Skeleton.tsx
+﻿// components/ui/Skeleton.tsx
 
 import React, { useId, useMemo } from "react";
 

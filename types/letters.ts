@@ -1,4 +1,4 @@
-// types/letters.ts
+﻿// types/letters.ts
 
 export const LETTER_CATEGORIES = [
   "UDIP",
@@ -13,7 +13,7 @@ export const LETTER_CATEGORIES = [
 export type LetterCategory = (typeof LETTER_CATEGORIES)[number];
 
 /** Stałe kody kategorii użyte w sygnaturze (nr/mm/rrrr/KOD). "Inne" nie ma
- * stałego kodu — użytkownik podaje własny (2-3 znaki) w formularzu. */
+ * stałego kodu - użytkownik podaje własny (2-3 znaki) w formularzu. */
 export const CATEGORY_CODE_MAP: Record<Exclude<LetterCategory, "Inne">, string> = {
   UDIP: "U",
   Wniosek: "A",
@@ -24,7 +24,7 @@ export const CATEGORY_CODE_MAP: Record<Exclude<LetterCategory, "Inne">, string> 
 };
 
 /** Liczba dni do wyliczenia domyślnej response_date = issue_date + N.
- * Tylko sugestia w UI — pole zostaje edytowalne. "Inne" nie ma reguły. */
+ * Tylko sugestia w UI - pole zostaje edytowalne. "Inne" nie ma reguły. */
 export const RESPONSE_DAYS_MAP: Record<Exclude<LetterCategory, "Inne">, number> = {
   UDIP: 14,
   Wniosek: 31,
@@ -80,7 +80,7 @@ export type LetterInsert = {
 };
 
 /** Pola edytowalne po utworzeniu. Celowo BEZ category/category_code/signature/
- * sequence_* — zmiana kategorii po fakcie unieważniłaby już przyznaną
+ * sequence_* - zmiana kategorii po fakcie unieważniłaby już przyznaną
  * sygnaturę i numerację, więc nie jest wspierana w tym module. */
 export type LetterUpdate = Partial<{
   issue_date: string;

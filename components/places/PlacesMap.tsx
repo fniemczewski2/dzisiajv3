@@ -1,4 +1,5 @@
-// components/places/PlacesMap.tsx
+﻿// components/places/PlacesMap.tsx
+
 import "leaflet/dist/leaflet.css";
 import React, { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
@@ -158,7 +159,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
       {!mapInstance && (
         <div className="absolute inset-0 card flex justify-center items-center rounded-none border-none shadow-none">
           <div className="text-textMuted font-medium animate-pulse">
-            Ładowanie mapy...
+            Ĺadowanie mapy...
           </div>
         </div>
       )}

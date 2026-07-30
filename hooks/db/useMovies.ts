@@ -1,4 +1,4 @@
-// hooks/db/useMovies.ts
+﻿// hooks/db/useMovies.ts
 
 import { useCallback, useMemo } from "react";
 import type { Movie, MovieInsert } from "@/types/movies";

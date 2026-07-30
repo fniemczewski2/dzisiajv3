@@ -1,3 +1,5 @@
+﻿// supabase/functions/_shared/auth.ts
+
 import { timingSafeEqual } from "https://deno.land/std@0.168.0/crypto/timing_safe_equal.ts";
 
 export function safeEqual(a: string, b: string): boolean {

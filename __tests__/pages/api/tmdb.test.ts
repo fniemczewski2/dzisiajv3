@@ -1,3 +1,5 @@
+﻿// __tests__/pages/api/tmdb.test.ts
+
 import { describe, it, expect } from "vitest";
 import { isAllowedPath } from "@/pages/api/tmdb";
 

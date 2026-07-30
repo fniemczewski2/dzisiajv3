@@ -1,3 +1,5 @@
+﻿// types/schemas.ts
+
 export interface ScheduleItem {
   id?: string;
   time: string;

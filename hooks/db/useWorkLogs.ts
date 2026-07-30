@@ -1,3 +1,5 @@
+﻿// hooks/db/useWorkLogs.ts
+
 import { useCallback } from 'react';
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useCrudResource } from './useCrudResource';

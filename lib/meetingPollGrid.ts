@@ -1,4 +1,4 @@
-// lib/meetingPollGrid.ts
+﻿// lib/meetingPollGrid.ts
 
 export function normalizeTime(time: string): string {
   return time.slice(0, 5);

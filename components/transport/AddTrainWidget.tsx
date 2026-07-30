@@ -1,4 +1,4 @@
-"use client";
+﻿// components/transport/AddTrainWidget.tsx
 
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';

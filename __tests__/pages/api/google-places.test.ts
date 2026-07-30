@@ -1,3 +1,5 @@
+﻿// __tests__/pages/api/google-places.test.ts
+
 import { describe, it, expect } from "vitest";
 import { parseLatLng, parseSingleString } from "@/pages/api/google-places";
 

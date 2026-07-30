@@ -1,4 +1,5 @@
-// components/Navbar.tsx
+﻿// components/Navbar.tsx
+
 import {
   Calendar,
   Coins,

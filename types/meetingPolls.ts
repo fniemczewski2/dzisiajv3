@@ -1,4 +1,4 @@
-// types/meetingPolls.ts
+﻿// types/meetingPolls.ts
 
 export type MeetingPollStatus = "open" | "closed";
 export const MEETING_POLL_SLOT_DURATIONS = [15, 30, 60] as const;
@@ -45,7 +45,7 @@ export interface PublicMeetingPoll {
 
 export interface MeetingPollSlot {
   date: string;
-  /** "HH:MM" — początek slotu o długości slot_duration_minutes. */
+  /** "HH:MM" - początek slotu o długości slot_duration_minutes. */
   start_time: string;
 }
 

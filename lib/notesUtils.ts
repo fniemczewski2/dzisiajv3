@@ -1,4 +1,5 @@
-// lib/notesUtils.ts
+﻿// lib/notesUtils.ts
+
 import { Note } from "@/types/notes";
 export function sortNotes(notes: Note[]): Note[] {
   const pinned = notes.filter((n) => n.pinned && !n.archived);

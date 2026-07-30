@@ -1,4 +1,5 @@
-"use client";
+﻿// providers/ToastProvider.tsx
+
 import React, { createContext, useCallback, useContext, useEffect, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, ConfirmToast, ConfirmOptions, BatchLabel } from "@/types/toasts";
@@ -188,7 +189,7 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
       success: (m: string) => { addNotification(m, "success"); },
       error:   (m: string) => { addNotification(m, "error"); },
       info:    (m: string) => { addNotification(m, "info"); },
-      loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
+      loading: (m: string = "Ĺadowanie...") => addNotification(m, "loading", false),
       dismiss: (id: string) => remove(id),
       confirm,
       batch,

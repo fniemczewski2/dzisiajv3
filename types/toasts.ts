@@ -1,3 +1,5 @@
+﻿// types/toasts.ts
+
 export type ToastVariant = "success" | "error" | "info" | "loading";
 
 export interface NotificationToast {

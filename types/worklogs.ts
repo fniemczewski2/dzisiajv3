@@ -1,3 +1,5 @@
+﻿// types/worklogs.ts
+
 export interface WorkLog {
   id: string;
   user_id: string;

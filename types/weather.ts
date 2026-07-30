@@ -1,3 +1,5 @@
+﻿// types/weather.ts
+
 export interface WeatherData {
   current_weather: {
     temperature: number;

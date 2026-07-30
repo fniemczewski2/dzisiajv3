@@ -1,4 +1,4 @@
-// public/sw.js
+﻿// public/sw.js
 
 const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;

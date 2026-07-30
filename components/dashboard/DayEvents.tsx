@@ -1,3 +1,5 @@
+﻿// components/dashboard/DayEvents.tsx
+
 import React from "react";
 import { Event } from "@/types/events";
 import NoResultsState from "../ui/NoResultsState";

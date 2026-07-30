@@ -1,4 +1,4 @@
-"use client";
+﻿// components/transport/StationBoard.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, RefreshCw, Plus, AlertCircle } from 'lucide-react';

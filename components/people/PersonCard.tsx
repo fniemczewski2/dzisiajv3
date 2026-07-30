@@ -1,4 +1,5 @@
-// components/people/PersonCard.tsx
+﻿// components/people/PersonCard.tsx
+
 import React, { useState } from 'react';
 import { Phone, Mail, CheckCircle2, Clock, ChevronDown, ChevronUp, Cake, Gift } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react'; 

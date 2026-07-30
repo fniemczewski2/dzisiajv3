@@ -1,3 +1,5 @@
+﻿// types/connectedCalendars.ts
+
 export interface ConnectedCalendarRow {
   id: string;
   user_id: string;

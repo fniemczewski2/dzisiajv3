@@ -1,4 +1,4 @@
-"use client";
+﻿// components/daySchema/DaySchemaForm.tsx
 
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";

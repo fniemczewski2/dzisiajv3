@@ -1,3 +1,5 @@
+﻿// pages/api/outlook-calendar/callback.ts
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { handleOAuthCallback } from "@/lib/server/oauthCallback";
 

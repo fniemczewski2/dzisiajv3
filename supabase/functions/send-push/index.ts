@@ -1,3 +1,5 @@
+﻿// supabase/functions/send-push/index.ts
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import webpush from 'npm:web-push@3.6.6'
 import { safeEqual, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'

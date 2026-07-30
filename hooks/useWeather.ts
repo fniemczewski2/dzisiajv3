@@ -1,3 +1,5 @@
+﻿// hooks/useWeather.ts
+
 import { useState, useEffect } from 'react';
 import { WeatherData, WeatherState, AirQualityData } from '@/types/weather';
 

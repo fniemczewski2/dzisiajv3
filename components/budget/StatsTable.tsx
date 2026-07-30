@@ -1,3 +1,5 @@
+﻿// components/budget/StatsTable.tsx
+
 import React from "react";
 
 interface BudgetStatsTableProps {

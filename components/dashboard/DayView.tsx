@@ -1,4 +1,5 @@
-// components/dashboard/DayView.tsx
+﻿// components/dashboard/DayView.tsx
+
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";

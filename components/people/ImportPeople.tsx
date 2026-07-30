@@ -1,4 +1,5 @@
-// components/people/ImportPeople.tsx
+﻿// components/people/ImportPeople.tsx
+
 import React, { useRef } from 'react';
 import { Upload } from 'lucide-react';
 import { PersonInsert } from '@/types/people';

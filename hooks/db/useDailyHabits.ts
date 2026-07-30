@@ -1,3 +1,5 @@
+﻿// hooks/db/useDailyHabits.ts
+
 import { useState, useEffect, useCallback } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { DailyHabitsRow, HabitKey } from "@/types/habits";

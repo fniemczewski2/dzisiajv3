@@ -1,3 +1,5 @@
+﻿// config/guideData.tsx
+
 import React from 'react';
 import {
   Activity,
@@ -53,7 +55,7 @@ export const guideSections: GuideSection[] = [
         <K>Centrum dowodzenia.</K> Widok główny zbiera w jednym miejscu wszystko, co istotne na dziś: plan dnia, listę zadań, wydarzenia z kalendarza, widgety nawyków, wody i nastroju oraz kamienie milowe z celów.
       </>,
       <>
-        <K>Oś czasu 06:00–23:00.</K> Lewa kolumna to interaktywny harmonogram dnia podzielony na godziny. Wyświetla zadania zaplanowane na konkretną godzinę, wpisy z aktywnego schematu dnia i wydarzenia z kalendarza.
+        <K>Oś czasu 06:00-23:00.</K> Lewa kolumna to interaktywny harmonogram dnia podzielony na godziny. Wyświetla zadania zaplanowane na konkretną godzinę, wpisy z aktywnego schematu dnia i wydarzenia z kalendarza.
       </>,
       <>
         <K>Przeciągnij i upuść.</K> Zadania z listy po prawej możesz przeciągnąć na dowolną godzinę na osi czasu. Aplikacja zapamięta ten czas. Już umieszczone elementy możesz przesuwać między slotami. 
@@ -62,7 +64,7 @@ export const guideSections: GuideSection[] = [
         <K>Widgety na górze strony.</K> Tuż nad główną treścią widoczne są: ikony nawyków, pasek wody, tracker nastroju i pole dziennych wydatków. Możesz je aktualizować bezpośrednio z kokpitu, bez przechodzenia do innej sekcji.
       </>,
       <>
-        <K>Inteligentne skróty.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się ikonka skrótu:<ul><li><em>trening</em> → Trening,</li><li><em>zakupy</em> → Listy zakupów,</li><li> <em>spotkanie</em> → Sprawozdania,</li><li> <em>film</em> → Filmy.</li></ul>
+        <K>Inteligentne skróty.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się ikonka skrótu:<ul><li> <em>trening </em>- Trening,</li><li> <em>zakupy </em>- Listy zakupów,</li><li> <em>spotkanie </em>- Sprawozdania,</li><li> <em>film </em>- Filmy.</li></ul>
       </>,
       <>
         <K>Licznik ukończenia.</K> W nagłówku sekcji zadań widoczny jest wskaźnik <em>wykonane/wszystkie</em> dla bieżącego dnia, np. 3/7.
@@ -158,7 +160,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-green-500',
     listItems: [
       <>
-        <K>Priorytety 1–5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz sortować zadania według priorytetu, daty lub alfabetycznie - wybierz w Ustawieniach.
+        <K>Priorytety 1-5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz sortować zadania według priorytetu, daty lub alfabetycznie - wybierz w Ustawieniach.
       </>,
       <>
         <K>Filtry czasowe.</K> Pasek filtrów nad listą pozwala wyświetlić zadania z: wczoraj, dzisiaj, jutra, pojutrze lub wszystkie naraz. 
@@ -320,7 +322,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-emerald-500',
     listItems: [
       <>
-        <K>Wydatki i przychody.</K> Każdy wpis może być wydatkiem (–) lub przychodem (+). Przychody to np. wynagrodzenie, zwroty, wpłaty od innych. Wydatki to stałe opłaty, faktury i zaplanowane zakupy.
+        <K>Wydatki i przychody.</K> Każdy wpis może być wydatkiem (-) lub przychodem (+). Przychody to np. wynagrodzenie, zwroty, wpłaty od innych. Wydatki to stałe opłaty, faktury i zaplanowane zakupy.
       </>,
       <>
         <K>Oznaczanie jako zapłacone.</K> Wydatki mają przycisk <em>Opłać</em>. Po kliknięciu wpis znika z głównej listy (jest schowany, nie usunięty), dzięki czemu lista zawiera wyłącznie nieuregulowane pozycje.
@@ -596,7 +598,7 @@ export const guideSections: GuideSection[] = [
         <K>Baza kontaktów.</K> Imię, nazwisko, relacja (np. Mama, Kolega), dowolna liczba telefonów i adresów e-mail, data urodzin i imienin oraz notatki.
       </>,
       <>
-        <K>Priorytet przypominania.</K> Każdej osobie przypisujesz priorytet 0–5, który decyduje, jak często aplikacja przypomni Ci o kontakcie: 1 - co 2 tygodnie, 2 - raz w miesiącu, 3 - co ok. 2 miesiące, 4 - raz w roku. Priorytety 0 i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
+        <K>Priorytet przypominania.</K> Każdej osobie przypisujesz priorytet 0-5, który decyduje, jak często aplikacja przypomni Ci o kontakcie: 1 - co 2 tygodnie, 2 - raz w miesiącu, 3 - co ok. 2 miesiące, 4 - raz w roku. Priorytety 0 i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
       </>,
       <>
         <K>Zaloguj kontakt.</K> Przycisk przy karcie osoby zapisuje bieżącą datę jako <em>ostatni kontakt</em> i odlicza od niej termin kolejnego przypomnienia.
@@ -644,7 +646,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-gray-500',
     listItems: [
       <>
-        <K>Instalacja jako aplikacja (PWA).</K> Kliknij przycisk <em>Zainstaluj</em> w ustawieniach (pojawia się gdy przeglądarka obsługuje PWA). Na iOS: Safari → <em>Udostępnij</em> → <em>Dodaj do ekranu głównego</em>.
+        <K>Instalacja jako aplikacja (PWA).</K> Kliknij przycisk <em>Zainstaluj</em> w ustawieniach (pojawia się gdy przeglądarka obsługuje PWA). Na iOS: Safari <em>Udostępnij</em> <em>Dodaj do ekranu głównego</em>.
       </>,
       <>
         <K>Tryb ciemny i jasny.</K> Przełącznik w prawym górnym rogu formularza ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.

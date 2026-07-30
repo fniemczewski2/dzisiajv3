@@ -1,4 +1,5 @@
-"use client";
+﻿// components/bills/BillListGrouped.tsx
+
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, isSameMonth, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -7,7 +8,7 @@ import type { Bill, BudgetCategory } from "@/types/bills";
 import { useBills } from "@/hooks/db/useBills";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories"; 
 import { useSettings } from "@/hooks/db/useSettings";
-import { DeleteButton, EditButton, ShareButton, FormButtons } from "../ui/CommonButtons";
+import { DeleteButton, EditButton, ShareButton, FormButtons, ConfirmButton } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import { isValidAmountInput, parseAmountInput } from "@/lib/amountUtils";
 
@@ -373,15 +374,9 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
         </div>
         <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t border-gray-100 dark:border-gray-800 sm:border-0">
           {!b.done && !b.is_income && (
-            <button
+            <ConfirmButton
               onClick={() => handleMarkDone(b)}
-              title="Oznacz jako zapłacone"
-              type='button'
-              className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
-            >
-              <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Opłać</span>
-            </button>
+              label="Opłać"/>
           )}
           <ShareButton onClick={() => handleShare(b)} />
           <EditButton onClick={() => startEditing(b)} />

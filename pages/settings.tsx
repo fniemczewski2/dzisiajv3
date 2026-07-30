@@ -1,4 +1,5 @@
-// pages/settings.tsx
+﻿// pages/settings.tsx
+
 import React from "react";
 import InstallButton from "@/components/settings/InstallButton";
 import { SkeletonSettings } from "@/components/ui/Skeleton";

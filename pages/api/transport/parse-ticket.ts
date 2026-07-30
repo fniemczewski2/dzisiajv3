@@ -1,3 +1,5 @@
+﻿// pages/api/transport/parse-ticket.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'node:fs';
@@ -22,7 +24,7 @@ const ABBREVIATIONS: Record<string, { m: string, f: string, n: string }> = {
   'płn.': { m: 'Północny', f: 'Północna', n: 'Północne' },
   'płd.': { m: 'Południowy', f: 'Południowa', n: 'Południowe' },
   'wlkp.': { m: 'Wielkopolski', f: 'Wielkopolska', n: 'Wielkopolskie' },
-  'śl.': { m: 'Śląski', f: 'Śląska', n: 'Śląskie' },
+  'śl.': { m: 'Ĺšląski', f: 'Ĺšląska', n: 'Ĺšląskie' },
   'maz.': { m: 'Mazowiecki', f: 'Mazowiecka', n: 'Mazowieckie' },
   'kuj.': { m: 'Kujawski', f: 'Kujawska', n: 'Kujawskie' }
 };

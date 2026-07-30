@@ -1,4 +1,5 @@
-// pages/api/tmdb.ts
+﻿// pages/api/tmdb.ts
+
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 

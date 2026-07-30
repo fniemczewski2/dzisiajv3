@@ -1,4 +1,4 @@
-"use client";
+﻿// components/budget/BankCSV.tsx
 
 import React, { useState, useRef } from "react";
 import { Upload, AlertCircle, CheckCircle2, FileText } from "lucide-react";

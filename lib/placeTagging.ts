@@ -1,4 +1,5 @@
-// lib/placeTagging.ts
+﻿// lib/placeTagging.ts
+
 import type { GooglePlaceDetailsResult } from "@/types/googlePlaces";
 
 export type GooglePlaceData = GooglePlaceDetailsResult;

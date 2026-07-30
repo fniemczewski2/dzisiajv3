@@ -1,3 +1,5 @@
+﻿// components/dashboard/DayHeader.tsx
+
 import { Calendar, ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
 import { AddSpecificButton } from "../ui/CommonButtons";
 import { DashboardWidgets } from "../widgets/DashboardWidgets";

@@ -1,4 +1,4 @@
-"use client";
+﻿// components/dashboard/PlanItem.tsx
 
 import React from "react";
 import { X, Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Check } from "lucide-react";
@@ -6,6 +6,7 @@ import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { formatTime } from "@/lib/dateUtils";
 import { PlanItemData } from "@/types/schemas";
+import { ConfirmButton, DeleteButton } from "../ui/CommonButtons";
 
 interface PlanItemProps {
   item: PlanItemData;
@@ -45,9 +46,9 @@ const getTimes = (e: PlanItemData["data"]) => {
       const isSameDay = e.start_time.slice(0, 10) === e.end_time.slice(0, 10);
     
       const renderedTime = isSameDay ? (
-        <>{formatTime(e.start_time)} – {formatTime(e.end_time)}</>
+        <>{formatTime(e.start_time)} - {formatTime(e.end_time)}</>
       ) : (
-        <>{formatTime(e.start_time, true)} – {formatTime(e.end_time, true)}</>
+        <>{formatTime(e.start_time, true)} - {formatTime(e.end_time, true)}</>
       );
     return renderedTime
   }
@@ -100,22 +101,16 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
 
         {(item.type === "task" || item.type === "schema") && onMarkAsDone && onRemoveFromSchedule && (
           <>
-            <button
-              onClick={(e) => { e.preventDefault(); onMarkAsDone(item.id); }}
-              type='button'
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
-              title="Zrobione"
-            >
-              <Check className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); onRemoveFromSchedule(item.id); }}
-              title="Odczep z planu dnia"
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface hover:bg-orange-50 dark:hover:bg-orange-900/20 text-textMuted hover:text-orange-500 transition-colors border hover:border-orange-200 dark:hover:border-orange-900/30"
-            >
-              <X className="w-4 h-4" strokeWidth={3} />
-            </button>
+            <ConfirmButton
+              onClick={() => { onMarkAsDone(item.id); }}
+              label="Zrobione"
+              small
+            />
+            <DeleteButton
+              onClick={() => { onRemoveFromSchedule(item.id); }}
+              small
+            />
+
           </>
         )}
       </div>

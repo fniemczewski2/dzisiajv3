@@ -1,4 +1,4 @@
-// lib/offlineCache.ts
+﻿// lib/offlineCache.ts
 
 const DB_NAME = "dzisiaj-offline-cache";
 const DB_VERSION = 1;

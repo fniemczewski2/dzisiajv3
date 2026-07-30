@@ -1,3 +1,5 @@
+﻿// types/recipes.ts
+
 
 export type RecipeCategory =
   | "śniadanie"

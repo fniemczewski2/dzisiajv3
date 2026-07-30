@@ -1,3 +1,5 @@
+﻿// types/events.ts
+
 export interface Event {
   id: string;
   title: string;

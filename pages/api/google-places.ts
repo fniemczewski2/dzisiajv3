@@ -1,4 +1,4 @@
-// pages/api/google-places.ts
+﻿// pages/api/google-places.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { generatePlaceTags } from '@/lib/placeTagging';
@@ -39,7 +39,7 @@ export default async function handler(
   if (authError || !user) {
     return res
       .status(401)
-      .json({ error: 'Unauthorized — valid Supabase session required' });
+      .json({ error: 'Unauthorized - valid Supabase session required' });
   }
 
   if (!GOOGLE_PLACES_API_KEY) {

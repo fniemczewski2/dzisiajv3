@@ -1,4 +1,4 @@
-// lib/holidays.ts
+﻿// lib/holidays.ts
 
 export function getEaster(year: number): Date {
   const f = Math.floor;

@@ -1,3 +1,5 @@
+﻿// components/profiles/ProfilesList.tsx
+
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useProfiles } from '@/hooks/db/useProfiles';

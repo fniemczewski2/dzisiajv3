@@ -1,4 +1,4 @@
-// hooks/useStreaks.ts
+﻿// hooks/db/useStreaks.ts
 
 import { useCallback } from "react";
 import { Streak } from "@/types/streaks";

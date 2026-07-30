@@ -1,4 +1,4 @@
-"use client";
+﻿// pages/tasks/pomodoro.tsx
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/router";

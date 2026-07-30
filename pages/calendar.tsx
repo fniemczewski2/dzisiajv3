@@ -1,3 +1,5 @@
+﻿// pages/calendar.tsx
+
 import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
 import MonthView from "@/components/calendar/MonthView";

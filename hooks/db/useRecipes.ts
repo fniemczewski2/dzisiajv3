@@ -1,5 +1,4 @@
-"use client";
-// hooks/db/useRecipes.ts
+﻿// hooks/db/useRecipes.ts
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import type { NewRecipe, Recipe } from "@/types/recipes";

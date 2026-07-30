@@ -1,4 +1,5 @@
-// lib/eventUtils.ts
+﻿// lib/eventUtils.ts
+
 import {
   addDays,
   addMonths,

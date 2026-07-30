@@ -1,4 +1,4 @@
-"use client";
+﻿// components/settings/PushNotificationManager.tsx
 
 import React, { useEffect, useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";

@@ -1,4 +1,4 @@
-'use client';
+﻿// pages/start.tsx
 
 import Seo from "@/components/ui/SEO";
 import { FEATURE_GROUPS } from "@/config/features";

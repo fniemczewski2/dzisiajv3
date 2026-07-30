@@ -1,5 +1,5 @@
-// components/ThemeToggle.tsx
-"use client";
+﻿// components/settings/ThemeButton.tsx
+
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react"; 

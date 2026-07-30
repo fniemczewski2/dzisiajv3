@@ -1,3 +1,5 @@
+﻿// hooks/useEuroRate.ts
+
 import { useState, useEffect } from "react";
 import { NbpResponse } from "@/types/bills";
 

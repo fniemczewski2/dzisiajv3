@@ -1,3 +1,5 @@
+﻿// types/googleCalendar.ts
+
 export interface GoogleTokenResponse {
   access_token?: string;
   expires_in?: number;

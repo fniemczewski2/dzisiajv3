@@ -1,4 +1,4 @@
-// hooks/usePeople.ts
+﻿// hooks/db/usePeople.ts
 
 import { useCallback, useMemo } from "react";
 import { Person, PersonInsert } from "@/types/people";

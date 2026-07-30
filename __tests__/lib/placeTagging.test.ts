@@ -1,3 +1,5 @@
+﻿// __tests__/lib/placeTagging.test.ts
+
 import { describe, it, expect } from "vitest";
 import {
   RATING_TO_TAGS,

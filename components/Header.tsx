@@ -1,4 +1,4 @@
-// components/Header.tsx
+﻿// components/Header.tsx
 
 import { useState, useEffect } from "react";
 import {
@@ -74,7 +74,7 @@ function WeatherDetails({
           <span className="font-bold leading-none">{currentTemp}°C</span>
         </div>
         <span className="whitespace-nowrap text-[11px] sm:text-sm font-bold text-textMuted uppercase tracking-wider truncate">
-          min {dailyMin}° · max {dailyMax}°
+          min {dailyMin}° • max {dailyMax}°
         </span>
         {airQuality && (
           <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider">

@@ -1,3 +1,5 @@
+﻿// config/constants.ts
+
 export const DAY_NAMES = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nie"];
 export const MONTH_NAMES = [
   "Styczeń",
@@ -89,17 +91,17 @@ export const DESCRIPTION_MAPPINGS = [
 export const BOILERPLATE_REGEXES = [
   /ZAKUP PRZY UŻYCIU KARTY - INTERNET/gi,
   /ZAKUP PRZY UŻYCIU KARTY W KRAJU/gi,
-  /ZAKUP PRZY UŻYCIU KARTY ZA GRANICĄ/gi,
+  /ZAKUP PRZY UŻYCIU KARTY ZA GRANICÄ„/gi,
   /ZAKUP PRZY UŻYCIU KARTY/gi,
-  /TRANSAKCJA KARTĄ/gi,
+  /TRANSAKCJA KARTÄ„/gi,
   /TRANSAKCJA ZBLIŻENIOWA/gi,
-  /PŁATNOŚĆ KARTĄ/gi,
+  /PĹATNOŚÄ† KARTÄ„/gi,
   /OPERACJA BLIK/gi,
   /DATA TRANSAKCJI:/gi,
-  /DATA KSIĘGOWANIA:/gi,
+  /DATA KSIÄGOWANIA:/gi,
   /KARTA:/gi,
-  /PRZELEW WEWNĘTRZNY PRZYCHODZĄCY/gi,
-  /PRZELEW ŚRODKÓW/gi,
+  /PRZELEW WEWNÄTRZNY PRZYCHODZÄ„CY/gi,
+  /PRZELEW ŚRODKĂ“W/gi,
   /\d{2}\.\d{2}\.\d{4}/g,
   /\d{2}-\d{3}\s+[a-zęóąśłżźćń]+/gi,
   /\d{26}/g 

@@ -1,3 +1,5 @@
+﻿// types/settings.ts
+
 import { MoodOption } from "./moods";
 
 export interface Settings {

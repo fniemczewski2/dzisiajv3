@@ -1,4 +1,5 @@
-// components/people/PersonForm.tsx
+﻿// components/people/PersonForm.tsx
+
 import React, { useState } from 'react';
 import { Person, PersonInsert } from '@/types/people';
 import { AddButton, FormButtons } from '../ui/CommonButtons';

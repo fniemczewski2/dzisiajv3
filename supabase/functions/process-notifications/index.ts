@@ -1,6 +1,16 @@
-// supabase/functions/process-notifications/index.ts
+﻿// supabase/functions/process-notifications/index.ts
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
+import { getErrorMessage } from '../_shared/errors.ts';
+
+interface NotifiableTask {
+  id: string;
+  user_id: string;
+  title: string;
+  due_date: string | null;
+  due_time: string | null;
+}
 
 function pluralize(count: number, form1: string, form2: string, form5: string): string {
   if (count === 1) return form1;
@@ -137,16 +147,22 @@ Deno.serve(async (req) => {
           return sentNotifs?.some(n =>
             n.user_id === userId &&
             n.data?.sub_type === subType &&
-            n.data?.task_id && n.data.task_id.toString().split(',').includes(taskId.toString())
+            n.data?.task_id.toString().split(',').includes(taskId.toString())
           );
         };
 
-        const groupTasksByUser = (tasks: any[]) => {
-          return tasks.reduce((acc: any, task: any) => {
-            if (!acc[task.user_id]) acc[task.user_id] = [];
-            acc[task.user_id].push(task);
-            return acc;
-          }, {});
+        const groupTasksByUser = (tasks: readonly NotifiableTask[]): Map<string, NotifiableTask[]> => {
+          const grouped = new Map<string, NotifiableTask[]>();
+          for (const task of tasks) {
+            if (!task.user_id) {
+              console.error("[process-notifications] Pominięto zadanie bez user_id:", task.id);
+              continue;
+            }
+            const bucket = grouped.get(task.user_id);
+            if (bucket) bucket.push(task);
+            else grouped.set(task.user_id, [task]);
+          }
+          return grouped;
         };
 
         const currentHourStartStr = `${today} ${plNow.hour}:00:00`;
@@ -166,13 +182,13 @@ Deno.serve(async (req) => {
 
           if (unsentTasks.length === 1) {
             const t = unsentTasks[0];
-            await sendPushAndLog(userId, `${t.title} ⏰`, 'Rozpocznij zadanie.', '/tasks', { task_id: t.id.toString(), sub_type: 'exact_time' });
+            await sendPushAndLog(userId, `${t.title}`, 'Rozpocznij zadanie.', '/tasks', { task_id: t.id.toString(), sub_type: 'exact_time' });
           } else if (unsentTasks.length > 1) {
             const titles = unsentTasks.map(t => t.title).join(', ');
             const taskIds = unsentTasks.map(t => t.id).join(',');
             await sendPushAndLog(
               userId,
-              `${unsentTasks.length} ${pluralize(unsentTasks.length, 'zadanie', 'zadania', 'zadań')} ⏰`,
+              `${unsentTasks.length} ${pluralize(unsentTasks.length, 'zadanie', 'zadania', 'zadań')}`,
               `Rozpocznij: ${titles.substring(0, 50)}${titles.length > 50 ? '...' : ''}`,
               '/tasks',
               { task_id: taskIds, sub_type: 'exact_time' }
@@ -199,13 +215,13 @@ Deno.serve(async (req) => {
 
           if (unsentTasks.length === 1) {
             const t = unsentTasks[0];
-            await sendPushAndLog(userId, 'PILNE ⚠️', `Zadanie ${t.title} nie jest zrobione.`, '/tasks', { task_id: t.id.toString(), sub_type: 'late_1h' });
+            await sendPushAndLog(userId, 'PILNE', `Zadanie ${t.title} nie jest zrobione.`, '/tasks', { task_id: t.id.toString(), sub_type: 'late_1h' });
           } else if (unsentTasks.length > 1) {
             const titles = unsentTasks.map(t => t.title).join(', ');
             const taskIds = unsentTasks.map(t => t.id).join(',');
             await sendPushAndLog(
               userId,
-              'PILNE ⚠️',
+              'PILNE',
               `Zadania (${unsentTasks.length}) nie są zrobione: ${titles.substring(0, 50)}${titles.length > 50 ? '...' : ''}`,
               '/tasks',
               { task_id: taskIds, sub_type: 'late_1h' }
@@ -227,13 +243,13 @@ Deno.serve(async (req) => {
 
             if (unsentTasks.length === 1) {
               const t = unsentTasks[0];
-              await sendPushAndLog(userId, 'PILNE ⚠️', `Zadanie ${t.title} nie jest zrobione.`, '/', { task_id: t.id.toString(), sub_type: 'no_time_14' });
+              await sendPushAndLog(userId, 'PILNE', `Zadanie ${t.title} nie jest zrobione.`, '/', { task_id: t.id.toString(), sub_type: 'no_time_14' });
             } else if (unsentTasks.length > 1) {
               const titles = unsentTasks.map(t => t.title).join(', ');
               const taskIds = unsentTasks.map(t => t.id).join(',');
               await sendPushAndLog(
                 userId,
-                'PILNE ⚠️',
+                'PILNE',
                 `Masz ${unsentTasks.length} nieukończone ${pluralize(unsentTasks.length, 'zadanie', 'zadania', 'zadań')}: ${titles.substring(0, 50)}${titles.length > 50 ? '...' : ''}`,
                 '/',
                 { task_id: taskIds, sub_type: 'no_time_14' }
@@ -311,7 +327,7 @@ Deno.serve(async (req) => {
         if (currentHour > 14 && currentHour <= 18 && amount < 1.5) remind = true
 
         if (remind) {
-          await sendPushAndLog(user.user_id, 'Czas na wodę! 💧', `Wypito tylko ${amount} ${pluralizeLiters(amount)}. Uzupełnij płyny!`, '/', { slot: currentHour })
+          await sendPushAndLog(user.user_id, 'Czas na wodę! đź’§', `Wypito tylko ${amount} ${pluralizeLiters(amount)}. Uzupełnij płyny!`, '/', { slot: currentHour })
         }
       }
     }
@@ -381,7 +397,7 @@ Deno.serve(async (req) => {
           if (!alreadySent) {
             await sendPushAndLog(
               schema.user_id,
-              `Teraz: ${item.label} 🕒`,
+              `Teraz: ${item.label} đź•’`,
               `Zgodnie ze schematem: "${schema.name}"`,
               '/',
               { label: item.label, time: currentTime, sub_type: 'day_schema_entry' }
@@ -402,7 +418,7 @@ Deno.serve(async (req) => {
         if ((pendingCount && pendingCount > 0) || (doneCount && doneCount > 0)) {
           let msg = `Zrealizowano dziś ${doneCount} ${pluralize(doneCount, 'zadanie', 'zadania', 'zadań')}.`;
           if (pendingCount && pendingCount > 0) msg += ` Do zrobienia zostało ${pendingCount}.`;
-          await sendPushAndLog(user.user_id, 'Czas na podsumowanie 🌙', msg, '/')
+          await sendPushAndLog(user.user_id, 'Czas na podsumowanie đźŚ™', msg, '/')
         }
       }
     }
@@ -449,14 +465,14 @@ Deno.serve(async (req) => {
               const bMMDD = p.birthday.substring(5, 10);
               let bType = '', bMsg = '';
 
-              if (bMMDD === todayMMDD) { bType = 'bday_0'; bMsg = `Dzisiaj są urodziny: ${p.first_name} ${p.last_name}! 🎉`; }
+              if (bMMDD === todayMMDD) { bType = 'bday_0'; bMsg = `Dzisiaj są urodziny: ${p.first_name} ${p.last_name}! đźŽ‰`; }
               else if (bMMDD === plus1MMDD) { bType = 'bday_1'; bMsg = `Jutro są urodziny: ${p.first_name} ${p.last_name}.`; }
               else if (bMMDD === plus7MMDD) { bType = 'bday_7'; bMsg = `Za 7 dni urodziny obchodzi: ${p.first_name} ${p.last_name}.`; }
 
               if (bType) {
                 const subType = `${bType}_${currentYearStr}`;
                 if (!isSent(p.user_id, subType, p.id)) {
-                  await sendPushAndLog(p.user_id, 'Urodziny 🎂', bMsg, `/people`, { person_id: p.id, sub_type: subType });
+                  await sendPushAndLog(p.user_id, 'Urodziny đźŽ‚', bMsg, `/people`, { person_id: p.id, sub_type: subType });
                 }
               }
             }
@@ -465,14 +481,14 @@ Deno.serve(async (req) => {
               const nMMDD = p.nameday.substring(5, 10);
               let nType = '', nMsg = '';
 
-              if (nMMDD === todayMMDD) { nType = 'nday_0'; nMsg = `Dzisiaj są imieniny: ${p.first_name} ${p.last_name}! 💐`; }
+              if (nMMDD === todayMMDD) { nType = 'nday_0'; nMsg = `Dzisiaj są imieniny: ${p.first_name} ${p.last_name}! đź’`; }
               else if (nMMDD === plus1MMDD) { nType = 'nday_1'; nMsg = `Jutro są imieniny: ${p.first_name} ${p.last_name}.`; }
               else if (nMMDD === plus7MMDD) { nType = 'nday_7'; nMsg = `Za 7 dni imieniny obchodzi: ${p.first_name} ${p.last_name}.`; }
 
               if (nType) {
                 const subType = `${nType}_${currentYearStr}`;
                 if (!isSent(p.user_id, subType, p.id)) {
-                  await sendPushAndLog(p.user_id, 'Imieniny 💐', nMsg, `/people`, { person_id: p.id, sub_type: subType });
+                  await sendPushAndLog(p.user_id, 'Imieniny đź’', nMsg, `/people`, { person_id: p.id, sub_type: subType });
                 }
               }
             }
@@ -494,7 +510,7 @@ Deno.serve(async (req) => {
                if (shouldContact && !isContactRemindedRecently(p.user_id, p.id)) {
                   await sendPushAndLog(
                     p.user_id,
-                    'Przypomnienie o kontakcie 📞',
+                    'Przypomnienie o kontakcie đź“ž',
                     `Czas odezwać się do: ${p.first_name} ${p.last_name}.`,
                     `/people`,
                     { person_id: p.id, sub_type: 'contact_reminder' }
@@ -522,8 +538,9 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true, type, sentCount: processedCount }), { headers: jsonHeaders })
 
-  } catch (error: any) {
-    console.error(`Błąd krytyczny:`, error)
-    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: jsonHeaders })
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error("Critical error:", message);
+    return new Response(JSON.stringify({ error: message }), { status: 400, headers: jsonHeaders });
   }
 })

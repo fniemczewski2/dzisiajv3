@@ -1,3 +1,5 @@
+﻿// types/outlookCalendar.ts
+
 export interface OutlookTokenResponse {
   access_token?: string;
   refresh_token?: string;

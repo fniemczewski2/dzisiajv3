@@ -1,4 +1,4 @@
-"use client";
+﻿// components/notes/NoteList.tsx
 
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";

@@ -1,4 +1,4 @@
-"use client";
+﻿// pages/tasks/index.tsx
 
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";

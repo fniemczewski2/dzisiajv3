@@ -1,3 +1,5 @@
+﻿// components/widgets/DailySpendingForm.tsx
+
 import React, { useRef, useState, useEffect } from "react";
 import { Coins } from "lucide-react";
 import { format, parseISO } from "date-fns";

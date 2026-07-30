@@ -1,4 +1,4 @@
-// hooks/db/useReports.ts
+﻿// hooks/db/useReports.ts
 
 import { useCallback } from "react";
 import { Report } from "@/types/reports";

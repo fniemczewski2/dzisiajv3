@@ -1,3 +1,5 @@
+﻿// components/ui/LoadingState.tsx
+
 import { Loader2 } from "lucide-react";
 
 interface LoadingStateProps {

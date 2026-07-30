@@ -1,3 +1,5 @@
+﻿// components/places/PlaceFilters.tsx
+
 import { List, MapPin } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { usePlaces } from "@/hooks/db/usePlaces";

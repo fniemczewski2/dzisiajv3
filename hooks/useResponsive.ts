@@ -1,3 +1,5 @@
+﻿// hooks/useResponsive.ts
+
 import { useEffect, useState} from "react";
 export function useResponsive(breakpoint: number = 768) {
 const [isMobile, setIsMobile] = useState(() =>

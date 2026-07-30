@@ -1,4 +1,4 @@
-"use client";
+﻿// components/meetingPolls/MeetingPollList.tsx
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
@@ -40,7 +40,7 @@ export default function MeetingPollList({ refreshToken }: Readonly<MeetingPollLi
               <div className="min-w-0">
                 <p className="font-bold text-text truncate">{poll.title}</p>
                 <p className="text-xs text-textMuted mt-0.5">
-                  {poll.time_start.slice(0, 5)}–{poll.time_end.slice(0, 5)} ·{" "}
+                  {poll.time_start.slice(0, 5)}-{poll.time_end.slice(0, 5)} •{" "}
                   {poll.status === "open" ? "Otwarta" : "Zamknięta"}
                 </p>
               </div>

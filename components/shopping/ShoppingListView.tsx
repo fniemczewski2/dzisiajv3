@@ -1,4 +1,4 @@
-"use client";
+﻿// components/shopping/ShoppingListView.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, User } from "lucide-react";

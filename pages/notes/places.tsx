@@ -1,4 +1,5 @@
-"use client";
+﻿// pages/notes/places.tsx
+
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { usePlaces } from "@/hooks/db/usePlaces";

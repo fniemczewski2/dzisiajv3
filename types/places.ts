@@ -1,3 +1,5 @@
+﻿// types/places.ts
+
 
 export interface OpeningHours {
   [key: string]: string[];

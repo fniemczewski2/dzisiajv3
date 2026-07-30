@@ -1,3 +1,5 @@
+﻿// components/settings/UserSection.tsx
+
 import React, { useState } from "react";
 import { CircleUser, LogOut } from "lucide-react";
 

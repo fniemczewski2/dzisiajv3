@@ -1,4 +1,4 @@
-"use client";
+﻿// components/recipes/RecipeForm.tsx
 
 import React, { useMemo, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";

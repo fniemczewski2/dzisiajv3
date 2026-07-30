@@ -1,3 +1,5 @@
+﻿// pages/api/vcard.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import type { VCardProfile } from '@/types/profiles';

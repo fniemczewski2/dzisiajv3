@@ -1,4 +1,5 @@
-// components/ui/ErrorBoundary.tsx
+﻿// components/ui/ErrorBoundary.tsx
+
 import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, ChevronRight, ChevronDown, Home, RefreshCw } from 'lucide-react';
 

@@ -1,4 +1,5 @@
-"use client";
+﻿// components/notes/NoteEditForm.tsx
+
 import React, { useRef, useEffect } from "react";
 import clsx from "clsx";
 import { Note } from "@/types/notes";

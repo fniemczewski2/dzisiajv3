@@ -1,4 +1,4 @@
-"use client";
+﻿// components/movies/MovieCard.tsx
 
 import React, { useState } from "react";
 import { Film, Star, Tv, ChevronDown, ChevronUp } from "lucide-react";

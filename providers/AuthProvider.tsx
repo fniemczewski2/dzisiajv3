@@ -1,5 +1,4 @@
-// providers/AuthProvider.tsx
-'use client';
+﻿// providers/AuthProvider.tsx
 
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, SupabaseClient } from '@supabase/supabase-js';

@@ -1,3 +1,5 @@
+﻿// types/googlePlaces.ts
+
 
 interface GoogleFindPlaceCandidate {
   place_id: string;

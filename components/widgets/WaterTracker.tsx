@@ -1,4 +1,4 @@
-"use client";
+﻿// components/widgets/WaterTracker.tsx
 
 import { Droplet } from "lucide-react";
 import { useDailyHabits } from "@/hooks/db/useDailyHabits";

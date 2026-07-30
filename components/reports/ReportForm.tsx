@@ -1,4 +1,4 @@
-"use client";
+﻿// components/reports/ReportForm.tsx
 
 import React, { useRef, useState, SyntheticEvent, Dispatch, SetStateAction } from "react";
 import { Plus, X } from "lucide-react";

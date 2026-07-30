@@ -1,3 +1,5 @@
+﻿// lib/share.tsx
+
 import { SupabaseClient } from "@supabase/supabase-js";
 
 export async function resolveSharedEmails<T extends { user_id: string; shared_with_id?: string | null }>(

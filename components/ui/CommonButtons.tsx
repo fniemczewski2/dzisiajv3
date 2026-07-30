@@ -1,3 +1,5 @@
+﻿// components/ui/CommonButtons.tsx
+
 import React, { useState } from "react";
 import { cva } from "class-variance-authority";
 import {
@@ -275,6 +277,18 @@ const actionButton = cva(
 
 const actionIcon = (small?: boolean) => (small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1");
 const ACTION_LABEL_CLASS = "text-[8px] sm:text-[10px] font-bold uppercase tracking-wide";
+
+export const ConfirmButton = ({ onClick, small = false, label = "OK" }: { onClick: () => void; small?: boolean; label: string }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className={actionButton({ color: "active", size: small ? "small" : "default" })}
+    aria-label={label}
+  >
+    <Check className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>{label}</span>}
+  </button>
+);
 
 export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
   <button

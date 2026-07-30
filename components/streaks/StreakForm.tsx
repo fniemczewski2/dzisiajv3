@@ -1,4 +1,4 @@
-"use client";
+﻿// components/streaks/StreakForm.tsx
 
 import React, { useState, SyntheticEvent } from "react";
 import {

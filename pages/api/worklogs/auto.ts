@@ -1,3 +1,5 @@
+﻿// pages/api/worklogs/auto.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getAppDateTime } from '@/lib/dateUtils';

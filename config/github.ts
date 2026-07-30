@@ -1,4 +1,5 @@
-// config/github.ts
+﻿// config/github.ts
+
 export const GITHUB_CONFIG = {
   OWNER: "fniemczewski2", 
   REPO: "dzisiajv3", 

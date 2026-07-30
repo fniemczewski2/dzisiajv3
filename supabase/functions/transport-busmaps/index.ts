@@ -1,3 +1,5 @@
+﻿// supabase/functions/transport-busmaps/index.ts
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
@@ -343,7 +345,7 @@ serve(async (req) => {
           else if (detectedCity === 'szczecin') deps = await fetchSzczecinDepartures(cleanName);
         }
         if (deps.length === 0) {
-          if (!cachedBusMapsGroups) cachedBusMapsGroups = await fetchBusMapsDepartures(cityLat, cityLon, 15000);
+          cachedBusMapsGroups ??= await fetchBusMapsDepartures(cityLat, cityLon, 15000);
           const match = cachedBusMapsGroups.find(g => normalizeName(g.stop_name) === normalizeName(cleanName));
           if (match) deps = match.departures;
         }
@@ -364,7 +366,7 @@ serve(async (req) => {
         for (const item of names) {
           let deps = await fetchPoznanDepartures(item.originalName);
           if (deps.length === 0) {
-            if (!cachedBusMapsGroups) cachedBusMapsGroups = await fetchBusMapsDepartures(lat, lon, 2000);
+            cachedBusMapsGroups ??= await fetchBusMapsDepartures(lat, lon, 2000);
             const match = cachedBusMapsGroups.find(g => normalizeName(g.stop_name) === normalizeName(item.originalName));
             if (match) deps = match.departures;
           }
@@ -382,7 +384,7 @@ serve(async (req) => {
         for (const item of names) {
           let deps = await fetchSzczecinDepartures(item.originalName);
           if (deps.length === 0) {
-            if (!cachedBusMapsGroups) cachedBusMapsGroups = await fetchBusMapsDepartures(lat, lon, 2000);
+            cachedBusMapsGroups ??= await fetchBusMapsDepartures(lat, lon, 2000);
             const match = cachedBusMapsGroups.find(g => normalizeName(g.stop_name) === normalizeName(item.originalName));
             if (match) deps = match.departures;
           }

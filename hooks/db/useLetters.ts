@@ -1,4 +1,5 @@
-// hooks/db/useLetters.ts
+﻿// hooks/db/useLetters.ts
+
 import { useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";

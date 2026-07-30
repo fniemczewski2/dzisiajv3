@@ -1,4 +1,4 @@
-"use client";
+﻿// components/places/PlacesList.tsx
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Place } from "@/types/places";

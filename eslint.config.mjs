@@ -41,7 +41,19 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ["supabase/functions/**", "public/sw.js", ".next/**"],
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: {
+      parserOptions: { project: "./supabase/functions/tsconfig.json" },
+      globals: { Deno: "readonly" },
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": "error",
+      "no-console": "off", // logi w Edge Functions są celowe
+    },
+  },
+  {
+    ignores: [ "public/sw.js", ".next/**"],
   },
 ];
 

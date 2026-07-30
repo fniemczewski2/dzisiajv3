@@ -1,4 +1,4 @@
-"use client";
+﻿// components/settings/LoveCat.tsx
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";

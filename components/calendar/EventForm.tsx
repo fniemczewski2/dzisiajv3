@@ -1,5 +1,4 @@
-// components/calendar/EventForm.tsx
-"use client";
+﻿// components/calendar/EventForm.tsx
 
 import React, { useState, SyntheticEvent, useEffect } from "react";
 import { Event } from "@/types/events";

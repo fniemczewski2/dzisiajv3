@@ -1,3 +1,5 @@
+﻿// pages/people.tsx
+
 import React, { useState } from 'react';
 import { usePeople } from '@/hooks/db/usePeople';
 import { PersonCard } from '@/components/people/PersonCard';

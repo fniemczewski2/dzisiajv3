@@ -1,3 +1,5 @@
+﻿// __tests__/hooks/useRetry.test.ts
+
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useRetry } from "@/hooks/useRetry";

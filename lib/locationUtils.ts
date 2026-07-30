@@ -1,4 +1,4 @@
-// lib/locationUtils.ts
+﻿// lib/locationUtils.ts
 
 export type GpsPermission = 'granted' | 'denied' | null;
 

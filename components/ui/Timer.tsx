@@ -1,3 +1,5 @@
+﻿// components/ui/Timer.tsx
+
 import React from "react";
 import {
   Play,

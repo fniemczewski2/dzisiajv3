@@ -1,3 +1,5 @@
+﻿// supabase/functions/send-love/index.ts
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const corsHeaders = {
@@ -63,8 +65,8 @@ Deno.serve(async (req) => {
 
     const targetUserId = targetUser.id;
 
-    const title = "Kocham Cię ❤️";
-    const message = "Ktoś przesyła Ci dużo miłości! ❤️❤️❤️";
+    const title = "Kocham Cię!";
+    const message = "Ktoś przesyła Ci dużo miłości!";
 
     const { error: insertError } = await supabase.from("notifications").insert({
       user_id: targetUserId,

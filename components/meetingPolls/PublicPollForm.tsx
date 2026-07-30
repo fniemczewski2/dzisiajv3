@@ -1,4 +1,4 @@
-"use client";
+﻿// components/meetingPolls/PublicPollForm.tsx
 
 import React, { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
@@ -92,7 +92,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
         {poll.description && <p className="text-sm text-textSecondary mt-1">{poll.description}</p>}
         {hasExistingResponse && (
           <p className="text-xs text-primary mt-2">
-            Znaleźliśmy Twoją wcześniejszą odpowiedź — możesz ją tu poprawić.
+            Znaleźliśmy Twoją wcześniejszą odpowiedź - możesz ją tu poprawić.
           </p>
         )}
       </div>

@@ -1,3 +1,5 @@
+﻿// types/habits.ts
+
 
 export type HabitKey =
   | "pills"

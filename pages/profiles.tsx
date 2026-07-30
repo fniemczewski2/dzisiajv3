@@ -1,3 +1,5 @@
+﻿// pages/profiles.tsx
+
 
 import React from 'react';
 import ProfilesList from "@/components/profiles/ProfilesList";

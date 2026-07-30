@@ -1,4 +1,4 @@
-// supabase/functions/process-reminders/index.ts
+﻿// supabase/functions/process-reminders/index.ts
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'

@@ -1,4 +1,4 @@
-"use client";
+﻿// components/recipes/RecipesList.tsx
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { ChevronDown, PlusCircleIcon, X } from "lucide-react";

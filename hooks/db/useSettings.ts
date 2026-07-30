@@ -1,4 +1,4 @@
-// hooks/useSettings.ts
+﻿// hooks/db/useSettings.ts
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";

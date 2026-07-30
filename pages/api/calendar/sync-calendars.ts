@@ -1,3 +1,5 @@
+﻿// pages/api/calendar/sync-calendars.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';

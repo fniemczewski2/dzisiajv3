@@ -1,3 +1,5 @@
+﻿// components/ui/Layout.tsx
+
 import { ReactNode } from "react";
 import Header from "../Header";
 import Navbar from "../Navbar";
@@ -14,7 +16,7 @@ export default function Layout({ children }: { readonly children: ReactNode }) {
         <footer className="border-t border-gray-200 dark:border-gray-800 mt-10 py-4 px-4 text-center">
             <p className="text-sm text-textMuted">
               © {new Date().getFullYear()} Dzisiaj.Fun
-              <span className="mx-2">·</span>
+              <span className="mx-2">•</span>
               <Link
                 href="/privacy"
                 className="text-primary hover:underline transition-colors"

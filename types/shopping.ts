@@ -1,3 +1,5 @@
+﻿// types/shopping.ts
+
 
 export interface ShoppingElement {
   id: string;

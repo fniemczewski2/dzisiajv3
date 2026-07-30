@@ -1,10 +1,12 @@
+﻿// config/packing.ts
+
 export const BACKPACK = [
   {
     title: "Apteczka",
     items: [
       "Plastry",
-      "Plaster bezopatrunkowy – taśma",
-      "Plaster bezopatrunkowy – arkusz",
+      "Plaster bezopatrunkowy - taśma",
+      "Plaster bezopatrunkowy - arkusz",
       "Hydrożel",
       "Bandaż 10 cm",
       "Bandaż półelastyczny 5 cm",
@@ -50,7 +52,7 @@ export const BACKPACK = [
     items: [
       "Multitool",
       "Miara",
-      "Łyżka do butów",
+      "Ĺyżka do butów",
       "Trytytki",
       "Siatki",
       "Grzałka",
@@ -265,7 +267,7 @@ export const SUITCASE = [
       "Powerbank",
       "Słuchawki",
       "Aparat",
-      "Ładowarki i kable",
+      "Ĺadowarki i kable",
       "Generator kodów",
       "Adapter podróżny",
       "Grzałka elektryczna ",

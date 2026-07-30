@@ -1,3 +1,5 @@
+﻿// lib/server/oauthCallback.ts
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/server/tokenCrypto";

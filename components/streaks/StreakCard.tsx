@@ -1,4 +1,4 @@
-"use client";
+﻿// components/streaks/StreakCard.tsx
 
 import React, { useState } from "react";
 import { differenceInDays, parseISO } from "date-fns";

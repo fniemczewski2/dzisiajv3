@@ -1,3 +1,5 @@
+﻿// hooks/useLatestRef.ts
+
 import { useRef } from "react";
 
 export function useLatestRef<T>(value: T) {

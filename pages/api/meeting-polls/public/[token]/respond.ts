@@ -59,9 +59,18 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, token: strin
 async function handlePost(req: NextApiRequest, res: NextApiResponse, token: string) {
   const body = req.body as Partial<MeetingPollResponsePayload> | undefined;
   const respondentName = body?.respondent_name?.trim();
-  const respondentEmail = body?.respondent_email?.trim() || null;
-  const slots = Array.isArray(body?.slots) ? body.slots : [];
   const editToken = typeof body?.edit_token === "string" ? body.edit_token : undefined;
+
+  const rawEmail = body?.respondent_email;
+  const respondentEmail = rawEmail == null || rawEmail === "" ? null : validateEmail(rawEmail);
+  if (rawEmail && !respondentEmail) {
+    return res.status(400).json({ error: "Podaj poprawny adres e-mail." });
+  }
+
+  const slots = (Array.isArray(body?.slots) ? body.slots : []).map(validateSlot);
+  if (slots.some((s) => s === null)) {
+    return res.status(400).json({ error: "Nieprawidłowy format terminu." });
+  }
 
   if (!respondentName || respondentName.length > MAX_RESPONDENT_NAME_LENGTH) {
     return res.status(400).json({ error: "Podaj poprawne imię (do 100 znaków)." });
@@ -99,7 +108,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
     poll.time_end,
     poll.slot_duration_minutes
   );
-  const invalidSlot = slots.find((s) => !allowed.has(slotKey(s.date, s.start_time)));
+  const invalidSlot = slots.find((s) => !allowed.has(slotKey(s?.date || "", s?.start_time || "")));
   if (invalidSlot) {
     return res.status(400).json({ error: "Co najmniej jeden zaznaczony termin jest spoza siatki ankiety." });
   }
@@ -170,8 +179,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
 
   const rows = slots.map((s) => ({
     response_id: responseId,
-    date: s.date,
-    start_time: s.start_time,
+    date: s?.date,
+    start_time: s?.start_time,
   }));
 
   const { error: availError } = await supabaseAdmin.from("meeting_poll_availabilities").insert(rows);
@@ -186,13 +195,23 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   return res.status(200).json(result);
 }
 
+import { checkRateLimit, clientIp } from "@/lib/server/rateLimit";
+import { validateEmail, validateSlot } from "@/lib/sanitize";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = req.query;
   if (!token || typeof token !== "string") {
     return res.status(400).json({ error: "Brak tokenu ankiety." });
   }
 
+  if (req.method === "POST") {
+    if (!checkRateLimit(`poll:${token}:${clientIp(req)}`, 5, 10 * 60_000)) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({ error: "Zbyt wiele odpowiedzi. Spróbuj ponownie za kilka minut." });
+    }
+    return handlePost(req, res, token);
+  }
+
   if (req.method === "GET") return handleGet(req, res, token);
-  if (req.method === "POST") return handlePost(req, res, token);
   return res.status(405).json({ error: "Method not allowed" });
 }

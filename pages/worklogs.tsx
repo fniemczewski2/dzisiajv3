@@ -1,3 +1,5 @@
+﻿// pages/worklogs.tsx
+
 import React, { SyntheticEvent, useRef, useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
 import { pl } from 'date-fns/locale';

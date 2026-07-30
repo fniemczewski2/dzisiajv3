@@ -1,4 +1,4 @@
-"use client";
+﻿// pages/bills/calculator.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";

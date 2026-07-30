@@ -1,3 +1,5 @@
+﻿// pages/notes/shopping.tsx
+
 import React, { useState } from "react";
 import { useShoppingLists } from "@/hooks/db/useShoppingLists";
 import ShoppingForm from "@/components/shopping/ShoppingForm";

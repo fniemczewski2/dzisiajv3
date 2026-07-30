@@ -1,4 +1,5 @@
-// components/calendar/CalendarCell.tsx
+﻿// components/calendar/CalendarCell.tsx
+
 import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
 import { Calendar } from "lucide-react";

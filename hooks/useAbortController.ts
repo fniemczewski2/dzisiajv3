@@ -1,4 +1,4 @@
-// hooks/useAbortController.ts
+﻿// hooks/useAbortController.ts
 
 import { useCallback, useEffect, useRef } from "react";
 

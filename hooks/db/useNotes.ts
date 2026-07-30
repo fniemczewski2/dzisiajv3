@@ -1,4 +1,4 @@
-// hooks/useNotes.ts
+﻿// hooks/db/useNotes.ts
 
 import { useCallback } from "react";
 import { Note } from "@/types/notes";

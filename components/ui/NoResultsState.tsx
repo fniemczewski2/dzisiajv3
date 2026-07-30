@@ -1,3 +1,5 @@
+﻿// components/ui/NoResultsState.tsx
+
 interface NoResultsStateProps {
   fullScreen?: boolean;
   text: string;

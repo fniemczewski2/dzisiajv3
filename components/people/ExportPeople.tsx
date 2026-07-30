@@ -1,4 +1,5 @@
-// components/people/ExportContacts.tsx
+﻿// components/people/ExportPeople.tsx
+
 import React from 'react';
 import { Download } from 'lucide-react';
 import { Person } from '@/types/people';

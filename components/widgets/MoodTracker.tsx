@@ -1,4 +1,4 @@
-"use client";
+﻿// components/widgets/MoodTracker.tsx
 
 import React from "react";
 import { useMoods } from "@/hooks/db/useMoods";

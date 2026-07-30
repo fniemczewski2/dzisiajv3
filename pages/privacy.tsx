@@ -1,3 +1,5 @@
+﻿// pages/privacy.tsx
+
 import Seo from "@/components/ui/SEO";
 export default function PrivacyPage() {
   return (
@@ -12,7 +14,7 @@ export default function PrivacyPage() {
       <main className="max-w-3xl mx-auto py-12 px-6">
         <h1 className="text-3xl font-bold text-text mb-2">Polityka Prywatności</h1>
         <p className="text-sm text-textMuted mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
-          Obowiązuje od: 1 stycznia 2025 r. &nbsp;·&nbsp; Aplikacja:Dzisiaj.Fun
+          Obowiązuje od: 1 stycznia 2025 r. &nbsp;•&nbsp; Aplikacja:Dzisiaj.Fun
         </p>
 
         <Section title="1. Administrator danych">
@@ -79,13 +81,13 @@ export default function PrivacyPage() {
         <Section title="5. Podstawa prawna przetwarzania (RODO)">
           <ul className="space-y-2 list-none">
             <Li>
-              <strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) – przetwarzanie niezbędne do świadczenia usługi dostępu do aplikacji.
+              <strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) - przetwarzanie niezbędne do świadczenia usługi dostępu do aplikacji.
             </Li>
             <Li>
-              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) – integracja z kalendarzami Google i Microsoft jest całkowicie dobrowolna i wymaga Twojej wyraźnej, aktywnej zgody w procesie OAuth.
+              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) - integracja z kalendarzami Google i Microsoft jest całkowicie dobrowolna i wymaga Twojej wyraźnej, aktywnej zgody w procesie OAuth.
             </Li>
             <Li>
-              <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – monitorowanie działania i logi błędów służące zapewnieniu stabilności aplikacji.
+              <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) - monitorowanie działania i logi błędów służące zapewnieniu stabilności aplikacji.
             </Li>
           </ul>
         </Section>
@@ -96,13 +98,13 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 list-none">
             <Li>
-              <strong>Supabase Inc.</strong> – dostawca bazy danych i systemu uwierzytelniania. 
+              <strong>Supabase Inc.</strong> - dostawca bazy danych i systemu uwierzytelniania. 
             </Li>
             <Li>
-              <strong>Vercel Inc.</strong> – bezpieczny hosting infrastruktury serwerowej aplikacji.
+              <strong>Vercel Inc.</strong> - bezpieczny hosting infrastruktury serwerowej aplikacji.
             </Li>
             <Li>
-              <strong>Alphabet Inc. / Microsoft Corp.</strong> – bezpośrednia komunikacja z serwerami dostawców przy autoryzacji i synchronizacji
+              <strong>Alphabet Inc. / Microsoft Corp.</strong> - bezpośrednia komunikacja z serwerami dostawców przy autoryzacji i synchronizacji
             </Li>
           </ul>
         </Section>
@@ -111,7 +113,7 @@ export default function PrivacyPage() {
           <p className="mb-3">Zgodnie z przepisami prawa (m.in. RODO), przysługuje Ci prawo do:</p>
           <ul className="space-y-2 list-none">
             <Li><strong>Dostępu</strong> do swoich danych oraz <strong>sprostowania</strong> danych nieprawidłowych.</Li>
-            <Li><strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong> – w każdej chwili możesz zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.</Li>
+            <Li><strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong> - w każdej chwili możesz zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.</Li>
             <Li><strong>Ograniczenia przetwarzania</strong> oraz <strong>przenoszenia danych</strong>.</Li>
             <Li><strong>Cofnięcia zgody</strong> na integracje zewnętrzne bez wpływu na zgodność z prawem przetwarzania przed jej cofnięciem.</Li>
             <Li><strong>Wniesienia skargi</strong> do Prezesa Urzędu Ochrony Danych Osobowych (PUODO).</Li>
@@ -134,9 +136,9 @@ export default function PrivacyPage() {
 
         <Section title="9. Okres przechowywania danych">
           <ul className="space-y-2 list-none">
-            <Li>Dane podstawowe (treści użytkownika) – przez czas istnienia konta w aplikacji.</Li>
-            <Li>Tokeny integracji kalendarzowych – wyłącznie do momentu odłączenia kalendarza lub usunięcia konta głównego.</Li>
-            <Li>Logi błędów systemowych – maksymalnie do 30 dni.</Li>
+            <Li>Dane podstawowe (treści użytkownika) - przez czas istnienia konta w aplikacji.</Li>
+            <Li>Tokeny integracji kalendarzowych - wyłącznie do momentu odłączenia kalendarza lub usunięcia konta głównego.</Li>
+            <Li>Logi błędów systemowych - maksymalnie do 30 dni.</Li>
           </ul>
         </Section>
 

@@ -1,3 +1,5 @@
+﻿// pages/_document.tsx
+
 import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
 
 interface MyDocumentProps {
@@ -28,6 +30,7 @@ export default class MyDocument extends Document<MyDocumentProps> {
           <meta name="msapplication-TileColor" content="#2563EB" />
           <meta name="msapplication-navbutton-color" content="#2563EB" />
           <link rel="icon" href="/favicon.ico" />
+          <meta name="csp-nonce" content={nonce} />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
@@ -38,7 +41,7 @@ export default class MyDocument extends Document<MyDocumentProps> {
         </Head>
         <body className="bg-background text-text transition-colors duration-300 p-4">
           <Main />
-          <NextScript nonce={nonce} />
+          <NextScript />
         </body>
       </Html>
     );

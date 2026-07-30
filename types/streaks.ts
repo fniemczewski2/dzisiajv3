@@ -1,3 +1,5 @@
+﻿// types/streaks.ts
+
 export interface Streak {
   id: string;
   user_id: string;

@@ -1,3 +1,5 @@
+﻿// components/budget/SummaryTable.tsx
+
 import React from "react";
 import { MonthData } from "@/types/bills";
 

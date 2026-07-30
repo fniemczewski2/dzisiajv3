@@ -1,6 +1,5 @@
-// hooks/usePushNotifications.ts
+﻿// hooks/db/usePushNotifications.ts
 
-'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'

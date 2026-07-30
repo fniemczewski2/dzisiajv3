@@ -1,3 +1,5 @@
+﻿// hooks/useDragSelectGrid.ts
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface DragSelectGridOptions {

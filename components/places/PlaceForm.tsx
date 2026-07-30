@@ -1,3 +1,5 @@
+﻿// components/places/PlaceForm.tsx
+
 import React, { useState } from "react";
 import { Place, OpeningHours } from "@/types/places";
 import { FormButtons } from "../ui/CommonButtons";

@@ -1,4 +1,4 @@
-"use client";
+﻿// components/letters/LetterList.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, Upload, Eye } from "lucide-react";
@@ -152,7 +152,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
               <li key={l.id} className="bg-card border border-primary dark:border-primary rounded-2xl shadow-lg p-5 animate-in fade-in">
                 <div className="space-y-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-textMuted">
-                    Sygnatura {edited.signature} — kategorii i sygnatury nie można zmienić po utworzeniu.
+                    Sygnatura {edited.signature} - kategorii i sygnatury nie można zmienić po utworzeniu.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -265,7 +265,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                     </div>
                     <div>
                       <dt className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Termin odpowiedzi</dt>
-                      <dd className="text-text">{l.response_date ?? "—"}</dd>
+                      <dd className="text-text">{l.response_date ?? "-"}</dd>
                     </div>
                     {l.license_plate_number && (
                       <div>

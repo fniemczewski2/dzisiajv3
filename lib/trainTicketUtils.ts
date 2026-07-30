@@ -1,3 +1,5 @@
+﻿// lib/trainTicketUtils.ts
+
 import { useToast } from "@/providers/ToastProvider";
 import { TicketFormData } from "@/types/transport";
 import { useState, ChangeEvent } from "react";

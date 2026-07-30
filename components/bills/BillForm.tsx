@@ -1,4 +1,4 @@
-"use client";
+﻿// components/bills/BillForm.tsx
 
 import React, { useEffect, useState, SyntheticEvent } from "react";
 import { Minus, Plus, RefreshCw } from "lucide-react";

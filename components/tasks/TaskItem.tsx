@@ -1,4 +1,4 @@
-"use client";
+﻿// components/tasks/TaskItem.tsx
 
 import React, { useState, useRef, useEffect, memo } from "react";
 import { format, parseISO, addDays } from "date-fns";

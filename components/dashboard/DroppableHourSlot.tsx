@@ -1,4 +1,4 @@
-"use client";
+﻿// components/dashboard/DroppableHourSlot.tsx
 
 import React from "react";
 import { useDroppable } from '@dnd-kit/core';

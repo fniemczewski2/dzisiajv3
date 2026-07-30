@@ -1,3 +1,5 @@
+﻿// pages/sitemap.xml.ts
+
 import type { GetServerSideProps } from "next";
 
 const BASE_URL = "https://dzisiaj.fun";

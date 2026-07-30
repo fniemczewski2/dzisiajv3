@@ -1,4 +1,5 @@
-// hooks/useVersion.ts
+﻿// hooks/useVersion.ts
+
 import { useState, useEffect } from "react";
 import {
   getGitHubApiUrl,

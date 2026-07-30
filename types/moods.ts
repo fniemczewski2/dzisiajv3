@@ -1,3 +1,5 @@
+﻿// types/moods.ts
+
 
 export interface MoodOption {
   id: string;

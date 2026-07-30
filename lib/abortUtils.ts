@@ -1,4 +1,4 @@
-// lib/abortUtils.ts
+﻿// lib/abortUtils.ts
 
 export function isAbortError(error: unknown): boolean {
   if (error instanceof DOMException && error.name === "AbortError") return true;

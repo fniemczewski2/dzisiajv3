@@ -1,4 +1,4 @@
-"use client";
+﻿// components/widgets/HabitIcons.tsx
 
 import {
   Pill, Bath, Dumbbell, Users,

@@ -1,3 +1,5 @@
+﻿// pages/packing/index.tsx
+
 import React from "react";
 import { Backpack, Briefcase, Siren } from "lucide-react";
 import { useRouter } from "next/router";

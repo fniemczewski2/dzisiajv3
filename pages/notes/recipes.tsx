@@ -1,3 +1,5 @@
+﻿// pages/notes/recipes.tsx
+
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
 import { SkeletonList } from "@/components/ui/Skeleton";

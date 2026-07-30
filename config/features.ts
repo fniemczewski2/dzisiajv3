@@ -1,4 +1,5 @@
-// config/features.ts
+﻿// config/features.ts
+
 import { 
   Backpack, 
   Bell, 
@@ -280,7 +281,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Cyfrowa Wizytówka",
-        description: "Stwórz wizytówkę z kodem QR i udostępnij ją publicznym linkiem — nawet osobom bez konta w aplikacji.",
+        description: "Stwórz wizytówkę z kodem QR i udostępnij ją publicznym linkiem - nawet osobom bez konta w aplikacji.",
         icon: IdCard,
         category: "Narzędzia",
         path: "/profiles",

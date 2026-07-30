@@ -1,3 +1,5 @@
+﻿// components/settings/Version.tsx
+
 import { Info } from "lucide-react";
 import { useVersion } from "@/hooks/useVersion";
 

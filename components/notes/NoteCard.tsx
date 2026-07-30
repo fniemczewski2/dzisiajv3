@@ -1,5 +1,5 @@
-// components/notes/NoteCard.tsx
-"use client";
+﻿// components/notes/NoteCard.tsx
+
 import React from "react";
 import clsx from "clsx";
 import { Pin, Archive } from "lucide-react";

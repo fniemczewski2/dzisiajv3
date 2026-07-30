@@ -1,4 +1,4 @@
-"use client";
+﻿// components/budget/BudgetOverview.tsx
 
 import React, { useState } from "react";
 import type { SummaryItem } from "@/types/bills";
@@ -124,7 +124,7 @@ export default function BudgetOverview({
         <ProgressBar spent={totalSpent} planned={totalPlanned} max={totalLimit} />
         {isYear && totalIncome > 0 && (
           <p className="text-xs text-textMuted mt-1.5 text-right">
-            Przychody: {totalIncome.toFixed(0)} zł · Saldo: {(totalIncome - totalSpent - totalPlanned).toFixed(0)} zł
+            Przychody: {totalIncome.toFixed(0)} zł • Saldo: {(totalIncome - totalSpent - totalPlanned).toFixed(0)} zł
           </p>
         )}
         {!isYear && (

@@ -1,4 +1,5 @@
-// hooks/useBudget.ts
+﻿// hooks/db/useBudget.ts
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";

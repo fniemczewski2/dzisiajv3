@@ -1,3 +1,5 @@
+﻿// pages/api/outlook-calendar/index.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { randomBytes } from 'node:crypto';
@@ -177,13 +179,13 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supab
   }
 }
 
-/** Eksport zdarzeń APLIKACJI do Outlook — parytet z `handleExport` w
+/** Eksport zdarzeń APLIKACJI do Outlook - parytet z `handleExport` w
  * pages/api/google-calendar/index.ts. Potrzebne m.in. przez finalizację
  * ankiet ("Zespołowe ustalanie terminów"): po utworzeniu wydarzenia w
  * tabeli `events`, organizator może je jednym kliknięciem dopchnąć też do
  * swojego kalendarza Outlook. `google_event_id` jest tu (jak w reszcie
  * aplikacji) reużywane jako uniwersalna kolumna na ID zdarzenia u
- * ZEWNĘTRZNEGO dostawcy, niezależnie czy to Google czy Microsoft. */
+ * ZEWNÄTRZNEGO dostawcy, niezależnie czy to Google czy Microsoft. */
 async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona' });
 

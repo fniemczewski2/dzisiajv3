@@ -1,3 +1,5 @@
+﻿// pages/notes/reports.tsx
+
 import React, { useState, useRef, useEffect } from "react";
 import { X, Plus } from "lucide-react";
 import { useReports } from "@/hooks/db/useReports";
@@ -56,7 +58,7 @@ function ReportViewRow({
                   <span className="text-primary">•</span>
                   <span>
                     <span className="font-medium text-text">{task.zadanie}</span>
-                    {task.osoba && ` — ${task.osoba}`}
+                    {task.osoba && ` - ${task.osoba}`}
                     {task.data && <span className="text-textMuted text-xs ml-1">({task.data})</span>}
                   </span>
                 </li>

@@ -1,3 +1,5 @@
+﻿// lib/budgetUtils.ts
+
 import { BudgetCategory } from "@/types/bills";
 
 export const calculateExpectedYearlyLimit = (

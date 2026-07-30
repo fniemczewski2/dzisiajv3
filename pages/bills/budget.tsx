@@ -1,4 +1,4 @@
-// pages/bills/budget.tsx
+﻿// pages/bills/budget.tsx
 
 import React, { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Coins } from "lucide-react";

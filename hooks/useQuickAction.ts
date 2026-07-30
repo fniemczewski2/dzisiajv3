@@ -1,4 +1,4 @@
-// hooks/useQuickAction.ts
+﻿// hooks/useQuickAction.ts
 
 import { useRouter } from "next/router";
 import { useEffect } from "react";

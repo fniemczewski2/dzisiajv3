@@ -1,3 +1,5 @@
+﻿// pages/api/google-calendar/index.ts
+
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";

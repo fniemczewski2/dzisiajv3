@@ -1,3 +1,5 @@
+﻿// components/dashboard/DayStreaks.tsx
+
 import React from 'react';
 import { Streak } from '@/types/streaks';
 

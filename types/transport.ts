@@ -1,3 +1,5 @@
+﻿// types/transport.ts
+
 export interface Departure {
   line: string;
   direction: string;

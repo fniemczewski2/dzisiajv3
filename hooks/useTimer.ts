@@ -1,4 +1,4 @@
-// hooks/useTimerEngine.ts
+﻿// hooks/useTimer.ts
 
 import { useEffect, useRef, useState } from "react";
 import type { TimerPhase } from "@/components/ui/Timer";

@@ -1,3 +1,5 @@
+﻿// lib/imgUtils.ts
+
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useState } from "react";

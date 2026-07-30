@@ -1,4 +1,5 @@
-"use client";
+﻿// pages/weather.tsx
+
 import {
   Sun,
   CloudSun,
@@ -270,7 +271,7 @@ export default function WeatherPage() {
                 <WeatherIcon code={forecast.daily.weathercode[i + 1]} />
               </div>
               <p className="text-base font-semibold text-text">
-                {forecast.daily.temperature_2m_min[i + 1]}° – {forecast.daily.temperature_2m_max[i + 1]}°
+                {forecast.daily.temperature_2m_min[i + 1]}° - {forecast.daily.temperature_2m_max[i + 1]}°
               </p>
             </div>
           ))}

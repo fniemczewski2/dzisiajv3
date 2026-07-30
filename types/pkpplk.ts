@@ -1,3 +1,5 @@
+﻿// types/pkpplk.ts
+
 export interface Station {
   id: string;
   name: string;

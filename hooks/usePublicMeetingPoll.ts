@@ -1,4 +1,4 @@
-// hooks/usePublicMeetingPoll.ts
+﻿// hooks/usePublicMeetingPoll.ts
 
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/providers/ToastProvider";

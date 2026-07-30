@@ -1,4 +1,4 @@
-"use client";
+﻿// components/settings/InstallButton.tsx
 
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";

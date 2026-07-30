@@ -1,4 +1,5 @@
-// hooks/useProfiles.ts
+﻿// hooks/db/useProfiles.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';

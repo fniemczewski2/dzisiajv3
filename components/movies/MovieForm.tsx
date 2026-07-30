@@ -1,4 +1,5 @@
-"use client";
+﻿// components/movies/MovieForm.tsx
+
 import React, { useState } from "react";
 import Image from "next/image";
 import { Loader2, Search } from "lucide-react";
@@ -180,7 +181,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
                         )}
                       </p>
                       {movie.vote_average > 0 && (
-                        <p className="text-sm text-accent">⭐ {movie.vote_average.toFixed(1)}/10</p>
+                        <p className="text-sm text-accent">{movie.vote_average.toFixed(1)}/10</p>
                       )}
                       {movie.overview && (
                         <p className="text-xs text-textSecondary mt-1 line-clamp-2">{movie.overview}</p>
@@ -209,7 +210,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
           />
         </div>
         <div>
-          <label htmlFor="new-movie-rating" className="form-label">Ocena (0–10):</label>
+          <label htmlFor="new-movie-rating" className="form-label">Ocena (0-10):</label>
           <input 
             id="new-movie-rating"
             type="number" 

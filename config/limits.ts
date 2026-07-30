@@ -1,3 +1,5 @@
+﻿// config/limits.ts
+
 export const MAX_SHOPPING_LISTS = 5;
 export const MAX_FAVORITE_STOPS = 10;
 export const MAX_CATEGORIES = 20;

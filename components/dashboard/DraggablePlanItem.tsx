@@ -1,4 +1,4 @@
-"use client";
+﻿// components/dashboard/DraggablePlanItem.tsx
 
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";

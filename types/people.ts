@@ -1,3 +1,5 @@
+﻿// types/people.ts
+
 export interface Person {
   id: string;
   user_id: string;

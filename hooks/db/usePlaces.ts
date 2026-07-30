@@ -1,3 +1,5 @@
+﻿// hooks/db/usePlaces.ts
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Place, PlaceInsert, OpeningHours, GoogleMapsImportData } from "@/types/places";
 import { generatePlaceTags } from "@/lib/placeTagging";
@@ -172,7 +174,7 @@ export function usePlaces() {
         const hour = Number.parseInt(h, 10);
         return `${hour === 12 ? 12 : hour + 12}:${m}`;
       })
-      .replaceAll("–", "-")
+      .replaceAll("-", "-")
       .replaceAll(/\s/g, "");
 
     return [converted];

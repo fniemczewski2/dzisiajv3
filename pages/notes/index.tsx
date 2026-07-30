@@ -1,4 +1,4 @@
-"use client";
+﻿// pages/notes/index.tsx
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";

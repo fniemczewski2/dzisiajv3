@@ -1,4 +1,4 @@
-"use client";
+﻿// components/settings/NotificationPreferencesForm.tsx
 
 import React, { useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";

@@ -1,4 +1,4 @@
-"use client"; 
+﻿// components/places/ImportPlaces.tsx
 
 import React, { useState } from "react";
 import { MapPin, Tag, ExternalLink, Info, ChevronDown, ChevronUp, Upload } from "lucide-react";
