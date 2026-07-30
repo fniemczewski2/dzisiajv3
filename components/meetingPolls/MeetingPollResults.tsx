@@ -10,6 +10,7 @@ import { generateTimeSlots, addMinutesToTime, slotKey } from "@/lib/meetingPollG
 import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
 import type { MeetingPollResults as MeetingPollResultsData, FinalizeSlotInput, FinalizeResultSlot } from "@/types/meetingPolls";
 import NoResultsState from "../ui/NoResultsState";
+import MeetingPollRespondents from "./MeetingPollRespondents";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 
 interface MeetingPollResultsProps {
@@ -147,10 +148,20 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     return set;
   }, [data]);
 
-  const selectionAvailableCount = useMemo(() => {
-    if (!selection || !data) return 0;
-    const requiredKeys = times.slice(selection.startIndex, selection.endIndex + 1).map((t) => slotKey(selection.date, t));
-    return data.responses.filter((r) => requiredKeys.every((k) => availabilitySet.has(`${r.id}|${k}`))).length;
+  const selectionAvailability = useMemo(() => {
+    const available: string[] = [];
+    const unavailable: string[] = [];
+    if (!selection || !data) return { available, unavailable };
+
+    const requiredKeys = times
+      .slice(selection.startIndex, selection.endIndex + 1)
+      .map((t) => slotKey(selection.date, t));
+
+    for (const r of data.responses) {
+      const isFree = requiredKeys.every((k) => availabilitySet.has(`${r.id}|${k}`));
+      (isFree ? available : unavailable).push(r.respondent_name);
+    }
+    return { available, unavailable };
   }, [selection, data, times, availabilitySet]);
 
   const addSelectionToPending = () => {
@@ -266,6 +277,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                         key={date}
                         {...cellHandlers(date, String(timeIndex))}
                         title={names.length > 0 ? names.join(", ") : "Nikt niedostępny"}
+                        aria-label={`${date} ${time}: ${
+                          names.length > 0 ? `dostępni - ${names.join(", ")}` : "nikt niedostępny"
+                        }`}
                         className={`w-12 h-8 text-center text-xs font-semibold cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
                           isSelected ? "ring-2 ring-primary ring-inset" : ""
                         } ${cellClass(count)}`}
@@ -281,13 +295,32 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
         </div>
       )}
 
+      <MeetingPollRespondents
+        responses={data.responses}
+        availabilities={data.availabilities}
+        slotDurationMinutes={data.poll.slot_duration_minutes}
+      />
+
       {selection && (
         <div className="form-card space-y-3">
           <p className="text-sm text-text">
             <strong>{selection.date}</strong>, {times[selection.startIndex]}-
             {addMinutesToTime(times[selection.endIndex], data.poll.slot_duration_minutes)} - dostępnych:{" "}
-            <strong>{selectionAvailableCount}</strong> / {totalResponses}
+            <strong>{selectionAvailability.available.length}</strong> / {totalResponses}
           </p>
+
+          {selectionAvailability.available.length > 0 && (
+            <p className="text-sm text-text">
+              <span className="text-textMuted">Dostępni: </span>
+              {selectionAvailability.available.join(", ")}
+            </p>
+          )}
+          {selectionAvailability.unavailable.length > 0 && (
+            <p className="text-sm text-textSecondary">
+              <span className="text-textMuted">Niedostępni: </span>
+              {selectionAvailability.unavailable.join(", ")}
+            </p>
+          )}
 
           <div>
             <label htmlFor="slot-title" className="form-label">Tytuł wydarzenia:</label>

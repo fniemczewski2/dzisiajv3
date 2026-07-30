@@ -363,6 +363,12 @@ export const guideSections: GuideSection[] = [
         <K>Wyniki.</K> Widok wyników to mapa cieplna - im ciemniejsze pole, tym więcej osób jest dostępnych w danym slocie.
       </>,
       <>
+        <K>Kto wypełnił ankietę.</K> Pod siatką znajdziesz listę uczestników z adresem e-mail, godziną wypełnienia i łączną liczbą godzin dostępności. Adresy wszystkich uczestników skopiujesz jednym kliknięciem.
+      </>,
+      <>
+        <K>Kto jest wolny w danym terminie.</K> Kliknij lub przeciągnij po polach siatki - pod nią pojawi się imienna lista osób dostępnych i niedostępnych w wybranym przedziale.
+      </>,
+      <>
         <K>Finalizacja.</K> Wybierz zwycięski termin, a aplikacja utworzy wydarzenie w Twoim kalendarzu oraz w kalendarzach uczestników, którzy mają konto w aplikacji.
       </>,
     ],
