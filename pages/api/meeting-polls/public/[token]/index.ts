@@ -1,12 +1,5 @@
 // pages/api/meeting-polls/public/[token]/index.ts
-//
-// PUBLICZNY endpoint (bez logowania) — jedyna droga, którą uczestnik może
-// odczytać dane ankiety. Celowo NIE idzie przez bezpośrednie zapytanie
-// klienckie z kluczem anon: RLS na `meeting_polls` pozwala na SELECT
-// wyłącznie właścicielowi (auth.uid() = user_id), więc ten route używa
-// klucza SERWISOWEGO (bypass RLS z premedytacją) i sam, w kodzie aplikacji,
-// filtruje po share_token — zwracając WYŁĄCZNIE pola bezpieczne do pokazania
-// komukolwiek z linkiem (nigdy: user_id organizatora, cudze odpowiedzi).
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import type { PublicMeetingPoll } from "@/types/meetingPolls";

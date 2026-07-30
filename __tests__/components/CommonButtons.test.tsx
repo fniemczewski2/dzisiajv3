@@ -35,8 +35,6 @@ describe("SaveButton", () => {
 });
 
 describe("FormButtons", () => {
-  // Regresja: FormButtons kiedyś nie przekazywał `loading` do SaveButton,
-  // przez co spinner zapisu nigdy się nie pokazywał w żadnym formularzu.
   it("propagates the loading state down to the inner SaveButton", () => {
     render(<FormButtons loading onClickSave={() => {}} onClickClose={() => {}} />);
     const saveButton = screen.getByRole("button", { name: "zapisz" });
@@ -59,8 +57,6 @@ describe("FormButtons", () => {
   it("disables both buttons while loading, even without addMany", () => {
     render(<FormButtons loading onClickClose={() => {}} />);
     expect(screen.getByRole("button", { name: "zapisz" })).toBeDisabled();
-    // CloseButton nie blokuje się na `loading`, tylko na `disabled` — sprawdzamy,
-    // że nie rzuca błędu i renderuje się poprawnie obok zablokowanego Zapisz.
     expect(screen.getByRole("button", { name: "zamknij" })).toBeInTheDocument();
   });
 });

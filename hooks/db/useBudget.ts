@@ -27,11 +27,6 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
 
   const { toast } = useToast();
   const withRetry = useRetry();
-  // Jeden sygnał na całe loadData(): fetchRates + fetchMonthData(...) dla
-  // wszystkich miesięcy to jedna logiczna operacja odświeżenia — nowe
-  // wywołanie loadData (np. zmiana roku) przerywa WSZYSTKIE poprzednie
-  // zapytania naraz. Signal jest przekazywany jako parametr, bo fetchRates
-  // i fetchMonthData nie są eksponowane na zewnątrz hooka (tylko loadData).
   const { getSignal } = useAbortController();
 
   const fetchMonthData = useCallback(

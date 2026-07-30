@@ -1,14 +1,14 @@
 // pages/meet/[token].tsx
-//
-// PUBLICZNA strona (patrz proxy.ts: /meet/ jest na liście tras dostępnych
-// bez logowania). Cała komunikacja idzie przez hooks/usePublicMeetingPoll.ts,
-// które rozmawia wyłącznie z pages/api/meeting-polls/public/*, nigdy
-// bezpośrednio z Supabase kluczem anon.
+
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import { SkeletonSlotGrid } from "@/components/ui/Skeleton";
 
-const PublicPollForm = dynamic(() => import("@/components/meetingPolls/PublicPollForm"), { ssr: false });
+const PublicPollForm = dynamic(() => import("@/components/meetingPolls/PublicPollForm"), {
+  ssr: false,
+  loading: () => <SkeletonSlotGrid />,
+});
 
 export default function PublicMeetingPollPage() {
   const router = useRouter();

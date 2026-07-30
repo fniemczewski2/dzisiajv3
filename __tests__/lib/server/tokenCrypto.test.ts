@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const VALID_KEY = Buffer.alloc(32, 7).toString("base64"); // 32-bajtowy klucz w base64
+const VALID_KEY = Buffer.alloc(32, 7).toString("base64"); 
 
 describe("lib/server/tokenCrypto", () => {
   const originalKey = process.env.CALENDAR_TOKEN_ENCRYPTION_KEY;
@@ -49,7 +49,7 @@ describe("lib/server/tokenCrypto", () => {
   });
 
   it("throws when the key is not a 32-byte base64 value", async () => {
-    process.env.CALENDAR_TOKEN_ENCRYPTION_KEY = Buffer.alloc(16).toString("base64"); // za krótki
+    process.env.CALENDAR_TOKEN_ENCRYPTION_KEY = Buffer.alloc(16).toString("base64"); 
     const { encryptToken } = await import("@/lib/server/tokenCrypto");
 
     expect(() => encryptToken("secret")).toThrow(/32 bajtów/);

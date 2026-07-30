@@ -49,8 +49,6 @@ export interface SchedulesResponse {
 export interface OperationsResponse {
   trainStatus?: string;
   trains?: TrainOperation[];
-  // Słownik id stacji -> nazwa, zwracany przez endpoint /operations (inny kształt
-  // niż tablica Station[] ze /dictionaries/stations).
   stations?: Record<string, string>;
 }
 

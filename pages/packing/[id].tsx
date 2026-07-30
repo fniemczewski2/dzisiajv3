@@ -16,6 +16,8 @@ export default function DynamicPackingPage() {
         return { pageTitle: "Plecak Bezpieczeństwa | Dzisiaj.Fun", headerTitle: "Plecak Bezpieczeństwa", categories: SAFETY };
       case "suitcase":
         return { pageTitle: "Walizka | Dzisiaj.Fun", headerTitle: "Walizka", categories: SUITCASE };
+      case undefined:
+        return null;
       default:
         return null;
     }

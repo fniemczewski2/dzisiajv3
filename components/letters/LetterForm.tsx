@@ -31,10 +31,6 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
   const isTrafficViolation = category === "Wykroczenie drogowe";
   const isOtherCategory = category === "Inne";
 
-  // Podpowiedź terminu odpowiedzi przelicza się przy zmianie kategorii lub
-  // daty wystawienia — ale tylko dopóki użytkownik sam nie dotknął pola
-  // response_date. Ręczna zmiana wyłącza dalsze automatyczne nadpisywanie,
-  // żeby nie "walczyć" z użytkownikiem, który celowo koryguje termin.
   const applyCategory = (next: LetterCategory) => {
     setCategory(next);
     if (!responseDateTouched) {

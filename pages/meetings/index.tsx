@@ -6,7 +6,10 @@ import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import Seo from "@/components/ui/SEO";
 
 const MeetingPollForm = dynamic(() => import("@/components/meetingPolls/MeetingPollForm"), { ssr: false });
-const MeetingPollList = dynamic(() => import("@/components/meetingPolls/MeetingPollList"), { ssr: false });
+const MeetingPollList = dynamic(() => import("@/components/meetingPolls/MeetingPollList"), {
+  ssr: false,
+  loading: () => <SkeletonList count={3} variant="card" />,
+});
 
 export default function MeetingsPage() {
   const [showForm, setShowForm] = useState(false);

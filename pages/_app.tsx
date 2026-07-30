@@ -1,30 +1,26 @@
 // pages/_app.tsx
 import { useEffect } from "react";
-import type { AppProps } from "next/app";
+import App, { type AppContext, type AppProps } from "next/app";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import "../styles/globals.css";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
-import CookieBanner from "@/components/CookieBanner"; 
+import CookieBanner from "@/components/CookieBanner";
 import Layout from "@/components/ui/Layout";
 
-// Font self-hostowany przez next/font (zero zapytań do Google Fonts,
-// zero CLS). Wcześniej globals.css deklarował "Inter Variable", ale font
-// nigdy nie był ładowany — aplikacja renderowała systemowy sans-serif,
-// a preconnecty w _document były martwe.
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   display: "swap",
   variable: "--font-inter",
 });
 
-export default function MyApp({ Component, pageProps }: AppProps) {
-  // Rejestracja Service Workera GLOBALNIE, dla każdego użytkownika.
-  // Wcześniej działa się tylko w usePushNotifications (strona ustawień),
-  // więc kto nie wszedł w ustawienia, nie miał SW — czyli ani offline,
-  // ani instalowalnego PWA.
+interface MyAppProps extends AppProps {
+  nonce?: string;
+}
+
+export default function MyApp({ Component, pageProps, nonce }: MyAppProps) {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
@@ -34,12 +30,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem nonce={nonce}>
       <ErrorBoundary>
         <AuthProvider>
           <ToastProvider>
             <div className={`${inter.variable} contents`}>
-              <Layout>            
+              <Layout>
                 <Component {...pageProps} />
                 <CookieBanner />
               </Layout>
@@ -50,3 +46,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     </ThemeProvider>
   );
 }
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const nonce = appContext.ctx.res?.getHeader("x-nonce") as string | undefined;
+  return { ...appProps, nonce };
+};

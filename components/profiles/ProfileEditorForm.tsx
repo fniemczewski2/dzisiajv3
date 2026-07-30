@@ -18,7 +18,6 @@ import {
 import { useImages } from '@/lib/imgUtils';
 import { VCardProfile, NewVCardProfile } from '@/types/profiles';
 
-// Importowane, aby generować unikalne ID dla list (rozwiązuje problem z focusem)
 import { v4 as uuidv4 } from 'uuid';
 
 interface ProfileEditorFormProps {
@@ -42,8 +41,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     color_dark: initialData?.color_dark || '#171717',
     is_public: initialData?.is_public || false,
     public_slug: initialData?.public_slug || '',
-    
-    // Dodajemy unikalne id (_id) wewnętrznie dla Reacta, żeby rozwiązać problem focusa
+
     phones: (initialData?.phones || []).map(p => ({ ...p, _id: uuidv4() })),
     emails: (initialData?.emails || []).map(e => ({ ...e, _id: uuidv4() })),
     addresses: (initialData?.addresses || []).map(a => ({ ...a, _id: uuidv4() })),
@@ -108,7 +106,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     setFormData(prev => ({ ...prev, public_slug: formatted }));
   };
 
-  // Dodawanie elementów (dodajemy _id)
   const addPhone = () => setFormData(p => ({ ...p, phones: [...p.phones, { type: 'Komórka', number: '', _id: uuidv4() }] }));
   const updatePhone = (index: number, field: string, value: string) => { const newPhones = [...formData.phones]; newPhones[index] = { ...newPhones[index], [field]: value }; setFormData(p => ({ ...p, phones: newPhones })); };
   const removePhone = (index: number) => setFormData(p => ({ ...p, phones: p.phones.filter((_, i) => i !== index) }));
@@ -189,7 +186,6 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         url: item.url.trim()
       }));
 
-    // Usuwamy _id przed wysyłką do bazy (opcjonalne)
     const cleanData = {
       ...formData,
       phones: formData.phones.map(({_id, ...rest}) => rest),

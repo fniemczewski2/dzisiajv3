@@ -1,27 +1,5 @@
 // pages/api/meeting-polls/public/[token]/respond.ts
-//
-// PUBLICZNY endpoint (bez logowania) do zapisu/edycji odpowiedzi uczestnika.
-// Jedyna droga zapisu do meeting_poll_responses/meeting_poll_availabilities
-// — te tabele NIE MAJĄ żadnej polityki RLS insert/update dla nikogo (ani
-// anon, ani zalogowanych), więc zapis idzie tu przez klucz serwisowy, PO
-// walidacji w kodzie aplikacji:
-//   - ankieta o podanym share_token istnieje i ma status 'open',
-//   - wszystkie przesłane sloty mieszczą się w dozwolonej siatce ankiety
-//     (klient mógłby przysłać cokolwiek — nie ufamy samym wartościom),
-//   - respondent_name jest niepuste.
-//
-// Jeśli w żądaniu jest ciasteczko sesji Supabase (uczestnik akurat jest
-// zalogowany w tej samej przeglądarce/domenie, choć strona TEGO nie
-// wymaga), automatycznie dopinamy jego user_id do odpowiedzi — dzięki
-// temu finalizacja terminu (patrz [id]/finalize.ts) może później dopisać
-// wydarzenie także do JEGO kalendarza. Nigdy nie ufamy user_id z body.
-//
-// EDYCJA: jeśli w body przyjdzie `edit_token` pasujący do istniejącej
-// odpowiedzi W TEJ ankiecie, aktualizujemy ją (usuń stare sloty, wstaw
-// nowe) zamiast tworzyć duplikat. `edit_token` jest zwracany uczestnikowi
-// przy pierwszym zapisie i trzymany w jego przeglądarce (localStorage) —
-// to jego "hasło" do własnej odpowiedzi, analogiczne do share_token całej
-// ankiety, weryfikowane tu w kodzie, nie przez RLS.
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -33,18 +11,13 @@ import type {
 } from "@/types/meetingPolls";
 
 const MAX_RESPONDENT_NAME_LENGTH = 100;
-const MAX_SLOTS_PER_RESPONSE = 500; // sanity cap — nawet bardzo szeroka siatka nie zbliża się do tego
+const MAX_SLOTS_PER_RESPONSE = 500; 
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
 );
 
-/** Zwraca WŁASNĄ (i tylko własną) odpowiedź uczestnika po edit_token —
- * potrzebne, żeby formularz mógł się wypełnić poprzednim wyborem, gdy
- * uczestnik wraca edytować swoją dostępność. Token jest dodatkowo
- * scope'owany do share_token z URL-a (nie tylko globalnie unikalny), żeby
- * literówka/pomyłka nie ujawniła odpowiedzi z zupełnie innej ankiety. */
 async function handleGet(req: NextApiRequest, res: NextApiResponse, token: string) {
   const editToken = req.query.edit_token;
   if (!editToken || typeof editToken !== "string") {
@@ -120,9 +93,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   if (datesError) {
     return res.status(500).json({ error: "Błąd walidacji terminów ankiety." });
   }
-
-  // Nigdy nie ufamy slotom przysłanym przez klienta — muszą mieścić się
-  // dokładnie w siatce zbudowanej z parametrów TEJ ankiety.
   const allowed = buildAllowedSlotSet(
     (dateRows ?? []).map((d) => d.date as string),
     poll.time_start,
@@ -134,8 +104,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
     return res.status(400).json({ error: "Co najmniej jeden zaznaczony termin jest spoza siatki ankiety." });
   }
 
-  // Automatyczne dopięcie user_id, TYLKO jeśli uczestnik ma aktywną sesję —
-  // nigdy z danych przesłanych przez klienta.
   let sessionUserId: string | null = null;
   try {
     const sessionClient = createServerSupabase(req, res);
@@ -168,8 +136,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
       return res.status(500).json({ error: "Błąd zapisu odpowiedzi." });
     }
 
-    // Prościej i bezpieczniej niż diff: usuń wszystkie stare sloty i wstaw
-    // nowe w jednej operacji — liczba slotów per uczestnik jest mała.
     const { error: deleteError } = await supabaseAdmin
       .from("meeting_poll_availabilities")
       .delete()
@@ -210,11 +176,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
 
   const { error: availError } = await supabaseAdmin.from("meeting_poll_availabilities").insert(rows);
   if (availError) {
-    // Odpowiedź istnieje, ale bez slotów — sprzątamy, żeby nie zostawić
-    // "pustego" wiersza uczestnika w wynikach organizatora. Dla ścieżki
-    // edycji nie usuwamy CAŁEJ odpowiedzi (respondent mógłby stracić
-    // swój edit_token po stronie serwera), tylko zgłaszamy błąd — klient
-    // pokaże komunikat i pozwoli spróbować ponownie z tym samym edit_token.
     if (!editToken) {
       await supabaseAdmin.from("meeting_poll_responses").delete().eq("id", responseId);
     }

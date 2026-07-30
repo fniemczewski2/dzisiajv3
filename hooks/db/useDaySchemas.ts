@@ -1,13 +1,5 @@
 // hooks/useDaySchemas.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2.
-//
-// UWAGA TYPÓW: `Schema.id` jest opcjonalne w types/schemas.ts (id?: string),
-// a fabryka wymaga `T extends { id: string }` (id zawsze obecne — to właśnie
-// to, co zapewnia jej logika tempId/rollback). Wewnętrznie hook operuje więc
-// na `SchemaRow` (Schema z wymaganym id) — bezpieczne zawężenie, bo każdy
-// wiersz z bazy i każdy optymistyczny wpis faktycznie ma id. `SchemaRow[]`
-// jest strukturalnie zgodne z `Schema[]` wszędzie, gdzie ten typ był używany.
+
 import { useCallback } from "react";
 import { Schema, ScheduleItem } from "@/types/schemas";
 import { useCrudResource } from "./useCrudResource";

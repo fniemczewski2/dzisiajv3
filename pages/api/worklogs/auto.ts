@@ -22,10 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Server configuration error." });
   }
 
-  // Sekret w nagłówku, nie w body — body częściej trafia do logów, narzędzi
-  // typu request inspector i historii Shortcuts.
-  // TODO(migracja): fallback na `secret` z body zostawiony tymczasowo dla
-  // istniejących Shortcuts — po zaktualizowaniu ich na nagłówek usuń go.
   const headerSecret = req.headers['x-api-secret'];
   const providedSecret =
     (typeof headerSecret === 'string' ? headerSecret : '') ||
@@ -38,8 +34,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
-  // Sekret autoryzuje operacje na wskazanym userId, więc przynajmniej
-  // walidujemy format zanim dotkniemy bazy kluczem serwisowym.
   const validUserId = validateUuid(userId);
   if (!validUserId || !action) {
     return res.status(400).json({ error: 'No required data.' });

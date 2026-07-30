@@ -241,8 +241,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
         start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: 'Europe/Warsaw' },
         end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: 'Europe/Warsaw' },
       };
-      // Aktualizacja istniejącego zdarzenia u Microsoftu adresuje się przez
-      // /me/events/{id} (bez calendarId w ścieżce) — inaczej niż przy create.
       const method = ev.google_event_id ? 'PATCH' : 'POST';
       const endpoint = ev.google_event_id
         ? `https://graph.microsoft.com/v1.0/me/events/${ev.google_event_id}`

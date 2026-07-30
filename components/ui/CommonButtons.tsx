@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { 
-  PlusCircleIcon, 
-  Trash2, 
-  Edit2, 
-  ChevronsRight, 
+import { cva } from "class-variance-authority";
+import {
+  PlusCircleIcon,
+  Trash2,
+  Edit2,
+  ChevronsRight,
   Timer,
-  Save, 
+  Save,
   Share,
   Check,
   Archive,
@@ -144,7 +145,7 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Read
 export const CopyButtonSmall = ({ text, label }: { text: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
-  
+
   const handleCopy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -251,15 +252,38 @@ export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, smal
   </div>
 );
 
+const actionButton = cva(
+  "flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+  {
+    variants: {
+      color: {
+        blue: "bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border-transparent hover:border-blue-600 dark:hover:border-blue-400",
+        purple: "bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border-transparent hover:border-purple-600 dark:hover:border-purple-400",
+        yellow: "bg-surface hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-textMuted hover:text-yellow-600 dark:hover:text-yellow-500 border-transparent hover:border-yellow-600 dark:hover:border-yellow-500",
+        red: "bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 border-transparent hover:border-red-600 dark:hover:border-red-400",
+        active: "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 border-green-200 dark:border-green-500/30",
+      },
+      size: {
+        default: "flex-1",
+        small: "w-min h-min my-auto",
+      },
+    },
+    defaultVariants: { color: "blue", size: "default" },
+  }
+);
+
+const actionIcon = (small?: boolean) => (small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1");
+const ACTION_LABEL_CLASS = "text-[8px] sm:text-[10px] font-bold uppercase tracking-wide";
+
 export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
-    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-600 dark:hover:text-red-400 border border-transparent hover:border-red-600 dark:hover:border-red-400 transition-colors`}
+    className={actionButton({ color: "red", size: small ? "small" : "default" })}
     aria-label="usuń"
   >
-    <Trash2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
-    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Usuń</span>}
+    <Trash2 className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Usuń</span>}
   </button>
 );
 
@@ -267,15 +291,15 @@ export const NotifyButton = ({ onClick, small = false, disabled = false }: { onC
   <button
     onClick={onClick}
     type="button"
-    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
+    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
     aria-label="powiadom"
   >
     {disabled ? (
-      <Bell className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+      <Bell className={actionIcon(small)} />
     ) : (
-      <BellOff className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
+      <BellOff className={actionIcon(small)} />
     )}
-    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Powiadom</span>}
+    {!small && <span className={ACTION_LABEL_CLASS}>Powiadom</span>}
   </button>
 );
 
@@ -283,11 +307,11 @@ export const EditButton = ({ onClick, small = false }: { onClick: () => void; sm
   <button
     onClick={onClick}
     type="button"
-    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
+    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
     aria-label="edytuj"
   >
-    <Edit2 className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
-    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Edytuj</span>}
+    <Edit2 className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Edytuj</span>}
   </button>
 );
 
@@ -295,12 +319,12 @@ export const FavButton = ({ onClick, small = false }: { onClick: () => void; sma
   <button
     onClick={onClick}
     type="button"
-    className={`${small ? "w-min h-min my-auto" : "flex-1"} flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors`}
+    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
     aria-label="dodaj do ulubionych"
     title="Dodaj do ulubionych"
   >
-    <Star className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
-    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Dodaj</span>}
+    <Star className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Dodaj</span>}
   </button>
 );
 
@@ -309,12 +333,12 @@ export const RescheduleButton = ({ onClick, loading }: { onClick: () => void; lo
     onClick={onClick}
     type="button"
     disabled={loading}
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-textMuted hover:text-yellow-600 dark:hover:text-yellow-500 border border-transparent hover:border-yellow-600 dark:hover:border-yellow-500 transition-colors disabled:opacity-50"
+    className={actionButton({ color: "yellow" })}
     aria-label="przesuń na jutro"
     title="Przesuń na jutro"
   >
-    <ChevronsRight className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+    <ChevronsRight className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>
       {loading ? '...' : 'Odłóż'}
     </span>
   </button>
@@ -324,12 +348,12 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
+    className={actionButton({ color: "purple" })}
     aria-label="uruchom timer"
     title="Uruchom timer Pomodoro"
   >
-    <Timer className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Timer</span>
+    <Timer className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>Timer</span>
   </button>
 );
 
@@ -337,25 +361,24 @@ export const ShareButton = ({ onClick, small = false }: { onClick: () => void; s
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    className={actionButton({ color: "blue" })}
     aria-label="udostępnij"
     title="Udostępnij"
   >
-    <Share className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
-    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyślij</span>}
+    <Share className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Wyślij</span>}
   </button>
 );
 
 export const ShowResultsButton = ({ href, small = false }: { href: string; small?: boolean }) => (
   <a
     href={href}
-    type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    className={actionButton({ color: "blue" })}
     aria-label="pokaż wyniki"
     title="Pokaż wyniki"
   >
-    <ChartNoAxesCombined className={`${small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1"}`} />
-    {!small && <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Wyniki</span>}
+    <ChartNoAxesCombined className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Wyniki</span>}
   </a>
 );
 
@@ -363,12 +386,12 @@ export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    className={actionButton({ color: "blue" })}
     title={isPinned ? "Odepnij" : "Przypnij"}
     aria-label={isPinned ? "Odepnij" : "Przypnij"}
   >
-    <Pin className={`w-4 h-4 sm:w-5 sm:h-5 mb-1 ${isPinned ? "fill-primary" : ""}`} />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+    <Pin className={`${actionIcon()} ${isPinned ? "fill-primary" : ""}`} />
+    <span className={ACTION_LABEL_CLASS}>
       {isPinned ? "Odepnij" : "Przypnij"}
     </span>
   </button>
@@ -378,12 +401,12 @@ export const ArchiveButton = ({ onClick, isArchived }: { onClick: () => void; is
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
+    className={actionButton({ color: "purple" })}
     title={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
     aria-label={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
   >
-    <Archive className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+    <Archive className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>
       {isArchived ? "Pokaż" : "Ukryj"}
     </span>
   </button>
@@ -393,12 +416,12 @@ export const WatchButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
+    className={actionButton({ color: "active" })}
     title="Obejrzane"
     aria-label="Obejrzane"
   >
-    <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Obejrzane</span>
+    <Check className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>Obejrzane</span>
   </button>
 );
 
@@ -406,12 +429,12 @@ export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    className={actionButton({ color: "blue" })}
     title="Do obejrzenia"
     aria-label="Do obejrzenia"
   >
-    <Eye className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Obejrzyj</span>
+    <Eye className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>Obejrzyj</span>
   </button>
 );
 
@@ -419,12 +442,12 @@ export const PdfButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
+    className={actionButton({ color: "purple" })}
     aria-label="Generuj PDF"
     title="Generuj PDF"
   >
-    <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">PDF</span>
+    <Download className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>PDF</span>
   </button>
 );
 
@@ -432,12 +455,12 @@ export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void, f
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-purple-50 dark:hover:bg-purple-900/20 text-textMuted hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-600 dark:hover:border-purple-400 transition-colors"
+    className={actionButton({ color: "purple" })}
     aria-label={`Pobierz plik ${fileFormat}`}
     title={`Pobierz plik ${fileFormat}`}
   >
-    <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">{fileFormat}</span>
+    <Download className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>
   </button>
 );
 
@@ -445,12 +468,12 @@ export const CopyButton = ({ onClick}: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+    className={actionButton({ color: "blue" })}
     title="Kopiuj"
-    aria-label="Kopiuj" 
+    aria-label="Kopiuj"
   >
-    <Copy className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
-    <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">
+    <Copy className={actionIcon()} />
+    <span className={ACTION_LABEL_CLASS}>
       Kopiuj
     </span>
   </button>
@@ -471,12 +494,12 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router, sm
     title={title}
     className={`group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm ${small && "w-[40px]"}`}
     aria-label={`dodaj ${label}`}
-  >        
+  >
       <div className="relative top-0 w-5 h-5 sm:h-6 sm:w-6">
         <Icon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
         <Plus className="absolute left-3 top-2 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-surface rounded-full"/>
       </div>
-    {!small && 
+    {!small &&
       <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
         {label}
       </span>

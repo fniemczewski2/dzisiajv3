@@ -18,9 +18,6 @@ interface PushNotificationManagerProps {
 type Platform = "ios" | "android" | "desktop";
 
 const getPlatform = (): Platform => {
-  // Uwaga: poprzednia wersja miała odwrócony warunek
-  // (`if (globalThis?.navigator) return "desktop"`), przez co w przeglądarce
-  // ZAWSZE zwracała "desktop", a detekcja iOS/Android była martwym kodem.
   if (typeof navigator === "undefined") return "desktop";
   const ua = navigator.userAgent.toLowerCase();
   if (/iphone|ipad|ipod/.test(ua)) return "ios";
@@ -172,12 +169,6 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       if (!supabaseUrl) throw new Error("Błąd konfiguracji Supabase");
-
-      // BEZPIECZEŃSTWO: autoryzujemy JWT-em sesji zalogowanego użytkownika,
-      // NIE publicznym kluczem publishable (ten jest w bundlu JS i pozwalałby
-      // każdemu wysyłać powiadomienia do dowolnego userId z body).
-      // Edge Function `send-push` MUSI wyprowadzać odbiorcę z JWT
-      // (`supabase.auth.getUser(jwt)`), a nie z body żądania.
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Brak aktywnej sesji");
 

@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { CalendarCheck2, Loader2, Trash2 } from "lucide-react";
+import { CalendarCheck2, Trash2 } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { IconActionButton, CancelButton, FormButtons, AddButton, SaveButton } from "../ui/CommonButtons";
+import { IconActionButton, CancelButton, FormButtons, SaveButton } from "../ui/CommonButtons";
 import { generateTimeSlots, addMinutesToTime, slotKey } from "@/lib/meetingPollGrid";
+import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
 import type { MeetingPollResults as MeetingPollResultsData, FinalizeSlotInput, FinalizeResultSlot } from "@/types/meetingPolls";
 import NoResultsState from "../ui/NoResultsState";
+import { SkeletonSlotGrid } from "../ui/Skeleton";
 
 interface MeetingPollResultsProps {
   pollId: string;
@@ -49,14 +51,23 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [slotPlace, setSlotPlace] = useState("");
   const [slotDescription, setSlotDescription] = useState("");
   const [slotCalendar, setSlotCalendar] = useState("local");
-  const [isDragging, setIsDragging] = useState(false);
-  const dragDateRef = React.useRef<string | null>(null);
-
-  useEffect(() => {
-    const handleUp = () => setIsDragging(false);
-    window.addEventListener("mouseup", handleUp);
-    return () => window.removeEventListener("mouseup", handleUp);
-  }, []);
+  const { cellHandlers, handleTouchMove } = useDragSelectGrid({
+    onBegin: (date, cellId) => {
+      const index = Number(cellId);
+      setSelection({ date, startIndex: index, endIndex: index });
+      setSlotTitle(data?.poll.title ?? "");
+      setSlotPlace("");
+      setSlotDescription("");
+      setSlotCalendar("local");
+    },
+    onExtend: (date, cellId) => {
+      const index = Number(cellId);
+      setSelection((prev) => {
+        if (!prev || prev.date !== date) return prev;
+        return { date, startIndex: Math.min(prev.startIndex, index), endIndex: Math.max(prev.endIndex, index) };
+      });
+    },
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +81,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     return () => {
       cancelled = true;
     };
-  }, [pollId]);
+  }, [pollId, getPollResults]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -125,30 +136,6 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     if (ratio >= 0.66) return "bg-blue-300 dark:bg-blue-800";
     if (ratio >= 0.33) return "bg-blue-200 dark:bg-blue-900";
     return "bg-blue-100 dark:bg-blue-950";
-  };
-
-  const startNewSelection = (date: string, index: number) => {
-    dragDateRef.current = date;
-    setIsDragging(true);
-    setSelection({ date, startIndex: index, endIndex: index });
-    setSlotTitle(data?.poll.title ?? "");
-    setSlotPlace("");
-    setSlotDescription("");
-    setSlotCalendar("local");
-  };
-
-  const handleCellMouseDown = (date: string, index: number) => startNewSelection(date, index);
-
-  const handleCellMouseEnter = (date: string, index: number) => {
-    if (!isDragging || dragDateRef.current !== date) return;
-    setSelection((prev) => {
-      if (!prev || prev.date !== date) return prev;
-      return {
-        date,
-        startIndex: Math.min(prev.startIndex, index),
-        endIndex: Math.max(prev.endIndex, index),
-      };
-    });
   };
 
   const availabilitySet = useMemo(() => {
@@ -233,7 +220,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   };
 
   if (loadingResults) {
-    return <p className="text-sm text-textMuted flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Wczytywanie wyników…</p>;
+    return <SkeletonSlotGrid />;
   }
   if (!data) {
     return <p className="text-sm text-red-600 dark:text-red-400">Nie udało się wczytać wyników ankiety.</p>;
@@ -253,7 +240,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
         <NoResultsState text="odpowiedzi"/>
       ) : (
         <div className="card rounded-2xl shadow-sm p-4 overflow-x-auto">
-          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()}>
+          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onTouchMove={handleTouchMove}>
             <thead>
               <tr>
                 <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left"/>
@@ -277,8 +264,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                     return (
                       <td
                         key={date}
-                        onMouseDown={() => handleCellMouseDown(date, timeIndex)}
-                        onMouseEnter={() => handleCellMouseEnter(date, timeIndex)}
+                        {...cellHandlers(date, String(timeIndex))}
                         title={names.length > 0 ? names.join(", ") : "Nikt niedostępny"}
                         className={`w-12 h-8 text-center text-xs font-semibold cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
                           isSelected ? "ring-2 ring-primary ring-inset" : ""

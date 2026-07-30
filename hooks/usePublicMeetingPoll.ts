@@ -1,15 +1,5 @@
 // hooks/usePublicMeetingPoll.ts
-//
-// Strona UCZESTNIKA (logowanie NIEWYMAGANE). Cała komunikacja idzie przez
-// publiczne API route'y (pages/api/meeting-polls/public/[token]/*) —
-// NIGDY przez bezpośrednie zapytanie do Supabase z kluczem anon (patrz
-// obszerny komentarz bezpieczeństwa w migracji SQL
-// 20260729090000_create_meeting_polls.sql).
-//
-// Jeśli uczestnik AKURAT jest zalogowany w tej samej przeglądarce (strona
-// tego nie wymaga, ale nie przeszkadza), API route to wykryje po
-// ciasteczku sesji i automatycznie dopnie jego user_id do odpowiedzi —
-// nic w tym hooku nie musi o to zabiegać.
+
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/providers/ToastProvider";
 import type { PublicMeetingPoll, MeetingPollSlot } from "@/types/meetingPolls";
@@ -31,10 +21,6 @@ export function usePublicMeetingPoll(token: string | undefined) {
   const [notFound, setNotFound] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  // Ustawiane WYŁĄCZNIE w efekcie (nie liczone inline podczas renderu) —
-  // localStorage nie istnieje przy renderze serwerowym; liczenie tego
-  // inline dałoby niezgodność hydratacji (serwer zawsze "false", klient
-  // czasem "true" już na pierwszym renderze).
   const [hasExistingResponse, setHasExistingResponse] = useState(false);
   const [existingResponse, setExistingResponse] = useState<ExistingResponse | null>(null);
 
@@ -72,10 +58,8 @@ export function usePublicMeetingPoll(token: string | undefined) {
           if (res.ok && !cancelled) {
             setExistingResponse((await res.json()) as ExistingResponse);
           }
-        } catch {
-          // Brak wcześniejszej odpowiedzi do wczytania nie jest błędem
-          // krytycznym — formularz po prostu zacznie się od pustej siatki.
-        }
+        } catch {}
+
       })();
     }
 

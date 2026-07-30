@@ -3,8 +3,6 @@
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// "beforeinstallprompt" i navigator.standalone (iOS) nie są częścią standardowych
-// typów DOM w TypeScript - są specyficzne dla przeglądarek wspierających instalację PWA.
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;

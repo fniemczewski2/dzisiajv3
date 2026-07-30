@@ -5,8 +5,6 @@ export interface OutlookTokenResponse {
   token_type?: string;
 }
 
-// Graph zawsze zwraca dateTime jako lokalny czas bez offsetu, stąd ręczne
-// doklejanie "Z" w miejscach, gdzie z tego korzystamy.
 export interface OutlookEventDateTime {
   dateTime: string;
   timeZone?: string;

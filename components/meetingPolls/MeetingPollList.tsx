@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ChartNoAxesCombined, Users } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { DeleteButton, CopyButtonSmall, ShowResultsButton } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
@@ -19,8 +17,6 @@ export default function MeetingPollList({ refreshToken }: Readonly<MeetingPollLi
     if (refreshToken !== undefined) void fetchPolls();
   }, [refreshToken, fetchPolls]);
 
-  // window nie istnieje przy renderze serwerowym — ustawiane w efekcie,
-  // żeby uniknąć niezgodności hydratacji.
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);

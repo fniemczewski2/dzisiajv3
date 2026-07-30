@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
 import { refreshGoogleToken, refreshOutlookToken } from '@/lib/server/oauthTokens';
+import { fetchWithTimeout } from '@/lib/server/fetchWithTimeout';
 import { toSupabaseTime, outlookToSupabaseTime } from '@/lib/server/calendarTime';
 import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from '@/types/connectedCalendars';
 import { GoogleEventsListResponse } from '@/types/googleCalendar';
@@ -13,7 +14,6 @@ const supabaseService = createClient(
   process.env.SUPABASE_SECRET_KEY!
 );
 
-// Kształt wiersza wstawianego do `events` przy imporcie.
 interface ImportedEventRow {
   user_id: string;
   calendar_id: string;
@@ -100,11 +100,14 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const googleRes = await fetch(fetchUrl.toString(), {
+    const googleRes = await fetchWithTimeout(fetchUrl.toString(), {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    if (!googleRes.ok) break;
+    if (!googleRes.ok) {
+      console.error(`[CRON] Google fetch failed for calendar ${acc.id}:`, googleRes.status);
+      break;
+    }
     const data: GoogleEventsListResponse = await googleRes.json();
     pageToken = data.nextPageToken;
 
@@ -139,11 +142,14 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
   let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
   while (fetchUrl) {
-    const msRes: Response = await fetch(fetchUrl, {
+    const msRes: Response = await fetchWithTimeout(fetchUrl, {
       headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
     });
 
-    if (!msRes.ok) break;
+    if (!msRes.ok) {
+      console.error(`[CRON] Outlook fetch failed for calendar ${acc.id}:`, msRes.status);
+      break;
+    }
     const data: OutlookEventsResponse = await msRes.json();
 
     const rows: ImportedEventRow[] = [];
@@ -200,6 +206,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Unauthorized." });
   }
 
+  const CONCURRENCY_LIMIT = 5;
+
   try {
     const { data: accounts, error: dbError } = await supabaseService
       .from("connected_calendars")
@@ -209,7 +217,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (dbError) throw dbError;
     if (!accounts || accounts.length === 0) return res.json({ message: "No accounts to synchronize." });
 
-    let totalImported = 0;
+    const targets = accounts.filter(a => a.google_calendar_id !== '@account_connection');
     const tokenCache: TokenCache = {};
     const mainAccountsCache: MainAccountsCache = {};
 
@@ -218,22 +226,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timeMax = new Date();
     timeMax.setFullYear(timeMax.getFullYear() + 1);
 
-    for (const acc of accounts) {
-      if (acc.google_calendar_id === '@account_connection') continue; 
-
+    const processAccount = async (acc: ConnectedCalendarRow): Promise<number> => {
       const accessToken = await getAccessToken(acc, accounts, tokenCache, mainAccountsCache);
-      if (!accessToken) continue;
+      if (!accessToken) return 0;
 
-      if (acc.provider === 'google') {
-        totalImported += await syncGoogleCalendar(acc, accessToken, timeMin, timeMax);
-      } else if (acc.provider === 'outlook') {
-        totalImported += await syncOutlookCalendar(acc, accessToken, timeMin, timeMax);
-      }
+      if (acc.provider === 'google') return syncGoogleCalendar(acc, accessToken, timeMin, timeMax);
+      if (acc.provider === 'outlook') return syncOutlookCalendar(acc, accessToken, timeMin, timeMax);
+      return 0;
+    };
+
+    let totalImported = 0;
+    const failedAccounts: string[] = [];
+
+    for (let i = 0; i < targets.length; i += CONCURRENCY_LIMIT) {
+      const chunk = targets.slice(i, i + CONCURRENCY_LIMIT);
+      const results = await Promise.allSettled(chunk.map(processAccount));
+
+      results.forEach((result, idx) => {
+        if (result.status === "fulfilled") {
+          totalImported += result.value;
+        } else {
+          console.error(`[CRON] Sync failed for account ${chunk[idx].id}:`, result.reason);
+          failedAccounts.push(chunk[idx].id);
+        }
+      });
+
+      await updateMainTokens(tokenCache, mainAccountsCache);
     }
 
-    await updateMainTokens(tokenCache, mainAccountsCache);
-
-    return res.json({ success: true, imported: totalImported });
+    return res.json({ success: failedAccounts.length === 0, imported: totalImported, failedAccounts });
   } catch (error) {
     console.error("[CRON ERROR]:", error);
     const message = error instanceof Error ? error.message : "Unknown error";

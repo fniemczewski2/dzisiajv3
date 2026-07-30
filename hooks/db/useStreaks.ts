@@ -1,8 +1,5 @@
 // hooks/useStreaks.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2. getMilestoneMessage i cała
-// logika kamieni milowych zostają bez zmian (czyste funkcje, niezależne
-// od stanu hooka).
+
 import { useCallback } from "react";
 import { Streak } from "@/types/streaks";
 import { useCrudResource } from "./useCrudResource";

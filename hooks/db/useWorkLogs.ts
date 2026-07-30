@@ -3,12 +3,6 @@ import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useCrudResource } from './useCrudResource';
 
 // hooks/db/useWorkLogs.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2. Dynamiczne filtry
-// (dateStr/monthStr) przekazane przez buildQuery + queryKey (wymusza
-// nowy fetch i nowy klucz race-protection przy zmianie parametrów —
-// dokładnie to samo zjawisko co realna anulacja AbortController dodana
-// wcześniej dla tego hooka).
 
 const MESSAGES = {
   fetchError: 'Błąd pobierania czasu pracy.',

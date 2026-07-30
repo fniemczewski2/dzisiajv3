@@ -104,10 +104,6 @@ export function useBills(options: FetchOptions = {}) {
   const [hasMore, setHasMore] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-  // Trzy niezależne kontrolery: fetchBills, fetchActiveMonths i
-  // fetchActiveCategories są wołane niezależnie z różnych miejsc UI
-  // (lista rachunków, dropdown miesięcy, filtr kategorii) — wspólny
-  // kontroler przerywałby jedno zapytanie w chwili startu drugiego.
   const { getSignal: getBillsSignal } = useAbortController();
   const { getSignal: getActiveMonthsSignal } = useAbortController();
   const { getSignal: getActiveCategoriesSignal } = useAbortController();
@@ -154,11 +150,6 @@ export function useBills(options: FetchOptions = {}) {
         if (!signal.aborted) setFetching(false);
       }
     },
-    // Celowo zależymy od pojedynczych pól `settings`/`options`, nie całych
-    // obiektów - inaczej fetchBills dostawałby nową referencję przy każdej
-    // niezwiązanej zmianie ustawień, wywołując zbędne ponowne pobrania
-    // wszędzie tam, gdzie fetchBills jest zależnością innego efektu.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId, settings.show_budget_items, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry, getBillsSignal]
   );
 
@@ -400,7 +391,6 @@ export function useBills(options: FetchOptions = {}) {
           return [];
         }
 
-        // "none" oznacza rachunki bez przypisanej kategorii ("Inne").
         const activeCategoryIds = new Set<string>();
         data.forEach((item: { category_id: string | null }) => {
           activeCategoryIds.add(item.category_id ?? "none");

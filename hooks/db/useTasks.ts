@@ -9,27 +9,6 @@ import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { readCache, writeCache } from "@/lib/offlineCache";
 
-// ZMIANY WZGLĘDEM POPRZEDNIEJ WERSJI (wzorzec do powielenia w pozostałych
-// hookach z hooks/db/*):
-//
-// 1. Stabilne callbacki mutacji. Wcześniej edit/delete/accept/... miały
-//    `rawTasks` w zależnościach useCallback (przez `const previous = rawTasks`),
-//    więc KAŻDA zmiana listy tworzyła nowe funkcje i unieważniała
-//    React.memo(TaskItem) dla wszystkich itemów. Teraz snapshot do rollbacku
-//    robimy wewnątrz funkcyjnego setState — callbacki zależą tylko od
-//    [supabase, userId, toast, withRetry] i są stabilne między renderami.
-//
-// 2. Ochrona przed race condition w fetchu. Szybka zmiana zakresu dat
-//    odpalała kilka fetchy; wolniejsza, starsza odpowiedź mogła nadpisać
-//    nowszą. Teraz numer żądania (fetchSeqRef) odrzuca przeterminowane wyniki.
-//
-// 3. Hydratacja offline (lib/offlineCache.ts): stan jest wypełniany
-//    z IndexedDB NATYCHMIAST po mount (zero skeletona przy powrocie do
-//    aplikacji), a odpowiedź sieci — gdy dotrze — podmienia go i odświeża
-//    cache. Offline sieć i tak zwróci dane (warstwa network-first w sw.js),
-//    ale hydratacja daje pierwszy render bez czekania nawet na Service
-//    Workera. Świeże dane NIGDY nie są nadpisywane przez cache (freshDataRef).
-
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {
     case "due_date":
@@ -69,8 +48,6 @@ const formatDate = (date: string | Date | undefined): string | undefined => {
 
 const getPriority = (task: Task): number => (task.status === "waiting_for_acceptance" ? 0 : 1);
 
-// Wejście mutacji: Partial<Task> + pole formularza. Dzięki jawnemu typowi
-// znikają rzutowania `(taskData as Partial<Task>)` z poprzedniej wersji.
 type TaskInput = Partial<Task> & { shared_with_email?: string };
 
 export function useTasks(dateFrom?: string, dateTo?: string) {
@@ -86,12 +63,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const { getSignal } = useAbortController();
 
   const userEmailsRef = useRef<Record<string, string>>({});
-  // Snapshot listy do rollbacku optymistycznych aktualizacji — trzymany w
-  // ref, żeby callbacki mutacji nie musiały zależeć od rawTasks.
   const rollbackRef = useRef<Task[]>([]);
-  // Numer sekwencyjny fetchy — starsze odpowiedzi są odrzucane.
   const fetchSeqRef = useRef(0);
-  // Czy dotarły już świeże dane z sieci (blokuje spóźnioną hydratację z cache).
   const freshDataRef = useRef(false);
 
   const cacheKey = userId ? `tasks:${userId}:${dateFrom ?? ""}:${dateTo ?? ""}` : null;
@@ -115,9 +88,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
     const seq = ++fetchSeqRef.current;
-    // Realna anulacja sieciowa: szybka zmiana dateFrom/dateTo (nawigacja po
-    // kalendarzu) przerywa poprzednie, jeszcze niedokończone zapytanie,
-    // zamiast pozwolić mu dokończyć i zostać zignorowanym przez fetchSeqRef.
     const signal = getSignal();
     setFetching(true);
     try {
@@ -138,13 +108,9 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         ...task,
         display_share_info: resolvedTasks[i].display_share_info,
       }));
-
-      // Odrzuć wynik, jeśli w międzyczasie wystartował nowszy fetch.
       if (seq === fetchSeqRef.current) {
         freshDataRef.current = true;
         setRawTasks(tasksWithDisplayInfo);
-        // Persist do IndexedDB dla natychmiastowej hydratacji przy kolejnym
-        // uruchomieniu; fire-and-forget — błąd cache nie psuje ścieżki głównej.
         if (cacheKey) void writeCache(cacheKey, tasksWithDisplayInfo);
       }
       return tasksWithDisplayInfo;
@@ -161,15 +127,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     }
   }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry, cacheKey, getSignal]);
 
-  // Hydratacja z cache offline: natychmiastowy render ostatnich znanych
-  // danych, dopóki sieć nie odpowie. Zmiana zakresu dat = nowy klucz =
-  // ponowna hydratacja dla tego zakresu.
   useEffect(() => {
     if (!cacheKey) return;
     freshDataRef.current = false;
     let cancelled = false;
     void readCache<Task[]>(cacheKey).then((cached) => {
-      // Cache przegrywa z każdą świeżą odpowiedzią, która zdążyła dotrzeć.
       if (cancelled || !cached || freshDataRef.current) return;
       setRawTasks(cached);
     });

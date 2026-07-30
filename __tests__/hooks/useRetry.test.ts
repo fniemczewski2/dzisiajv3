@@ -38,8 +38,6 @@ describe("useRetry", () => {
       .mockRejectedValueOnce(secondError);
 
     const promise = result.current(operation);
-    // Dołączamy obsługę odrzucenia zanim czas zacznie płynąć, żeby uniknąć
-    // "unhandled rejection" zanim assercja zdąży je przechwycić.
     const assertion = expect(promise).rejects.toThrow("still down");
     await vi.runAllTimersAsync();
     await assertion;

@@ -29,6 +29,24 @@ export function SkeletonCard({ lines = 2 }: { readonly lines?: number }) {
   );
 }
 
+export function SkeletonSlotGrid({ columns = 5, rows = 8 }: { readonly columns?: number; readonly rows?: number }) {
+  const id = useId();
+  const rowIds = useMemo(() => Array.from({ length: rows }, (_, i) => `${id}-row-${i}`), [rows, id]);
+  const colIds = useMemo(() => Array.from({ length: columns }, (_, i) => `${id}-col-${i}`), [columns, id]);
+
+  return (
+    <div className="card rounded-2xl shadow-sm p-4 space-y-1">
+      {rowIds.map((rowId) => (
+        <div key={rowId} className="flex gap-1">
+          {colIds.map((colId) => (
+            <Bar key={colId} className="w-12 h-8" />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function SkeletonRow() {
   return (
     <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex items-center gap-4">

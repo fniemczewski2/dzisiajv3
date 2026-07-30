@@ -5,7 +5,6 @@ export interface GoogleTokenResponse {
   scope?: string;
 }
 
-// Google dopuszcza albo dateTime (wydarzenie z godziną), albo date (całodniowe).
 export interface GoogleEventDateTime {
   dateTime?: string;
   date?: string;

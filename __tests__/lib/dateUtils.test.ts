@@ -52,7 +52,7 @@ describe("parseEventDate", () => {
   it("parses a Postgres-style timestamp into the matching local Date fields", () => {
     const d = parseEventDate("2024-03-15 14:30:00+02");
     expect(d.getFullYear()).toBe(2024);
-    expect(d.getMonth()).toBe(2); // marzec = index 2
+    expect(d.getMonth()).toBe(2); 
     expect(d.getDate()).toBe(15);
     expect(d.getHours()).toBe(14);
     expect(d.getMinutes()).toBe(30);
@@ -125,13 +125,12 @@ describe("getAppDate / getAppDateTime (Europe/Warsaw)", () => {
 
   it("returns the Warsaw calendar date for a UTC instant earlier the same day", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2024-06-15T10:00:00Z")); // lato, Warszawa = UTC+2
+    vi.setSystemTime(new Date("2024-06-15T10:00:00Z"));
     expect(getAppDate()).toBe("2024-06-15");
   });
 
   it("rolls over to the next day across the UTC/Warsaw midnight boundary", () => {
     vi.useFakeTimers();
-    // 23:00 UTC w czerwcu to już 01:00 następnego dnia w Warszawie (UTC+2).
     vi.setSystemTime(new Date("2024-06-14T23:00:00Z"));
     expect(getAppDate()).toBe("2024-06-15");
   });

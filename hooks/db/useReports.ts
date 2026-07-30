@@ -1,7 +1,5 @@
 // hooks/db/useReports.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2. Ten hook nie ma żadnej
-// logiki domenowej ponad CRUD, więc jest niemal czystą konfiguracją.
+
 import { useCallback } from "react";
 import { Report } from "@/types/reports";
 import { useCrudResource } from "./useCrudResource";
@@ -24,7 +22,7 @@ export function useReports() {
     table: "reports",
     order: { column: "date", ascending: false },
     insertPosition: "start",
-    applyServerRowOnEdit: true, // oryginał robił .select().single() przy edycji
+    applyServerRowOnEdit: true, 
     messages: MESSAGES,
   });
 

@@ -2,11 +2,6 @@ import type { GetServerSideProps } from "next";
 
 const BASE_URL = "https://dzisiaj.fun";
 
-// Wyłącznie strony faktycznie publiczne. Poprzednia wersja wystawiała
-// crawlerom /settings, /tasks, /bills itd. — proxy.ts i tak przekierowuje
-// niezalogowanych na /start, więc Googlebot widział same redirecty (szum
-// w Search Console). Był tam też /login (nie istnieje — routing to /start)
-// i /packing/backpack|suitcase|safety zamiast realnego /packing/[id].
 const STATIC_PAGES: Array<{
   url: string;
   priority: string;

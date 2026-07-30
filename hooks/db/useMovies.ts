@@ -1,11 +1,5 @@
 // hooks/db/useMovies.ts
-//
-// Migracja na wspólną fabrykę CRUD (hooks/db/useCrudResource.ts) — patrz
-// audyt 3.2. Zostaje jako cienka konfiguracja + warstwa domenowa (sortowanie
-// wg ustawień, toggleWatched/updateNotes jako pochodne update'y).
-// Zewnętrzne API hooka (nazwy, sygnatury, typy zwrotne) jest identyczne jak
-// przed migracją — zweryfikowane względem jawnego interfejsu propsów w
-// components/movies/MovieList.tsx.
+
 import { useCallback, useMemo } from "react";
 import type { Movie, MovieInsert } from "@/types/movies";
 import { useSettings } from "./useSettings";

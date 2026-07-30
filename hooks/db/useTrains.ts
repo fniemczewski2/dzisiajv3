@@ -214,10 +214,6 @@ export function useTrainStatus(train: {
   });
 
   useEffect(() => {
-    // AbortController lokalny do tego przebiegu efektu — zamiast tylko
-    // ignorować spóźnioną odpowiedź (isMounted), realnie przerywa fetch przy
-    // zmianie propsów pociągu (np. przy szybkim przewijaniu listy kart)
-    // lub odmontowaniu.
     const controller = new AbortController();
 
     const fetchStatus = async () => {

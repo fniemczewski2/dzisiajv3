@@ -1,10 +1,7 @@
 // lib/server/oauthTokens.ts
-//
-// Współdzielone odświeżanie tokenów OAuth dla Google i Outlook.
-// Wcześniej te funkcje były zduplikowane w `pages/api/google-calendar/index.ts`
-// oraz `pages/api/calendar/sync-calendars.ts` i zdążyły się rozjechać.
 
 import type { GoogleTokenResponse } from "@/types/googleCalendar";
+import { fetchWithTimeout } from "@/lib/server/fetchWithTimeout";
 import type { OutlookTokenResponse } from "@/types/outlookCalendar";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -21,7 +18,7 @@ export async function refreshGoogleToken(
     return null;
   }
 
-  const r = await fetch(GOOGLE_TOKEN_URL, {
+  const r = await fetchWithTimeout(GOOGLE_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -49,7 +46,7 @@ export async function refreshOutlookToken(
     return null;
   }
 
-  const r = await fetch(OUTLOOK_TOKEN_URL, {
+  const r = await fetchWithTimeout(OUTLOOK_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({

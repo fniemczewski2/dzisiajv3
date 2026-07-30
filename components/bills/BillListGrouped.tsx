@@ -65,8 +65,6 @@ function RecurringBadge() {
   );
 }
 
-// Wspólna "skorupa" akordeonu, współdzielona przez widok wg miesięcy i wg kategorii -
-// różni je tylko etykieta nagłówka i domyślny stan (miesiąc bieżący jest domyślnie otwarty).
 function AccordionShell({ label, defaultOpen = false, children }: Readonly<AccordionShellProps>) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -198,8 +196,6 @@ export default function BillListGrouped({ year, onBillsChange }: Readonly<BillLi
   );
 }
 
-// Treść jednego akordeonu (lista rachunków + akcje) - używana zarówno przez widok
-// miesięczny, jak i kategoriowy; różni je tylko przekazany fetchOptions.
 function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGroupContentProps>) {
   const [page, setPage] = useState(1);
   const limit = 20;
@@ -217,11 +213,6 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
     if (editingId && amountRef.current) amountRef.current.focus();
   }, [editingId]);
 
-  // Kwota jest trzymana jako osobny string podczas edycji, żeby nie zamieniać
-  // jej na liczbę przy każdym naciśnięciu klawisza - to właśnie uniemożliwiało
-  // wpisanie przecinka/kropki (przeglądarka natychmiast "ucinała" znak, którego
-  // parseFloat jeszcze nie umiał doliczyć do wartości) i pokazywało samotne "0"
-  // zaraz po wyczyszczeniu pola.
   const handleAmountChange = (raw: string) => {
     if (!isValidAmountInput(raw)) return;
     setAmountText(raw);

@@ -1,14 +1,6 @@
 "use client";
 // hooks/db/useRecipes.ts
-//
-// Migracja CZĘŚCIOWA na wspólną fabrykę CRUD — audyt 3.2.
-//
-// Ten hook zarządza DWOMA zasobami: `recipes` (pełny CRUD, id-based —
-// migrowany na fabrykę) i `products` (tylko odczyt do podpowiedzi
-// autouzupełniania, zapytanie zwraca same stringi bez kolumny id — nie
-// spełnia wymaganego przez fabrykę `T extends { id: string }`). Products
-// zostaje więc bespoke, tak jak zalecał audyt: "logika domenowa zostaje
-// jako warstwa na wierzchu".
+
 import { useEffect, useState, useMemo, useCallback } from "react";
 import type { NewRecipe, Recipe } from "@/types/recipes";
 import { useAuth } from "@/providers/AuthProvider";

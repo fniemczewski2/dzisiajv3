@@ -194,10 +194,6 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const sb = getServiceSupabase(auth.token);
   let skipped = 0;
 
-  // Batch upsert zamiast N+1 (SELECT dedup + INSERT per event).
-  // Wymaga indeksu unikalnego (calendar_id, google_event_id) — zob.
-  // supabase/migrations/20260720120000_events_dedup_index.sql.
-  // ignoreDuplicates = ON CONFLICT DO NOTHING (istniejące nie są nadpisywane).
   const rows = [];
   for (const ev of allItems) {
     if (ev.status === "cancelled" || !ev.start || !ev.end) { skipped++; continue; }
@@ -267,8 +263,16 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth:
     }
   } 
   else if (accountId) {
-    await sb.from("events").delete().eq("calendar_id", accountId as string);
-    await sb.from("connected_calendars").delete().eq("id", accountId as string).eq("user_id", auth.user.id);
+    const { data: owned } = await sb.from("connected_calendars")
+      .select("id")
+      .eq("id", accountId as string)
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+
+    if (owned) {
+      await sb.from("events").delete().eq("calendar_id", owned.id);
+      await sb.from("connected_calendars").delete().eq("id", owned.id);
+    }
   } else {
     await sb.from("connected_calendars").delete().eq("provider", "google").eq("user_id", auth.user.id);
   }
@@ -314,18 +318,24 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   if (fetchErr) return res.status(500).json({ error: "Failed to fetch local events" });
   if (!events?.length) return res.json({ exported: 0, skipped: 0, message: "No events found in selected range" });
 
-  let exported = 0, skipped = 0;
-  for (const ev of events) {
+  const exportOne = async (ev: (typeof events)[number]): Promise<boolean> => {
     const body = { summary: ev.title, description: ev.description || "", location: ev.place || "", start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: "Europe/Warsaw" }, end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: "Europe/Warsaw" } };
     const method = ev.google_event_id ? "PUT" : "POST";
     const endpoint = ev.google_event_id ? `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${ev.google_event_id}` : `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
 
     const r = await fetch(endpoint, { method, headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (r.ok) {
-      const created = await r.json();
-      await sb.from("events").update({ google_event_id: created.id }).eq("id", ev.id);
-      exported++;
-    } else skipped++;
+    if (!r.ok) return false;
+    const created = await r.json();
+    await sb.from("events").update({ google_event_id: created.id }).eq("id", ev.id);
+    return true;
+  };
+
+  const EXPORT_CONCURRENCY = 5;
+  let exported = 0, skipped = 0;
+  for (let i = 0; i < events.length; i += EXPORT_CONCURRENCY) {
+    const chunk = events.slice(i, i + EXPORT_CONCURRENCY);
+    const results = await Promise.allSettled(chunk.map(exportOne));
+    results.forEach((r) => (r.status === "fulfilled" && r.value ? exported++ : skipped++));
   }
   return res.json({ exported, skipped });
 }

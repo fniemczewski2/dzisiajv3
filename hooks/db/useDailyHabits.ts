@@ -41,9 +41,7 @@ export function useDailyHabits(date?: string) {
 
       throw new Error("Unauthorized");
     }
-    // Realna anulacja: szybka nawigacja między dniami przerywa poprzednie,
-    // jeszcze niedokończone zapytanie zamiast pozwolić mu dobiec i nadpisać
-    // stan nowszym-ale-wolniejszym wynikiem.
+
     const signal = getSignal();
     setFetching(true);
     try {
@@ -61,9 +59,6 @@ export function useDailyHabits(date?: string) {
           : getDefaultHabits(targetDate, userId)
       );
     } catch (err) {
-      // Przerwane celowo (unmount / szybsza zmiana dnia) — NIE resetuj do
-      // wartości domyślnych, bo to nadpisałoby stan ustawiony przez nowsze,
-      // wciąż trwające zapytanie.
       if (isAbortError(err)) return;
       setHabits(getDefaultHabits(targetDate, userId));
       toast.error("Błąd ładowania nawyków.");

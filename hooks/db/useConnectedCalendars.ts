@@ -25,10 +25,6 @@ export function useConnectedCalendars(expanded: boolean) {
   
         throw new Error("Unauthorized");
       }
-      // Jeden sygnał obejmuje CAŁY łańcuch (select kont + oba fetche list
-      // kalendarzy) — to jedna logiczna operacja odświeżenia, więc nowe
-      // wywołanie fetchAccountsAndCalendars powinno przerwać wszystkie
-      // poprzednie kroki naraz, nie tylko pierwszy.
       const signal = getSignal();
       setFetching(true);
 

@@ -3,8 +3,12 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Seo from "@/components/ui/SEO";
+import { SkeletonSlotGrid } from "@/components/ui/Skeleton";
 
-const MeetingPollResults = dynamic(() => import("@/components/meetingPolls/MeetingPollResults"), { ssr: false });
+const MeetingPollResults = dynamic(() => import("@/components/meetingPolls/MeetingPollResults"), {
+  ssr: false,
+  loading: () => <SkeletonSlotGrid />,
+});
 
 export default function MeetingPollResultsPage() {
   const router = useRouter();

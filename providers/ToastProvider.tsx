@@ -6,8 +6,6 @@ import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationTo
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {
     case "ADD": {
-      // Limit dotyczy wyłącznie notyfikacji. Confirm nie może zostać
-      // wypchnięty z kolejki — zostawiłby na zawsze nierozwiązany Promise.
       const confirms = state.filter((t) => t.kind === "confirm");
       const notifications = state.filter((t) => t.kind !== "confirm");
       const next =
@@ -69,12 +67,6 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
 }
 
 function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: (id: string) => void }>) {
-  // Natywny <dialog> zamiast toastu z aria-modal="false":
-  // - showModal() daje darmowy focus trap i obsługę Escape,
-  // - fokus jest przenoszony do dialogu (użytkownik klawiatury i screen
-  //   readera faktycznie dowiaduje się o pytaniu; wcześniej fokus zostawał
-  //   na przycisku kosza, a pytanie czekało niezauważone w rogu ekranu),
-  // - ::backdrop wizualnie sygnalizuje modalność destrukcyjnej decyzji.
   const dialogRef = useRef<HTMLDialogElement>(null);
   const answeredRef = useRef(false);
 

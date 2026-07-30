@@ -75,7 +75,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
         </p>
         <p className="flex items-center flex-wrap gap-2">
           {item.type === "task" && <TimeContextBadge dueDate={item.data?.due_date ?? ""} small />}
-          {(item.type === 'event' || item.type === 'worklog') && getTimes(item.data)}
+          {(item.type === 'event' || item.type === 'worklog') && <p className="text-[10px] text-textMuted">{getTimes(item.data)}</p>}
           <span className="text-[8px] font-semibold uppercase tracking-wider text-textMuted">
             {getLabel(item)}
           </span>

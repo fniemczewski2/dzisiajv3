@@ -1,9 +1,5 @@
 // hooks/useReminders.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2. addReminder ma niestandardową
-// sygnaturę pozycyjną (nie obiekt) zachowaną 1:1 dla zgodności z
-// components/tasks/Reminders.tsx; postpone/complete to warianty patch()
-// różniące się tylko wyliczeniem nowej daty `done`.
+
 import { useState, useCallback, useMemo } from "react";
 import { Reminder } from "@/types/reminders";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";

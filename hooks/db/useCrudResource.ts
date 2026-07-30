@@ -1,23 +1,4 @@
 // hooks/db/useCrudResource.ts
-//
-// Generyczna fabryka hooków CRUD dla zasobów Supabase. Jedna implementacja
-// wzorca, który był powielony w ~15 hookach (5,4 tys. linii łącznie):
-// stan raw+fetching+loading, fetch z retry+toastem, optymistyczne add
-// z tempId i rollbackiem, edit/delete ze snapshotem `previous`.
-//
-// Hooki domenowe (useMovies, useNotes, ...) stają się cienkimi adapterami:
-// konfiguracja + nazwy publicznego API + logika domenowa (sortowania,
-// memo, operacje pochodne). Ich PUBLICZNE API pozostaje identyczne —
-// komponenty nie wymagają żadnych zmian.
-//
-// Fabryka wnosi też jednolicie ulepszenia wypracowane wcześniej w useTasks:
-//  - stabilne callbacki mutacji (rollback przez ref, nie przez domknięcie
-//    na items) => React.memo w komponentach list znów działa,
-//  - ochrona przed race condition w fetchu (numer sekwencyjny),
-//  - hydratacja offline z IndexedDB (lib/offlineCache.ts) + persist,
-//  - brak fetchu bez zalogowanego użytkownika (poprzednio efekt wołał
-//    fetchX(), które rzucało "Unauthorized" => unhandled rejection na
-//    każdym mouncie przed logowaniem); mutacje nadal rzucają jak dotąd.
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -25,10 +6,10 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import { isAbortError } from "@/lib/abortUtils";
 import { readCache, writeCache } from "@/lib/offlineCache";
 
-// Builder zapytania SELECT — typ wyprowadzony z klienta, żeby uniknąć `any`.
 type SelectBuilder = ReturnType<ReturnType<SupabaseClient["from"]>["select"]>;
 
 export interface CrudMessages {
@@ -44,47 +25,20 @@ export interface CrudMessages {
 
 export interface CrudResourceConfig<T extends { id: string }, TInsert> {
   table: string;
-
-  /**
-   * Zmienne parametry zapytania (np. zakres dat). Zmiana wartości
-   * unieważnia refetch i klucz cache offline.
-   */
   queryKey?: string;
-
-  /**
-   * Filtry/sortowanie fetchu. Domyślnie: .eq('user_id', userId)
-   * + opcjonalny `order`. Podanie buildQuery zastępuje CAŁOŚĆ
-   * (łącznie z filtrem user_id — dodaj go sam, jeśli potrzebny).
-   */
   buildQuery?: (q: SelectBuilder, userId: string) => SelectBuilder;
   order?: { column: string; ascending?: boolean };
-
-  /** Gdzie ląduje wpis optymistyczny. Domyślnie "start". */
   insertPosition?: "start" | "end";
-
-  /** Prefiks klucza cache offline; brak = hydratacja wyłączona. */
   cachePrefix?: string;
-
-  /** Transformacja wiersza z bazy (fetch ORAZ wiersze zwrotne add/edit). */
   transformRow?: (row: unknown) => T;
-
-  /** Payload -> wiersz INSERT. Domyślnie { ...payload, user_id }. */
   prepareInsert?: (payload: TInsert, userId: string) => Record<string, unknown>;
-
-  /** Payload -> wpis optymistyczny. Domyślnie { ...payload, id: tempId, user_id }. */
   buildOptimistic?: (payload: TInsert, tempId: string, userId: string) => T;
-
-  /** Częściowa aktualizacja -> payload UPDATE (np. whitelista kolumn). */
   prepareUpdate?: (updates: Partial<T>) => Record<string, unknown>;
-
-  /** Czy edit ma robić .select().single() i podmienić wpis wierszem z serwera. */
   applyServerRowOnEdit?: boolean;
-
   messages: CrudMessages;
 }
 
 export interface PatchOptions {
-  /** Pomiń toast sukcesu (operacje pochodne pokazują własny). */
   silent?: boolean;
   successMessage?: string;
   errorMessage?: string;
@@ -102,12 +56,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
   const [items, setItems] = useState<T[]>([]);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Konfiguracja w ref: adaptery tworzą obiekt configu przy każdym renderze
-  // (inline closures), a callbacki mają zostać STABILNE — czytają więc
-  // zawsze aktualną wersję przez ref, bez wpisywania configu do deps.
-  const configRef = useRef(config);
-  configRef.current = config;
+  const configRef = useLatestRef(config);
 
   const rollbackRef = useRef<T[]>([]);
   const fetchSeqRef = useRef(0);
@@ -126,16 +75,9 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
 
   const refetch = useCallback(async (): Promise<T[]> => {
     const cfg = configRef.current;
-    // Bez użytkownika nie ma czego pobierać — poprzednio hooki rzucały tu
-    // "Unauthorized" prosto z useEffect (unhandled rejection przy każdym
-    // mouncie przed zalogowaniem).
     if (!userId) return [];
 
     const seq = ++fetchSeqRef.current;
-    // getSignal() przerywa POPRZEDNIE zapytanie tego hooka (np. szybka zmiana
-    // dateFrom/dateTo w useTasks) — realna anulacja sieciowa, nie tylko
-    // ignorowanie spóźnionej odpowiedzi jak fetchSeqRef (który zostaje jako
-    // dodatkowa siatka bezpieczeństwa, gdyby abort nie zdążył przerwać fetchu).
     const signal = getSignal();
     setFetching(true);
     try {
@@ -172,13 +114,8 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
         setFetching(false);
       }
     }
-    // queryKey nie jest tu bezpośrednio odwoływane — zmiana parametrów
-    // zapytania (np. zakresu dat) przepływa przez cacheKey, który już jest
-    // w zależnościach. Osobny wpis queryKey byłby redundantny.
   }, [supabase, userId, toast, withRetry, transform, cacheKey, getSignal]);
 
-  // Hydratacja offline: natychmiastowy render ostatnich znanych danych,
-  // dopóki sieć nie odpowie; świeże dane nigdy nie są nadpisywane cachem.
   useEffect(() => {
     if (!cacheKey) return;
     freshDataRef.current = false;

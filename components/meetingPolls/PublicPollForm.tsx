@@ -1,18 +1,17 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { usePublicMeetingPoll } from "@/hooks/usePublicMeetingPoll";
 import { generateTimeSlots, slotKey } from "@/lib/meetingPollGrid";
 import type { MeetingPollSlot } from "@/types/meetingPolls";
 import { SaveButton } from "../ui/CommonButtons";
+import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
+import { SkeletonSlotGrid } from "../ui/Skeleton";
 
 interface PublicPollFormProps {
   token: string;
 }
-
-const PRIMARY_BUTTON_CLASS =
-  "px-4 py-2 bg-secondary hover:bg-primary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow";
 
 export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>) {
   const { poll, loading, notFound, submitting, submitted, hasExistingResponse, existingResponse, submitResponse } =
@@ -21,15 +20,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  const [isDragging, setIsDragging] = useState(false);
   const dragModeRef = React.useRef<"select" | "deselect">("select");
-
-  useEffect(() => {
-    const handleUp = () => setIsDragging(false);
-    window.addEventListener("mouseup", handleUp);
-    return () => window.removeEventListener("mouseup", handleUp);
-  }, []);
 
   useEffect(() => {
     if (!existingResponse) return;
@@ -52,18 +43,16 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
     });
   };
 
-  const handleCellMouseDown = (date: string, time: string) => {
-    const key = slotKey(date, time);
-    const mode: "select" | "deselect" = selected.has(key) ? "deselect" : "select";
-    dragModeRef.current = mode;
-    setIsDragging(true);
-    applyMode(key, mode);
-  };
-
-  const handleCellMouseEnter = (date: string, time: string) => {
-    if (!isDragging) return;
-    applyMode(slotKey(date, time), dragModeRef.current);
-  };
+  const { cellHandlers, handleTouchMove } = useDragSelectGrid({
+    onBegin: (_group, key) => {
+      const mode: "select" | "deselect" = selected.has(key) ? "deselect" : "select";
+      dragModeRef.current = mode;
+      applyMode(key, mode);
+    },
+    onExtend: (_group, key) => {
+      applyMode(key, dragModeRef.current);
+    },
+  });
 
   const handleSubmit = async () => {
     if (!poll) return;
@@ -75,11 +64,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-textMuted" />
-      </div>
-    );
+    return <SkeletonSlotGrid />;
   }
 
   if (notFound || !poll) {
@@ -138,7 +123,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
 
       <div>
         <div className="card rounded-2xl shadow-sm p-4 overflow-x-auto">
-          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()}>
+          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onTouchMove={handleTouchMove}>
             <thead>
               <tr>
                 <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left" />
@@ -156,8 +141,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
                     return (
                       <td
                         key={date}
-                        onMouseDown={() => handleCellMouseDown(date, time)}
-                        onMouseEnter={() => handleCellMouseEnter(date, time)}
+                        {...cellHandlers("grid", slotKey(date, time))}
                         className={`w-12 h-8 text-center cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
                           isSelected ? "bg-primary" : "bg-surface hover:bg-surfaceHover"
                         }`}

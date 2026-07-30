@@ -30,11 +30,6 @@ export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode 
       (event, session) => {
         setUser(session?.user ?? null);
         setLoadingUser(false);
-
-        // BEZPIECZEŃSTWO OFFLINE: przy wylogowaniu czyścimy IndexedDB oraz
-        // (przez postMessage w clearOfflineCache) cache odpowiedzi Supabase
-        // w Service Workerze — kolejny użytkownik na tym samym urządzeniu
-        // nie może zobaczyć danych poprzedniego.
         if (event === 'SIGNED_OUT') {
           void clearOfflineCache();
         }

@@ -100,12 +100,20 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { workLogs } = useWorkLogs(dateStr);
 
   const loadedDatesRef = useRef<Set<string>>(new Set());
+  const [isFirstLoadForDate, setIsFirstLoadForDate] = useState(
+    () => !loadedDatesRef.current.has(dateStr)
+  );
+
+  useEffect(() => {
+    setIsFirstLoadForDate(!loadedDatesRef.current.has(dateStr));
+  }, [dateStr]);
+
   useEffect(() => {
     if (!fetchingTasks && !fetchingEvents) {
       loadedDatesRef.current.add(dateStr);
+      setIsFirstLoadForDate(false);
     }
   }, [fetchingTasks, fetchingEvents, dateStr]);
-  const isFirstLoadForDate = !loadedDatesRef.current.has(dateStr);
   
   const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
 

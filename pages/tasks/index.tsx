@@ -66,6 +66,7 @@ export default function TasksPage() {
       case "today":            return format(now, "yyyy-MM-dd");
       case "tomorrow":         return format(addDays(now, 1), "yyyy-MM-dd");
       case "dayAfterTomorrow": return format(addDays(now, 2), "yyyy-MM-dd");
+      case "all":              return null;
       default:                 return null;
     }
   }, [dateFilter]);

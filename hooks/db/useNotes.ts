@@ -1,17 +1,5 @@
 // hooks/useNotes.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2.
-//
-// UWAGA PROJEKTOWA: editNote i togglePin/toggleArchive wysyłają do bazy
-// RÓŻNE kształty payloadu (edit: pełny whitelist pól + nowy updated_at;
-// toggle: tylko {pinned, archived}) — fabryka nie ma per-wywołanie
-// `prepareUpdate`, tylko jedną globalną transformację. Dlatego payload jest
-// budowany w cienkich wrapperach PRZED wywołaniem crud.patch(id, payload),
-// a nie przez config `prepareUpdate` (który wymuszałby ten sam kształt na
-// każdą edycję, w tym toggle). crud.patch scala payload przez `{...it,
-// ...updates}` przy optymistycznej aktualizacji — dla editNote payload
-// zawiera KOMPLETNIE wszystkie pola Note poza id, więc scalenie jest
-// równoważne pełnemu zastąpieniu jak w oryginale.
+
 import { useCallback } from "react";
 import { Note } from "@/types/notes";
 import { getAppDateTime } from "@/lib/dateUtils";

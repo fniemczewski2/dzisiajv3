@@ -37,8 +37,6 @@ describe("isValidAmountInput", () => {
 
 describe("parseAmountInput", () => {
   it("parses a comma-separated amount without truncating the cents (regression)", () => {
-    // Number.parseFloat("36,75") na samej kropce/przecinku zwraca 36 bez normalizacji -
-    // to właśnie po cichu gubiło grosze przy zapisie.
     expect(parseAmountInput("36,75")).toBe(36.75);
   });
 

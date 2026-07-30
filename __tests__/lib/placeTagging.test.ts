@@ -85,7 +85,6 @@ describe("generatePlaceTags", () => {
     const tags = await generatePlaceTags("Starbucks Rynek", { rating: 4.6 });
     expect(tags).toEqual(expect.arrayContaining(["sieciówka", "kawiarnia", "kultowe", "polecane"]));
     expect(new Set(tags).size).toBe(tags.length);
-    // posortowane wg polskiego locale
     expect(tags).toEqual([...tags].sort((a, b) => a.localeCompare(b, "pl")));
   });
 

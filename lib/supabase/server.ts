@@ -30,9 +30,6 @@ export function createServerSupabase(
               res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
             })
           } catch (error) {
-            // Zwykle: nagłówki już wysłane (np. po res.redirect). Nie przerywamy
-            // odpowiedzi, ale zostawiamy ślad — pusty catch ukrywał problemy
-            // z odświeżaniem sesji.
             console.warn('[supabase/server] Nie udało się ustawić cookies sesji:', error)
           }
         },

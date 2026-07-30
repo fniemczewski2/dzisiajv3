@@ -1,9 +1,5 @@
 // hooks/usePeople.ts
-//
-// Migracja na wspólną fabrykę CRUD — audyt 3.2. Sortowanie alfabetyczne
-// (wcześniej wymuszane ręcznie przy każdym insert/update wewnątrz setState)
-// przeniesione do warstwy prezentacji jako useMemo — ten sam efekt końcowy,
-// bez sprzęgania fabryki z regułą sortowania specyficzną dla tej domeny.
+
 import { useCallback, useMemo } from "react";
 import { Person, PersonInsert } from "@/types/people";
 import { useCrudResource } from "./useCrudResource";

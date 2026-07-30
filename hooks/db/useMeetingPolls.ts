@@ -1,17 +1,5 @@
 // hooks/db/useMeetingPolls.ts
-//
-// Strona ORGANIZATORA (zalogowany). Lista/usuwanie ankiet przez wspólną
-// fabrykę useCrudResource; tworzenie ankiety, wyniki i finalizacja to
-// bespoke logika na wierzchu — nie pasują do generycznego kształtu
-// add/patch/remove:
-//   - createPoll: operacja WIELOTABELOWA (poll + dates) — PostgREST nie
-//     ma transakcji klienckich, więc nieudany insert dat ręcznie cofa
-//     (usuwa) już utworzony wiersz ankiety.
-//   - getPollResults: agregacja z 4 tabel na potrzeby jednego widoku.
-//   - finalizePoll: woła autoryzowany route serwerowy (patrz
-//     pages/api/meeting-polls/[id]/finalize.ts) — tworzenie wydarzeń w
-//     CUDZYCH kalendarzach uczestników wymaga klucza serwisowego, którego
-//     przeglądarka nigdy nie powinna dotykać.
+
 import { useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -84,9 +72,6 @@ export function useMeetingPolls() {
       const { error: datesError } = await supabase.from("meeting_poll_dates").insert(dateRows);
 
       if (datesError) {
-        // Brak transakcji wielotabelowych z poziomu PostgREST — cofamy
-        // ręcznie już utworzony wiersz ankiety, żeby nie zostawić "sieroty"
-        // bez ani jednego kandydackiego dnia.
         await supabase.from("meeting_polls").delete().eq("id", poll.id);
         toast.error("Błąd zapisu dni ankiety.");
         return undefined;

@@ -1,26 +1,4 @@
 // lib/server/calendarTime.ts
-//
-// Jedno źródło prawdy dla konwersji czasu wydarzeń z zewnętrznych kalendarzy
-// (Google / Outlook) do formatu zapisywanego w Supabase.
-//
-// KONWENCJA APLIKACJI (udokumentowana przez konsumentów, m.in. Edge Function
-// process-notifications, która robi `like('start_time', '${today}%')` i
-// porównuje start_time z lokalnymi stringami): kolumny events.start_time /
-// end_time przechowują NAIWNY czas lokalny Europe/Warsaw w formacie
-// `YYYY-MM-DDTHH:mm:ss`, bez strefy.
-//
-// Naprawiane błędy historyczne:
-// 1. `google-calendar/index.ts` robił `dateTime.slice(0, 19) + "+00:00"` —
-//    deklarował lokalny czas wydarzenia jako UTC (przesunięcie o offset).
-// 2. `calendar/sync-calendars.ts` obcinał offset ze stringa — działało
-//    poprawnie TYLKO gdy strefa wydarzenia w źródle była akurat warszawska;
-//    event wpisany w kalendarzu w innej strefie (podróż, zaproszenie z
-//    zagranicy) lądował o złej godzinie.
-//
-// Teraz: liczymy rzeczywisty instant z pełnego ISO (z offsetem źródła),
-// a następnie formatujemy go jako czas ścienny Europe/Warsaw przez Intl
-// (poprawna obsługa DST). Wydarzenia całodniowe pozostają czystymi datami —
-// dzień urodzin nie może się przesuwać ze strefą.
 
 import type { GoogleEventDateTime } from "@/types/googleCalendar";
 
@@ -35,17 +13,14 @@ const WARSAW_FORMATTER = new Intl.DateTimeFormat("en-US", {
   hour12: false,
 });
 
-/** Instant (Date) -> naiwny czas ścienny Europe/Warsaw `YYYY-MM-DDTHH:mm:ss`. */
 export function instantToWarsawNaive(instant: Date): string {
   const parts = WARSAW_FORMATTER.formatToParts(instant);
   const p: Record<string, string> = {};
   for (const part of parts) p[part.type] = part.value;
-  // Niektóre silniki formatują północ jako "24" przy hourCycle h24.
   const hour = p.hour === "24" ? "00" : p.hour;
   return `${p.year}-${p.month}-${p.day}T${hour}:${p.minute}:${p.second}`;
 }
 
-/** Data całodniowa: koniec w Google API jest ekskluzywny, więc cofamy o 1 dzień. */
 function allDayToNaive(date: string, isEndTime: boolean): string {
   if (!isEndTime) return `${date}T00:00:00`;
 
@@ -57,12 +32,6 @@ function allDayToNaive(date: string, isEndTime: boolean): string {
   return `${year}-${month}-${day}T23:59:59`;
 }
 
-/**
- * Czas wydarzenia Google -> wartość dla kolumny w Supabase.
- * - `dateTime` (event z godziną): naiwny czas ścienny Europe/Warsaw wyliczony
- *   z rzeczywistego instantu (offset źródła jest respektowany).
- * - `date` (event całodniowy): naiwna data bez strefy.
- */
 export function toSupabaseTime(
   dt: GoogleEventDateTime | undefined,
   isEndTime = false
@@ -75,10 +44,6 @@ export function toSupabaseTime(
   return instantToWarsawNaive(new Date());
 }
 
-/**
- * Czas wydarzenia Outlook (Graph z `Prefer: outlook.timezone="UTC"` zwraca
- * dateTime bez sufiksu strefy, ale w UTC) -> naiwny czas Europe/Warsaw.
- */
 export function outlookToSupabaseTime(dateTime: string): string {
   const hasZone = /(?:Z|[+-]\d{2}:\d{2})$/.test(dateTime);
   const parsed = new Date(hasZone ? dateTime : `${dateTime}Z`);
@@ -86,15 +51,6 @@ export function outlookToSupabaseTime(dateTime: string): string {
   return instantToWarsawNaive(parsed);
 }
 
-/**
- * Naiwny czas lokalny Europe/Warsaw (tak jak przechowywany w kolumnach
- * events.start_time/end_time) -> pełny RFC3339 z poprawnym offsetem
- * (uwzględnia zmianę czasu letni/zimowy). Kierunek ODWROTNY do funkcji
- * powyżej (te importują Z zewnątrz DO aplikacji; ta eksportuje Z aplikacji
- * NA ZEWNĄTRZ — do Google/Outlook). Wcześniej zduplikowana lokalnie w
- * pages/api/google-calendar/index.ts jako `toRFC3339`; teraz też używana
- * przez eksport do Outlook (pages/api/outlook-calendar/index.ts).
- */
 export function warsawNaiveToRFC3339(naiveLocal: string): string {
   try {
     const localStr = naiveLocal.replace(" ", "T").replace(/([+-]\d{2}:\d{2}|[+-]\d{2}|Z)$/, "");

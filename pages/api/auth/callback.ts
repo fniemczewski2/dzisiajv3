@@ -12,10 +12,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isSafe = /^\/(?!\/)[\w\-/?=&#.%]*$/.test(targetPath);
   const cleanPath = isSafe ? targetPath : "/";
 
-  // Ścieżka trafia do inline <script>, więc serializujemy ją jako dane
-  // (JSON.stringify), a nie interpolujemy do kodu. Escape "<" chroni przed
-  // przedwczesnym zamknięciem </script> nawet gdyby regex powyżej kiedyś
-  // został poluzowany.
   const safePathJson = JSON.stringify(cleanPath).replaceAll('<', String.raw`\u003C`);
 
   if (code && typeof code === 'string') {
