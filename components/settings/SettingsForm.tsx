@@ -296,7 +296,7 @@ export default function SettingsForm({
               onChange={(e) => updateLocalField("sort_people", e.target.value)}
               className="input-field"
             >
-              <option value="alphabetical">Alfabetycznie<option>
+              <option value="alphabetical">Alfabetycznie</option>
               <option value="priority">Priorytet</option>
             </select>
           </div>
