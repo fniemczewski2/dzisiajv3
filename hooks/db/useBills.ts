@@ -1,6 +1,6 @@
 ﻿// hooks/db/useBills.ts
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useSettings } from "./useSettings";
@@ -97,6 +97,11 @@ export function useBills(options: FetchOptions = {}) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
+  const { dateFrom, dateTo, includeRecurringChildren, categoryId } = options;
+  const fetchOptions = useMemo<FetchOptions>(
+    () => ({ dateFrom, dateTo, includeRecurringChildren, categoryId }),
+    [dateFrom, dateTo, includeRecurringChildren, categoryId]
+  );
 
   const [incomeItems, setIncomeItems] = useState<Bill[]>([]);
   const [expenseItems, setExpenseItems] = useState<Bill[]>([]);
@@ -120,7 +125,7 @@ export function useBills(options: FetchOptions = {}) {
         const to = from + limit - 1;
 
         const { data, error, count } = await withRetry(
-          async () => buildFetchBillsQuery(supabase, userId, options).range(from, to).abortSignal(signal),
+          async () => buildFetchBillsQuery(supabase, userId, fetchOptions).range(from, to).abortSignal(signal),
           signal
         );
 
@@ -151,7 +156,7 @@ export function useBills(options: FetchOptions = {}) {
         if (!signal.aborted) setFetching(false);
       }
     },
-    [userId, settings.show_budget_items, supabase, options.dateFrom, options.dateTo, options.includeRecurringChildren, options.categoryId, toast, withRetry, getBillsSignal]
+    [userId, settings, supabase, fetchOptions, toast, withRetry, getBillsSignal]
   );
 
   useEffect(() => {

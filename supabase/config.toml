@@ -5,7 +5,7 @@ enabled = true
 port = 54321
 schemas = ["public", "storage", "graphql_public"]
 extra_search_path = ["public", "extensions"]
-max_rows = 1000
+max_rows = 2000
 
 [db]
 port = 54322
@@ -30,13 +30,10 @@ verify_jwt = false
 [functions.process-notifications]
 verify_jwt = false
 
-[functions.check-daily-habits]
-verify_jwt = false
-
-[functions.check-events]
-verify_jwt = false
-
 [functions.process-reminders]
+verify_jwt = false
+
+[functions.backup-database]
 verify_jwt = false
 
 [functions.log-error]
@@ -45,11 +42,5 @@ verify_jwt = true
 [functions.send-love]
 verify_jwt = true
 
-[functions.transport-busmaps]
-verify_jwt = true
-
-[functions.transport-busmaps-v2]
-verify_jwt = true
-
-[functions.transport-busmaps-v3]
+[functions.transport-departures]
 verify_jwt = true

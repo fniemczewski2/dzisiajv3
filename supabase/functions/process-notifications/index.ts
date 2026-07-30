@@ -4,6 +4,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
 import { getErrorMessage } from '../_shared/errors.ts';
 
+interface ScheduleEntry {
+  label: string;
+  time: string;
+  notify?: boolean;
+}
+
 interface NotifiableTask {
   id: string;
   user_id: string;
@@ -81,7 +87,7 @@ Deno.serve(async (req) => {
 
     let processedCount = 0;
 
-    const sendPushAndLog = async (userId: string, title: string, message: string, targetUrl: string, dataObj: any = {}) => {
+    const sendPushAndLog = async (userId: string, title: string, message: string, targetUrl: string, dataObj: Record<string, unknown> = {}) => {
       try {
         await supabase.from('notifications').insert({
           user_id: userId,
@@ -125,7 +131,7 @@ Deno.serve(async (req) => {
         const { count: eventsCount } = await supabase.from('events').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).like('start_time', `${today}%`)
 
         if ((tasksCount && tasksCount > 0) || (eventsCount && eventsCount > 0)) {
-          let msgParts = [];
+          const msgParts = [];
           if (eventsCount && eventsCount > 0) msgParts.push(`${eventsCount} ${pluralize(eventsCount, 'wydarzenie', 'wydarzenia', 'wydarzeń')}`);
           if (tasksCount && tasksCount > 0) msgParts.push(`${tasksCount} ${pluralize(tasksCount, 'zadanie', 'zadania', 'zadań')}`);
           await sendPushAndLog(user.user_id, 'Dzień dobry!', `Masz dziś ${msgParts.join(' i ')}.`, '/')
@@ -147,7 +153,7 @@ Deno.serve(async (req) => {
           return sentNotifs?.some(n =>
             n.user_id === userId &&
             n.data?.sub_type === subType &&
-            n.data?.task_id.toString().split(',').includes(taskId.toString())
+            String(n.data?.task_id ?? '').split(',').includes(taskId.toString())
           );
         };
 
@@ -177,8 +183,8 @@ Deno.serve(async (req) => {
           .lte('scheduled_time', currentHourEndStr);
 
         const tasksNowByUser = groupTasksByUser(tasksNow || []);
-        for (const [userId, tasks] of Object.entries(tasksNowByUser)) {
-          const unsentTasks = (tasks as any[]).filter(t => !isSent(userId, 'exact_time', t.id));
+        for (const [userId, tasks] of tasksNowByUser) {
+          const unsentTasks = tasks.filter(t => !isSent(userId, 'exact_time', t.id));
 
           if (unsentTasks.length === 1) {
             const t = unsentTasks[0];
@@ -210,8 +216,8 @@ Deno.serve(async (req) => {
           .lte('scheduled_time', lateHourEndStr);
 
         const tasksLateByUser = groupTasksByUser(tasksLate || []);
-        for (const [userId, tasks] of Object.entries(tasksLateByUser)) {
-          const unsentTasks = (tasks as any[]).filter(t => !isSent(userId, 'late_1h', t.id));
+        for (const [userId, tasks] of tasksLateByUser) {
+          const unsentTasks = tasks.filter(t => !isSent(userId, 'late_1h', t.id));
 
           if (unsentTasks.length === 1) {
             const t = unsentTasks[0];
@@ -238,8 +244,8 @@ Deno.serve(async (req) => {
             .eq('due_date', today);
 
           const tasksNoTimeByUser = groupTasksByUser(tasksNoTime || []);
-          for (const [userId, tasks] of Object.entries(tasksNoTimeByUser)) {
-            const unsentTasks = (tasks as any[]).filter(t => !isSent(userId, 'no_time_14', t.id));
+          for (const [userId, tasks] of tasksNoTimeByUser) {
+            const unsentTasks = tasks.filter(t => !isSent(userId, 'no_time_14', t.id));
 
             if (unsentTasks.length === 1) {
               const t = unsentTasks[0];
@@ -338,7 +344,7 @@ Deno.serve(async (req) => {
         if (await wasAlreadySentToday(s.user_id, 'daily_habits')) continue;
 
         const { data: habit } = await supabase.from('daily_habits').select('*').eq('date', today).eq('user_id', s.user_id).maybeSingle()
-        let incomplete = []
+        const incomplete = []
         if (s.habit_pills && (!habit?.pills)) incomplete.push('Leki')
         if (s.habit_bath && (!habit?.bath)) incomplete.push('Higiena')
         if (s.habit_workout && (!habit?.workout)) incomplete.push('Trening')
@@ -364,24 +370,25 @@ Deno.serve(async (req) => {
       const currentTime = `${plNow.hour}:${plNow.timeStr.split(':')[1]}`;
       const currentMinutes = timeToMinutes(currentTime);
       const currentDayObj = new Date(realNow.getTime() + (currentHour * 3600000));
-      const currentDayIndex = String((currentDayObj.getDay() + 6) % 7);
+      const currentDayIndex = (currentDayObj.getDay() + 6) % 7;
 
       for (const schema of daySchemas || []) {
-        let activeDays: string[] = [];
+        let activeDays: number[] = [];
         try {
-          activeDays = typeof schema.days === 'string' ? JSON.parse(schema.days) : (schema.days || []);
+          const rawDays: unknown[] = typeof schema.days === 'string' ? JSON.parse(schema.days) : (schema.days || []);
+          activeDays = rawDays.map(Number);
         } catch { continue; }
 
         if (!activeDays.includes(currentDayIndex)) {
           continue;
         }
 
-        let entries: any[] = [];
+        let entries: ScheduleEntry[] = [];
         try {
           entries = typeof schema.entries === 'string' ? JSON.parse(schema.entries) : (schema.entries || []);
         } catch { continue; }
 
-        const itemsToNotify = entries.filter((item: any) =>
+        const itemsToNotify = entries.filter((item) =>
           item.notify === true && Math.abs(timeToMinutes(item.time) - currentMinutes) <= 1
         );
 

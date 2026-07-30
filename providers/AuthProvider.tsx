@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: Readonly<{ children: React.ReactNode 
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    void supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoadingUser(false);
     });

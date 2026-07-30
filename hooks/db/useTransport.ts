@@ -43,7 +43,7 @@ export function useTransport(autoRefresh = false) {
     setLoadingNearby(true);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("get-transitland-times", {
+      const { data, error: invokeError } = await supabase.functions.invoke("transport-departures", {
         body: { lat: lastCoords.current.lat, lon: lastCoords.current.lng },
         signal: controller.signal,
       });
@@ -77,7 +77,7 @@ export function useTransport(autoRefresh = false) {
         forcePrompt,
         onSuccess: (position) => {
           lastCoords.current = { lat: position.coords.latitude, lng: position.coords.longitude };
-          fetchNearbyData();
+          void fetchNearbyData();
         },
         onError: (err) => {
           setLoadingNearby(false);
@@ -110,7 +110,7 @@ export function useTransport(autoRefresh = false) {
       setLoadingFavorites(true);
       setTransportError(null);
       try {
-        const { data, error } = await supabase.functions.invoke("get-transitland-times", {
+        const { data, error } = await supabase.functions.invoke("transport-departures", {
           body: { stopNames: stops, lat: lastCoords.current?.lat, lon: lastCoords.current?.lng },
           signal: controller.signal,
         });
@@ -138,7 +138,7 @@ export function useTransport(autoRefresh = false) {
     if (settingsLoading) return;
     try {
       const stops = JSON.parse(favoritesJSON);
-      fetchFavorites(stops);
+      void fetchFavorites(stops);
     } catch {
       setTransportError("Wystąpił błąd parsowania przystanków.");
     }
@@ -194,7 +194,7 @@ export function useTransport(autoRefresh = false) {
   const handleSuggestionClick = useCallback(
     (value: string) => {
       const selectedStop = searchResults.find((s) => s.displayString === value);
-      if (selectedStop) addFavoriteStop(selectedStop.name, selectedStop.zone_id);
+      if (selectedStop) void addFavoriteStop(selectedStop.name, selectedStop.zone_id);
       setSearchQuery("");
       setSuggestions([]);
       setSearchResults([]);
@@ -208,7 +208,7 @@ export function useTransport(autoRefresh = false) {
     let intervalId: ReturnType<typeof setInterval> | null = null;
     if (autoRefresh) {
       intervalId = setInterval(() => {
-        if (lastCoords.current) fetchNearbyData();
+        if (lastCoords.current) void fetchNearbyData();
       }, 30_000);
     }
 

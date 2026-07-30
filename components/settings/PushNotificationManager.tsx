@@ -242,7 +242,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
 
       <NotificationPreferences />
 
-      <div className="flex flex-wrap gap-3 pt-2">
+      <div className="flex flex-wrap md:grid md:grid-cols-2 gap-3 pt-2">
         {isSupported && permission === "default" && (
           <button onClick={handleRequestPermission} type='button' disabled={loading}
             className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-primary transition-colors disabled:opacity-50">
@@ -252,18 +252,18 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
         )}
         {isSupported && permission === "granted" && (
           <button onClick={handleToggleNotifications} type='button' disabled={loading}
-            className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold transition-all disabled:opacity-50 ${
+            className={`font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
               isSubscribed
-                ? "bg-red-5 dark:bg-red-950 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50"
-                : "bg-secondary hover:bg-primary text-white"
+                ? "bg-red-5 dark:bg-red-950 border border-red-200 dark:border-red-900/50"
+                : "bg-surface hover:bg-surfaceHover"
             }`}>
             {buttonContent}
           </button>
         )}
         {isSubscribed && (
           <button onClick={handleTestNotification} type='button' disabled={loading}
-            className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-text font-bold rounded-lg transition-colors disabled:opacity-50">
-            Wyślij Test <CheckCircle className="w-5 h-5 text-green-500" />
+            className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+            Wyślij Test <CheckCircle className="w-5 h-5" />
           </button>
         )}
       </div>

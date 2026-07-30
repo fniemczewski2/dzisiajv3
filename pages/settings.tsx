@@ -7,6 +7,7 @@ import VersionInfo from "@/components/settings/Version";
 import SettingsForm from "@/components/settings/SettingsForm";
 import LocationSection from "@/components/settings/LocationSection";
 import UserSection from "@/components/settings/UserSection";
+import DataExportSection from "@/components/settings/DataExportSection";
 import { useSettings } from "@/hooks/db/useSettings";
 import PushNotificationManager from '@/components/settings/PushNotificationManager';
 import LoveButton from "@/components/settings/LoveButton";
@@ -80,6 +81,8 @@ export default function SettingsPage() {
             locationStatus={locationStatus}
           />
           
+          <DataExportSection />
+
           <UserSection
             email={user?.email}
             onSignOut={handleSignOut}

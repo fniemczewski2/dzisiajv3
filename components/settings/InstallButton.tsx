@@ -44,7 +44,7 @@ export default function InstallPromptButton() {
 
   const handleInstall = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
+      await deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       setDeferredPrompt(null);
       setShowInstallButton(false);

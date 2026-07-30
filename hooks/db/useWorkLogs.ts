@@ -4,8 +4,6 @@ import { useCallback } from 'react';
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useCrudResource } from './useCrudResource';
 
-// hooks/db/useWorkLogs.ts
-
 const MESSAGES = {
   fetchError: 'Błąd pobierania czasu pracy.',
   added: 'Dodano czas pracy.',

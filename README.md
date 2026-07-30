@@ -64,6 +64,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Udostępnianie** — współdzielenie zadań/kalendarza/list z zaufanymi użytkownikami
 - **Cyfrowa wizytówka** — wiele profili vCard z publicznym linkiem (`/v/twoj-link`), własnymi kolorami i danymi firmowymi
 - **Ustawienia systemowe** — motyw, powiadomienia push, sortowanie, instalacja jako PWA
+- **Kopia moich danych** — eksport wszystkich danych użytkownika do pliku JSON (bez haseł, tokenów OAuth i kluczy push)
 
 ## 🏗️ Stack technologiczny
 

@@ -99,10 +99,14 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
     link.remove();
   };
 
-  const copyAllData = () => {
+  const copyAllData = async () => {
     const text = `${profile.full_name || ''}\n${profile.organization ? profile.organization + '\n' : ''}Tel: ${profile.phones?.[0]?.number || '-'}\nEmail: ${profile.emails?.[0]?.email || '-'}`;
-    navigator.clipboard.writeText(text);
-    toast.success('Skopiowano!')
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('Skopiowano!');
+    } catch {
+      toast.error('Nie udało się skopiować.');
+    }
   };
 
   const bizData = profile.business_data || {};

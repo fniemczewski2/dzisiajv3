@@ -43,7 +43,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       <button
         onClick={onSignOut}
         type='button'
-        className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg shadow-sm transition-colors"
+        className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <span>Wyloguj się</span>
         <LogOut className="w-5 h-5" />

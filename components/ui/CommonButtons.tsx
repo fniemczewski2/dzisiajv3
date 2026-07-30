@@ -148,13 +148,17 @@ export const CopyButtonSmall = ({ text, label }: { text: string; label?: string 
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const handleCopy = (e: React.MouseEvent) => {
+  const handleCopy = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success('Skopiowano!')
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success('Skopiowano!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Nie udało się skopiować.');
+    }
   };
 
   return (
@@ -500,7 +504,7 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router, sm
     key={path}
     onClick={() => {
         if (path && router) {
-          router.push(path);
+          void router.push(path);
         }
         if (action) {
           action();

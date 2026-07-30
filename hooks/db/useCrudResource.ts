@@ -71,7 +71,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
   const transform = useCallback((row: unknown): T => {
     const fn = configRef.current.transformRow;
     return fn ? fn(row) : (row as T);
-  }, []);
+  }, [configRef]);
 
   const refetch = useCallback(async (): Promise<T[]> => {
     const cfg = configRef.current;
@@ -114,7 +114,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
         setFetching(false);
       }
     }
-  }, [supabase, userId, toast, withRetry, transform, cacheKey, getSignal]);
+  }, [supabase, userId, toast, withRetry, transform, cacheKey, getSignal, configRef]);
 
   useEffect(() => {
     if (!cacheKey) return;
@@ -173,7 +173,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, transform]
+    [supabase, userId, toast, withRetry, transform, configRef]
   );
 
   const patch = useCallback(
@@ -216,7 +216,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, transform]
+    [supabase, userId, toast, withRetry, transform, configRef]
   );
 
   const remove = useCallback(
@@ -249,7 +249,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast, withRetry, configRef]
   );
 
   return { items, setItems, fetching, loading, refetch, add, patch, remove };
