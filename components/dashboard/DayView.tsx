@@ -46,9 +46,14 @@ type DraftForm = {
 const getHourStr = (dateStr: string | null): string | undefined => {
   if (!dateStr) return;
   try {
-    const timePart = dateStr.replaceAll(" ", "T").split("T")[1];
-    if (timePart) {
-      const hour = timePart.split(":")[0];
+    if (/^\d{2}:\d{2}$/.test(dateStr)) {
+      return dateStr.split(":")[0];
+    }
+    const normalized = dateStr.replace(" ", "T");
+    const parts = normalized.split("T");
+    
+    if (parts.length > 1) {
+      const hour = parts[1].split(":")[0];
       if (hour && !Number.isNaN(Number(hour))) {
         return hour.padStart(2, "0");
       }
@@ -201,7 +206,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     });
 
     scheduledTasks.forEach((task) => {
-      if (!task.scheduled_time) return
+      if (!task.scheduled_time) return;
       const h = getHourStr(task?.scheduled_time);
       if (h) {
         const key = `${h}:00`;
@@ -230,7 +235,8 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
         
         if (hourNum < currentHour) {
           const shouldKeepPastHour = map[timeKey].some(item => {
-            if (item.type === "task" || item.type === "schema") return true; 
+            // POPRAWKA: Dodano `item.type === "worklog"` żeby starsze godziny nie znikały dzisiaj z radaru!
+            if (item.type === "task" || item.type === "schema" || item.type === "worklog") return true; 
             
             if (item.type === "event" && item.data?.end_time) {
               const endH = getHourStr(item.data.end_time);

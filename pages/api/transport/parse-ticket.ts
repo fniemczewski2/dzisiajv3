@@ -2,10 +2,11 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import os from 'node:os';
 import { PDFParse } from 'pdf-parse';
 import { createServerSupabase } from '@/lib/supabase/server';
+import { TICKET_UPLOAD_MAX_BYTES, TICKET_ALLOWED_MIME } from '@/config/limits';
 
 export const config = { api: { bodyParser: false } };
 
@@ -13,7 +14,19 @@ const SUFFIXES = new Set([
   'gł.', 'główny', 'główna', 'centr.', 'centralna', 'centralny',
   'wsch.', 'wschodni', 'wschodnia', 'zach.', 'zachodni', 'zachodnia',
   'płn.', 'północ', 'północny', 'płd.', 'południe', 'południowy',
-  'zdrój', 'miasto', 'przedmieście', 'lotnisko', 'wlkp.', 'śl.', 'maz.', 'kuj.', 'pomorski'
+  'zdrój', 'miasto', 'przedmieście', 'lotnisko', 'wlkp.', 'śl.', 'maz.', 'kuj.', 'pomorski',
+  'główne', 'centralne', 'wschodnie', 'zachodnie', 'północna', 'południowa',
+  'wielkopolski', 'wielkopolska', 'śląski', 'śląska', 'śląskie',
+  'mazowiecki', 'mazowiecka', 'kujawski', 'kujawska', 'pomorska'
+]);
+
+/** Pierwsze czlony dwuwyrazowych nazw miast. Bez tej listy algorytm traktuje
+ * kazdy wyraz niebedacy przyrostkiem jako poczatek nowej stacji, wiec trasa
+ * "Zielona Gora Gl. Poznan Gl." dawala from = "Zielona". */
+const MULTI_WORD_CITY_STARTS = new Set([
+  'zielona', 'jelenia', 'nowy', 'nowa', 'stare', 'stary', 'biała', 'biały',
+  'grodzisk', 'skarżysko', 'kędzierzyn', 'tarnowskie', 'kostrzyn', 'krzyż',
+  'wolsztyn', 'rzepin', 'dąbrowa', 'ruda', 'siemianowice', 'świnoujście'
 ]);
 
 const ABBREVIATIONS: Record<string, { m: string, f: string, n: string }> = {
@@ -24,7 +37,7 @@ const ABBREVIATIONS: Record<string, { m: string, f: string, n: string }> = {
   'płn.': { m: 'Północny', f: 'Północna', n: 'Północne' },
   'płd.': { m: 'Południowy', f: 'Południowa', n: 'Południowe' },
   'wlkp.': { m: 'Wielkopolski', f: 'Wielkopolska', n: 'Wielkopolskie' },
-  'śl.': { m: 'Ĺšląski', f: 'Ĺšląska', n: 'Ĺšląskie' },
+  'śl.': { m: 'Śląski', f: 'Śląska', n: 'Śląskie' },
   'maz.': { m: 'Mazowiecki', f: 'Mazowiecka', n: 'Mazowieckie' },
   'kuj.': { m: 'Kujawski', f: 'Kujawska', n: 'Kujawskie' }
 };
@@ -72,11 +85,22 @@ export function extractStationNames(route: string) {
     
     let lastCityWord = words[0]; 
 
+    let previousStartsMultiWord = MULTI_WORD_CITY_STARTS.has(words[0].toLowerCase());
+
     for (let i = 1; i < words.length; i++) {
       const word = words[i];
       const lowerWord = word.toLowerCase();
       const isSuffix = SUFFIXES.has(lowerWord) || word.endsWith('.');
       const expandedWord = expandWord(word, lastCityWord);
+
+      // Drugi czlon dwuwyrazowej nazwy miasta nalezy do tej samej stacji.
+      if (previousStartsMultiWord && !isSuffix) {
+        current += ` ${expandedWord}`;
+        lastCityWord = word;
+        previousStartsMultiWord = false;
+        continue;
+      }
+      previousStartsMultiWord = MULTI_WORD_CITY_STARTS.has(lowerWord);
 
       if (isSuffix) {
         current += ` ${expandedWord}`;
@@ -89,7 +113,9 @@ export function extractStationNames(route: string) {
     if (current) stationsList.push(current);
 
     from = stationsList[0] || '';
-    to = stationsList.slice(1).join(' ') || '';
+    // Cel podrozy to OSTATNIA stacja. Sklejanie calego ogona dawalo dla tras
+    // z przystankiem posrednim wartosci typu "Warszawa Wschodnia Krakow Glowny".
+    to = stationsList.length > 1 ? stationsList[stationsList.length - 1] : '';
   }
   return { from, to };
 }
@@ -147,45 +173,63 @@ export function parseTicketData(rawText: string): ParsedTicket {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
   const supabase = createServerSupabase(req, res);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
   const form = formidable({
     multiples: false,
+    maxFiles: 1,
     uploadDir: os.tmpdir(),
-    maxFileSize: 10 * 1024 * 1024,
+    maxFileSize: TICKET_UPLOAD_MAX_BYTES,
+    // Odrzucamy nie-PDF zanim trafi na dysk.
+    filter: (part) => part.mimetype === TICKET_ALLOWED_MIME,
   });
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      return res.status(err.httpCode || 500).json({ error: 'Błąd wgrywania pliku: ' + err.message });
-    }
+  let filepath: string | undefined;
 
+  try {
+    // Promise API formidable v3 - dzieki temu handler faktycznie czeka na
+    // zakonczenie parsowania, zamiast konczyc sie przed callbackiem.
+    const [, files] = await form.parse(req);
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
-    if (!file) return res.status(400).json({ error: 'Brak pliku' });
 
-    try {
-      const dataBuffer = fs.readFileSync(file.filepath);
-      const rawText = await extractPdfText(dataBuffer);
-      const ticketData = parseTicketData(rawText);
-
-      if (!ticketData.trainNumber && !ticketData.from) {
-        return res.status(422).json({
-          error: 'Nie udało się rozpoznać danych biletu w tym pliku. Sprawdź, czy to bilet PKP Intercity w formacie PDF.',
-        });
-      }
-
-      return res.status(200).json(ticketData);
-    } catch (error) {
-      console.error('[PDF Extract Error]:', error);
-      return res.status(500).json({ error: 'Błąd wczytywania PDF. Sprawdź, czy plik nie jest uszkodzony.' });
-    } finally {
-      if (file?.filepath) {
-        fs.unlink(file.filepath, (unlinkErr) => {
-          if (unlinkErr) console.error('[Cleanup Error]: Nie udało się usunąć pliku tymczasowego', unlinkErr);
-        });
-      }
+    if (!file) {
+      return res.status(400).json({ error: 'Nie wgrano pliku PDF z biletem.' });
     }
-  });
+    filepath = file.filepath;
+
+    if (file.mimetype !== TICKET_ALLOWED_MIME) {
+      return res.status(415).json({ error: 'Obsługiwane są wyłącznie pliki PDF.' });
+    }
+
+    const dataBuffer = await fs.readFile(file.filepath);
+    const rawText = await extractPdfText(dataBuffer);
+    const ticketData = parseTicketData(rawText);
+
+    if (!ticketData.trainNumber && !ticketData.from) {
+      return res.status(422).json({
+        error: 'Nie udało się rozpoznać danych biletu w tym pliku. Sprawdź, czy to bilet PKP Intercity w formacie PDF.',
+      });
+    }
+
+    return res.status(200).json(ticketData);
+  } catch (error) {
+    const code = (error as { code?: string | number }).code;
+
+    if (code === 'ETOOBIG' || code === 1009) {
+      const maxMb = Math.round(TICKET_UPLOAD_MAX_BYTES / (1024 * 1024));
+      return res.status(413).json({ error: `Plik jest za duży. Maksymalny rozmiar to ${maxMb} MB.` });
+    }
+
+    console.error('[parse-ticket]:', error);
+    return res.status(500).json({ error: 'Błąd wczytywania PDF. Sprawdź, czy plik nie jest uszkodzony.' });
+  } finally {
+    if (filepath) {
+      await fs.unlink(filepath).catch((unlinkErr: unknown) => {
+        console.error('[parse-ticket] Nie udało się usunąć pliku tymczasowego', unlinkErr);
+      });
+    }
+  }
 }

@@ -35,10 +35,6 @@ export function useMeetingPolls() {
     messages: MESSAGES,
   });
 
-  /** Tworzy ankietę WRAZ z kandydackimi dniami. Nie używa crud.add(), bo:
-   * (a) ta operacja obejmuje DWIE tabele, a fabryka obsługuje jedną,
-   * (b) crud.add() pokazałby toast sukcesu ZANIM wiemy, czy insert dat się
-   *     powiódł - mylące, gdyby zaraz potem trzeba było cofnąć operację. */
   const createPoll = useCallback(
     async (payload: MeetingPollInsert): Promise<MeetingPoll | undefined> => {
       if (!userId) throw new Error("Unauthorized");
@@ -91,10 +87,6 @@ export function useMeetingPolls() {
     [crud]
   );
 
-  /** Agreguje dane z 4 tabel na potrzeby widoku wyników - wywoływane raz
-   * przy wejściu na stronę wyników, nie w efekcie ze zmieniającymi się
-   * parametrami, więc świadomie bez AbortController (brak realnego ryzyka
-   * race condition dla jednorazowego, ręcznie wyzwalanego pobrania). */
   const getPollResults = useCallback(
     async (pollId: string): Promise<MeetingPollResults | null> => {
       const { data: poll, error: pollError } = await supabase
@@ -154,9 +146,6 @@ export function useMeetingPolls() {
     [supabase, toast]
   );
 
-  /** Woła autoryzowany route serwerowy - tworzenie wydarzeń w kalendarzach
-   * uczestników wymaga klucza serwisowego, którego przeglądarka nigdy nie
-   * powinna dotykać (patrz pages/api/meeting-polls/[id]/finalize.ts). */
   const finalizePoll = useCallback(
     async (pollId: string, slots: FinalizeSlotInput[]): Promise<FinalizeResultSlot[] | null> => {
       try {

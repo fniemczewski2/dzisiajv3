@@ -52,7 +52,7 @@ export const BACKPACK = [
     items: [
       "Multitool",
       "Miara",
-      "Ĺyżka do butów",
+      "Łyżka do butów",
       "Trytytki",
       "Siatki",
       "Grzałka",
@@ -267,7 +267,7 @@ export const SUITCASE = [
       "Powerbank",
       "Słuchawki",
       "Aparat",
-      "Ĺadowarki i kable",
+      "Ładowarki i kable",
       "Generator kodów",
       "Adapter podróżny",
       "Grzałka elektryczna ",

@@ -189,7 +189,7 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
       success: (m: string) => { addNotification(m, "success"); },
       error:   (m: string) => { addNotification(m, "error"); },
       info:    (m: string) => { addNotification(m, "info"); },
-      loading: (m: string = "Ĺadowanie...") => addNotification(m, "loading", false),
+      loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
       dismiss: (id: string) => remove(id),
       confirm,
       batch,

@@ -1,6 +1,6 @@
 ﻿// pages/worklogs.tsx
 
-import React, { SyntheticEvent, useRef, useState } from 'react';
+import React, { SyntheticEvent, useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Clock, Calendar} from 'lucide-react';
@@ -10,31 +10,36 @@ import NoResultsState from '@/components/ui/NoResultsState';
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useAuth } from '@/providers/AuthProvider';
+import { useToast } from '@/providers/ToastProvider';
+
+const toIsoWithLocalOffset = (localValue: string): string => {
+  const date = new Date(localValue);
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const abs = Math.abs(offsetMinutes);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${localValue}:00${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
+};
 
 const WorkLogForm = ({ onAdd, onCancel, loading }: { onAdd: (log: Omit<WorkLogInsert, 'user_id'>) => Promise<void>, onCancel: () => void, loading: boolean }) => {
   const { user } = useAuth();
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-  const [endTime, setEndTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));;
+  const [endTime, setEndTime] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
 
-  const descriptionRef = useRef<HTMLInputElement>(null);
-  const startTimeRef = useRef<HTMLInputElement>(null);
-  const endTimeRef = useRef<HTMLInputElement>(null);
+  const handleSubmit = async (e: SyntheticEvent) => {
+    e.preventDefault();
+    if (!user || !description.trim() || !startTime) return;
 
-    const handleSubmit = async (e: SyntheticEvent) => {
-      e.preventDefault();
-
-      if (!user) return;
-  
-      const data: WorkLogInsert = {
-        user_id: user?.id,
-        description: descriptionRef.current?.value || "",
-        start_time: startTimeRef?.current?.value || "",
-        end_time: endTimeRef?.current?.value || undefined,
-      };
-
-      await onAdd(data);
+    const data: WorkLogInsert = {
+      user_id: user.id,
+      description: description.trim(),
+      start_time: toIsoWithLocalOffset(startTime),
+      end_time: endTime ? toIsoWithLocalOffset(endTime) : undefined,
     };
+
+    await onAdd(data);
+  };
   return (
     <form
       onSubmit={handleSubmit}
@@ -91,6 +96,7 @@ export default function WorkLogsPage() {
   
   const monthStr = format(currentDate, 'yyyy-MM');
   const { workLogs, loading, addWorkLog, deleteWorkLog } = useWorkLogs(undefined, monthStr);
+  const { toast } = useToast();
 
   const onNext = () => setCurrentDate(addMonths(currentDate, 1));
   const onPrev = () => setCurrentDate(subMonths(currentDate, 1));
@@ -118,7 +124,12 @@ export default function WorkLogsPage() {
   }, 0);
 
   const handleAddLog = async (log: Omit<WorkLogInsert, 'user_id'>) => {
-    await addWorkLog(log);
+    if (log.end_time && new Date(log.end_time) <= new Date(log.start_time)) {
+      toast.error("Czas zakończenia musi być późniejszy niż rozpoczęcia.");
+      return;
+    }
+    const created = await addWorkLog(log);
+    if (created) setIsFormOpen(false);
   };
   const handleDelete = async (log: WorkLog) => {
     await deleteWorkLog(log.id);

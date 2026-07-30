@@ -3,21 +3,9 @@
 export interface ExportTable {
   table: string;
   label: string;
-  /** Jawna lista kolumn. Podawana tam, gdzie tabela zawiera dane wrazliwe
-   * (tokeny OAuth, klucze push), ktore nie moga trafic do pliku eksportu. */
   columns?: string;
 }
 
-/** Tabele objete eksportem danych uzytkownika.
- *
- * Filtrowanie po wlascicielu zapewnia RLS - zapytania ida klientem
- * zalogowanego uzytkownika, wiec baza zwraca wylacznie jego wiersze.
- *
- * Swiadomie POMINIETE:
- * - google_calendar_tokens - wylacznie tokeny OAuth, zero wartosci dla uzytkownika,
- * - stops - publiczny slownik przystankow, nie sa to dane uzytkownika,
- * - errors - logi techniczne, brak polityk RLS (dostep tylko service_role).
- */
 export const EXPORT_TABLES: ExportTable[] = [
   { table: "settings", label: "Ustawienia" },
   { table: "tasks", label: "Zadania" },

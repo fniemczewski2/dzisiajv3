@@ -1,6 +1,6 @@
 ﻿// components/meetingPolls/MeetingPollResults.tsx
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarCheck2, Trash2 } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { useAuth } from "@/providers/AuthProvider";
@@ -42,6 +42,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [data, setData] = useState<MeetingPollResultsData | null>(null);
   const [loadingResults, setLoadingResults] = useState(true);
   const [selection, setSelection] = useState<Selection | null>(null);
+  /** Pierwsze klikniecie zakresu. Dopoki jest ustawione, kolejne klikniecie
+   * w tej samej kolumnie domyka zakres od-do (tryb dzialajacy na dotyku). */
+  const [rangeAnchor, setRangeAnchor] = useState<{ date: string; index: number } | null>(null);
   const [pendingSlots, setPendingSlots] = useState<PendingSlot[]>([]);
   const [finalizing, setFinalizing] = useState(false);
   const [finalizedResults, setFinalizedResults] = useState<FinalizeResultSlot[] | null>(null);
@@ -52,17 +55,35 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [slotPlace, setSlotPlace] = useState("");
   const [slotDescription, setSlotDescription] = useState("");
   const [slotCalendar, setSlotCalendar] = useState("local");
-  const { cellHandlers, handleTouchMove } = useDragSelectGrid({
-    onBegin: (date, cellId) => {
-      const index = Number(cellId);
+  const activateCell = useCallback(
+    (date: string, index: number) => {
+      // Drugie klikniecie w tej samej kolumnie domyka zakres od-do.
+      if (rangeAnchor && rangeAnchor.date === date) {
+        setSelection({
+          date,
+          startIndex: Math.min(rangeAnchor.index, index),
+          endIndex: Math.max(rangeAnchor.index, index),
+        });
+        setRangeAnchor(null);
+        return;
+      }
+
       setSelection({ date, startIndex: index, endIndex: index });
+      setRangeAnchor({ date, index });
       setSlotTitle(data?.poll.title ?? "");
       setSlotPlace("");
       setSlotDescription("");
       setSlotCalendar("local");
     },
+    [rangeAnchor, data?.poll.title]
+  );
+
+  const { cellHandlers, handleTouchMove } = useDragSelectGrid({
+    onBegin: (date, cellId) => activateCell(date, Number(cellId)),
     onExtend: (date, cellId) => {
       const index = Number(cellId);
+      // Przeciagniecie zastepuje tryb od-do, wiec kotwica przestaje obowiazywac.
+      setRangeAnchor(null);
       setSelection((prev) => {
         if (prev?.date !== date) return prev;
         return { date, startIndex: Math.min(prev.startIndex, index), endIndex: Math.max(prev.endIndex, index) };
@@ -180,6 +201,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       },
     ]);
     setSelection(null);
+    setRangeAnchor(null);
   };
 
   const removePending = (index: number) => {
@@ -242,8 +264,8 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       <div>
         <h3 className="text-xl font-bold text-text">{data.poll.title}</h3>
         <p className="text-sm text-textSecondary mt-1">
-          {totalResponses} {totalResponses === 1 ? "odpowiedź" : "odpowiedzi"}. Kliknij albo przeciągnij po polach w
-          jednej kolumnie, żeby wybrać termin.
+          {totalResponses} {totalResponses === 1 ? "odpowiedź" : "odpowiedzi"}. Kliknij godzinę początkową, a
+          potem końcową w tej samej kolumnie - albo przeciągnij po polach.
         </p>
       </div>
 
@@ -272,17 +294,27 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                     const names = respondentsByKey[key] ?? [];
                     const isSelected =
                       selection?.date === date && timeIndex >= selection.startIndex && timeIndex <= selection.endIndex;
+                    const isAnchor = rangeAnchor?.date === date && rangeAnchor.index === timeIndex;
+                    let ringClass = "";
+                    if (isAnchor) ringClass = "ring-2 ring-inset ring-secondary";
+                    else if (isSelected) ringClass = "ring-2 ring-inset ring-primary";
                     return (
                       <td
                         key={date}
                         {...cellHandlers(date, String(timeIndex))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            activateCell(date, timeIndex);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
                         title={names.length > 0 ? names.join(", ") : "Nikt niedostępny"}
                         aria-label={`${date} ${time}: ${
                           names.length > 0 ? `dostępni - ${names.join(", ")}` : "nikt niedostępny"
-                        }`}
-                        className={`w-12 h-8 text-center text-xs font-semibold cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
-                          isSelected ? "ring-2 ring-primary ring-inset" : ""
-                        } ${cellClass(count)}`}
+                        }${isAnchor ? ". Początek zakresu - wybierz godzinę końcową" : ""}`}
+                        className={`w-12 h-8 text-center text-xs font-semibold cursor-pointer border border-white dark:border-neutral-950 transition-colors ${ringClass} ${cellClass(count)}`}
                       >
                         {count > 0 ? count : ""}
                       </td>
@@ -308,6 +340,12 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             {addMinutesToTime(times[selection.endIndex], data.poll.slot_duration_minutes)} - dostępnych:{" "}
             <strong>{selectionAvailability.available.length}</strong> / {totalResponses}
           </p>
+
+          {rangeAnchor && (
+            <p className="text-sm text-secondary">
+              Wybrano początek zakresu. Kliknij godzinę końcową w tej samej kolumnie albo zapisz pojedynczy slot.
+            </p>
+          )}
 
           {selectionAvailability.available.length > 0 && (
             <p className="text-sm text-text">
@@ -381,7 +419,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
               onClick={addSelectionToPending}
               disabled={!slotTitle.trim()}
             />
-            <CancelButton onClick={() => setSelection(null)} />
+            <CancelButton onClick={() => { setSelection(null); setRangeAnchor(null); }} />
           </div>
         </div>
       )}

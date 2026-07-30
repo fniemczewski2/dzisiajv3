@@ -75,9 +75,9 @@ describe("processCsvText", () => {
 
   it("detects a duplicate income transaction against existing income bills", () => {
     const csv = buildCsv([
-      `"2026-06-27";"PRZELEW PRZYCHODZÄ„CY WYNAGRODZENIE";"Wpływy";"5000,00 PLN"`,
+      `"2026-06-27";"PRZELEW PRZYCHODZĄCY WYNAGRODZENIE";"Wpływy";"5000,00 PLN"`,
     ]);
-    const existing = [{ amount: 5000, date: "2026-06-27", description: "PRZELEW PRZYCHODZÄ„CY WYNAGRODZENIE", is_income: true }];
+    const existing = [{ amount: 5000, date: "2026-06-27", description: "PRZELEW PRZYCHODZĄCY WYNAGRODZENIE", is_income: true }];
     const result = processCsvText(csv, existing, noCategories);
 
     expect(result.transactions).toHaveLength(0);

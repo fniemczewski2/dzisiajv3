@@ -1,7 +1,7 @@
 // components/meetingPolls/MeetingPollRespondents.tsx
 
 import React, { useMemo, useState } from "react";
-import { Users, Mail, UserCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Mail, UserCheck, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { CopyButtonSmall } from "../ui/CommonButtons";
 import type { MeetingPollResponseRow, MeetingPollAvailabilityRow } from "@/types/meetingPolls";
 
@@ -60,21 +60,11 @@ export default function MeetingPollRespondents({
       <div className="flex items-center justify-between gap-2">
         <h4 className="flex items-center gap-2 text-sm font-bold text-text">
           <Users className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
-          Kto wypełnił ankietę ({responses.length})
+          Użytkownicy ({responses.length})
         </h4>
-        <button
-          type="button"
-          onClick={() => setExpanded((prev) => !prev)}
-          aria-expanded={expanded}
-          className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
-        >
-          {expanded ? "Zwiń" : "Rozwiń"}
-          {expanded ? (
-            <ChevronUp className="w-4 h-4" aria-hidden="true" />
-          ) : (
-            <ChevronDown className="w-4 h-4" aria-hidden="true" />
-          )}
-        </button>
+          <button className="text-textSecondary" type='button' onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
+            {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
       </div>
 
       {expanded && (
@@ -101,13 +91,8 @@ export default function MeetingPollRespondents({
                       </p>
                     )}
                   </div>
-                  <div className="text-right text-xs text-textMuted whitespace-nowrap">
-                    <p>
-                      {slots === 0
-                        ? "brak wolnych terminów"
-                        : `${formatDuration(slots * slotDurationMinutes)} dostępności`}
-                    </p>
-                    <p>wypełniono {formatSubmittedAt(response.created_at)}</p>
+                  <div className="flex justify-end gap-2 items-center text-right text-xs text-textMuted whitespace-nowrap">
+                    <Calendar className="w-4 h-4"/><p>{formatSubmittedAt(response.created_at)}</p>
                   </div>
                 </li>
               );

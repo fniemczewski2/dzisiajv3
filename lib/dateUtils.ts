@@ -74,6 +74,8 @@ export const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
   return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
 };
 
+export const APP_TIME_ZONE = "Europe/Warsaw";
+
 export const getAppDate = () => {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Warsaw",
@@ -91,4 +93,41 @@ export const getAppDateTime = () => {
     second: "2-digit",
   });
   return new Date(formatter.format(new Date()).replace(" ", "T"));
+};
+
+export const getCurrentInstantIso = (): string => new Date().toISOString();
+export const getAppHour = (value: string | null | undefined): string | undefined => {
+  if (!value) return undefined;
+  const normalized = value.replaceAll(" ", "T");
+
+  if (!/(Z|[+-]\d{2}:?\d{2})$/.test(normalized)) {
+    const hour = normalized.split("T")[1]?.slice(0, 2);
+    return hour && !Number.isNaN(Number(hour)) ? hour : undefined;
+  }
+
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: APP_TIME_ZONE,
+    hour: "2-digit",
+    hour12: false,
+  }).format(date);
+};
+
+const appOffsetMinutes = (dateStr: string): number => {
+  const noonUtc = new Date(`${dateStr}T12:00:00Z`);
+  const asWarsaw = new Date(noonUtc.toLocaleString("en-US", { timeZone: APP_TIME_ZONE }));
+  const asUtc = new Date(noonUtc.toLocaleString("en-US", { timeZone: "UTC" }));
+  return Math.round((asWarsaw.getTime() - asUtc.getTime()) / 60000);
+};
+
+export const getAppDayRangeUtc = (dateStr: string): { start: string; end: string } => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const start = new Date(y, m - 1, d, 0, 0, 0);
+  const end = new Date(y, m - 1, d + 1, 0, 0, 0);
+  
+  return { 
+    start: start.toISOString(), 
+    end: end.toISOString() 
+  };
 };

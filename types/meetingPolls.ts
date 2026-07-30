@@ -45,7 +45,6 @@ export interface PublicMeetingPoll {
 
 export interface MeetingPollSlot {
   date: string;
-  /** "HH:MM" - początek slotu o długości slot_duration_minutes. */
   start_time: string;
 }
 

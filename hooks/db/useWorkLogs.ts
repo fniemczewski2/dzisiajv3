@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useCrudResource } from './useCrudResource';
+import { getAppDayRangeUtc } from '@/lib/dateUtils';
 
 const MESSAGES = {
   fetchError: 'Błąd pobierania czasu pracy.',
@@ -23,7 +24,8 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
       let query = q.eq('user_id', userId).order('start_time', { ascending: true });
 
       if (dateStr) {
-        query = query.gte('start_time', `${dateStr}T00:00:00.000Z`).lte('start_time', `${dateStr}T23:59:59.999Z`);
+        const { start, end } = getAppDayRangeUtc(dateStr);
+        query = query.gte('start_time', start).lt('start_time', end);
       }
       if (monthStr) {
         const [year, month] = monthStr.split('-');
