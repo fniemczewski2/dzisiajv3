@@ -95,7 +95,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
       }, signal);
       if (error) throw error;
 
-      const rows = ((data as unknown[]) ?? []).map(transform);
+      const rows = ((data as unknown[]) ?? []).map((row) => transform(row));
 
       if (seq === fetchSeqRef.current) {
         freshDataRef.current = true;

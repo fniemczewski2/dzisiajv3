@@ -3,7 +3,6 @@ import React from "react";
 import InstallButton from "@/components/settings/InstallButton";
 import { SkeletonSettings } from "@/components/ui/Skeleton";
 import VersionInfo from "@/components/settings/Version";
-import MenuGrid from "@/components/settings/MenuGrid";
 import SettingsForm from "@/components/settings/SettingsForm";
 import LocationSection from "@/components/settings/LocationSection";
 import UserSection from "@/components/settings/UserSection";

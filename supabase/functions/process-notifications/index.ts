@@ -64,9 +64,9 @@ Deno.serve(async (req) => {
     const realNow = new Date();
     const plNow = getPLTimeStrings(realNow);
     const today = plNow.dateStr;
-    const currentHour = parseInt(plNow.hour, 10);
+    const currentHour = Number.parseInt(plNow.hour, 10);
 
-    const msSinceMidnightPL = (currentHour * 3600 + parseInt(plNow.timeStr.split(':')[1], 10) * 60 + parseInt(plNow.timeStr.split(':')[2], 10)) * 1000;
+    const msSinceMidnightPL = (currentHour * 3600 + Number.parseInt(plNow.timeStr.split(':')[1], 10) * 60 + Number.parseInt(plNow.timeStr.split(':')[2], 10)) * 1000;
     const startOfDayUTC = new Date(realNow.getTime() - msSinceMidnightPL - realNow.getMilliseconds()).toISOString();
 
     let processedCount = 0;

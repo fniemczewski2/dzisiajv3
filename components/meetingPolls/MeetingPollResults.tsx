@@ -63,7 +63,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     onExtend: (date, cellId) => {
       const index = Number(cellId);
       setSelection((prev) => {
-        if (!prev || prev.date !== date) return prev;
+        if (prev?.date !== date) return prev;
         return { date, startIndex: Math.min(prev.startIndex, index), endIndex: Math.max(prev.endIndex, index) };
       });
     },

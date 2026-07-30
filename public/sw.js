@@ -24,6 +24,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
+  if (event.origin !== self.location.origin) {
+    console.warn(`Ignored message from unauthorized origin: ${event.origin}`);
+    return;
+  }
+
   if (event.data?.type === 'PURGE_DATA_CACHE') {
     event.waitUntil(caches.delete(DATA_CACHE));
   }

@@ -20,7 +20,7 @@ interface MyAppProps extends AppProps {
   nonce?: string;
 }
 
-export default function MyApp({ Component, pageProps, nonce }: MyAppProps) {
+export default function MyApp({ Component, pageProps, nonce }: Readonly<MyAppProps>) {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker

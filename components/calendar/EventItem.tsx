@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Clock, MapPin, User, Download, Globe } from "lucide-react";
+import { Clock, MapPin, User, Globe } from "lucide-react";
 import { Event } from "@/types/events";
 import { useAuth } from "@/providers/AuthProvider";
 import { formatTime, localDateTimeToISO } from "@/lib/dateUtils";
