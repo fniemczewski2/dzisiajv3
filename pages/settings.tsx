@@ -66,8 +66,6 @@ export default function SettingsPage() {
         : (
         <>
           
-          <MenuGrid />
-          
           <SettingsForm
             settings={settings}
             loading={loading}

@@ -83,6 +83,7 @@ function TimerControlButtons({
       {controls.prev && (
         <button
           onClick={controls.prev}
+          type='button'
           className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
           title="Cofnij"
         >
@@ -94,6 +95,7 @@ function TimerControlButtons({
       {controls.cancel && (
         <button
           onClick={controls.cancel}
+          type='button'
           className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-500 rounded-xl transition-colors border hover:border-red-200 dark:hover:border-red-900/30"
           title="Anuluj"
         >
@@ -105,6 +107,7 @@ function TimerControlButtons({
       {running ? (
         <button
           onClick={controls.pause}
+          type='button'
           className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 hover:bg-primary bg-secondary border-transparent"
           title={paused ? "Wznów" : "Pauza"}
         >
@@ -114,6 +117,7 @@ function TimerControlButtons({
       ) : (
         <button
           onClick={controls.start}
+          type='button'
           className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 hover:bg-primary bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
           title="Start"
         >
@@ -125,6 +129,7 @@ function TimerControlButtons({
       {controls.stop && (
         <button
           onClick={controls.stop}
+          type='button'
           className={`flex flex-1 flex-col items-center justify-center bg-surface gap-1 py-2 sm:py-3 rounded-xl transition-colors text-textMuted border ${
             isMultiPhase
               ? "hover:border-red-600/30 hover:dark:border-red-400/30 hover:text-red-600 hover:dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
@@ -142,6 +147,7 @@ function TimerControlButtons({
       {controls.next && (
         <button
           onClick={controls.next}
+          type='button'
           className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
           title="Dalej"
         >

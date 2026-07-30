@@ -79,6 +79,7 @@ export default function PlaceFilters({
          />
          <button
            onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+           type='button'
            className="px-4 py-2 rounded-xl transition-colors hover:bg-primary bg-secondary text-white flex items-center justify-center gap-2 h-[42px] min-w-[90px] font-medium"
          >
            {viewMode === "map" ? (
@@ -98,6 +99,7 @@ export default function PlaceFilters({
               </div>
               <button
                 onClick={() => setShowTagFilter(!showTagFilter)}
+                type='button'
                 className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-wider transition-colors"
               >
                 {showTagFilter ? "Ukryj" : "Filtruj po tagach"}
@@ -110,6 +112,7 @@ export default function PlaceFilters({
                   <button
                     key={tag}
                     onClick={() => toggleTag(tag)}
+                    type='button'
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
                       selectedTags.includes(tag)
                         ? "bg-secondary text-white border-primary"
@@ -130,6 +133,7 @@ export default function PlaceFilters({
             </div>
             <button
               onClick={() => setShowTimeFilter(!showTimeFilter)}
+              type='button'
               className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-wider transition-colors"
             >
               {showTimeFilter ? "Ukryj" : "Filtruj po czasie"}
@@ -179,6 +183,7 @@ export default function PlaceFilters({
                 <div className="pt-2">
                   <button
                     onClick={clearTimeFilter}
+                    type='button'
                     className="w-full px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
                   >
                     Wyczyść filtr czasowy

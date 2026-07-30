@@ -62,6 +62,7 @@ export const ExportPeople = ({ people }: ExportProps) => {
   return (
     <button 
       onClick={handleExport}
+      type='button'
       className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors"
     >
       .csv <Download className="w-5 h-5" />

@@ -395,6 +395,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                       }
                     });
                   }}
+                  type='button'
                   className="w-full py-3 hover:bg-primary bg-secondary text-white rounded-lg font-bold text-sm shadow-md flex justify-center items-center gap-2 transition-colors"
                 >
                   Dodaj wszystkie {draftForms.length}

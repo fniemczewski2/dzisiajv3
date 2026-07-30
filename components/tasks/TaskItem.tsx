@@ -169,7 +169,7 @@ function TaskViewActions({
   if (task.user_id !== userId && task.status === "waiting_for_acceptance") {
     return (
       <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
-        <button onClick={handleAccept} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30">
+        <button onClick={handleAccept} type='button' className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30">
           <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
           <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Akceptuj</span>
         </button>
@@ -180,7 +180,7 @@ function TaskViewActions({
 
   return (
     <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
-      <button onClick={() => handleComplete()} className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors">
+      <button onClick={() => handleComplete()} type='button' className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors">
         <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
         <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide">Zrobione</span>
       </button>

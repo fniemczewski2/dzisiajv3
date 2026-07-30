@@ -17,6 +17,7 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
         <button
           onClick={onPrev}
           className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+          type='button'
           title="Poprzedni miesiąc"
         >
           <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -29,6 +30,7 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
         <button
           onClick={onNext}
           className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+          type='button'
           title="Następny miesiąc"
         >
           <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />

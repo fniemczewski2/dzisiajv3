@@ -23,6 +23,7 @@ export default function LocationSection({
         </div>
         <button
           onClick={() => setShowDetails(!showDetails)}
+          type='button'
           className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
         >
           {showDetails ? 'Ukryj tech.' : 'Techniczne'}
@@ -42,6 +43,7 @@ export default function LocationSection({
       
       <button
         onClick={() => onRequestLocation()}
+        type='button'
         className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary hover:bg-secondary text-white font-bold rounded-lg shadow-sm transition-colors"
       >
         <span>Pobierz lokalizację</span>

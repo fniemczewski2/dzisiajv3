@@ -57,6 +57,7 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
       <span className="flex-1 leading-snug">{item.message}</span>
       <button
         onClick={() => onRemove(item.id)}
+        type='button'
         className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
         aria-label="Zamknij"
       >
@@ -97,12 +98,14 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
         <button
           autoFocus
           onClick={() => answer(false)}
+          type='button'
           className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-surface hover:bg-surfaceHover text-textSecondary transition-colors border border-gray-200 dark:border-gray-700"
         >
           {item.cancelLabel}
         </button>
         <button
           onClick={() => answer(true)}
+          type='button'
           className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-red-500 hover:bg-red-600 text-white transition-colors"
         >
           {item.confirmLabel}

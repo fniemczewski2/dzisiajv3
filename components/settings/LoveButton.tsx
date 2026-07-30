@@ -38,6 +38,7 @@ export default function LoveButton() {
   return (
     <button
       onClick={sendLove}
+      type='button'
       disabled={loading || sent}
       className={`p-2.5 rounded-xl transition-colors border shadow-sm ${
         sent || loading

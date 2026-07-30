@@ -53,6 +53,7 @@ export default function BillsPage() {
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => router.push("/bills/budget")}
+                type='button'
                 title="Budżet"
                 className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >
@@ -60,6 +61,7 @@ export default function BillsPage() {
               </button>
               <button
                 onClick={() => router.push("/bills/calculator")}
+                type='button'
                 title="Kalkulator Podziału"
                 className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >

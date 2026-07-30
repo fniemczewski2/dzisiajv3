@@ -120,6 +120,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
         {onBack && 
         <button
           onClick={onBack}
+          type='button'
           className="flex items-center p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
           title="Wróć do listy wizytówek"
         >

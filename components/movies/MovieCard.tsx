@@ -167,8 +167,11 @@ export default function MovieCard({
             </div>
             {movie.description && (
               <div className="mt-2 mb-2">
-                <button onClick={() => setShowDescription(!showDescription)}
-                  className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors">
+                <button 
+                  onClick={() => setShowDescription(!showDescription)}
+                  type='button'
+                  className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
+                >
                   Opis
                   {showDescription ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
@@ -182,7 +185,7 @@ export default function MovieCard({
           </div>
 
           <div className="pt-2 border-gray-100 dark:border-gray-800">
-            <button onClick={() => toggleNotes(movie.id)}
+            <button type='button' onClick={() => toggleNotes(movie.id)}
               className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-textMuted hover:text-text transition-colors mb-3">
               Notatki
               {expandedNotes.has(movie.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

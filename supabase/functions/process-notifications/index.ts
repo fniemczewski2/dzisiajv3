@@ -323,14 +323,14 @@ Deno.serve(async (req) => {
 
         const { data: habit } = await supabase.from('daily_habits').select('*').eq('date', today).eq('user_id', s.user_id).maybeSingle()
         let incomplete = []
-        if (s.habit_pills && (!habit || !habit.pills)) incomplete.push('Leki')
-        if (s.habit_bath && (!habit || !habit.bath)) incomplete.push('Higiena')
-        if (s.habit_workout && (!habit || !habit.workout)) incomplete.push('Trening')
-        if (s.habit_friends && (!habit || !habit.friends)) incomplete.push('Relacje')
-        if (s.habit_work && (!habit || !habit.work)) incomplete.push('Praca')
-        if (s.habit_housework && (!habit || !habit.housework)) incomplete.push('Dom')
-        if (s.habit_plants && (!habit || !habit.plants)) incomplete.push('Digital')
-        if (s.habit_duolingo && (!habit || !habit.duolingo)) incomplete.push('Języki')
+        if (s.habit_pills && (!habit?.pills)) incomplete.push('Leki')
+        if (s.habit_bath && (!habit?.bath)) incomplete.push('Higiena')
+        if (s.habit_workout && (!habit?.workout)) incomplete.push('Trening')
+        if (s.habit_friends && (!habit?.friends)) incomplete.push('Relacje')
+        if (s.habit_work && (!habit?.work)) incomplete.push('Praca')
+        if (s.habit_housework && (!habit?.housework)) incomplete.push('Dom')
+        if (s.habit_plants && (!habit?.plants)) incomplete.push('Digital')
+        if (s.habit_duolingo && (!habit?.duolingo)) incomplete.push('Języki')
 
         if (incomplete.length > 0) {
           const actStr = pluralize(incomplete.length, 'aktywność', 'aktywności', 'aktywności');

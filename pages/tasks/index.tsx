@@ -114,6 +114,7 @@ export default function TasksPage() {
                 <button
                   key={opt.value}
                   onClick={() => setDateFilter(opt.value)}
+                  type='button'
                   title={opt.title}
                   className={`p-1 sm:px-3 sm:py-2 rounded-lg transition-all flex flex-1 flex-col items-center justify-center gap-1 ${
                     dateFilter === opt.value

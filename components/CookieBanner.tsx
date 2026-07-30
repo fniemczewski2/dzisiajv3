@@ -31,6 +31,7 @@ export default function CookieBanner() {
         <div className="flex gap-3 shrink-0 w-full sm:w-auto">
           <button
             onClick={acceptCookies}
+            type='button'
             className="w-full sm:w-auto px-6 py-2.5 hover:bg-primary bg-secondary text-white text-sm font-bold rounded-lg transition-colors shadow-sm"
           >
             Rozumiem i akceptuję

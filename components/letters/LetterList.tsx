@@ -11,11 +11,6 @@ import type { Letter, LetterFileKind } from "@/types/letters";
 interface LetterListProps {
   refreshToken?: number;
 }
-
-/** Slot uploadu/podglądu jednego załącznika (pismo albo odpowiedź). Pokazuje
- * przycisk "Wgraj" gdy pliku jeszcze nie ma, albo "Podgląd" + "Zamień" gdy
- * już jest — bucket jest prywatny, więc podgląd zawsze idzie przez świeżo
- * wygenerowany signed URL, nigdy przez zapamiętany publiczny link. */
 function FileSlot({
   label,
   path,
@@ -252,6 +247,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   <p className="text-sm text-textSecondary mt-1 truncate">{l.recipient}</p>
                 </div>
                 <button
+                  type='button'
                   className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0"
                   onClick={() => toggleOpen(l.id)}
                   aria-label={open ? "Zwiń" : "Rozwiń"}

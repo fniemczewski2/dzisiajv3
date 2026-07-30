@@ -35,6 +35,7 @@ export default function ConnectedCalendars() {
     <div className="card rounded-xl shadow-sm overflow-hidden transition-all mt-2">
       <button
         onClick={() => setExpanded((p) => !p)}
+        type='button'
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface transition-colors"
       >
         <div className="flex items-center gap-3">
@@ -81,6 +82,7 @@ export default function ConnectedCalendars() {
                           </div>
                           <button 
                             onClick={() => handleDisconnect(account.id, account.account_email, account.provider)} 
+                            type='button'
                             className="text-red-500 hover:text-red-600 transition-colors p-2"
                             title="Odłącz całe konto"
                           >
@@ -140,10 +142,10 @@ export default function ConnectedCalendars() {
               <div className="pt-2">
                 <div className="form-label mb-2">Dodaj kolejne konto:</div>
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={handleConnectGoogle} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
+                  <button type='button' onClick={handleConnectGoogle} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
                     <GoogleIcon /> Google
                   </button>
-                  <button onClick={handleConnectOutlook} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
+                  <button type='button' onClick={handleConnectOutlook} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
                     <MicrosoftIcon /> Outlook
                   </button>
                 </div>

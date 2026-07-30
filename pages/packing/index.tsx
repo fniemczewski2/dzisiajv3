@@ -33,6 +33,7 @@ export default function PackingMenuPage() {
               <button
                 key={list.id}
                 onClick={() => router.push(`/packing/${list.id}`)}
+                type='button'
                 className="card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-surfaceHover transition-all hover:scale-[1.02] border border-transparent hover:border-primary/20"
               >
                 <div className={`p-4 rounded-full bg-blue-50 dark:bg-blue-950 text-primary`}>

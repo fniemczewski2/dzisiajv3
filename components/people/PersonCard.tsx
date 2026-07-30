@@ -66,6 +66,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
               <div className="flex gap-1">
                 <button 
                   onClick={onLogContact}
+                  type='button'
                   className="flex-1 flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
                 >
                   <CheckCircle2 className="w-4 h-4" />

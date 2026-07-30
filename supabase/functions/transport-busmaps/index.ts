@@ -122,7 +122,7 @@ serve(async (req) => {
             const tRes = await fetch(PEKA_URL, { method: 'POST', headers: pekaHeaders, body: tBody.toString() });
             const tData = await tRes.json();
             return tData?.success?.times || [];
-          } catch (e) {
+          } catch {
             return [];
           }
         });

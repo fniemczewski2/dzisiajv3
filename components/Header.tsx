@@ -62,6 +62,7 @@ function WeatherDetails({
     return (
       <button
         onClick={() => router.push("/weather")}
+        type='button'
         className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
         title="Kliknij, aby zobaczyć pełną prognozę"
       >
@@ -145,6 +146,7 @@ export default function Header() {
             onClick={() => router.push("/calendar?reset=true")}
             className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
             title="Kliknij, aby zobaczyć kalendarz"
+            type='button'
           >
             <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
               {currentTime}

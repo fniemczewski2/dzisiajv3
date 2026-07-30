@@ -39,6 +39,7 @@ export default function NotesPage() {
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => router.push("/notes/movies")}
+                type='button'
                 title="Filmy"
                 className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >
@@ -46,6 +47,7 @@ export default function NotesPage() {
               </button>
               <button
                 onClick={() => router.push("/notes/places")}
+                type='button'
                 title="Miejsca"
                 className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >

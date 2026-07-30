@@ -78,6 +78,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
           <button
             className={`flex-shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
+            type='button'
             title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
           >
             <Icon className="w-7 h-7 sm:w-8 sm:h-8" />

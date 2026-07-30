@@ -214,6 +214,7 @@ export default function StationBoardWidget() {
                 <td className="py-1 px-1.5 my-auto">
                   <button
                     onClick={() => handleTrackTrain(item)}
+                    type='button'
                     className="inline-flex items-center gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
                     title="Dodaj ten pociąg do Moich Pociągów"
                     disabled={isCancelled}
@@ -265,6 +266,7 @@ export default function StationBoardWidget() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => fetchBoard(station)}
+                    type='button'
                     className="w-min h-min my-auto p-1.5 sm:p-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800"
                     title="Odśwież teraz"
                   >
@@ -272,6 +274,7 @@ export default function StationBoardWidget() {
                   </button>
                   <button
                     onClick={() => handleRemoveStation(station)}
+                    type='button'
                     className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-textMuted hover:text-red-500 transition-colors"
                     title="Usuń stację"
                   >

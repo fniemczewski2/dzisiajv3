@@ -20,6 +20,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
         </div>
         <button
           onClick={() => setShowDetails(!showDetails)}
+          type='button'
           className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
         >
           {showDetails ? 'Ukryj tech.' : 'Techniczne'}
@@ -39,6 +40,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       
       <button
         onClick={onSignOut}
+        type='button'
         className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg shadow-sm transition-colors"
       >
         <span>Wyloguj się</span>

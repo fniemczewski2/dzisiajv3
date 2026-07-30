@@ -130,6 +130,7 @@ const controls: TimerControls = {
         <div className="flex justify-start gap-3 items-center mb-4 relative">
           <button
             onClick={handleBack}
+            type='button'
             className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
             aria-label="Wróć"
           >
@@ -152,6 +153,7 @@ const controls: TimerControls = {
         <div className="mt-4 flex justify-center">
           <button
             onClick={toggleOpen}
+            type='button'
             className="transition"
             aria-label="Ustawienia"
           >

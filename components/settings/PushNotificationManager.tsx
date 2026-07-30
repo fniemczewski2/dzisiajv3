@@ -222,7 +222,9 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
           <div><Bell className="w-5 h-5 text-primary flex-shrink-0" /></div>
           <h3 className="text-lg font-bold">Powiadomienia</h3>
         </div>
-        <button onClick={() => setShowDetails(!showDetails)}
+        <button 
+          onClick={() => setShowDetails(!showDetails)}
+          type='button'
           className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors">
           {showDetails ? "Ukryj tech." : "Techniczne"}
         </button>
@@ -242,14 +244,14 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
 
       <div className="flex flex-wrap gap-3 pt-2">
         {isSupported && permission === "default" && (
-          <button onClick={handleRequestPermission} disabled={loading}
+          <button onClick={handleRequestPermission} type='button' disabled={loading}
             className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-primary transition-colors disabled:opacity-50">
             {loading ? "Czekaj..." : "Nadaj Uprawnienia"}
             <AlertCircle className="w-5 h-5" />
           </button>
         )}
         {isSupported && permission === "granted" && (
-          <button onClick={handleToggleNotifications} disabled={loading}
+          <button onClick={handleToggleNotifications} type='button' disabled={loading}
             className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold transition-all disabled:opacity-50 ${
               isSubscribed
                 ? "bg-red-5 dark:bg-red-950 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50"
@@ -259,7 +261,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
           </button>
         )}
         {isSubscribed && (
-          <button onClick={handleTestNotification} disabled={loading}
+          <button onClick={handleTestNotification} type='button' disabled={loading}
             className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-text font-bold rounded-lg transition-colors disabled:opacity-50">
             Wyślij Test <CheckCircle className="w-5 h-5 text-green-500" />
           </button>

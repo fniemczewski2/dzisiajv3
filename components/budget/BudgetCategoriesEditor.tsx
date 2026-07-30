@@ -271,6 +271,7 @@ export default function BudgetCategoriesEditor({
                     <button
                       onClick={() => move(idx, -1)}
                       disabled={idx === 0 || loading}
+                      type='button'
                       className="p-0.5 text-textMuted hover:text-text disabled:opacity-20 transition-colors"
                     >
                       <ChevronUp className="w-3 h-3" />
@@ -278,6 +279,7 @@ export default function BudgetCategoriesEditor({
                     <button
                       onClick={() => move(idx, 1)}
                       disabled={idx === categories.length - 1 || loading}
+                      type='button'
                       className="p-0.5 text-textMuted hover:text-text disabled:opacity-20 transition-colors"
                     >
                       <ChevronDown className="w-3 h-3" />

@@ -158,6 +158,7 @@ export const CopyButtonSmall = ({ text, label }: { text: string; label?: string 
   return (
     <button
       onClick={handleCopy}
+      type='button'
       className="p-1.5 text-neutral-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition flex items-center gap-1"
       title={`Skopiuj ${label || 'wartość'}`}
     >
@@ -491,6 +492,7 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router, sm
           action();
         }
       }}
+    type='button'
     title={title}
     className={`group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm ${small && "w-[40px]"}`}
     aria-label={`dodaj ${label}`}

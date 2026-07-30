@@ -109,6 +109,7 @@ export const ImportPeople = ({ onImport }: ImportProps) => {
         onChange={handleFileUpload} 
       />
       <button 
+        type='button'
         onClick={() => fileRef.current?.click()}
         className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors"
       >

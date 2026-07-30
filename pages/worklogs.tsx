@@ -189,6 +189,7 @@ export default function WorkLogsPage() {
           <div className="flex items-center card rounded-2xl p-1 shadow-sm w-fit sm:flex-none justify-between">
             <button
               onClick={onPrev}
+              type='button'
               className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -200,6 +201,7 @@ export default function WorkLogsPage() {
                 
             <button
               onClick={onNext}
+              type='button'
               className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />

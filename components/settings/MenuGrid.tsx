@@ -46,6 +46,7 @@ export default function MenuGrid() {
                   <button
                     key={button.path}
                     onClick={() => router.push(button.path)}
+                    type='button'
                     title={button.title}
                     className={`
                       relative p-1.5 sm:p-2 rounded-lg border transition-all

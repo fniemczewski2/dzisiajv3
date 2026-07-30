@@ -71,6 +71,7 @@ export default function StartPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleGoogleLogin}
+                type='button'
                 className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
               >
                 Zaloguj przez Google

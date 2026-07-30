@@ -144,6 +144,7 @@ export default function PlacesPage() {
         {!showImport && (
           <button
             onClick={() => setShowImport(true)}
+            type='button'
             className="px-4 py-2 bg-secondary hover:bg-secondary text-white font-medium rounded-xl flex items-center gap-2 transition-colors shadow-sm"
           >
             Importuj <Upload className="w-5 h-5" />

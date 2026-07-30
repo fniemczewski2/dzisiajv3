@@ -84,6 +84,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 justify-center">
               <button
                 onClick={this.handleReset}
+                type='button'
                 className="flex w-full items-center justify-center px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg gap-2 transition-colors shadow-sm"
               >
                 <RefreshCw className="w-5 h-5" />
@@ -91,6 +92,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               </button>
               <button
                 onClick={() => (window.location.href = '/')}
+                type='button'
                 className="flex w-full items-center justify-center px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg gap-2 transition-colors border border-gray-200 dark:border-gray-800"
               >
                 <Home className="w-5 h-5" />

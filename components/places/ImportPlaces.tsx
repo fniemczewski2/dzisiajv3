@@ -56,6 +56,7 @@ export default function ImportPlaces({ onImport, onCollapse }: Readonly<ImportPl
       <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-xl mb-5 overflow-hidden">
         <button
           onClick={() => setShowInstructions(!showInstructions)}
+          type='button'
           className="w-full flex items-center justify-between p-4 hover:bg-surfaceHover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           aria-expanded={showInstructions}
         >

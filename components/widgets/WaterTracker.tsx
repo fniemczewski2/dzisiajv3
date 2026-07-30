@@ -65,7 +65,7 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
         />
       </div>
       
-      <div className="font-bold text-textSecondary w-[65px] text-right text-sm sm:text-base tabular-nums">
+      <div className="font-bold text-textSecondary w-[70px] text-right text-sm sm:text-base tabular-nums">
         {displayWater.toFixed(1)} <span className="text-xs sm:text-sm font-medium text-textSubtle">/ 2.0L</span>
       </div>
     </div>

@@ -47,6 +47,7 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
             <button
               key={opt.id}
               onClick={() => handleClick(opt.id)}
+              type='button'
               className={`group px-2.5 py-1 md:px-3 md:py-1.5 flex items-center flex-1 h-[24px] rounded-full text-xs font-semibold text-white shadow-sm transition hover:scale-105 active:scale-95
                 ${isSelected ? "opacity-100 scale-110" : "opacity-60 hover:opacity-80"}`}
               style={{ backgroundColor: opt.color }}

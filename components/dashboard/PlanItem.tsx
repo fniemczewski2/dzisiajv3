@@ -75,7 +75,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
         </p>
         <p className="flex items-center flex-wrap gap-2">
           {item.type === "task" && <TimeContextBadge dueDate={item.data?.due_date ?? ""} small />}
-          {(item.type === 'event' || item.type === 'worklog') && <p className="text-[10px] text-textMuted">{getTimes(item.data)}</p>}
+          {(item.type === 'event' || item.type === 'worklog') && <span className="text-[10px] text-textMuted">{getTimes(item.data)}</span>}
           <span className="text-[8px] font-semibold uppercase tracking-wider text-textMuted">
             {getLabel(item)}
           </span>
@@ -102,6 +102,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
           <>
             <button
               onClick={(e) => { e.preventDefault(); onMarkAsDone(item.id); }}
+              type='button'
               className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
               title="Zrobione"
             >

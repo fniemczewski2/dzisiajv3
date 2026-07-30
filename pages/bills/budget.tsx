@@ -109,6 +109,7 @@ export default function BudgetPage() {
         <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
+            type='button'
             className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
             aria-label="Wróć"
           >
@@ -122,6 +123,7 @@ export default function BudgetPage() {
             <div className="card flex items-center justify-between gap-2 p-2 rounded-xl">
             <button
               onClick={handlePrevMonth}
+              type='button'
               className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
               aria-label="Poprzedni miesiąc"
             >
@@ -134,6 +136,7 @@ export default function BudgetPage() {
             
             <button
               onClick={handleNextMonth}
+              type='button'
               className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
               aria-label="Następny miesiąc"
             >

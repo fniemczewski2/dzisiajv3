@@ -115,6 +115,7 @@ export default function PlacesList({ places, onEdit, onDelete }: Readonly<Places
                 </div>
                 <button
                   className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0"
+                  type='button'
                   onClick={(e) => { e.stopPropagation(); toggleExpand(place.id); }}>
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
                 </button>

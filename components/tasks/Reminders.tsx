@@ -125,7 +125,7 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
           Zadania cykliczne
           <span className="ml-2 text-primary font-bold">{remindersToShow.length}</span>
         </h3>
-        <button onClick={toggleOpen} className="text-textMuted">
+        <button onClick={toggleOpen} type='button' className="text-textMuted">
           {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
       </div>
@@ -161,8 +161,11 @@ export default function Reminders({ addTask, onTasksChange }: Readonly<Reminders
             <div className="px-4 py-3 flex justify-between bg-card border-t border-gray-100 dark:border-gray-800">
               <AddButton small onClick={() => setShowForm(true)}/>
 
-              <button onClick={() => setShowAll(!showAll)}
-                className="text-sm font-medium flex items-center text-textMuted hover:text-text transition-colors">
+              <button 
+                onClick={() => setShowAll(!showAll)}
+                type='button'
+                className="text-sm font-medium flex items-center text-textMuted hover:text-text transition-colors"
+              >
                 <List className="w-4 h-4 mr-1.5" />
                 {showAll ? "Pokaż tylko aktywne" : "Pokaż wszystkie"}
               </button>

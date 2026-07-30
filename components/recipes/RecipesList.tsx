@@ -129,7 +129,9 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
             ))}
           </div>
           {prodFilter.length > 0 && (
-            <button className="mt-4 w-full py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+            <button 
+              type='button'
+              className="mt-4 w-full py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
               onClick={() => setProdFilter([])}>Wyczyść filtry składników</button>
           )}
         </div>
@@ -233,7 +235,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
                     </span>
                   )}
                 </div>
-                <button className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0" onClick={() => toggleOpen(r.id)}>
+                <button type='button' className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0" onClick={() => toggleOpen(r.id)}>
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                 </button>
               </div>

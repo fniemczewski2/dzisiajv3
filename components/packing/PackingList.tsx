@@ -27,6 +27,7 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
         <div className="flex justify-between gap-3 items-center mb-6">
           <button
             onClick={handleBack}
+            type='button'
             className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="Powrót"
           >

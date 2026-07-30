@@ -47,6 +47,7 @@ export default function HabitIcons({ date }: Readonly<HabitIconsProps>) {
             title={key}
             disabled={habitsLoading}
             onClick={() => toggleHabit(key)}
+            type='button'
             className={`
               p-2 sm:p-3 flex-1 min-w-[32px] max-w-[80px] sm:max-w-none rounded-xl border transition-colors flex justify-center items-center
               ${isActive 

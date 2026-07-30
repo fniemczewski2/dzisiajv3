@@ -21,6 +21,7 @@ export default function ThemeToggle() {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors"
       aria-label="Przełącz tryb ciemny"
+      type='button'
     >
       {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
     </button>

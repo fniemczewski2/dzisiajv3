@@ -72,6 +72,7 @@ function AccordionShell({ label, defaultOpen = false, children }: Readonly<Accor
     <div className="card rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
       <button
         onClick={() => setIsOpen(!isOpen)}
+        type='button'
         className="w-full flex justify-between items-center p-4 bg-surface hover:bg-surfaceHover transition-colors"
       >
         <h4 className="text-sm font-bold text-textSecondary uppercase tracking-wider">
@@ -375,6 +376,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
             <button
               onClick={() => handleMarkDone(b)}
               title="Oznacz jako zapłacone"
+              type='button'
               className="flex-1 flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 transition-colors border border-green-200 dark:border-green-500/30"
             >
               <Check className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
@@ -416,6 +418,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
         <button 
           onClick={handleLoadMore} 
           disabled={fetching} 
+          type='button'
           className="w-full py-3 bg-surface hover:bg-surfaceHover text-textMuted hover:text-text border border-gray-200 dark:border-gray-800 rounded-xl text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm mt-4"
         >
           {fetching ? <Loader2 className="w-5 h-5 animate-spin" /> : "Więcej..."}
