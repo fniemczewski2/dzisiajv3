@@ -198,7 +198,15 @@ export function useEvents(
 
       try {
         const originalId = event.id.split("_")[0];
-        const { id: _id, shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...eventData } = event;
+        // user_id pomijamy swiadomie - jest niezmienny i objety odebranym
+        // uprawnieniem kolumnowym (migracja 20260801000000).
+        const {
+          id: _id,
+          user_id: _userId,
+          shared_with_email: sharedWithEmail,
+          display_share_info: _displayShareInfo,
+          ...eventData
+        } = event;
         let targetSharedId = eventData.shared_with_id || null;
 
         if (sharedWithEmail !== undefined) {
@@ -208,7 +216,7 @@ export function useEvents(
         const { error } = await withRetry(async () =>
           supabase
             .from("events")
-            .update({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
+            .update({ ...eventData, shared_with_id: targetSharedId })
             .eq("id", originalId)
         );
         if (error) throw error;

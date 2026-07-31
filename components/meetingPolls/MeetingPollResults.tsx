@@ -7,7 +7,6 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { IconActionButton, CancelButton, FormButtons, SaveButton } from "../ui/CommonButtons";
 import { generateTimeSlots, addMinutesToTime, slotKey } from "@/lib/meetingPollGrid";
-import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
 import type { MeetingPollResults as MeetingPollResultsData, FinalizeSlotInput, FinalizeResultSlot } from "@/types/meetingPolls";
 import NoResultsState from "../ui/NoResultsState";
 import MeetingPollRespondents from "./MeetingPollRespondents";
@@ -77,19 +76,6 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     },
     [rangeAnchor, data?.poll.title]
   );
-
-  const { cellHandlers, handleTouchMove } = useDragSelectGrid({
-    onBegin: (date, cellId) => activateCell(date, Number(cellId)),
-    onExtend: (date, cellId) => {
-      const index = Number(cellId);
-      // Przeciagniecie zastepuje tryb od-do, wiec kotwica przestaje obowiazywac.
-      setRangeAnchor(null);
-      setSelection((prev) => {
-        if (prev?.date !== date) return prev;
-        return { date, startIndex: Math.min(prev.startIndex, index), endIndex: Math.max(prev.endIndex, index) };
-      });
-    },
-  });
 
   useEffect(() => {
     let cancelled = false;
@@ -265,7 +251,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
         <h3 className="text-xl font-bold text-text">{data.poll.title}</h3>
         <p className="text-sm text-textSecondary mt-1">
           {totalResponses} {totalResponses === 1 ? "odpowiedź" : "odpowiedzi"}. Kliknij godzinę początkową, a
-          potem końcową w tej samej kolumnie - albo przeciągnij po polach.
+          potem końcową w tej samej kolumnie.
         </p>
       </div>
 
@@ -273,7 +259,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
         <NoResultsState text="odpowiedzi"/>
       ) : (
         <div className="card rounded-2xl shadow-sm p-4 overflow-x-auto">
-          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onTouchMove={handleTouchMove}>
+          <table className="border-collapse select-none">
             <thead>
               <tr>
                 <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left"/>
@@ -301,7 +287,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                     return (
                       <td
                         key={date}
-                        {...cellHandlers(date, String(timeIndex))}
+                        onClick={() => activateCell(date, timeIndex)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();

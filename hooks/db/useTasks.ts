@@ -196,7 +196,16 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       });
 
       try {
-        const { shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...taskData } = task;
+        // id i user_id celowo NIE trafiaja do UPDATE: sa niezmienne, a uprawnienia
+        // kolumnowe (migracja 20260801000000) blokuja ich modyfikacje, zeby wspolny
+        // uzytkownik nie mogl przejac rekordu.
+        const {
+          shared_with_email: sharedWithEmail,
+          display_share_info: _displayShareInfo,
+          id: _id,
+          user_id: _userId,
+          ...taskData
+        } = task;
         let finalForUserId = taskData.for_user_id;
 
         if (sharedWithEmail !== undefined) {
@@ -209,7 +218,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             .from("tasks")
             .update({
               ...taskData,
-              user_id: userId,
               for_user_id: finalForUserId,
               due_date: formatDate(taskData.due_date),
             })

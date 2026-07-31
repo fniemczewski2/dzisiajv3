@@ -18,7 +18,7 @@ export function useIntervalTraining(cfg: IntervalConfig) {
     const p: TimerPhase[] = [];
     for (let s = 0; s < cfg.sets; s++) {
       p.push(
-        { label: `Ä†wiczenia ${s + 1}`, seconds: cfg.workSeconds },
+        { label: `Ćwiczenia ${s + 1}`, seconds: cfg.workSeconds },
         { label: `Przerwa ${s + 1}`,   seconds: cfg.restSeconds }
       );
     }
