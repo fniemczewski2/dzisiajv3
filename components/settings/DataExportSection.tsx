@@ -17,9 +17,7 @@ export default function DataExportSection() {
       </div>
 
       <p className="text-sm text-textSecondary mb-4">
-        Pobierz wszystkie swoje dane z aplikacji w jednym pliku JSON: zadania, wydarzenia,
-        notatki, finanse, nawyki i pozostałe sekcje. Plik nie zawiera haseł, tokenów dostępu
-        do kalendarzy ani kluczy powiadomień push.
+        Pobierz wszystkie swoje dane z aplikacji w jednym pliku JSON.
       </p>
 
       <button

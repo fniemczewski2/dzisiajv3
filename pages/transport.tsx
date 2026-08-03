@@ -70,7 +70,6 @@ export default function TransportPage() {
     favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
   } else {
     favoritesContent = visibleFavorites.map((group) => (
-      // KLUCZOWE: Dodane min-w-0 i overflow-hidden, aby karta nie puchła
       <div key={`group_${group.stop_name}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
         <div className="flex justify-between items-center mb-2 border-b pb-2">
           <h4 className="font-bold text-primary truncate pr-2">{group.stop_name}</h4>
@@ -79,14 +78,12 @@ export default function TransportPage() {
         
         <div className="grid gap-3 min-w-0">
           {group.bollards?.map((bollard) => (
-            // KLUCZOWE: min-w-0 pozwala wewnętrznym elementom uciąć tekst
             <div key={bollard.bollard_code} className="min-w-0">
               <span className="text-[10px] uppercase text-textSecondary font-mono">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1 min-w-0">
                 {bollard.departures.map((dep) => (
-                  // KLUCZOWE: CSS Grid eliminuje problem flexboxa - 2rem na linię, 1fr ucinany środek, auto dla minut
                   <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-border/50 last:border-0 min-w-0 w-full">
                     <span className="font-medium truncate">{dep.line}</span>
                     <span className="truncate text-textSecondary" title={dep.direction}>
@@ -124,7 +121,6 @@ export default function TransportPage() {
     nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
   } else {
     nearbyContent = nearbyGroups.map((group) => (
-      // KLUCZOWE: Dodane min-w-0 i overflow-hidden, aby karta nie puchła
       <div key={`nearby_group_${group.stop_name}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
         <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
           <h4 className="font-bold text-primary truncate pr-2 flex-1">{group.stop_name}</h4>
@@ -141,14 +137,12 @@ export default function TransportPage() {
         
         <div className="grid gap-3 min-w-0">
           {group.bollards?.map((bollard) => (
-            // KLUCZOWE: min-w-0 pozwala wewnętrznym elementom uciąć tekst
             <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg min-w-0">
               <span className="text-[10px] uppercase text-textSecondary font-mono">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1 min-w-0">
                 {bollard.departures.map((dep) => (
-                  // KLUCZOWE: CSS Grid eliminuje problem flexboxa
                   <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-border/50 last:border-0 min-w-0 w-full">
                     <span className="font-medium truncate">{dep.line}</span>
                     <span className="truncate text-textSecondary" title={dep.direction}>

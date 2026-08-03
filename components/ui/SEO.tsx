@@ -22,7 +22,7 @@ interface SeoProps {
 
 export default function Seo({
   title = "Dzisiaj.Fun - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
-  description = "Dzisiaj.Fun to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i trenuj z technikami Pomodoro i Eisenhower Matrix.",
+  description = "Dzisiaj.Fun to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i wiele więcej.",
   canonical = "https://dzisiaj.fun",
   ogImage = "https://dzisiaj.fun/og-image.png",
   ogType = "website",

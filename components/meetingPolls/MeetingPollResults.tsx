@@ -41,8 +41,6 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [data, setData] = useState<MeetingPollResultsData | null>(null);
   const [loadingResults, setLoadingResults] = useState(true);
   const [selection, setSelection] = useState<Selection | null>(null);
-  /** Pierwsze klikniecie zakresu. Dopoki jest ustawione, kolejne klikniecie
-   * w tej samej kolumnie domyka zakres od-do (tryb dzialajacy na dotyku). */
   const [rangeAnchor, setRangeAnchor] = useState<{ date: string; index: number } | null>(null);
   const [pendingSlots, setPendingSlots] = useState<PendingSlot[]>([]);
   const [finalizing, setFinalizing] = useState(false);
@@ -56,7 +54,6 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [slotCalendar, setSlotCalendar] = useState("local");
   const activateCell = useCallback(
     (date: string, index: number) => {
-      // Drugie klikniecie w tej samej kolumnie domyka zakres od-do.
       if (rangeAnchor && rangeAnchor.date === date) {
         setSelection({
           date,

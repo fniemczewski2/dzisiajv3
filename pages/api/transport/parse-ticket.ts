@@ -20,9 +20,6 @@ const SUFFIXES = new Set([
   'mazowiecki', 'mazowiecka', 'kujawski', 'kujawska', 'pomorska'
 ]);
 
-/** Pierwsze czlony dwuwyrazowych nazw miast. Bez tej listy algorytm traktuje
- * kazdy wyraz niebedacy przyrostkiem jako poczatek nowej stacji, wiec trasa
- * "Zielona Gora Gl. Poznan Gl." dawala from = "Zielona". */
 const MULTI_WORD_CITY_STARTS = new Set([
   'zielona', 'jelenia', 'nowy', 'nowa', 'stare', 'stary', 'biała', 'biały',
   'grodzisk', 'skarżysko', 'kędzierzyn', 'tarnowskie', 'kostrzyn', 'krzyż',
@@ -93,7 +90,6 @@ export function extractStationNames(route: string) {
       const isSuffix = SUFFIXES.has(lowerWord) || word.endsWith('.');
       const expandedWord = expandWord(word, lastCityWord);
 
-      // Drugi czlon dwuwyrazowej nazwy miasta nalezy do tej samej stacji.
       if (previousStartsMultiWord && !isSuffix) {
         current += ` ${expandedWord}`;
         lastCityWord = word;
@@ -113,8 +109,6 @@ export function extractStationNames(route: string) {
     if (current) stationsList.push(current);
 
     from = stationsList[0] || '';
-    // Cel podrozy to OSTATNIA stacja. Sklejanie calego ogona dawalo dla tras
-    // z przystankiem posrednim wartosci typu "Warszawa Wschodnia Krakow Glowny".
     to = stationsList.length > 1 ? stationsList[stationsList.length - 1] : '';
   }
   return { from, to };
@@ -183,15 +177,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     maxFiles: 1,
     uploadDir: os.tmpdir(),
     maxFileSize: TICKET_UPLOAD_MAX_BYTES,
-    // Odrzucamy nie-PDF zanim trafi na dysk.
     filter: (part) => part.mimetype === TICKET_ALLOWED_MIME,
   });
 
   let filepath: string | undefined;
 
   try {
-    // Promise API formidable v3 - dzieki temu handler faktycznie czeka na
-    // zakonczenie parsowania, zamiast konczyc sie przed callbackiem.
     const [, files] = await form.parse(req);
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
 

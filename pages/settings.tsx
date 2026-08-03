@@ -7,7 +7,6 @@ import VersionInfo from "@/components/settings/Version";
 import SettingsForm from "@/components/settings/SettingsForm";
 import LocationSection from "@/components/settings/LocationSection";
 import UserSection from "@/components/settings/UserSection";
-import DataExportSection from "@/components/settings/DataExportSection";
 import { useSettings } from "@/hooks/db/useSettings";
 import PushNotificationManager from '@/components/settings/PushNotificationManager';
 import LoveButton from "@/components/settings/LoveButton";
@@ -15,6 +14,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { Settings } from "@/types/settings"; 
 import Seo from "@/components/ui/SEO";
+import SlackListsSection from "@/components/settings/SlackListsSection";
+import DataExportSection from "@/components/settings/DataExportSection";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -80,13 +81,15 @@ export default function SettingsPage() {
             onRequestLocation={requestGeolocation}
             locationStatus={locationStatus}
           />
-          
-          <DataExportSection />
 
+          <SlackListsSection />
+          
           <UserSection
             email={user?.email}
             onSignOut={handleSignOut}
           />
+
+          <DataExportSection />
           
           <VersionInfo />
         </>

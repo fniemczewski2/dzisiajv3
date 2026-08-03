@@ -10,6 +10,7 @@ import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { readCache, writeCache } from "@/lib/offlineCache";
+import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
 
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {
@@ -174,6 +175,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
         setRawTasks((prev) => prev.map((t) => (t.id === tempId ? (data as Task) : t)));
         toast.success("Dodano zadanie");
+        triggerSlackSync();
       } catch {
         setRawTasks((prev) => prev.filter((t) => t.id !== tempId));
         toast.error("Błąd dodawania zadania.");
@@ -196,9 +198,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       });
 
       try {
-        // id i user_id celowo NIE trafiaja do UPDATE: sa niezmienne, a uprawnienia
-        // kolumnowe (migracja 20260801000000) blokuja ich modyfikacje, zeby wspolny
-        // uzytkownik nie mogl przejac rekordu.
         const {
           shared_with_email: sharedWithEmail,
           display_share_info: _displayShareInfo,
@@ -226,6 +225,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         if (error) throw error;
 
         toast.success("Zaktualizowano zadanie");
+        triggerSlackSync();
       } catch {
         setRawTasks(rollbackRef.current);
         toast.error("Błąd aktualizacji zadania.");
@@ -253,6 +253,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         const { error } = await withRetry(async () => supabase.from("tasks").delete().eq("id", id));
         if (error) throw error;
         toast.success("Usunięto zadanie");
+        triggerSlackSync();
       } catch {
         setRawTasks(rollbackRef.current);
         toast.error("Błąd usuwania zadania.");

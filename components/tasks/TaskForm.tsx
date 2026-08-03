@@ -7,6 +7,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
+import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY } from "@/config/tasks";
 
 interface TaskFormProps {
   addTask: (task: Partial<Task> & { shared_with_email?: string }) => Promise<unknown>;
@@ -40,7 +41,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
 
     const taskData: Partial<Task> & { shared_with_email?: string } = {
       title: titleRef.current?.value || "",
-      category: categoryRef.current?.value || "inne",
+      category: categoryRef.current?.value || DEFAULT_TASK_CATEGORY,
       priority,
       description: descriptionRef.current?.value || "",
       due_date: dueDateRef.current?.value || todayIso,
@@ -94,8 +95,8 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
         </div>
         <div>
           <label htmlFor="category" className="form-label">Kategoria:</label>
-          <select id="category" ref={categoryRef} className="input-field h-min sm:h-[48px]" defaultValue="inne">
-            {["edukacja","praca","osobiste","aktywizm","przyjaciele","zakupy","podróże","trening","inne"].map((cat) => (
+          <select id="category" ref={categoryRef} className="input-field h-min sm:h-[48px]" defaultValue={DEFAULT_TASK_CATEGORY}>
+            {TASK_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>

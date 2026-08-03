@@ -366,7 +366,10 @@ export const guideSections: GuideSection[] = [
         <K>Kto wypełnił ankietę.</K> Pod siatką znajdziesz listę uczestników z adresem e-mail, godziną wypełnienia i łączną liczbą godzin dostępności. Adresy wszystkich uczestników skopiujesz jednym kliknięciem.
       </>,
       <>
-        <K>Kto jest wolny w danym terminie.</K> Kliknij lub przeciągnij po polach siatki - pod nią pojawi się imienna lista osób dostępnych i niedostępnych w wybranym przedziale.
+        <K>Kto jest wolny w danym terminie.</K> Kliknij pole siatki - pod nią pojawi się imienna lista osób dostępnych i niedostępnych w wybranym przedziale.
+      </>,
+      <>
+        <K>Wybór dłuższego terminu.</K> Kliknij godzinę początkową, a następnie końcową w tej samej kolumnie - zaznaczy się cały zakres. Siatka obsługuje też klawiaturę (Tab i Enter).
       </>,
       <>
         <K>Finalizacja.</K> Wybierz zwycięski termin, a aplikacja utworzy wydarzenie w Twoim kalendarzu oraz w kalendarzach uczestników, którzy mają konto w aplikacji.
@@ -727,6 +730,9 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie usuwa żadnych danych użytkownika.
+      </>,
+      <>
+        <K>Usunięcie konta.</K> Na dole sekcji <em>Użytkownik</em> znajdziesz opcję trwałego usunięcia konta. Kasuje ona wszystkie Twoje dane - zadania, wydarzenia, notatki, pisma, finanse, nawyki, załączniki oraz połączenia z kalendarzami i Slackiem. Wymaga wpisania frazy potwierdzającej i jest nieodwracalna.
       </>,
       <>
         <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia - pobierane na żywo z GitHub.

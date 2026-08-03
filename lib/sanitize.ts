@@ -47,7 +47,7 @@ export function validateUuid(id: unknown): string | null {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
-const MAX_EMAIL_LENGTH = 254;   // RFC 5321
+const MAX_EMAIL_LENGTH = 254;  
 
 export function validateEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;

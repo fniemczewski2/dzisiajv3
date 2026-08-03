@@ -97,14 +97,12 @@ export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Zamknij menu po zmianie strony
   useEffect(() => {
     const handleRouteChange = () => setIsMenuOpen(false);
     router.events.on("routeChangeStart", handleRouteChange);
     return () => router.events.off("routeChangeStart", handleRouteChange);
   }, [router.events]);
 
-  // Zamknij menu klawiszem Escape
   useEffect(() => {
     if (!isMenuOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {

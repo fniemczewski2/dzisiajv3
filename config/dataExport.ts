@@ -39,13 +39,11 @@ export const EXPORT_TABLES: ExportTable[] = [
   {
     table: "connected_calendars",
     label: "Polaczone kalendarze",
-    // Bez access_token / refresh_token / sync_token.
     columns: "id, provider, account_email, calendar_name, google_calendar_id, created_at",
   },
   {
     table: "push_subscriptions",
     label: "Subskrypcje push",
-    // Bez kluczy kryptograficznych i endpointu urzadzenia.
     columns: "id, user_agent, created_at, last_used",
   },
 ];

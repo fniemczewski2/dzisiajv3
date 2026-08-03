@@ -12,6 +12,7 @@ import {
   ConfirmButton,
 } from "../ui/CommonButtons";
 import { useAuth } from "@/providers/AuthProvider";
+import { TASK_CATEGORIES } from "@/config/tasks";
 
 interface Props {
   task: Task;
@@ -85,7 +86,7 @@ function TaskEditForm({
               onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} 
               className="input-field py-1.5 h-[38px]"
             >
-              {["edukacja","praca","osobiste","aktywizm","przyjaciele","zakupy","podróże","trening","inne"].map((cat) => (
+              {TASK_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>

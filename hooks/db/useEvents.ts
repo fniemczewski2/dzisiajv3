@@ -198,8 +198,6 @@ export function useEvents(
 
       try {
         const originalId = event.id.split("_")[0];
-        // user_id pomijamy swiadomie - jest niezmienny i objety odebranym
-        // uprawnieniem kolumnowym (migracja 20260801000000).
         const {
           id: _id,
           user_id: _userId,

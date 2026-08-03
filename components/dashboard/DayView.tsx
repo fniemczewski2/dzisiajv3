@@ -235,7 +235,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
         
         if (hourNum < currentHour) {
           const shouldKeepPastHour = map[timeKey].some(item => {
-            // POPRAWKA: Dodano `item.type === "worklog"` żeby starsze godziny nie znikały dzisiaj z radaru!
             if (item.type === "task" || item.type === "schema" || item.type === "worklog") return true; 
             
             if (item.type === "event" && item.data?.end_time) {
