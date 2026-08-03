@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Hash, Link2, RefreshCw, Loader2, Trash2, Star, Link2Off } from "lucide-react";
 import { useSlackTasks, type SlackListConfig } from "@/hooks/db/useSlackTasks";
 import SlackListEditor from "./SlackListEditor";
-import { AddButton, FormButtons } from "../ui/CommonButtons";
+import { AddButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 
 export default function SlackListsSection() {
   const slack = useSlackTasks();
@@ -59,7 +59,7 @@ export default function SlackListsSection() {
 
       <div className="space-y-4">
         {slack.accounts.map((account) => (
-          <div key={account.id} className="rounded-lg border border-gray-200 dark:border-gray-800 p-2">
+          <div key={account.id} className="rounded-lg border border-gray-200 dark:border-gray-800 bg-surface p-2">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2">
               <button
@@ -74,12 +74,11 @@ export default function SlackListsSection() {
               </div>
               <AddButton
                 onClick={() => setShowFrom((prev) => !prev)}
-                aria-expanded={showFrom}
-                aria-controls={`slack-lists-${account.id}`}
+                small
               />
             </div>
 
-            <ul className="space-y-3">
+            <ul className="space-y-3 my-3">
               {listsForAccount(account.id).map((list) => (
                 <li key={list.id}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -93,15 +92,10 @@ export default function SlackListsSection() {
                       <span className="truncate">{list.list_title ?? list.list_id}</span>
                       <span className="text-xs text-textMuted font-mono">{list.list_id}</span>
                     </p>
-                    <button
-                      type="button"
+                    <DeleteButton
+                      small
                       onClick={() => void slack.removeList(list.id)}
-                      disabled={slack.busy}
-                      aria-label={`Odłącz listę ${list.list_title ?? list.list_id}`}
-                      className="text-textMuted hover:text-red-600 transition-colors disabled:opacity-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    />
                   </div>
                   <SlackListEditor
                     list={list}

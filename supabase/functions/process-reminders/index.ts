@@ -1,16 +1,27 @@
 ﻿// supabase/functions/process-reminders/index.ts
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
-import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { verifyCronSecret, jsonHeaders, corsHeaders, unauthorized } from "../_shared/auth.ts";
+import { getErrorMessage } from "../_shared/errors.ts";
+
+interface RecurringTask {
+  id: number;
+  title: string;
+  due_date: string | null;
+  done_at: string | null;
+  repeat_days: number | null;
+  recurring_until: string | null;
+}
+
+function addDays(dateStr: string, days: number): string {
+  const date = new Date(`${dateStr}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
-  if (!verifyCronSecret(req)) {
-    return unauthorized();
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (!verifyCronSecret(req)) return unauthorized();
 
   try {
     const supabase = createClient(
@@ -18,71 +29,50 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const todayStr = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Europe/Warsaw"
-    }).format(new Date());
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("id, title, due_date, done_at, repeat_days, recurring_until")
+      .eq("is_recurring", true)
+      .eq("status", "done");
+    if (error) throw error;
 
-    const { data: reminders, error: fetchError } = await supabase
-      .from("reminders")
-      .select("*");
+    const rolled: string[] = [];
+    const finished: string[] = [];
 
-    if (fetchError) throw fetchError;
+    for (const task of (data ?? []) as RecurringTask[]) {
+      if (!task.repeat_days || task.repeat_days <= 0) continue;
 
-    const processed = [];
+      const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
+      const base = doneDate && task.due_date
+        ? (doneDate > task.due_date ? doneDate : task.due_date)
+        : (doneDate ?? task.due_date);
+      if (!base) continue;
 
-    for (const r of reminders || []) {
-      if (!r.start_date || !r.repeat_days) continue;
+      const nextDue = addDays(base, task.repeat_days);
 
-      const referenceDateStr = r.done ? r.done : r.start_date;
-
-      const referenceDate = new Date(`${referenceDateStr}T00:00:00Z`);
-      const nextExecutionDate = new Date(referenceDate);
-
-      nextExecutionDate.setUTCDate(referenceDate.getUTCDate() + r.repeat_days);
-      const nextExecutionStr = nextExecutionDate.toISOString().split("T")[0];
-
-      if (nextExecutionStr <= todayStr && r.done !== todayStr) {
-
-        const { error: updError } = await supabase
-          .from("reminders")
-          .update({ done: todayStr })
-          .eq("id", r.id);
-
-        if (updError) {
-          console.error(`Błąd aktualizacji przypomnienia ${r.id}:`, updError);
-          continue;
-        }
-
-        const { error: insError } = await supabase.from("tasks").insert({
-          title: r.title,
-          due_date: todayStr,
-          category: "cykliczne",
-          priority: 1,
-          user_id: r.user_id,
-          for_user_id: r.user_id,
-          status: "pending"
-        });
-
-        if (insError) {
-          console.error(`Błąd tworzenia zadania dla przypomnienia ${r.id}:`, insError);
-        } else {
-          processed.push(r.title);
-        }
+      if (task.recurring_until && nextDue > task.recurring_until) {
+        const { error: stopError } = await supabase
+          .from("tasks")
+          .update({ is_recurring: false })
+          .eq("id", task.id);
+        if (!stopError) finished.push(task.title);
+        continue;
       }
+
+      const { error: rollError } = await supabase
+        .from("tasks")
+        .update({ status: "pending", due_date: nextDue })
+        .eq("id", task.id);
+      if (!rollError) rolled.push(task.title);
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      processed_count: processed.length,
-      processed_titles: processed
-    }), {
-      status: 200,
-      headers: jsonHeaders,
-    });
-
+    return new Response(
+      JSON.stringify({ success: true, rolled, finished }),
+      { headers: jsonHeaders }
+    );
   } catch (err) {
-    console.error("Krytyczny błąd w process-reminders:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error("process-reminders:", err);
+    return new Response(JSON.stringify({ error: getErrorMessage(err) }), {
       status: 500,
       headers: jsonHeaders,
     });

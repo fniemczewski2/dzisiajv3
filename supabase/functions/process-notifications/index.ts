@@ -429,6 +429,86 @@ Deno.serve(async (req) => {
         }
       }
     }
+    else if (type === 'letters_deadline') {
+      const tomorrowStr = getPLTimeStrings(new Date(Date.now() + 86_400_000)).dateStr;
+      const { data: letters } = await supabase
+        .from('letters')
+        .select('id, user_id, signature, recipient, response_date')
+        .is('response_file_path', null)
+        .not('response_date', 'is', null)
+        .gte('response_date', today)
+        .lte('response_date', tomorrowStr);
+
+      for (const letter of letters || []) {
+        const { data: alreadySent } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', letter.user_id)
+          .eq('type', 'letters_deadline')
+          .gte('created_at', startOfDayUTC)
+          .contains('data', { letter_id: letter.id })
+          .maybeSingle();
+        if (alreadySent) continue;
+
+        const dueLabel = letter.response_date === today ? 'dziś' : 'jutro';
+        await sendPushAndLog(
+          letter.user_id,
+          `Termin odpowiedzi ${dueLabel}: ${letter.signature}`,
+          `Pismo do: ${letter.recipient}. Odpowiedź nie została jeszcze załączona.`,
+          '/notes/letters',
+          { letter_id: letter.id, due: letter.response_date }
+        );
+        processedCount++;
+      }
+    }
+    else if (type === 'poll_closing') {
+      const tomorrowStr = getPLTimeStrings(new Date(Date.now() + 86_400_000)).dateStr;
+      const { data: pollDates } = await supabase
+        .from('meeting_poll_dates')
+        .select('poll_id, date');
+
+      const earliestByPoll = new Map<string, string>();
+      for (const row of pollDates || []) {
+        const current = earliestByPoll.get(row.poll_id);
+        if (!current || row.date < current) earliestByPoll.set(row.poll_id, row.date);
+      }
+      const closingIds = [...earliestByPoll.entries()]
+        .filter(([, date]) => date === tomorrowStr)
+        .map(([pollId]) => pollId);
+      if (closingIds.length > 0) {
+        const { data: polls } = await supabase
+          .from('meeting_polls')
+          .select('id, user_id, title')
+          .eq('status', 'open')
+          .in('id', closingIds);
+
+        for (const poll of polls || []) {
+          const { data: alreadySent } = await supabase
+            .from('notifications')
+            .select('id')
+            .eq('user_id', poll.user_id)
+            .eq('type', 'poll_closing')
+            .gte('created_at', startOfDayUTC)
+            .contains('data', { poll_id: poll.id })
+            .maybeSingle();
+          if (alreadySent) continue;
+
+          const { count } = await supabase
+            .from('meeting_poll_responses')
+            .select('id', { count: 'exact', head: true })
+            .eq('poll_id', poll.id);
+
+          await sendPushAndLog(
+            poll.user_id,
+            `Ankieta „${poll.title}" zamyka się jutro`,
+            `Pierwszy proponowany termin jest jutro. Odpowiedzi: ${count ?? 0}. Sfinalizuj termin.`,
+            '/meetings',
+            { poll_id: poll.id }
+          );
+          processedCount++;
+        }
+      }
+    }
     else if (type === 'people') {
       const { data: people } = await supabase.from('people').select('*');
       const { data: userSettings } = await supabase.from('settings').select('user_id, notif_birthdays, notif_contact');

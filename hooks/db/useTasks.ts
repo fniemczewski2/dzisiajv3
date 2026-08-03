@@ -11,6 +11,8 @@ import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { readCache, writeCache } from "@/lib/offlineCache";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
+import { UNDO_WINDOW_MS } from "@/config/limits";
+import { enqueueInsert, isOffline } from "@/lib/offlineQueue";
 
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {
@@ -178,6 +180,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         triggerSlackSync();
         return data as Task;
       } catch {
+        if (isOffline()) {
+          const { shared_with_email: _sharedEmail, display_share_info: _shareInfo, ...offlinePayload } = task;
+          await enqueueInsert("tasks", { ...offlinePayload, user_id: userId });
+          toast.info("Brak sieci - zadanie zostanie zapisane po odzyskaniu połączenia.");
+          return undefined;
+        }
         setRawTasks((prev) => prev.filter((t) => t.id !== tempId));
         toast.error("Błąd dodawania zadania.");
       } finally {
@@ -199,14 +207,14 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       });
 
       try {
-        // id i user_id celowo NIE trafiaja do UPDATE: sa niezmienne, a uprawnienia
-        // kolumnowe (migracja 20260801000000) blokuja ich modyfikacje, zeby wspolny
-        // uzytkownik nie mogl przejac rekordu.
         const {
           shared_with_email: sharedWithEmail,
           display_share_info: _displayShareInfo,
           id: _id,
           user_id: _userId,
+          created_at: _createdAt,
+          updated_at: _updatedAt,
+          done_at: _doneAt,
           ...taskData
         } = task;
         let finalForUserId = taskData.for_user_id;
@@ -240,32 +248,51 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, toast, withRetry]
   );
 
+  const pendingDeletes = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) {
         throw new Error("Unauthorized");
       }
-      const ok = await toast.confirm(`Czy chcesz usunąć zadanie?`);
-      if (!ok) return;
-      setLoading(true);
-      setRawTasks((prev) => {
-        rollbackRef.current = prev;
-        return prev.filter((t) => t.id !== id);
-      });
+      const snapshot = rawTasks;
+      const removed = snapshot.find((t) => t.id === id);
+      if (!removed) return;
 
-      try {
-        const { error } = await withRetry(async () => supabase.from("tasks").delete().eq("id", id));
-        if (error) throw error;
-        toast.success("Usunięto zadanie");
-        triggerSlackSync();
-      } catch {
-        setRawTasks(rollbackRef.current);
-        toast.error("Błąd usuwania zadania.");
-      } finally {
-        setLoading(false);
-      }
+      setRawTasks((prev) => prev.filter((t) => t.id !== id));
+
+      const timer = setTimeout(() => {
+        pendingDeletes.current.delete(id);
+        void (async () => {
+          const { error } = await withRetry(async () =>
+            supabase.from("tasks").delete().eq("id", id)
+          );
+          if (error) {
+            setRawTasks((prev) => [...prev, removed]);
+            toast.error("Błąd usuwania zadania.");
+          }
+        })();
+      }, UNDO_WINDOW_MS);
+
+      pendingDeletes.current.set(id, timer);
+
+      toast.success("Usunięto zadanie", {
+        durationMs: UNDO_WINDOW_MS,
+        action: {
+          label: "Cofnij",
+          onClick: () => {
+            const pending = pendingDeletes.current.get(id);
+            if (pending) {
+              clearTimeout(pending);
+              pendingDeletes.current.delete(id);
+              setRawTasks((prev) => [...prev, removed]);
+            }
+          },
+        },
+      });
+      triggerSlackSync();
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast, withRetry, rawTasks]
   );
 
   const acceptTask = useCallback(
@@ -277,12 +304,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       const cleanId = id.startsWith("task-") ? id.replace("task-", "") : id;
       setRawTasks((prev) => {
         rollbackRef.current = prev;
-        return prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "accepted" } : t));
+        return prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "pending" } : t));
       });
 
       try {
         const { error } = await withRetry(async () =>
-          supabase.from("tasks").update({ status: "accepted" }).eq("id", cleanId)
+          supabase.from("tasks").update({ status: "pending" }).eq("id", cleanId)
         );
         if (error) throw error;
         toast.success("Zaakceptowano zadanie");

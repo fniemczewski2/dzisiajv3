@@ -210,7 +210,7 @@ function TaskDetails({ task }: { readonly task: Task }) {
   const hasDescription = !!task.description;
   const showShareInfo = !!(
     task.display_share_info && 
-    ["accepted", "waiting_for_acceptance", "pending"].includes(task.status)
+    ["waiting_for_acceptance", "pending"].includes(task.status)
   );
 
   if (!hasDescription && !showShareInfo) return null;

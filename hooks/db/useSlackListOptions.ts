@@ -27,7 +27,6 @@ export function useSlackListOptions(enabled: boolean) {
       .then((response) => (response.ok ? (response.json() as Promise<StatusResponse>) : null))
       .then((data) => {
         if (cancelled) return;
-        // Lista bez zmapowanego tytulu nie moze przyjac zadania.
         const usable = (data?.lists ?? []).filter((l) => l.column_map?.title);
         setLists(
           usable.map(({ list_id, list_title, is_default }) => ({ list_id, list_title, is_default }))

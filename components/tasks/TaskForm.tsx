@@ -7,7 +7,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
-import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY } from "@/config/tasks";
+import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, RECURRING_TASK_CATEGORY, DEFAULT_REPEAT_DAYS } from "@/config/tasks";
 import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { useSlackListOptions, setSlackTaskTarget } from "@/hooks/db/useSlackListOptions";
 
@@ -37,6 +37,9 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const [slackListId, setSlackListId] = useState("");
 
   const isSlackCategory = category === SLACK_TASK_CATEGORY;
+  const isRecurringCategory = category === RECURRING_TASK_CATEGORY;
+  const [repeatDays, setRepeatDays] = useState(DEFAULT_REPEAT_DAYS);
+  const [recurringUntil, setRecurringUntil] = useState("");
   const { lists: slackLists, loading: slackListsLoading, defaultListId } =
     useSlackListOptions(isSlackCategory);
 
@@ -63,8 +66,15 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       taskData.status = "pending";
     }
 
+    if (isRecurringCategory) {
+      taskData.is_recurring = true;
+      taskData.repeat_days = repeatDays;
+      taskData.recurring_until = recurringUntil || null;
+    }
+
     const created = await addTask(taskData);
 
+    // Przypisanie listy musi nastapic po zapisie - dopiero wtedy znamy id zadania.
     const chosenList = slackListId || defaultListId;
     if (created && isSlackCategory && chosenList) {
       await setSlackTaskTarget(Number(created.id), chosenList);
@@ -121,13 +131,41 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
             ))}
           </select>
 
+          {isRecurringCategory && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <div>
+                <label htmlFor="repeat-days" className="form-label">Co ile dni:</label>
+                <input
+                  id="repeat-days"
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={repeatDays}
+                  onChange={(e) => setRepeatDays(Math.max(1, Number(e.target.value) || 1))}
+                  className="input-field w-full"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="recurring-until" className="form-label">Powtarzaj do:</label>
+                <input
+                  id="recurring-until"
+                  type="date"
+                  value={recurringUntil}
+                  onChange={(e) => setRecurringUntil(e.target.value)}
+                  className="input-field w-full"
+                />
+              </div>
+            </div>
+          )}
+
           {isSlackCategory && (
             <div className="mt-2">
               <label htmlFor="slack-list" className="form-label">Lista Slack:</label>
               {slackListsLoading && <p className="text-xs text-textMuted">Wczytuję listy…</p>}
               {!slackListsLoading && slackLists.length === 0 && (
                 <p className="text-xs text-textMuted">
-                  Brak podłączonych list. Skonfiguruj je w Ustawieniach.
+                  Brak gotowych list. Podłącz listę i zmapuj w niej kolumnę tytułu w Ustawieniach.
                 </p>
               )}
               {slackLists.length > 0 && (

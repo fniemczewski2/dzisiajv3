@@ -9,7 +9,13 @@ export interface Task {
   priority: number;
   description: string;
   due_date: string;
-  status: "pending" | "done" | "accepted" | "waiting_for_acceptance";
+  status: "pending" | "done" | "waiting_for_acceptance";
   scheduled_time?: string | null;
   user_id: string;
+  created_at?: string;
+  updated_at?: string;
+  done_at?: string | null;
+  is_recurring?: boolean;
+  repeat_days?: number | null;
+  recurring_until?: string | null;
 }

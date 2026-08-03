@@ -161,24 +161,20 @@ export async function listItems(
   listId: string
 ): Promise<{ items: SlackItem[]; columns: SlackColumn[] }> {
   const items: SlackItem[] = [];
-  let columns: SlackColumn[] = [];
   let cursor: string | undefined;
 
   do {
-    const body = await callSlack<{
-      items?: SlackItem[];
-      list?: { columns?: SlackColumn[] };
-    }>("slackLists.items.list", token, {
+    const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, {
       list_id: listId,
       limit: SLACK_ITEMS_PAGE_SIZE,
       ...(cursor ? { cursor } : {}),
     });
 
     items.push(...(body.items ?? []));
-    if (columns.length === 0) columns = body.list?.columns ?? [];
     cursor = body.response_metadata?.next_cursor || undefined;
   } while (cursor);
 
+  const columns = await listColumns(token, listId);
   return { items, columns };
 }
 
@@ -191,13 +187,34 @@ export function readFieldValue(field: SlackItemField): string | null {
   return null;
 }
 
+interface RawSlackColumn {
+  id?: string;
+  key?: string;
+  name?: string;
+  type?: string;
+  options?: { choices?: { value: string; label: string }[] };
+}
+
+function normalizeColumn(raw: RawSlackColumn): SlackColumn | null {
+  const id = raw.id ?? raw.key;
+  if (!id) return null;
+  return {
+    id,
+    name: raw.name ?? id,
+    type: raw.type ?? "text",
+    options: raw.options,
+  };
+}
+
 export async function listColumns(token: string, listId: string): Promise<SlackColumn[]> {
-  const body = await callSlack<{ list?: { columns?: SlackColumn[] } }>(
-    "slackLists.items.list",
+  const body = await callSlack<{ columns?: RawSlackColumn[] }>(
+    "slackLists.columns.list",
     token,
-    { list_id: listId, limit: 1 }
+    { list_id: listId }
   );
-  return body.list?.columns ?? [];
+  return (body.columns ?? [])
+    .map(normalizeColumn)
+    .filter((column): column is SlackColumn => column !== null);
 }
 
 export async function createItem(

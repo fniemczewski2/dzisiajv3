@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
-import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, ConfirmToast, ConfirmOptions, BatchLabel } from "@/types/toasts";
+import { ToastItem, ToastAction, ToastContextValue, ToastVariant, NotificationToast, NotificationOptions, ConfirmToast, ConfirmOptions, BatchLabel } from "@/types/toasts";
 
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {
@@ -56,6 +56,15 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
     >
       <ToastIcon variant={item.variant} />
       <span className="flex-1 leading-snug">{item.message}</span>
+      {item.action && (
+        <button
+          onClick={() => { item.action?.onClick(); onRemove(item.id); }}
+          type='button'
+          className="shrink-0 px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide bg-white/70 dark:bg-black/30 hover:bg-white dark:hover:bg-black/50 transition-colors"
+        >
+          {item.action.label}
+        </button>
+      )}
       <button
         onClick={() => onRemove(item.id)}
         type='button'
@@ -127,15 +136,15 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
   }, []);
 
   const addNotification = useCallback(
-    (message: string, variant: ToastVariant, autoDismiss: boolean = true) => {
+    (message: string, variant: ToastVariant, autoDismiss: boolean = true, options?: NotificationOptions) => {
       const id = `toast-${++counter.current}`;
-      dispatch({ type: "ADD", toast: { kind: "notification", id, message, variant } });
-      
+      dispatch({ type: "ADD", toast: { kind: "notification", id, message, variant, action: options?.action } });
+
       if (autoDismiss) {
-        setTimeout(() => remove(id), AUTO_DISMISS_MS);
+        setTimeout(() => remove(id), options?.durationMs ?? AUTO_DISMISS_MS);
       }
-      
-      return id; 
+
+      return id;
     },
     [remove]
   );
@@ -186,10 +195,10 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
 
   const value = useMemo(() => ({
     toast: {
-      success: (m: string) => { addNotification(m, "success"); },
+      success: (m: string, options?: NotificationOptions) => { addNotification(m, "success", true, options); },
       error:   (m: string) => { addNotification(m, "error"); },
-      info:    (m: string) => { addNotification(m, "info"); },
-      loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
+      info:    (m: string, options?: NotificationOptions) => { addNotification(m, "info", true, options); },
+      loading: (m: string = "Ĺadowanie...") => addNotification(m, "loading", false),
       dismiss: (id: string) => remove(id),
       confirm,
       batch,

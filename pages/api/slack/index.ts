@@ -25,8 +25,6 @@ function adminClient(): SupabaseClient {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
 }
 
-/** Slack nie udostepnia metody listujacej Listy, wiec uzytkownik podaje link
- * albo identyfikator. Z linku wyciagamy identyfikator zaczynajacy sie od "F". */
 export function extractListId(input: string): string | null {
   const trimmed = input.trim();
   if (/^F[A-Z0-9]+$/i.test(trimmed)) return trimmed.toUpperCase();
@@ -114,7 +112,6 @@ async function handleAddList(
   const token = await tokenForConnection(admin, userId, body.connection_id);
   if (!token) return res.status(400).json({ error: "Nie znaleziono tego konta Slack." });
 
-  // Weryfikujemy dostep do listy, zanim ja zapiszemy.
   const columns = await listColumns(token, listId);
 
   const { count } = await admin
@@ -183,7 +180,6 @@ async function handleSaveList(
   const columnMap = sanitizeColumnMap(body.column_map, columns);
   if (!columnMap.title) return res.status(400).json({ error: "Kolumna z tytułem jest wymagana." });
 
-  // Najwyzej jedna lista domyslna na uzytkownika (pilnuje tego takze indeks).
   if (body.is_default) {
     await admin.from("slack_lists").update({ is_default: false }).eq("user_id", userId);
   }
@@ -232,7 +228,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(200).json({ cleared: true });
         }
 
-        // Lista musi nalezec do tego uzytkownika.
         const { data: owned } = await admin
           .from("slack_lists")
           .select("list_id")

@@ -254,8 +254,6 @@ async function syncList(
 
     if (!link) {
       if (linkedAnywhere.has(task.id)) continue;
-      // Zadanie ze wskazana lista idzie tam; pozostale na liste domyslna.
-      // Bez tego rozgraniczenia zadanie duplikowaloby sie na kazdej liscie.
       const chosenList = targetListByTask.get(task.id);
       const belongsHere = chosenList ? chosenList === target.listId : target.isDefault;
       if (!belongsHere) continue;
@@ -330,7 +328,6 @@ async function loadTargets(admin: SupabaseClient, userId?: string): Promise<Sync
     const connection = Array.isArray(row.slack_connections)
       ? row.slack_connections[0]
       : row.slack_connections;
-    // Lista bez zmapowanego tytulu nie ma czego synchronizowac.
     if (!connection?.access_token || !row.column_map?.title) return [];
 
     return [
@@ -346,14 +343,11 @@ async function loadTargets(admin: SupabaseClient, userId?: string): Promise<Sync
   });
 }
 
-/** Vercel Cron potrafi wywolac funkcje dluzej niz domyslny limit - synchronizacja
- * kilku list to kilkanascie wywolan do Slacka. */
 export const config = { maxDuration: 60 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const isCron = verifyCronRequest(req);
 
-  // Vercel Cron wysyla GET; wywolania z aplikacji ida POST-em.
   const allowedMethod = isCron ? req.method === "GET" || req.method === "POST" : req.method === "POST";
   if (!allowedMethod) return res.status(405).json({ error: "Method Not Allowed" });
 

@@ -2,11 +2,22 @@
 
 export type ToastVariant = "success" | "error" | "info" | "loading";
 
+export interface ToastActionButton {
+  readonly label: string;
+  readonly onClick: () => void;
+}
+
+export interface NotificationOptions {
+  readonly action?: ToastActionButton;
+  readonly durationMs?: number;
+}
+
 export interface NotificationToast {
   readonly kind: "notification";
   readonly id: string;
   readonly message: string;
   readonly variant: ToastVariant;
+  readonly action?: ToastActionButton;
 }
 
 export interface ConfirmToast {
@@ -34,9 +45,9 @@ export type BatchLabel = (count: number) => string;
 
 export interface ToastContextValue {
   readonly toast: {
-    readonly success: (message: string) => void;
+    readonly success: (message: string, options?: NotificationOptions) => void;
     readonly error:   (message: string) => void;
-    readonly info:    (message: string) => void;
+    readonly info:    (message: string, options?: NotificationOptions) => void;
     readonly loading: (message?: string) => string;
     readonly dismiss: (id: string) => void;
     readonly confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;

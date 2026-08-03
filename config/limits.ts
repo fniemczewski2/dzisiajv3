@@ -20,3 +20,6 @@ export const STATIONS_TTL_MS = 24 * 60 * 60 * 1000;
 export const OPERATIONS_TTL_MS = 30 * 1000;
 export const RETRY_DELAY_MS = 1500;
 export const TRANSPORT_API_LIMIT = 30;
+export const UNDO_WINDOW_MS = 500;
+export const OFFLINE_QUEUE_DB = "offline_queue_db";
+export const OFFLINE_QUEUE_STORE = "offline_queue";

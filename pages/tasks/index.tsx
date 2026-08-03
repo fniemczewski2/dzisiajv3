@@ -15,8 +15,8 @@ import { useTasks } from "@/hooks/db/useTasks";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
 import { AddButton } from "@/components/ui/CommonButtons";
 import { SkeletonTaskList } from "@/components/ui/Skeleton";
+import SearchBar from "@/components/ui/SearchBar";
 import { useQuickAction } from "@/hooks/useQuickAction";
-import Reminders from "@/components/tasks/Reminders";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
 import Seo from "@/components/ui/SEO";
@@ -38,6 +38,7 @@ type DateFilter = (typeof FILTER_OPTIONS)[number]["value"];
 export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { user } = useAuth();
@@ -72,17 +73,27 @@ export default function TasksPage() {
   }, [dateFilter]);
 
   const filteredTasks = useMemo(() => {
-    if (!filterDate) return tasks;
-    
     const allowedStatuses = new Set(["pending", "waiting_for_acceptance", "accepted"]);
-    if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) { 
-      return tasks.filter(
-        (t) => t.due_date <= filterDate && allowedStatuses.has(t.status)
-      );
+    let result: typeof tasks;
+
+    if (!filterDate) {
+      result = tasks;
+    } else if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) {
+      result = tasks.filter((t) => t.due_date <= filterDate && allowedStatuses.has(t.status));
     } else {
-       return tasks.filter((t) => t.due_date === filterDate);
+      result = tasks.filter((t) => t.due_date === filterDate);
     }
-  }, [tasks, filterDate]);
+
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query) ||
+          (t.description ?? "").toLowerCase().includes(query)
+      );
+    }
+    return result;
+  }, [tasks, filterDate, searchQuery]);
 
   useQuickAction({
     onActionAdd: () => setShowForm(true),
@@ -143,6 +154,7 @@ export default function TasksPage() {
           </div>
         )}
           <div className="space-y-6">
+            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Szukaj w zadaniach..." />
             {fetching ? (
               <SkeletonTaskList count={6} />
             ) : (
@@ -158,8 +170,7 @@ export default function TasksPage() {
                 loading={loading}
               />
             )}
-            <Reminders onTasksChange={fetchTasks} addTask={addTask} />
-          </div>
+        </div>
     </>
   );
 }

@@ -163,7 +163,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     };
   }, [draggedTask, draggedEventTitle, draggedSchemaTitle]);
 
-  const activeTasks = useMemo(() => tasks.filter((t) => t.status === "pending" || t.status === "accepted"), [tasks]);
+  const activeTasks = useMemo(() => tasks.filter((t) => t.status != "done"), [tasks]);
   const scheduledTasks = useMemo(() => activeTasks.filter((t) => t.scheduled_time), [activeTasks]);
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
 
