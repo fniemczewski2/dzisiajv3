@@ -10,19 +10,24 @@ export interface SlackColumnOption {
   type: string;
 }
 
-export interface SlackConnectionState {
+export interface SlackAccount {
   id: string;
+  team_id: string;
   team_name: string | null;
-  list_id: string | null;
+}
+
+export interface SlackListConfig {
+  id: string;
+  connection_id: string;
+  list_id: string;
   list_title: string | null;
   column_map: Partial<Record<SlackMappableTaskField, string>>;
+  is_default: boolean;
 }
 
 interface StatusResponse {
-  connected: boolean;
-  connection?: SlackConnectionState;
-  columns?: SlackColumnOption[];
-  error?: string;
+  connections: SlackAccount[];
+  lists: SlackListConfig[];
 }
 
 async function callSlackApi<T>(url: string, init?: RequestInit): Promise<T> {
@@ -37,8 +42,9 @@ async function callSlackApi<T>(url: string, init?: RequestInit): Promise<T> {
 
 export function useSlackTasks() {
   const { toast } = useToast();
-  const [connection, setConnection] = useState<SlackConnectionState | null>(null);
-  const [columns, setColumns] = useState<SlackColumnOption[]>([]);
+  const [accounts, setAccounts] = useState<SlackAccount[]>([]);
+  const [lists, setLists] = useState<SlackListConfig[]>([]);
+  const [columnsByList, setColumnsByList] = useState<Record<string, SlackColumnOption[]>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -46,10 +52,11 @@ export function useSlackTasks() {
     setLoading(true);
     try {
       const data = await callSlackApi<StatusResponse>("/api/slack?action=status");
-      setConnection(data.connected ? (data.connection ?? null) : null);
-      setColumns(data.columns ?? []);
+      setAccounts(data.connections ?? []);
+      setLists(data.lists ?? []);
     } catch {
-      setConnection(null);
+      setAccounts([]);
+      setLists([]);
     } finally {
       setLoading(false);
     }
@@ -58,6 +65,32 @@ export function useSlackTasks() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const loadColumns = useCallback(async (listRowId: string) => {
+    try {
+      const data = await callSlackApi<{ columns: SlackColumnOption[] }>(
+        `/api/slack?action=columns&list_row_id=${encodeURIComponent(listRowId)}`
+      );
+      setColumnsByList((prev) => ({ ...prev, [listRowId]: data.columns }));
+    } catch {
+      setColumnsByList((prev) => ({ ...prev, [listRowId]: [] }));
+    }
+  }, []);
+
+  const runAction = useCallback(
+    async (fn: () => Promise<void>, successMessage: string, errorMessage: string) => {
+      setBusy(true);
+      try {
+        await fn();
+        toast.success(successMessage);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : errorMessage);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [toast]
+  );
 
   const connect = useCallback(async () => {
     setBusy(true);
@@ -70,72 +103,97 @@ export function useSlackTasks() {
     }
   }, [toast]);
 
-  const disconnect = useCallback(async () => {
-    setBusy(true);
-    try {
-      await callSlackApi("/api/slack?action=disconnect", { method: "POST" });
-      setConnection(null);
-      setColumns([]);
-      toast.success("Odłączono Slacka.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nie udało się odłączyć.");
-    } finally {
-      setBusy(false);
-    }
-  }, [toast]);
-
-  const selectList = useCallback(
-    async (listInput: string) => {
-      setBusy(true);
-      try {
-        const data = await callSlackApi<{ list_id: string; columns: SlackColumnOption[] }>(
-          "/api/slack?action=select-list",
-          { method: "POST", body: JSON.stringify({ list: listInput }) }
-        );
-        setColumns(data.columns);
-        setConnection((prev) => (prev ? { ...prev, list_id: data.list_id, column_map: {} } : prev));
-        toast.success("Lista podłączona. Zmapuj kolumny.");
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Nie udało się wybrać listy.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [toast]
+  const disconnectAccount = useCallback(
+    (connectionId: string) =>
+      runAction(
+        async () => {
+          await callSlackApi("/api/slack?action=disconnect", {
+            method: "POST",
+            body: JSON.stringify({ connection_id: connectionId }),
+          });
+          await refresh();
+        },
+        "Odłączono konto Slack.",
+        "Nie udało się odłączyć konta."
+      ),
+    [runAction, refresh]
   );
 
-  const saveColumnMap = useCallback(
-    async (columnMap: Partial<Record<SlackMappableTaskField, string>>) => {
-      setBusy(true);
-      try {
-        await callSlackApi("/api/slack?action=column-map", {
-          method: "POST",
-          body: JSON.stringify({ column_map: columnMap }),
-        });
-        setConnection((prev) => (prev ? { ...prev, column_map: columnMap } : prev));
-        toast.success("Zapisano mapowanie kolumn.");
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Nie udało się zapisać mapowania.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [toast]
+  const addList = useCallback(
+    (connectionId: string, listInput: string, title: string) =>
+      runAction(
+        async () => {
+          await callSlackApi("/api/slack?action=add-list", {
+            method: "POST",
+            body: JSON.stringify({ connection_id: connectionId, list: listInput, title }),
+          });
+          await refresh();
+        },
+        "Lista podłączona. Zmapuj kolumny.",
+        "Nie udało się podłączyć listy."
+      ),
+    [runAction, refresh]
   );
 
-  const syncNow = useCallback(async () => {
-    setBusy(true);
-    try {
-      await callSlackApi("/api/slack/sync", { method: "POST" });
-      toast.success("Zsynchronizowano ze Slackiem.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Synchronizacja nie powiodła się.");
-    } finally {
-      setBusy(false);
-    }
-  }, [toast]);
+  const removeList = useCallback(
+    (listRowId: string) =>
+      runAction(
+        async () => {
+          await callSlackApi("/api/slack?action=remove-list", {
+            method: "POST",
+            body: JSON.stringify({ list_row_id: listRowId }),
+          });
+          await refresh();
+        },
+        "Lista odłączona.",
+        "Nie udało się odłączyć listy."
+      ),
+    [runAction, refresh]
+  );
 
-  return { connection, columns, loading, busy, connect, disconnect, selectList, saveColumnMap, syncNow, refresh };
+  const saveList = useCallback(
+    (listRowId: string, columnMap: SlackListConfig["column_map"], isDefault: boolean) =>
+      runAction(
+        async () => {
+          await callSlackApi("/api/slack?action=save-list", {
+            method: "POST",
+            body: JSON.stringify({ list_row_id: listRowId, column_map: columnMap, is_default: isDefault }),
+          });
+          await refresh();
+        },
+        "Zapisano ustawienia listy.",
+        "Nie udało się zapisać ustawień."
+      ),
+    [runAction, refresh]
+  );
+
+  const syncNow = useCallback(
+    () =>
+      runAction(
+        async () => {
+          await callSlackApi("/api/slack/sync", { method: "POST" });
+        },
+        "Zsynchronizowano ze Slackiem.",
+        "Synchronizacja nie powiodła się."
+      ),
+    [runAction]
+  );
+
+  return {
+    accounts,
+    lists,
+    columnsByList,
+    loading,
+    busy,
+    connect,
+    disconnectAccount,
+    addList,
+    removeList,
+    saveList,
+    loadColumns,
+    syncNow,
+    refresh,
+  };
 }
 
 export function triggerSlackSync(): void {

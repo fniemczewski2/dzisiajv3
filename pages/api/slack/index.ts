@@ -12,21 +12,21 @@ import {
   SLACK_STATE_TTL_SECONDS,
   SLACK_USER_SCOPES,
   SLACK_MAPPABLE_TASK_FIELDS,
-  type SlackMappableTaskField,
 } from "@/config/slack";
 
 interface ConnectionRow {
   id: string;
+  team_id: string;
   team_name: string | null;
-  list_id: string | null;
-  list_title: string | null;
-  column_map: Partial<Record<SlackMappableTaskField, string>>;
+  access_token: string;
 }
 
 function adminClient(): SupabaseClient {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
 }
 
+/** Slack nie udostepnia metody listujacej Listy, wiec uzytkownik podaje link
+ * albo identyfikator. Z linku wyciagamy identyfikator zaczynajacy sie od "F". */
 export function extractListId(input: string): string | null {
   const trimmed = input.trim();
   if (/^F[A-Z0-9]+$/i.test(trimmed)) return trimmed.toUpperCase();
@@ -55,20 +55,23 @@ function handleAuthUrl(res: NextApiResponse) {
   return res.status(200).json({ url: url.toString() });
 }
 
-async function loadConnection(
-  admin: SupabaseClient,
-  userId: string
-): Promise<{ row: ConnectionRow; token: string } | null> {
+async function loadConnections(admin: SupabaseClient, userId: string): Promise<ConnectionRow[]> {
   const { data } = await admin
     .from("slack_connections")
-    .select("id, team_name, list_id, list_title, column_map, access_token")
+    .select("id, team_id, team_name, access_token")
     .eq("user_id", userId)
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: true });
+  return (data ?? []) as ConnectionRow[];
+}
 
-  if (!data) return null;
-  const { access_token: accessToken, ...row } = data as ConnectionRow & { access_token: string };
-  return { row, token: decryptToken(accessToken) };
+async function tokenForConnection(
+  admin: SupabaseClient,
+  userId: string,
+  connectionId: string
+): Promise<string | null> {
+  const connections = await loadConnections(admin, userId);
+  const match = connections.find((c) => c.id === connectionId);
+  return match ? decryptToken(match.access_token) : null;
 }
 
 function sanitizeColumnMap(input: unknown, columns: SlackColumn[]): Record<string, string> {
@@ -83,70 +86,185 @@ function sanitizeColumnMap(input: unknown, columns: SlackColumn[]): Record<strin
   return result;
 }
 
+async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiResponse) {
+  const connections = await loadConnections(admin, userId);
+  const { data: lists } = await admin
+    .from("slack_lists")
+    .select("id, connection_id, list_id, list_title, column_map, is_default")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  return res.status(200).json({
+    connections: connections.map(({ id, team_id, team_name }) => ({ id, team_id, team_name })),
+    lists: lists ?? [],
+  });
+}
+
+async function handleAddList(
+  admin: SupabaseClient,
+  userId: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const body = req.body as { connection_id?: string; list?: string; title?: string };
+  const listId = extractListId(String(body?.list ?? ""));
+  if (!listId) return res.status(400).json({ error: "Nieprawidłowy link lub identyfikator listy." });
+  if (!body?.connection_id) return res.status(400).json({ error: "Wskaż konto Slack." });
+
+  const token = await tokenForConnection(admin, userId, body.connection_id);
+  if (!token) return res.status(400).json({ error: "Nie znaleziono tego konta Slack." });
+
+  // Weryfikujemy dostep do listy, zanim ja zapiszemy.
+  const columns = await listColumns(token, listId);
+
+  const { count } = await admin
+    .from("slack_lists")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  const { error } = await admin.from("slack_lists").insert({
+    connection_id: body.connection_id,
+    user_id: userId,
+    list_id: listId,
+    list_title: body.title?.trim() || listId,
+    column_map: {},
+    is_default: (count ?? 0) === 0,
+  });
+
+  if (error) return res.status(400).json({ error: "Ta lista jest już podłączona." });
+  return res.status(200).json({ list_id: listId, columns });
+}
+
+async function handleColumns(
+  admin: SupabaseClient,
+  userId: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const rowId = String(req.query.list_row_id ?? "");
+  const { data } = await admin
+    .from("slack_lists")
+    .select("connection_id, list_id")
+    .eq("id", rowId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!data) return res.status(404).json({ error: "Nie znaleziono listy." });
+  const row = data as { connection_id: string; list_id: string };
+
+  const token = await tokenForConnection(admin, userId, row.connection_id);
+  if (!token) return res.status(400).json({ error: "Nie znaleziono konta Slack." });
+
+  return res.status(200).json({ columns: await listColumns(token, row.list_id) });
+}
+
+async function handleSaveList(
+  admin: SupabaseClient,
+  userId: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const body = req.body as { list_row_id?: string; column_map?: unknown; is_default?: boolean };
+  if (!body?.list_row_id) return res.status(400).json({ error: "Brak identyfikatora listy." });
+
+  const { data } = await admin
+    .from("slack_lists")
+    .select("connection_id, list_id")
+    .eq("id", body.list_row_id)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data) return res.status(404).json({ error: "Nie znaleziono listy." });
+
+  const row = data as { connection_id: string; list_id: string };
+  const token = await tokenForConnection(admin, userId, row.connection_id);
+  if (!token) return res.status(400).json({ error: "Nie znaleziono konta Slack." });
+
+  const columns = await listColumns(token, row.list_id);
+  const columnMap = sanitizeColumnMap(body.column_map, columns);
+  if (!columnMap.title) return res.status(400).json({ error: "Kolumna z tytułem jest wymagana." });
+
+  // Najwyzej jedna lista domyslna na uzytkownika (pilnuje tego takze indeks).
+  if (body.is_default) {
+    await admin.from("slack_lists").update({ is_default: false }).eq("user_id", userId);
+  }
+
+  await admin
+    .from("slack_lists")
+    .update({
+      column_map: columnMap,
+      is_default: Boolean(body.is_default),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", body.list_row_id);
+
+  return res.status(200).json({ column_map: columnMap });
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const action = String(req.query.action ?? "");
-
-  if (action === "auth-url") {
-    const supabase = createServerSupabase(req, res);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return res.status(401).json({ error: "Unauthorized" });
-    return handleAuthUrl(res);
-  }
 
   const supabase = createServerSupabase(req, res);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+  if (action === "auth-url") return handleAuthUrl(res);
+
   const admin = adminClient();
 
   try {
-    if (action === "status") {
-      const connection = await loadConnection(admin, user.id);
-      if (!connection) return res.status(200).json({ connected: false });
+    if (action === "status") return await handleStatus(admin, user.id, res);
+    if (action === "columns") return await handleColumns(admin, user.id, req, res);
 
-      let columns: SlackColumn[] = [];
-      if (connection.row.list_id) {
-        columns = await listColumns(connection.token, connection.row.list_id);
+    if (req.method === "POST") {
+      if (action === "add-list") return await handleAddList(admin, user.id, req, res);
+      if (action === "save-list") return await handleSaveList(admin, user.id, req, res);
+
+      if (action === "set-target") {
+        const body = req.body as { task_id?: number; list_id?: string };
+        if (!body?.task_id) return res.status(400).json({ error: "Brak identyfikatora zadania." });
+
+        if (!body.list_id) {
+          await admin
+            .from("slack_task_targets")
+            .delete()
+            .eq("task_id", body.task_id)
+            .eq("user_id", user.id);
+          return res.status(200).json({ cleared: true });
+        }
+
+        // Lista musi nalezec do tego uzytkownika.
+        const { data: owned } = await admin
+          .from("slack_lists")
+          .select("list_id")
+          .eq("user_id", user.id)
+          .eq("list_id", body.list_id)
+          .maybeSingle();
+        if (!owned) return res.status(400).json({ error: "Nie znaleziono tej listy." });
+
+        await admin
+          .from("slack_task_targets")
+          .upsert(
+            { task_id: body.task_id, user_id: user.id, list_id: body.list_id },
+            { onConflict: "task_id" }
+          );
+        return res.status(200).json({ list_id: body.list_id });
       }
-      return res.status(200).json({ connected: true, connection: connection.row, columns });
-    }
 
-    if (action === "select-list" && req.method === "POST") {
-      const listId = extractListId(String((req.body as { list?: string })?.list ?? ""));
-      if (!listId) return res.status(400).json({ error: "Nieprawidłowy link lub identyfikator listy." });
-
-      const connection = await loadConnection(admin, user.id);
-      if (!connection) return res.status(400).json({ error: "Najpierw połącz konto Slack." });
-      const columns = await listColumns(connection.token, listId);
-      await admin
-        .from("slack_connections")
-        .update({ list_id: listId, column_map: {}, updated_at: new Date().toISOString() })
-        .eq("id", connection.row.id);
-
-      return res.status(200).json({ list_id: listId, columns });
-    }
-
-    if (action === "column-map" && req.method === "POST") {
-      const connection = await loadConnection(admin, user.id);
-      if (!connection?.row.list_id) return res.status(400).json({ error: "Najpierw wybierz listę." });
-
-      const columns = await listColumns(connection.token, connection.row.list_id);
-      const columnMap = sanitizeColumnMap((req.body as { column_map?: unknown })?.column_map, columns);
-      if (!columnMap.title) {
-        return res.status(400).json({ error: "Kolumna z tytułem jest wymagana." });
+      if (action === "remove-list") {
+        const rowId = String((req.body as { list_row_id?: string })?.list_row_id ?? "");
+        await admin.from("slack_lists").delete().eq("id", rowId).eq("user_id", user.id);
+        return res.status(200).json({ removed: true });
       }
 
-      await admin
-        .from("slack_connections")
-        .update({ column_map: columnMap, updated_at: new Date().toISOString() })
-        .eq("id", connection.row.id);
-
-      return res.status(200).json({ column_map: columnMap });
-    }
-
-    if (action === "disconnect" && req.method === "POST") {
-      await admin.from("slack_connections").delete().eq("user_id", user.id);
-      return res.status(200).json({ connected: false });
+      if (action === "disconnect") {
+        const connectionId = String((req.body as { connection_id?: string })?.connection_id ?? "");
+        await admin
+          .from("slack_connections")
+          .delete()
+          .eq("id", connectionId)
+          .eq("user_id", user.id);
+        return res.status(200).json({ removed: true });
+      }
     }
 
     return res.status(400).json({ error: "Nieznana akcja." });

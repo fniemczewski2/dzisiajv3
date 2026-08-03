@@ -8,9 +8,11 @@ import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
 import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY } from "@/config/tasks";
+import { SLACK_TASK_CATEGORY } from "@/config/slack";
+import { useSlackListOptions, setSlackTaskTarget } from "@/hooks/db/useSlackListOptions";
 
 interface TaskFormProps {
-  addTask: (task: Partial<Task> & { shared_with_email?: string }) => Promise<unknown>;
+  addTask: (task: Partial<Task> & { shared_with_email?: string }) => Promise<Task | undefined>;
   onTasksChange: () => void;
   onCancel?: () => void;
   selectedDate?: string;
@@ -31,6 +33,12 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dueDateRef     = useRef<HTMLInputElement>(null);
   const [priority, setPriority] = useState(3);
+  const [category, setCategory] = useState<string>(DEFAULT_TASK_CATEGORY);
+  const [slackListId, setSlackListId] = useState("");
+
+  const isSlackCategory = category === SLACK_TASK_CATEGORY;
+  const { lists: slackLists, loading: slackListsLoading, defaultListId } =
+    useSlackListOptions(isSlackCategory);
 
   const userOptions = settings?.users ?? [];
 
@@ -41,7 +49,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
 
     const taskData: Partial<Task> & { shared_with_email?: string } = {
       title: titleRef.current?.value || "",
-      category: categoryRef.current?.value || DEFAULT_TASK_CATEGORY,
+      category: category || DEFAULT_TASK_CATEGORY,
       priority,
       description: descriptionRef.current?.value || "",
       due_date: dueDateRef.current?.value || todayIso,
@@ -55,7 +63,13 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       taskData.status = "pending";
     }
 
-    await addTask(taskData);
+    const created = await addTask(taskData);
+
+    const chosenList = slackListId || defaultListId;
+    if (created && isSlackCategory && chosenList) {
+      await setSlackTaskTarget(Number(created.id), chosenList);
+    }
+
     onTasksChange();
     onCancel?.();
   };
@@ -95,11 +109,44 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
         </div>
         <div>
           <label htmlFor="category" className="form-label">Kategoria:</label>
-          <select id="category" ref={categoryRef} className="input-field h-min sm:h-[48px]" defaultValue={DEFAULT_TASK_CATEGORY}>
+          <select
+            id="category"
+            ref={categoryRef}
+            className="input-field h-min sm:h-[48px]"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
             {TASK_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
+
+          {isSlackCategory && (
+            <div className="mt-2">
+              <label htmlFor="slack-list" className="form-label">Lista Slack:</label>
+              {slackListsLoading && <p className="text-xs text-textMuted">Wczytuję listy…</p>}
+              {!slackListsLoading && slackLists.length === 0 && (
+                <p className="text-xs text-textMuted">
+                  Brak podłączonych list. Skonfiguruj je w Ustawieniach.
+                </p>
+              )}
+              {slackLists.length > 0 && (
+                <select
+                  id="slack-list"
+                  className="input-field h-min sm:h-[48px]"
+                  value={slackListId || defaultListId}
+                  onChange={(e) => setSlackListId(e.target.value)}
+                >
+                  {slackLists.map((list) => (
+                    <option key={list.list_id} value={list.list_id}>
+                      {list.list_title ?? list.list_id}
+                      {list.is_default ? " (domyślna)" : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

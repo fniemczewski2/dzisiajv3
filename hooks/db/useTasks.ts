@@ -142,7 +142,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   }, [cacheKey]);
 
   const addTask = useCallback(
-    async (task: TaskInput) => {
+    async (task: TaskInput): Promise<Task | undefined> => {
       if (!userId) {
         throw new Error("Unauthorized");
       }
@@ -176,6 +176,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setRawTasks((prev) => prev.map((t) => (t.id === tempId ? (data as Task) : t)));
         toast.success("Dodano zadanie");
         triggerSlackSync();
+        return data as Task;
       } catch {
         setRawTasks((prev) => prev.filter((t) => t.id !== tempId));
         toast.error("Błąd dodawania zadania.");
@@ -198,6 +199,9 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       });
 
       try {
+        // id i user_id celowo NIE trafiaja do UPDATE: sa niezmienne, a uprawnienia
+        // kolumnowe (migracja 20260801000000) blokuja ich modyfikacje, zeby wspolny
+        // uzytkownik nie mogl przejac rekordu.
         const {
           shared_with_email: sharedWithEmail,
           display_share_info: _displayShareInfo,

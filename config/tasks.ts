@@ -10,7 +10,7 @@ export const TASK_CATEGORIES = [
   "podróże",
   "trening",
   "inne",
-  "SLACK",
+  "slack",
 ] as const;
 
 export type TaskCategory = (typeof TASK_CATEGORIES)[number];

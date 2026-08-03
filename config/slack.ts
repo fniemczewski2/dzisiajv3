@@ -30,6 +30,6 @@ export const SLACK_FIELD_LABELS: Record<SlackMappableTaskField, string> = {
   status: "Status",
 };
 
-export const SLACK_TASK_CATEGORY = "SLACK";
+export const SLACK_TASK_CATEGORY = "slack";
 
 export const SLACK_PULL_EXCLUDED_FIELDS: readonly SlackMappableTaskField[] = ["category"];
