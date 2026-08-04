@@ -10,6 +10,8 @@ import { Minus, Plus } from "lucide-react";
 import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, RECURRING_TASK_CATEGORY, DEFAULT_REPEAT_DAYS } from "@/config/tasks";
 import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { useSlackListOptions, setSlackTaskTarget } from "@/hooks/db/useSlackListOptions";
+import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
+import { useToast } from "@/providers/ToastProvider";
 
 interface TaskFormProps {
   addTask: (task: Partial<Task> & { shared_with_email?: string }) => Promise<Task | undefined>;
@@ -25,6 +27,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
+  const { toast } = useToast();
   const todayIso = getAppDate();
 
   const titleRef       = useRef<HTMLInputElement>(null);
@@ -40,7 +43,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const isRecurringCategory = category === RECURRING_TASK_CATEGORY;
   const [repeatDays, setRepeatDays] = useState(DEFAULT_REPEAT_DAYS);
   const [recurringUntil, setRecurringUntil] = useState("");
-  const { lists: slackLists, loading: slackListsLoading, defaultListId } =
+  const { lists: slackLists, loading: slackListsLoading, error: slackListsError, defaultListId } =
     useSlackListOptions(isSlackCategory);
 
   const userOptions = settings?.users ?? [];
@@ -74,10 +77,16 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
 
     const created = await addTask(taskData);
 
-    // Przypisanie listy musi nastapic po zapisie - dopiero wtedy znamy id zadania.
     const chosenList = slackListId || defaultListId;
     if (created && isSlackCategory && chosenList) {
-      await setSlackTaskTarget(Number(created.id), chosenList);
+      try {
+        await setSlackTaskTarget(Number(created.id), chosenList);
+        triggerSlackSync();
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Nie udało się przypisać listy Slack."
+        );
+      }
     }
 
     onTasksChange();
@@ -163,7 +172,10 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
             <div className="mt-2">
               <label htmlFor="slack-list" className="form-label">Lista Slack:</label>
               {slackListsLoading && <p className="text-xs text-textMuted">Wczytuję listy…</p>}
-              {!slackListsLoading && slackLists.length === 0 && (
+              {!slackListsLoading && slackListsError && (
+                <p className="text-xs text-red-600 dark:text-red-400">{slackListsError}</p>
+              )}
+              {!slackListsLoading && !slackListsError && slackLists.length === 0 && (
                 <p className="text-xs text-textMuted">
                   Brak gotowych list. Podłącz listę i zmapuj w niej kolumnę tytułu w Ustawieniach.
                 </p>

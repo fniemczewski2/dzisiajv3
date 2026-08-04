@@ -1,7 +1,7 @@
 // components/settings/SlackListsSection.tsx
 
 import React, { useState } from "react";
-import { Hash, Link2, RefreshCw, Loader2, Trash2, Star, Link2Off } from "lucide-react";
+import { Hash, Link2, RefreshCw, Loader2, Star, Link2Off } from "lucide-react";
 import { useSlackTasks, type SlackListConfig } from "@/hooks/db/useSlackTasks";
 import SlackListEditor from "./SlackListEditor";
 import { AddButton, DeleteButton, FormButtons } from "../ui/CommonButtons";

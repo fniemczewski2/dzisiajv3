@@ -10,17 +10,23 @@ import {
   createItem,
   updateItem,
   deleteItem,
+  itemExists,
   buildFieldValue,
+  buildAssigneeValue,
+  findAssigneeColumn,
   readFieldValue,
   translateSlackError,
   type SlackColumn,
   type SlackItem,
+  type SlackItemField,
   type SlackFieldValue,
 } from "@/lib/server/slackLists";
 import {
   SLACK_MAPPABLE_TASK_FIELDS,
   SLACK_TASK_CATEGORY,
   SLACK_PULL_EXCLUDED_FIELDS,
+  DEFAULT_TASK_STATUS,
+  normalizeTaskStatus,
   type SlackMappableTaskField,
 } from "@/config/slack";
 
@@ -48,6 +54,7 @@ interface LinkRow {
 interface SyncTarget {
   userId: string;
   token: string;
+  slackUserId: string | null;
   listId: string;
   listTitle: string | null;
   columnMap: ColumnMap;
@@ -74,25 +81,49 @@ function fingerprint(task: TaskRow): string {
   return SLACK_MAPPABLE_TASK_FIELDS.map((field) => String(task[field] ?? "")).join("\u0001");
 }
 
-function buildFields(task: TaskRow, columnMap: ColumnMap, columns: SlackColumn[]): SlackFieldValue[] {
+function buildFields(
+  task: TaskRow,
+  target: SyncTarget,
+  columns: SlackColumn[],
+  options: { withAssignee?: boolean } = {}
+): SlackFieldValue[] {
   const byId = new Map(columns.map((c) => [c.id, c]));
   const fields: SlackFieldValue[] = [];
+  const used = new Set<string>();
 
   for (const field of SLACK_MAPPABLE_TASK_FIELDS) {
-    const columnId = columnMap[field];
+    const columnId = target.columnMap[field];
     if (!columnId) continue;
     const column = byId.get(columnId);
     if (!column) continue;
     const value = buildFieldValue(column, task[field] ?? null);
-    if (value) fields.push(value);
+    if (value) {
+      fields.push(value);
+      used.add(column.id);
+    }
+  }
+
+  if (options.withAssignee) {
+    const assigneeColumn = findAssigneeColumn(columns);
+    if (assigneeColumn && !used.has(assigneeColumn.id)) {
+      const value = buildAssigneeValue(assigneeColumn, target.slackUserId);
+      if (value) fields.push(value);
+    }
   }
   return fields;
 }
 
-function itemToTaskPatch(item: SlackItem, columnMap: ColumnMap): Partial<TaskRow> {
-  const byColumn = new Map(
-    (item.fields ?? []).filter((f) => f.column_id).map((f) => [f.column_id as string, f])
-  );
+function itemToTaskPatch(
+  item: SlackItem,
+  columnMap: ColumnMap,
+  columns: SlackColumn[]
+): Partial<TaskRow> {
+  const byColumn = new Map<string, SlackItemField>();
+  for (const cell of item.fields ?? []) {
+    const id = cell.column_id ?? cell.key;
+    if (id && !byColumn.has(id)) byColumn.set(id, cell);
+  }
+  const columnById = new Map(columns.map((c) => [c.id, c]));
   const patch: Record<string, string | number | null> = {};
 
   for (const field of SLACK_MAPPABLE_TASK_FIELDS) {
@@ -101,9 +132,17 @@ function itemToTaskPatch(item: SlackItem, columnMap: ColumnMap): Partial<TaskRow
     if (!columnId) continue;
     const cell = byColumn.get(columnId);
     if (!cell) continue;
-    const raw = readFieldValue(cell);
+    const raw = readFieldValue(cell, columnById.get(columnId));
     if (raw === null) continue;
-    patch[field] = field === "priority" ? Number(raw) || null : raw;
+
+    if (field === "priority") {
+      patch[field] = Number(raw) || null;
+    } else if (field === "status") {
+      const normalized = normalizeTaskStatus(raw);
+      if (normalized) patch[field] = normalized;
+    } else {
+      patch[field] = raw;
+    }
   }
   return patch as Partial<TaskRow>;
 }
@@ -132,15 +171,22 @@ async function pushTask(
   columns: SlackColumn[],
   link: LinkRow | undefined
 ): Promise<void> {
-  const fields = buildFields(task, target.columnMap, columns);
-
   if (link) {
-    await updateItem(target.token, target.listId, link.item_id, fields);
+    await updateItem(
+      target.token,
+      target.listId,
+      link.item_id,
+      buildFields(task, target, columns)
+    );
     await touchLink(admin, target, task.id, task);
     return;
   }
 
-  const itemId = await createItem(target.token, target.listId, fields);
+  const itemId = await createItem(
+    target.token,
+    target.listId,
+    buildFields(task, target, columns, { withAssignee: true })
+  );
   await admin.from("slack_task_links").insert({
     task_id: task.id,
     user_id: target.userId,
@@ -155,9 +201,10 @@ async function pullItem(
   admin: SupabaseClient,
   target: SyncTarget,
   item: SlackItem,
-  task: TaskRow
+  task: TaskRow,
+  columns: SlackColumn[]
 ): Promise<void> {
-  const patch = itemToTaskPatch(item, target.columnMap);
+  const patch = itemToTaskPatch(item, target.columnMap, columns);
   if (Object.keys(patch).length === 0) return;
 
   await admin.from("tasks").update(patch).eq("id", task.id);
@@ -167,32 +214,52 @@ async function pullItem(
 async function createTaskFromItem(
   admin: SupabaseClient,
   target: SyncTarget,
-  item: SlackItem
+  item: SlackItem,
+  columns: SlackColumn[]
 ): Promise<boolean> {
-  const patch = itemToTaskPatch(item, target.columnMap);
+  const patch = itemToTaskPatch(item, target.columnMap, columns);
   if (!patch.title) return false;
 
-  const { data, error } = await admin
-    .from("tasks")
-    .insert({
-      ...patch,
-      user_id: target.userId,
-      category: SLACK_TASK_CATEGORY,
-      status: patch.status ?? "pending",
-    })
-    .select("id")
-    .single();
+  const { data: existing, error: existingError } = await admin
+    .from("slack_task_links")
+    .select("task_id")
+    .eq("list_id", target.listId)
+    .eq("item_id", item.id)
+    .maybeSingle();
 
-  if (error || !data) return false;
+  if (existingError) throw new Error(`slack_task_links: ${existingError.message}`);
+  if (existing) return false;
 
-  await admin.from("slack_task_links").insert({
-    task_id: (data as { id: number }).id,
+  const row = {
+    ...patch,
+    user_id: target.userId,
+    category: SLACK_TASK_CATEGORY,
+    status: patch.status ?? DEFAULT_TASK_STATUS,
+  };
+
+  const { data, error } = await admin.from("tasks").insert(row).select("id").single();
+
+  if (error || !data) {
+    console.error(`[slack/sync] nie udało się utworzyć zadania z ${item.id}:`, error?.message);
+    return false;
+  }
+
+  const taskId = (data as { id: number }).id;
+
+  const { error: linkError } = await admin.from("slack_task_links").insert({
+    task_id: taskId,
     user_id: target.userId,
     list_id: target.listId,
     item_id: item.id,
-    task_fingerprint: "",
+    task_fingerprint: fingerprint({ ...row, id: taskId } as TaskRow),
     synced_at: new Date().toISOString(),
   });
+
+  if (linkError) {
+    console.error(`[slack/sync] nie udało się zapisać powiązania dla ${item.id}:`, linkError.message);
+    await admin.from("tasks").delete().eq("id", taskId);
+    throw new Error(`slack_task_links: ${linkError.message}`);
+  }
   return true;
 }
 
@@ -209,11 +276,23 @@ async function applyAppDeletions(admin: SupabaseClient, target: SyncTarget): Pro
       await deleteItem(target.token, target.listId, tombstone.item_id);
       removed += 1;
     } catch (err) {
-      if ((err as { slackError?: string }).slackError !== "item_not_found") throw err;
+      const code = (err as { slackError?: string }).slackError;
+      if (code !== "record_not_found" && code !== "row_not_found" && code !== "invalid_row_id") {
+        throw err;
+      }
     }
     await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id);
   }
   return removed;
+}
+
+export function belongsOnList(
+  task: Pick<TaskRow, "category">,
+  chosenListId: string | undefined,
+  target: Pick<SyncTarget, "listId" | "isDefault">
+): boolean {
+  if (task.category !== SLACK_TASK_CATEGORY) return false;
+  return chosenListId ? chosenListId === target.listId : target.isDefault;
 }
 
 async function syncList(
@@ -238,11 +317,12 @@ async function syncList(
   const { items, columns } = await listItems(target.token, target.listId);
   counters.deleted_in_slack = await applyAppDeletions(admin, target);
 
-  const { data: linkRows } = await admin
+  const { data: linkRows, error: linkError } = await admin
     .from("slack_task_links")
     .select("task_id, list_id, item_id, synced_at, task_fingerprint")
-    .eq("user_id", target.userId)
     .eq("list_id", target.listId);
+
+  if (linkError) throw new Error(`slack_task_links: ${linkError.message}`);
 
   const links = (linkRows ?? []) as LinkRow[];
   const linkByTask = new Map(links.map((l) => [l.task_id, l]));
@@ -254,9 +334,7 @@ async function syncList(
 
     if (!link) {
       if (linkedAnywhere.has(task.id)) continue;
-      const chosenList = targetListByTask.get(task.id);
-      const belongsHere = chosenList ? chosenList === target.listId : target.isDefault;
-      if (!belongsHere) continue;
+      if (!belongsOnList(task, targetListByTask.get(task.id), target)) continue;
       await pushTask(admin, target, task, columns, undefined);
       linkedAnywhere.add(task.id);
       counters.created_in_slack += 1;
@@ -266,7 +344,14 @@ async function syncList(
     const item = itemById.get(link.item_id);
 
     if (!item) {
+      if (await itemExists(target.token, target.listId, link.item_id)) continue;
+
       await admin.from("tasks").delete().eq("id", task.id);
+      await admin
+        .from("slack_task_links")
+        .delete()
+        .eq("task_id", task.id)
+        .eq("list_id", target.listId);
       await admin
         .from("slack_deleted_tasks")
         .delete()
@@ -284,7 +369,7 @@ async function syncList(
       await pushTask(admin, target, task, columns, link);
       counters.pushed += 1;
     } else if (slackChanged) {
-      await pullItem(admin, target, item, task);
+      await pullItem(admin, target, item, task, columns);
       counters.pulled += 1;
     }
   }
@@ -300,7 +385,7 @@ async function syncList(
 
   for (const item of items) {
     if (linkedItemIds.has(item.id) || pendingDeletion.has(item.id)) continue;
-    if (await createTaskFromItem(admin, target, item)) counters.created_in_app += 1;
+    if (await createTaskFromItem(admin, target, item, columns)) counters.created_in_app += 1;
   }
 
   return counters;
@@ -308,32 +393,62 @@ async function syncList(
 
 interface SlackListRow {
   user_id: string;
+  connection_id: string;
   list_id: string;
   list_title: string | null;
   column_map: ColumnMap;
   is_default: boolean;
-  slack_connections: { access_token: string } | { access_token: string }[] | null;
 }
 
 async function loadTargets(admin: SupabaseClient, userId?: string): Promise<SyncTarget[]> {
-  let query = admin
+  let listQuery = admin
     .from("slack_lists")
-    .select("user_id, list_id, list_title, column_map, is_default, slack_connections(access_token)");
-  if (userId) query = query.eq("user_id", userId);
+    .select("user_id, connection_id, list_id, list_title, column_map, is_default");
+  if (userId) listQuery = listQuery.eq("user_id", userId);
 
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  const { data: listData, error: listError } = await listQuery;
+  if (listError) throw new Error(`slack_lists: ${listError.message}`);
 
-  return ((data ?? []) as unknown as SlackListRow[]).flatMap((row) => {
-    const connection = Array.isArray(row.slack_connections)
-      ? row.slack_connections[0]
-      : row.slack_connections;
+  const lists = (listData ?? []) as SlackListRow[];
+  if (lists.length === 0) return [];
+
+  let connectionQuery = admin
+    .from("slack_connections")
+    .select("id, access_token, slack_user_id");
+  if (userId) connectionQuery = connectionQuery.eq("user_id", userId);
+
+  const { data: connectionData, error: connectionError } = await connectionQuery;
+  if (connectionError) throw new Error(`slack_connections: ${connectionError.message}`);
+
+  const connectionsById = new Map(
+    (connectionData ?? []).map((row) => {
+      const connection = row as {
+        id: string;
+        access_token: string;
+        slack_user_id: string | null;
+      };
+      return [String(connection.id), connection] as const;
+    })
+  );
+
+  return lists.flatMap((row) => {
+    const connection = connectionsById.get(String(row.connection_id));
     if (!connection?.access_token || !row.column_map?.title) return [];
+
+    let token: string;
+    try {
+      token = decryptToken(connection.access_token);
+    } catch (err) {
+      console.error(`[slack/sync] nie udało się odszyfrować tokenu listy ${row.list_id}:`, err);
+      return [];
+    }
+    if (!token) return [];
 
     return [
       {
         userId: row.user_id,
-        token: decryptToken(connection.access_token),
+        token,
+        slackUserId: connection.slack_user_id ?? null,
         listId: row.list_id,
         listTitle: row.list_title,
         columnMap: row.column_map,
@@ -371,16 +486,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: (SyncCounters | { list_id: string; error: string })[] = [];
 
     for (const [userId, userTargets] of byUser) {
-      const { data: taskRows } = await admin
+      const { data: taskRows, error: taskError } = await admin
         .from("tasks")
         .select("id, title, description, due_date, category, priority, status, user_id")
         .eq("user_id", userId);
+      if (taskError) throw new Error(`tasks: ${taskError.message}`);
       const tasks = (taskRows ?? []) as TaskRow[];
 
-      const { data: allLinks } = await admin
+      const listIds = userTargets.map((t) => t.listId);
+      const { data: allLinks, error: allLinksError } = await admin
         .from("slack_task_links")
         .select("task_id")
-        .eq("user_id", userId);
+        .in("list_id", listIds);
+      if (allLinksError) throw new Error(`slack_task_links: ${allLinksError.message}`);
       const linkedAnywhere = new Set(
         (allLinks ?? []).map((l) => (l as { task_id: number }).task_id)
       );
@@ -412,6 +530,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .json({ lists: results.length, results });
   } catch (err) {
     console.error("[slack/sync]:", err);
-    return res.status(500).json({ error: "Synchronizacja nie powiodła się." });
+    const detail = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ error: `Synchronizacja nie powiodła się: ${detail}` });
   }
 }

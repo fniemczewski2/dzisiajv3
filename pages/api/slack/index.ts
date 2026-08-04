@@ -5,7 +5,7 @@ import { randomBytes } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { decryptToken } from "@/lib/server/tokenCrypto";
-import { listColumns, translateSlackError, type SlackColumn } from "@/lib/server/slackLists";
+import { listColumnsSafe, translateSlackError, type SlackColumn } from "@/lib/server/slackLists";
 import {
   SLACK_AUTHORIZE_URL,
   SLACK_STATE_COOKIE,
@@ -25,6 +25,12 @@ function adminClient(): SupabaseClient {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
 }
 
+class ApiError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
+}
+
 export function extractListId(input: string): string | null {
   const trimmed = input.trim();
   if (/^F[A-Z0-9]+$/i.test(trimmed)) return trimmed.toUpperCase();
@@ -39,9 +45,11 @@ function handleAuthUrl(res: NextApiResponse) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
   const nonce = randomBytes(24).toString("base64url");
 
+  const secure = appUrl.startsWith("https://") ? " Secure;" : "";
+
   res.setHeader(
     "Set-Cookie",
-    `${SLACK_STATE_COOKIE}=${nonce}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SLACK_STATE_TTL_SECONDS}`
+    `${SLACK_STATE_COOKIE}=${nonce}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=${SLACK_STATE_TTL_SECONDS}`
   );
 
   const url = new URL(SLACK_AUTHORIZE_URL);
@@ -54,11 +62,16 @@ function handleAuthUrl(res: NextApiResponse) {
 }
 
 async function loadConnections(admin: SupabaseClient, userId: string): Promise<ConnectionRow[]> {
-  const { data } = await admin
+  const { data, error } = await admin
     .from("slack_connections")
     .select("id, team_id, team_name, access_token")
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[slack/index] slack_connections:", error.message);
+    throw new ApiError(500, `Nie udało się odczytać połączeń Slack: ${error.message}`);
+  }
   return (data ?? []) as ConnectionRow[];
 }
 
@@ -66,10 +79,39 @@ async function tokenForConnection(
   admin: SupabaseClient,
   userId: string,
   connectionId: string
-): Promise<string | null> {
+): Promise<string> {
   const connections = await loadConnections(admin, userId);
-  const match = connections.find((c) => c.id === connectionId);
-  return match ? decryptToken(match.access_token) : null;
+  const match = connections.find((c) => String(c.id) === String(connectionId));
+
+  if (!match) {
+    throw new ApiError(
+      400,
+      "To konto Slack nie istnieje już w bazie. Odłącz je i połącz ponownie."
+    );
+  }
+
+  if (!match.access_token) {
+    throw new ApiError(
+      400,
+      "Konto Slack jest zapisane bez tokenu. Odłącz je i połącz ponownie."
+    );
+  }
+
+  let token: string;
+  try {
+    token = decryptToken(match.access_token);
+  } catch (err) {
+    console.error("[slack/index] decryptToken:", err);
+    throw new ApiError(
+      400,
+      "Nie udało się odszyfrować tokenu Slack (zmieniony CALENDAR_TOKEN_ENCRYPTION_KEY?). Połącz konto ponownie."
+    );
+  }
+
+  if (!token) {
+    throw new ApiError(400, "Token konta Slack jest pusty. Połącz konto ponownie.");
+  }
+  return token;
 }
 
 function sanitizeColumnMap(input: unknown, columns: SlackColumn[]): Record<string, string> {
@@ -86,11 +128,16 @@ function sanitizeColumnMap(input: unknown, columns: SlackColumn[]): Record<strin
 
 async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiResponse) {
   const connections = await loadConnections(admin, userId);
-  const { data: lists } = await admin
+  const { data: lists, error } = await admin
     .from("slack_lists")
     .select("id, connection_id, list_id, list_title, column_map, is_default")
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[slack/index] slack_lists:", error.message);
+    throw new ApiError(500, `Nie udało się odczytać list Slack: ${error.message}`);
+  }
 
   return res.status(200).json({
     connections: connections.map(({ id, team_id, team_name }) => ({ id, team_id, team_name })),
@@ -110,9 +157,7 @@ async function handleAddList(
   if (!body?.connection_id) return res.status(400).json({ error: "Wskaż konto Slack." });
 
   const token = await tokenForConnection(admin, userId, body.connection_id);
-  if (!token) return res.status(400).json({ error: "Nie znaleziono tego konta Slack." });
-
-  const columns = await listColumns(token, listId);
+  const columns = await listColumnsSafe(token, listId);
 
   const { count } = await admin
     .from("slack_lists")
@@ -128,7 +173,15 @@ async function handleAddList(
     is_default: (count ?? 0) === 0,
   });
 
-  if (error) return res.status(400).json({ error: "Ta lista jest już podłączona." });
+  if (error) {
+    console.error("[slack/index] slack_lists insert:", error.message);
+    const duplicate = error.code === "23505";
+    return res.status(400).json({
+      error: duplicate
+        ? "Ta lista jest już podłączona."
+        : `Nie udało się zapisać listy: ${error.message}`,
+    });
+  }
   return res.status(200).json({ list_id: listId, columns });
 }
 
@@ -150,9 +203,7 @@ async function handleColumns(
   const row = data as { connection_id: string; list_id: string };
 
   const token = await tokenForConnection(admin, userId, row.connection_id);
-  if (!token) return res.status(400).json({ error: "Nie znaleziono konta Slack." });
-
-  return res.status(200).json({ columns: await listColumns(token, row.list_id) });
+  return res.status(200).json({ columns: await listColumnsSafe(token, row.list_id) });
 }
 
 async function handleSaveList(
@@ -174,9 +225,7 @@ async function handleSaveList(
 
   const row = data as { connection_id: string; list_id: string };
   const token = await tokenForConnection(admin, userId, row.connection_id);
-  if (!token) return res.status(400).json({ error: "Nie znaleziono konta Slack." });
-
-  const columns = await listColumns(token, row.list_id);
+  const columns = await listColumnsSafe(token, row.list_id);
   const columnMap = sanitizeColumnMap(body.column_map, columns);
   if (!columnMap.title) return res.status(400).json({ error: "Kolumna z tytułem jest wymagana." });
 
@@ -220,11 +269,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!body?.task_id) return res.status(400).json({ error: "Brak identyfikatora zadania." });
 
         if (!body.list_id) {
-          await admin
+          const { error } = await admin
             .from("slack_task_targets")
             .delete()
             .eq("task_id", body.task_id)
             .eq("user_id", user.id);
+          if (error) {
+            throw new ApiError(500, `Nie udało się wyczyścić listy zadania: ${error.message}`);
+          }
           return res.status(200).json({ cleared: true });
         }
 
@@ -236,12 +288,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .maybeSingle();
         if (!owned) return res.status(400).json({ error: "Nie znaleziono tej listy." });
 
-        await admin
+        const targetRow = { task_id: body.task_id, user_id: user.id, list_id: body.list_id };
+        const { error: upsertError } = await admin
           .from("slack_task_targets")
-          .upsert(
-            { task_id: body.task_id, user_id: user.id, list_id: body.list_id },
-            { onConflict: "task_id" }
-          );
+          .upsert(targetRow, { onConflict: "task_id" });
+
+        if (upsertError) {
+          if (upsertError.code !== "42P10") {
+            console.error("[slack/index] slack_task_targets upsert:", upsertError.message);
+            throw new ApiError(500, `Nie udało się zapisać listy zadania: ${upsertError.message}`);
+          }
+
+          await admin.from("slack_task_targets").delete().eq("task_id", body.task_id);
+          const { error: insertError } = await admin.from("slack_task_targets").insert(targetRow);
+          if (insertError) {
+            console.error("[slack/index] slack_task_targets insert:", insertError.message);
+            throw new ApiError(500, `Nie udało się zapisać listy zadania: ${insertError.message}`);
+          }
+        }
         return res.status(200).json({ list_id: body.list_id });
       }
 
@@ -264,6 +328,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(400).json({ error: "Nieznana akcja." });
   } catch (err) {
+    if (err instanceof ApiError) {
+      return res.status(err.status).json({ error: err.message });
+    }
     const code = (err as { slackError?: string }).slackError;
     console.error("[slack/index]:", err);
     return res.status(502).json({ error: translateSlackError(code) });

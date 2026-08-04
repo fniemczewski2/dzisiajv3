@@ -82,7 +82,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return redirectWithError(res, "store_failed");
     }
 
-    res.setHeader("Set-Cookie", `${SLACK_STATE_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+    const secure = appUrl.startsWith("https://") ? " Secure;" : "";
+    res.setHeader(
+      "Set-Cookie",
+      `${SLACK_STATE_COOKIE}=; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=0`
+    );
     return res.redirect("/settings?slack=connected");
   } catch (err) {
     console.error("[slack/callback]:", err);
