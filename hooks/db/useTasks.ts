@@ -11,6 +11,7 @@ import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { readCache, writeCache } from "@/lib/offlineCache";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
+import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { UNDO_WINDOW_MS } from "@/config/limits";
 import { enqueueInsert, isOffline } from "@/lib/offlineQueue";
 
@@ -177,7 +178,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
         setRawTasks((prev) => prev.map((t) => (t.id === tempId ? (data as Task) : t)));
         toast.success("Dodano zadanie");
-        triggerSlackSync();
+        // Dla kategorii "slack" synchronizację odpala formularz - dopiero po
+        // zapisaniu wybranej listy. Uruchomiona tutaj trafiłaby na listę
+        // domyślną, bo slack_task_targets jeszcze nie istnieje.
+        if (taskData.category !== SLACK_TASK_CATEGORY) triggerSlackSync();
         return data as Task;
       } catch {
         if (isOffline()) {
@@ -335,11 +339,20 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       });
 
       try {
-        const { error } = await withRetry(async () =>
-          supabase.from("tasks").update({ status: "done" }).eq("id", id)
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from("tasks")
+            .update({ status: "done" })
+            .eq("id", id)
+            .select("category")
+            .single()
         );
         if (error) throw error;
         toast.success("Wykonano zadanie");
+
+        if ((data as { category?: string } | null)?.category === SLACK_TASK_CATEGORY) {
+          triggerSlackSync();
+        }
       } catch {
         setRawTasks(rollbackRef.current);
         toast.error("Błąd wykonania zadania.");

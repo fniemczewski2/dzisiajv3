@@ -212,7 +212,7 @@ function inferColumns(items: SlackItem[]): SlackColumn[] {
       if (field.date?.length) type = "date";
       else if (field.number?.length) type = "number";
       else if (field.select?.length) type = "select";
-      else if (field.checkbox?.length) type = "checkbox";
+      else if (field.checkbox !== undefined) type = "checkbox";
       found.set(id, { id, key: field.key, name: field.key ?? id, type });
     }
   }
@@ -283,7 +283,9 @@ export interface SlackItemField {
   number?: number[];
   date?: string[];
   select?: string[];
-  checkbox?: boolean[];
+  // Slack zwraca checkbox jako zwykły boolean (nie tablicę, jak pozostałe typy).
+  checkbox?: boolean | boolean[];
+  user?: string[];
   value?: string | number | boolean | null;
 }
 
@@ -405,13 +407,31 @@ export function buildFieldValue(
   }
 }
 
+function readCheckbox(field: SlackItemField): boolean | null {
+  if (typeof field.checkbox === "boolean") return field.checkbox;
+  if (Array.isArray(field.checkbox) && field.checkbox.length > 0) {
+    return Boolean(field.checkbox[0]);
+  }
+  if (typeof field.value === "boolean") return field.value;
+  if (field.value === "true" || field.value === "false") return field.value === "true";
+  return null;
+}
+
 export function readFieldValue(
   field: SlackItemField,
   column?: SlackColumn
 ): string | null {
+  if (column && columnFamily(column.type) === "checkbox") {
+    const checked = readCheckbox(field);
+    return checked === null ? null : checked ? "done" : "pending";
+  }
+
   if (field.date?.length) return field.date[0];
   if (field.number?.length) return String(field.number[0]);
-  if (field.checkbox?.length) return field.checkbox[0] ? "done" : "pending";
+
+  const checked = readCheckbox(field);
+  if (checked !== null) return checked ? "done" : "pending";
+
   if (field.select?.length) {
     const optionId = field.select[0];
     const label = column?.options?.choices?.find((c) => c.value === optionId)?.label;

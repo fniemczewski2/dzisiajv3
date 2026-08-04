@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { useSettings } from "../hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { NAVIGATION_CATEGORIES } from "@/config/navigation";
+import GlobalSearch from "./ui/GlobalSearch";
 
 interface NavLinkProps {
   href: string;
@@ -156,17 +157,19 @@ export default function Navbar() {
                   </div>
                 </div>
               ))}
-
+              <div className="w-full flex items-center gap-2">
               <Link
                 href="/settings"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-xl bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors active:scale-[0.98]"
               >
                 <SettingsIcon className="w-4 h-4" />
                 <span className="text-[10px] font-bold uppercase tracking-widest">
                   Ustawienia
                 </span>
               </Link>
+              <GlobalSearch/>
+              </div>
             </div>
           </div>
         </div>

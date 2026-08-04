@@ -73,13 +73,13 @@ export default function TasksPage() {
   }, [dateFilter]);
 
   const filteredTasks = useMemo(() => {
-    const allowedStatuses = new Set(["pending", "waiting_for_acceptance", "accepted"]);
+    const allowedStatuses = new Set(["pending", "waiting_for_acceptance"]);
     let result: typeof tasks;
 
     if (!filterDate) {
       result = tasks;
     } else if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) {
-      result = tasks.filter((t) => t.due_date <= filterDate && allowedStatuses.has(t.status));
+      result = tasks.filter((t) => (t.due_date === filterDate) || (t.due_date <= filterDate && allowedStatuses.has(t.status)));
     } else {
       result = tasks.filter((t) => t.due_date === filterDate);
     }

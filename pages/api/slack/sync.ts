@@ -73,6 +73,8 @@ interface SyncCounters {
   deleted_in_slack: number;
   recreated_in_slack: number;
   conflicts: number;
+  failed: number;
+  first_error: string | null;
 }
 
 function adminClient(): SupabaseClient {
@@ -198,6 +200,46 @@ async function touchLink(
     .eq("list_id", target.listId);
 }
 
+const FIELD_REJECTION_ERRORS = new Set([
+  "invalid_input_type",
+  "invalid_option_id",
+  "invalid_column_id",
+  "uneditable_column",
+  "over_cell_fields_limit",
+  "invalid_blocks",
+  "invalid_text_block",
+  "invalid_date",
+]);
+
+function isFieldRejection(err: unknown): boolean {
+  const code = (err as { slackError?: string }).slackError;
+  return code !== undefined && FIELD_REJECTION_ERRORS.has(code);
+}
+
+function titleOnly(fields: SlackFieldValue[], target: SyncTarget): SlackFieldValue[] {
+  return fields.filter((field) => field.column_id === target.columnMap.title);
+}
+
+async function updateFieldsIndividually(
+  target: SyncTarget,
+  itemId: string,
+  fields: SlackFieldValue[],
+  context: string
+): Promise<void> {
+  for (const field of fields) {
+    try {
+      await updateItem(target.token, target.listId, itemId, [field]);
+    } catch (err) {
+      if (!isFieldRejection(err)) throw err;
+      console.warn(
+        `[slack/sync] ${context}: Slack odrzucił kolumnę ${field.column_id} ` +
+          `(${Object.keys(field).filter((k) => k !== "column_id").join(", ")}): ` +
+          `${(err as Error).message}`
+      );
+    }
+  }
+}
+
 async function pushTask(
   admin: SupabaseClient,
   target: SyncTarget,
@@ -206,16 +248,22 @@ async function pushTask(
   link: LinkRow | undefined
 ): Promise<void> {
   if (link) {
+    const updateFields = buildFields(task, target, columns);
     try {
-      await updateItem(
-        target.token,
-        target.listId,
-        link.item_id,
-        buildFields(task, target, columns)
-      );
+      await updateItem(target.token, target.listId, link.item_id, updateFields);
       await touchLink(admin, target, task.id, task);
       return;
     } catch (err) {
+      if (isFieldRejection(err)) {
+        await updateFieldsIndividually(
+          target,
+          link.item_id,
+          updateFields,
+          `zadanie ${task.id}`
+        );
+        await touchLink(admin, target, task.id, task);
+        return;
+      }
       if (!isMissingItemError(err)) throw err;
       await admin
         .from("slack_task_links")
@@ -225,11 +273,25 @@ async function pushTask(
     }
   }
 
-  const itemId = await createItem(
-    target.token,
-    target.listId,
-    buildFields(task, target, columns, { withAssignee: true })
-  );
+  const fields = buildFields(task, target, columns, { withAssignee: true });
+
+  let itemId: string;
+  try {
+    itemId = await createItem(target.token, target.listId, fields);
+  } catch (err) {
+    if (!isFieldRejection(err)) throw err;
+
+
+    const minimal = titleOnly(fields, target);
+    console.warn(
+      `[slack/sync] zadanie ${task.id}: Slack odrzucił komplet pól ` +
+        `(${(err as Error).message}), dosyłam kolumny pojedynczo.`
+    );
+    itemId = await createItem(target.token, target.listId, minimal);
+
+    const rest = fields.filter((f) => f.column_id !== target.columnMap.title);
+    await updateFieldsIndividually(target, itemId, rest, `zadanie ${task.id}`);
+  }
   await admin.from("slack_task_links").insert({
     task_id: task.id,
     user_id: target.userId,
@@ -327,6 +389,23 @@ async function applyAppDeletions(admin: SupabaseClient, target: SyncTarget): Pro
   return removed;
 }
 
+const FATAL_SYNC_ERRORS = new Set([
+  "invalid_auth",
+  "token_expired",
+  "token_revoked",
+  "account_inactive",
+  "not_authed",
+  "missing_scope",
+  "not_allowed_token_type",
+  "ratelimited",
+  "list_not_found",
+]);
+
+function isFatalSlackError(err: unknown): boolean {
+  const code = (err as { slackError?: string }).slackError;
+  return code !== undefined && FATAL_SYNC_ERRORS.has(code);
+}
+
 export function belongsOnList(
   task: Pick<TaskRow, "category">,
   chosenListId: string | undefined,
@@ -353,6 +432,8 @@ async function syncList(
     deleted_in_slack: 0,
     recreated_in_slack: 0,
     conflicts: 0,
+    failed: 0,
+    first_error: null,
   };
 
   const { items, columns } = await listItems(target.token, target.listId);
@@ -370,23 +451,30 @@ async function syncList(
   const itemById = new Map(items.map((i) => [i.id, i]));
   const linkedItemIds = new Set(links.map((l) => l.item_id));
 
-  for (const task of tasks) {
+  const recordFailure = (err: unknown, what: string) => {
+    counters.failed += 1;
+    const message = err instanceof Error ? err.message : String(err);
+    counters.first_error ??= `${what}: ${message}`;
+    console.error(`[slack/sync] ${what}:`, message);
+  };
+
+  const syncOneTask = async (task: TaskRow): Promise<void> => {
     const link = linkByTask.get(task.id);
 
     if (!link) {
-      if (linkedAnywhere.has(task.id)) continue;
-      if (!belongsOnList(task, targetListByTask.get(task.id), target)) continue;
+      if (linkedAnywhere.has(task.id)) return;
+      if (!belongsOnList(task, targetListByTask.get(task.id), target)) return;
       await pushTask(admin, target, task, columns, undefined);
       linkedAnywhere.add(task.id);
       counters.created_in_slack += 1;
-      continue;
+      return;
     }
-    if (task.category !== SLACK_TASK_CATEGORY) continue;
+    if (task.category !== SLACK_TASK_CATEGORY) return;
 
     const item = itemById.get(link.item_id);
 
     if (!item) {
-      if (await itemExists(target.token, target.listId, link.item_id)) continue;
+      if (await itemExists(target.token, target.listId, link.item_id)) return;
       await admin
         .from("slack_task_links")
         .delete()
@@ -400,7 +488,7 @@ async function syncList(
 
       await pushTask(admin, target, task, columns, undefined);
       counters.recreated_in_slack += 1;
-      continue;
+      return;
     }
 
     const appChanged = fingerprint(task) !== link.task_fingerprint;
@@ -421,6 +509,15 @@ async function syncList(
       await pullItem(admin, target, item, task, columns);
       counters.pulled += 1;
     }
+  };
+
+  for (const task of tasks) {
+    try {
+      await syncOneTask(task);
+    } catch (err) {
+      if (isFatalSlackError(err)) throw err;
+      recordFailure(err, `zadanie ${task.id}`);
+    }
   }
 
   const { data: pendingRows } = await admin
@@ -434,7 +531,12 @@ async function syncList(
 
   for (const item of items) {
     if (linkedItemIds.has(item.id) || pendingDeletion.has(item.id)) continue;
-    if (await createTaskFromItem(admin, target, item, columns)) counters.created_in_app += 1;
+    try {
+      if (await createTaskFromItem(admin, target, item, columns)) counters.created_in_app += 1;
+    } catch (err) {
+      if (isFatalSlackError(err)) throw err;
+      recordFailure(err, `pozycja ${item.id}`);
+    }
   }
 
   return counters;
@@ -508,17 +610,12 @@ async function loadTargets(admin: SupabaseClient, userId?: string): Promise<Sync
 }
 
 const TASK_COLUMNS = "id, title, description, due_date, category, priority, status, user_id";
-
-/**
- * `tasks.updated_at` jest opcjonalne - bez tej kolumny nie da się porównać dat
- * modyfikacji i konflikty rozstrzyga Slack. Zamiast wymuszać zmianę schematu,
- * wykrywamy jej brak (PostgREST: 42703) i czytamy resztę kolumn.
- */
 async function loadTasks(admin: SupabaseClient, userId: string): Promise<TaskRow[]> {
   const withTimestamp = await admin
     .from("tasks")
     .select(`${TASK_COLUMNS}, updated_at`)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .eq("category", SLACK_TASK_CATEGORY);
 
   if (!withTimestamp.error) return (withTimestamp.data ?? []) as TaskRow[];
   if (withTimestamp.error.code !== "42703") {
@@ -529,7 +626,11 @@ async function loadTasks(admin: SupabaseClient, userId: string): Promise<TaskRow
     "[slack/sync] tabela tasks nie ma kolumny updated_at - w konfliktach wygrywa wersja ze Slacka"
   );
 
-  const fallback = await admin.from("tasks").select(TASK_COLUMNS).eq("user_id", userId);
+  const fallback = await admin
+    .from("tasks")
+    .select(TASK_COLUMNS)
+    .eq("user_id", userId)
+    .eq("category", SLACK_TASK_CATEGORY);
   if (fallback.error) throw new Error(`tasks: ${fallback.error.message}`);
   return (fallback.data ?? []) as TaskRow[];
 }
@@ -562,6 +663,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: (SyncCounters | { list_id: string; error: string })[] = [];
 
     for (const [userId, userTargets] of byUser) {
+      if (scopedUserId && userId !== scopedUserId) continue;
+
       const tasks = await loadTasks(admin, userId);
 
       const listIds = userTargets.map((t) => t.listId);
@@ -589,8 +692,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           results.push(await syncList(admin, target, tasks, linkedAnywhere, targetListByTask));
         } catch (err) {
+          // Błędy spoza Slacka (baza, sieć) mają własny komunikat - nie chowamy
+          // ich za ogólnym "Slack odrzucił żądanie."
           const code = (err as { slackError?: string }).slackError;
-          results.push({ list_id: target.listId, error: translateSlackError(code) });
+          const message = code
+            ? translateSlackError(code)
+            : err instanceof Error
+              ? err.message
+              : String(err);
+          console.error(`[slack/sync] lista ${target.listId}:`, err);
+          results.push({ list_id: target.listId, error: message });
         }
       }
     }

@@ -2,6 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
+  isMissingItemError,
   listColumns,
   listItems,
   updateItem,
@@ -12,7 +13,12 @@ import {
   type SlackColumn,
 } from "@/lib/server/slackLists";
 import { normalizeTaskStatus } from "@/config/slack";
-import { belongsOnList } from "@/pages/api/slack/sync";
+import {
+  belongsOnList,
+  resolveDirection,
+  taskUpdatedAt,
+  itemUpdatedAt,
+} from "@/pages/api/slack/sync";
 
 interface Call {
   url: string;
@@ -71,8 +77,6 @@ describe("listColumns", () => {
 
     const columns = await listColumns("xoxp-test", "F123");
 
-    // files.info to stara metoda GET - argumenty w JSON-ie są ignorowane
-    // i Slack odpowiada invalid_arguments
     expect(calls[0].url).toBe("https://slack.com/api/files.info?file=F123");
     expect(calls[0].method).toBe("GET");
     expect(calls[0].body).toEqual({});
@@ -236,11 +240,14 @@ describe("belongsOnList", () => {
     expect(belongsOnList({ category: "zakupy" }, "F_OTHER", otherList)).toBe(false);
     expect(belongsOnList({ category: null }, undefined, defaultList)).toBe(false);
   });
+
+  it("kategoria jest warunkiem koniecznym niezależnie od pozostałych", () => {
+    expect(belongsOnList({ category: "slack" }, "F_OTHER", otherList)).toBe(true);
+    expect(belongsOnList({ category: "praca" }, "F_OTHER", otherList)).toBe(false);
+  });
 });
 
 describe("findAssigneeColumn", () => {
-  // schemat odpowiadający liście w trybie todo:
-  // Name | Completed | Assignee | Due Date | People | Opis
   const todoList: SlackColumn[] = [
     { id: "Col001", key: "name", name: "Name", type: "text" },
     { id: "Col002", key: "todo_completed", name: "Completed", type: "todo_completed" },
@@ -283,5 +290,175 @@ describe("buildAssigneeValue", () => {
 
   it("pomija kolumnę, gdy połączenie nie ma zapisanego slack_user_id", () => {
     expect(buildAssigneeValue(column, null)).toBeNull();
+  });
+});
+
+describe("isMissingItemError", () => {
+  const withCode = (code: string) => Object.assign(new Error(code), { slackError: code });
+
+  it("rozpoznaje wszystkie warianty, którymi Slack mówi \"tej pozycji już nie ma\"", () => {
+    for (const code of [
+      "record_deleted",
+      "record_not_found",
+      "row_not_found",
+      "invalid_row_id",
+      "item_not_found",
+    ]) {
+      expect(isMissingItemError(withCode(code))).toBe(true);
+    }
+  });
+
+  it("nie połyka błędów, które trzeba pokazać", () => {
+    expect(isMissingItemError(withCode("invalid_auth"))).toBe(false);
+    expect(isMissingItemError(withCode("ratelimited"))).toBe(false);
+    expect(isMissingItemError(new Error("boom"))).toBe(false);
+  });
+});
+
+describe("resolveDirection", () => {
+  const t = (iso: string) => new Date(iso).getTime();
+
+  it("wysyła do Slacka, gdy zmieniło się tylko zadanie", () => {
+    expect(
+      resolveDirection({
+        appChanged: true,
+        slackChanged: false,
+        taskUpdatedAt: null,
+        itemUpdatedAt: null,
+      })
+    ).toBe("push");
+  });
+
+  it("pobiera ze Slacka, gdy zmieniła się tylko pozycja", () => {
+    expect(
+      resolveDirection({
+        appChanged: false,
+        slackChanged: true,
+        taskUpdatedAt: null,
+        itemUpdatedAt: null,
+      })
+    ).toBe("pull");
+  });
+
+  it("przy zmianie po obu stronach decyduje nowsza data", () => {
+    expect(
+      resolveDirection({
+        appChanged: true,
+        slackChanged: true,
+        taskUpdatedAt: t("2026-08-04T12:00:00Z"),
+        itemUpdatedAt: t("2026-08-04T10:00:00Z"),
+      })
+    ).toBe("push");
+
+    expect(
+      resolveDirection({
+        appChanged: true,
+        slackChanged: true,
+        taskUpdatedAt: t("2026-08-04T10:00:00Z"),
+        itemUpdatedAt: t("2026-08-04T12:00:00Z"),
+      })
+    ).toBe("pull");
+  });
+
+  it("bez daty po którejkolwiek stronie wygrywa Slack", () => {
+    const konflikt = { appChanged: true, slackChanged: true };
+    expect(
+      resolveDirection({ ...konflikt, taskUpdatedAt: null, itemUpdatedAt: t("2026-08-04T10:00:00Z") })
+    ).toBe("pull");
+    expect(
+      resolveDirection({ ...konflikt, taskUpdatedAt: t("2026-08-04T10:00:00Z"), itemUpdatedAt: null })
+    ).toBe("pull");
+    expect(resolveDirection({ ...konflikt, taskUpdatedAt: null, itemUpdatedAt: null })).toBe("pull");
+  });
+
+  it("przy identycznych datach też wygrywa Slack", () => {
+    const same = t("2026-08-04T10:00:00Z");
+    expect(
+      resolveDirection({
+        appChanged: true,
+        slackChanged: true,
+        taskUpdatedAt: same,
+        itemUpdatedAt: same,
+      })
+    ).toBe("pull");
+  });
+
+  it("nic nie robi, gdy nic się nie zmieniło", () => {
+    expect(
+      resolveDirection({
+        appChanged: false,
+        slackChanged: false,
+        taskUpdatedAt: null,
+        itemUpdatedAt: null,
+      })
+    ).toBe("none");
+  });
+});
+
+describe("znaczniki czasu", () => {
+  it("czyta updated_at zadania, tolerując brak kolumny", () => {
+    expect(taskUpdatedAt({ updated_at: "2026-08-04T10:00:00Z" })).toBe(
+      new Date("2026-08-04T10:00:00Z").getTime()
+    );
+    expect(taskUpdatedAt({ updated_at: null })).toBeNull();
+    expect(taskUpdatedAt({})).toBeNull();
+    expect(taskUpdatedAt({ updated_at: "nie-data" })).toBeNull();
+  });
+
+  it("przelicza updated_timestamp Slacka z sekund na milisekundy", () => {
+    expect(itemUpdatedAt({ updated_timestamp: "1758744346" })).toBe(1758744346000);
+    expect(itemUpdatedAt({ updated_timestamp: undefined })).toBeNull();
+    expect(itemUpdatedAt({ updated_timestamp: "0" })).toBeNull();
+  });
+});
+
+describe("readFieldValue - kolumna zaznaczenia", () => {
+  const completed: SlackColumn = {
+    id: "Col002",
+    key: "todo_completed",
+    name: "Completed",
+    type: "todo_completed",
+  };
+
+  it("czyta boolean, bo Slack NIE opakowuje checkboxa w tablicę", () => {
+    expect(readFieldValue({ column_id: "Col002", value: true, checkbox: true }, completed)).toBe(
+      "done"
+    );
+    expect(readFieldValue({ column_id: "Col002", value: false, checkbox: false }, completed)).toBe(
+      "pending"
+    );
+  });
+
+  it("radzi sobie też z wariantem tablicowym", () => {
+    expect(readFieldValue({ column_id: "Col002", checkbox: [true] }, completed)).toBe("done");
+    expect(readFieldValue({ column_id: "Col002", checkbox: [false] }, completed)).toBe("pending");
+  });
+
+  it("odczytuje stan z samego value, gdy brakuje pola checkbox", () => {
+    expect(readFieldValue({ column_id: "Col002", value: true }, completed)).toBe("done");
+    expect(readFieldValue({ column_id: "Col002", value: "false" }, completed)).toBe("pending");
+  });
+
+  it("zwraca null dla pustej komórki, zamiast udawać odznaczoną", () => {
+    expect(readFieldValue({ column_id: "Col002" }, completed)).toBeNull();
+  });
+
+  it("wynik da się zamienić na status zapisywany w bazie", () => {
+    const raw = readFieldValue({ column_id: "Col002", checkbox: true }, completed);
+    expect(normalizeTaskStatus(raw)).toBe("done");
+    expect(normalizeTaskStatus("true")).toBeNull();
+  });
+});
+
+describe("buildFieldValue - kolumna zaznaczenia", () => {
+  const completed: SlackColumn = { id: "Col002", name: "Completed", type: "todo_completed" };
+
+  it("wysyła boolean w formacie, którego oczekuje Slack", () => {
+    expect(buildFieldValue(completed, "done")).toEqual({ column_id: "Col002", checkbox: true });
+    expect(buildFieldValue(completed, "pending")).toEqual({ column_id: "Col002", checkbox: false });
+    expect(buildFieldValue(completed, "waiting_for_acceptance")).toEqual({
+      column_id: "Col002",
+      checkbox: false,
+    });
   });
 });
