@@ -78,9 +78,9 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
     const created = await addTask(taskData);
 
     const chosenList = slackListId || defaultListId;
-    if (created && isSlackCategory && chosenList) {
+    if (created && isSlackCategory) {
       try {
-        await setSlackTaskTarget(Number(created.id), chosenList);
+        if (chosenList) await setSlackTaskTarget(Number(created.id), chosenList);
         triggerSlackSync();
       } catch (err) {
         toast.error(

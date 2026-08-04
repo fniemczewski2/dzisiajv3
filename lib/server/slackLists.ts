@@ -9,6 +9,7 @@ import {
   SLACK_RATE_LIMIT_MAX_WAIT_MS,
   SLACK_ASSIGNEE_COLUMN_TYPES,
   SLACK_ASSIGNEE_NAME_HINTS,
+  SLACK_MISSING_ITEM_ERRORS,
   statusSynonyms,
 } from "@/config/slack";
 
@@ -451,4 +452,9 @@ export async function updateItem(
 
 export async function deleteItem(token: string, listId: string, itemId: string): Promise<void> {
   await callSlack("slackLists.items.delete", token, { list_id: listId, id: itemId });
+}
+
+export function isMissingItemError(err: unknown): boolean {
+  const code = (err as SlackApiError).slackError;
+  return code !== undefined && SLACK_MISSING_ITEM_ERRORS.has(code);
 }

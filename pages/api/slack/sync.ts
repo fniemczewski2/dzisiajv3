@@ -11,6 +11,7 @@ import {
   updateItem,
   deleteItem,
   itemExists,
+  isMissingItemError,
   buildFieldValue,
   buildAssigneeValue,
   findAssigneeColumn,
@@ -41,6 +42,7 @@ interface TaskRow {
   priority: number | null;
   status: string | null;
   user_id: string;
+  updated_at?: string | null;
 }
 
 interface LinkRow {
@@ -69,7 +71,7 @@ interface SyncCounters {
   created_in_slack: number;
   created_in_app: number;
   deleted_in_slack: number;
-  deleted_in_app: number;
+  recreated_in_slack: number;
   conflicts: number;
 }
 
@@ -148,7 +150,39 @@ function itemToTaskPatch(
 }
 
 function itemChangedSince(item: SlackItem, syncedAt: string): boolean {
-  return Number(item.updated_timestamp ?? 0) * 1000 > new Date(syncedAt).getTime();
+  const changedAt = itemUpdatedAt(item);
+  return changedAt !== null && changedAt > new Date(syncedAt).getTime();
+}
+
+export function taskUpdatedAt(task: Pick<TaskRow, "updated_at">): number | null {
+  if (!task.updated_at) return null;
+  const ms = new Date(task.updated_at).getTime();
+  return Number.isNaN(ms) ? null : ms;
+}
+
+export function itemUpdatedAt(item: Pick<SlackItem, "updated_timestamp">): number | null {
+  const seconds = Number(item.updated_timestamp ?? 0);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : null;
+}
+
+export type SyncDirection = "push" | "pull" | "none";
+
+export function resolveDirection(input: {
+  appChanged: boolean;
+  slackChanged: boolean;
+  taskUpdatedAt: number | null;
+  itemUpdatedAt: number | null;
+}): SyncDirection {
+  const { appChanged, slackChanged } = input;
+
+  if (!appChanged && !slackChanged) return "none";
+  if (appChanged && !slackChanged) return "push";
+  if (!appChanged && slackChanged) return "pull";
+
+  if (input.taskUpdatedAt !== null && input.itemUpdatedAt !== null) {
+    return input.taskUpdatedAt > input.itemUpdatedAt ? "push" : "pull";
+  }
+  return "pull";
 }
 
 async function touchLink(
@@ -172,14 +206,23 @@ async function pushTask(
   link: LinkRow | undefined
 ): Promise<void> {
   if (link) {
-    await updateItem(
-      target.token,
-      target.listId,
-      link.item_id,
-      buildFields(task, target, columns)
-    );
-    await touchLink(admin, target, task.id, task);
-    return;
+    try {
+      await updateItem(
+        target.token,
+        target.listId,
+        link.item_id,
+        buildFields(task, target, columns)
+      );
+      await touchLink(admin, target, task.id, task);
+      return;
+    } catch (err) {
+      if (!isMissingItemError(err)) throw err;
+      await admin
+        .from("slack_task_links")
+        .delete()
+        .eq("task_id", task.id)
+        .eq("list_id", target.listId);
+    }
   }
 
   const itemId = await createItem(
@@ -276,10 +319,8 @@ async function applyAppDeletions(admin: SupabaseClient, target: SyncTarget): Pro
       await deleteItem(target.token, target.listId, tombstone.item_id);
       removed += 1;
     } catch (err) {
-      const code = (err as { slackError?: string }).slackError;
-      if (code !== "record_not_found" && code !== "row_not_found" && code !== "invalid_row_id") {
-        throw err;
-      }
+      // pozycja mogła zostać już usunięta ręcznie w Slacku - to nie jest błąd
+      if (!isMissingItemError(err)) throw err;
     }
     await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id);
   }
@@ -310,7 +351,7 @@ async function syncList(
     created_in_slack: 0,
     created_in_app: 0,
     deleted_in_slack: 0,
-    deleted_in_app: 0,
+    recreated_in_slack: 0,
     conflicts: 0,
   };
 
@@ -340,13 +381,12 @@ async function syncList(
       counters.created_in_slack += 1;
       continue;
     }
+    if (task.category !== SLACK_TASK_CATEGORY) continue;
 
     const item = itemById.get(link.item_id);
 
     if (!item) {
       if (await itemExists(target.token, target.listId, link.item_id)) continue;
-
-      await admin.from("tasks").delete().eq("id", task.id);
       await admin
         .from("slack_task_links")
         .delete()
@@ -357,7 +397,9 @@ async function syncList(
         .delete()
         .eq("list_id", target.listId)
         .eq("item_id", link.item_id);
-      counters.deleted_in_app += 1;
+
+      await pushTask(admin, target, task, columns, undefined);
+      counters.recreated_in_slack += 1;
       continue;
     }
 
@@ -365,10 +407,17 @@ async function syncList(
     const slackChanged = itemChangedSince(item, link.synced_at);
     if (appChanged && slackChanged) counters.conflicts += 1;
 
-    if (appChanged) {
+    const direction = resolveDirection({
+      appChanged,
+      slackChanged,
+      taskUpdatedAt: taskUpdatedAt(task),
+      itemUpdatedAt: itemUpdatedAt(item),
+    });
+
+    if (direction === "push") {
       await pushTask(admin, target, task, columns, link);
       counters.pushed += 1;
-    } else if (slackChanged) {
+    } else if (direction === "pull") {
       await pullItem(admin, target, item, task, columns);
       counters.pulled += 1;
     }
@@ -458,6 +507,33 @@ async function loadTargets(admin: SupabaseClient, userId?: string): Promise<Sync
   });
 }
 
+const TASK_COLUMNS = "id, title, description, due_date, category, priority, status, user_id";
+
+/**
+ * `tasks.updated_at` jest opcjonalne - bez tej kolumny nie da się porównać dat
+ * modyfikacji i konflikty rozstrzyga Slack. Zamiast wymuszać zmianę schematu,
+ * wykrywamy jej brak (PostgREST: 42703) i czytamy resztę kolumn.
+ */
+async function loadTasks(admin: SupabaseClient, userId: string): Promise<TaskRow[]> {
+  const withTimestamp = await admin
+    .from("tasks")
+    .select(`${TASK_COLUMNS}, updated_at`)
+    .eq("user_id", userId);
+
+  if (!withTimestamp.error) return (withTimestamp.data ?? []) as TaskRow[];
+  if (withTimestamp.error.code !== "42703") {
+    throw new Error(`tasks: ${withTimestamp.error.message}`);
+  }
+
+  console.warn(
+    "[slack/sync] tabela tasks nie ma kolumny updated_at - w konfliktach wygrywa wersja ze Slacka"
+  );
+
+  const fallback = await admin.from("tasks").select(TASK_COLUMNS).eq("user_id", userId);
+  if (fallback.error) throw new Error(`tasks: ${fallback.error.message}`);
+  return (fallback.data ?? []) as TaskRow[];
+}
+
 export const config = { maxDuration: 60 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -486,12 +562,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: (SyncCounters | { list_id: string; error: string })[] = [];
 
     for (const [userId, userTargets] of byUser) {
-      const { data: taskRows, error: taskError } = await admin
-        .from("tasks")
-        .select("id, title, description, due_date, category, priority, status, user_id")
-        .eq("user_id", userId);
-      if (taskError) throw new Error(`tasks: ${taskError.message}`);
-      const tasks = (taskRows ?? []) as TaskRow[];
+      const tasks = await loadTasks(admin, userId);
 
       const listIds = userTargets.map((t) => t.listId);
       const { data: allLinks, error: allLinksError } = await admin

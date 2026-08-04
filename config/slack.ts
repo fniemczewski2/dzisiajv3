@@ -84,3 +84,11 @@ export const SLACK_ASSIGNEE_NAME_HINTS = [
   "osoba",
   "wykonawc",
 ] as const;
+
+export const SLACK_MISSING_ITEM_ERRORS = new Set([
+  "record_not_found",
+  "record_deleted",
+  "row_not_found",
+  "invalid_row_id",
+  "item_not_found",
+]);
