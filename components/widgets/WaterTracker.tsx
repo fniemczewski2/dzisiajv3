@@ -2,35 +2,46 @@
 
 import { Droplet } from "lucide-react";
 import { useDailyHabits } from "@/hooks/db/useDailyHabits";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface WaterTrackerProps {
   date?: string;
 }
 
 export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
-  const { habits, loading, updateWater } = useDailyHabits(date);
-  const [localWater, setLocalWater] = useState<number | null>(null);
+  const { habits, fetching, updateWater } = useDailyHabits(date);
 
-  useEffect(() => {
-    if (habits && localWater === null) {
-      setLocalWater(habits.water_amount ?? 0);
-    }
-  }, [habits, localWater]);
+  // Stan lokalny żyje TYLKO podczas przeciągania suwaka. Wcześniej trzymał
+  // wartość na stałe i nie był czyszczony przy zmianie daty, więc widget
+  // pokazywał ilość wody z poprzednio oglądanego dnia.
+  const [draft, setDraft] = useState<number | null>(null);
+
+  // Reset przy zmianie dnia liczony w trakcie renderu (zalecany sposób na
+  // "state zależny od propsa"), a nie w useEffect - dzięki temu nie ma renderu,
+  // w którym widać jeszcze wartość z poprzedniej daty.
+  const [renderedDate, setRenderedDate] = useState(date);
+  if (date !== renderedDate) {
+    setRenderedDate(date);
+    setDraft(null);
+  }
+
   if (!habits) return null;
 
-
-  const displayWater = localWater !== null ? localWater : (habits.water_amount ?? 0);
+  const savedWater = habits.water_amount ?? 0;
+  const displayWater = (date === renderedDate ? draft : null) ?? savedWater;
   const fillPercent = (displayWater / 2) * 100;
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalWater(Number.parseFloat(e.target.value));
+    setDraft(Number.parseFloat(e.target.value));
   };
 
   const handleSliderRelease = (e: React.SyntheticEvent<HTMLInputElement>) => {
     const finalWater = Number.parseFloat(e.currentTarget.value);
-    
-    if (habits && finalWater !== habits.water_amount) {
+    setDraft(null);
+
+    // Hook aktualizuje `habits` optymistycznie, więc po wyczyszczeniu draftu
+    // widget od razu pokazuje nową wartość - bez mrugnięcia na starą.
+    if (finalWater !== savedWater) {
       updateWater(Number(finalWater.toFixed(1)));
     }
   };
@@ -57,7 +68,7 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
           max="2.0"
           step="0.1"
           value={displayWater}
-          disabled={loading && localWater === null}
+          disabled={fetching}
           onChange={handleSliderChange}
           onPointerUp={handleSliderRelease} 
           onKeyUp={handleSliderRelease}
