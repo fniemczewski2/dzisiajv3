@@ -58,25 +58,16 @@ export function formatAssigneeEmails(emails: string[] | null | undefined): strin
   return (emails ?? []).join(", ");
 }
 
-/** Priorytet nadawany zadaniom pobranym ze Slacka, gdy lista go nie przekazuje. */
 export const SLACK_IMPORTED_TASK_PRIORITY = 3;
 
-/**
- * Wartości kolumn, których nie da się przypisać do żadnego pola zadania,
- * dopisujemy do opisu pod tym separatorem. Blok jest odtwarzany przy każdym
- * imporcie, a przed wysyłką do Slacka - odcinany, żeby nie zapętlić się
- * w doklejaniu go do siebie samego.
- */
 export const SLACK_EXTRA_FIELDS_SEPARATOR = "--- Slack ---";
 
-/** Opis bez bloku z niezmapowanymi kolumnami. */
 export function stripExtraFieldsBlock(description: string | null | undefined): string {
   if (!description) return "";
   const index = description.indexOf(SLACK_EXTRA_FIELDS_SEPARATOR);
   return (index === -1 ? description : description.slice(0, index)).trimEnd();
 }
 
-/** Skleja opis z bloku bazowego i listy "Nazwa kolumny: wartość". */
 export function withExtraFieldsBlock(
   baseDescription: string | null | undefined,
   extras: { name: string; value: string }[]

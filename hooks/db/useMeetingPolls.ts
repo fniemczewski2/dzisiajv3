@@ -4,8 +4,15 @@ import { useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useCrudResource } from "./useCrudResource";
+import { pollAutoCloseAt } from "@/lib/meetingPollDeadline";
+import {
+  MEETING_POLL_TASK_CATEGORY,
+  MEETING_POLL_TASK_TITLE,
+  MEETING_POLL_TASK_PRIORITY,
+} from "@/config/tasks";
 import type {
   MeetingPoll,
+  MeetingPollStatus,
   MeetingPollInsert,
   MeetingPollResponseRow,
   MeetingPollResults,
@@ -44,6 +51,7 @@ export function useMeetingPolls() {
       }
 
       const shareToken = crypto.randomUUID();
+      const closesAt = pollAutoCloseAt();
 
       const { data: poll, error: pollError } = await supabase
         .from("meeting_polls")
@@ -55,6 +63,7 @@ export function useMeetingPolls() {
           time_start: payload.time_start,
           time_end: payload.time_end,
           share_token: shareToken,
+          closes_at: closesAt.toISOString(),
         })
         .select()
         .single();
@@ -73,11 +82,58 @@ export function useMeetingPolls() {
         return undefined;
       }
 
+      // Zadanie przypominające o wyborze terminu. Nieudany zapis nie może
+      // wywrócić tworzenia ankiety - ankieta już istnieje i działa.
+      const { error: taskError } = await supabase.from("tasks").insert({
+        user_id: userId,
+        title: MEETING_POLL_TASK_TITLE,
+        category: MEETING_POLL_TASK_CATEGORY,
+        priority: MEETING_POLL_TASK_PRIORITY,
+        status: "pending",
+        description: payload.title,
+        due_date: closesAt.toISOString().slice(0, 10),
+      });
+      if (taskError) {
+        console.error("[useMeetingPolls] zadanie 'Wybierz termin':", taskError.message);
+        toast.error("Ankieta utworzona, ale nie udało się dodać zadania.");
+      }
+
       crud.setItems((prev) => [poll as MeetingPoll, ...prev]);
       toast.success(MESSAGES.added);
       return poll as MeetingPoll;
     },
     [userId, supabase, toast, crud]
+  );
+
+  /**
+   * Ręczne zamknięcie i ponowne otwarcie. Otwarcie odnawia termin - inaczej
+   * ankieta po czasie zamykałaby się z powrotem przy najbliższym przebiegu crona.
+   */
+  const setPollStatus = useCallback(
+    async (id: string, status: MeetingPollStatus): Promise<void> => {
+      const patch =
+        status === "open"
+          ? { status, closes_at: pollAutoCloseAt().toISOString() }
+          : { status };
+
+      const { data, error } = await supabase
+        .from("meeting_polls")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error || !data) {
+        toast.error(
+          status === "open" ? "Nie udało się otworzyć ankiety." : "Nie udało się zamknąć ankiety."
+        );
+        return;
+      }
+
+      crud.setItems((prev) => prev.map((p) => (p.id === id ? (data as MeetingPoll) : p)));
+      toast.success(status === "open" ? "Ankieta przyjmuje odpowiedzi" : "Ankieta zamknięta");
+    },
+    [supabase, toast, crud]
   );
 
   const deletePoll = useCallback(
@@ -175,6 +231,7 @@ export function useMeetingPolls() {
     fetching: crud.fetching,
     fetchPolls: crud.refetch,
     createPoll,
+    setPollStatus,
     deletePoll,
     getPollResults,
     finalizePoll,

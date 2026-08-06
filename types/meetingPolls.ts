@@ -16,6 +16,7 @@ export interface MeetingPoll {
   status: MeetingPollStatus;
   created_at: string;
   updated_at: string;
+  closes_at: string | null; 
 }
 
 export interface MeetingPollDate {
