@@ -4,11 +4,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'node:fs/promises';
 import os from 'node:os';
-import { PDFParse } from 'pdf-parse';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { TICKET_UPLOAD_MAX_BYTES, TICKET_ALLOWED_MIME } from '@/config/limits';
 
-export const config = { api: { bodyParser: false } };
+export const config = { api: { bodyParser: false }, maxDuration: 30 };
 
 const SUFFIXES = new Set([
   'gł.', 'główny', 'główna', 'centr.', 'centralna', 'centralny',
@@ -121,8 +120,9 @@ class PdfReadError extends Error {
 }
 
 async function extractPdfText(dataBuffer: Buffer): Promise<string> {
-  let parser: PDFParse | undefined;
+  let parser: { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } | undefined;
   try {
+    const { PDFParse } = await import('pdf-parse');
     parser = new PDFParse({ data: dataBuffer });
     const result = await parser.getText();
     return result.text;

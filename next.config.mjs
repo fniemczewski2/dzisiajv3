@@ -13,6 +13,9 @@ const supabaseHostname = getSupabaseHostname();
 const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["pdf-parse"],
+  outputFileTracingIncludes: {
+    "/api/transport/parse-ticket": ["./node_modules/pdf-parse/dist/**/*"],
+  },
   images: {
     remotePatterns: [
       {
