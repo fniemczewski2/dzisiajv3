@@ -26,7 +26,7 @@ export default function TimeContextBadge({
         inline-flex items-center justify-center rounded-md shadow-sm transition-colors bg-surfaceHover border uppercase
         ${context.color}
         ${context.shouldPulse ? 'animate-pulse' : ''}
-        ${small ? 'text-xs px-2 py-1 h-[24px] gap-1 font-medium' : 'text-[10px] md:text-sm px-2 py-1 md:px-3 md:py-1.5 gap-1.5 font-bold'}
+        ${small ? 'text-xs px-2 py-1 h-6 gap-1 font-medium' : 'text-[10px] md:text-sm px-2 py-1 md:px-3 md:py-1.5 gap-1.5 font-bold'}
         ${className}
       `}
     >

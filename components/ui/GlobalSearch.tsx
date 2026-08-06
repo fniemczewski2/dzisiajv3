@@ -101,7 +101,7 @@ export default function GlobalSearch() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Szukaj w aplikacji (Ctrl+K)"
-        title="Szukaj (Ctrl+K)"
+        title="Szukaj"
         className="p-2.5 rounded-xl bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors active:scale-[0.98]"
       >
         <Search className="w-5 h-5" />

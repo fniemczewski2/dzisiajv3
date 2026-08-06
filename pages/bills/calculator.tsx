@@ -256,7 +256,7 @@ export default function BillCalculator() {
                     </select>
                   </div>
                   <div className="flex justify-between flex-col gap-2">
-                    <div className="flex-1 min-h-[90px]">
+                    <div className="flex-1 min-h-22.5">
                       <InputField 
                         label="Przychód Brutto"
                         inputRef={income1Ref} 
@@ -271,7 +271,7 @@ export default function BillCalculator() {
                       )}
                     </div>
                   
-                    <div className="flex-1 min-h-[90px]">
+                    <div className="flex-1 min-h-22.5">
                       <InputField 
                         label="Zaliczka PIT" 
                         inputRef={pit1Ref} 
@@ -285,7 +285,7 @@ export default function BillCalculator() {
                         - {results.pitValue1.toFixed(2)} zł
                       </div>
                     </div>
-                    <div className="flex-1 min-h-[90px]">
+                    <div className="flex-1 min-h-22.5">
                       <InputField label="Składka ZUS" inputRef={zus1Ref} defaultValue={ZUS_DEFAULT} icon={<Minus size={16} />} onChange={calculate} />
                     </div>
                   </div>
@@ -308,7 +308,7 @@ export default function BillCalculator() {
                     </select>
                   </div>
                   <div className="flex justify-between flex-col gap-2">
-                  <div className="flex-1 min-h-[90px]">
+                  <div className="flex-1 min-h-22.5">
                     <InputField 
                       label="Przychód Brutto"
                       inputRef={income2Ref} 
@@ -323,7 +323,7 @@ export default function BillCalculator() {
                     )}
                   </div>
                   
-                  <div className="flex-1 min-h-[90px]">
+                  <div className="flex-1 min-h-22.5">
                     <InputField 
                       label="Zaliczka PIT" 
                       inputRef={pit2Ref} 
@@ -337,7 +337,7 @@ export default function BillCalculator() {
                       - {results.pitValue2.toFixed(2)} zł
                     </div>
                   </div>
-                  <div className="flex-1 min-h-[90px]">
+                  <div className="flex-1 min-h-22.5">
                   <InputField label="Składka ZUS" inputRef={zus2Ref} defaultValue={0} icon={<Minus size={16} />} onChange={calculate} />
                   </div>
                   </div>

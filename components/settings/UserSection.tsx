@@ -49,7 +49,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 text-text">
           <div>
-            <CircleUser className="w-5 h-5 text-primary flex-shrink-0" />
+            <CircleUser className="w-5 h-5 text-primary shrink-0" />
           </div>
           <h3 className="text-lg font-bold">Użytkownik</h3>
         </div>
@@ -65,7 +65,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
 
           <div className="flex flex-col text-xs sm:text-sm gap-2 py-4">
             <h4 className="flex items-center gap-2 text-sm font-bold text-text mb-2">
-              <CircleUser className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
+              <CircleUser className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
               Zalogowano jako
             </h4>
             <span className="px-2.5 py-1 font-mono font-medium rounded-md card text-text truncate max-w-full">
@@ -84,7 +84,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
 
       <div className="flex flex-col text-xs sm:text-sm gap-2 py-4">
         <h4 className="flex items-center gap-2 text-sm font-bold text-text my-2">
-          <TriangleAlert className="w-4 h-4  text-red-600 dark:text-red-400 flex-shrink-0" aria-hidden="true" />
+          <TriangleAlert className="w-4 h-4  text-red-600 dark:text-red-400 shrink-0" aria-hidden="true" />
           Usunięcie konta
         </h4>
         <p className="text-sm text-textSecondary mb-3">

@@ -49,7 +49,7 @@ export default function HabitIcons({ date }: Readonly<HabitIconsProps>) {
             onClick={() => toggleHabit(key)}
             type='button'
             className={`
-              p-2 sm:p-3 flex-1 min-w-[32px] max-w-[80px] sm:max-w-none rounded-xl border transition-colors flex justify-center items-center
+              p-2 sm:p-3 flex-1 min-w-8 max-w-20 sm:max-w-none rounded-xl border transition-colors flex justify-center items-center
               ${isActive 
                 ? "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 shadow-sm" 
                 : "card text-textSecondary hover:bg-surface hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"

@@ -25,7 +25,7 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
           <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         
-        <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-[140px] sm:min-w-[160px] text-center capitalize tracking-wide">
+        <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
           {format(currentDate, "LLLL yyyy", { locale: pl })}
         </h2>
         

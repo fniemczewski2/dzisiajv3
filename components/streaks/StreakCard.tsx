@@ -76,7 +76,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 flex-1 relative">
           <button
-            className={`flex-shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
+            className={`shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
             type='button'
             title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
@@ -85,7 +85,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
           </button>
 
           {showIconPicker && (
-            <div className="absolute top-[3.5rem] left-0 mt-2 card rounded-xl shadow-lg p-2 z-50 w-[220px] grid grid-cols-5 gap-2">
+            <div className="absolute top-14 left-0 mt-2 card rounded-xl shadow-lg p-2 z-50 w-55 grid grid-cols-5 gap-2">
               {ICONS.map((item) => {
                 const IconComponent = item.icon;
                 return (
@@ -145,7 +145,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
               </div>
             ) : (
               <>
-                <h3 className="font-bold text-lg text-text leading-tight break-words">{streak.name}</h3>
+                <h3 className="font-bold text-lg text-text leading-tight wrap-break-word">{streak.name}</h3>
                 <p className="text-xs font-semibold text-textMuted mt-1 uppercase tracking-widest">
                   Od: {parseISO(streak.start_date).toLocaleDateString("pl-PL")}
                 </p>

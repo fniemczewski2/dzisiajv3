@@ -19,7 +19,7 @@ export default function LocationSection({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 text-text">
           <div>
-            <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+            <MapPin className="w-5 h-5 text-primary shrink-0" />
           </div>
           <h3 className="text-lg font-bold">Lokalizacja</h3>
         </div>

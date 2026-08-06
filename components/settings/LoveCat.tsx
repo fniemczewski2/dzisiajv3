@@ -76,7 +76,7 @@ const channel = supabase
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[100000] pointer-events-none flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-10000 pointer-events-none flex flex-col items-center justify-center overflow-hidden">
 
       <div className="relative animate-in zoom-in slide-in-from-bottom-10 fade-in duration-500 ease-out">
 

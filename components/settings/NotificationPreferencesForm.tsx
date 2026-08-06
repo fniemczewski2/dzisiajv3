@@ -39,7 +39,7 @@ export default function NotificationPreferences() {
               </div>
               <div>
                 <p className="font-bold text-text text-sm sm:text-base">{label}</p>
-                <p className="text-xs sm:text-sm text-textMuted mt-0.5 leading-snug max-w-[250px] sm:max-w-full">{description}</p>
+                <p className="text-xs sm:text-sm text-textMuted mt-0.5 leading-snug max-w-62.5 sm:max-w-full">{description}</p>
               </div>
             </div>
             <button

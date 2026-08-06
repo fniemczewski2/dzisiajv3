@@ -229,7 +229,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         badge: "Popularne",
       },
       {
-        title: "Cele i Pasma",
+        title: "Postępy",
         description: "Utrzymuj dyscyplinę (streaks). Algorytm pogratuluje Ci okrągłych kamieni milowych.",
         icon: Target,
         category: "Styl życia",

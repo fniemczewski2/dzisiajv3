@@ -58,12 +58,12 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
       </div>
 
       {isEditing ? (
-        <div className="flex items-center gap-1.5 sm:gap-2 max-h-[24px]">
+        <div className="flex items-center gap-1.5 sm:gap-2 max-h-6">
           <input
             ref={inputRef}
             type="number"
             step="0.01"
-            className="input-field h-[30px] w-20 sm:w-24 text-right tabular-nums text-text py-1 px-2 font-medium"
+            className="input-field h-7.5 w-20 sm:w-24 text-right tabular-nums text-text py-1 px-2 font-medium"
             title="Szybki wydatek"
             autoFocus
           />
@@ -73,7 +73,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
         <button 
           onClick={() => setIsEditing(true)}
           type='button'
-          className="max-h-[24px] cursor-pointer text-sm sm:text-base font-bold text-text hover:text-primary transition-colors flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-lg shrink-0"
+          className="max-h-6 cursor-pointer text-sm sm:text-base font-bold text-text hover:text-primary transition-colors flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-lg shrink-0"
           title="Kliknij, aby edytować"
         >
           {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"}

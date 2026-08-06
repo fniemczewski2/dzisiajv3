@@ -99,7 +99,7 @@ export default function DaySchemaPage() {
 
               {sortedEntries.map((entry) => (
                 <div key={entry.time} className="relative mb-3 flex items-center space-x-2">
-                  <span className="text-sm font-bold text-textMuted w-12 h-[24px] flex items-center shrink-0">{entry.time}</span>
+                  <span className="text-sm font-bold text-textMuted w-12 h-6 flex items-center shrink-0">{entry.time}</span>
                   <span className="font-lg font-medium text-text">{entry.label}</span>
                 </div>
               ))}
@@ -126,7 +126,7 @@ function CurrentTimeLine({
   return (
     <div className="absolute left-0 w-full z-10 transition-all duration-500 ease-in-out" style={{ top: offset + 8 }}>
       <div className="absolute -left-4 h-0.5 w-[calc(100%+1rem)] bg-red-500 dark:bg-red-400 opacity-80" />
-      <div className="absolute -left-[21px] -top-1.5 w-3 h-3 bg-red-500 dark:bg-red-400 rounded-full shadow-sm" />
+      <div className="absolute -left-5.25 -top-1.5 w-3 h-3 bg-red-500 dark:bg-red-400 rounded-full shadow-sm" />
     </div>
   );
 }

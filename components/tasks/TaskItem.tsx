@@ -84,7 +84,7 @@ function TaskEditForm({
               id={`${editPrefix}-category`} 
               value={editedTask.category} 
               onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} 
-              className="input-field py-1.5 h-[38px]"
+              className="input-field py-1.5 h-9.5"
             >
               {TASK_CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -100,7 +100,7 @@ function TaskEditForm({
               type="date" 
               value={editedTask.due_date} 
               onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })} 
-              className="input-field w-full min-w-0 px-1 text-xs h-[38px]" 
+              className="input-field w-full min-w-0 px-1 text-xs h-9.5" 
             />
           </div>
           {userOptions.length > 0 && (
@@ -110,7 +110,7 @@ function TaskEditForm({
                 id={`${editPrefix}-share`} 
                 value={sharedEmail} 
                 onChange={(e) => setSharedEmail(e.target.value)} 
-                className="input-field py-1.5 h-[38px]"
+                className="input-field py-1.5 h-9.5"
               >
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email: string) => (
@@ -274,7 +274,7 @@ function TaskView({
           >
             {task.priority}
           </span>
-          <h3 className={`text-lg sm:text-xl font-bold break-words leading-tight ${getTitleClasses(isDone, isHighPriority, isOverdue)}`}>
+          <h3 className={`text-lg sm:text-xl font-bold wrap-break-word leading-tight ${getTitleClasses(isDone, isHighPriority, isOverdue)}`}>
             {task.title}
           </h3>
         </button>

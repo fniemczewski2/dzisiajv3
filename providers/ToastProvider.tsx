@@ -209,7 +209,7 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
+        className="fixed bottom-32 left-1/2 -translate-x-1/2 z-9999 flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
       >
         {toasts.map((item) => (
           <div key={item.id} className="pointer-events-auto w-full">

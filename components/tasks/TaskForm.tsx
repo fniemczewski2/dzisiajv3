@@ -131,7 +131,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
           <select
             id="category"
             ref={categoryRef}
-            className="input-field h-min sm:h-[48px]"
+            className="input-field h-min sm:h-12"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -183,7 +183,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
               {slackLists.length > 0 && (
                 <select
                   id="slack-list"
-                  className="input-field h-min sm:h-[48px]"
+                  className="input-field h-min sm:h-12"
                   value={slackListId || defaultListId}
                   onChange={(e) => setSlackListId(e.target.value)}
                 >
@@ -208,7 +208,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
         </div>
         <div>
           <label htmlFor="for" className="form-label">Zadanie dla:</label>
-          <select id="for" ref={forUserRef} className="input-field h-min sm:h-[48px]" required defaultValue={userId}>
+          <select id="for" ref={forUserRef} className="input-field h-min sm:h-12" required defaultValue={userId}>
             <option value={userId}>Mnie</option>
             {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
           </select>

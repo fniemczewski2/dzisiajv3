@@ -99,7 +99,7 @@ export default function DaySchemaForm({
               <label htmlFor={`time-${entry.time}`} className="sr-only">Godzina</label>
               <input id={`time-${entry.time}`} type="time" value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
-                className="input-field w-[80px]" required />
+                className="input-field w-20" required />
               
               <label htmlFor={`label-${entry.label}`} className="sr-only">Etykieta</label>
               <input id={`label-${entry.label}`} type="text" value={entry.label} placeholder="Etykieta"

@@ -4,7 +4,13 @@ export const SLACK_API_BASE = "https://slack.com/api";
 export const SLACK_AUTHORIZE_URL = "https://slack.com/oauth/v2/authorize";
 export const SLACK_STATE_COOKIE = "slack_oauth_state";
 export const SLACK_STATE_TTL_SECONDS = 600;
-export const SLACK_USER_SCOPES = ["lists:read", "lists:write", "files:read"] as const;
+export const SLACK_USER_SCOPES = [
+  "lists:read",
+  "lists:write",
+  "files:read",
+  "users:read",
+  "users:read.email",
+] as const;
 
 export const SLACK_REQUEST_TIMEOUT_MS = 15_000;
 export const SLACK_ITEMS_PAGE_SIZE = 100;
@@ -30,6 +36,61 @@ export const SLACK_FIELD_LABELS: Record<SlackMappableTaskField, string> = {
 };
 
 export const SLACK_TASK_CATEGORY = "slack";
+
+/**
+ * Adresy filtrujące import. Przyjmujemy je w jednym polu tekstowym, rozdzielone
+ * przecinkiem, średnikiem, spacją lub nową linią.
+ */
+export function parseAssigneeEmails(input: string): string[] {
+  const seen = new Set<string>();
+
+  for (const chunk of input.split(/[\s,;]+/)) {
+    const email = chunk.trim().toLowerCase();
+    if (!email) continue;
+    // celowo luźna walidacja - odsiewamy literówki bez małpy, resztę zweryfikuje Slack
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) continue;
+    seen.add(email);
+  }
+  return [...seen];
+}
+
+export function formatAssigneeEmails(emails: string[] | null | undefined): string {
+  return (emails ?? []).join(", ");
+}
+
+/** Priorytet nadawany zadaniom pobranym ze Slacka, gdy lista go nie przekazuje. */
+export const SLACK_IMPORTED_TASK_PRIORITY = 3;
+
+/**
+ * Wartości kolumn, których nie da się przypisać do żadnego pola zadania,
+ * dopisujemy do opisu pod tym separatorem. Blok jest odtwarzany przy każdym
+ * imporcie, a przed wysyłką do Slacka - odcinany, żeby nie zapętlić się
+ * w doklejaniu go do siebie samego.
+ */
+export const SLACK_EXTRA_FIELDS_SEPARATOR = "--- Slack ---";
+
+/** Opis bez bloku z niezmapowanymi kolumnami. */
+export function stripExtraFieldsBlock(description: string | null | undefined): string {
+  if (!description) return "";
+  const index = description.indexOf(SLACK_EXTRA_FIELDS_SEPARATOR);
+  return (index === -1 ? description : description.slice(0, index)).trimEnd();
+}
+
+/** Skleja opis z bloku bazowego i listy "Nazwa kolumny: wartość". */
+export function withExtraFieldsBlock(
+  baseDescription: string | null | undefined,
+  extras: { name: string; value: string }[]
+): string {
+  const base = stripExtraFieldsBlock(baseDescription);
+  if (extras.length === 0) return base;
+
+  const block = [
+    SLACK_EXTRA_FIELDS_SEPARATOR,
+    ...extras.map((extra) => `${extra.name}: ${extra.value}`),
+  ].join("\n");
+
+  return base ? `${base}\n\n${block}` : block;
+}
 
 export const SLACK_PULL_EXCLUDED_FIELDS: readonly SlackMappableTaskField[] = [];
 

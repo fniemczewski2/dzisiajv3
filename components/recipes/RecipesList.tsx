@@ -115,7 +115,7 @@ export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>
             suggestions={recipeSuggestions} onSuggestionClick={setQText} className="w-full" />
         </div>
         <button type="button" onClick={() => setShowFilters((s) => !s)}
-          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-[42px] sm:min-w-[140px] shrink-0 card text-textSecondary hover:text-text hover:bg-surface">
+          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-10.5 sm:min-w-35 shrink-0 card text-textSecondary hover:text-text hover:bg-surface">
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
         </button>
       </div>

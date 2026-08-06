@@ -21,7 +21,7 @@ export default function CookieBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-gray-200 dark:border-gray-800 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-[100] transition-transform animate-in slide-in-from-bottom-full duration-500">
+    <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-gray-200 dark:border-gray-800 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-100 transition-transform animate-in slide-in-from-bottom-full duration-500">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-textSecondary text-center sm:text-left">
           Ta strona korzysta z ciasteczek (cookies) oraz podobnych technologii niezbędnych do działania aplikacji (np. autoryzacja sesji). 

@@ -17,7 +17,7 @@ export const DayStreaks = React.memo(({ streaks, fetchingStreaks }: Readonly<Day
               <p className="font-bold text-sm sm:text-base text-text leading-tight truncate">
                 {streak.name}
               </p>
-              <span className="text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-2 py-1 rounded-md text-xs font-medium tracking-wider h-[24px]">
+              <span className="text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-2 py-1 rounded-md text-xs font-medium tracking-wider h-6">
                 {streak.milestoneMessage}
               </span>
           </div>

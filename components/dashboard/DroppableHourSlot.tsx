@@ -12,7 +12,7 @@ export function DroppableHourSlot({ time, children }: Readonly<{ time: string, c
   return (
     <div 
       ref={setNodeRef} 
-      className={`relative min-h-[3rem] transition-colors duration-200 rounded-lg
+      className={`relative min-h-12 transition-colors duration-200 rounded-lg
         ${isOver && 'bg-blue-100 dark:bg-blue-900/70 ring-inset ring-2 ring-primary'}
       `}
     >

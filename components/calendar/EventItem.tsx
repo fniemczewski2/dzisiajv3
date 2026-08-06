@@ -116,7 +116,7 @@ export default function EventItem({
           />
         </div>
         <div className="grid grid-cols-2 gap-1 md:gap-3">
-          <div className="min-w-0 max-w-[100%]">
+          <div className="min-w-0 max-w-full">
             <label htmlFor={`${editPrefix}-start`} className="form-label">Rozpoczęcie:</label>
             <input 
               id={`${editPrefix}-start`}
@@ -126,7 +126,7 @@ export default function EventItem({
               className="input-field text-xs w-full min-w-0 px-1" 
             />
           </div>
-          <div className="min-w-0 max-w-[100%]">
+          <div className="min-w-0 max-w-full">
             <label htmlFor={`${editPrefix}-end`} className="form-label">Zakończenie:</label>
             <input 
               id={`${editPrefix}-end`}
@@ -204,7 +204,7 @@ export default function EventItem({
         )}
       </div>
       {event.description && (
-        <p className="text-sm text-textSecondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 break-words whitespace-pre-wrap">
+        <p className="text-sm text-textSecondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 wrap-break-word whitespace-pre-wrap">
           {event.description}
         </p>
       )}

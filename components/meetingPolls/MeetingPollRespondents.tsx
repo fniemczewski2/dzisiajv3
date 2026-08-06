@@ -59,7 +59,7 @@ export default function MeetingPollRespondents({
     <section className="card rounded-2xl shadow-sm p-4">
       <div className="flex items-center justify-between gap-2">
         <h4 className="flex items-center gap-2 text-sm font-bold text-text">
-          <Users className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
+          <Users className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
           Użytkownicy ({responses.length})
         </h4>
           <button className="text-textSecondary" type='button' onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
@@ -79,14 +79,14 @@ export default function MeetingPollRespondents({
                       {response.respondent_name}
                       {response.user_id && (
                         <UserCheck
-                          className="w-4 h-4 text-primary flex-shrink-0"
+                          className="w-4 h-4 text-primary shrink-0"
                           aria-label="Uczestnik ma konto w aplikacji"
                         />
                       )}
                     </p>
                     {response.respondent_email && (
                       <p className="flex items-center gap-1.5 text-xs text-textSecondary break-all">
-                        <Mail className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+                        <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                         {response.respondent_email}
                       </p>
                     )}

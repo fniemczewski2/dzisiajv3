@@ -54,7 +54,7 @@ const CalendarCell = memo(function CalendarCell({
     <button
       type="button"
       className={clsx(
-        "flex flex-col relative text-left justify-between p-1 sm:p-2 sm:min-h-[106px] min-h-[86px] rounded-xl cursor-pointer overflow-hidden border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        "flex flex-col relative text-left justify-between p-1 sm:p-2 sm:min-h-26.5 min-h-21.5 rounded-xl cursor-pointer overflow-hidden border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isOutside
           ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface"
           : "card shadow-sm hover:shadow-md",

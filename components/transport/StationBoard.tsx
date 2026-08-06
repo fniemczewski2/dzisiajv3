@@ -190,7 +190,7 @@ export default function StationBoardWidget() {
             return (
               <tr 
                 key={`${item.trainNumber}-${item.plannedTime}`}
-                className="h-[40px] border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface transition-colors font-medium"
+                className="h-10 border-b border-gray-50 dark:border-gray-800/50 hover:bg-surface transition-colors font-medium"
               >
                 <td className={`px-1 py-1 leading-tight whitespace-nowrap w-min ${isSmallScreen && "flex flex-col"}`}>
                   <span className="text-text font-bold text-[14px] sm:text-sm">{item.plannedTime}</span>
@@ -202,9 +202,9 @@ export default function StationBoardWidget() {
                 </td>
                 <td className='px-1 leading-tight'>
                   <div className="text-text leading-tight text-[12px] sm:text-sm">{item.trainOperator} {item.trainNumber}</div>
-                  {item.trainName && <div className="text-[8px] sm:text-[11px] text-textMuted truncate max-w-[60px] md:max-w-[120px]">{item.trainName}</div>}
+                  {item.trainName && <div className="text-[8px] sm:text-[11px] text-textMuted truncate max-w-15 md:max-w-30">{item.trainName}</div>}
                 </td>
-                <td className="px-1 leading-tight text-text font-semibold truncate max-w-[90px] md:max-w-[160px]" title={item.to}>
+                <td className="px-1 leading-tight text-text font-semibold truncate max-w-22.5 md:max-w-40" title={item.to}>
                   {item.to}
                 </td>
                 <td className="py-1 px-1.5 my-auto leading-tight text-center font-bold text-text">

@@ -12,6 +12,7 @@ const supabaseHostname = getSupabaseHostname();
 
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ["pdf-parse"],
   images: {
     remotePatterns: [
       {

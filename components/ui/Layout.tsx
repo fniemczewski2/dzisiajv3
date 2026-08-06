@@ -11,7 +11,7 @@ export default function Layout({ children }: { readonly children: ReactNode }) {
     <div className="flex flex-col items-center">
       <Header />
       <LoveCat />
-      <main className="flex-auto py-4 pb-0 sm:pb-0 mb-[80px] md:mb-[100px] max-w-[1600px] w-full">
+      <main className="flex-auto py-4 pb-0 sm:pb-0 mb-20 md:mb-25 max-w-[1600px] w-full">
         {children}
         <footer className="border-t border-gray-200 dark:border-gray-800 mt-10 py-4 px-4 text-center">
             <p className="text-sm text-textMuted">

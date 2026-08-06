@@ -128,7 +128,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
               <tr>
                 <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left" />
                 {poll.dates.map((d) => (
-                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-[4.5rem]">{d.split('-')[2] + "." + d.split('-')[1]}</th>
+                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-18">{d.split('-')[2] + "." + d.split('-')[1]}</th>
                 ))}
               </tr>
             </thead>

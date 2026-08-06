@@ -219,7 +219,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
     <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3 text-text">
-          <div><Bell className="w-5 h-5 text-primary flex-shrink-0" /></div>
+          <div><Bell className="w-5 h-5 text-primary shrink-0" /></div>
           <h3 className="text-lg font-bold">Powiadomienia</h3>
         </div>
         <button 
@@ -245,7 +245,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
       <div className="flex flex-wrap md:grid md:grid-cols-2 gap-3 pt-2">
         {isSupported && permission === "default" && (
           <button onClick={handleRequestPermission} type='button' disabled={loading}
-            className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-primary transition-colors disabled:opacity-50">
+            className="flex-1 min-w-35 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-primary transition-colors disabled:opacity-50">
             {loading ? "Czekaj..." : "Nadaj Uprawnienia"}
             <AlertCircle className="w-5 h-5" />
           </button>

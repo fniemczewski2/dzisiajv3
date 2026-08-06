@@ -5,6 +5,7 @@ import { SaveButton } from "../ui/CommonButtons";
 import {
   SLACK_MAPPABLE_TASK_FIELDS,
   SLACK_FIELD_LABELS,
+  formatAssigneeEmails,
   type SlackMappableTaskField,
 } from "@/config/slack";
 import type { SlackColumnOption, SlackListConfig } from "@/hooks/db/useSlackTasks";
@@ -16,7 +17,12 @@ interface SlackListEditorProps {
   columns: SlackColumnOption[] | undefined;
   busy: boolean;
   onLoadColumns: () => void;
-  onSave: (columnMap: ColumnMap, isDefault: boolean) => void;
+  onSave: (
+    columnMap: ColumnMap,
+    isDefault: boolean,
+    syncEnabled: boolean,
+    assigneeEmails: string
+  ) => void;
 }
 
 export default function SlackListEditor({
@@ -29,11 +35,17 @@ export default function SlackListEditor({
   const [expanded, setExpanded] = useState(false);
   const [draftMap, setDraftMap] = useState<ColumnMap>(list.column_map ?? {});
   const [isDefault, setIsDefault] = useState(list.is_default);
+  const [syncEnabled, setSyncEnabled] = useState(list.sync_enabled);
+  const [assigneeEmails, setAssigneeEmails] = useState(
+    formatAssigneeEmails(list.assignee_emails)
+  );
 
   useEffect(() => {
     setDraftMap(list.column_map ?? {});
     setIsDefault(list.is_default);
-  }, [list.column_map, list.is_default]);
+    setSyncEnabled(list.sync_enabled);
+    setAssigneeEmails(formatAssigneeEmails(list.assignee_emails));
+  }, [list.column_map, list.is_default, list.sync_enabled, list.assignee_emails]);
 
   const handleToggle = () => {
     const next = !expanded;
@@ -67,7 +79,7 @@ export default function SlackListEditor({
                 <div key={field} className="flex items-center gap-2">
                   <label
                     htmlFor={`col-${list.id}-${field}`}
-                    className="w-24 flex-shrink-0 text-xs text-textSecondary"
+                    className="w-24 shrink-0 text-xs text-textSecondary"
                   >
                     {SLACK_FIELD_LABELS[field]}
                     {field === "title" && <span className="text-primary"> *</span>}
@@ -100,8 +112,45 @@ export default function SlackListEditor({
                 Nowe zadania z aplikacji trafiają na tę listę
               </label>
 
+              <label className="flex items-start gap-2 text-xs text-textSecondary">
+                <input
+                  type="checkbox"
+                  checked={syncEnabled}
+                  onChange={(e) => setSyncEnabled(e.target.checked)}
+                  className="w-4 h-4 mt-0.5"
+                />
+                <span>
+                  Pobieraj zadania z tej listy
+                  <span className="block text-textMuted">
+                    Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
+                  </span>
+                </span>
+              </label>
+
+              {syncEnabled && (
+                <div>
+                  <label
+                    htmlFor={`slack-emails-${list.id}`}
+                    className="block text-xs text-textSecondary"
+                  >
+                    Pobieraj tylko zadania przypisane do (adresy e-mail):
+                  </label>
+                  <input
+                    type="text"
+                    id={`slack-emails-${list.id}`}
+                    value={assigneeEmails}
+                    onChange={(e) => setAssigneeEmails(e.target.value)}
+                    placeholder="jan@firma.pl, anna@firma.pl"
+                    className="input-field w-full text-sm mt-1"
+                  />
+                  <span className="block text-xs text-textMuted mt-1">
+                    Puste = pobieraj wszystkie zadania z listy.
+                  </span>
+                </div>
+              )}
+
               <SaveButton
-                onClick={() => onSave(draftMap, isDefault)}
+                onClick={() => onSave(draftMap, isDefault, syncEnabled, assigneeEmails)}
                 loading={busy}
                 disabled={busy || !draftMap.title}
               />

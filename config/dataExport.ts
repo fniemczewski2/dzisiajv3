@@ -9,7 +9,6 @@ export interface ExportTable {
 export const EXPORT_TABLES: ExportTable[] = [
   { table: "settings", label: "Ustawienia" },
   { table: "tasks", label: "Zadania" },
-  { table: "reminders", label: "Zadania cykliczne" },
   { table: "day_schemas", label: "Schematy dnia" },
   { table: "daily_overrides", label: "Wyjatki od schematow" },
   { table: "events", label: "Wydarzenia" },
@@ -32,10 +31,17 @@ export const EXPORT_TABLES: ExportTable[] = [
   { table: "budget_categories", label: "Kategorie budzetu" },
   { table: "daily_habits", label: "Nawyki" },
   { table: "mood_entries", label: "Nastroje" },
-  { table: "streaks", label: "Cele i pasma" },
+  { table: "streaks", label: "Postępy" },
   { table: "work_logs", label: "Czas pracy" },
   { table: "user_trains", label: "Sledzone pociagi" },
   { table: "notifications", label: "Powiadomienia" },
+  { table: "slack_task_links", label: "Slack - zadania" },
+  { table: 'slack_task_targets', label: 'Slack - zadania' },
+  { 
+    table: 'slack_lists', 
+    label: 'Slack - listy',
+    columns: 'id,user_id,list_id,list_title,column_map,is_default,created_at,updated_at'
+  },
   {
     table: "connected_calendars",
     label: "Polaczone kalendarze",

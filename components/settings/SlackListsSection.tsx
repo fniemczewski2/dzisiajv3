@@ -8,18 +8,23 @@ import { AddButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
 
 export default function SlackListsSection() {
   const slack = useSlackTasks();
-  const [listInputs, setListInputs] = useState<Record<string, { url: string; title: string }>>({});
+  const [listInputs, setListInputs] = useState<
+    Record<string, { url: string; title: string; syncEnabled: boolean }>
+  >({});
   const [showFrom, setShowFrom] = useState(false);
 
-  const inputFor = (accountId: string) => listInputs[accountId] ?? { url: "", title: "" };
+  const inputFor = (accountId: string) =>
+    listInputs[accountId] ?? { url: "", title: "", syncEnabled: true };
 
-  const setInput = (accountId: string, patch: Partial<{ url: string; title: string }>) =>
-    setListInputs((prev) => ({ ...prev, [accountId]: { ...inputFor(accountId), ...patch } }));
+  const setInput = (
+    accountId: string,
+    patch: Partial<{ url: string; title: string; syncEnabled: boolean }>
+  ) => setListInputs((prev) => ({ ...prev, [accountId]: { ...inputFor(accountId), ...patch } }));
 
   const handleAddList = async (accountId: string) => {
-    const { url, title } = inputFor(accountId);
-    await slack.addList(accountId, url, title);
-    setInput(accountId, { url: "", title: "" });
+    const { url, title, syncEnabled } = inputFor(accountId);
+    await slack.addList(accountId, url, title, syncEnabled);
+    setInput(accountId, { url: "", title: "", syncEnabled: true });
   };
 
   if (slack.loading) {
@@ -40,7 +45,7 @@ export default function SlackListsSection() {
     <section className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-3 text-text">
-          <Hash className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
+          <Hash className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
           <h3 className="text-lg font-bold">Zadania w Slack Lists</h3>
         </div>
         {slack.lists.length > 0 && (
@@ -85,7 +90,7 @@ export default function SlackListsSection() {
                     <p className="flex items-center gap-1.5 text-sm text-text min-w-0">
                       {list.is_default && (
                         <Star
-                          className="w-4 h-4 text-primary flex-shrink-0"
+                          className="w-4 h-4 text-primary shrink-0"
                           aria-label="Lista domyślna dla nowych zadań"
                         />
                       )}
@@ -102,7 +107,15 @@ export default function SlackListsSection() {
                     columns={slack.columnsByList[list.id]}
                     busy={slack.busy}
                     onLoadColumns={() => void slack.loadColumns(list.id)}
-                    onSave={(columnMap, isDefault) => void slack.saveList(list.id, columnMap, isDefault)}
+                    onSave={(columnMap, isDefault, syncEnabled, assigneeEmails) =>
+                      void slack.saveList(
+                        list.id,
+                        columnMap,
+                        isDefault,
+                        syncEnabled,
+                        assigneeEmails
+                      )
+                    }
                   />
                 </li>
               ))}
@@ -139,6 +152,21 @@ export default function SlackListsSection() {
                 className="input-field"
                 id={`slack-list-title-${account.id}`}
               />
+              <label className="flex items-start gap-2 mt-3 text-xs text-textSecondary">
+                <input
+                  type="checkbox"
+                  checked={inputFor(account.id).syncEnabled}
+                  onChange={(e) => setInput(account.id, { syncEnabled: e.target.checked })}
+                  className="w-4 h-4 mt-0.5"
+                  id={`slack-list-sync-${account.id}`}
+                />
+                <span>
+                  Pobieraj zadania z tej listy
+                  <span className="block text-textMuted">
+                    Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
+                  </span>
+                </span>
+              </label>
               <FormButtons
                 onClickClose={() => setShowFrom(false)}
                 disabled={slack.busy}

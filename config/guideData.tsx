@@ -565,12 +565,12 @@ export const guideSections: GuideSection[] = [
 
   {
     id: 'streaks',
-    title: 'Cele',
+    title: 'Postępy',
     mainIcon: <Trophy className="w-6 h-6" />,
     iconColorClass: 'text-rose-500',
     listItems: [
       <>
-        <K>Czym są cele.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie wymaga codziennego odhaczania - automatycznie przelicza dni od daty startu.
+        <K>Czym są postępy.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie wymaga codziennego odhaczania - automatycznie przelicza dni od daty startu.
       </>,
       <>
         <K>Kamienie milowe.</K> Algorytm gratuluje Ci: pierwszego tygodnia (7 dni), okrągłych liczb dni (100, 200...), miesięcznic i rocznic. Gratulacje pojawiają się na karcie celu i na kokpicie w sekcji <em>Postępy</em>.

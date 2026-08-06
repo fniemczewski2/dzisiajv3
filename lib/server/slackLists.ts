@@ -141,6 +141,8 @@ export function translateSlackError(code: string | undefined): string {
     case "access_denied":
     case "no_permission":
       return "Brak uprawnień do tej listy w Slacku.";
+    case "users_not_found":
+      return "Nie znaleziono użytkownika Slacka o podanym adresie e-mail.";
     case "team_not_found":
       return "Slack Lists wymagają płatnego planu Slacka.";
     case "ratelimited":
@@ -267,6 +269,31 @@ export function findAssigneeColumn(columns: SlackColumn[]): SlackColumn | null {
   );
 }
 
+export async function lookupUserIdByEmail(
+  token: string,
+  email: string
+): Promise<string | null> {
+  try {
+    const body = await callSlackQuery<{ user?: { id?: string } }>(
+      "users.lookupByEmail",
+      token,
+      { email }
+    );
+    return body.user?.id ?? null;
+  } catch (err) {
+    const code = (err as SlackApiError).slackError;
+    if (code === "users_not_found") return null;
+    throw err;
+  }
+}
+
+export function readUserIds(field: SlackItemField | undefined): string[] {
+  if (!field) return [];
+  if (Array.isArray(field.user)) return field.user.filter(Boolean);
+  if (typeof field.value === "string" && field.value.startsWith("U")) return [field.value];
+  return [];
+}
+
 export function buildAssigneeValue(
   column: SlackColumn,
   slackUserId: string | null | undefined
@@ -283,7 +310,6 @@ export interface SlackItemField {
   number?: number[];
   date?: string[];
   select?: string[];
-  // Slack zwraca checkbox jako zwykły boolean (nie tablicę, jak pozostałe typy).
   checkbox?: boolean | boolean[];
   user?: string[];
   value?: string | number | boolean | null;

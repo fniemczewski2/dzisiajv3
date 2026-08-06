@@ -82,7 +82,7 @@ export default function PlaceFilters({
          <button
            onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
            type='button'
-           className="px-4 py-2 rounded-xl transition-colors hover:bg-primary bg-secondary text-white flex items-center justify-center gap-2 h-[42px] min-w-[90px] font-medium"
+           className="px-4 py-2 rounded-xl transition-colors hover:bg-primary bg-secondary text-white flex items-center justify-center gap-2 h-10.5 min-w-22.5 font-medium"
          >
            {viewMode === "map" ? (
              <>Lista <List className="w-5 h-5"/></>
@@ -159,7 +159,7 @@ export default function PlaceFilters({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="min-w-0 max-w-[100%]">
+                <div className="min-w-0 max-w-full">
                   <label htmlFor="filter-start-time" className="form-label">Od godziny:</label>
                   <input
                     id="filter-start-time"
@@ -169,7 +169,7 @@ export default function PlaceFilters({
                     className="input-field py-1.5"
                   />
                 </div>
-                <div className="min-w-0 max-w-[100%]">
+                <div className="min-w-0 max-w-full">
                   <label htmlFor="filter-end-time" className="form-label">Do godziny:</label>
                   <input
                     id="filter-end-time"

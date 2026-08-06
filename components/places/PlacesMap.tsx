@@ -154,7 +154,7 @@ export default function PlacesMap({ places, onPlaceClick }: Readonly<PlacesMapPr
   }
 
   return (
-    <div className="relative w-full h-[600px] rounded-2xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
+    <div className="relative w-full h-150 rounded-2xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
       <div ref={mapRef} className="w-full h-full" />
       {!mapInstance && (
         <div className="absolute inset-0 card flex justify-center items-center rounded-none border-none shadow-none">

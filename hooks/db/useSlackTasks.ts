@@ -23,11 +23,18 @@ export interface SlackListConfig {
   list_title: string | null;
   column_map: Partial<Record<SlackMappableTaskField, string>>;
   is_default: boolean;
+  sync_enabled: boolean;
+  assignee_emails: string[] | null;
 }
 
 interface StatusResponse {
   connections: SlackAccount[];
   lists: SlackListConfig[];
+}
+
+interface SyncResponse {
+  lists?: number;
+  results?: { list_id: string; error?: string; first_error?: string | null }[];
 }
 
 async function callSlackApi<T>(url: string, init?: RequestInit): Promise<T> {
@@ -120,12 +127,17 @@ export function useSlackTasks() {
   );
 
   const addList = useCallback(
-    (connectionId: string, listInput: string, title: string) =>
+    (connectionId: string, listInput: string, title: string, syncEnabled: boolean) =>
       runAction(
         async () => {
           await callSlackApi("/api/slack?action=add-list", {
             method: "POST",
-            body: JSON.stringify({ connection_id: connectionId, list: listInput, title }),
+            body: JSON.stringify({
+              connection_id: connectionId,
+              list: listInput,
+              title,
+              sync_enabled: syncEnabled,
+            }),
           });
           await refresh();
         },
@@ -152,12 +164,24 @@ export function useSlackTasks() {
   );
 
   const saveList = useCallback(
-    (listRowId: string, columnMap: SlackListConfig["column_map"], isDefault: boolean) =>
+    (
+      listRowId: string,
+      columnMap: SlackListConfig["column_map"],
+      isDefault: boolean,
+      syncEnabled: boolean,
+      assigneeEmails: string
+    ) =>
       runAction(
         async () => {
           await callSlackApi("/api/slack?action=save-list", {
             method: "POST",
-            body: JSON.stringify({ list_row_id: listRowId, column_map: columnMap, is_default: isDefault }),
+            body: JSON.stringify({
+              list_row_id: listRowId,
+              column_map: columnMap,
+              is_default: isDefault,
+              sync_enabled: syncEnabled,
+              assignee_emails: assigneeEmails,
+            }),
           });
           await refresh();
         },
@@ -171,12 +195,19 @@ export function useSlackTasks() {
     () =>
       runAction(
         async () => {
-          await callSlackApi("/api/slack/sync", { method: "POST" });
+          const data = await callSlackApi<SyncResponse>("/api/slack/sync", { method: "POST" });
+
+          const problem = (data.results ?? [])
+            .map((result) => result.error ?? result.first_error)
+            .find(Boolean);
+          if (problem) throw new Error(problem);
+
+          await refresh();
         },
         "Zsynchronizowano ze Slackiem.",
         "Synchronizacja nie powiodła się."
       ),
-    [runAction]
+    [runAction, refresh]
   );
 
   return {

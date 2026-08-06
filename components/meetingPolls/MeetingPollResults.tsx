@@ -261,7 +261,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
               <tr>
                 <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left"/>
                 {data.dates.map((d) => (
-                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-[4.5rem]">
+                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-18">
                     {d.split('-')[2] + "." + d.split('-')[1]}
                   </th>
                 ))}

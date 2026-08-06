@@ -208,7 +208,7 @@ export default function WorkLogsPage() {
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
                 
-            <h2 className="text-base sm:text-lg font-bold text-text px-4 min-w-[140px] text-center capitalize tracking-wide">
+            <h2 className="text-base sm:text-lg font-bold text-text px-4 min-w-35 text-center capitalize tracking-wide">
               {format(currentDate, "LLLL yyyy", { locale: pl })}
             </h2>
                 

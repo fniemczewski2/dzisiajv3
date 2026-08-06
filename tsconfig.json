@@ -28,7 +28,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "vitest.config.mts"  ],
   "exclude": [
     "node_modules",
     "supabase",

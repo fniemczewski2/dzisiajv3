@@ -138,7 +138,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
             Import z pliku mBank
           </h3>
         
-        <div className="max-h-[24px] flex items-center">
+        <div className="max-h-6 flex items-center">
         {parsedData.length === 0 && (
           <label className="cursor-pointer p-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg border border-gray-200 dark:border-gray-700 transition-colors flex items-center gap-2 font-medium text-sm">
             <Upload className="w-3.5 h-3.5" />

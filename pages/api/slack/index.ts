@@ -12,6 +12,7 @@ import {
   SLACK_STATE_TTL_SECONDS,
   SLACK_USER_SCOPES,
   SLACK_MAPPABLE_TASK_FIELDS,
+  parseAssigneeEmails,
 } from "@/config/slack";
 
 interface ConnectionRow {
@@ -130,7 +131,9 @@ async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiR
   const connections = await loadConnections(admin, userId);
   const { data: lists, error } = await admin
     .from("slack_lists")
-    .select("id, connection_id, list_id, list_title, column_map, is_default")
+    .select(
+      "id, connection_id, list_id, list_title, column_map, is_default, sync_enabled, assignee_emails"
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
 
@@ -151,7 +154,12 @@ async function handleAddList(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const body = req.body as { connection_id?: string; list?: string; title?: string };
+  const body = req.body as {
+    connection_id?: string;
+    list?: string;
+    title?: string;
+    sync_enabled?: boolean;
+  };
   const listId = extractListId(String(body?.list ?? ""));
   if (!listId) return res.status(400).json({ error: "Nieprawidłowy link lub identyfikator listy." });
   if (!body?.connection_id) return res.status(400).json({ error: "Wskaż konto Slack." });
@@ -171,6 +179,8 @@ async function handleAddList(
     list_title: body.title?.trim() || listId,
     column_map: {},
     is_default: (count ?? 0) === 0,
+    // domyślnie lista jest dwukierunkowa; odznaczenie wyłącza tylko pobieranie
+    sync_enabled: body.sync_enabled ?? true,
   });
 
   if (error) {
@@ -212,7 +222,13 @@ async function handleSaveList(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const body = req.body as { list_row_id?: string; column_map?: unknown; is_default?: boolean };
+  const body = req.body as {
+    list_row_id?: string;
+    column_map?: unknown;
+    is_default?: boolean;
+    sync_enabled?: boolean;
+    assignee_emails?: unknown;
+  };
   if (!body?.list_row_id) return res.status(400).json({ error: "Brak identyfikatora listy." });
 
   const { data } = await admin
@@ -238,6 +254,12 @@ async function handleSaveList(
     .update({
       column_map: columnMap,
       is_default: Boolean(body.is_default),
+      sync_enabled: body.sync_enabled ?? true,
+      assignee_emails: parseAssigneeEmails(
+        Array.isArray(body.assignee_emails)
+          ? body.assignee_emails.join(",")
+          : String(body.assignee_emails ?? "")
+      ),
       updated_at: new Date().toISOString(),
     })
     .eq("id", body.list_row_id);

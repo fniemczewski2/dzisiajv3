@@ -114,13 +114,22 @@ export function extractStationNames(route: string) {
   return { from, to };
 }
 
+class PdfReadError extends Error {
+  constructor(readonly cause: unknown) {
+    super(cause instanceof Error ? cause.message : String(cause));
+  }
+}
+
 async function extractPdfText(dataBuffer: Buffer): Promise<string> {
-  const parser = new PDFParse({ data: dataBuffer });
+  let parser: PDFParse | undefined;
   try {
+    parser = new PDFParse({ data: dataBuffer });
     const result = await parser.getText();
     return result.text;
+  } catch (error) {
+    throw new PdfReadError(error);
   } finally {
-    await parser.destroy();
+    await parser?.destroy().catch(() => undefined);
   }
 }
 
@@ -215,7 +224,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.error('[parse-ticket]:', error);
-    return res.status(500).json({ error: 'Błąd wczytywania PDF. Sprawdź, czy plik nie jest uszkodzony.' });
+
+    if (error instanceof PdfReadError) {
+      return res.status(422).json({
+        error: 'Nie udało się odczytać treści PDF.',
+        detail: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      error: 'Błąd wczytywania PDF. Sprawdź, czy plik nie jest uszkodzony.',
+      detail: error instanceof Error ? error.message : String(error),
+    });
   } finally {
     if (filepath) {
       await fs.unlink(filepath).catch((unlinkErr: unknown) => {

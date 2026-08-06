@@ -113,7 +113,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
       <div className="flex items-center justify-between text-sm text-text mb-4 px-1">
         <span className="font-medium truncate max-w-[40%]" title={train.from}>{train.from}</span>
         <div className="flex-1 border-t-2 border-dashed border-gray-200 dark:border-gray-700 mx-3 relative">
-          <div className="absolute -top-[5px] right-0 w-2 h-2 rounded-full bg-primary"></div>
+          <div className="absolute -top-1.25 right-0 w-2 h-2 rounded-full bg-primary"></div>
         </div>
         <span className="font-medium truncate max-w-[40%] text-right" title={train.to}>{train.to}</span>
       </div>

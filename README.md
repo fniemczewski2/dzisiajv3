@@ -51,7 +51,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 ### 🏃 Styl życia
 - **Nawyki** — 8 codziennych nawyków + tracker wody i nastroju
-- **Cele i pasma (streaks)** z kamieniami milowymi
+- **Postępy (streaks)** z kamieniami milowymi
 - **Trening interwałowy** (HIIT/Tabata) z Wake Lock
 - **Pogoda** — prognoza godzinowa/5-dniowa, autorski wskaźnik biometeorologiczny, jakość powietrza (Open-Meteo)
 - **Transport miejski** — tablice odjazdów na żywo (GPS lub ulubione przystanki) + śledzenie pociągów PKP
