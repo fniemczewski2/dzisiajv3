@@ -12,9 +12,13 @@ const supabaseHostname = getSupabaseHostname();
 
 const nextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ["pdf-parse"],
+  serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   outputFileTracingIncludes: {
-    "/api/transport/parse-ticket": ["./node_modules/pdf-parse/dist/**/*"],
+    "/api/transport/parse-ticket": [
+      "./node_modules/pdf-parse/dist/**/*",
+      "./node_modules/@napi-rs/canvas/**/*",
+      "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
+    ],
   },
   images: {
     remotePatterns: [

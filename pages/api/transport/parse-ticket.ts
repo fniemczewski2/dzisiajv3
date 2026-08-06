@@ -5,6 +5,7 @@ import formidable from 'formidable';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import { createServerSupabase } from '@/lib/supabase/server';
+import { ensurePdfCanvasGlobals } from '@/lib/server/pdfCanvasGlobals';
 import { TICKET_UPLOAD_MAX_BYTES, TICKET_ALLOWED_MIME } from '@/config/limits';
 
 export const config = { api: { bodyParser: false }, maxDuration: 30 };
@@ -122,6 +123,13 @@ class PdfReadError extends Error {
 async function extractPdfText(dataBuffer: Buffer): Promise<string> {
   let parser: { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } | undefined;
   try {
+    // Kolejność jest istotna: pdfjs sięga po DOMMatrix już przy ładowaniu
+    // modułu, więc globalne obiekty muszą istnieć PRZED importem pdf-parse.
+    await ensurePdfCanvasGlobals();
+
+    // Import w środku funkcji, a nie na górze pliku: dzięki temu błąd ładowania
+    // wpada tutaj i wraca jako JSON. Import na poziomie modułu wywracał całą
+    // funkcję, a klient dostawał stronę błędu HTML.
     const { PDFParse } = await import('pdf-parse');
     parser = new PDFParse({ data: dataBuffer });
     const result = await parser.getText();
