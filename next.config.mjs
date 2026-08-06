@@ -16,6 +16,10 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/api/transport/parse-ticket": [
       "./node_modules/pdf-parse/dist/**/*",
+      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+      "./node_modules/pdfjs-dist/legacy/build/pdf.mjs",
+      "./node_modules/pdfjs-dist/standard_fonts/**/*",
+      "./node_modules/pdfjs-dist/cmaps/**/*",
       "./node_modules/@napi-rs/canvas/**/*",
       "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
     ],
