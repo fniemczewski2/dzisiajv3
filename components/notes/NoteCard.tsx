@@ -70,8 +70,8 @@ export default function NoteCard({
   return (
     <li
       className={clsx(
-        "break-inside-avoid p-4 max-w-sm min-w-[300px] rounded-2xl shadow-sm flex flex-col justify-start border transition-all duration-200 hover:shadow-md max-h-fit mt-4 first:mt-0",
-        colorMap[note.bg_color] || "card border-gray-200 dark:border-gray-700",
+        "break-inside-avoid p-4 max-w-sm min-w-75 rounded-2xl shadow-sm flex flex-col justify-start border card border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md max-h-fit mt-4 first:mt-0",
+        colorMap[note.bg_color],
         note.archived && "opacity-60 grayscale-[0.3]"
       )}
     >

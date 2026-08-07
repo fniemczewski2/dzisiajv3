@@ -62,7 +62,7 @@
     --theme-secondary: #1e3A8A;
     --theme-accent: #FBBF24;
     --theme-background: hsl(222, 47%, 6%);
-    --theme-card: hsl(217, 33%, 10%);
+    --theme-card: oklab(20.702% -0.00498 -0.02213);
     --theme-text: #F8FAFC;             
     --theme-text-secondary: #CBD5E1;   
     --theme-text-muted: #94A3B8;
