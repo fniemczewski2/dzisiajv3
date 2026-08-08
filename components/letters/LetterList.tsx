@@ -6,7 +6,7 @@ import { useLetters } from "@/hooks/db/useLetters";
 import { EditButton, DeleteButton, FormButtons, CopyButtonSmall } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import SearchBar from "../ui/SearchBar";
-import type { Letter, LetterFileKind } from "@/types/letters";
+import type { Letter, LetterCategory, LetterFileKind } from "@/types/letters";
 
 interface LetterListProps {
   refreshToken?: number;
@@ -15,8 +15,9 @@ function FileSlot({
   label,
   path,
   letterId,
+  category,
   kind,
-}: Readonly<{ label: string; path: string | null; letterId: string; kind: LetterFileKind }>) {
+}: Readonly<{ label: string; path: string | null; letterId: string; category: LetterCategory, kind: LetterFileKind }>) {
   const { uploadLetterFile, getLetterFileUrl } = useLetters();
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +28,7 @@ function FileSlot({
     if (!file) return;
     setBusy(true);
     try {
-      await uploadLetterFile(letterId, kind, file);
+      await uploadLetterFile(letterId, category, kind, file);
     } finally {
       setBusy(false);
     }
@@ -292,8 +293,8 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   )}
 
                   <div className="space-y-2 py-2 border-y border-gray-100 dark:border-gray-800">
-                    <FileSlot label="Pismo" path={l.letter_file_path} letterId={l.id} kind="letter" />
-                    <FileSlot label="Odpowiedź" path={l.response_file_path} letterId={l.id} kind="response" />
+                    <FileSlot label="Pismo" path={l.letter_file_path} letterId={l.id} category={l.category} kind="letter" />
+                    <FileSlot label="Odpowiedź" path={l.response_file_path} letterId={l.id} category={l.category} kind="response" />
                   </div>
 
                   <div className="flex justify-end w-full gap-1.5 pt-2">

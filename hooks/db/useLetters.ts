@@ -35,8 +35,29 @@ export function suggestResponseDate(category: LetterCategory, issueDate: string)
   return d.toISOString().slice(0, 10);
 }
 
-function storagePath(userId: string, letterId: string, kind: LetterFileKind): string {
-  return `${userId}/${letterId}/${kind === "letter" ? "letter" : "response"}.pdf`;
+function getLetterType(category: LetterCategory, kind: LetterFileKind): string {
+  if (kind === "letter") {
+    switch(category){
+      case "Wykroczenie": 
+      case "Wykroczenie drogowe":
+      case "Przestępstwo": 
+        return "zawiadomienie"
+      case "Wniosek":
+      case "UDIP": 
+        return "wniosek"
+      case "Skarga":
+        return "skarga"
+      default: return "pismo"
+    }
+  } 
+  if (kind === "response") {
+    return "odpowiedz"
+  }
+  return "inne"
+}
+
+function storagePath(userId: string, letterId: string, category: LetterCategory, kind: LetterFileKind): string {
+  return `${userId}.${letterId}.${getLetterType(category, kind)}.pdf`;
 }
 
 export function useLetters() {
@@ -75,7 +96,7 @@ export function useLetters() {
         category_code: code,
         sequence_number: 0,
         sequence_year: d.getFullYear(),
-        signature: `…/${mm}/${yyyy}/${code}`,
+        signature: `….${mm}.${yyyy}.${code}`,
         issue_date: payload.issue_date,
         response_date: payload.response_date ?? null,
         recipient: payload.recipient,
@@ -118,7 +139,7 @@ export function useLetters() {
   );
 
   const uploadLetterFile = useCallback(
-    async (letterId: string, kind: LetterFileKind, file: File): Promise<void> => {
+    async (letterId: string, category: LetterCategory, kind: LetterFileKind, file: File): Promise<void> => {
       if (!userId) throw new Error("Unauthorized");
 
       if (file.type !== "application/pdf") {
@@ -130,7 +151,7 @@ export function useLetters() {
         return;
       }
 
-      const path = storagePath(userId, letterId, kind);
+      const path = storagePath(userId, letterId, category, kind);
       const { error: uploadError } = await supabase.storage
         .from("letters")
         .upload(path, file, { upsert: true, contentType: "application/pdf" });
