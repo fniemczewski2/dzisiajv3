@@ -72,6 +72,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const rollbackRef = useRef<Task[]>([]);
   const fetchSeqRef = useRef(0);
   const freshDataRef = useRef(false);
+  const pendingDeleteIdsRef = useRef<Set<string>>(new Set());
 
   const cacheKey = userId ? `tasks:${userId}:${dateFrom ?? ""}:${dateTo ?? ""}` : null;
 
@@ -90,6 +91,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     if (!comparator) return rawTasks;
     return [...rawTasks].sort(comparator);
   }, [rawTasks, comparator]);
+
+  const applyPendingDeletes = useCallback((list: Task[]) => {
+    if (pendingDeleteIdsRef.current.size === 0) return list;
+    return list.filter((t) => !pendingDeleteIdsRef.current.has(String(t.id)));
+  }, []);
 
   const fetchTasks = useCallback(async (): Promise<Task[]> => {
     if (!settings || !userId) return [];
@@ -116,8 +122,9 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       }));
       if (seq === fetchSeqRef.current) {
         freshDataRef.current = true;
-        setRawTasks(tasksWithDisplayInfo);
-        if (cacheKey) void writeCache(cacheKey, tasksWithDisplayInfo);
+        const visibleTasks = applyPendingDeletes(tasksWithDisplayInfo);
+        setRawTasks(visibleTasks);
+        if (cacheKey) void writeCache(cacheKey, visibleTasks);
       }
       return tasksWithDisplayInfo;
     } catch (err) {
@@ -131,7 +138,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setFetching(false);
       }
     }
-  }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry, cacheKey, getSignal]);
+  }, [supabase, userId, settings, dateFrom, dateTo, toast, withRetry, cacheKey, getSignal, applyPendingDeletes]);
 
   useEffect(() => {
     if (!cacheKey) return;
@@ -139,10 +146,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     let cancelled = false;
     void readCache<Task[]>(cacheKey).then((cached) => {
       if (cancelled || !cached || freshDataRef.current) return;
-      setRawTasks(cached);
+      setRawTasks(applyPendingDeletes(cached));
     });
     return () => { cancelled = true; };
-  }, [cacheKey]);
+  }, [cacheKey, applyPendingDeletes]);
 
   const addTask = useCallback(
     async (task: TaskInput): Promise<Task | undefined> => {
@@ -178,9 +185,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
         setRawTasks((prev) => prev.map((t) => (t.id === tempId ? (data as Task) : t)));
         toast.success("Dodano zadanie");
-        // Dla kategorii "slack" synchronizację odpala formularz - dopiero po
-        // zapisaniu wybranej listy. Uruchomiona tutaj trafiłaby na listę
-        // domyślną, bo slack_task_targets jeszcze nie istnieje.
         if (taskData.category !== SLACK_TASK_CATEGORY) triggerSlackSync();
         return data as Task;
       } catch {
@@ -251,8 +255,16 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     },
     [supabase, userId, toast, withRetry]
   );
-
+  
   const pendingDeletes = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
+  useEffect(() => {
+    return () => {
+      pendingDeletes.current.forEach((timer) => clearTimeout(timer));
+      pendingDeletes.current.clear();
+      pendingDeleteIdsRef.current.clear();
+    };
+  }, []);
 
   const deleteTask = useCallback(
     async (id: string) => {
@@ -260,10 +272,18 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         throw new Error("Unauthorized");
       }
       const snapshot = rawTasks;
+
+      const ok = await toast.confirm("Czy chcesz usunąć zadanie?");
+      if (!ok) return;
       const removed = snapshot.find((t) => t.id === id);
       if (!removed) return;
-
+      pendingDeleteIdsRef.current.add(String(id));
       setRawTasks((prev) => prev.filter((t) => t.id !== id));
+
+      if (pendingDeletes.current.has(id)) {
+        clearTimeout(pendingDeletes.current.get(id));
+        pendingDeletes.current.delete(id);
+      }
 
       const timer = setTimeout(() => {
         pendingDeletes.current.delete(id);
@@ -272,9 +292,16 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             supabase.from("tasks").delete().eq("id", id)
           );
           if (error) {
-            setRawTasks((prev) => [...prev, removed]);
+            pendingDeleteIdsRef.current.delete(String(id));
+            setRawTasks((prev) => {
+              if (prev.some((t) => t.id === id)) return prev;
+              return [...prev, removed];
+            });
             toast.error("Błąd usuwania zadania.");
+            return;
           }
+          pendingDeleteIdsRef.current.delete(String(id));
+          triggerSlackSync();
         })();
       }, UNDO_WINDOW_MS);
 
@@ -289,12 +316,16 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
             if (pending) {
               clearTimeout(pending);
               pendingDeletes.current.delete(id);
-              setRawTasks((prev) => [...prev, removed]);
+              pendingDeleteIdsRef.current.delete(String(id));
+
+              setRawTasks((prev) => {
+                if (prev.some((t) => t.id === id)) return prev;
+                return [...prev, removed];
+              });
             }
           },
         },
       });
-      triggerSlackSync();
     },
     [supabase, userId, toast, withRetry, rawTasks]
   );
