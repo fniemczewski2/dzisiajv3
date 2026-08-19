@@ -1,5 +1,10 @@
 -- supabase/migrations/20260731000000_add_missing_indexes.sql
-begin;
+--
+-- CREATE INDEX CONCURRENTLY cannot run inside a transaction block — these
+-- statements must NOT be wrapped in begin/commit (each one auto-commits on
+-- its own). Originally this file wrapped them in begin/commit, which fails
+-- outright with "CREATE INDEX CONCURRENTLY cannot run inside a transaction
+-- block", aborting the whole script before the RLS fix below ever ran.
 
 -- Indeksy pod filtry z hooks/db/* — kolejność kolumn zgodna z kolejnością
 -- warunków w zapytaniach (user_id jest zawsze pierwszy).
@@ -23,8 +28,6 @@ create index concurrently if not exists push_subscriptions_user_idx on public.pu
 create index concurrently if not exists places_user_idx            on public.places (user_id);
 create index concurrently if not exists connected_calendars_user_idx on public.connected_calendars (user_id);
 create index concurrently if not exists meeting_polls_share_token_idx on public.meeting_polls (share_token);
-
-commit;
 
 begin;
 
