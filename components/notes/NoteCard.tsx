@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { Pin, Archive } from "lucide-react";
 import { Note } from "@/types/notes";
 import { formatTime } from "@/lib/dateUtils";
-import { sanitizeHref } from "@/lib/sanitize";
+import { groupNoteLines, renderNoteLineContent } from "@/lib/noteFormatting";
 import { ArchiveButton, DeleteButton, EditButton, PinButton } from "../ui/CommonButtons";
 
 interface NoteCardProps {
@@ -25,48 +25,6 @@ export default function NoteCard({
   onToggleArchive,
   colorMap,
 }: Readonly<NoteCardProps>) {
-  const renderWithLinks = (text: string, partPrefix: string) => {
-    if (!text) return null;
-
-    const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/gi;
-
-    if (text.length > 5000) {
-      return <span>{text.substring(0, 5000)}... (Text too long)</span>;
-    }
-
-    return text.split(urlRegex).map((part) => {
-      if (!part) return null;
-      
-      const partKey = `${partPrefix}-p-${part.substring(0, 10)}-${part}`;
-
-      if (/^(https?:\/\/|www\.)/i.test(part)) {
-        const safeHref = sanitizeHref(part);
-
-        if (!safeHref) {
-          return <span key={partKey}>{part}</span>;
-        }
-
-        const displayText = safeHref
-          .replace(/^https?:\/\//, "")
-          .replace(/^www\./, "");
-
-        return (
-          <a
-            key={partKey}
-            href={safeHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:text-secondary underline font-medium transition-colors"
-          >
-            {displayText}
-          </a>
-        );
-      }
-
-      return <span key={partKey}>{part}</span>;
-    });
-  };
-
   return (
     <li
       className={clsx(
@@ -97,25 +55,42 @@ export default function NoteCard({
       </div>
 
       {!note.archived && (
-        note.items.length === 1 ? (
-          <p className="text-sm text-textSecondary leading-relaxed my-2">
-            {renderWithLinks(note.items[0], "single")}
-          </p>
-        ) : (
-          <ul className="list-disc pl-5 my-2 space-y-1.5">
-            {note.items.map((item, _i) => {
-              const itemKey = `${note.id}-item-${item}`;
+        <div className="my-2 space-y-1.5">
+          {groupNoteLines(note.items).map((block, blockIndex) => {
+            const blockKey = `${note.id}-block-${blockIndex}`;
+            const itemClass = "text-sm text-textSecondary leading-relaxed marker:text-textMuted";
+
+            if (block.kind === "bullet") {
               return (
-                <li
-                  key={itemKey}
-                  className="text-sm text-textSecondary leading-relaxed marker:text-textMuted"
-                >
-                  {renderWithLinks(item, itemKey)}
-                </li>
+                <ul key={blockKey} className="list-disc pl-5 space-y-1">
+                  {block.lines.map((line, lineIndex) => (
+                    <li key={`${blockKey}-${lineIndex}`} className={itemClass}>
+                      {renderNoteLineContent(line, `${blockKey}-${lineIndex}`)}
+                    </li>
+                  ))}
+                </ul>
               );
-            })}
-          </ul>
-        )
+            }
+
+            if (block.kind === "number") {
+              return (
+                <ol key={blockKey} className="list-decimal pl-5 space-y-1">
+                  {block.lines.map((line, lineIndex) => (
+                    <li key={`${blockKey}-${lineIndex}`} className={itemClass}>
+                      {renderNoteLineContent(line, `${blockKey}-${lineIndex}`)}
+                    </li>
+                  ))}
+                </ol>
+              );
+            }
+
+            return (
+              <p key={blockKey} className="text-sm text-textSecondary leading-relaxed">
+                {renderNoteLineContent(block.lines[0], blockKey)}
+              </p>
+            );
+          })}
+        </div>
       )}
 
       <div className="relative flex justify-end gap-1.5 flex-wrap mt-auto pt-3">

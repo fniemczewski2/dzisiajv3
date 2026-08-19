@@ -1,9 +1,12 @@
 ﻿// components/notes/NoteEditForm.tsx
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, KeyboardEvent } from "react";
 import clsx from "clsx";
 import { Note } from "@/types/notes";
 import { FormButtons } from "../ui/CommonButtons";
+import NoteFormatToolbar from "./NoteFormatToolbar";
+import { normalizeNoteLine } from "@/lib/notesUtils";
+import { handleListContinuation } from "@/lib/noteEditing";
 
 interface NoteEditFormProps {
   note: Note;
@@ -39,19 +42,17 @@ export default function NoteEditForm({
 
     const normalizedItems = itemsRef.current.value
       .split("\n")
-      .map((line) => {
-        let cleaned = line.trim();
-        const urlRegex = /^(https?:\/\/)?([\w.-]+\.[a-z]{2,})(\/\S*)?$/i;
-        if (urlRegex.test(cleaned)) {
-          if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
-            cleaned = "https://" + cleaned;
-          }
-        }
-        return cleaned;
-      })
+      .map(normalizeNoteLine)
       .filter(Boolean);
 
     onSave({ ...note, items: normalizedItems });
+  };
+
+  const handleTextareaKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== "Enter") return;
+    if (handleListContinuation(e.currentTarget)) {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -74,11 +75,15 @@ export default function NoteEditForm({
         </div>
         <div>
           <label className="form-label" htmlFor="desc">Treść:</label>
-          <textarea 
-            id="desc" 
+          <div className="mb-2">
+            <NoteFormatToolbar textareaRef={itemsRef} disabled={loading} />
+          </div>
+          <textarea
+            id="desc"
             ref={itemsRef}
+            onKeyDown={handleTextareaKeyDown}
             defaultValue={note.items.join("\n")}
-            placeholder="Wpisz listę rzeczy..."
+            placeholder="Notatka… linki wklejone w tekście stają się klikalne automatycznie"
             className="input-field bg-white/50 dark:bg-black/20 h-32"
           />
         </div>

@@ -1,11 +1,14 @@
 ﻿// components/notes/NoteForm.tsx
 
-import React, { useRef, useState, SyntheticEvent } from "react";
+import React, { useRef, useState, SyntheticEvent, KeyboardEvent } from "react";
 import clsx from "clsx";
 import { Note } from "@/types/notes";
 import { useNotes } from "@/hooks/db/useNotes";
 import { useAuth } from "@/providers/AuthProvider";
 import { FormButtons } from "../ui/CommonButtons";
+import NoteFormatToolbar from "./NoteFormatToolbar";
+import { normalizeNoteLine } from "@/lib/notesUtils";
+import { handleListContinuation } from "@/lib/noteEditing";
 
 interface NoteFormProps {
   onChange: () => void;
@@ -29,13 +32,11 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
 
   const tailwindColors = Object.keys(COLOR_MAP);
 
-  const normalizeItem = (line: string) => {
-    let cleaned = line.trim();
-    const urlRegex = /^(https?:\/\/)?([\w.-]+\.[a-z]{2,})(\/\S*)?$/i;
-    if (urlRegex.test(cleaned) && !cleaned.startsWith("http")) {
-      cleaned = "https://" + cleaned;
+  const handleTextareaKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== "Enter") return;
+    if (handleListContinuation(e.currentTarget)) {
+      e.preventDefault();
     }
-    return cleaned;
   };
 
   const handleSubmit = async (e: SyntheticEvent) => {
@@ -43,7 +44,7 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
     const title = titleRef.current?.value.trim() || "";
     const items = (itemsRef.current?.value || "")
       .split("\n")
-      .map(normalizeItem)
+      .map(normalizeNoteLine)
       .filter(Boolean);
 
     const payload: Note = {
@@ -68,8 +69,12 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
       </div>
       <div>
         <label className="form-label" htmlFor="desc">Treść:</label>
+        <div className="mb-2">
+          <NoteFormatToolbar textareaRef={itemsRef} disabled={loading} />
+        </div>
         <textarea id="desc" ref={itemsRef}
-          placeholder="Pozycje listy (jeden element na linię)"
+          onKeyDown={handleTextareaKeyDown}
+          placeholder="Notatka… linki wklejone w tekście stają się klikalne automatycznie"
           className="input-field min-h-[120px]" required disabled={loading} />
       </div>
       <div className="flex flex-col gap-2 justify-center">
