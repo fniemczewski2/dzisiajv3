@@ -19,6 +19,37 @@ function addDays(dateStr: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+type RollOutcome = "skipped" | "finished" | "rolled" | "failed";
+
+async function rollRecurringTask(
+  supabase: ReturnType<typeof createClient>,
+  task: RecurringTask
+): Promise<RollOutcome> {
+  if (!task.repeat_days || task.repeat_days <= 0) return "skipped";
+
+  const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
+  const base = doneDate && task.due_date
+    ? (doneDate > task.due_date ? doneDate : task.due_date)
+    : (doneDate ?? task.due_date);
+  if (!base) return "skipped";
+
+  const nextDue = addDays(base, task.repeat_days);
+
+  if (task.recurring_until && nextDue > task.recurring_until) {
+    const { error: stopError } = await supabase
+      .from("tasks")
+      .update({ is_recurring: false })
+      .eq("id", task.id);
+    return stopError ? "failed" : "finished";
+  }
+
+  const { error: rollError } = await supabase
+    .from("tasks")
+    .update({ status: "pending", due_date: nextDue })
+    .eq("id", task.id);
+  return rollError ? "failed" : "rolled";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (!verifyCronSecret(req)) return unauthorized();
@@ -45,35 +76,10 @@ Deno.serve(async (req) => {
       // error on one row (not just a returned `error` field) doesn't abort
       // processing of the remaining recurring tasks in this run.
       try {
-        if (!task.repeat_days || task.repeat_days <= 0) continue;
-
-        const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
-        let base: string | null;
-        if (doneDate && task.due_date) {
-          base = doneDate > task.due_date ? doneDate : task.due_date;
-        } else {
-          base = doneDate ?? task.due_date;
-        }
-        if (!base) continue;
-
-        const nextDue = addDays(base, task.repeat_days);
-
-        if (task.recurring_until && nextDue > task.recurring_until) {
-          const { error: stopError } = await supabase
-            .from("tasks")
-            .update({ is_recurring: false })
-            .eq("id", task.id);
-          if (!stopError) finished.push(task.title);
-          else failed.push(task.title);
-          continue;
-        }
-
-        const { error: rollError } = await supabase
-          .from("tasks")
-          .update({ status: "pending", due_date: nextDue })
-          .eq("id", task.id);
-        if (!rollError) rolled.push(task.title);
-        else failed.push(task.title);
+        const outcome = await rollRecurringTask(supabase, task);
+        if (outcome === "rolled") rolled.push(task.title);
+        else if (outcome === "finished") finished.push(task.title);
+        else if (outcome === "failed") failed.push(task.title);
       } catch (taskErr) {
         console.error("process-reminders: task failed", task.id, taskErr);
         failed.push(task.title);

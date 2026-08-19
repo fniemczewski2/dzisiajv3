@@ -234,6 +234,111 @@ async function buildGroup(
   return group;
 }
 
+async function resolveNamedStopGroup(
+  supabase: ReturnType<typeof createClient>,
+  stop: string | FavoriteStop
+): Promise<StopGroup | null> {
+  const name = typeof stop === "string" ? stop : stop.name;
+  const zone = typeof stop === "string" ? "AUTO" : (stop.zone_id ?? "AUTO");
+  if (!name) return null;
+  if (zone !== "AUTO" && zone !== SZCZECIN_ZONE && !POZNAN_ZONES.has(zone)) return null;
+
+  const cleanName = escapeIlike(cleanStopNameForDb(name));
+  const { data } = await supabase
+    .from("stops")
+    .select("stop_code, stop_name, zone_id")
+    .ilike("stop_name", `%${cleanName}%`);
+
+  const rows = (data ?? []) as Pick<StopRow, "stop_code" | "stop_name" | "zone_id">[];
+  if (rows.length === 0) return null;
+
+  const bollardResults = await Promise.all(
+    rows
+      .filter((b) => b.stop_code)
+      .map((b) => fetchBollard(b.stop_code as string, b.zone_id))
+  );
+  const bollards = bollardResults.filter((b): b is Bollard => b !== null);
+
+  return bollards.length > 0
+    ? { stop_name: name, zone_id: zone, bollards } satisfies StopGroup
+    : null;
+}
+
+async function handleStopNamesRequest(
+  supabase: ReturnType<typeof createClient>,
+  stopNames: (string | FavoriteStop)[]
+): Promise<Response> {
+  const results = await Promise.all(
+    stopNames.map((stop) => resolveNamedStopGroup(supabase, stop))
+  );
+
+  return new Response(
+    JSON.stringify({ success: results.filter((g): g is StopGroup => g !== null) }),
+    { headers: jsonHeaders }
+  );
+}
+
+function groupNearbyStops(
+  dbStops: StopRow[],
+  lat: number,
+  lon: number
+): { name: string; zone: string; distance: number }[] {
+  const localGroups = new Map<string, { name: string; zone: string; distance: number }>();
+  for (const s of dbStops) {
+    const dist = calculateDistance(lat, lon, s.stop_lat, s.stop_lon);
+    if (dist > NEARBY_RADIUS_M) continue;
+    const norm = normalizeName(s.stop_name);
+    const existing = localGroups.get(norm);
+    if (!existing || dist < existing.distance) {
+      localGroups.set(norm, { name: s.stop_name, zone: s.zone_id ?? "AUTO", distance: dist });
+    }
+  }
+  return Array.from(localGroups.values())
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, MAX_NEARBY_GROUPS);
+}
+
+async function handleNearbyRequest(
+  supabase: ReturnType<typeof createClient>,
+  lat: number,
+  lon: number
+): Promise<Response> {
+  const dLat = 0.015;
+  const dLon = 0.025;
+
+  const { data } = await supabase
+    .from("stops")
+    .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
+    .gte("stop_lat", lat - dLat)
+    .lte("stop_lat", lat + dLat)
+    .gte("stop_lon", lon - dLon)
+    .lte("stop_lon", lon + dLon);
+
+  const dbStops = (data ?? []) as StopRow[];
+  if (dbStops.length === 0) {
+    return new Response(
+      JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }),
+      { headers: jsonHeaders }
+    );
+  }
+
+  const sortedGroups = groupNearbyStops(dbStops, lat, lon);
+
+  const nearbyResults = await Promise.all(
+    sortedGroups.map((item) => buildGroup(supabase, item.name, item.zone, item.distance))
+  );
+  const finalSuccess = nearbyResults.filter((g): g is StopGroup => g !== null);
+
+  return new Response(
+    JSON.stringify(
+      finalSuccess.length > 0
+        ? { success: finalSuccess }
+        : { success: [], message: "Brak aktywnych kursów w okolicy." }
+    ),
+    { headers: jsonHeaders }
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -266,89 +371,11 @@ Deno.serve(async (req) => {
     );
 
     if (stopNames && Array.isArray(stopNames)) {
-      const results = await Promise.all(
-        stopNames.map(async (stop) => {
-          const name = typeof stop === "string" ? stop : stop.name;
-          const zone = typeof stop === "string" ? "AUTO" : (stop.zone_id ?? "AUTO");
-          if (!name) return null;
-          if (zone !== "AUTO" && zone !== SZCZECIN_ZONE && !POZNAN_ZONES.has(zone)) return null;
-
-          const cleanName = escapeIlike(cleanStopNameForDb(name));
-          const { data } = await supabase
-            .from("stops")
-            .select("stop_code, stop_name, zone_id")
-            .ilike("stop_name", `%${cleanName}%`);
-
-          const rows = (data ?? []) as Pick<StopRow, "stop_code" | "stop_name" | "zone_id">[];
-          if (rows.length === 0) return null;
-
-          const bollardResults = await Promise.all(
-            rows
-              .filter((b) => b.stop_code)
-              .map((b) => fetchBollard(b.stop_code as string, b.zone_id))
-          );
-          const bollards = bollardResults.filter((b): b is Bollard => b !== null);
-
-          return bollards.length > 0
-            ? { stop_name: name, zone_id: zone, bollards } satisfies StopGroup
-            : null;
-        })
-      );
-
-      return new Response(
-        JSON.stringify({ success: results.filter((g): g is StopGroup => g !== null) }),
-        { headers: jsonHeaders }
-      );
+      return await handleStopNamesRequest(supabase, stopNames);
     }
 
     if (lat && lon) {
-      const dLat = 0.015;
-      const dLon = 0.025;
-
-      const { data } = await supabase
-        .from("stops")
-        .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
-        .gte("stop_lat", lat - dLat)
-        .lte("stop_lat", lat + dLat)
-        .gte("stop_lon", lon - dLon)
-        .lte("stop_lon", lon + dLon);
-
-      const dbStops = (data ?? []) as StopRow[];
-      if (dbStops.length === 0) {
-        return new Response(
-          JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }),
-          { headers: jsonHeaders }
-        );
-      }
-
-      const localGroups = new Map<string, { name: string; zone: string; distance: number }>();
-      for (const s of dbStops) {
-        const dist = calculateDistance(lat, lon, s.stop_lat, s.stop_lon);
-        if (dist > NEARBY_RADIUS_M) continue;
-        const norm = normalizeName(s.stop_name);
-        const existing = localGroups.get(norm);
-        if (!existing || dist < existing.distance) {
-          localGroups.set(norm, { name: s.stop_name, zone: s.zone_id ?? "AUTO", distance: dist });
-        }
-      }
-
-      const sortedGroups = Array.from(localGroups.values())
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, MAX_NEARBY_GROUPS);
-
-      const nearbyResults = await Promise.all(
-        sortedGroups.map((item) => buildGroup(supabase, item.name, item.zone, item.distance))
-      );
-      const finalSuccess = nearbyResults.filter((g): g is StopGroup => g !== null);
-
-      return new Response(
-        JSON.stringify(
-          finalSuccess.length > 0
-            ? { success: finalSuccess }
-            : { success: [], message: "Brak aktywnych kursów w okolicy." }
-        ),
-        { headers: jsonHeaders }
-      );
+      return await handleNearbyRequest(supabase, lat, lon);
     }
 
     return new Response(JSON.stringify({ success: [] }), { headers: jsonHeaders });
