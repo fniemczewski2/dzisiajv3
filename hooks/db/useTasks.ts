@@ -266,6 +266,26 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     };
   }, []);
 
+  // Commits a soft-deleted task after the undo window expires. Pulled out of
+  // deleteTask's setTimeout callback (was a nested IIFE inside it) purely to
+  // keep the function-nesting depth down.
+  const commitDelete = useCallback(
+    async (id: string, removed: Task) => {
+      const { error } = await withRetry(async () =>
+        supabase.from("tasks").delete().eq("id", id)
+      );
+      if (error) {
+        pendingDeleteIdsRef.current.delete(String(id));
+        setRawTasks((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removed]));
+        toast.error("Błąd usuwania zadania.");
+        return;
+      }
+      pendingDeleteIdsRef.current.delete(String(id));
+      triggerSlackSync();
+    },
+    [supabase, withRetry, toast]
+  );
+
   const deleteTask = useCallback(
     async (id: string) => {
       if (!userId) {
@@ -287,22 +307,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
       const timer = setTimeout(() => {
         pendingDeletes.current.delete(id);
-        void (async () => {
-          const { error } = await withRetry(async () =>
-            supabase.from("tasks").delete().eq("id", id)
-          );
-          if (error) {
-            pendingDeleteIdsRef.current.delete(String(id));
-            setRawTasks((prev) => {
-              if (prev.some((t) => t.id === id)) return prev;
-              return [...prev, removed];
-            });
-            toast.error("Błąd usuwania zadania.");
-            return;
-          }
-          pendingDeleteIdsRef.current.delete(String(id));
-          triggerSlackSync();
-        })();
+        void commitDelete(id, removed);
       }, UNDO_WINDOW_MS);
 
       pendingDeletes.current.set(id, timer);
@@ -327,7 +332,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         },
       });
     },
-    [supabase, userId, toast, withRetry, rawTasks]
+    [supabase, userId, toast, withRetry, rawTasks, commitDelete]
   );
 
   const acceptTask = useCallback(

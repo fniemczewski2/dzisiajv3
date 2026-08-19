@@ -8,6 +8,60 @@ import { useAbortController } from '@/hooks/useAbortController';
 import { isAbortError } from '@/lib/abortUtils';
 import { ConnectedAccount, ExternalCalendar } from '@/types/events';
 
+type Provider = 'google' | 'outlook';
+
+// The Google and Outlook branches of fetchAccountsAndCalendars were
+// near-identical (find primary account -> call list-calendars -> map the
+// response), just swapping provider-specific strings — this is that shared
+// logic, called once per provider instead of duplicated inline.
+async function fetchProviderCalendars(
+  provider: Provider,
+  fetchedAccounts: ConnectedAccount[],
+  accessToken: string,
+  signal: AbortSignal,
+  withRetry: ReturnType<typeof useRetry>,
+  toast: ReturnType<typeof useToast>['toast']
+): Promise<ExternalCalendar[]> {
+  const primaryAccount =
+    fetchedAccounts.find((acc) => acc.provider === provider && acc.google_calendar_id === '@account_connection') ||
+    fetchedAccounts.find((acc) => acc.provider === provider);
+  if (!primaryAccount) return [];
+
+  const endpoint = provider === 'google' ? '/api/google-calendar' : '/api/outlook-calendar';
+  const errorMessage = provider === 'google' ? "Błąd kalendarzy Google." : "Błąd kalendarzy Outlook.";
+
+  try {
+    const res = await withRetry(
+      async () =>
+        fetch(`${endpoint}?action=list-calendars`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          signal,
+        }),
+      signal
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.calendars) return [];
+
+    return data.calendars.map((cal: ExternalCalendar) => {
+      const dbMatch = fetchedAccounts.find(
+        (acc) => acc.account_email === primaryAccount.account_email && acc.google_calendar_id === cal.id
+      );
+      return {
+        id: cal.id,
+        summary: cal.summary,
+        primary: cal.primary,
+        accountId: dbMatch ? dbMatch.id : undefined,
+        primaryAccountId: primaryAccount.id,
+      };
+    });
+  } catch (err) {
+    if (isAbortError(err)) throw err;
+    toast.error(errorMessage);
+    return [];
+  }
+}
+
 export function useConnectedCalendars(expanded: boolean) {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
@@ -53,81 +107,9 @@ export function useConnectedCalendars(expanded: boolean) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) return;
 
-        let combinedCalendars: ExternalCalendar[] = [];
-
-        const primaryGoogleAccount =
-          fetchedAccounts.find((acc) => acc.provider === 'google' && acc.google_calendar_id === '@account_connection') ||
-          fetchedAccounts.find((acc) => acc.provider === 'google');
-        if (primaryGoogleAccount) {
-          try {
-            const res = await withRetry(
-              async () =>
-                fetch('/api/google-calendar?action=list-calendars', {
-                  headers: { Authorization: `Bearer ${session.access_token}` },
-                  signal,
-                }),
-              signal
-            );
-            if (res.ok) {
-              const data = await res.json();
-              if (data.calendars) {
-                const googleCals = data.calendars.map((cal: ExternalCalendar) => {
-                  const dbMatch = fetchedAccounts.find(
-                    (acc) => acc.account_email === primaryGoogleAccount.account_email && acc.google_calendar_id === cal.id
-                  );
-                  return {
-                    id: cal.id,
-                    summary: cal.summary,
-                    primary: cal.primary,
-                    accountId: dbMatch ? dbMatch.id : undefined,
-                    primaryAccountId: primaryGoogleAccount.id,
-                  };
-                });
-                combinedCalendars = [...combinedCalendars, ...googleCals];
-              }
-            }
-          } catch (err) {
-            if (isAbortError(err)) throw err;
-            toast.error("Błąd kalendarzy Google.");
-          }
-        }
-
-        const primaryOutlookAccount =
-          fetchedAccounts.find((acc) => acc.provider === 'outlook' && acc.google_calendar_id === '@account_connection') ||
-          fetchedAccounts.find((acc) => acc.provider === 'outlook');
-        if (primaryOutlookAccount) {
-          try {
-            const res = await withRetry(
-              async () =>
-                fetch('/api/outlook-calendar?action=list-calendars', {
-                  headers: { Authorization: `Bearer ${session.access_token}` },
-                  signal,
-                }),
-              signal
-            );
-            if (res.ok) {
-              const data = await res.json();
-              if (data.calendars) {
-                const outlookCals = data.calendars.map((cal: ExternalCalendar) => {
-                  const dbMatch = fetchedAccounts.find(
-                    (acc) => acc.account_email === primaryOutlookAccount.account_email && acc.google_calendar_id === cal.id
-                  );
-                  return {
-                    id: cal.id,
-                    summary: cal.summary,
-                    primary: cal.primary,
-                    accountId: dbMatch ? dbMatch.id : undefined,
-                    primaryAccountId: primaryOutlookAccount.id,
-                  };
-                });
-                combinedCalendars = [...combinedCalendars, ...outlookCals];
-              }
-            }
-          } catch (err) {
-            if (isAbortError(err)) throw err;
-            toast.error("Błąd kalendarzy Outlook.");
-          }
-        }
+        const googleCals = await fetchProviderCalendars('google', fetchedAccounts, session.access_token, signal, withRetry, toast);
+        const outlookCals = await fetchProviderCalendars('outlook', fetchedAccounts, session.access_token, signal, withRetry, toast);
+        const combinedCalendars = [...googleCals, ...outlookCals];
 
         setCalendars(combinedCalendars);
 

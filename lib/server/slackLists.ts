@@ -464,8 +464,8 @@ export function readFieldValue(
     const label = column?.options?.choices?.find((c) => c.value === optionId)?.label;
     return label ?? optionId;
   }
-  if (typeof field.text === "string" && field.text !== "") return field.text;
-  if (field.value !== null && field.value !== undefined) return String(field.value);
+  if (field.text) return field.text;
+  if (field.value != null) return String(field.value);
   return null;
 }
 

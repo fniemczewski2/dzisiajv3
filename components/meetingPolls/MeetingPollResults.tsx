@@ -198,6 +198,27 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     return `${option.provider === "google" ? "Google: " : "Outlook: "}${option.calendar_name || option.google_calendar_id}`;
   };
 
+  const exportSlotToCalendar = async (
+    slot: PendingSlot,
+    result: FinalizeResultSlot,
+    accessToken: string
+  ): Promise<void> => {
+    if (slot.calendarChoice === "local") return;
+    const option = calendarOptions.find((c) => c.id === slot.calendarChoice);
+    if (!option) return;
+
+    const endpoint = option.provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
+    try {
+      await fetch(`${endpoint}?action=export`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ calendarId: option.google_calendar_id, eventIds: [result.organizerEventId] }),
+      });
+    } catch {
+      toast.error(`Nie udało się dodać terminu ${slot.date} do kalendarza ${calendarLabel(slot.calendarChoice)}.`);
+    }
+  };
+
   const handleFinalize = async () => {
     if (pendingSlots.length === 0) return;
     setFinalizing(true);
@@ -208,23 +229,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         for (let i = 0; i < pendingSlots.length; i++) {
-          const slot = pendingSlots[i];
           const result = results[i];
-          if (!result || slot.calendarChoice === "local") continue;
-
-          const option = calendarOptions.find((c) => c.id === slot.calendarChoice);
-          if (!option) continue;
-
-          const endpoint = option.provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
-          try {
-            await fetch(`${endpoint}?action=export`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-              body: JSON.stringify({ calendarId: option.google_calendar_id, eventIds: [result.organizerEventId] }),
-            });
-          } catch {
-            toast.error(`Nie udało się dodać terminu ${slot.date} do kalendarza ${calendarLabel(slot.calendarChoice)}.`);
-          }
+          if (!result) continue;
+          await exportSlotToCalendar(pendingSlots[i], result, session.access_token);
         }
       }
 

@@ -45,36 +45,46 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
     }
   };
 
+  // Looks up a category that already exists under a different case/whitespace
+  // than what we tried to create — the only reason addCategory would fail
+  // with a duplicate-key error here.
+  const findExistingCategory = async (name: string): Promise<BudgetCategory | null> => {
+    const { data } = await supabase
+      .from("budget_categories")
+      .select("*")
+      .ilike("name", name.trim())
+      .eq("user_id", user?.id)
+      .eq("year", year)
+      .maybeSingle();
+    return data ?? null;
+  };
+
+  const resolveMissingCategory = async (missingCat: string): Promise<BudgetCategory | null> => {
+    try {
+      const isMonthly = missingCat === "Opłaty stałe";
+      const newCat = await addCategory({
+        name: missingCat,
+        monthly_amounts: new Array(12).fill(0),
+        is_monthly: isMonthly,
+      });
+      return newCat ?? null;
+    } catch (error) {
+      const code = getPostgresErrorCode(error);
+      const message = error instanceof Error ? error.message : "";
+      const isDuplicate = code === "23505" || message.includes("duplicate key");
+      if (!isDuplicate) throw error;
+      return findExistingCategory(missingCat);
+    }
+  };
+
   const ensureCategoriesExist = async (missing: string[]): Promise<BudgetCategory[]> => {
     const updatedCategories = [...categories];
     for (const missingCat of missing) {
       const targetName = missingCat.toLowerCase().trim();
       if (updatedCategories.some(c => c.name.toLowerCase().trim() === targetName)) continue;
-      
-      try {
-        const isMonthly = missingCat === "Opłaty stałe";
-        const newCat = await addCategory({ 
-          name: missingCat, 
-          monthly_amounts: new Array(12).fill(0), 
-          is_monthly: isMonthly 
-        });
-        if (newCat) updatedCategories.push(newCat);
-      } catch (error) {
-        const code = getPostgresErrorCode(error);
-        const message = error instanceof Error ? error.message : "";
-        if (code === "23505" || message.includes("duplicate key")) {
-          const { data } = await supabase
-            .from("budget_categories")
-            .select("*")
-            .ilike("name", missingCat.trim())
-            .eq("user_id", user?.id)
-            .eq("year", year)
-            .maybeSingle();
-          if (data) updatedCategories.push(data);
-        } else {
-          throw error;
-        }
-      }
+
+      const resolved = await resolveMissingCategory(missingCat);
+      if (resolved) updatedCategories.push(resolved);
     }
     return updatedCategories;
   };

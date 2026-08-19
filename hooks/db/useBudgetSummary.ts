@@ -17,6 +17,57 @@ interface SpendBucket {
   mPlan: number;
 }
 
+const EMPTY_BUCKET: SpendBucket = { ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 };
+
+function buildSpendMap(expenses: RawBillRow[], monthStart: string, monthEnd: string): Record<string, SpendBucket> {
+  const spendMap: Record<string, SpendBucket> = {};
+  for (const bill of expenses) {
+    const key = bill.category_id ?? "__none__";
+    spendMap[key] ??= { ySpent: 0, mSpent: 0, yPlan: 0, mPlan: 0 };
+    const inMonth = bill.date >= monthStart && bill.date <= monthEnd;
+
+    if (bill.done) {
+      spendMap[key].ySpent += bill.amount;
+      if (inMonth) spendMap[key].mSpent += bill.amount;
+    } else {
+      spendMap[key].yPlan += bill.amount;
+      if (inMonth) spendMap[key].mPlan += bill.amount;
+    }
+  }
+  return spendMap;
+}
+
+function buildSummaryItems(
+  categories: BudgetCategory[],
+  spendMap: Record<string, SpendBucket>,
+  monthIndex: number,
+  year: number
+): SummaryItem[] {
+  return categories.map((cat) => {
+    const spent = spendMap[cat.id]?.ySpent ?? 0;
+    const planned = spendMap[cat.id]?.yPlan ?? 0;
+    const mSpent = spendMap[cat.id]?.mSpent ?? 0;
+    const mPlanned = spendMap[cat.id]?.mPlan ?? 0;
+
+    const limit = calculateExpectedYearlyLimit(cat, monthIndex, year);
+    const mLimit = cat.is_monthly
+      ? cat.monthly_amounts?.[monthIndex] || 0
+      : (cat.monthly_amounts?.[0] || 0) / 12;
+
+    return {
+      category: cat,
+      spent,
+      planned,
+      limit,
+      remaining: limit - spent - planned,
+      thisMonthSpent: mSpent,
+      thisMonthPlanned: mPlanned,
+      thisMonthLimit: mLimit,
+      thisMonthRemaining: mLimit - mSpent - mPlanned,
+    };
+  });
+}
+
 export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -71,48 +122,10 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       setTotalIncome(income);
 
       const expenses = bills.filter((b) => !b.is_income);
-      const spendMap: Record<string, { ySpent: number; mSpent: number; yPlan: number; mPlan: number }> = {};
+      const spendMap = buildSpendMap(expenses, monthStart, monthEnd);
 
-      for (const bill of expenses) {
-        const key = bill.category_id ?? "__none__";
-        if (!spendMap[key]) spendMap[key] = { ySpent: 0, mSpent: 0, yPlan: 0, mPlan: 0 };
-        const inMonth = bill.date >= monthStart && bill.date <= monthEnd;
-
-        if (bill.done) {
-          spendMap[key].ySpent += bill.amount;
-          if (inMonth) spendMap[key].mSpent += bill.amount;
-        } else {
-          spendMap[key].yPlan += bill.amount;
-          if (inMonth) spendMap[key].mPlan += bill.amount;
-        }
-      }
-
-      const result = categories.map((cat) => {
-        const spent = spendMap[cat.id]?.ySpent ?? 0;
-        const planned = spendMap[cat.id]?.yPlan ?? 0;
-        const mSpent = spendMap[cat.id]?.mSpent ?? 0;
-        const mPlanned = spendMap[cat.id]?.mPlan ?? 0;
-
-        const limit = calculateExpectedYearlyLimit(cat, monthIndex, year);
-        const mLimit = cat.is_monthly
-          ? cat.monthly_amounts?.[monthIndex] || 0
-          : (cat.monthly_amounts?.[0] || 0) / 12;
-
-        return {
-          category: cat,
-          spent,
-          planned,
-          limit,
-          remaining: limit - spent - planned,
-          thisMonthSpent: mSpent,
-          thisMonthPlanned: mPlanned,
-          thisMonthLimit: mLimit,
-          thisMonthRemaining: mLimit - mSpent - mPlanned,
-        };
-      });
-
-      setSummary(result);
-      setUncategorised(spendMap["__none__"] ?? { ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
+      setSummary(buildSummaryItems(categories, spendMap, monthIndex, year));
+      setUncategorised(spendMap["__none__"] ?? EMPTY_BUCKET);
     } catch (err) {
       if (isAbortError(err)) return;
       toast.error("Błąd pobierania statystyk budżetu.");

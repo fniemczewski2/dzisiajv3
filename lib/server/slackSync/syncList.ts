@@ -3,7 +3,7 @@
 // targeting it (split out of the former 717-line pages/api/slack/sync.ts).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { listItems, itemExists } from "@/lib/server/slackLists";
+import { listItems, itemExists, type SlackColumn, type SlackItem } from "@/lib/server/slackLists";
 import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { LinkRow, SyncCounters, SyncTarget, TaskRow } from "./types";
 import { fingerprint, itemChangedSince, itemUpdatedAt, resolveDirection, taskUpdatedAt } from "./taskMapping";
@@ -34,6 +34,79 @@ export function belongsOnList(
 ): boolean {
   if (task.category !== SLACK_TASK_CATEGORY) return false;
   return chosenListId ? chosenListId === target.listId : target.isDefault;
+}
+
+function recordSyncFailure(counters: SyncCounters, err: unknown, what: string): void {
+  counters.failed += 1;
+  const message = err instanceof Error ? err.message : String(err);
+  counters.first_error ??= `${what}: ${message}`;
+  console.error(`[slack/sync] ${what}:`, message);
+}
+
+// Reconciles a single task against its (possibly absent) Slack item. Pulled
+// out to a top-level function — as a closure inside syncList, its branching
+// counted directly against that function's cognitive complexity.
+async function syncOneTask(
+  admin: SupabaseClient,
+  target: SyncTarget,
+  task: TaskRow,
+  columns: SlackColumn[],
+  linkByTask: Map<number, LinkRow>,
+  itemById: Map<string, SlackItem>,
+  linkedAnywhere: Set<number>,
+  targetListByTask: Map<number, string>,
+  counters: SyncCounters
+): Promise<void> {
+  const link = linkByTask.get(task.id);
+
+  if (!link) {
+    if (linkedAnywhere.has(task.id)) return;
+    if (!belongsOnList(task, targetListByTask.get(task.id), target)) return;
+    await pushTask(admin, target, task, columns, undefined);
+    linkedAnywhere.add(task.id);
+    counters.created_in_slack += 1;
+    return;
+  }
+  if (task.category !== SLACK_TASK_CATEGORY) return;
+
+  const item = itemById.get(link.item_id);
+
+  if (!item) {
+    if (await itemExists(target.token, target.listId, link.item_id)) return;
+    await admin
+      .from("slack_task_links")
+      .delete()
+      .eq("task_id", task.id)
+      .eq("list_id", target.listId);
+    await admin
+      .from("slack_deleted_tasks")
+      .delete()
+      .eq("list_id", target.listId)
+      .eq("item_id", link.item_id);
+
+    await pushTask(admin, target, task, columns, undefined);
+    counters.recreated_in_slack += 1;
+    return;
+  }
+
+  const appChanged = fingerprint(task) !== link.task_fingerprint;
+  const slackChanged = itemChangedSince(item, link.synced_at);
+  if (appChanged && slackChanged) counters.conflicts += 1;
+
+  const direction = resolveDirection({
+    appChanged,
+    slackChanged,
+    taskUpdatedAt: taskUpdatedAt(task),
+    itemUpdatedAt: itemUpdatedAt(item),
+  });
+
+  if (direction === "push") {
+    await pushTask(admin, target, task, columns, link);
+    counters.pushed += 1;
+  } else if (direction === "pull") {
+    await pullItem(admin, target, item, task, columns);
+    counters.pulled += 1;
+  }
 }
 
 export async function syncList(
@@ -72,72 +145,12 @@ export async function syncList(
   const itemById = new Map(items.map((i) => [i.id, i]));
   const linkedItemIds = new Set(links.map((l) => l.item_id));
 
-  const recordFailure = (err: unknown, what: string) => {
-    counters.failed += 1;
-    const message = err instanceof Error ? err.message : String(err);
-    counters.first_error ??= `${what}: ${message}`;
-    console.error(`[slack/sync] ${what}:`, message);
-  };
-
-  const syncOneTask = async (task: TaskRow): Promise<void> => {
-    const link = linkByTask.get(task.id);
-
-    if (!link) {
-      if (linkedAnywhere.has(task.id)) return;
-      if (!belongsOnList(task, targetListByTask.get(task.id), target)) return;
-      await pushTask(admin, target, task, columns, undefined);
-      linkedAnywhere.add(task.id);
-      counters.created_in_slack += 1;
-      return;
-    }
-    if (task.category !== SLACK_TASK_CATEGORY) return;
-
-    const item = itemById.get(link.item_id);
-
-    if (!item) {
-      if (await itemExists(target.token, target.listId, link.item_id)) return;
-      await admin
-        .from("slack_task_links")
-        .delete()
-        .eq("task_id", task.id)
-        .eq("list_id", target.listId);
-      await admin
-        .from("slack_deleted_tasks")
-        .delete()
-        .eq("list_id", target.listId)
-        .eq("item_id", link.item_id);
-
-      await pushTask(admin, target, task, columns, undefined);
-      counters.recreated_in_slack += 1;
-      return;
-    }
-
-    const appChanged = fingerprint(task) !== link.task_fingerprint;
-    const slackChanged = itemChangedSince(item, link.synced_at);
-    if (appChanged && slackChanged) counters.conflicts += 1;
-
-    const direction = resolveDirection({
-      appChanged,
-      slackChanged,
-      taskUpdatedAt: taskUpdatedAt(task),
-      itemUpdatedAt: itemUpdatedAt(item),
-    });
-
-    if (direction === "push") {
-      await pushTask(admin, target, task, columns, link);
-      counters.pushed += 1;
-    } else if (direction === "pull") {
-      await pullItem(admin, target, item, task, columns);
-      counters.pulled += 1;
-    }
-  };
-
   for (const task of tasks) {
     try {
-      await syncOneTask(task);
+      await syncOneTask(admin, target, task, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters);
     } catch (err) {
       if (isFatalSlackError(err)) throw err;
-      recordFailure(err, `zadanie ${task.id}`);
+      recordSyncFailure(counters, err, `zadanie ${task.id}`);
     }
   }
 
@@ -156,7 +169,7 @@ export async function syncList(
       if (await createTaskFromItem(admin, target, item, columns)) counters.created_in_app += 1;
     } catch (err) {
       if (isFatalSlackError(err)) throw err;
-      recordFailure(err, `pozycja ${item.id}`);
+      recordSyncFailure(counters, err, `pozycja ${item.id}`);
     }
   }
 

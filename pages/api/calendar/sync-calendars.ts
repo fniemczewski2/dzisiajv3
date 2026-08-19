@@ -99,6 +99,33 @@ async function getAccessToken(
   return accessToken || null;
 }
 
+function buildGoogleEventRows(
+  items: GoogleEventsListResponse["items"],
+  acc: ConnectedCalendarRow,
+  isBirthdayVirtual: boolean
+): ImportedEventRow[] {
+  const rows: ImportedEventRow[] = [];
+  for (const ev of items || []) {
+    if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
+    const isBirthdayEvent = ev.eventType === "birthday";
+    if (isBirthdayVirtual !== isBirthdayEvent) continue;
+
+    rows.push({
+      user_id: acc.user_id,
+      calendar_id: acc.id,
+      title: ev.summary || "(bez tytułu)",
+      description: ev.description || "",
+      start_time: toSupabaseTime(ev.start),
+      end_time: toSupabaseTime(ev.end, true),
+      place: ev.location || "",
+      repeat: "none",
+      google_event_id: ev.id,
+      shared_with_id: null,
+    });
+  }
+  return rows;
+}
+
 async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
   let importedCount = 0;
   const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
@@ -128,26 +155,7 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const data: GoogleEventsListResponse = await googleRes.json();
     pageToken = data.nextPageToken;
 
-    const rows: ImportedEventRow[] = [];
-    for (const ev of data.items || []) {
-      if (ev.status === "cancelled" || !ev.start || !ev.end) continue;
-      const isBirthdayEvent = ev.eventType === "birthday";
-      if (isBirthdayVirtual && !isBirthdayEvent) continue;
-      if (!isBirthdayVirtual && isBirthdayEvent) continue;
-
-      rows.push({
-        user_id: acc.user_id,
-        calendar_id: acc.id,
-        title: ev.summary || "(bez tytułu)",
-        description: ev.description || "",
-        start_time: toSupabaseTime(ev.start),
-        end_time: toSupabaseTime(ev.end, true),
-        place: ev.location || "",
-        repeat: "none",
-        google_event_id: ev.id,
-        shared_with_id: null,
-      });
-    }
+    const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
     importedCount += await upsertImportedEvents(rows);
   } while (pageToken);
 

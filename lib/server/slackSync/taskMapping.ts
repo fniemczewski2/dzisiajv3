@@ -16,6 +16,7 @@ import {
   SLACK_MAPPABLE_TASK_FIELDS,
   SLACK_PULL_EXCLUDED_FIELDS,
   normalizeTaskStatus,
+  type SlackMappableTaskField,
 } from "@/config/slack";
 import type { ColumnMap, SyncTarget, TaskRow } from "./types";
 
@@ -55,16 +56,37 @@ export function buildFields(
   return fields;
 }
 
+function indexFieldsByColumn(fields: SlackItemField[] | undefined): Map<string, SlackItemField> {
+  const byColumn = new Map<string, SlackItemField>();
+  for (const cell of fields ?? []) {
+    const id = cell.column_id ?? cell.key;
+    if (id && !byColumn.has(id)) byColumn.set(id, cell);
+  }
+  return byColumn;
+}
+
+// Returns the value to write for this field, or undefined to skip it
+// entirely (no matching cell, or the cell's value doesn't survive
+// normalization e.g. an unrecognized status).
+function resolvePatchValue(
+  field: SlackMappableTaskField,
+  cell: SlackItemField,
+  column: SlackColumn | undefined
+): string | number | null | undefined {
+  const raw = readFieldValue(cell, column);
+  if (raw === null) return undefined;
+
+  if (field === "priority") return Number(raw) || null;
+  if (field === "status") return normalizeTaskStatus(raw) ?? undefined;
+  return raw;
+}
+
 export function itemToTaskPatch(
   item: SlackItem,
   columnMap: ColumnMap,
   columns: SlackColumn[]
 ): Partial<TaskRow> {
-  const byColumn = new Map<string, SlackItemField>();
-  for (const cell of item.fields ?? []) {
-    const id = cell.column_id ?? cell.key;
-    if (id && !byColumn.has(id)) byColumn.set(id, cell);
-  }
+  const byColumn = indexFieldsByColumn(item.fields);
   const columnById = new Map(columns.map((c) => [c.id, c]));
   const patch: Record<string, string | number | null> = {};
 
@@ -74,17 +96,9 @@ export function itemToTaskPatch(
     if (!columnId) continue;
     const cell = byColumn.get(columnId);
     if (!cell) continue;
-    const raw = readFieldValue(cell, columnById.get(columnId));
-    if (raw === null) continue;
 
-    if (field === "priority") {
-      patch[field] = Number(raw) || null;
-    } else if (field === "status") {
-      const normalized = normalizeTaskStatus(raw);
-      if (normalized) patch[field] = normalized;
-    } else {
-      patch[field] = raw;
-    }
+    const value = resolvePatchValue(field, cell, columnById.get(columnId));
+    if (value !== undefined) patch[field] = value;
   }
   return patch as Partial<TaskRow>;
 }

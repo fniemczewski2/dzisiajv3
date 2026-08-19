@@ -151,6 +151,80 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
   return res.json({ connected: allCalendars.length > 0, calendars: allCalendars });
 }
 
+async function fetchAllGoogleEvents(url: URL, accessToken: string): Promise<{ items: GoogleCalendarEvent[]; failedStatus?: number }> {
+  const allItems: GoogleCalendarEvent[] = [];
+  let pageToken: string | undefined = undefined;
+
+  do {
+    const fetchUrl = new URL(url.toString());
+    if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
+
+    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!r.ok) return { items: allItems, failedStatus: r.status };
+
+    const data: GoogleEventsListResponse = await r.json();
+    allItems.push(...(data.items || []));
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  return { items: allItems };
+}
+
+interface ImportRowsResult {
+  rows: object[];
+  skipped: number;
+}
+
+function buildImportRows(
+  allItems: GoogleCalendarEvent[],
+  isBirthdayVirtual: boolean,
+  userId: string,
+  accountId: string
+): ImportRowsResult {
+  let skipped = 0;
+  const rows = [];
+  for (const ev of allItems) {
+    if (ev.status === "cancelled" || !ev.start || !ev.end) { skipped++; continue; }
+
+    const isBirthdayEvent = ev.eventType === "birthday";
+    if (isBirthdayVirtual !== isBirthdayEvent) { skipped++; continue; }
+
+    rows.push({
+      user_id: userId,
+      calendar_id: accountId,
+      title: ev.summary || "(bez tytułu)",
+      description: ev.description || "",
+      start_time: toSupabaseTime(ev.start),
+      end_time: toSupabaseTime(ev.end, true),
+      place: ev.location || "",
+      repeat: "none",
+      google_event_id: ev.id,
+      shared_with_id: null,
+    });
+  }
+  return { rows, skipped };
+}
+
+async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, rows: object[]): Promise<{ imported: number; skipped: number }> {
+  let imported = 0;
+  let skipped = 0;
+  const BATCH_SIZE = 500;
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    const { error } = await sb.from("events").upsert(batch, {
+      onConflict: "calendar_id,google_event_id",
+      ignoreDuplicates: true,
+    });
+    if (error) {
+      console.error("[gcal import] upsert error:", error.message);
+      skipped += batch.length;
+    } else {
+      imported += batch.length;
+    }
+  }
+  return { imported, skipped };
+}
+
 async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, accountId } = req.body ?? {};
   if (!calendarId || !accountId) return res.status(400).json({ error: "Missing params" });
@@ -178,63 +252,14 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
     url.searchParams.set("eventTypes", "default");
   }
 
-  const allItems: GoogleCalendarEvent[] = [];
-  let pageToken: string | undefined = undefined;
-
-  do {
-    const fetchUrl = new URL(url.toString());
-    if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
-
-    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
-
-    if (!r.ok) return res.status(r.status).json({ error: "Failed to fetch from Google" });
-
-    const data: GoogleEventsListResponse = await r.json();
-    allItems.push(...(data.items || []));
-    pageToken = data.nextPageToken;
-  } while (pageToken);
+  const { items: allItems, failedStatus } = await fetchAllGoogleEvents(url, accessToken);
+  if (failedStatus) return res.status(failedStatus).json({ error: "Failed to fetch from Google" });
 
   const sb = getServiceSupabase(auth.token);
-  let skipped = 0;
+  const { rows, skipped: skippedRows } = buildImportRows(allItems, isBirthdayVirtual, auth.user.id, accountId);
+  const { imported, skipped: skippedUpserts } = await upsertEventBatches(sb, rows);
 
-  const rows = [];
-  for (const ev of allItems) {
-    if (ev.status === "cancelled" || !ev.start || !ev.end) { skipped++; continue; }
-
-    const isBirthdayEvent = ev.eventType === "birthday";
-    if (isBirthdayVirtual && !isBirthdayEvent) { skipped++; continue; }
-    if (!isBirthdayVirtual && isBirthdayEvent) { skipped++; continue; }
-
-    rows.push({
-      user_id: auth.user.id,
-      calendar_id: accountId,
-      title: ev.summary || "(bez tytułu)",
-      description: ev.description || "",
-      start_time: toSupabaseTime(ev.start),
-      end_time: toSupabaseTime(ev.end, true),
-      place: ev.location || "",
-      repeat: "none",
-      google_event_id: ev.id,
-      shared_with_id: null,
-    });
-  }
-
-  let imported = 0;
-  const BATCH_SIZE = 500;
-  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    const batch = rows.slice(i, i + BATCH_SIZE);
-    const { error } = await sb.from("events").upsert(batch, {
-      onConflict: "calendar_id,google_event_id",
-      ignoreDuplicates: true,
-    });
-    if (error) {
-      console.error("[gcal import] upsert error:", error.message);
-      skipped += batch.length;
-    } else {
-      imported += batch.length;
-    }
-  }
-  return res.json({ imported, skipped });
+  return res.json({ imported, skipped: skippedRows + skippedUpserts });
 }
 
 async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
