@@ -216,6 +216,11 @@ async function handleColumns(
   return res.status(200).json({ columns: await listColumnsSafe(token, row.list_id) });
 }
 
+function toAssigneeEmailsCsv(input: unknown): string {
+  if (Array.isArray(input)) return input.join(",");
+  return typeof input === "string" ? input : "";
+}
+
 async function handleSaveList(
   admin: SupabaseClient,
   userId: string,
@@ -255,11 +260,7 @@ async function handleSaveList(
       column_map: columnMap,
       is_default: Boolean(body.is_default),
       sync_enabled: body.sync_enabled ?? true,
-      assignee_emails: parseAssigneeEmails(
-        Array.isArray(body.assignee_emails)
-          ? body.assignee_emails.join(",")
-          : (typeof body.assignee_emails === "string" ? body.assignee_emails : "")
-      ),
+      assignee_emails: parseAssigneeEmails(toAssigneeEmailsCsv(body.assignee_emails)),
       updated_at: new Date().toISOString(),
     })
     .eq("id", body.list_row_id);
@@ -328,6 +329,21 @@ async function handleDisconnect(admin: SupabaseClient, userId: string, req: Next
   return res.status(200).json({ removed: true });
 }
 
+type PostActionHandler = (
+  admin: SupabaseClient,
+  userId: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) => Promise<NextApiResponse | void>;
+
+const POST_ACTION_HANDLERS: Record<string, PostActionHandler> = {
+  "add-list": handleAddList,
+  "save-list": handleSaveList,
+  "set-target": handleSetTarget,
+  "remove-list": handleRemoveList,
+  "disconnect": handleDisconnect,
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const action = String(req.query.action ?? "");
 
@@ -343,13 +359,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action === "status") return await handleStatus(admin, user.id, res);
     if (action === "columns") return await handleColumns(admin, user.id, req, res);
 
-    if (req.method === "POST") {
-      if (action === "add-list") return await handleAddList(admin, user.id, req, res);
-      if (action === "save-list") return await handleSaveList(admin, user.id, req, res);
-      if (action === "set-target") return await handleSetTarget(admin, user.id, req, res);
-      if (action === "remove-list") return await handleRemoveList(admin, user.id, req, res);
-      if (action === "disconnect") return await handleDisconnect(admin, user.id, req, res);
-    }
+    const postHandler = req.method === "POST" ? POST_ACTION_HANDLERS[action] : undefined;
+    if (postHandler) return await postHandler(admin, user.id, req, res);
 
     return res.status(400).json({ error: "Nieznana akcja." });
   } catch (err) {

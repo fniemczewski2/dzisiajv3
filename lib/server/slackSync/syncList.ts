@@ -43,20 +43,22 @@ function recordSyncFailure(counters: SyncCounters, err: unknown, what: string): 
   console.error(`[slack/sync] ${what}:`, message);
 }
 
+interface SyncTaskContext {
+  admin: SupabaseClient;
+  target: SyncTarget;
+  columns: SlackColumn[];
+  linkByTask: Map<number, LinkRow>;
+  itemById: Map<string, SlackItem>;
+  linkedAnywhere: Set<number>;
+  targetListByTask: Map<number, string>;
+  counters: SyncCounters;
+}
+
 // Reconciles a single task against its (possibly absent) Slack item. Pulled
 // out to a top-level function — as a closure inside syncList, its branching
 // counted directly against that function's cognitive complexity.
-async function syncOneTask(
-  admin: SupabaseClient,
-  target: SyncTarget,
-  task: TaskRow,
-  columns: SlackColumn[],
-  linkByTask: Map<number, LinkRow>,
-  itemById: Map<string, SlackItem>,
-  linkedAnywhere: Set<number>,
-  targetListByTask: Map<number, string>,
-  counters: SyncCounters
-): Promise<void> {
+async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
+  const { admin, target, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters } = ctx;
   const link = linkByTask.get(task.id);
 
   if (!link) {
@@ -109,6 +111,33 @@ async function syncOneTask(
   }
 }
 
+async function processTaskSync(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
+  try {
+    await syncOneTask(ctx, task);
+  } catch (err) {
+    if (isFatalSlackError(err)) throw err;
+    recordSyncFailure(ctx.counters, err, `zadanie ${task.id}`);
+  }
+}
+
+async function processIncomingItem(
+  admin: SupabaseClient,
+  target: SyncTarget,
+  item: SlackItem,
+  columns: SlackColumn[],
+  linkedItemIds: Set<string>,
+  pendingDeletion: Set<string>,
+  counters: SyncCounters
+): Promise<void> {
+  if (linkedItemIds.has(item.id) || pendingDeletion.has(item.id)) return;
+  try {
+    if (await createTaskFromItem(admin, target, item, columns)) counters.created_in_app += 1;
+  } catch (err) {
+    if (isFatalSlackError(err)) throw err;
+    recordSyncFailure(counters, err, `pozycja ${item.id}`);
+  }
+}
+
 export async function syncList(
   admin: SupabaseClient,
   target: SyncTarget,
@@ -145,13 +174,11 @@ export async function syncList(
   const itemById = new Map(items.map((i) => [i.id, i]));
   const linkedItemIds = new Set(links.map((l) => l.item_id));
 
+  const taskCtx: SyncTaskContext = {
+    admin, target, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters,
+  };
   for (const task of tasks) {
-    try {
-      await syncOneTask(admin, target, task, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters);
-    } catch (err) {
-      if (isFatalSlackError(err)) throw err;
-      recordSyncFailure(counters, err, `zadanie ${task.id}`);
-    }
+    await processTaskSync(taskCtx, task);
   }
 
   const { data: pendingRows } = await admin
@@ -164,13 +191,7 @@ export async function syncList(
   );
 
   for (const item of items) {
-    if (linkedItemIds.has(item.id) || pendingDeletion.has(item.id)) continue;
-    try {
-      if (await createTaskFromItem(admin, target, item, columns)) counters.created_in_app += 1;
-    } catch (err) {
-      if (isFatalSlackError(err)) throw err;
-      recordSyncFailure(counters, err, `pozycja ${item.id}`);
-    }
+    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters);
   }
 
   return counters;

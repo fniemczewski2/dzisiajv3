@@ -49,22 +49,33 @@ export default function Modal({ open, onClose, labelledBy, label, className, chi
     return () => dialog.removeEventListener("close", handleClose);
   }, [onClose]);
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    if (e.target === dialogRef.current) onClose();
-  };
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    // Attached imperatively (not as a JSX onClick) so this is treated as
+    // native <dialog> backdrop-dismiss behavior rather than a click handler
+    // on a semantically non-interactive JSX element (S6847/S6848). The
+    // content div doesn't need its own listener: `e.target` is the
+    // original click target regardless of where in the tree this fires,
+    // so it only matches the dialog itself when the backdrop was clicked.
+    const handleBackdropClick = (e: MouseEvent) => {
+      if (e.target === dialog) onClose();
+    };
+    dialog.addEventListener("click", handleBackdropClick);
+    return () => dialog.removeEventListener("click", handleBackdropClick);
+  }, [onClose]);
 
   return (
     <dialog
       ref={dialogRef}
       aria-labelledby={labelledBy}
       aria-label={labelledBy ? undefined : label}
-      onClick={handleBackdropClick}
       className={cn(
         "m-auto w-full max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-visible border-0 bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm",
         className
       )}
     >
-      {open && <div onClick={(e) => e.stopPropagation()}>{children}</div>}
+      {open && <div>{children}</div>}
     </dialog>
   );
 }

@@ -171,11 +171,15 @@ function groupTasksByUser(tasks: readonly NotifiableTask[]): Map<string, Notifia
   return grouped;
 }
 
+function stringifyTaskId(value: unknown): string {
+  return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+}
+
 function isTaskNotifSent(sentNotifs: TaskNotifRow[] | null, userId: string, subType: string, taskId: string): boolean {
   return !!sentNotifs?.some(n =>
     n.user_id === userId &&
     n.data?.sub_type === subType &&
-    String(n.data?.task_id ?? '').split(',').includes(taskId.toString())
+    stringifyTaskId(n.data?.task_id).split(',').includes(taskId.toString())
   );
 }
 
@@ -368,16 +372,22 @@ async function processHydrationType(ctx: NotifCtx): Promise<void> {
   }
 }
 
+const HABIT_CHECKS: { setting: keyof HabitSettingsRow; habitField: keyof DailyHabitRow; label: string }[] = [
+  { setting: 'habit_pills', habitField: 'pills', label: 'Leki' },
+  { setting: 'habit_bath', habitField: 'bath', label: 'Higiena' },
+  { setting: 'habit_workout', habitField: 'workout', label: 'Trening' },
+  { setting: 'habit_friends', habitField: 'friends', label: 'Relacje' },
+  { setting: 'habit_work', habitField: 'work', label: 'Praca' },
+  { setting: 'habit_housework', habitField: 'housework', label: 'Dom' },
+  { setting: 'habit_plants', habitField: 'plants', label: 'Digital' },
+  { setting: 'habit_duolingo', habitField: 'duolingo', label: 'Języki' },
+];
+
 function buildIncompleteHabitsList(s: HabitSettingsRow, habit: DailyHabitRow | null): string[] {
   const incomplete: string[] = [];
-  if (s.habit_pills && (!habit?.pills)) incomplete.push('Leki')
-  if (s.habit_bath && (!habit?.bath)) incomplete.push('Higiena')
-  if (s.habit_workout && (!habit?.workout)) incomplete.push('Trening')
-  if (s.habit_friends && (!habit?.friends)) incomplete.push('Relacje')
-  if (s.habit_work && (!habit?.work)) incomplete.push('Praca')
-  if (s.habit_housework && (!habit?.housework)) incomplete.push('Dom')
-  if (s.habit_plants && (!habit?.plants)) incomplete.push('Digital')
-  if (s.habit_duolingo && (!habit?.duolingo)) incomplete.push('Języki')
+  for (const check of HABIT_CHECKS) {
+    if (s[check.setting] && !habit?.[check.habitField]) incomplete.push(check.label);
+  }
   return incomplete;
 }
 
@@ -625,24 +635,32 @@ async function notifyAnniversary(
   await ctx.sendPushAndLog(person.user_id, labels.title, msg, '/people', { person_id: person.id, sub_type: subType });
 }
 
+function resolveLastContactDate(person: PersonRow): Date | null {
+  if (person.last_contact_date) return new Date(person.last_contact_date);
+  if (person.created_at) return new Date(person.created_at);
+  return null;
+}
+
+const CONTACT_THRESHOLD_DAYS: Record<number, number> = { 1: 14, 2: 30, 3: 60, 4: 365 };
+
+function isContactOverdue(priority: number, diffDays: number): boolean {
+  const threshold = CONTACT_THRESHOLD_DAYS[priority];
+  return threshold !== undefined && diffDays >= threshold;
+}
+
 async function notifyContactReminder(
   ctx: NotifCtx,
   person: PersonRow,
   sentNotifs: SentNotifRow[] | null,
   sevenDaysAgoUTC: string
 ): Promise<void> {
-  const lastContact = person.last_contact_date ? new Date(person.last_contact_date) : (person.created_at ? new Date(person.created_at) : null);
+  const lastContact = resolveLastContactDate(person);
   if (!lastContact) return;
 
   const diffTime = Math.abs(ctx.realNow.getTime() - lastContact.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  let shouldContact = false;
-  if (person.priority === 1 && diffDays >= 14) shouldContact = true;
-  else if (person.priority === 2 && diffDays >= 30) shouldContact = true;
-  else if (person.priority === 3 && diffDays >= 60) shouldContact = true;
-  else if (person.priority === 4 && diffDays >= 365) shouldContact = true;
-
+  const shouldContact = isContactOverdue(person.priority, diffDays);
   if (!shouldContact || isContactRemindedRecently(sentNotifs, person.user_id, person.id, sevenDaysAgoUTC)) return;
 
   await ctx.sendPushAndLog(

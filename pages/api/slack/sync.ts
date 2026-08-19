@@ -10,17 +10,90 @@
 // from this route path) keeps working unchanged.
 
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { translateSlackError } from "@/lib/server/slackLists";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { verifyCronRequest } from "@/lib/server/cronAuth";
 import { adminClient, loadTargets, loadTasks } from "@/lib/server/slackSync/targets";
 import { syncList } from "@/lib/server/slackSync/syncList";
-import type { SyncCounters, SyncTarget } from "@/lib/server/slackSync/types";
+import type { SyncCounters, SyncTarget, TaskRow } from "@/lib/server/slackSync/types";
 
 export { belongsOnList } from "@/lib/server/slackSync/syncList";
 export { resolveDirection, taskUpdatedAt, itemUpdatedAt } from "@/lib/server/slackSync/taskMapping";
 
 export const config = { maxDuration: 60 };
+
+type SyncResult = SyncCounters | { list_id: string; error: string };
+
+function groupTargetsByUser(targets: SyncTarget[]): Map<string, SyncTarget[]> {
+  const byUser = new Map<string, SyncTarget[]>();
+  for (const target of targets) {
+    byUser.set(target.userId, [...(byUser.get(target.userId) ?? []), target]);
+  }
+  return byUser;
+}
+
+function resolveSyncErrorMessage(err: unknown): string {
+  // Błędy spoza Slacka (baza, sieć) mają własny komunikat - nie chowamy ich
+  // za ogólnym "Slack odrzucił żądanie."
+  const code = (err as { slackError?: string }).slackError;
+  if (code) return translateSlackError(code);
+  return err instanceof Error ? err.message : String(err);
+}
+
+async function syncOneTargetSafely(
+  admin: SupabaseClient,
+  target: SyncTarget,
+  tasks: TaskRow[],
+  linkedAnywhere: Set<number>,
+  targetListByTask: Map<number, string>
+): Promise<SyncResult> {
+  try {
+    return await syncList(admin, target, tasks, linkedAnywhere, targetListByTask);
+  } catch (err) {
+    console.error(`[slack/sync] lista ${target.listId}:`, err);
+    return { list_id: target.listId, error: resolveSyncErrorMessage(err) };
+  }
+}
+
+async function loadLinkedAnywhere(admin: SupabaseClient, listIds: string[]): Promise<Set<number>> {
+  const { data: allLinks, error: allLinksError } = await admin
+    .from("slack_task_links")
+    .select("task_id")
+    .in("list_id", listIds);
+  if (allLinksError) throw new Error(`slack_task_links: ${allLinksError.message}`);
+  return new Set((allLinks ?? []).map((l) => (l as { task_id: number }).task_id));
+}
+
+async function loadTargetListByTask(admin: SupabaseClient, userId: string): Promise<Map<number, string>> {
+  const { data: targetRows } = await admin
+    .from("slack_task_targets")
+    .select("task_id, list_id")
+    .eq("user_id", userId);
+  return new Map(
+    (targetRows ?? []).map((r) => {
+      const row = r as { task_id: number; list_id: string };
+      return [row.task_id, row.list_id] as const;
+    })
+  );
+}
+
+async function syncUserTargets(
+  admin: SupabaseClient,
+  userId: string,
+  userTargets: SyncTarget[]
+): Promise<SyncResult[]> {
+  const tasks = await loadTasks(admin, userId);
+  const listIds = userTargets.map((t) => t.listId);
+  const linkedAnywhere = await loadLinkedAnywhere(admin, listIds);
+  const targetListByTask = await loadTargetListByTask(admin, userId);
+
+  const results: SyncResult[] = [];
+  for (const target of userTargets) {
+    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask));
+  }
+  return results;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const isCron = verifyCronRequest(req);
@@ -40,58 +113,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const targets = await loadTargets(admin, scopedUserId);
-    const byUser = new Map<string, SyncTarget[]>();
-    for (const target of targets) {
-      byUser.set(target.userId, [...(byUser.get(target.userId) ?? []), target]);
-    }
+    const byUser = groupTargetsByUser(targets);
 
-    const results: (SyncCounters | { list_id: string; error: string })[] = [];
-
+    const results: SyncResult[] = [];
     for (const [userId, userTargets] of byUser) {
       if (scopedUserId && userId !== scopedUserId) continue;
-
-      const tasks = await loadTasks(admin, userId);
-
-      const listIds = userTargets.map((t) => t.listId);
-      const { data: allLinks, error: allLinksError } = await admin
-        .from("slack_task_links")
-        .select("task_id")
-        .in("list_id", listIds);
-      if (allLinksError) throw new Error(`slack_task_links: ${allLinksError.message}`);
-      const linkedAnywhere = new Set(
-        (allLinks ?? []).map((l) => (l as { task_id: number }).task_id)
-      );
-
-      const { data: targetRows } = await admin
-        .from("slack_task_targets")
-        .select("task_id, list_id")
-        .eq("user_id", userId);
-      const targetListByTask = new Map(
-        (targetRows ?? []).map((r) => {
-          const row = r as { task_id: number; list_id: string };
-          return [row.task_id, row.list_id] as const;
-        })
-      );
-
-      for (const target of userTargets) {
-        try {
-          results.push(await syncList(admin, target, tasks, linkedAnywhere, targetListByTask));
-        } catch (err) {
-          // Błędy spoza Slacka (baza, sieć) mają własny komunikat - nie chowamy
-          // ich za ogólnym "Slack odrzucił żądanie."
-          const code = (err as { slackError?: string }).slackError;
-          let message: string;
-          if (code) {
-            message = translateSlackError(code);
-          } else if (err instanceof Error) {
-            message = err.message;
-          } else {
-            message = String(err);
-          }
-          console.error(`[slack/sync] lista ${target.listId}:`, err);
-          results.push({ list_id: target.listId, error: message });
-        }
-      }
+      results.push(...(await syncUserTargets(admin, userId, userTargets)));
     }
 
     const failed = results.filter((r) => "error" in r).length;

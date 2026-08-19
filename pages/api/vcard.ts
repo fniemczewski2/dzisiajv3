@@ -22,6 +22,41 @@ export function safeFileName(raw: string | undefined): string {
   return cleaned || 'wizytowka';
 }
 
+function buildPhoneLines(phones: VCardProfile['phones']): string[] {
+  const lines: string[] = [];
+  if (!Array.isArray(phones)) return lines;
+  for (const phone of phones) {
+    if (!phone?.number) continue;
+    const cleanNumber = escVCardValue(phone.number.replaceAll(/\s+/g, ''));
+    const type = sanitizeTypeToken(phone.type ?? '');
+    lines.push(`TEL;TYPE=${type},VOICE:${cleanNumber}`);
+  }
+  return lines;
+}
+
+function buildEmailLines(emails: VCardProfile['emails']): string[] {
+  const lines: string[] = [];
+  if (!Array.isArray(emails)) return lines;
+  for (const email of emails) {
+    if (!email?.email) continue;
+    const type = sanitizeTypeToken(email.type ?? '');
+    lines.push(`EMAIL;TYPE=${type}:${escVCardValue(email.email)}`);
+  }
+  return lines;
+}
+
+function buildSocialLinkLines(socialLinks: VCardProfile['social_links']): string[] {
+  const lines: string[] = [];
+  if (!Array.isArray(socialLinks)) return lines;
+  for (const link of socialLinks) {
+    const url = link?.url?.trim();
+    if (!url) continue;
+    const type = sanitizeTypeToken(link.platform ?? '');
+    lines.push(`URL;TYPE=${type}:${escVCardValue(url)}`);
+  }
+  return lines;
+}
+
 function buildVCardLines(profile: VCardProfile): string[] {
   const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
 
@@ -31,31 +66,9 @@ function buildVCardLines(profile: VCardProfile): string[] {
     lines.push(`ORG:${escVCardValue(profile.organization)}`);
   }
 
-  if (Array.isArray(profile.phones)) {
-    for (const phone of profile.phones) {
-      if (!phone?.number) continue;
-      const cleanNumber = escVCardValue(phone.number.replaceAll(/\s+/g, ''));
-      const type = sanitizeTypeToken(phone.type ?? '');
-      lines.push(`TEL;TYPE=${type},VOICE:${cleanNumber}`);
-    }
-  }
-
-  if (Array.isArray(profile.emails)) {
-    for (const email of profile.emails) {
-      if (!email?.email) continue;
-      const type = sanitizeTypeToken(email.type ?? '');
-      lines.push(`EMAIL;TYPE=${type}:${escVCardValue(email.email)}`);
-    }
-  }
-
-  if (Array.isArray(profile.social_links)) {
-    for (const link of profile.social_links) {
-      const url = link?.url?.trim();
-      if (!url) continue;
-      const type = sanitizeTypeToken(link.platform ?? '');
-      lines.push(`URL;TYPE=${type}:${escVCardValue(url)}`);
-    }
-  }
+  lines.push(...buildPhoneLines(profile.phones));
+  lines.push(...buildEmailLines(profile.emails));
+  lines.push(...buildSocialLinkLines(profile.social_links));
 
   lines.push('END:VCARD', '');
   return lines;

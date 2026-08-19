@@ -21,6 +21,11 @@ function addDays(dateStr: string, days: number): string {
 
 type RollOutcome = "skipped" | "finished" | "rolled" | "failed";
 
+function resolveBaseDate(doneDate: string | null, dueDate: string | null): string | null {
+  if (doneDate && dueDate) return doneDate > dueDate ? doneDate : dueDate;
+  return doneDate ?? dueDate;
+}
+
 async function rollRecurringTask(
   supabase: ReturnType<typeof createClient>,
   task: RecurringTask
@@ -28,9 +33,7 @@ async function rollRecurringTask(
   if (!task.repeat_days || task.repeat_days <= 0) return "skipped";
 
   const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
-  const base = doneDate && task.due_date
-    ? (doneDate > task.due_date ? doneDate : task.due_date)
-    : (doneDate ?? task.due_date);
+  const base = resolveBaseDate(doneDate, task.due_date);
   if (!base) return "skipped";
 
   const nextDue = addDays(base, task.repeat_days);

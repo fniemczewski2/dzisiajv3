@@ -3,10 +3,15 @@
 import React from "react";
 import { sanitizeHref } from "@/lib/sanitize";
 
-// Matches http(s)/www URLs, and now also bare "domain.tld" text anywhere in
-// the line (e.g. "google.pl") — previously auto-linking only worked for a
-// whole line that WAS a URL, not one mentioned mid-sentence.
-//
+// Matches http(s)/www URLs. Bare "domain.tld" mentions (e.g. "google.pl",
+// not prefixed by a scheme) are linkified separately by BARE_DOMAIN_RE below
+// — previously both lived in one 3-way-alternation regex, which tipped
+// Sonar's regex complexity check (S5843) over its limit. Splitting them
+// into two simpler patterns, applied in two passes, matches the same set of
+// links: URL_RE runs first (so an explicit scheme/www always wins), and
+// BARE_DOMAIN_RE only ever scans the text left over in between.
+const URL_RE = /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+)/gi;
+
 // The domain-label group is deliberately a flat `[a-z0-9-]+` rather than a
 // stricter "starts/ends alphanumeric" pattern: the stricter version nests a
 // bounded quantifier inside a repeated group with full character-class
@@ -14,45 +19,60 @@ import { sanitizeHref } from "@/lib/sanitize";
 // (flagged by Sonar S5843/S8786) on adversarial input. This is a loose
 // "does it look like a domain" heuristic, not RFC 1035 validation, so the
 // minor extra leniency (allowing a label to start/end with "-") is fine.
-const LINK_RE =
-  /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+|\b(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s<>()]*)?\b)/gi;
+const BARE_DOMAIN_RE = /(\b(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s<>()]*)?\b)/gi;
+
 const TRAILING_PUNCT_RE = /[.,;:!?)\]]+$/;
 const MAX_RENDER_LENGTH = 5000;
 
-function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
+function renderLinkToken(part: string, key: string): React.ReactNode {
+  const trailingMatch = TRAILING_PUNCT_RE.exec(part);
+  const trailing = trailingMatch ? trailingMatch[0] : "";
+  const linkText = trailing ? part.slice(0, -trailing.length) : part;
+  const href = linkText.includes(".") ? sanitizeHref(linkText) : null;
+
+  if (!href) {
+    return <React.Fragment key={key}>{part}</React.Fragment>;
+  }
+
+  const displayText = linkText.replace(/^https?:\/\//, "").replace(/^www\./, "");
+
+  return (
+    <React.Fragment key={key}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:text-secondary underline font-medium transition-colors break-all"
+      >
+        {displayText}
+      </a>
+      {trailing}
+    </React.Fragment>
+  );
+}
+
+function linkifyBareDomains(text: string, keyPrefix: string): React.ReactNode[] {
   if (!text) return [];
-  const parts = text.split(LINK_RE);
+  const parts = text.split(BARE_DOMAIN_RE);
 
   return parts.map((part, i) => {
+    if (i % 2 !== 1 || !part) {
+      return part ? <React.Fragment key={`${keyPrefix}-${i}`}>{part}</React.Fragment> : null;
+    }
+    return renderLinkToken(part, `${keyPrefix}-${i}`);
+  });
+}
+
+function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
+  if (!text) return [];
+  const parts = text.split(URL_RE);
+
+  return parts.flatMap((part, i) => {
     // split() with a capturing group returns matches at odd indices.
     if (i % 2 !== 1 || !part) {
-      return part ? <React.Fragment key={`${keyPrefix}-t-${i}`}>{part}</React.Fragment> : null;
+      return linkifyBareDomains(part, `${keyPrefix}-t-${i}`);
     }
-
-    const trailingMatch = TRAILING_PUNCT_RE.exec(part);
-    const trailing = trailingMatch ? trailingMatch[0] : "";
-    const linkText = trailing ? part.slice(0, -trailing.length) : part;
-    const href = linkText.includes(".") ? sanitizeHref(linkText) : null;
-
-    if (!href) {
-      return <React.Fragment key={`${keyPrefix}-t-${i}`}>{part}</React.Fragment>;
-    }
-
-    const displayText = linkText.replace(/^https?:\/\//, "").replace(/^www\./, "");
-
-    return (
-      <React.Fragment key={`${keyPrefix}-t-${i}`}>
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:text-secondary underline font-medium transition-colors break-all"
-        >
-          {displayText}
-        </a>
-        {trailing}
-      </React.Fragment>
-    );
+    return [renderLinkToken(part, `${keyPrefix}-t-${i}`)];
   });
 }
 
