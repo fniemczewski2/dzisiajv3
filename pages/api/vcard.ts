@@ -22,30 +22,7 @@ export function safeFileName(raw: string | undefined): string {
   return cleaned || 'wizytowka';
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  const { slug } = req.query;
-
-  if (!slug || typeof slug !== 'string') {
-    return res.status(400).json({ error: 'No slug' });
-  }
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
-
-  const { data: profile, error } = await supabase
-    .from('vcard_profiles')
-    .select('*')
-    .eq('public_slug', slug)
-    .eq('is_public', true)
-    .single<VCardProfile>();
-
-  if (error || !profile) {
-    return res.status(404).json({ error: 'Nie znaleziono wizytówki lub jest prywatna.' });
-  }
-
+function buildVCardLines(profile: VCardProfile): string[] {
   const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
 
   lines.push(`FN:${escVCardValue(profile.full_name || '')}`);
@@ -81,6 +58,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   lines.push('END:VCARD', '');
+  return lines;
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const { slug } = req.query;
+
+  if (!slug || typeof slug !== 'string') {
+    return res.status(400).json({ error: 'No slug' });
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
+
+  const { data: profile, error } = await supabase
+    .from('vcard_profiles')
+    .select('*')
+    .eq('public_slug', slug)
+    .eq('is_public', true)
+    .single<VCardProfile>();
+
+  if (error || !profile) {
+    return res.status(404).json({ error: 'Nie znaleziono wizytówki lub jest prywatna.' });
+  }
+
+  const lines = buildVCardLines(profile);
   const vcf = lines.join('\r\n');
 
   const filename = safeFileName(profile.full_name);

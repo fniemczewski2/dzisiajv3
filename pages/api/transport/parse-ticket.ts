@@ -51,63 +51,69 @@ export interface ParsedTicket {
   to: string;
 }
 
+function expandStationWord(word: string, cityWord: string = ''): string {
+  const lowerWord = word.toLowerCase();
+  const forms = ABBREVIATIONS[lowerWord];
+
+  if (!forms) return word;
+  if (!cityWord) return forms.m;
+
+  const lastChar = cityWord.slice(-1).toLowerCase();
+  if (lastChar === 'a') return forms.f;
+  if (lastChar === 'e' || lastChar === 'o') return forms.n;
+
+  return forms.m;
+}
+
+// The general (non-2-word, non-4-word) case: walks the word list, merging a
+// word into the current station name when it's a known suffix (or a
+// continuation of a known multi-word city name), otherwise starting a new
+// station entry.
+function buildStationsList(words: string[]): string[] {
+  const stationsList: string[] = [];
+  let current = expandStationWord(words[0]) || '';
+  let lastCityWord = words[0];
+  let previousStartsMultiWord = MULTI_WORD_CITY_STARTS.has(words[0].toLowerCase());
+
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    const lowerWord = word.toLowerCase();
+    const isSuffix = SUFFIXES.has(lowerWord) || word.endsWith('.');
+    const expandedWord = expandStationWord(word, lastCityWord);
+
+    if (previousStartsMultiWord && !isSuffix) {
+      current += ` ${expandedWord}`;
+      lastCityWord = word;
+      previousStartsMultiWord = false;
+      continue;
+    }
+    previousStartsMultiWord = MULTI_WORD_CITY_STARTS.has(lowerWord);
+
+    if (isSuffix) {
+      current += ` ${expandedWord}`;
+    } else {
+      stationsList.push(current);
+      current = expandedWord;
+      lastCityWord = word;
+    }
+  }
+  if (current) stationsList.push(current);
+  return stationsList;
+}
+
 export function extractStationNames(route: string) {
   const words = route.split(/\s+/).filter(Boolean);
   let from = '';
   let to = '';
 
-  const expandWord = (word: string, cityWord: string = ''): string => {
-    const lowerWord = word.toLowerCase();
-    const forms = ABBREVIATIONS[lowerWord];
-    
-    if (!forms) return word;
-    if (!cityWord) return forms.m; 
-
-    const lastChar = cityWord.slice(-1).toLowerCase();
-    if (lastChar === 'a') return forms.f;
-    if (lastChar === 'e' || lastChar === 'o') return forms.n;
-
-    return forms.m; 
-  };
-
   if (words.length === 2) {
-    from = expandWord(words[0]);
-    to = expandWord(words[1]);
+    from = expandStationWord(words[0]);
+    to = expandStationWord(words[1]);
   } else if (words.length === 4) {
-    from = `${expandWord(words[0])} ${expandWord(words[1], words[0])}`;
-    to = `${expandWord(words[2])} ${expandWord(words[3], words[2])}`;
+    from = `${expandStationWord(words[0])} ${expandStationWord(words[1], words[0])}`;
+    to = `${expandStationWord(words[2])} ${expandStationWord(words[3], words[2])}`;
   } else if (words.length > 0) {
-    const stationsList: string[] = [];
-    let current = expandWord(words[0]) || '';
-    
-    let lastCityWord = words[0]; 
-
-    let previousStartsMultiWord = MULTI_WORD_CITY_STARTS.has(words[0].toLowerCase());
-
-    for (let i = 1; i < words.length; i++) {
-      const word = words[i];
-      const lowerWord = word.toLowerCase();
-      const isSuffix = SUFFIXES.has(lowerWord) || word.endsWith('.');
-      const expandedWord = expandWord(word, lastCityWord);
-
-      if (previousStartsMultiWord && !isSuffix) {
-        current += ` ${expandedWord}`;
-        lastCityWord = word;
-        previousStartsMultiWord = false;
-        continue;
-      }
-      previousStartsMultiWord = MULTI_WORD_CITY_STARTS.has(lowerWord);
-
-      if (isSuffix) {
-        current += ` ${expandedWord}`;
-      } else {
-        stationsList.push(current);
-        current = expandedWord;
-        lastCityWord = word; 
-      }
-    }
-    if (current) stationsList.push(current);
-
+    const stationsList = buildStationsList(words);
     from = stationsList[0] || '';
     to = stationsList.length > 1 ? (stationsList.at(-1) ?? '') : '';
   }

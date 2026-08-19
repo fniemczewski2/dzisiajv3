@@ -267,6 +267,67 @@ async function handleSaveList(
   return res.status(200).json({ column_map: columnMap });
 }
 
+async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
+  const body = req.body as { task_id?: number; list_id?: string };
+  if (!body?.task_id) return res.status(400).json({ error: "Brak identyfikatora zadania." });
+
+  if (!body.list_id) {
+    const { error } = await admin
+      .from("slack_task_targets")
+      .delete()
+      .eq("task_id", body.task_id)
+      .eq("user_id", userId);
+    if (error) {
+      throw new ApiError(500, `Nie udało się wyczyścić listy zadania: ${error.message}`);
+    }
+    return res.status(200).json({ cleared: true });
+  }
+
+  const { data: owned } = await admin
+    .from("slack_lists")
+    .select("list_id")
+    .eq("user_id", userId)
+    .eq("list_id", body.list_id)
+    .maybeSingle();
+  if (!owned) return res.status(400).json({ error: "Nie znaleziono tej listy." });
+
+  const targetRow = { task_id: body.task_id, user_id: userId, list_id: body.list_id };
+  const { error: upsertError } = await admin
+    .from("slack_task_targets")
+    .upsert(targetRow, { onConflict: "task_id" });
+
+  if (upsertError) {
+    if (upsertError.code !== "42P10") {
+      console.error("[slack/index] slack_task_targets upsert:", upsertError.message);
+      throw new ApiError(500, `Nie udało się zapisać listy zadania: ${upsertError.message}`);
+    }
+
+    await admin.from("slack_task_targets").delete().eq("task_id", body.task_id);
+    const { error: insertError } = await admin.from("slack_task_targets").insert(targetRow);
+    if (insertError) {
+      console.error("[slack/index] slack_task_targets insert:", insertError.message);
+      throw new ApiError(500, `Nie udało się zapisać listy zadania: ${insertError.message}`);
+    }
+  }
+  return res.status(200).json({ list_id: body.list_id });
+}
+
+async function handleRemoveList(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
+  const rowId = String((req.body as { list_row_id?: string })?.list_row_id ?? "");
+  await admin.from("slack_lists").delete().eq("id", rowId).eq("user_id", userId);
+  return res.status(200).json({ removed: true });
+}
+
+async function handleDisconnect(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
+  const connectionId = String((req.body as { connection_id?: string })?.connection_id ?? "");
+  await admin
+    .from("slack_connections")
+    .delete()
+    .eq("id", connectionId)
+    .eq("user_id", userId);
+  return res.status(200).json({ removed: true });
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const action = String(req.query.action ?? "");
 
@@ -285,67 +346,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === "POST") {
       if (action === "add-list") return await handleAddList(admin, user.id, req, res);
       if (action === "save-list") return await handleSaveList(admin, user.id, req, res);
-
-      if (action === "set-target") {
-        const body = req.body as { task_id?: number; list_id?: string };
-        if (!body?.task_id) return res.status(400).json({ error: "Brak identyfikatora zadania." });
-
-        if (!body.list_id) {
-          const { error } = await admin
-            .from("slack_task_targets")
-            .delete()
-            .eq("task_id", body.task_id)
-            .eq("user_id", user.id);
-          if (error) {
-            throw new ApiError(500, `Nie udało się wyczyścić listy zadania: ${error.message}`);
-          }
-          return res.status(200).json({ cleared: true });
-        }
-
-        const { data: owned } = await admin
-          .from("slack_lists")
-          .select("list_id")
-          .eq("user_id", user.id)
-          .eq("list_id", body.list_id)
-          .maybeSingle();
-        if (!owned) return res.status(400).json({ error: "Nie znaleziono tej listy." });
-
-        const targetRow = { task_id: body.task_id, user_id: user.id, list_id: body.list_id };
-        const { error: upsertError } = await admin
-          .from("slack_task_targets")
-          .upsert(targetRow, { onConflict: "task_id" });
-
-        if (upsertError) {
-          if (upsertError.code !== "42P10") {
-            console.error("[slack/index] slack_task_targets upsert:", upsertError.message);
-            throw new ApiError(500, `Nie udało się zapisać listy zadania: ${upsertError.message}`);
-          }
-
-          await admin.from("slack_task_targets").delete().eq("task_id", body.task_id);
-          const { error: insertError } = await admin.from("slack_task_targets").insert(targetRow);
-          if (insertError) {
-            console.error("[slack/index] slack_task_targets insert:", insertError.message);
-            throw new ApiError(500, `Nie udało się zapisać listy zadania: ${insertError.message}`);
-          }
-        }
-        return res.status(200).json({ list_id: body.list_id });
-      }
-
-      if (action === "remove-list") {
-        const rowId = String((req.body as { list_row_id?: string })?.list_row_id ?? "");
-        await admin.from("slack_lists").delete().eq("id", rowId).eq("user_id", user.id);
-        return res.status(200).json({ removed: true });
-      }
-
-      if (action === "disconnect") {
-        const connectionId = String((req.body as { connection_id?: string })?.connection_id ?? "");
-        await admin
-          .from("slack_connections")
-          .delete()
-          .eq("id", connectionId)
-          .eq("user_id", user.id);
-        return res.status(200).json({ removed: true });
-      }
+      if (action === "set-target") return await handleSetTarget(admin, user.id, req, res);
+      if (action === "remove-list") return await handleRemoveList(admin, user.id, req, res);
+      if (action === "disconnect") return await handleDisconnect(admin, user.id, req, res);
     }
 
     return res.status(400).json({ error: "Nieznana akcja." });

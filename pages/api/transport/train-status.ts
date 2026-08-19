@@ -118,6 +118,60 @@ function findRouteStation(
   return route?.stations?.find((s) => s.stationId === stationId);
 }
 
+// The "is there live operations data for this train" branch of the status
+// computation — pulled out of handler, which was deeply nested (schedules
+// lookup -> operations lookup -> cancelled/arrived/departed checks) all in
+// one function body.
+async function computeStatus(
+  plannedRoute: Route,
+  fromStationId: string,
+  toStationId: string,
+  headers: Record<string, string>
+): Promise<TrainStatusResponse> {
+  const platform = findRouteStation(plannedRoute, fromStationId)?.departurePlatform || '-';
+  const operationsData = await getOperations(fromStationId, headers);
+  const trainData = operationsData?.trains?.find((t) => t.orderId === plannedRoute.orderId);
+
+  let delay = 0;
+
+  if (operationsData && trainData) {
+    const opStationFrom = trainData.stations?.find((s) => s.stationId === fromStationId);
+    const opStationTo = trainData.stations?.find((s) => s.stationId === toStationId);
+
+    const nowPl = getAppDateTime();
+    const hasDepartedFrom =
+      !!opStationFrom?.actualDeparture &&
+      nowPl.getTime() > new Date(opStationFrom.actualDeparture).getTime();
+
+    delay = hasDepartedFrom
+      ? opStationTo?.arrivalDelayMinutes ?? 0
+      : opStationFrom?.departureDelayMinutes ?? opStationFrom?.arrivalDelayMinutes ?? 0;
+
+    const isCancelled =
+      operationsData.trainStatus === 'X' ||
+      trainData.trainStatus === 'X' ||
+      opStationFrom?.isCancelled ||
+      opStationTo?.isCancelled;
+
+    if (isCancelled) {
+      return { delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false };
+    }
+
+    if (opStationTo) {
+      const toActualTime = opStationTo.actualArrival || opStationTo.actualDeparture;
+      if (toActualTime && nowPl.getTime() > new Date(toActualTime).getTime()) {
+        return { delay: 0, platform: '-', status: '', estimatedArrival: '', hide: true };
+      }
+    }
+
+    if (hasDepartedFrom) {
+      return { delay, platform, status: 'W trasie', estimatedArrival: opStationTo?.actualArrival || '', hide: false };
+    }
+  }
+
+  return { delay, platform: platform || '-', status: delay > 0 ? 'Opóźniony' : 'Nie zaczął', estimatedArrival: '', hide: false };
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<TrainStatusResponse | ApiError>
@@ -201,75 +255,8 @@ export default async function handler(
       });
     }
 
-    const platform = findRouteStation(plannedRoute, fromStationId)?.departurePlatform || '-';
-
-    const operationsData = await getOperations(fromStationId, headers);
-    const trainData = operationsData?.trains?.find((t) => t.orderId === plannedRoute.orderId);
-
-    let delay = 0;
-
-    if (operationsData && trainData) {
-      const opStationFrom = trainData.stations?.find((s) => s.stationId === fromStationId);
-      const opStationTo = trainData.stations?.find((s) => s.stationId === toStationId);
-
-      const nowPl = getAppDateTime();
-      const hasDepartedFrom =
-        !!opStationFrom?.actualDeparture &&
-        nowPl.getTime() > new Date(opStationFrom.actualDeparture).getTime();
-
-      if (hasDepartedFrom) {
-        delay = opStationTo?.arrivalDelayMinutes ?? 0;
-      } else {
-        delay = opStationFrom?.departureDelayMinutes ?? opStationFrom?.arrivalDelayMinutes ?? 0;
-      }
-
-      const isCancelled =
-        operationsData.trainStatus === 'X' ||
-        trainData.trainStatus === 'X' ||
-        opStationFrom?.isCancelled ||
-        opStationTo?.isCancelled;
-
-      if (isCancelled) {
-        return res.status(200).json({
-          delay: 0,
-          platform: '-',
-          status: 'Odwołany',
-          estimatedArrival: '',
-          hide: false,
-        });
-      }
-
-      if (opStationTo) {
-        const toActualTime = opStationTo.actualArrival || opStationTo.actualDeparture;
-        if (toActualTime && nowPl.getTime() > new Date(toActualTime).getTime()) {
-          return res.status(200).json({
-            delay: 0,
-            platform: '-',
-            status: '',
-            estimatedArrival: '',
-            hide: true,
-          });
-        }
-      }
-
-      if (hasDepartedFrom) {
-        return res.status(200).json({
-          delay,
-          platform,
-          status: 'W trasie',
-          estimatedArrival: opStationTo?.actualArrival || '',
-          hide: false,
-        });
-      }
-    }
-
-    return res.status(200).json({
-      delay,
-      platform: platform || '-',
-      status: delay > 0 ? 'Opóźniony' : 'Nie zaczął',
-      estimatedArrival: '',
-      hide: false,
-    });
+    const status = await computeStatus(plannedRoute, fromStationId, toStationId, headers);
+    return res.status(200).json(status);
   } catch (error) {
     console.error(error);
     return res.status(200).json({
