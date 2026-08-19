@@ -258,7 +258,7 @@ async function handleSaveList(
       assignee_emails: parseAssigneeEmails(
         Array.isArray(body.assignee_emails)
           ? body.assignee_emails.join(",")
-          : String(body.assignee_emails ?? "")
+          : (typeof body.assignee_emails === "string" ? body.assignee_emails : "")
       ),
       updated_at: new Date().toISOString(),
     })

@@ -63,10 +63,8 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
   const freshDataRef = useRef(false);
 
   const queryKey = config.queryKey ?? "";
-  const cacheKey =
-    config.cachePrefix && userId
-      ? `${config.cachePrefix}:${userId}${queryKey ? `:${queryKey}` : ""}`
-      : null;
+  const querySuffix = queryKey ? `:${queryKey}` : "";
+  const cacheKey = config.cachePrefix && userId ? `${config.cachePrefix}:${userId}${querySuffix}` : null;
 
   const transform = useCallback((row: unknown): T => {
     const fn = configRef.current.transformRow;

@@ -48,9 +48,12 @@ Deno.serve(async (req) => {
         if (!task.repeat_days || task.repeat_days <= 0) continue;
 
         const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
-        const base = doneDate && task.due_date
-          ? (doneDate > task.due_date ? doneDate : task.due_date)
-          : (doneDate ?? task.due_date);
+        let base: string | null;
+        if (doneDate && task.due_date) {
+          base = doneDate > task.due_date ? doneDate : task.due_date;
+        } else {
+          base = doneDate ?? task.due_date;
+        }
         if (!base) continue;
 
         const nextDue = addDays(base, task.repeat_days);

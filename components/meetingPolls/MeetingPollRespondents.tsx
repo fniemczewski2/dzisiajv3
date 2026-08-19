@@ -91,8 +91,11 @@ export default function MeetingPollRespondents({
                       </p>
                     )}
                   </div>
-                  <div className="flex justify-end gap-2 items-center text-right text-xs text-textMuted whitespace-nowrap">
-                    <Calendar className="w-4 h-4"/><p>{formatSubmittedAt(response.created_at)}</p>
+                  <div className="flex flex-col items-end gap-0.5 text-right text-xs text-textMuted whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4"/><p>{formatSubmittedAt(response.created_at)}</p>
+                    </div>
+                    {slots > 0 && <p>Dostępność: {formatDuration(slots * slotDurationMinutes)}</p>}
                   </div>
                 </li>
               );

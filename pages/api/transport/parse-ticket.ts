@@ -109,7 +109,7 @@ export function extractStationNames(route: string) {
     if (current) stationsList.push(current);
 
     from = stationsList[0] || '';
-    to = stationsList.length > 1 ? stationsList[stationsList.length - 1] : '';
+    to = stationsList.length > 1 ? (stationsList.at(-1) ?? '') : '';
   }
   return { from, to };
 }

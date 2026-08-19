@@ -1,7 +1,7 @@
 // components/settings/UserSection.tsx
 
 import React, { useState } from "react";
-import { CircleUser, LogOut, TriangleAlert, Loader2, Trash, Trash2 } from "lucide-react";
+import { CircleUser, LogOut, TriangleAlert, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import { ACCOUNT_DELETE_CONFIRMATION } from "@/config/userData";
 import { SecondaryFullButton } from "@/components/ui/CommonButtons";

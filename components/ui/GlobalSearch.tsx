@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/router";
 import { Search, Loader2, X } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
+import Modal from "./Modal";
 import { GLOBAL_SEARCH_SOURCES, GLOBAL_SEARCH_LIMIT, GLOBAL_SEARCH_MIN_CHARS, type GlobalSearchSource } from "@/config/globalSearch";
 
 interface SearchHit {
@@ -11,6 +12,16 @@ interface SearchHit {
   id: string;
   label: string;
   sublabel: string;
+}
+
+// `String(value)` on a non-primitive (e.g. a jsonb column) silently produces
+// "[object Object]" — since the row shape here is genuinely dynamic per
+// search source, stringify defensively instead of trusting it's scalar.
+function stringifyCell(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
 }
 
 export default function GlobalSearch() {
@@ -52,7 +63,7 @@ export default function GlobalSearch() {
         return;
       }
       setSearching(true);
-      const escaped = term.trim().replaceAll("%", "\\%").replaceAll("_", "\\_");
+      const escaped = term.trim().replaceAll("%", String.raw`\%`).replaceAll("_", String.raw`\_`);
       const pattern = `%${escaped}%`;
 
       const results = await Promise.all(
@@ -67,9 +78,9 @@ export default function GlobalSearch() {
           // bracket access below instead of trusting a specific column set.
           return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
             source,
-            id: String(row.id),
-            label: String(row[source.labelColumn] ?? ""),
-            sublabel: source.sublabelColumn ? String(row[source.sublabelColumn] ?? "") : "",
+            id: stringifyCell(row.id),
+            label: stringifyCell(row[source.labelColumn]),
+            sublabel: source.sublabelColumn ? stringifyCell(row[source.sublabelColumn]) : "",
           }));
         })
       );
@@ -110,15 +121,8 @@ export default function GlobalSearch() {
         <Search className="w-5 h-5" />
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center pt-[12vh] px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Wyszukiwarka globalna"
-          onClick={(e) => { if (e.target === e.currentTarget) close(); }}
-        >
-          <div className="card w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+      <Modal open={open} onClose={close} label="Wyszukiwarka globalna" className="mt-[12vh]">
+        <div className="card w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
               <Search className="w-4 h-4 text-textMuted shrink-0" aria-hidden="true" />
               <input
@@ -161,8 +165,7 @@ export default function GlobalSearch() {
               ))}
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
     </>
   );
 }

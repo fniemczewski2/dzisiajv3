@@ -100,7 +100,9 @@ function normalizeName(name: string): string {
 
 function cleanStopNameForDb(name: string): string {
   if (!name) return "";
-  return name.replace(/\s+\d+$/, "").replace(/\s*\(.*?\)\s*/g, "").trim();
+  // `[^)]*` instead of a lazy `.*?` inside the parens — same result, no
+  // backtracking ambiguity to flag (S8786).
+  return name.replace(/\s+\d+$/, "").replace(/\s*\([^)]*\)\s*/g, "").trim();
 }
 
 function escapeIlike(value: string): string {

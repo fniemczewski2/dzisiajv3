@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Every field here (date/time/title/place) previously went straight from
   // the request body into an `events` insert with no format/length checks.
   const validatedSlots = rawSlots.map(validateFinalizeSlot);
-  if (validatedSlots.some((s) => s === null)) {
+  if (validatedSlots.includes(null)) {
     return res.status(400).json({ error: "Nieprawidłowy format jednego z terminów." });
   }
   const slots = validatedSlots as NonNullable<(typeof validatedSlots)[number]>[];

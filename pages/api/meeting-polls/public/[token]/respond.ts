@@ -68,7 +68,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   }
 
   const slots = (Array.isArray(body?.slots) ? body.slots : []).map(validateSlot);
-  if (slots.some((s) => s === null)) {
+  if (slots.includes(null)) {
     return res.status(400).json({ error: "Nieprawidłowy format terminu." });
   }
 
@@ -108,8 +108,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
     poll.time_end,
     poll.slot_duration_minutes
   );
-  const invalidSlot = slots.find((s) => !allowed.has(slotKey(s?.date || "", s?.start_time || "")));
-  if (invalidSlot) {
+  const hasInvalidSlot = slots.some((s) => !allowed.has(slotKey(s?.date || "", s?.start_time || "")));
+  if (hasInvalidSlot) {
     return res.status(400).json({ error: "Co najmniej jeden zaznaczony termin jest spoza siatki ankiety." });
   }
 

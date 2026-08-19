@@ -45,7 +45,10 @@ export function isOffline(): boolean {
 
 export async function enqueueInsert(table: string, payload: Record<string, unknown>): Promise<void> {
   const entry: QueuedInsert = {
-    id: `${table}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    // crypto.randomUUID() instead of Math.random() — not a security concern
+    // here (just a local IndexedDB key), but it's free collision-safety and
+    // avoids Sonar's generic "review this PRNG usage" hotspot (S2245).
+    id: `${table}-${Date.now()}-${crypto.randomUUID()}`,
     table,
     payload,
     queued_at: new Date().toISOString(),

@@ -449,7 +449,8 @@ export function readFieldValue(
 ): string | null {
   if (column && columnFamily(column.type) === "checkbox") {
     const checked = readCheckbox(field);
-    return checked === null ? null : checked ? "done" : "pending";
+    if (checked === null) return null;
+    return checked ? "done" : "pending";
   }
 
   if (field.date?.length) return field.date[0];

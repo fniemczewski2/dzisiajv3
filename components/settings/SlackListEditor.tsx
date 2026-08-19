@@ -108,7 +108,7 @@ export default function SlackListEditor({
                   checked={isDefault}
                   onChange={(e) => setIsDefault(e.target.checked)}
                   className="w-4 h-4"
-                />
+                />{" "}
                 Nowe zadania z aplikacji trafiają na tę listę
               </label>
 
@@ -120,7 +120,7 @@ export default function SlackListEditor({
                   className="w-4 h-4 mt-0.5"
                 />
                 <span>
-                  Pobieraj zadania z tej listy
+                  Pobieraj zadania z tej listy{" "}
                   <span className="block text-textMuted">
                     Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
                   </span>

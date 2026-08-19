@@ -65,7 +65,7 @@ export function usePlanByHour({
         if (override?.is_hidden) return;
 
         const rawTime = override?.new_time || entry.time;
-        const timeMatch = rawTime.match(/\d{2}:\d{2}/);
+        const timeMatch = /\d{2}:\d{2}/.exec(rawTime);
         const timeToUse = timeMatch ? timeMatch[0] : rawTime;
 
         const h = timeToUse.split(":")[0].padStart(2, "0");

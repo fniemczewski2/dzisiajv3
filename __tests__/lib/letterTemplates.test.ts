@@ -30,18 +30,18 @@ function makeLetter(overrides: Partial<Letter> = {}): Letter {
 }
 
 describe("generateLetterBody", () => {
-  it("includes the legal basis and subject for a known category", () => {
+  it("opens with the recipient and includes the legal basis for a known category", () => {
     const body = generateLetterBody(makeLetter());
-    expect(body).toContain("Dotyczy: Wniosek o udostępnienie informacji publicznej");
+    expect(body.startsWith("Urząd Miasta w Warszawie")).toBe(true);
+    expect(body).toContain("Na podstawie art. 61 Konstytucji Rzeczypospolitej Polskiej");
     expect(body).toContain("ustawy z dnia 6 września 2001 r. o dostępie do informacji publicznej");
-    expect(body).toContain(makeLetter().description);
-    expect(body).toContain("Sygnatura pisma: 1.08.2026.U");
+    expect(body).toContain("Sygn.: 1.08.2026.U");
   });
 
   it("uses a different legal basis per category", () => {
     const skarga = generateLetterBody(makeLetter({ category: "Skarga", category_code: "S" }));
     expect(skarga).toContain("Kodeks postępowania administracyjnego");
-    expect(skarga).toContain("Dotyczy: Skarga");
+    expect(skarga).toContain("wnoszę skargę w następującej sprawie");
 
     const przestepstwo = generateLetterBody(makeLetter({ category: "Przestępstwo", category_code: "K" }));
     expect(przestepstwo).toContain("Kodeks postępowania karnego");
@@ -62,16 +62,19 @@ describe("generateLetterBody", () => {
     expect(body).toMatch(/Data zdarzenia: 1 sierpnia 2026 r\./);
   });
 
-  it("adds a statutory-deadline reminder when a response_date is set", () => {
-    const body = generateLetterBody(makeLetter({ response_date: "2026-09-02" }));
-    expect(body).toMatch(/do dnia 2 września 2026 r\./);
+  it("adds an e-Doręczenia response reminder only when a response_date is set", () => {
+    const withDeadline = generateLetterBody(makeLetter({ response_date: "2026-09-02" }));
+    expect(withDeadline).toContain("Uprzejmie proszę o udzielenie odpowiedzi na podany adres do e-doręczeń.");
+
+    const withoutDeadline = generateLetterBody(makeLetter({ response_date: null }));
+    expect(withoutDeadline).not.toContain("e-doręczeń");
   });
 
-  it("falls back to the user-provided category name with no fixed legal basis for 'Inne'", () => {
+  it("falls back to a generic opening with no fixed legal basis for 'Inne'", () => {
     const body = generateLetterBody(
       makeLetter({ category: "Inne", category_other: "Odwołanie", category_code: "OD" })
     );
-    expect(body).toContain("Dotyczy: Odwołanie");
     expect(body).not.toContain("Na podstawie");
+    expect(body).toContain("Sygn.: 1.08.2026.U");
   });
 });

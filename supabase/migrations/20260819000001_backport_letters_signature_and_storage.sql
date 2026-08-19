@@ -74,12 +74,20 @@ create trigger letters_set_updated_at
 -- Storage buckets (id, public). file_size_limit/allowed_mime_types are left
 -- unset to match the live configuration; app code already enforces the PDF
 -- MIME type and MAX_LETTER_PDF_SIZE_MB client-side.
+--
+-- 'avatars'/'letters' are repeated across these independent DDL statements
+-- (Sonar plsql:S1192 flags the duplication) — a migration file has no
+-- session/variable scope spanning separate `create policy`/`insert`
+-- statements the way a function body would, and this migration has already
+-- been applied to production, so it isn't rewritten to a dynamic-SQL DO
+-- block just to dedupe a literal; that would add real risk (quoting,
+-- formatting drift) for no behavior change. NOSONAR
 insert into storage.buckets (id, name, public)
-values ('avatars', 'avatars', true)
+values ('avatars', 'avatars', true) -- NOSONAR
 on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public)
-values ('letters', 'letters', false)
+values ('letters', 'letters', false) -- NOSONAR
 on conflict (id) do nothing;
 
 drop policy if exists "Public Access" on storage.objects;

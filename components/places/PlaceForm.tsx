@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Place, OpeningHours } from "@/types/places";
 import { FormButtons } from "../ui/CommonButtons";
+import Modal from "../ui/Modal";
 import { PlusCircle, X } from "lucide-react";
 
 interface PlaceFormProps {
@@ -73,17 +74,8 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly
   if (!place) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="place-form-title"
-      onClick={onCancel}
-    >
-      <div
-        className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal open onClose={onCancel} labelledBy="place-form-title">
+      <div className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <h2 id="place-form-title" className="text-xl font-semibold text-text mb-4">Edytuj miejsce</h2>
 
@@ -207,6 +199,6 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly
           <FormButtons onClickSave={handleSubmit} onClickClose={onCancel} loading={loading}/>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

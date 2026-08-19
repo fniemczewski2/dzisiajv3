@@ -47,22 +47,13 @@ describe("toggleListPrefix", () => {
 });
 
 describe("continueListOnEnter", () => {
-  it("continues a bullet list on a non-empty line", () => {
-    const value = "- milk";
+  it.each([
+    ["continues a bullet list on a non-empty line", "- milk", "- milk\n- "],
+    ["exits list mode when Enter is pressed on an empty bullet", "- milk\n- ", "- milk\n"],
+    ["continues a numbered list incrementing the number", "1. milk", "1. milk\n2. "],
+  ])("%s", (_name, value, expected) => {
     const result = continueListOnEnter({ value, start: value.length, end: value.length });
-    expect(result?.value).toBe("- milk\n- ");
-  });
-
-  it("exits list mode when Enter is pressed on an empty bullet", () => {
-    const value = "- milk\n- ";
-    const result = continueListOnEnter({ value, start: value.length, end: value.length });
-    expect(result?.value).toBe("- milk\n");
-  });
-
-  it("continues a numbered list incrementing the number", () => {
-    const value = "1. milk";
-    const result = continueListOnEnter({ value, start: value.length, end: value.length });
-    expect(result?.value).toBe("1. milk\n2. ");
+    expect(result?.value).toBe(expected);
   });
 
   it("returns null on a plain text line", () => {

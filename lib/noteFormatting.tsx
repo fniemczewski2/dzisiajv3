@@ -6,8 +6,16 @@ import { sanitizeHref } from "@/lib/sanitize";
 // Matches http(s)/www URLs, and now also bare "domain.tld" text anywhere in
 // the line (e.g. "google.pl") — previously auto-linking only worked for a
 // whole line that WAS a URL, not one mentioned mid-sentence.
+//
+// The domain-label group is deliberately a flat `[a-z0-9-]+` rather than a
+// stricter "starts/ends alphanumeric" pattern: the stricter version nests a
+// bounded quantifier inside a repeated group with full character-class
+// overlap, which is exactly the shape that causes super-linear backtracking
+// (flagged by Sonar S5843/S8786) on adversarial input. This is a loose
+// "does it look like a domain" heuristic, not RFC 1035 validation, so the
+// minor extra leniency (allowing a label to start/end with "-") is fine.
 const LINK_RE =
-  /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+|\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}(?:\/[^\s<>()]*)?\b)/gi;
+  /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+|\b(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s<>()]*)?\b)/gi;
 const TRAILING_PUNCT_RE = /[.,;:!?)\]]+$/;
 const MAX_RENDER_LENGTH = 5000;
 
@@ -72,15 +80,17 @@ export interface ParsedNoteLine {
   content: string;
 }
 
-const BULLET_LINE_RE = /^-\s+(.*)$/;
-const NUMBER_LINE_RE = /^\d+\.\s+(.*)$/;
+// Atomic whitespace match (`(?=(\s+))\1` instead of a plain `\s+`) so it
+// can't backtrack into `(.*)$` — see lib/noteEditing.ts for the same fix.
+const BULLET_LINE_RE = /^-(?=(\s+))\1(.*)$/;
+const NUMBER_LINE_RE = /^\d+\.(?=(\s+))\1(.*)$/;
 
 export function parseNoteLine(raw: string): ParsedNoteLine {
   const bulletMatch = BULLET_LINE_RE.exec(raw);
-  if (bulletMatch) return { kind: "bullet", content: bulletMatch[1] };
+  if (bulletMatch) return { kind: "bullet", content: bulletMatch[2] };
 
   const numberMatch = NUMBER_LINE_RE.exec(raw);
-  if (numberMatch) return { kind: "number", content: numberMatch[1] };
+  if (numberMatch) return { kind: "number", content: numberMatch[2] };
 
   return { kind: "text", content: raw };
 }
@@ -101,7 +111,7 @@ export function groupNoteLines(items: string[]): NoteBlock[] {
   for (const raw of items) {
     const parsed = parseNoteLine(raw);
     const last = blocks.at(-1);
-    if (parsed.kind !== "text" && last && last.kind === parsed.kind) {
+    if (parsed.kind !== "text" && last?.kind === parsed.kind) {
       last.lines.push(parsed.content);
     } else {
       blocks.push({ kind: parsed.kind, lines: [parsed.content] });

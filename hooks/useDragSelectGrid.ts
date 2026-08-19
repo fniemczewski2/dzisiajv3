@@ -48,9 +48,9 @@ export function useDragSelectGrid({ onBegin, onExtend, onEnd }: DragSelectGridOp
     (event: React.TouchEvent) => {
       const touch = event.touches[0];
       if (!touch) return;
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      const groupId = target?.getAttribute("data-drag-group");
-      const cellId = target?.getAttribute("data-drag-cell");
+      const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null;
+      const groupId = target?.dataset.dragGroup;
+      const cellId = target?.dataset.dragCell;
       if (groupId && cellId) extend(groupId, cellId);
     },
     [extend]

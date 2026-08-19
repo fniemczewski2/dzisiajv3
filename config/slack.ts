@@ -41,14 +41,23 @@ export const SLACK_TASK_CATEGORY = "slack";
  * Adresy filtrujące import. Przyjmujemy je w jednym polu tekstowym, rozdzielone
  * przecinkiem, średnikiem, spacją lub nową linią.
  */
+// Deliberately loose, non-regex check (a `[^@]+@[^@]+\.[^@]+` pattern here
+// flags as a backtracking/ReDoS risk since the domain-and-TLD segments both
+// allow ".") - odsiewamy literówki bez małpy, resztę zweryfikuje Slack.
+function isPlausibleEmail(value: string): boolean {
+  const at = value.indexOf("@");
+  if (at <= 0 || at !== value.lastIndexOf("@")) return false;
+  const domain = value.slice(at + 1);
+  return domain.includes(".") && !domain.startsWith(".") && !domain.endsWith(".");
+}
+
 export function parseAssigneeEmails(input: string): string[] {
   const seen = new Set<string>();
 
   for (const chunk of input.split(/[\s,;]+/)) {
     const email = chunk.trim().toLowerCase();
     if (!email) continue;
-    // celowo luźna walidacja - odsiewamy literówki bez małpy, resztę zweryfikuje Slack
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) continue;
+    if (!isPlausibleEmail(email)) continue;
     seen.add(email);
   }
   return [...seen];

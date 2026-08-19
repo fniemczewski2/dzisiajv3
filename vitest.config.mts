@@ -2,7 +2,6 @@
 
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [react()],
@@ -19,7 +18,10 @@ export default defineConfig({
       exclude: ["**/*.d.ts", "**/*.config.*"],
     },
   },
+  // Vite resolves tsconfig `paths` (the "@/*" alias) natively via this
+  // option now — the `vite-tsconfig-paths` plugin is unnecessary and its
+  // unused import was flagged by Sonar (S1128).
   resolve: {
-    tsconfigPaths: true, 
+    tsconfigPaths: true,
   },
 });

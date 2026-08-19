@@ -80,11 +80,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Błędy spoza Slacka (baza, sieć) mają własny komunikat - nie chowamy
           // ich za ogólnym "Slack odrzucił żądanie."
           const code = (err as { slackError?: string }).slackError;
-          const message = code
-            ? translateSlackError(code)
-            : err instanceof Error
-              ? err.message
-              : String(err);
+          let message: string;
+          if (code) {
+            message = translateSlackError(code);
+          } else if (err instanceof Error) {
+            message = err.message;
+          } else {
+            message = String(err);
+          }
           console.error(`[slack/sync] lista ${target.listId}:`, err);
           results.push({ list_id: target.listId, error: message });
         }

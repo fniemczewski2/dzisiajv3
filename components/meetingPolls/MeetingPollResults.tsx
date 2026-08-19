@@ -54,7 +54,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [slotCalendar, setSlotCalendar] = useState("local");
   const activateCell = useCallback(
     (date: string, index: number) => {
-      if (rangeAnchor && rangeAnchor.date === date) {
+      if (rangeAnchor?.date === date) {
         setSelection({
           date,
           startIndex: Math.min(rangeAnchor.index, index),
@@ -282,24 +282,18 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                     if (isAnchor) ringClass = "ring-2 ring-inset ring-secondary";
                     else if (isSelected) ringClass = "ring-2 ring-inset ring-primary";
                     return (
-                      <td
-                        key={date}
-                        onClick={() => activateCell(date, timeIndex)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            activateCell(date, timeIndex);
-                          }
-                        }}
-                        tabIndex={0}
-                        role="button"
-                        title={names.length > 0 ? names.join(", ") : "Nikt niedostępny"}
-                        aria-label={`${date} ${time}: ${
-                          names.length > 0 ? `dostępni - ${names.join(", ")}` : "nikt niedostępny"
-                        }${isAnchor ? ". Początek zakresu - wybierz godzinę końcową" : ""}`}
-                        className={`w-12 h-8 text-center text-xs font-semibold cursor-pointer border border-white dark:border-neutral-950 transition-colors ${ringClass} ${cellClass(count)}`}
-                      >
-                        {count > 0 ? count : ""}
+                      <td key={date} className="p-0 border border-white dark:border-neutral-950">
+                        <button
+                          type="button"
+                          onClick={() => activateCell(date, timeIndex)}
+                          title={names.length > 0 ? names.join(", ") : "Nikt niedostępny"}
+                          aria-label={`${date} ${time}: ${
+                            names.length > 0 ? `dostępni - ${names.join(", ")}` : "nikt niedostępny"
+                          }${isAnchor ? ". Początek zakresu - wybierz godzinę końcową" : ""}`}
+                          className={`block w-12 h-8 text-center text-xs font-semibold cursor-pointer transition-colors ${ringClass} ${cellClass(count)}`}
+                        >
+                          {count > 0 ? count : ""}
+                        </button>
                       </td>
                     );
                   })}

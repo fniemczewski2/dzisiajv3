@@ -21,9 +21,9 @@ export function isWorkingDay(date: Date): boolean {
 const HOUR_MS = 60 * 60 * 1000;
 
 export function addWorkingHours(from: Date, hours: number): Date {
-  if (hours <= 0) return new Date(from.getTime());
+  if (hours <= 0) return new Date(from);
 
-  let cursor = new Date(from.getTime());
+  let cursor = new Date(from);
   let remaining = hours;
 
   const maxSteps = Math.ceil(hours * 7) + 24 * 7;

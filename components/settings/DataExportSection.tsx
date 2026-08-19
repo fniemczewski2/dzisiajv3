@@ -42,19 +42,14 @@ export default function DataExportSection() {
 
       {progress && (
         <div className="mt-4">
-          <div
-            className="h-2 w-full rounded-full bg-surface overflow-hidden"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={progress.total}
-            aria-valuenow={progress.done}
+          <progress
+            className="h-2 w-full rounded-full overflow-hidden [&::-webkit-progress-bar]:bg-surface [&::-webkit-progress-value]:bg-primary [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-200 [&::-moz-progress-bar]:bg-primary"
+            value={progress.done}
+            max={progress.total}
             aria-label="Postęp przygotowania kopii danych"
           >
-            <div
-              className="h-full bg-primary transition-all duration-200"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
+            {percent}%
+          </progress>
           <p className="mt-2 text-xs text-textSecondary" aria-live="polite">
             Sekcja {progress.done} z {progress.total}
           </p>

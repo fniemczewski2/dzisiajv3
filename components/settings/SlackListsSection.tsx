@@ -161,7 +161,7 @@ export default function SlackListsSection() {
                   id={`slack-list-sync-${account.id}`}
                 />
                 <span>
-                  Pobieraj zadania z tej listy
+                  Pobieraj zadania z tej listy{" "}
                   <span className="block text-textMuted">
                     Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
                   </span>

@@ -43,7 +43,9 @@ class FallbackDOMMatrix {
 
   inverse(): FallbackDOMMatrix {
     const det = this.a * this.d - this.b * this.c;
-    if (det === 0) return FallbackDOMMatrix.from([NaN, NaN, NaN, NaN, NaN, NaN]);
+    if (det === 0) {
+      return FallbackDOMMatrix.from([Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN]);
+    }
 
     return FallbackDOMMatrix.from([
       this.d / det,
@@ -63,7 +65,7 @@ class FallbackDOMMatrix {
 let ready: Promise<void> | undefined;
 
 async function install(): Promise<void> {
-  if (typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix !== "undefined") return;
+  if ((globalThis as { DOMMatrix?: unknown }).DOMMatrix !== undefined) return;
 
   const target = globalThis as Record<string, unknown>;
 

@@ -96,9 +96,13 @@ export function continueListOnEnter(state: TextSelectionState): TextSelectionSta
 
   const currentLine = value.slice(lineStart, lineEnd);
 
-  const bulletMatch = /^-\s+(.*)$/.exec(currentLine);
+  // The lookahead+backreference (`(?=(\s+))\1`) matches the same thing as a
+  // plain `\s+` but atomically — it can't give back part of the whitespace
+  // to backtrack into `(.*)$`, which is what made the plain version flagged
+  // for super-linear backtracking (S8786).
+  const bulletMatch = /^-(?=(\s+))\1(.*)$/.exec(currentLine);
   if (bulletMatch) {
-    if (bulletMatch[1].trim() === "") {
+    if (bulletMatch[2].trim() === "") {
       const before = value.slice(0, lineStart);
       const after = value.slice(lineEnd);
       return { value: before + after, start: lineStart, end: lineStart };
@@ -108,9 +112,9 @@ export function continueListOnEnter(state: TextSelectionState): TextSelectionSta
     return { value: value.slice(0, start) + insertion + value.slice(start), start: cursor, end: cursor };
   }
 
-  const numberMatch = /^(\d+)\.\s+(.*)$/.exec(currentLine);
+  const numberMatch = /^(\d+)\.(?=(\s+))\2(.*)$/.exec(currentLine);
   if (numberMatch) {
-    if (numberMatch[2].trim() === "") {
+    if (numberMatch[3].trim() === "") {
       const before = value.slice(0, lineStart);
       const after = value.slice(lineEnd);
       return { value: before + after, start: lineStart, end: lineStart };

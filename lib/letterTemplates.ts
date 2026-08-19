@@ -65,8 +65,7 @@ export function generateLetterBody(letter: Letter): string {
 
   const lines: string[] = [];
 
-  lines.push(letter.recipient);
-  lines.push("");
+  lines.push(letter.recipient, "");
 
   if (meta.legalBasis) {
     lines.push(`Na podstawie ${meta.legalBasis}, ${meta.opening}` );
@@ -90,8 +89,7 @@ export function generateLetterBody(letter: Letter): string {
     lines.push(`Uprzejmie proszę o udzielenie odpowiedzi na podany adres do e-doręczeń.`);
   }
 
-  lines.push("");
-  lines.push(`Sygn.: ${letter.signature}`);
+  lines.push("", `Sygn.: ${letter.signature}`);
 
   return lines.join("\n");
 }
