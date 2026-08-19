@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { generateTimeSlots } from "@/lib/meetingPollGrid";
+import { validateFinalizeSlot } from "@/lib/sanitize";
 import type { FinalizeRequest, FinalizeResponse, FinalizeResultSlot } from "@/types/meetingPolls";
 
 const MAX_SLOTS_PER_FINALIZE = 20;
@@ -33,11 +34,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (poll.user_id !== user.id) return res.status(403).json({ error: "To nie Twoja ankieta." });
 
   const body = req.body as Partial<FinalizeRequest> | undefined;
-  const slots = Array.isArray(body?.slots) ? body.slots : [];
-  if (slots.length === 0) return res.status(400).json({ error: "Podaj przynajmniej jeden termin do finalizacji." });
-  if (slots.length > MAX_SLOTS_PER_FINALIZE) {
+  const rawSlots = Array.isArray(body?.slots) ? body.slots : [];
+  if (rawSlots.length === 0) return res.status(400).json({ error: "Podaj przynajmniej jeden termin do finalizacji." });
+  if (rawSlots.length > MAX_SLOTS_PER_FINALIZE) {
     return res.status(400).json({ error: "Zbyt wiele terminów w jednej finalizacji." });
   }
+
+  // Every field here (date/time/title/place) previously went straight from
+  // the request body into an `events` insert with no format/length checks.
+  const validatedSlots = rawSlots.map(validateFinalizeSlot);
+  if (validatedSlots.some((s) => s === null)) {
+    return res.status(400).json({ error: "Nieprawidłowy format jednego z terminów." });
+  }
+  const slots = validatedSlots as NonNullable<(typeof validatedSlots)[number]>[];
 
   const { data: responses, error: responsesError } = await supabase
     .from("meeting_poll_responses")

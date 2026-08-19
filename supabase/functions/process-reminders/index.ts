@@ -38,36 +38,47 @@ Deno.serve(async (req) => {
 
     const rolled: string[] = [];
     const finished: string[] = [];
+    const failed: string[] = [];
 
     for (const task of (data ?? []) as RecurringTask[]) {
-      if (!task.repeat_days || task.repeat_days <= 0) continue;
+      // Each task is isolated in its own try/catch so a thrown network/DB
+      // error on one row (not just a returned `error` field) doesn't abort
+      // processing of the remaining recurring tasks in this run.
+      try {
+        if (!task.repeat_days || task.repeat_days <= 0) continue;
 
-      const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
-      const base = doneDate && task.due_date
-        ? (doneDate > task.due_date ? doneDate : task.due_date)
-        : (doneDate ?? task.due_date);
-      if (!base) continue;
+        const doneDate = task.done_at ? task.done_at.slice(0, 10) : null;
+        const base = doneDate && task.due_date
+          ? (doneDate > task.due_date ? doneDate : task.due_date)
+          : (doneDate ?? task.due_date);
+        if (!base) continue;
 
-      const nextDue = addDays(base, task.repeat_days);
+        const nextDue = addDays(base, task.repeat_days);
 
-      if (task.recurring_until && nextDue > task.recurring_until) {
-        const { error: stopError } = await supabase
+        if (task.recurring_until && nextDue > task.recurring_until) {
+          const { error: stopError } = await supabase
+            .from("tasks")
+            .update({ is_recurring: false })
+            .eq("id", task.id);
+          if (!stopError) finished.push(task.title);
+          else failed.push(task.title);
+          continue;
+        }
+
+        const { error: rollError } = await supabase
           .from("tasks")
-          .update({ is_recurring: false })
+          .update({ status: "pending", due_date: nextDue })
           .eq("id", task.id);
-        if (!stopError) finished.push(task.title);
-        continue;
+        if (!rollError) rolled.push(task.title);
+        else failed.push(task.title);
+      } catch (taskErr) {
+        console.error("process-reminders: task failed", task.id, taskErr);
+        failed.push(task.title);
       }
-
-      const { error: rollError } = await supabase
-        .from("tasks")
-        .update({ status: "pending", due_date: nextDue })
-        .eq("id", task.id);
-      if (!rollError) rolled.push(task.title);
     }
 
     return new Response(
-      JSON.stringify({ success: true, rolled, finished }),
+      JSON.stringify({ success: true, rolled, finished, failed }),
       { headers: jsonHeaders }
     );
   } catch (err) {

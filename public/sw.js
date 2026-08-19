@@ -38,9 +38,17 @@ async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const hit = await cache.match(request);
   if (hit) return hit;
-  const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
-  return response;
+  try {
+    // Unlike networkFirst/staleWhileRevalidate, this had no fallback for a
+    // failed fetch — offline + cache-miss (e.g. right after a deploy changes
+    // a static asset's hash) surfaced as an unhandled rejection instead of a
+    // clean offline response.
+    const response = await fetch(request);
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  } catch {
+    return Response.error();
+  }
 }
 
 async function networkFirst(request, cacheName) {
@@ -158,7 +166,13 @@ self.addEventListener('push', (event) => {
         ],
       };
 
-      await self.registration.showNotification(data.title, options);
+      try {
+        await self.registration.showNotification(data.title, options);
+      } catch (err) {
+        // A malformed field in `data` (e.g. non-string title) would
+        // otherwise reject inside event.waitUntil with no fallback.
+        console.error('[sw] showNotification failed:', err);
+      }
     })()
   );
 });
@@ -168,7 +182,17 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'close') return;
 
-  const targetUrl = event.notification.data.url;
+  // The push payload's `url` (see the `push` handler above) is attacker-
+  // influenced data, not a trusted value — resolve it against this SW's own
+  // origin and refuse to navigate/open anything cross-origin.
+  const rawUrl = event.notification.data?.url || '/';
+  let targetUrl;
+  try {
+    const resolved = new URL(rawUrl, self.location.origin);
+    targetUrl = resolved.origin === self.location.origin ? resolved.href : '/';
+  } catch {
+    targetUrl = '/';
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

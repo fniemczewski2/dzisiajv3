@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MapPin } from "lucide-react";
+import { SecondaryFullButton } from "../ui/CommonButtons";
 
 interface LocationSectionProps {
   onRequestLocation: () => void;
@@ -43,14 +44,9 @@ export default function LocationSection({
         </div>
       )}
       
-      <button
-        onClick={() => onRequestLocation()}
-        type='button'
-        className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        <span>Pobierz lokalizację</span>
-        <MapPin className="w-5 h-5" />
-      </button>
+      <SecondaryFullButton onClick={() => onRequestLocation()} Icon={MapPin}>
+        Pobierz lokalizację
+      </SecondaryFullButton>
     </div>
   );
 }

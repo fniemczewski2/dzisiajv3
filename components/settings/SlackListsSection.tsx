@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Hash, Link2, RefreshCw, Loader2, Star, Link2Off } from "lucide-react";
 import { useSlackTasks, type SlackListConfig } from "@/hooks/db/useSlackTasks";
 import SlackListEditor from "./SlackListEditor";
-import { AddButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
+import { AddButton, DeleteButton, FormButtons, SecondaryFullButton } from "../ui/CommonButtons";
 
 export default function SlackListsSection() {
   const slack = useSlackTasks();
@@ -177,17 +177,15 @@ export default function SlackListsSection() {
         ))}
       </div>
 
-      <button
-        type="button"
+      <SecondaryFullButton
         onClick={() => void slack.connect()}
         disabled={slack.busy}
-        aria-busy={slack.busy}
-        className="font-semibold px-4 py-2 mt- 4 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        ariaBusy={slack.busy}
+        Icon={Link2}
+        className="mt-4"
       >
-        
         {slack.accounts.length === 0 ? "Połącz ze Slackiem" : "Dodaj kolejne konto"}
-        <Link2 className="w-5 h-5" aria-hidden="true" />
-      </button>
+      </SecondaryFullButton>
     </section>
   );
 }

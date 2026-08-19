@@ -1,7 +1,7 @@
 ﻿// components/calendar/ConnectedCalendars.tsx
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Link2Off, Loader2, Link as LinkIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, Link2Off, Loader2, Link as LinkIcon, AlertTriangle } from 'lucide-react';
 import { useConnectedCalendars } from '@/hooks/db/useConnectedCalendars';
 
 export default function ConnectedCalendars() {
@@ -78,10 +78,16 @@ export default function ConnectedCalendars() {
                             <div>
                               <div className="text-sm font-bold text-text capitalize">{account.provider}</div>
                               <div className="text-xs text-textSecondary">{account.account_email}</div>
+                              {account.sync_error && (
+                                <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500 font-medium mt-0.5">
+                                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                                  <span>Wymaga ponownej autoryzacji — połącz konto ponownie</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <button 
-                            onClick={() => handleDisconnect(account.id, account.account_email, account.provider)} 
+                          <button
+                            onClick={() => handleDisconnect(account.id, account.account_email, account.provider)}
                             type='button'
                             className="text-red-500 hover:text-red-600 transition-colors p-2"
                             title="Odłącz całe konto"

@@ -44,7 +44,7 @@ export interface PatchOptions {
   errorMessage?: string;
 }
 
-export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
+export function useCrudResource<T extends { id: string }, TInsert extends object = Partial<T>>(
   config: CrudResourceConfig<T, TInsert>
 ) {
   const { user, supabase } = useAuth();
@@ -141,9 +141,13 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
+      // Without a caller-supplied buildOptimistic there's no way to know
+      // statically that `payload` plus id/user_id actually satisfies T (T may
+      // have server-computed fields payload doesn't carry) — this cast is the
+      // documented escape hatch for that one fallback path.
       const optimistic = cfg.buildOptimistic
         ? cfg.buildOptimistic(payload, tempId, userId)
-        : ({ ...(payload as object), id: tempId, user_id: userId } as unknown as T);
+        : ({ ...payload, id: tempId, user_id: userId } as unknown as T);
 
       setItems((prev) =>
         (cfg.insertPosition ?? "start") === "start"
@@ -154,7 +158,7 @@ export function useCrudResource<T extends { id: string }, TInsert = Partial<T>>(
       try {
         const row = cfg.prepareInsert
           ? cfg.prepareInsert(payload, userId)
-          : { ...(payload as object), user_id: userId };
+          : { ...payload, user_id: userId };
 
         const { data, error } = await withRetry(async () =>
           supabase.from(cfg.table).insert(row).select().single()

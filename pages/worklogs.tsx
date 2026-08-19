@@ -203,18 +203,20 @@ export default function WorkLogsPage() {
             <button
               onClick={onPrev}
               type='button'
+              aria-label="Poprzedni miesiąc"
               className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
-                
+
             <h2 className="text-base sm:text-lg font-bold text-text px-4 min-w-35 text-center capitalize tracking-wide">
               {format(currentDate, "LLLL yyyy", { locale: pl })}
             </h2>
-                
+
             <button
               onClick={onNext}
               type='button'
+              aria-label="Następny miesiąc"
               className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />

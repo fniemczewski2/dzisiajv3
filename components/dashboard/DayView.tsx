@@ -1,6 +1,6 @@
 ﻿// components/dashboard/DayView.tsx
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { Calendar, ListTodo, SaveAll, Trophy } from "lucide-react";
@@ -15,7 +15,8 @@ import { useEvents } from "@/hooks/db/useEvents";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { useDashboardDnd } from "@/hooks/useDashboardDnd";
-import { PlanItemData } from "@/types/schemas";
+import { usePlanByHour } from "@/hooks/usePlanByHour";
+import { useDragAutoscroll } from "@/hooks/useDragAutoscroll";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { useDailyOverrides } from "@/hooks/db/useDailyOverrides";
 
@@ -31,8 +32,6 @@ import { useWorkLogs } from "@/hooks/db/useWorkLogs";
 const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
 const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });
 
-const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
-
 interface DayViewProps {
   date: Date;
   onDateChange?: (newDate: Date) => void;
@@ -41,26 +40,6 @@ interface DayViewProps {
 type DraftForm = {
   id: string;
   type: "task" | "event";
-};
-
-const getHourStr = (dateStr: string | null): string | undefined => {
-  if (!dateStr) return;
-  try {
-    if (/^\d{2}:\d{2}$/.test(dateStr)) {
-      return dateStr.split(":")[0];
-    }
-    const normalized = dateStr.replace(" ", "T");
-    const parts = normalized.split("T");
-    
-    if (parts.length > 1) {
-      const hour = parts[1].split(":")[0];
-      if (hour && !Number.isNaN(Number(hour))) {
-        return hour.padStart(2, "0");
-      }
-    }
-  } catch {
-    return;
-  }
 };
 
 export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) {
@@ -132,132 +111,15 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
-  const lastMouseY = useRef<number>(0);
-  useEffect(() => {
-    if (!draggedTask && !draggedEventTitle && !draggedSchemaTitle) return;
-    let animationFrameId: number;
-    const scrollSpeed = 10;
-    const edgeThreshold = 100;
-
-    const autoScroll = () => {
-      const y = lastMouseY.current;
-      const h = window.innerHeight;
-      if (y > h - edgeThreshold) window.scrollBy(0, scrollSpeed);
-      else if (y < edgeThreshold) window.scrollBy(0, -scrollSpeed);
-      animationFrameId = requestAnimationFrame(autoScroll);
-    };
-
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      if (e instanceof MouseEvent) lastMouseY.current = e.clientY;
-      else if (e.touches.length > 0) lastMouseY.current = e.touches[0].clientY;
-    };
-
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("touchmove", handleMove);
-    animationFrameId = requestAnimationFrame(autoScroll);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMove);
-      document.removeEventListener("touchmove", handleMove);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [draggedTask, draggedEventTitle, draggedSchemaTitle]);
+  useDragAutoscroll(Boolean(draggedTask || draggedEventTitle || draggedSchemaTitle));
 
   const activeTasks = useMemo(() => tasks.filter((t) => t.status != "done"), [tasks]);
   const scheduledTasks = useMemo(() => activeTasks.filter((t) => t.scheduled_time), [activeTasks]);
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
 
-  const planByHour = useMemo(() => {
-    const map: Record<string, PlanItemData[]> = {};
-    HOURS.forEach((h) => { map[`${String(h).padStart(2, "0")}:00`] = []; });
-    
-    const todaySchema = schemas.find((s) => s.days?.includes(currentDayOfWeek));
-    if (todaySchema?.entries) {
-      todaySchema.entries.forEach((entry, idx) => {
-        const schemaId = `schema-${idx}`;
-        const override = overrides.find(o => o.schema_id === schemaId);
-        if (override?.is_hidden) return;
-
-        const rawTime = override?.new_time || entry.time;
-        const timeMatch = rawTime.match(/\d{2}:\d{2}/);
-        const timeToUse = timeMatch ? timeMatch[0] : rawTime;
-        
-        const h = timeToUse.split(":")[0].padStart(2, "0");
-        const key = `${h}:00`;
-        
-        if (map[key]) {
-          map[key].push({ 
-            id: schemaId, 
-            title: entry.label, 
-            type: "schema", 
-          });
-        }
-      });
-    }
-
-    events.forEach((event) => {
-      const h = getHourStr(event.start_time);
-      if (h) {
-        const key = `${h}:00`;
-        if (map[key]) {
-          map[key].push({ id: event.id, title: event.title, type: "event", data: event });
-        }
-      }
-    });
-
-    scheduledTasks.forEach((task) => {
-      if (!task.scheduled_time) return;
-      const h = getHourStr(task?.scheduled_time);
-      if (h) {
-        const key = `${h}:00`;
-        if (map[key]) {
-          map[key].push({ id: String(task.id), title: task.title, type: "task", data: task });
-        }
-      }
-    });
-
-    workLogs.forEach((w) => {
-      const h = getHourStr(w.start_time);
-      if (h) {
-        const key = `${h}:00`;
-        if (map[key]) {
-          map[key].push({ id: String(w.id), title: w.description, type: "worklog", data: w });
-        }
-      }
-    });
-
-    if (isToday) {
-      const currentHour = new Date().getHours();
-      const filteredMap: Record<string, PlanItemData[]> = {};
-      
-      Object.keys(map).forEach((timeKey) => {
-        const hourNum = Number.parseInt(timeKey.split(":")[0], 10);
-        
-        if (hourNum < currentHour) {
-          const shouldKeepPastHour = map[timeKey].some(item => {
-            if (item.type === "task" || item.type === "schema" || item.type === "worklog") return true; 
-            
-            if (item.type === "event" && item.data?.end_time) {
-              const endH = getHourStr(item.data.end_time);
-              if (endH) {
-                return Number.parseInt(endH, 10) >= currentHour; 
-              }
-            }
-            return false; 
-          });
-
-          if (shouldKeepPastHour) {
-            filteredMap[timeKey] = map[timeKey];
-          }
-        } else {
-          filteredMap[timeKey] = map[timeKey];
-        }
-      });
-      return filteredMap;
-    }
-
-    return map;
-  }, [schemas, events, workLogs, scheduledTasks, currentDayOfWeek, isToday, overrides]);
+  const planByHour = usePlanByHour({
+    schemas, events, workLogs, scheduledTasks, currentDayOfWeek, isToday, overrides,
+  });
 
   const streaksWithMilestones = useMemo(() => {
     if (!streaks) return [];
@@ -306,7 +168,10 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     }
   };
 
-  const handleRemoveFromSchedule = async (id: string, type?: string) => {
+  // Stabilized with useCallback so DailyPlan/PlanItem (both React.memo) can
+  // actually skip re-rendering — passing a fresh function reference on every
+  // DayView render was silently defeating that memoization.
+  const handleRemoveFromSchedule = useCallback(async (id: string, type?: string) => {
     if (type === "schema" || id.startsWith("schema-")) {
       await hideSchema(id);
       return;
@@ -316,7 +181,16 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     if (current) {
       await editTask({ ...current, scheduled_time: null });
     }
-  };
+  }, [hideSchema, tasks, editTask]);
+
+  const handleMarkAsDone = useCallback(async (id: string) => {
+    if (id.startsWith("schema-")) {
+      await hideSchema(id);
+    } else {
+      await setDoneTask(id);
+      fetchTasks();
+    }
+  }, [hideSchema, setDoneTask, fetchTasks]);
 
   const handleAddDraft = (type: "task" | "event") => {
     setDraftForms((prev) => [...prev, { id: crypto.randomUUID(), type }]);
@@ -418,16 +292,9 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <DailyPlan
-                planByHour={planByHour} 
-                handleMarkAsDone={async (id) => {
-                  if (id.startsWith("schema-")) {
-                    await hideSchema(id);
-                  } else {
-                    await setDoneTask(id);
-                    fetchTasks();
-                  }
-                }} 
-                handleRemoveFromSchedule={handleRemoveFromSchedule} 
+                planByHour={planByHour}
+                handleMarkAsDone={handleMarkAsDone}
+                handleRemoveFromSchedule={handleRemoveFromSchedule}
               />
             </div>
 

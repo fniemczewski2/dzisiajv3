@@ -116,9 +116,18 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
       </div>
 
       {showQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-surface p-6 rounded-2xl shadow-xl flex flex-col items-center gap-6 max-w-sm w-full border border-gray-200 dark:border-gray-800">
-            <h3 className="text-lg font-bold text-textPrimary text-center">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="person-qr-modal-title"
+          onClick={() => setShowQR(false)}
+        >
+          <div
+            className="bg-surface p-6 rounded-2xl shadow-xl flex flex-col items-center gap-6 max-w-sm w-full border border-gray-200 dark:border-gray-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="person-qr-modal-title" className="text-lg font-bold text-textPrimary text-center">
               Zeskanuj kod
             </h3>
             

@@ -13,7 +13,7 @@ interface SeoProps {
   twitterCard?: "summary" | "summary_large_image" | "app" | "player";
   noindex?: boolean;
   nofollow?: boolean;
-  structuredData?: object;
+  structuredData?: Record<string, unknown>;
   keywords?: string;
   author?: string;
   publishedTime?: string;

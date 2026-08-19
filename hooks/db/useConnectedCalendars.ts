@@ -35,7 +35,7 @@ export function useConnectedCalendars(expanded: boolean) {
           async () =>
             supabase
               .from('connected_calendars')
-              .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at')
+              .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at, sync_error')
               .eq('user_id', user.id)
               .abortSignal(signal),
           signal

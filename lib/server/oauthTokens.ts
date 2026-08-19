@@ -4,7 +4,7 @@ import type { GoogleTokenResponse } from "@/types/googleCalendar";
 import { fetchWithTimeout } from "@/lib/server/fetchWithTimeout";
 import type { OutlookTokenResponse } from "@/types/outlookCalendar";
 
-const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+export const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const OUTLOOK_TOKEN_URL =
   "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 

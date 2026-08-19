@@ -21,19 +21,21 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
           className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
           type='button'
           title="Poprzedni miesiąc"
+          aria-label="Poprzedni miesiąc"
         >
           <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
-        
+
         <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
           {format(currentDate, "LLLL yyyy", { locale: pl })}
         </h2>
-        
+
         <button
           onClick={onNext}
           className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
           type='button'
           title="Następny miesiąc"
+          aria-label="Następny miesiąc"
         >
           <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>

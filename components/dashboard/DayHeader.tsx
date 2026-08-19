@@ -39,6 +39,7 @@ export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraf
             type='button'
             className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
             title="Poprzedni dzień"
+            aria-label="Poprzedni dzień"
             >
             <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
           </button>
@@ -54,7 +55,8 @@ export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraf
             onClick={onNext}
             type='button'
             className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
-            title="Następny miesiąc"
+            title="Następny dzień"
+            aria-label="Następny dzień"
           >
             <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
           </button>

@@ -29,7 +29,7 @@ export function escapeHtml(text: string): string {
     .replaceAll("`", "&#96;");
 }
 
-export function sanitizeJsonLd(data: object): string {
+export function sanitizeJsonLd(data: Record<string, unknown>): string {
   return JSON.stringify(data)
     .replaceAll("<", String.raw`\u003C`)
     .replaceAll(">", String.raw`\u003E`)
@@ -65,4 +65,42 @@ export function validateSlot(value: unknown): { date: string; start_time: string
   if (typeof date !== "string" || !ISO_DATE_RE.test(date)) return null;
   if (typeof start_time !== "string" || !HHMM_RE.test(start_time)) return null;
   return { date, start_time };
+}
+
+const MAX_TITLE_LENGTH = 200;
+const MAX_PLACE_LENGTH = 200;
+
+export interface FinalizeSlotValidated {
+  date: string;
+  start_time: string;
+  end_time: string;
+  title?: string;
+  place?: string;
+}
+
+/**
+ * Validates a meeting-poll finalize slot coming straight from the request
+ * body before it's interpolated into an `events` insert (date/time were
+ * previously trusted as-is, allowing malformed timestamps or oversized
+ * title/place values to reach the database).
+ */
+export function validateFinalizeSlot(value: unknown): FinalizeSlotValidated | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { date, start_time, end_time, title, place } = value as Record<string, unknown>;
+
+  if (typeof date !== "string" || !ISO_DATE_RE.test(date)) return null;
+  if (typeof start_time !== "string" || !HHMM_RE.test(start_time)) return null;
+  if (typeof end_time !== "string" || !HHMM_RE.test(end_time)) return null;
+  if (end_time <= start_time) return null;
+
+  if (title !== undefined && (typeof title !== "string" || title.length > MAX_TITLE_LENGTH)) return null;
+  if (place !== undefined && (typeof place !== "string" || place.length > MAX_PLACE_LENGTH)) return null;
+
+  return {
+    date,
+    start_time,
+    end_time,
+    title: typeof title === "string" ? title.trim() : undefined,
+    place: typeof place === "string" ? place.trim() : undefined,
+  };
 }

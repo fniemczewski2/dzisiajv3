@@ -161,10 +161,14 @@ export function useLetters() {
         return;
       }
 
-      const column = kind === "letter" ? "letter_file_path" : "response_file_path";
+      // `crud` is bound to `Letter`, whose file-path columns aren't part of
+      // the (form-only) LetterUpdate type — branching instead of a computed
+      // property lets TS check this against Partial<Letter> directly.
+      const update: Partial<Letter> =
+        kind === "letter" ? { letter_file_path: path } : { response_file_path: path };
       const result = await crud.patch(
         letterId,
-        { [column]: path } as unknown as LetterUpdate,
+        update,
         {
           successMessage: kind === "letter" ? "Wgrano pismo" : "Wgrano odpowiedź",
           errorMessage: "Plik wgrany, ale nie udało się zapisać w bazie.",

@@ -73,11 +73,20 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly
   if (!place) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="place-form-title"
+      onClick={onCancel}
+    >
+      <div
+        className="card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-text mb-4">Edytuj miejsce</h2>
-          
+          <h2 id="place-form-title" className="text-xl font-semibold text-text mb-4">Edytuj miejsce</h2>
+
           <div>
             <label htmlFor="place-tags" className="form-label">Tagi:</label>
             <div className="flex gap-2 mb-3">
@@ -98,6 +107,7 @@ export default function PlaceForm({ place, onSave, onCancel, loading }: Readonly
               <button
                 type="button"
                 onClick={addTag}
+                aria-label="Dodaj tag"
                 className="px-3 py-2 bg-secondary text-white rounded-lg hover:bg-primary transition-colors shrink-0"
               >
                 <PlusCircle className="w-5 h-5"/>

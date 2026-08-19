@@ -17,20 +17,32 @@ export default function LoveCat() {
   useEffect(() => {
     if (!user) return;
 
+    // Track pending timeouts so they can be cancelled on unmount instead of
+    // firing setState against an unmounted component.
+    const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>();
+    const scheduleTimeout = (fn: () => void, delay: number) => {
+      const id = setTimeout(() => {
+        pendingTimeouts.delete(id);
+        fn();
+      }, delay);
+      pendingTimeouts.add(id);
+      return id;
+    };
+
     const triggerCat = () => {
       setShow(true);
-      setTimeout(() => setShow(false), 4000);
+      scheduleTimeout(() => setShow(false), 4000);
     };
 
     let isTriggering = false;
 
-const handleTrigger = () => {
-  if (isTriggering) return;
-  isTriggering = true;
-  triggerCat();
-  
-  setTimeout(() => { isTriggering = false; }, 2000); 
-};
+    const handleTrigger = () => {
+      if (isTriggering) return;
+      isTriggering = true;
+      triggerCat();
+
+      scheduleTimeout(() => { isTriggering = false; }, 2000);
+    };
 
 const channel = supabase
   .channel(`love_channel_${user.id}`)
@@ -70,6 +82,8 @@ const channel = supabase
     return () => {
       supabase.removeChannel(channel);
       navigator.serviceWorker?.removeEventListener("message", handleMessage);
+      pendingTimeouts.forEach((id) => clearTimeout(id));
+      pendingTimeouts.clear();
     };
   }, [user, supabase]);
 

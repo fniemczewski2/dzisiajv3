@@ -25,10 +25,21 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   }, []);
 
   useEffect(() => {
+    // `stale` guards against the request resolving after this effect has
+    // already been cleaned up (e.g. running/paused toggled again before the
+    // promise settled) — without it the sentinel would be stored into
+    // wakeLockRef after release() already ran, leaking the screen lock.
+    let stale = false;
+
     const requestWakeLock = async () => {
       try {
         if ("wakeLock" in navigator && running && !paused) {
-          wakeLockRef.current = await navigator.wakeLock.request("screen");
+          const sentinel = await navigator.wakeLock.request("screen");
+          if (stale) {
+            await sentinel.release();
+          } else {
+            wakeLockRef.current = sentinel;
+          }
         }
       } catch {
         toast.info("WakeLock niedostępny");
@@ -56,6 +67,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
+      stale = true;
       releaseWakeLock();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };

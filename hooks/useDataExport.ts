@@ -55,6 +55,10 @@ export function useDataExport() {
 
         if (error) throw error;
 
+        // `table` is a dynamic string spanning every exportable table, so
+        // Supabase can't infer a precise row type here — ExportRow is a
+        // deliberately opaque `Record<string, unknown>` bag for the export
+        // file, not a shape we validate at runtime.
         const batch = (data ?? []) as unknown as ExportRow[];
         rows.push(...batch);
         if (batch.length < EXPORT_PAGE_SIZE) break;

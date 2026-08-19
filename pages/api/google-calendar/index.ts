@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
 import { refreshGoogleToken } from "@/lib/server/oauthTokens";
+import { buildGoogleEventsUrl } from "@/lib/server/googleCalendarApi";
 import { toSupabaseTime, warsawNaiveToRFC3339 } from "@/lib/server/calendarTime";
 import { ConnectedCalendarRow } from "@/types/connectedCalendars";
 import { GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
@@ -165,7 +166,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const isBirthdayVirtual = calendarId === "google_birthdays";
   const targetCalendarId = isBirthdayVirtual ? "primary" : calendarId;
 
-  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
+  const url = new URL(buildGoogleEventsUrl(targetCalendarId));
   url.searchParams.set("singleEvents", "true");
   url.searchParams.set("maxResults", "2500");
   url.searchParams.set("timeMin", timeMin.toISOString());
@@ -323,7 +324,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const exportOne = async (ev: (typeof events)[number]): Promise<boolean> => {
     const body = { summary: ev.title, description: ev.description || "", location: ev.place || "", start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: "Europe/Warsaw" }, end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: "Europe/Warsaw" } };
     const method = ev.google_event_id ? "PUT" : "POST";
-    const endpoint = ev.google_event_id ? `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${ev.google_event_id}` : `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+    const endpoint = buildGoogleEventsUrl(calendarId, ev.google_event_id ?? undefined);
 
     const r = await fetch(endpoint, { method, headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) return false;

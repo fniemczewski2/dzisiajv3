@@ -10,6 +10,7 @@ export interface ConnectedCalendarRow {
   access_token: string | null;
   refresh_token: string | null;
   expires_at: string | null;
+  sync_error?: string | null;
 }
 
 export interface TokenCache {

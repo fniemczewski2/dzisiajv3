@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { CircleUser, LogOut, TriangleAlert, Loader2, Trash, Trash2 } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import { ACCOUNT_DELETE_CONFIRMATION } from "@/config/userData";
+import { SecondaryFullButton } from "@/components/ui/CommonButtons";
 
 interface UserSectionProps {
   email: string | undefined;
@@ -73,14 +74,9 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
             </span>
           </div>
 
-      <button
-        onClick={onSignOut}
-        type="button"
-        className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        <span>Wyloguj się</span>
-        <LogOut className="w-5 h-5" />
-      </button>
+      <SecondaryFullButton onClick={onSignOut} Icon={LogOut}>
+        Wyloguj się
+      </SecondaryFullButton>
 
       <div className="flex flex-col text-xs sm:text-sm gap-2 py-4">
         <h4 className="flex items-center gap-2 text-sm font-bold text-text my-2">
@@ -94,14 +90,9 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       </div>
 
         {!showDeletePanel && (
-          <button
-            onClick={() => setShowDeletePanel(true)}
-            type="button"
-            className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-red-600 dark:text-red-400 rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+          <SecondaryFullButton onClick={() => setShowDeletePanel(true)} Icon={Trash2} variant="danger">
             Usuń konto
-            <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-          </button>
+          </SecondaryFullButton>
         )}
 
         {showDeletePanel && (

@@ -19,6 +19,7 @@ export interface ConnectedAccount {
   provider: 'google' | 'outlook';
   account_email: string;
   google_calendar_id?: string;
+  sync_error?: string | null;
 }
 
 export interface ExternalCalendar {

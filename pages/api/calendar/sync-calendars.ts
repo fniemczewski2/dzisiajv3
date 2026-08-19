@@ -2,10 +2,11 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'node:crypto';
+import { verifyCronRequest } from '@/lib/server/cronAuth';
 import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
 import { refreshGoogleToken, refreshOutlookToken } from '@/lib/server/oauthTokens';
 import { fetchWithTimeout } from '@/lib/server/fetchWithTimeout';
+import { buildGoogleEventsUrl } from '@/lib/server/googleCalendarApi';
 import { toSupabaseTime, outlookToSupabaseTime } from '@/lib/server/calendarTime';
 import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from '@/types/connectedCalendars';
 import { GoogleEventsListResponse } from '@/types/googleCalendar';
@@ -80,6 +81,20 @@ async function getAccessToken(
   if (accessToken) {
     tokenCache[cacheKey] = accessToken;
     mainAccountsCache[cacheKey] = mainAcc;
+    // Clear a previously recorded sync error now that the refresh succeeded,
+    // so a transient failure doesn't keep showing a stale warning forever.
+    if (mainAcc.sync_error) {
+      await supabaseService.from('connected_calendars').update({ sync_error: null }).eq('id', mainAcc.id);
+    }
+  } else {
+    // Token refresh failed (e.g. the user revoked access in Google/Microsoft
+    // account settings) — previously this was silently swallowed and the
+    // account was skipped forever with no signal to the user. Persist the
+    // failure so the UI (ConnectedCalendars.tsx) can surface a re-auth prompt.
+    await supabaseService
+      .from('connected_calendars')
+      .update({ sync_error: 'token_refresh_failed' })
+      .eq('id', mainAcc.id);
   }
   return accessToken || null;
 }
@@ -89,7 +104,7 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
   const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
   const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
 
-  const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`);
+  const url = new URL(buildGoogleEventsUrl(targetCalendarId));
   url.searchParams.set("timeMin", timeMin.toISOString());
   url.searchParams.set("timeMax", timeMax.toISOString());
   url.searchParams.set("singleEvents", "true");
@@ -191,20 +206,10 @@ async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainA
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
-  const expectedSecret = process.env.CRON_SECRET;
-
-  if (!expectedSecret) {
-    console.error("[CRON] No CRON_SECRET defined.");
-    return res.status(500).json({ error: "Server configuration error" });
-  }
-
-  const expectedHeader = `Bearer ${expectedSecret}`;
-  const providedHeader = req.headers.authorization || "";
-
-  if (
-    expectedHeader.length !== providedHeader.length || 
-    !crypto.timingSafeEqual(Buffer.from(expectedHeader), Buffer.from(providedHeader))
-  ) {
+  // Reuse the shared cron-auth helper instead of re-implementing the same
+  // timing-safe comparison locally — keeps this endpoint in sync with any
+  // future fix to the shared implementation.
+  if (!verifyCronRequest(req)) {
     return res.status(401).json({ error: "Unauthorized." });
   }
 

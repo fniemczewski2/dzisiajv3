@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { NextRouter } from "next/router";
 import { useToast } from "@/providers/ToastProvider";
+import { cn } from "@/lib/cn";
 
 interface ButtonProps {
   onClick?: () => void;
@@ -222,7 +223,7 @@ export const ToggleSwitch = ({ id, checked, onChange, disabled = false }: Readon
     aria-checked={checked}
     disabled={disabled}
     onClick={() => onChange(!checked)}
-    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
       checked ? "bg-secondary" : "bg-gray-300 dark:bg-gray-700"
     }`}
   >
@@ -232,6 +233,55 @@ export const ToggleSwitch = ({ id, checked, onChange, disabled = false }: Readon
         checked ? "translate-x-5" : "translate-x-0"
       }`}
     />
+  </button>
+);
+
+const secondaryFullButton = cva(
+  "font-semibold px-4 py-2 w-full flex flex-1 justify-center items-center gap-2 rounded-lg border transition-colors disabled:opacity-60 disabled:cursor-not-allowed",
+  {
+    variants: {
+      variant: {
+        default: "bg-surface hover:bg-surfaceHover text-textSecondary border-gray-200 dark:border-gray-800",
+        danger: "bg-surface hover:bg-surfaceHover text-red-600 dark:text-red-400 border-gray-200 dark:border-gray-800",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  }
+);
+
+interface SecondaryFullButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+  ariaBusy?: boolean;
+  variant?: "default" | "danger";
+  Icon: LucideIcon;
+  children: React.ReactNode;
+  className?: string;
+}
+
+// Shared full-width "secondary" button (Wyloguj się / Usuń konto / Połącz ze
+// Slackiem / Odłącz lokalizację, ...) — previously each caller hand-copied
+// the same ~20-class string, so a style tweak needed to be repeated in 4+
+// files. `className` is merged with `cn()` (clsx + tailwind-merge) so a
+// caller-supplied override (e.g. `mt-4`) actually takes effect.
+export const SecondaryFullButton = ({
+  onClick,
+  disabled = false,
+  ariaBusy,
+  variant = "default",
+  Icon,
+  children,
+  className,
+}: Readonly<SecondaryFullButtonProps>) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    aria-busy={ariaBusy}
+    className={cn(secondaryFullButton({ variant }), className)}
+  >
+    <span>{children}</span>
+    <Icon className="w-5 h-5" aria-hidden="true" />
   </button>
 );
 
@@ -259,7 +309,7 @@ export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, smal
   </div>
 );
 
-const actionButton = cva(
+export const actionButton = cva(
   "flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
   {
     variants: {

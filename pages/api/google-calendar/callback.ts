@@ -2,12 +2,13 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 import { handleOAuthCallback } from "@/lib/server/oauthCallback";
+import { GOOGLE_TOKEN_URL } from "@/lib/server/oauthTokens";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   return handleOAuthCallback(req, res, {
     provider: "google",
     stateCookieName: "gcal_oauth_state",
-    tokenUrl: "https://oauth2.googleapis.com/token",
+    tokenUrl: GOOGLE_TOKEN_URL,
     profileUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
     calendarName: "Połączenie Google",
     buildClientCredentials: () => ({

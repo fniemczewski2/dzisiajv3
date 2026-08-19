@@ -62,6 +62,9 @@ export default function GlobalSearch() {
             .select(source.select)
             .ilike(source.searchColumn, pattern)
             .limit(GLOBAL_SEARCH_LIMIT);
+          // `source.table`/`source.select` vary per search source (config/globalSearch.ts),
+          // so Supabase can't infer a concrete row shape here — read defensively via
+          // bracket access below instead of trusting a specific column set.
           return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
             source,
             id: String(row.id),

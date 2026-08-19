@@ -6,7 +6,7 @@ import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { formatTime } from "@/lib/dateUtils";
 import { PlanItemData } from "@/types/schemas";
-import { ConfirmButton, DeleteButton } from "../ui/CommonButtons";
+import { ConfirmButton, DeleteButton, actionButton } from "../ui/CommonButtons";
 
 interface PlanItemProps {
   item: PlanItemData;
@@ -86,15 +86,16 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
       </div>
       <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
         {quickLink && (
-          <Link href={quickLink.path} title={quickLink.label}
-            className="flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg transition-colors border disabled:opacity-50 disabled:cursor-not-allowed bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border-transparent hover:border-blue-600 dark:hover:border-blue-400">
+          // Reuses the shared `actionButton` cva variant instead of a
+          // hand-copied class string, so a future style tweak to that
+          // variant doesn't have to be re-applied here separately.
+          <Link href={quickLink.path} title={quickLink.label} className={actionButton({ color: "blue" })}>
             {quickLink.icon}
           </Link>
         )}
 
         {item.type === "event" && (
-          <Link href="/calendar" title="Pokaż w kalendarzu"
-            className="flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-lg transition-colors border disabled:opacity-50 disabled:cursor-not-allowed bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textMuted hover:text-blue-600 dark:hover:text-blue-400 border-transparent hover:border-blue-600 dark:hover:border-blue-400">
+          <Link href="/calendar" title="Pokaż w kalendarzu" className={actionButton({ color: "blue" })}>
             <Calendar className="w-4 h-4" />
           </Link>
         )}
