@@ -74,6 +74,12 @@ export function useLetters() {
     table: "letters",
     order: { column: "issue_date", ascending: false },
     insertPosition: "start",
+    // uploadLetterFile below uses crud.patch()'s return value to decide
+    // whether to roll back the just-uploaded file. Without this flag,
+    // patch() returns `undefined` on BOTH success and failure (see
+    // useCrudResource.ts), so that check always looked like a failure and
+    // deleted every file right after it was successfully uploaded.
+    applyServerRowOnEdit: true,
     prepareInsert: (payload, userId) => ({
       user_id: userId,
       category: payload.category,
