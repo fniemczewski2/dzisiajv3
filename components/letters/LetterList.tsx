@@ -11,7 +11,7 @@ import type { Letter, LetterCategory, LetterFileKind } from "@/types/letters";
 interface LetterListProps {
   refreshToken?: number;
 }
-function FileSlot({
+export function FileSlot({
   label,
   path,
   letterId,
@@ -42,7 +42,15 @@ function FileSlot({
     // so opening it after the await was silently blocked as a popup with no
     // error surfaced anywhere. Navigate the already-open tab once the URL
     // is ready instead.
-    const preview = window.open("", "_blank", "noopener,noreferrer");
+    //
+    // Must NOT pass "noopener"/"noreferrer" here: both make window.open()
+    // return null instead of a window reference (that's the whole point of
+    // those flags), which would make it impossible to navigate the tab
+    // below — the previous version of this fix opened a tab that could
+    // never be pointed anywhere. Null out `.opener` manually afterwards for
+    // the same isolation, now that we still hold a usable reference.
+    const preview = window.open("", "_blank");
+    if (preview) preview.opener = null;
     setBusy(true);
     try {
       const url = await getLetterFileUrl(path);
