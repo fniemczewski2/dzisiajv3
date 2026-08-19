@@ -24,6 +24,27 @@ async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenRe
   return await r.json();
 }
 
+// Shared by handleListCalendars and handleExport — both need a live access
+// token and both had this exact same inline refresh-and-persist block.
+async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: ConnectedCalendarRow): Promise<string> {
+  let accessToken = decryptToken(mainAcc.access_token);
+  const storedRefreshToken = decryptToken(mainAcc.refresh_token);
+  const isExpired = new Date(mainAcc.expires_at ?? 0).getTime() < Date.now() + 60000;
+
+  if (isExpired && storedRefreshToken) {
+    const tokenData = await refreshOutlookToken(storedRefreshToken);
+    if (tokenData?.access_token) {
+      accessToken = tokenData.access_token;
+      await supabase.from('connected_calendars').update({
+        access_token: encryptToken(accessToken),
+        refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
+        expires_at: new Date(Date.now() + (tokenData.expires_in ?? 3600) * 1000).toISOString(),
+      }).eq('id', mainAcc.id);
+    }
+  }
+  return accessToken;
+}
+
 function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
   const nonce = randomBytes(24).toString('base64url');
   res.setHeader("Set-Cookie", `outlook_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
@@ -52,21 +73,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
 
     if (dbError || !mainAcc) return res.status(404).json({ error: 'Brak konta Outlook' });
 
-    let accessToken = decryptToken(mainAcc.access_token);
-    const storedRefreshToken = decryptToken(mainAcc.refresh_token);
-    const isExpired = new Date(mainAcc.expires_at ?? 0).getTime() < Date.now() + 60000;
-
-    if (isExpired && storedRefreshToken) {
-      const tokenData = await refreshOutlookToken(storedRefreshToken);
-      if (tokenData?.access_token) {
-        accessToken = tokenData.access_token;
-        await supabase.from('connected_calendars').update({
-          access_token: encryptToken(accessToken),
-          refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
-          expires_at: new Date(Date.now() + (tokenData.expires_in ?? 3600) * 1000).toISOString()
-        }).eq('id', mainAcc.id);
-      }
-    }
+    const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
 
     const response = await fetch('https://graph.microsoft.com/v1.0/me/calendars', {
       headers: { Authorization: `Bearer ${accessToken}` }
@@ -86,6 +93,43 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
   } catch {
     return res.status(500).json({ error: "Błąd pobierania listy kalendarzy" });
   }
+}
+
+async function collectNewOutlookEvents(
+  supabase: SupabaseClient,
+  events: OutlookEventsResponse["value"],
+  userId: string,
+  accountId: string
+): Promise<object[]> {
+  const eventsToInsert = [];
+  for (const ev of events || []) {
+    if (ev.isCancelled) continue;
+
+    const { data: dup } = await supabase
+      .from('events')
+      .select('id')
+      .eq('google_event_id', ev.id)
+      .eq('calendar_id', accountId)
+      .maybeSingle();
+    if (dup) continue;
+
+    const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
+    const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
+
+    eventsToInsert.push({
+      user_id: userId,
+      calendar_id: accountId,
+      title: ev.subject || '(bez tytułu)',
+      description: ev.bodyPreview || '',
+      start_time: startTime,
+      end_time: endTime,
+      place: ev.location?.displayName || '',
+      repeat: 'none',
+      google_event_id: ev.id,
+      shared_with_id: null
+    });
+  }
+  return eventsToInsert;
 }
 
 async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
@@ -120,36 +164,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
           
       if (!msRes.ok) break;
       const data: OutlookEventsResponse = await msRes.json();
-      const eventsToInsert = [];
-      
-      for (const ev of data.value || []) {
-        if (ev.isCancelled) continue;
-
-        const { data: dup } = await supabase
-          .from('events')
-          .select('id')
-          .eq('google_event_id', ev.id)
-          .eq('calendar_id', accountId)
-          .maybeSingle();
-
-        if (dup) continue;
-
-        const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
-        const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
-
-        eventsToInsert.push({
-          user_id: user.id,
-          calendar_id: accountId,
-          title: ev.subject || '(bez tytułu)',
-          description: ev.bodyPreview || '',
-          start_time: startTime,
-          end_time: endTime,
-          place: ev.location?.displayName || '',
-          repeat: 'none',
-          google_event_id: ev.id,
-          shared_with_id: null
-        });
-      }
+      const eventsToInsert = await collectNewOutlookEvents(supabase, data.value, user.id, accountId);
 
       if (eventsToInsert.length > 0) {
         await supabase.from('events').insert(eventsToInsert);
@@ -179,6 +194,55 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supab
   }
 }
 
+interface ExportableEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  place: string | null;
+  start_time: string;
+  end_time: string;
+  google_event_id: string | null;
+}
+
+async function exportEventsToOutlook(
+  supabase: SupabaseClient,
+  events: ExportableEvent[],
+  accessToken: string,
+  calendarId: string
+): Promise<{ exported: number; skipped: number }> {
+  let exported = 0;
+  let skipped = 0;
+
+  for (const ev of events) {
+    const body = {
+      subject: ev.title,
+      body: { contentType: 'text', content: ev.description || '' },
+      location: { displayName: ev.place || '' },
+      start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: 'Europe/Warsaw' },
+      end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: 'Europe/Warsaw' },
+    };
+    const method = ev.google_event_id ? 'PATCH' : 'POST';
+    const endpoint = ev.google_event_id
+      ? `https://graph.microsoft.com/v1.0/me/events/${ev.google_event_id}`
+      : `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/events`;
+
+    const r = await fetch(endpoint, {
+      method,
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (r.ok) {
+      const created = await r.json();
+      await supabase.from('events').update({ google_event_id: created.id }).eq('id', ev.id);
+      exported++;
+    } else {
+      skipped++;
+    }
+  }
+  return { exported, skipped };
+}
+
 async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona' });
 
@@ -196,21 +260,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
 
     if (!mainAcc) return res.status(400).json({ error: 'Brak podłączonego konta Microsoft' });
 
-    let accessToken = decryptToken(mainAcc.access_token);
-    const storedRefreshToken = decryptToken(mainAcc.refresh_token);
-    const isExpired = new Date(mainAcc.expires_at ?? 0).getTime() < Date.now() + 60000;
-
-    if (isExpired && storedRefreshToken) {
-      const tokenData = await refreshOutlookToken(storedRefreshToken);
-      if (tokenData?.access_token) {
-        accessToken = tokenData.access_token;
-        await supabase.from('connected_calendars').update({
-          access_token: encryptToken(accessToken),
-          refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
-          expires_at: new Date(Date.now() + (tokenData.expires_in ?? 3600) * 1000).toISOString(),
-        }).eq('id', mainAcc.id);
-      }
-    }
+    const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
 
     let query = supabase.from('events').select('*').eq('user_id', user.id);
     if (eventIds?.length) {
@@ -225,37 +275,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
     if (fetchErr) return res.status(500).json({ error: 'Failed to fetch local events' });
     if (!events?.length) return res.json({ exported: 0, skipped: 0, message: 'No events found in selected range' });
 
-    let exported = 0;
-    let skipped = 0;
-
-    for (const ev of events) {
-      const body = {
-        subject: ev.title,
-        body: { contentType: 'text', content: ev.description || '' },
-        location: { displayName: ev.place || '' },
-        start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: 'Europe/Warsaw' },
-        end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: 'Europe/Warsaw' },
-      };
-      const method = ev.google_event_id ? 'PATCH' : 'POST';
-      const endpoint = ev.google_event_id
-        ? `https://graph.microsoft.com/v1.0/me/events/${ev.google_event_id}`
-        : `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/events`;
-
-      const r = await fetch(endpoint, {
-        method,
-        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (r.ok) {
-        const created = await r.json();
-        await supabase.from('events').update({ google_event_id: created.id }).eq('id', ev.id);
-        exported++;
-      } else {
-        skipped++;
-      }
-    }
-
+    const { exported, skipped } = await exportEventsToOutlook(supabase, events as ExportableEvent[], accessToken, calendarId);
     return res.json({ exported, skipped });
   } catch {
     return res.status(500).json({ error: 'Błąd eksportu do kalendarza Outlook' });

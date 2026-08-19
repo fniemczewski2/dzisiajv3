@@ -4,6 +4,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { buildAllowedSlotSet, slotKey } from "@/lib/meetingPollGrid";
+import { checkRateLimit, clientIp } from "@/lib/server/rateLimit";
+import { validateEmail, validateSlot } from "@/lib/sanitize";
 import type {
   MeetingPollResponsePayload,
   MeetingPollResponseSubmitResult,
@@ -11,12 +13,22 @@ import type {
 } from "@/types/meetingPolls";
 
 const MAX_RESPONDENT_NAME_LENGTH = 100;
-const MAX_SLOTS_PER_RESPONSE = 500; 
+const MAX_SLOTS_PER_RESPONSE = 500;
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
 );
+
+type ValidatedSlot = NonNullable<ReturnType<typeof validateSlot>>;
+
+interface PollForResponse {
+  id: string;
+  status: string;
+  slot_duration_minutes: number;
+  time_start: string;
+  time_end: string;
+}
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, token: string) {
   const editToken = req.query.edit_token;
@@ -56,52 +68,55 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, token: strin
   });
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse, token: string) {
-  const body = req.body as Partial<MeetingPollResponsePayload> | undefined;
+interface ValidatedResponsePayload {
+  respondentName: string;
+  respondentEmail: string | null;
+  slots: ValidatedSlot[];
+  editToken?: string;
+}
+
+function validateResponsePayload(
+  body: Partial<MeetingPollResponsePayload> | undefined
+): ValidatedResponsePayload | { error: string } {
   const respondentName = body?.respondent_name?.trim();
   const editToken = typeof body?.edit_token === "string" ? body.edit_token : undefined;
 
   const rawEmail = body?.respondent_email;
   const respondentEmail = rawEmail == null || rawEmail === "" ? null : validateEmail(rawEmail);
-  if (rawEmail && !respondentEmail) {
-    return res.status(400).json({ error: "Podaj poprawny adres e-mail." });
-  }
+  if (rawEmail && !respondentEmail) return { error: "Podaj poprawny adres e-mail." };
 
-  const slots = (Array.isArray(body?.slots) ? body.slots : []).map(validateSlot);
-  if (slots.includes(null)) {
-    return res.status(400).json({ error: "Nieprawidłowy format terminu." });
-  }
+  const rawSlots = (Array.isArray(body?.slots) ? body.slots : []).map(validateSlot);
+  if (rawSlots.includes(null)) return { error: "Nieprawidłowy format terminu." };
+  const slots = rawSlots as ValidatedSlot[];
 
   if (!respondentName || respondentName.length > MAX_RESPONDENT_NAME_LENGTH) {
-    return res.status(400).json({ error: "Podaj poprawne imię (do 100 znaków)." });
+    return { error: "Podaj poprawne imię (do 100 znaków)." };
   }
-  if (slots.length === 0) {
-    return res.status(400).json({ error: "Zaznacz przynajmniej jeden dostępny termin." });
-  }
-  if (slots.length > MAX_SLOTS_PER_RESPONSE) {
-    return res.status(400).json({ error: "Zbyt wiele zaznaczonych terminów." });
-  }
+  if (slots.length === 0) return { error: "Zaznacz przynajmniej jeden dostępny termin." };
+  if (slots.length > MAX_SLOTS_PER_RESPONSE) return { error: "Zbyt wiele zaznaczonych terminów." };
 
+  return { respondentName, respondentEmail, slots, editToken };
+}
+
+async function loadOpenPoll(token: string): Promise<{ poll: PollForResponse } | { error: string; status: number }> {
   const { data: poll, error: pollError } = await supabaseAdmin
     .from("meeting_polls")
     .select("id, status, slot_duration_minutes, time_start, time_end")
     .eq("share_token", token)
     .maybeSingle();
 
-  if (pollError || !poll) {
-    return res.status(404).json({ error: "Ankieta nie istnieje." });
-  }
-  if (poll.status !== "open") {
-    return res.status(409).json({ error: "Ta ankieta nie przyjmuje już odpowiedzi." });
-  }
+  if (pollError || !poll) return { error: "Ankieta nie istnieje.", status: 404 };
+  if (poll.status !== "open") return { error: "Ta ankieta nie przyjmuje już odpowiedzi.", status: 409 };
+  return { poll };
+}
 
+async function ensureSlotsMatchGrid(poll: PollForResponse, slots: ValidatedSlot[]): Promise<{ error: string } | null> {
   const { data: dateRows, error: datesError } = await supabaseAdmin
     .from("meeting_poll_dates")
     .select("date")
     .eq("poll_id", poll.id);
-  if (datesError) {
-    return res.status(500).json({ error: "Błąd walidacji terminów ankiety." });
-  }
+  if (datesError) return { error: "Błąd walidacji terminów ankiety." };
+
   const allowed = buildAllowedSlotSet(
     (dateRows ?? []).map((d) => d.date as string),
     poll.time_start,
@@ -109,73 +124,86 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
     poll.slot_duration_minutes
   );
   const hasInvalidSlot = slots.some((s) => !allowed.has(slotKey(s?.date || "", s?.start_time || "")));
-  if (hasInvalidSlot) {
-    return res.status(400).json({ error: "Co najmniej jeden zaznaczony termin jest spoza siatki ankiety." });
-  }
+  if (hasInvalidSlot) return { error: "Co najmniej jeden zaznaczony termin jest spoza siatki ankiety." };
+  return null;
+}
 
-  let sessionUserId: string | null = null;
+async function resolveSessionUserId(req: NextApiRequest, res: NextApiResponse): Promise<string | null> {
   try {
     const sessionClient = createServerSupabase(req, res);
     const { data: { user } } = await sessionClient.auth.getUser();
-    sessionUserId = user?.id ?? null;
+    return user?.id ?? null;
   } catch {
-    sessionUserId = null;
+    return null;
   }
+}
 
-  let responseId: string;
-  let responseEditToken: string;
-
+async function upsertResponseRecord(
+  pollId: string,
+  editToken: string | undefined,
+  respondentName: string,
+  respondentEmail: string | null,
+  sessionUserId: string | null
+): Promise<{ responseId: string; responseEditToken: string } | { error: string; status: number }> {
   if (editToken) {
     const { data: existing, error: existingError } = await supabaseAdmin
       .from("meeting_poll_responses")
       .select("id")
-      .eq("poll_id", poll.id)
+      .eq("poll_id", pollId)
       .eq("edit_token", editToken)
       .maybeSingle();
-
-    if (existingError || !existing) {
-      return res.status(403).json({ error: "Nieprawidłowy token edycji odpowiedzi." });
-    }
+    if (existingError || !existing) return { error: "Nieprawidłowy token edycji odpowiedzi.", status: 403 };
 
     const { error: updateError } = await supabaseAdmin
       .from("meeting_poll_responses")
       .update({ respondent_name: respondentName, respondent_email: respondentEmail, user_id: sessionUserId })
       .eq("id", existing.id);
-    if (updateError) {
-      return res.status(500).json({ error: "Błąd zapisu odpowiedzi." });
-    }
+    if (updateError) return { error: "Błąd zapisu odpowiedzi.", status: 500 };
 
     const { error: deleteError } = await supabaseAdmin
       .from("meeting_poll_availabilities")
       .delete()
       .eq("response_id", existing.id);
-    if (deleteError) {
-      return res.status(500).json({ error: "Błąd aktualizacji dostępności." });
-    }
+    if (deleteError) return { error: "Błąd aktualizacji dostępności.", status: 500 };
 
-    responseId = existing.id;
-    responseEditToken = editToken;
-  } else {
-    const newEditToken = crypto.randomUUID();
-    const { data: created, error: insertError } = await supabaseAdmin
-      .from("meeting_poll_responses")
-      .insert({
-        poll_id: poll.id,
-        respondent_name: respondentName,
-        respondent_email: respondentEmail,
-        user_id: sessionUserId,
-        edit_token: newEditToken,
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !created) {
-      return res.status(500).json({ error: "Błąd zapisu odpowiedzi." });
-    }
-
-    responseId = created.id;
-    responseEditToken = newEditToken;
+    return { responseId: existing.id, responseEditToken: editToken };
   }
+
+  const newEditToken = crypto.randomUUID();
+  const { data: created, error: insertError } = await supabaseAdmin
+    .from("meeting_poll_responses")
+    .insert({
+      poll_id: pollId,
+      respondent_name: respondentName,
+      respondent_email: respondentEmail,
+      user_id: sessionUserId,
+      edit_token: newEditToken,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !created) return { error: "Błąd zapisu odpowiedzi.", status: 500 };
+  return { responseId: created.id, responseEditToken: newEditToken };
+}
+
+async function handlePost(req: NextApiRequest, res: NextApiResponse, token: string) {
+  const body = req.body as Partial<MeetingPollResponsePayload> | undefined;
+  const validated = validateResponsePayload(body);
+  if ("error" in validated) return res.status(400).json({ error: validated.error });
+  const { respondentName, respondentEmail, slots, editToken } = validated;
+
+  const pollResult = await loadOpenPoll(token);
+  if ("error" in pollResult) return res.status(pollResult.status).json({ error: pollResult.error });
+  const { poll } = pollResult;
+
+  const gridError = await ensureSlotsMatchGrid(poll, slots);
+  if (gridError) return res.status(400).json({ error: gridError.error });
+
+  const sessionUserId = await resolveSessionUserId(req, res);
+
+  const upsertResult = await upsertResponseRecord(poll.id, editToken, respondentName, respondentEmail, sessionUserId);
+  if ("error" in upsertResult) return res.status(upsertResult.status).json({ error: upsertResult.error });
+  const { responseId, responseEditToken } = upsertResult;
 
   const rows = slots.map((s) => ({
     response_id: responseId,
@@ -194,9 +222,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   const result: MeetingPollResponseSubmitResult = { edit_token: responseEditToken };
   return res.status(200).json(result);
 }
-
-import { checkRateLimit, clientIp } from "@/lib/server/rateLimit";
-import { validateEmail, validateSlot } from "@/lib/sanitize";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = req.query;

@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { generateTimeSlots } from "@/lib/meetingPollGrid";
-import { validateFinalizeSlot } from "@/lib/sanitize";
+import { validateFinalizeSlot, type FinalizeSlotValidated } from "@/lib/sanitize";
 import type { FinalizeRequest, FinalizeResponse, FinalizeResultSlot } from "@/types/meetingPolls";
 
 const MAX_SLOTS_PER_FINALIZE = 20;
@@ -14,37 +14,66 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SECRET_KEY!
 );
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+interface FinalizeContext {
+  user: { id: string };
+  supabase: ReturnType<typeof createServerSupabase>;
+  poll: { id: string; user_id: string; title: string; slot_duration_minutes: number };
+  slots: FinalizeSlotValidated[];
+  responses: { id: string; user_id: string | null }[];
+  availabilitySet: Set<string>;
+}
 
+/**
+ * Loads and validates everything finalize needs, replying with the
+ * appropriate error status itself and returning null on any failure — this
+ * is what used to be a long chain of sequential `if (...) return res...`
+ * checks directly in the handler.
+ */
+async function loadFinalizeContext(req: NextApiRequest, res: NextApiResponse): Promise<FinalizeContext | null> {
   const { id } = req.query;
-  if (!id || typeof id !== "string") return res.status(400).json({ error: "Brak id ankiety." });
+  if (!id || typeof id !== "string") {
+    res.status(400).json({ error: "Brak id ankiety." });
+    return null;
+  }
 
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return res.status(401).json({ error: "Unauthorized" });
+  if (authError || !user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return null;
+  }
 
   const { data: poll, error: pollError } = await supabase
     .from("meeting_polls")
     .select("id, user_id, title, slot_duration_minutes")
     .eq("id", id)
     .maybeSingle();
-
-  if (pollError || !poll) return res.status(404).json({ error: "Ankieta nie istnieje." });
-  if (poll.user_id !== user.id) return res.status(403).json({ error: "To nie Twoja ankieta." });
+  if (pollError || !poll) {
+    res.status(404).json({ error: "Ankieta nie istnieje." });
+    return null;
+  }
+  if (poll.user_id !== user.id) {
+    res.status(403).json({ error: "To nie Twoja ankieta." });
+    return null;
+  }
 
   const body = req.body as Partial<FinalizeRequest> | undefined;
   const rawSlots = Array.isArray(body?.slots) ? body.slots : [];
-  if (rawSlots.length === 0) return res.status(400).json({ error: "Podaj przynajmniej jeden termin do finalizacji." });
+  if (rawSlots.length === 0) {
+    res.status(400).json({ error: "Podaj przynajmniej jeden termin do finalizacji." });
+    return null;
+  }
   if (rawSlots.length > MAX_SLOTS_PER_FINALIZE) {
-    return res.status(400).json({ error: "Zbyt wiele terminów w jednej finalizacji." });
+    res.status(400).json({ error: "Zbyt wiele terminów w jednej finalizacji." });
+    return null;
   }
 
   // Every field here (date/time/title/place) previously went straight from
   // the request body into an `events` insert with no format/length checks.
   const validatedSlots = rawSlots.map(validateFinalizeSlot);
   if (validatedSlots.includes(null)) {
-    return res.status(400).json({ error: "Nieprawidłowy format jednego z terminów." });
+    res.status(400).json({ error: "Nieprawidłowy format jednego z terminów." });
+    return null;
   }
   const slots = validatedSlots as NonNullable<(typeof validatedSlots)[number]>[];
 
@@ -52,7 +81,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .from("meeting_poll_responses")
     .select("id, user_id")
     .eq("poll_id", poll.id);
-  if (responsesError) return res.status(500).json({ error: "Błąd pobierania odpowiedzi." });
+  if (responsesError) {
+    res.status(500).json({ error: "Błąd pobierania odpowiedzi." });
+    return null;
+  }
 
   const responseIds = (responses ?? []).map((r) => r.id);
   const { data: availabilities, error: availError } =
@@ -62,67 +94,93 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .select("response_id, date, start_time")
           .in("response_id", responseIds)
       : { data: [], error: null };
-  if (availError) return res.status(500).json({ error: "Błąd pobierania dostępności." });
+  if (availError) {
+    res.status(500).json({ error: "Błąd pobierania dostępności." });
+    return null;
+  }
 
   const availabilitySet = new Set(
     (availabilities ?? []).map((a) => `${a.response_id}|${a.date}|${(a.start_time as string).slice(0, 5)}`)
   );
 
-  const results: FinalizeResultSlot[] = [];
+  return { user, supabase, poll, slots, responses: responses ?? [], availabilitySet };
+}
 
-  for (const slot of slots) {
-    const title = slot.title?.trim() || poll.title;
+async function inviteParticipants(ctx: FinalizeContext, slot: FinalizeSlotValidated, title: string): Promise<number> {
+  const requiredTimes = generateTimeSlots(slot.start_time, slot.end_time, ctx.poll.slot_duration_minutes);
+  let invitedParticipants = 0;
 
-    const { data: organizerEvent, error: organizerEventError } = await supabase
-      .from("events")
-      .insert({
-        user_id: user.id,
-        title,
-        description: `Ustalone na podstawie ankiety „${poll.title}".`,
-        start_time: `${slot.date}T${slot.start_time}:00`,
-        end_time: `${slot.date}T${slot.end_time}:00`,
-        place: slot.place ?? "",
-        repeat: "none",
-      })
-      .select("id")
-      .single();
+  for (const response of ctx.responses) {
+    if (!response.user_id || response.user_id === ctx.user.id) continue;
 
-    if (organizerEventError || !organizerEvent) {
-      return res.status(500).json({ error: `Błąd tworzenia wydarzenia dla terminu ${slot.date} ${slot.start_time}.` });
-    }
+    const isFullyAvailable = requiredTimes.every((t) =>
+      ctx.availabilitySet.has(`${response.id}|${slot.date}|${t}`)
+    );
+    if (!isFullyAvailable) continue;
 
-    const requiredTimes = generateTimeSlots(slot.start_time, slot.end_time, poll.slot_duration_minutes);
+    const { error: participantEventError } = await supabaseAdmin.from("events").insert({
+      user_id: response.user_id,
+      title,
+      description: `Ustalone na podstawie ankiety „${ctx.poll.title}".`,
+      start_time: `${slot.date}T${slot.start_time}:00`,
+      end_time: `${slot.date}T${slot.end_time}:00`,
+      place: slot.place ?? "",
+      repeat: "none",
+    });
 
-    let invitedParticipants = 0;
+    if (!participantEventError) invitedParticipants++;
+  }
+  return invitedParticipants;
+}
 
-    for (const response of responses ?? []) {
-      if (!response.user_id || response.user_id === user.id) continue; 
+async function finalizeOneSlot(
+  ctx: FinalizeContext,
+  slot: FinalizeSlotValidated
+): Promise<{ error: string } | { slot: FinalizeResultSlot }> {
+  const title = slot.title?.trim() || ctx.poll.title;
 
-      const isFullyAvailable = requiredTimes.every((t) =>
-        availabilitySet.has(`${response.id}|${slot.date}|${t}`)
-      );
-      if (!isFullyAvailable) continue;
+  const { data: organizerEvent, error: organizerEventError } = await ctx.supabase
+    .from("events")
+    .insert({
+      user_id: ctx.user.id,
+      title,
+      description: `Ustalone na podstawie ankiety „${ctx.poll.title}".`,
+      start_time: `${slot.date}T${slot.start_time}:00`,
+      end_time: `${slot.date}T${slot.end_time}:00`,
+      place: slot.place ?? "",
+      repeat: "none",
+    })
+    .select("id")
+    .single();
 
-      const { error: participantEventError } = await supabaseAdmin.from("events").insert({
-        user_id: response.user_id,
-        title,
-        description: `Ustalone na podstawie ankiety „${poll.title}".`,
-        start_time: `${slot.date}T${slot.start_time}:00`,
-        end_time: `${slot.date}T${slot.end_time}:00`,
-        place: slot.place ?? "",
-        repeat: "none",
-      });
+  if (organizerEventError || !organizerEvent) {
+    return { error: `Błąd tworzenia wydarzenia dla terminu ${slot.date} ${slot.start_time}.` };
+  }
 
-      if (!participantEventError) invitedParticipants++;
-    }
+  const invitedParticipants = await inviteParticipants(ctx, slot, title);
 
-    results.push({
+  return {
+    slot: {
       date: slot.date,
       start_time: slot.start_time,
       end_time: slot.end_time,
       organizerEventId: organizerEvent.id,
       invitedParticipants,
-    });
+    },
+  };
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const ctx = await loadFinalizeContext(req, res);
+  if (!ctx) return;
+
+  const results: FinalizeResultSlot[] = [];
+  for (const slot of ctx.slots) {
+    const outcome = await finalizeOneSlot(ctx, slot);
+    if ("error" in outcome) return res.status(500).json({ error: outcome.error });
+    results.push(outcome.slot);
   }
 
   const response: FinalizeResponse = { results };
