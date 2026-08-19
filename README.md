@@ -42,7 +42,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Notatki**, **Sprawozdania** (agenda, uczestnicy, zadania → eksport PDF), **Przypomnienia** cykliczne
 - **Listy pakowania** — plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
 - **Osoby i relacje** — kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
-- **Pisma** — rejestr pism urzędowych z automatyczną sygnaturą (nr/mm/rrrr/KOD) i pilnowaniem ustawowych terminów odpowiedzi
+- **Pisma** — rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i pilnowaniem ustawowych terminów odpowiedzi
 
 ### 💰 Finanse
 - **Rachunki** i **Budżet roczny** — kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców

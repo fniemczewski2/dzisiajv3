@@ -166,7 +166,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Pisma",
-        description: "Rejestr pism urzędowych z automatyczną sygnaturą (nr/mm/rrrr/KOD) i podpowiedzią ustawowego terminu odpowiedzi.",
+        description: "Rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i podpowiedzią ustawowego terminu odpowiedzi.",
         icon: Gavel,
         category: "Organizacja",
         path: "/notes/letters",

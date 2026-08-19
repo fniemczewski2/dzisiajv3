@@ -297,7 +297,7 @@ export const guideSections: GuideSection[] = [
         <K>Rejestr korespondencji.</K> Ewidencjonuj pisma wychodzące do urzędów i instytucji: adresat, opis sprawy, data wystawienia.
       </>,
       <>
-        <K>Automatyczna sygnatura.</K> Każde pismo dostaje sygnaturę w formacie <em>nr/mm/rrrr/KOD</em> z numeracją ciągłą w ramach roku. Kategorii i sygnatury nie można zmienić po utworzeniu; sygnaturę skopiujesz jednym kliknięciem.
+        <K>Automatyczna sygnatura.</K> Każde pismo dostaje sygnaturę w formacie <em>nr.mm.rrrr.KOD</em> z numeracją ciągłą w ramach roku. Kategorii i sygnatury nie można zmienić po utworzeniu; sygnaturę skopiujesz jednym kliknięciem.
       </>,
       <>
         <K>Kategorie i terminy odpowiedzi.</K> Dostępne kategorie: UDIP, wniosek, skarga, wykroczenie drogowe, wykroczenie, przestępstwo oraz własna. Aplikacja podpowiada termin odpowiedzi na podstawie kategorii (np. 14 dni dla UDIP, 31 dla wniosku lub skargi) - pole pozostaje edytowalne.

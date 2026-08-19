@@ -36,10 +36,21 @@ function FileSlot({
 
   const handleView = async () => {
     if (!path) return;
+    // Open the tab synchronously, inside the click handler, before the
+    // `await` below — browsers drop the "user activation" that permits
+    // window.open() once an async gap (the signed-URL request) has passed,
+    // so opening it after the await was silently blocked as a popup with no
+    // error surfaced anywhere. Navigate the already-open tab once the URL
+    // is ready instead.
+    const preview = window.open("", "_blank", "noopener,noreferrer");
     setBusy(true);
     try {
       const url = await getLetterFileUrl(path);
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
+      if (url && preview) {
+        preview.location.href = url;
+      } else {
+        preview?.close();
+      }
     } finally {
       setBusy(false);
     }

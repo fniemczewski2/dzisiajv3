@@ -57,7 +57,12 @@ function getLetterType(category: LetterCategory, kind: LetterFileKind): string {
 }
 
 function storagePath(userId: string, letterId: string, category: LetterCategory, kind: LetterFileKind): string {
-  return `${userId}.${letterId}.${getLetterType(category, kind)}.pdf`;
+  // Must be `${userId}/...` (a real path segment), not a dot-separated
+  // prefix: the "letters" bucket's storage.objects RLS policies check
+  // (storage.foldername(name))[1] = auth.uid(), which only matches a
+  // folder segment before a "/" — a flat "userId.letterId..." filename
+  // has no folder at all, so every upload was silently rejected by RLS.
+  return `${userId}/${letterId}.${getLetterType(category, kind)}.pdf`;
 }
 
 export function useLetters() {
@@ -157,13 +162,14 @@ export function useLetters() {
         .upload(path, file, { upsert: true, contentType: "application/pdf" });
 
       if (uploadError) {
+        // Storage errors (missing bucket, RLS policy rejection, etc.) were
+        // previously swallowed into one generic message with no way to tell
+        // them apart — log the real cause for debugging.
+        console.error("[useLetters] upload do bucketu 'letters' nie powiodło się:", uploadError.message);
         toast.error("Błąd przesyłania pliku.");
         return;
       }
 
-      // `crud` is bound to `Letter`, whose file-path columns aren't part of
-      // the (form-only) LetterUpdate type — branching instead of a computed
-      // property lets TS check this against Partial<Letter> directly.
       const update: Partial<Letter> =
         kind === "letter" ? { letter_file_path: path } : { response_file_path: path };
       const result = await crud.patch(
