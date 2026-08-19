@@ -6,6 +6,7 @@ import { useLetters } from "@/hooks/db/useLetters";
 import { EditButton, DeleteButton, FormButtons, CopyButtonSmall } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import SearchBar from "../ui/SearchBar";
+import { generateLetterBody } from "@/lib/letterTemplates";
 import type { Letter, LetterCategory, LetterFileKind } from "@/types/letters";
 
 interface LetterListProps {
@@ -165,6 +166,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           const open = openId === l.id;
           const isEditing = editingId === l.id;
           const editPrefix = `edit-letter-${l.id}`;
+          // Only build the template text for the currently expanded letter —
+          // no need to generate it for every collapsed row on each render.
+          const letterBody = open ? generateLetterBody(l) : "";
 
           if (isEditing && edited) {
             const isTrafficViolation = edited.category === "Wykroczenie drogowe";
@@ -310,6 +314,18 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   {l.description && (
                     <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap">{l.description}</p>
                   )}
+
+                  <div className="bg-surface border border-gray-200 dark:border-gray-800 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest">
+                        Treść (przykład)
+                      </span>
+                      <CopyButtonSmall text={letterBody} label="treść pisma" />
+                    </div>
+                    <pre className="text-xs text-textSecondary leading-relaxed whitespace-pre-wrap font-sans">
+                      {letterBody}
+                    </pre>
+                  </div>
 
                   <div className="space-y-2 py-2 border-y border-gray-100 dark:border-gray-800">
                     <FileSlot label="Pismo" path={l.letter_file_path} letterId={l.id} category={l.category} kind="letter" />
