@@ -2,10 +2,11 @@
 
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
+import type { PlanItemType } from "@/types/schemas";
 
 interface DraggablePlanItemProps {
   id: string; 
-  type: 'event' | 'schema' | 'task' | 'worklog';
+  type: PlanItemType;
   children: React.ReactNode;
 }
 

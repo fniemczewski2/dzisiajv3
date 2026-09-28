@@ -14,7 +14,6 @@ import {
   ListTodo, 
   Logs,
   Luggage, 
-  MapPin,
   Pen, 
   Settings, 
   Shield, 
@@ -263,13 +262,6 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     category: "Rozrywka",
     color: "pink",
     features: [
-      {
-        title: "Miejsca i Mapa",
-        description: "Importuj miejsca z Google Maps. Przeglądaj je na mapie i filtruj po godzinach otwarcia.",
-        icon: MapPin,
-        category: "Rozrywka",
-        path: "/notes/places",
-      },
       {
         title: "Filmy i Seriale",
         description: "Kataloguj produkcje integrując się z bazą TMDB. Sprawdzaj dostępność VOD (Netflix, HBO).",

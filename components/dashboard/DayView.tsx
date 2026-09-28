@@ -28,6 +28,7 @@ import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { AddButton, CancelButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
 import { useWorkLogs } from "@/hooks/db/useWorkLogs";
+import { useTrainsForDate } from "@/hooks/db/useTrains";
 
 const EventForm = dynamic(() => import("../calendar/EventForm"), { ssr: false });
 const TaskForm = dynamic(() => import("../tasks/TaskForm"), { ssr: false });
@@ -83,6 +84,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
   const { schemas } = useDaySchemas();
   const { workLogs } = useWorkLogs(dateStr);
+  const { trains } = useTrainsForDate(dateStr);
 
   const loadedDatesRef = useRef<Set<string>>(new Set());
   const [isFirstLoadForDate, setIsFirstLoadForDate] = useState(
@@ -118,7 +120,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
 
   const planByHour = usePlanByHour({
-    schemas, events, workLogs, scheduledTasks, currentDayOfWeek, isToday, overrides,
+    schemas, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides,
   });
 
   const streaksWithMilestones = useMemo(() => {

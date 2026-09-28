@@ -22,7 +22,6 @@ import {
   CalendarClock,
   Gavel,
   Bus,
-  MapPin,
   Droplet,
   ScrollText,
   RefreshCw,
@@ -531,34 +530,7 @@ export const guideSections: GuideSection[] = [
         <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare - rozkładowe.
       </>,
       <>
-        <K>Pociągi PKP.</K> Na tej samej stronie dodasz pociąg do śledzenia - ręcznie lub importując bilet PDF, z którego dane odczytają się automatycznie. Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK.
-      </>,
-    ],
-  },
-
-  {
-    id: 'places',
-    title: 'Miejsca i mapa',
-    mainIcon: <MapPin className="w-6 h-6" />,
-    iconColorClass: 'text-pink-500',
-    listItems: [
-      <>
-        <K>Dwa widoki.</K> Lista miejsc i widok mapy Leaflet. Przełączaj się przyciskiem w pasku filtrów. Na mapie każde miejsce to marker - kliknięcie otwiera popup z nazwą, adresem i przyciskiem <em>Szczegóły</em>.
-      </>,
-      <>
-        <K>Import z Google Maps.</K> Wejdź na <em>Google Takeout</em>, wybierz <em>Mapy (Twoje miejsca)</em>, pobierz archiwum ZIP i wypakuj plik JSON. Wgraj go przez przycisk <em>Importuj</em> w aplikacji.
-      </>,
-      <>
-        <K>Automatyczne wzbogacanie danych.</K> Przy imporcie możesz włączyć opcję <em>Dociągnij dane</em> - aplikacja pobierze numer telefonu, stronę www i godziny otwarcia z Google Places. Opcja <em>Automatyczne tagi</em> przypisze etykiety na podstawie rodzaju miejsca.
-      </>,
-      <>
-        <K>Filtry.</K> Filtruj miejsca po tagach lub godzinach otwarcia. Filtr czasowy pozwala znaleźć miejsca otwarte w konkretny dzień tygodnia i przedział godzinowy.
-      </>,
-      <>
-        <K>Sortowanie po odległości.</K> W Ustawieniach wybierz <em>Odległość (najbliższe)</em> - aplikacja użyje GPS i wzoru Haversine do obliczenia odległości do każdego miejsca.
-      </>,
-      <>
-        <K>Nawigacja.</K> Przycisk <em>Nawiguj</em> na karcie miejsca otwiera Google Maps z wyznaczoną trasą.
+        <K>Pociągi PKP.</K> Na tej samej stronie dodasz pociąg do śledzenia - ręcznie lub importując bilet PDF, z którego dane odczytają się automatycznie. Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK. Bilet pojawia się też w <em>Planie dnia</em> o godzinie odjazdu – z peronem, wagonem, miejscem i opóźnieniem odświeżanym na żywo.
       </>,
     ],
   },
@@ -607,21 +579,27 @@ export const guideSections: GuideSection[] = [
 
   {
     id: 'movies',
-    title: 'Lista filmów',
+    title: 'Filmy i seriale',
     mainIcon: <Clapperboard className="w-6 h-6" />,
     iconColorClass: 'text-indigo-500',
     listItems: [
       <>
-        <K>Integracja z TMDB.</K> Wpisz tytuł i kliknij <em>Szukaj w TMDB</em>. Aplikacja pokaże do 5 wyników z plakatami. Po wyborze automatycznie pobiera: gatunek, ocenę, opis i dostępność streamingową w Polsce.
+        <K>Integracja z TMDB.</K> Wpisz tytuł i kliknij <em>Szukaj w TMDB</em>. Możesz szukać wszędzie albo zawęzić do <em>Filmów</em> lub <em>Seriali</em>. Po wyborze aplikacja pobiera gatunek, ocenę, opis, rok, plakat i dostępność streamingową w Polsce.
       </>,
       <>
-        <K>Dostępność streamingowa.</K> Aplikacja sprawdza, na których platformach (Netflix, HBO Max, Disney+, Apple TV+, SkyShowtime, Player, Canal+...) film jest dostępny w Polsce w modelu subskrypcyjnym.
+        <K>Seriale.</K> Dla seriali zapisywana jest liczba sezonów i odcinków oraz status (emitowany, zakończony, anulowany). Na karcie serialu śledzisz postęp: aktualny sezon i ostatni obejrzany odcinek.
       </>,
       <>
-        <K>Dwie sekcje.</K> Filmy podzielone są na <em>Do obejrzenia</em> (góra) i <em>Obejrzane</em> (dół, przyciemnione). Przycisk <em>Obejrzane</em> / <em>Obejrzyj</em> przenosi film między sekcjami.
+        <K>Odświeżanie.</K> Przycisk <em>Odśwież</em> na karcie pobiera aktualne dane z TMDB – np. nowy sezon albo zmianę platformy. Twoje notatki i postęp zostają bez zmian.
       </>,
       <>
-        <K>Notatki do filmów.</K> Rozwiń panel <em>Notatki</em> na karcie filmu, wpisz spostrzeżenia lub krótką recenzję i kliknij <em>Zapisz</em>.
+        <K>Dostępność streamingowa.</K> Aplikacja sprawdza, na których platformach (Netflix, HBO Max, Disney+, Apple TV+, SkyShowtime, Player, Canal+...) tytuł jest dostępny w Polsce w abonamencie, a gdy go brak – do wypożyczenia lub kupienia.
+      </>,
+      <>
+        <K>Dwie sekcje.</K> Pozycje podzielone są na <em>Do obejrzenia</em> (góra) i <em>Obejrzane</em> (dół, przyciemnione). Zakładki <em>Wszystko / Filmy / Seriale</em> filtrują listę.
+      </>,
+      <>
+        <K>Notatki.</K> Rozwiń panel <em>Notatki</em> na karcie, wpisz spostrzeżenia lub krótką recenzję i kliknij <em>Zapisz</em>.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach: data modyfikacji, alfabetycznie lub według oceny (malejąco).
@@ -717,7 +695,7 @@ export const guideSections: GuideSection[] = [
         <K>Tryb ciemny i jasny.</K> Przełącznik w prawym górnym rogu formularza ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.
       </>,
       <>
-        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów, miejsc i osób.
+        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów i osób.
       </>,
       <>
         <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie.

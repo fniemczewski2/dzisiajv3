@@ -1,5 +1,6 @@
 ﻿// types/schemas.ts
 
+import type { TrackedTrain } from "./transport";
 export interface ScheduleItem {
   id?: string;
   time: string;
@@ -16,11 +17,15 @@ export interface Schema {
   created_at?: string;
 }
 
+export type PlanItemType = "event" | "schema" | "task" | "worklog" | "train";
+
 export interface PlanItemData {
   id: string;
   title: string;
-  type: "event" | "schema" | "task" | "worklog";
+  type: PlanItemType;
   data?: { category?: string; start_time?: string; end_time?: string | null; priority?: number; due_date?: string };
+  /** Tylko dla type === "train" – bilet z user_trains. */
+  train?: TrackedTrain;
 }
 
 export type DailyOverride = {

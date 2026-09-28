@@ -1,6 +1,19 @@
 // supabase/functions/transport-departures/index.ts
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  ambiguousNames,
+  clusterStops,
+  distanceM,
+  favoriteKey,
+  favoriteFromCluster,
+  hasPosition,
+  isAmbiguous,
+  pickClusterForFavorite,
+  type FavoriteStop,
+  type StopCluster,
+  type StopPost,
+} from "../_shared/stopGrouping.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,29 +49,25 @@ interface Bollard {
 }
 
 interface StopGroup {
+  /** Dla ulubionych: favoriteKey() zapytania; dla "w pobliżu": klucz grupy. */
+  key: string;
   stop_name: string;
   zone_id: string;
+  lat: number;
+  lon: number;
+  stop_codes: string[];
+  /** W sieci jest inna grupa o tej samej nazwie (np. w innej miejscowości). */
+  ambiguous: boolean;
   distance?: number;
   bollards: Bollard[];
-}
-
-interface FavoriteStop {
-  name: string;
-  zone_id?: string;
+  /** Stary ulubiony (tylko nazwa) – dane, którymi klient może go uzupełnić. */
+  resolved?: FavoriteStop;
 }
 
 interface RequestBody {
   lat?: number;
   lon?: number;
-  stopNames?: (string | FavoriteStop)[];
-}
-
-interface StopRow {
-  stop_code: string | null;
-  stop_name: string;
-  stop_lat: number;
-  stop_lon: number;
-  zone_id: string | null;
+  stopNames?: (string | Partial<FavoriteStop>)[];
 }
 
 interface PekaTime {
@@ -81,28 +90,6 @@ function getPolandNow(): Date {
 
 function formatTimePl(date: Date): string {
   return date.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
-}
-
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371e3;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function normalizeName(name: string): string {
-  return name ? name.normalize("NFC").trim().toLowerCase() : "";
-}
-
-function cleanStopNameForDb(name: string): string {
-  if (!name) return "";
-  // `[^)]*` instead of a lazy `.*?` inside the parens — same result, no
-  // backtracking ambiguity to flag (S8786).
-  return name.replace(/\s+\d+$/, "").replace(/\s*\([^)]*\)\s*/g, "").trim();
 }
 
 function escapeIlike(value: string): string {
@@ -209,100 +196,88 @@ function fetchBollard(stopCode: string, zoneId: string | null): Promise<Bollard 
   return zoneId === SZCZECIN_ZONE ? fetchZditmBollard(stopCode) : fetchPekaBollard(stopCode);
 }
 
-async function buildGroup(
-  supabase: ReturnType<typeof createClient>,
-  stopName: string,
-  zoneId: string,
-  distance?: number
-): Promise<StopGroup | null> {
-  const { data } = await supabase
-    .from("stops")
-    .select("stop_code, zone_id")
-    .eq("stop_name", stopName);
+const MAX_FAVORITES = 10;
+const VALID_ZONES = new Set(["AUTO", SZCZECIN_ZONE, ...POZNAN_ZONES]);
 
-  const rows = (data ?? []) as Pick<StopRow, "stop_code" | "zone_id">[];
-  const bollardResults = await Promise.all(
-    rows
-      .filter((b) => b.stop_code)
-      .map((b) => fetchBollard(b.stop_code as string, b.zone_id))
-  );
-  const bollards = bollardResults.filter((b): b is Bollard => b !== null);
+type Db = SupabaseClient;
 
-  if (bollards.length === 0) return null;
-  const group: StopGroup = { stop_name: stopName, zone_id: zoneId, bollards };
-  if (distance !== undefined) group.distance = Math.round(distance);
-  return group;
+async function fetchBollardsForCluster(cluster: StopCluster, zoneOf: Map<string, string | null>): Promise<Bollard[]> {
+  const results = await Promise.all(cluster.stop_codes.map((code) => fetchBollard(code, zoneOf.get(code) ?? cluster.zone_id)));
+  return results.filter((b): b is Bollard => b !== null);
 }
 
-async function resolveNamedStopGroup(
-  supabase: ReturnType<typeof createClient>,
-  stop: string | FavoriteStop
-): Promise<StopGroup | null> {
-  const name = typeof stop === "string" ? stop : stop.name;
-  const zone = typeof stop === "string" ? "AUTO" : (stop.zone_id ?? "AUTO");
-  if (!name) return null;
-  if (zone !== "AUTO" && zone !== SZCZECIN_ZONE && !POZNAN_ZONES.has(zone)) return null;
-
-  const cleanName = escapeIlike(cleanStopNameForDb(name));
-  const { data } = await supabase
-    .from("stops")
-    .select("stop_code, stop_name, zone_id")
-    .ilike("stop_name", `%${cleanName}%`);
-
-  const rows = (data ?? []) as Pick<StopRow, "stop_code" | "stop_name" | "zone_id">[];
-  if (rows.length === 0) return null;
-
-  const bollardResults = await Promise.all(
-    rows
-      .filter((b) => b.stop_code)
-      .map((b) => fetchBollard(b.stop_code as string, b.zone_id))
+/** Wszystkie słupki o dokładnie tych nazwach (bez wielkości liter, bez dopasowań częściowych). */
+async function fetchPostsByNames(supabase: Db, names: string[]): Promise<StopPost[]> {
+  const unique = Array.from(new Set(names.map((n) => n.trim()).filter(Boolean)));
+  if (unique.length === 0) return [];
+  const results = await Promise.all(
+    unique.map((name) =>
+      supabase
+        .from("stops")
+        .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
+        // ilike bez % = równość bez wielkości liter; wcześniej `%nazwa%`
+        // łapało też "Rondo Kaponiera" dla "Rondo" i przystanki z innych miejscowości.
+        .ilike("stop_name", escapeIlike(name))
+    )
   );
-  const bollards = bollardResults.filter((b): b is Bollard => b !== null);
+  return results.flatMap((r) => (r.data ?? []) as StopPost[]);
+}
 
-  return bollards.length > 0
-    ? { stop_name: name, zone_id: zone, bollards } satisfies StopGroup
-    : null;
+function toGroup(cluster: StopCluster, bollards: Bollard[], ambiguous: Set<string>, key = cluster.key): StopGroup {
+  return {
+    key,
+    stop_name: cluster.name,
+    zone_id: cluster.zone_id,
+    lat: cluster.lat,
+    lon: cluster.lon,
+    stop_codes: cluster.stop_codes,
+    ambiguous: isAmbiguous(cluster, ambiguous),
+    bollards,
+  };
+}
+
+function parseFavorite(raw: string | Partial<FavoriteStop>): FavoriteStop | null {
+  const fav: FavoriteStop = typeof raw === "string"
+    ? { name: raw, zone_id: "AUTO" }
+    : {
+        name: typeof raw?.name === "string" ? raw.name.slice(0, 120) : "",
+        zone_id: typeof raw?.zone_id === "string" ? raw.zone_id : "AUTO",
+        ...(typeof raw?.lat === "number" && typeof raw?.lon === "number" ? { lat: raw.lat, lon: raw.lon } : {}),
+      };
+  if (!fav.name.trim() || !VALID_ZONES.has(fav.zone_id)) return null;
+  return fav;
 }
 
 async function handleStopNamesRequest(
-  supabase: ReturnType<typeof createClient>,
-  stopNames: (string | FavoriteStop)[]
+  supabase: Db,
+  stopNames: (string | Partial<FavoriteStop>)[],
+  userPos: { lat: number; lon: number } | null
 ): Promise<Response> {
-  const results = await Promise.all(
-    stopNames.map((stop) => resolveNamedStopGroup(supabase, stop))
+  const favorites = stopNames.slice(0, MAX_FAVORITES).map(parseFavorite).filter((f): f is FavoriteStop => f !== null);
+  const posts = await fetchPostsByNames(supabase, favorites.map((f) => f.name));
+  const zoneOf = new Map(posts.map((p) => [p.stop_code as string, p.zone_id]));
+  const clusters = clusterStops(posts);
+  const ambiguous = ambiguousNames(clusters);
+
+  const groups = await Promise.all(
+    favorites.map(async (fav) => {
+      const cluster = pickClusterForFavorite(fav, clusters, userPos);
+      if (!cluster) return null;
+      const bollards = await fetchBollardsForCluster(cluster, zoneOf);
+      if (bollards.length === 0) return null;
+      const group = toGroup(cluster, bollards, ambiguous, favoriteKey(fav));
+      if (!hasPosition(fav)) group.resolved = favoriteFromCluster(cluster);
+      return group;
+    })
   );
 
   return new Response(
-    JSON.stringify({ success: results.filter((g): g is StopGroup => g !== null) }),
+    JSON.stringify({ success: groups.filter((g): g is StopGroup => g !== null) }),
     { headers: jsonHeaders }
   );
 }
 
-function groupNearbyStops(
-  dbStops: StopRow[],
-  lat: number,
-  lon: number
-): { name: string; zone: string; distance: number }[] {
-  const localGroups = new Map<string, { name: string; zone: string; distance: number }>();
-  for (const s of dbStops) {
-    const dist = calculateDistance(lat, lon, s.stop_lat, s.stop_lon);
-    if (dist > NEARBY_RADIUS_M) continue;
-    const norm = normalizeName(s.stop_name);
-    const existing = localGroups.get(norm);
-    if (!existing || dist < existing.distance) {
-      localGroups.set(norm, { name: s.stop_name, zone: s.zone_id ?? "AUTO", distance: dist });
-    }
-  }
-  return Array.from(localGroups.values())
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, MAX_NEARBY_GROUPS);
-}
-
-async function handleNearbyRequest(
-  supabase: ReturnType<typeof createClient>,
-  lat: number,
-  lon: number
-): Promise<Response> {
+async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Promise<Response> {
   const dLat = 0.015;
   const dLon = 0.025;
 
@@ -314,27 +289,43 @@ async function handleNearbyRequest(
     .gte("stop_lon", lon - dLon)
     .lte("stop_lon", lon + dLon);
 
-  const dbStops = (data ?? []) as StopRow[];
-  if (dbStops.length === 0) {
-    return new Response(
-      JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }),
-      { headers: jsonHeaders }
-    );
+  const inBox = ((data ?? []) as StopPost[]).filter(
+    (p) => distanceM(lat, lon, p.stop_lat, p.stop_lon) <= NEARBY_RADIUS_M
+  );
+  if (inBox.length === 0) {
+    return new Response(JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }), { headers: jsonHeaders });
   }
 
-  const sortedGroups = groupNearbyStops(dbStops, lat, lon);
+  // Najbliższe grupy wg najbliższego słupka.
+  const nearest = clusterStops(inBox)
+    .map((c) => ({
+      c,
+      d: Math.min(...inBox.filter((p) => c.stop_codes.includes(p.stop_code as string))
+        .map((p) => distanceM(lat, lon, p.stop_lat, p.stop_lon))),
+    }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, MAX_NEARBY_GROUPS);
 
-  const nearbyResults = await Promise.all(
-    sortedGroups.map((item) => buildGroup(supabase, item.name, item.zone, item.distance))
+  // Dociągamy pełne grupy (słupki mogą wystawać poza prostokąt) i sprawdzamy,
+  // czy nazwa nie powtarza się gdzie indziej – ale bierzemy tylko słupki
+  // z grupy, która faktycznie jest obok użytkownika.
+  const allPosts = await fetchPostsByNames(supabase, nearest.map((n) => n.c.name));
+  const zoneOf = new Map(allPosts.map((p) => [p.stop_code as string, p.zone_id]));
+  const fullClusters = clusterStops(allPosts);
+  const ambiguous = ambiguousNames(fullClusters);
+
+  const groups = await Promise.all(
+    nearest.map(async ({ c, d }) => {
+      const full = fullClusters.find((fc) => fc.stop_codes.some((code) => c.stop_codes.includes(code))) ?? c;
+      const bollards = await fetchBollardsForCluster(full, zoneOf);
+      if (bollards.length === 0) return null;
+      return { ...toGroup(full, bollards, ambiguous), distance: Math.round(d) };
+    })
   );
-  const finalSuccess = nearbyResults.filter((g): g is StopGroup => g !== null);
+  const finalSuccess = groups.filter((g): g is StopGroup & { distance: number } => g !== null);
 
   return new Response(
-    JSON.stringify(
-      finalSuccess.length > 0
-        ? { success: finalSuccess }
-        : { success: [], message: "Brak aktywnych kursów w okolicy." }
-    ),
+    JSON.stringify(finalSuccess.length > 0 ? { success: finalSuccess } : { success: [], message: "Brak aktywnych kursów w okolicy." }),
     { headers: jsonHeaders }
   );
 }
@@ -371,7 +362,8 @@ Deno.serve(async (req) => {
     );
 
     if (stopNames && Array.isArray(stopNames)) {
-      return await handleStopNamesRequest(supabase, stopNames);
+      const userPos = typeof lat === "number" && typeof lon === "number" ? { lat, lon } : null;
+      return await handleStopNamesRequest(supabase, stopNames, userPos);
     }
 
     if (lat && lon) {

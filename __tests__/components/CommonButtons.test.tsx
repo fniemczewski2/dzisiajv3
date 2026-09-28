@@ -56,6 +56,12 @@ describe("FormButtons", () => {
     expect(screen.getByRole("button", { name: "dodaj kolejny" })).toBeInTheDocument();
   });
 
+  it("keeps the close button enabled when only saving is disabled (invalid form)", () => {
+    render(<FormButtons disabled onClickSave={() => {}} onClickClose={() => {}} />);
+    expect(screen.getByRole("button", { name: "zapisz" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "zamknij" })).toBeEnabled();
+  });
+
   it("disables both buttons while loading, even without addMany", () => {
     render(<FormButtons loading onClickClose={() => {}} />);
     expect(screen.getByRole("button", { name: "zapisz" })).toBeDisabled();

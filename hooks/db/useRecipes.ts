@@ -1,4 +1,4 @@
-﻿// hooks/db/useRecipes.ts
+// hooks/db/useRecipes.ts
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import type { NewRecipe, Recipe } from "@/types/recipes";
@@ -8,6 +8,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
+import { collectProducts, normalizeRecipe, sortRecipes } from "@/lib/recipeUtils";
 import { useCrudResource } from "./useCrudResource";
 
 const MESSAGES = {
@@ -32,37 +33,41 @@ export function useRecipes() {
   const crud = useCrudResource<Recipe, NewRecipe>({
     table: "recipes",
     insertPosition: "start",
-    prepareInsert: (r, uId) => ({
+    prepareInsert: (r, uId) => {
+      const clean = normalizeRecipe(r);
+      return {
+        user_id: uId,
+        name: clean.name,
+        category: clean.category,
+        products: clean.products,
+        description: clean.description,
+      };
+    },
+    // Bez created_at optymistyczny wpis przy sortowaniu "Data dodania" lądował na końcu listy.
+    buildOptimistic: (r, tempId, uId) => ({
+      ...normalizeRecipe(r),
+      id: tempId,
       user_id: uId,
-      name: r.name,
-      category: r.category,
-      products: r.products,
-      description: r.description,
+      created_at: new Date().toISOString(),
     }),
     applyServerRowOnEdit: true,
     messages: MESSAGES,
   });
 
-  const [products, setProducts] = useState<string[]>([]);
+  // Słownik z tabeli `products` (historyczny). Aplikacja nigdy do niego nie
+  // zapisywała, więc podpowiedzi i filtr bazujące tylko na nim były puste –
+  // teraz łączymy go ze składnikami faktycznie użytymi w przepisach.
+  const [productDictionary, setProductDictionary] = useState<string[]>([]);
 
-  const recipes = useMemo(() => {
-    if (!settings) return crud.items;
-    const sorted = [...crud.items];
-    if (settings.sort_recipes === "category") {
-      sorted.sort((a, b) => {
-        const catCompare = (a.category || "").localeCompare(b.category || "", "pl");
-        if (catCompare !== 0) return catCompare;
-        return (a.name || "").localeCompare(b.name || "", "pl");
-      });
-    } else if (settings.sort_recipes === "alphabetical") {
-      sorted.sort((a, b) => (a.name || "").localeCompare(b.name || "", "pl"));
-    } else {
-      sorted.sort(
-        (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-      );
-    }
-    return sorted;
-  }, [crud.items, settings]);
+  const recipes = useMemo(
+    () => sortRecipes(crud.items, settings?.sort_recipes),
+    [crud.items, settings?.sort_recipes]
+  );
+
+  const products = useMemo(
+    () => collectProducts(productDictionary, crud.items),
+    [productDictionary, crud.items]
+  );
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
     if (!userId) return [];
@@ -82,40 +87,42 @@ export function useRecipes() {
     }
   }, [supabase, userId, toast, withRetry, getProductsSignal]);
 
+  const addRecipe = useCallback(
+    async (recipe: NewRecipe): Promise<Recipe | undefined> => crud.add(recipe),
+    [crud]
+  );
+
   const editRecipe = useCallback(
-    async (recipe: Recipe): Promise<Recipe | undefined> =>
-      crud.patch(recipe.id, {
-        name: recipe.name,
-        category: recipe.category,
-        products: recipe.products,
-        description: recipe.description,
-      }),
+    async (recipe: Recipe): Promise<Recipe | undefined> => {
+      const clean = normalizeRecipe(recipe);
+      return crud.patch(recipe.id, {
+        name: clean.name,
+        category: clean.category,
+        products: clean.products,
+        description: clean.description,
+      });
+    },
     [crud]
   );
 
   const deleteRecipe = useCallback(
-    async (id: string): Promise<void> => {
-      await crud.remove(id);
-    },
+    async (id: string): Promise<boolean> => crud.remove(id),
     [crud]
   );
 
   const refresh = useCallback(async () => {
     const [p] = await Promise.all([fetchProducts(), crud.refetch()]);
-    setProducts(p);
+    setProductDictionary(p);
   }, [fetchProducts, crud]);
 
-  const suggestProducts = useMemo(
-    () => (query: string) => {
-      const q = query.toLowerCase().trim();
-      if (!q) return [];
-      return products.filter((p) => p.toLowerCase().includes(q)).slice(0, 5);
-    },
-    [products]
-  );
-
   useEffect(() => {
-    fetchProducts().then(setProducts);
+    let cancelled = false;
+    fetchProducts().then((p) => {
+      if (!cancelled) setProductDictionary(p);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchProducts]);
 
   return {
@@ -124,9 +131,10 @@ export function useRecipes() {
     loading: crud.loading,
     fetching: crud.fetching,
     refresh,
-    addRecipe: crud.add,
+    addRecipe,
     editRecipe,
     deleteRecipe,
-    suggestProducts,
   };
 }
+
+export type UseRecipesResult = ReturnType<typeof useRecipes>;

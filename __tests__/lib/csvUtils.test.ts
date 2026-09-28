@@ -18,7 +18,7 @@ describe("processCsvText", () => {
 
   it("parses a known merchant into a friendly name and the matching budget category", () => {
     const csv = buildCsv([
-      `"2024-03-15";"ZAKUP PRZY UĹ»YCIU KARTY W KRAJU BIEDRONKA 123 WARSZAWA";"Supermarkety";"-25,50 PLN"`,
+      `"2024-03-15";"ZAKUP PRZY UŻYCIU KARTY W KRAJU BIEDRONKA 123 WARSZAWA";"Supermarkety";"-25,50 PLN"`,
     ]);
     const result = processCsvText(csv, [], noCategories);
 
@@ -63,7 +63,7 @@ describe("processCsvText", () => {
 
   it("skips a transaction already present in expenseItems (duplicate import guard)", () => {
     const csv = buildCsv([
-      `"2024-03-15";"ZAKUP PRZY UĹ»YCIU KARTY W KRAJU BIEDRONKA 123 WARSZAWA";"Supermarkety";"-25,50 PLN"`,
+      `"2024-03-15";"ZAKUP PRZY UŻYCIU KARTY W KRAJU BIEDRONKA 123 WARSZAWA";"Supermarkety";"-25,50 PLN"`,
     ]);
     const existing = [{ amount: 25.5, date: "2024-03-15", description: "Biedronka", is_income: false }];
     const result = processCsvText(csv, existing, noCategories);

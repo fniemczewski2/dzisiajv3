@@ -1,270 +1,193 @@
-﻿// components/recipes/RecipesList.tsx
+// components/recipes/RecipesList.tsx
 
-import React, { useMemo, useState, useRef, useEffect } from "react";
-import { ChevronDown, PlusCircleIcon, X } from "lucide-react";
-import type { Recipe, RecipeCategory } from "@/types/recipes";
-import { useRecipes } from "@/hooks/db/useRecipes";
-import { useSettings } from "@/hooks/db/useSettings";
-import { EditButton, DeleteButton, FormButtons, ToggleChip } from "../ui/CommonButtons";
+import React, { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import type { NewRecipe, Recipe } from "@/types/recipes";
+import { filterRecipes } from "@/lib/recipeUtils";
+import { EditButton, DeleteButton, ToggleChip } from "../ui/CommonButtons";
 import SearchBar from "../ui/SearchBar";
 import NoResultsState from "../ui/NoResultsState";
-
-const CATEGORIES: RecipeCategory[] = [
-  "śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser",
-];
+import RecipeForm from "./RecipeForm";
 
 interface RecipesListProps {
-  refreshToken?: number;
+  /** Przepisy już posortowane wg ustawień (sortuje hook useRecipes). */
+  recipes: readonly Recipe[];
+  products: readonly string[];
+  loading?: boolean;
+  onEdit: (recipe: Recipe) => Promise<Recipe | undefined>;
+  onDelete: (id: string) => Promise<boolean>;
 }
 
-export default function RecipesList({ refreshToken }: Readonly<RecipesListProps>) {
-  const { recipes, products, deleteRecipe, editRecipe, refresh, loading } = useRecipes();
-  const { settings } = useSettings();
+const isTemp = (id: string) => id.startsWith("temp-");
+
+export default function RecipesList({ recipes, products, loading = false, onEdit, onDelete }: Readonly<RecipesListProps>) {
   const [qText, setQText] = useState("");
   const [prodFilter, setProdFilter] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editedRecipe, setEditedRecipe] = useState<Recipe | null>(null);
-  const [prodInput, setProdInput] = useState("");
-  const nameRef = useRef<HTMLInputElement>(null);
 
+  const filtered = useMemo(() => filterRecipes(recipes, qText, prodFilter), [recipes, qText, prodFilter]);
 
-  useEffect(() => {
-    if (refreshToken !== undefined) {
-      refresh();
-    }
-  }, [refreshToken, refresh]);
-
-  useEffect(() => {
-    if (editingId && nameRef.current) nameRef.current.focus();
-  }, [editingId]);
-
-  const filteredAndSorted = useMemo(() => {
-    const t = qText.trim().toLowerCase();
-    const list = [...recipes].filter((r) => {
-      const matchesText = !t || r.name.toLowerCase().includes(t) || (r.description ?? "").toLowerCase().includes(t);
-      const matchesProd = prodFilter.length === 0 || (r.products && prodFilter.every((p) => r.products?.includes(p)));
-      return matchesText && matchesProd;
-    });
-    const sortType = settings?.sort_recipes || "category";
-    return list.sort((a, b) => {
-      if (sortType === "alphabetical") return a.name.localeCompare(b.name, "pl");
-      if (sortType === "created_desc")
-        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-      const aEmpty = !a.category?.trim(), bEmpty = !b.category?.trim();
-      if (aEmpty && !bEmpty) return 1;
-      if (!aEmpty && bEmpty) return -1;
-      const byCat = (a.category ?? "~").toLowerCase().localeCompare((b.category ?? "~").toLowerCase(), "pl");
-      return byCat === 0 ? a.name.localeCompare(b.name, "pl") : byCat;
-    });
-  }, [recipes, qText, prodFilter, settings?.sort_recipes]);
-
-  const suggestions = useMemo(() => {
-    const q = prodInput.trim().toLowerCase();
-    if (!q || !editedRecipe) return [];
-    return products.filter((p) => p.toLowerCase().includes(q) && !editedRecipe.products?.includes(p)).slice(0, 8);
-  }, [prodInput, products, editedRecipe]);
+  const recipeSuggestions = useMemo(
+    () => recipes.map((r) => r.name).filter(Boolean).slice(0, 20),
+    [recipes]
+  );
 
   const toggleProd = (p: string) =>
-    setProdFilter((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
-  const toggleOpen = (id: string) => setOpenId((prev) => prev === id ? null : id);
+    setProdFilter((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
+  const toggleOpen = (id: string) => setOpenId((prev) => (prev === id ? null : id));
+
+  const handleSaveEdit = async (original: Recipe, data: NewRecipe): Promise<boolean> => {
+    const saved = await onEdit({ ...original, ...data });
+    if (saved) setEditingId(null);
+    return Boolean(saved);
+  };
 
   const handleDelete = async (id: string) => {
-    await deleteRecipe(id);
+    const deleted = await onDelete(id);
+    if (deleted && openId === id) setOpenId(null);
   };
 
-  const handleEdit = (recipe: Recipe) => {
-    setEditingId(recipe.id);
-    setEditedRecipe({ ...recipe });
-    setOpenId(recipe.id);
-  };
-
-  const handleCancelEdit = () => { setEditingId(null); setEditedRecipe(null); setProdInput(""); };
-
-  const handleSaveEdit = async () => {
-    if (!editedRecipe) return;
-    await editRecipe(editedRecipe);
-    setEditingId(null); setEditedRecipe(null); setProdInput("");
-  };
-
-  const commitProduct = (raw: string) => {
-    if (!editedRecipe) return;
-    const v = raw.trim();
-    if (!v || editedRecipe.products?.includes(v)) return;
-    setEditedRecipe({ ...editedRecipe, products: [...(editedRecipe.products || []), v] });
-    setProdInput("");
-  };
-
-  const removeProduct = (p: string) => {
-    if (!editedRecipe) return;
-    setEditedRecipe({ ...editedRecipe, products: editedRecipe.products?.filter((x) => x !== p) || [] });
-  };
-
-  const onProdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); commitProduct(prodInput); }
-  };
-
-  const recipeSuggestions = useMemo(() => recipes.map((r) => r.name).filter(Boolean).slice(0, 20), [recipes]);
+  const hasActiveFilters = qText.trim().length > 0 || prodFilter.length > 0;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center max-w-2xl mx-auto w-full">
         <div className="flex-1 w-full">
-          <SearchBar value={qText} onChange={setQText} placeholder="Szukaj po nazwie lub składniku..."
-            suggestions={recipeSuggestions} onSuggestionClick={setQText} className="w-full" />
+          <SearchBar
+            value={qText}
+            onChange={setQText}
+            placeholder="Szukaj po nazwie, opisie lub składniku..."
+            suggestions={recipeSuggestions}
+            onSuggestionClick={setQText}
+            className="w-full"
+          />
         </div>
-        <button type="button" onClick={() => setShowFilters((s) => !s)}
-          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-10.5 sm:min-w-35 shrink-0 card text-textSecondary hover:text-text hover:bg-surface">
+        <button
+          type="button"
+          onClick={() => setShowFilters((s) => !s)}
+          aria-expanded={showFilters}
+          disabled={products.length === 0}
+          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-10.5 sm:min-w-35 shrink-0 card text-textSecondary hover:text-text hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
+          {prodFilter.length > 0 && (
+            <span className="ml-1 rounded-full bg-primary text-white text-xs px-2 py-0.5">{prodFilter.length}</span>
+          )}
         </button>
       </div>
 
-      {showFilters && (
+      {showFilters && products.length > 0 && (
         <div className="max-w-2xl mx-auto card p-4 rounded-xl shadow-sm">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-textMuted mb-3 block">Filtruj po składnikach:</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-textMuted mb-3 block">
+            Pokaż przepisy zawierające wszystkie zaznaczone składniki:
+          </span>
           <div className="flex flex-wrap gap-2">
             {products.map((p) => (
               <ToggleChip key={p} label={p} active={prodFilter.includes(p)} onClick={() => toggleProd(p)} />
             ))}
           </div>
           {prodFilter.length > 0 && (
-            <button 
-              type='button'
+            <button
+              type="button"
               className="mt-4 w-full py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
-              onClick={() => setProdFilter([])}>Wyczyść filtry składników</button>
+              onClick={() => setProdFilter([])}
+            >
+              Wyczyść filtry składników
+            </button>
           )}
         </div>
       )}
 
       <ul className="space-y-4 max-w-2xl mx-auto w-full">
-        {filteredAndSorted.map((r) => {
+        {filtered.map((r) => {
           const open = openId === r.id;
-          const isEditing = editingId === r.id;
-          const editPrefix = `edit-recipe-${r.id}`; 
 
-          if (isEditing && editedRecipe) {
+          if (editingId === r.id) {
             return (
               <li key={r.id} className="bg-card border border-primary dark:border-primary rounded-2xl shadow-lg p-5 animate-in fade-in">
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor={`${editPrefix}-name`} className="form-label">Nazwa potrawy:</label>
-                    <input 
-                      id={`${editPrefix}-name`}
-                      ref={nameRef} 
-                      type="text" 
-                      value={editedRecipe.name}
-                      onChange={(e) => setEditedRecipe({ ...editedRecipe, name: e.target.value })}
-                      className="input-field font-medium" 
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor={`${editPrefix}-cat`} className="form-label">Kategoria:</label>
-                    <select 
-                      id={`${editPrefix}-cat`}
-                      value={editedRecipe.category || "śniadanie"}
-                      onChange={(e) => setEditedRecipe({ ...editedRecipe, category: e.target.value as RecipeCategory })}
-                      className="input-field py-1.5"
-                    >
-                      {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor={`${editPrefix}-prod`} className="form-label">Składniki:</label>
-                    <div className="flex gap-2">
-                      <input 
-                        id={`${editPrefix}-prod`}
-                        value={prodInput} 
-                        onChange={(e) => setProdInput(e.target.value)}
-                        onKeyDown={onProdKeyDown} 
-                        placeholder="Dodaj składnik..." 
-                        className="input-field flex-1" 
-                      />
-                      <button type="button" onClick={() => commitProduct(prodInput)}
-                        className="px-4 bg-secondary text-white hover:bg-secondary rounded-xl transition-colors shadow-sm shrink-0">
-                        <PlusCircleIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                    {suggestions.length > 0 && (
-                      <div className="mt-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-surface shadow-lg max-h-40 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
-                        {suggestions.map((s) => (
-                          <button key={s} type="button" onClick={() => commitProduct(s)}
-                            className="w-full text-left px-4 py-2 hover:bg-card text-sm font-medium transition-colors">{s}</button>
-                        ))}
-                      </div>
-                    )}
-                    {editedRecipe.products && editedRecipe.products.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2 p-3 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-                        {editedRecipe.products.map((p) => (
-                          <span key={p} className="inline-flex items-center gap-1.5 card px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider shadow-sm">
-                            {p}
-                            <button type="button" onClick={() => removeProduct(p)}
-                              className="text-red-500 hover:text-white hover:bg-red-500 rounded p-0.5 transition-colors">
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor={`${editPrefix}-desc`} className="form-label">Przepis / Instrukcje:</label>
-                    <textarea 
-                      id={`${editPrefix}-desc`}
-                      value={editedRecipe.description || ""}
-                      onChange={(e) => setEditedRecipe({ ...editedRecipe, description: e.target.value })}
-                      className="input-field" 
-                      rows={5} 
-                      placeholder="Krok po kroku..." 
-                    />
-                  </div>
-                  <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
-                </div>
+                <RecipeForm
+                  className="space-y-4"
+                  products={products}
+                  loading={loading}
+                  initial={{ name: r.name, category: r.category, products: r.products ?? [], description: r.description ?? "" }}
+                  onSubmit={(data) => handleSaveEdit(r, data)}
+                  onCancel={() => setEditingId(null)}
+                  autoFocus
+                />
               </li>
             );
           }
 
+          const panelId = `recipe-panel-${r.id}`;
           return (
             <li key={r.id} className="card rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
-              <div className="flex items-center justify-between p-4">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between p-4 text-left"
+                onClick={() => toggleOpen(r.id)}
+                aria-expanded={open}
+                aria-controls={panelId}
+              >
                 <div className="flex-1 pr-3">
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
-                  {r.category && (
-                    <span className="inline-block mt-2 px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold uppercase tracking-wider">
-                      {r.category}
-                    </span>
-                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {r.category && (
+                      <span className="inline-block px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                        {r.category}
+                      </span>
+                    )}
+                    {(r.products?.length ?? 0) > 0 && (
+                      <span className="text-xs text-textMuted">
+                        {r.products.length} {pluralizeIngredients(r.products.length)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <button type='button' className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0" onClick={() => toggleOpen(r.id)}>
+                <span className="p-2 bg-surface text-textSecondary rounded-lg shrink-0" aria-hidden="true">
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
-                </button>
-              </div>
+                </span>
+              </button>
               {open && (
-                <div className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
-                  {r.description && (
-                    <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap pt-3">{r.description}</p>
-                  )}
+                <div id={panelId} className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
                   {r.products && r.products.length > 0 && (
-                    <div>
+                    <div className="pt-3">
                       <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Składniki:</span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <ul className="flex flex-wrap gap-1.5">
                         {r.products.map((p) => (
-                          <span key={p} className="text-xs px-2 py-1 rounded-lg card text-text font-medium">{p}</span>
+                          <li key={p} className="text-xs px-2 py-1 rounded-lg card text-text font-medium">{p}</li>
                         ))}
-                      </div>
+                      </ul>
+                    </div>
+                  )}
+                  {r.description && (
+                    <div>
+                      <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Przygotowanie:</span>
+                      <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap">{r.description}</p>
                     </div>
                   )}
                   <div className="flex justify-end w-full gap-1.5 pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">
-                    <EditButton onClick={() => handleEdit(r)} />
-                    <DeleteButton onClick={() => handleDelete(r.id)} />
+                    <EditButton onClick={() => setEditingId(r.id)} disabled={isTemp(r.id) || loading} />
+                    <DeleteButton onClick={() => handleDelete(r.id)} disabled={isTemp(r.id) || loading} />
                   </div>
                 </div>
               )}
             </li>
           );
         })}
-        {filteredAndSorted.length === 0 && <NoResultsState text="przepisów" isSearch />}
+        {filtered.length === 0 && (
+          <NoResultsState text="przepisów" isSearch={hasActiveFilters} />
+        )}
       </ul>
     </div>
   );
+}
+
+function pluralizeIngredients(n: number): string {
+  if (n === 1) return "składnik";
+  const lastTwo = n % 100;
+  const last = n % 10;
+  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return "składniki";
+  return "składników";
 }

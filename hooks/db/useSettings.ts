@@ -10,6 +10,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
+import { favoriteKey, isSameStopPlace, type FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
 
 const safeParseArray = <T = unknown>(data: unknown): T[] => {
   if (!data) return [];
@@ -26,12 +27,23 @@ const safeParseArray = <T = unknown>(data: unknown): T[] => {
   return [];
 };
 
-const normalizeFavoriteStops = (data: unknown): { name: string; zone_id: string }[] => {
-  const parsed = safeParseArray<string | { name?: string; zone_id?: string }>(data);
+const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+export const normalizeFavoriteStops = (data: unknown): FavoriteStop[] => {
+  const parsed = safeParseArray<string | Partial<FavoriteStop>>(data);
   return parsed
-    .map((item) => {
+    .map((item): FavoriteStop => {
       if (typeof item === "string") return { name: item, zone_id: "AUTO" };
-      return { name: item?.name || "", zone_id: item?.zone_id || "AUTO" };
+      const fav: FavoriteStop = { name: item?.name || "", zone_id: item?.zone_id || "AUTO" };
+      if (isNum(item?.lat) && isNum(item?.lon)) {
+        fav.lat = item.lat;
+        fav.lon = item.lon;
+      }
+      if (Array.isArray(item?.stop_codes)) {
+        fav.stop_codes = item.stop_codes.filter((c): c is string => typeof c === "string").slice(0, 50);
+      }
+      if (typeof item?.locality === "string" && item.locality) fav.locality = item.locality.slice(0, 80);
+      return fav;
     })
     .filter((item) => item.name !== "");
 };
@@ -56,9 +68,8 @@ const DEFAULT_SETTINGS: Settings = {
   notif_contact: true,
   sort_notes: "updated_desc",
   sort_shopping: "updated_desc",
-  sort_movies: "rating",
+  sort_movies: "updated_desc",
   sort_recipes: "category",
-  sort_places: "alphabetical",
   habit_pills: true,
   habit_bath: true,
   habit_workout: true,
@@ -134,7 +145,6 @@ export function useSettings() {
             sort_shopping: data.sort_shopping ?? "updated_desc",
             sort_movies: data.sort_movies ?? "updated_desc",
             sort_recipes: data.sort_recipes ?? "category",
-            sort_places: data.sort_places ?? "alphabetical",
             habit_pills: data.habit_pills ?? true,
             habit_bath: data.habit_bath ?? true,
             habit_workout: data.habit_workout ?? true,
@@ -215,31 +225,41 @@ export function useSettings() {
     [supabase, userId, toast, withRetry]
   );
 
+  const saveFavoriteStops = useCallback(
+    async (updated: FavoriteStop[]) => {
+      if (!userId) throw new Error("Unauthorized");
+      const { error } = await withRetry(async () =>
+        supabase
+          .from("settings")
+          .upsert({ user_id: userId, favorite_stops: JSON.stringify(updated) }, { onConflict: "user_id" })
+      );
+      if (error) throw error;
+    },
+    [userId, supabase, withRetry]
+  );
+
   const addFavoriteStop = useCallback(
-    async (name: string, zone_id = "AUTO"): Promise<boolean> => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
+    async (stop: FavoriteStop): Promise<boolean> => {
+      if (!userId) throw new Error("Unauthorized");
       const stops = settingsRef.current.favorite_stops;
-      if (stops.some((s: { name: string }) => s.name === name)) return true;
+      // Porównanie po miejscu, nie po nazwie – "Dworcowa" w Poznaniu i w Luboniu
+      // to dwa różne ulubione.
+      if (stops.some((s) => isSameStopPlace(s, stop))) {
+        toast.info("Ten przystanek jest już w ulubionych.");
+        return true;
+      }
       if (stops.length >= MAX_FAVORITE_STOPS) {
         toast.error(`Osiągnięto limit ${MAX_FAVORITE_STOPS} ulubionych przystanków.`);
         return false;
       }
 
       const previous = stops;
-      const updated = [...stops, { name, zone_id }];
+      const updated = [...stops, stop];
       setSettings((prev) => ({ ...prev, favorite_stops: updated }));
 
       try {
-        const { error } = await withRetry(async () =>
-          supabase
-            .from("settings")
-            .upsert({ user_id: userId, favorite_stops: JSON.stringify(updated) }, { onConflict: "user_id" })
-        );
-        if (error) throw error;
-        toast.success("Dodano ulubiony przystanek");
+        await saveFavoriteStops(updated);
+        toast.success(`Dodano do ulubionych: ${stop.name}${stop.locality ? ` (${stop.locality})` : ""}`);
         return true;
       } catch {
         setSettings((prev) => ({ ...prev, favorite_stops: previous }));
@@ -247,33 +267,53 @@ export function useSettings() {
         return false;
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, toast, saveFavoriteStops]
   );
 
+  /** Usuwa po kluczu favoriteKey() – nie po nazwie, żeby nie zabrać przystanku z innej miejscowości. */
   const removeFavoriteStop = useCallback(
-    async (name: string) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
+    async (key: string) => {
+      if (!userId) throw new Error("Unauthorized");
       const previous = settingsRef.current.favorite_stops;
-      const updated = previous.filter((s: { name: string }) => s.name !== name);
+      const updated = previous.filter((s) => favoriteKey(s) !== key);
+      if (updated.length === previous.length) return;
       setSettings((prev) => ({ ...prev, favorite_stops: updated }));
 
       try {
-        const { error } = await withRetry(async () =>
-          supabase
-            .from("settings")
-            .upsert({ user_id: userId, favorite_stops: JSON.stringify(updated) }, { onConflict: "user_id" })
-        );
-        if (error) throw error;
+        await saveFavoriteStops(updated);
         toast.success("Usunięto ulubiony przystanek");
       } catch {
         setSettings((prev) => ({ ...prev, favorite_stops: previous }));
         toast.error("Błąd usuwania przystanku.");
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, toast, saveFavoriteStops]
+  );
+
+  /**
+   * Ciche uzupełnienie starych wpisów (sama nazwa) o położenie grupy, którą
+   * serwer do nich dopasował – od tej chwili są jednoznaczne.
+   */
+  const upgradeFavoriteStops = useCallback(
+    async (upgrades: Map<string, FavoriteStop>) => {
+      if (!userId || upgrades.size === 0) return;
+      const previous = settingsRef.current.favorite_stops;
+      let changed = false;
+      const updated = previous.map((s) => {
+        const next = upgrades.get(favoriteKey(s));
+        if (!next || s.lat !== undefined) return s;
+        changed = true;
+        return { ...next, name: s.name, ...(s.locality ? { locality: s.locality } : {}) };
+      });
+      if (!changed) return;
+      setSettings((prev) => ({ ...prev, favorite_stops: updated }));
+      try {
+        await saveFavoriteStops(updated);
+      } catch {
+        setSettings((prev) => ({ ...prev, favorite_stops: previous }));
+      }
+    },
+    [userId, saveFavoriteStops]
   );
 
   const addUser = useCallback(() => {
@@ -343,6 +383,7 @@ export function useSettings() {
     updateSettings,
     addFavoriteStop,
     removeFavoriteStop,
+    upgradeFavoriteStops,
     addUser,
     removeUser,
     updateUser,

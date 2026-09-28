@@ -50,3 +50,6 @@ public/workbox-cb477421.js
 public/workbox-c2c0676f.js
 public/workbox-f1770938.js
 next-env.d.ts
+
+# Supabase CLI – lokalny stan linkowania (ref projektu, host poolera)
+supabase/.temp/

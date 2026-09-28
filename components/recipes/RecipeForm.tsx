@@ -1,121 +1,220 @@
-﻿// components/recipes/RecipeForm.tsx
+// components/recipes/RecipeForm.tsx
 
-import React, { useMemo, useState, SyntheticEvent } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState, SyntheticEvent } from "react";
 import { PlusCircleIcon, X } from "lucide-react";
-import type { Recipe, RecipeCategory } from "@/types/recipes";
-import { useRecipes } from "@/hooks/db/useRecipes";
+import {
+  RECIPE_CATEGORIES,
+  DEFAULT_RECIPE_CATEGORY,
+  isRecipeCategory,
+  type NewRecipe,
+  type RecipeCategory,
+} from "@/types/recipes";
+import {
+  hasProduct,
+  isRecipeValid,
+  RECIPE_DESCRIPTION_MAX_LENGTH,
+  RECIPE_NAME_MAX_LENGTH,
+  RECIPE_NAME_MIN_LENGTH,
+  RECIPE_PRODUCT_MAX_LENGTH,
+} from "@/lib/recipeUtils";
 import { FormButtons } from "../ui/CommonButtons";
 
 interface RecipeFormProps {
-  onChange: () => void;
+  /** Wszystkie znane składniki – do podpowiedzi. */
+  products: readonly string[];
+  loading?: boolean;
+  /** Dane początkowe – podane oznaczają tryb edycji. */
+  initial?: NewRecipe;
+  /** Zwraca `true`, gdy zapis się udał (formularz może się wtedy zamknąć/wyczyścić). */
+  onSubmit: (recipe: NewRecipe) => Promise<boolean>;
   onCancel?: () => void;
+  autoFocus?: boolean;
+  className?: string;
 }
 
-const CATEGORIES: RecipeCategory[] = [
-  "śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser",
-];
+const EMPTY: NewRecipe = { name: "", category: DEFAULT_RECIPE_CATEGORY, products: [], description: "" };
 
-export default function RecipeForm({ onChange, onCancel }: Readonly<RecipeFormProps>) {
-  const { addRecipe, loading, products: allProducts } = useRecipes();
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<RecipeCategory>("śniadanie");
-  const [description, setDescription] = useState("");
-  const [picked, setPicked] = useState<string[]>([]);
+export default function RecipeForm({
+  products,
+  loading = false,
+  initial,
+  onSubmit,
+  onCancel,
+  autoFocus = false,
+  className = "form-card max-w-2xl",
+}: Readonly<RecipeFormProps>) {
+  const start = initial ?? EMPTY;
+  const [name, setName] = useState(start.name);
+  const [category, setCategory] = useState<RecipeCategory>(
+    isRecipeCategory(start.category) ? start.category : DEFAULT_RECIPE_CATEGORY
+  );
+  const [description, setDescription] = useState(start.description ?? "");
+  const [picked, setPicked] = useState<string[]>(start.products ?? []);
   const [prodInput, setProdInput] = useState("");
+  const nameRef = useRef<HTMLInputElement>(null);
+  const prefix = useId();
+
+  useEffect(() => {
+    if (autoFocus) nameRef.current?.focus();
+  }, [autoFocus]);
 
   const suggestions = useMemo(() => {
-    const q = prodInput.trim().toLowerCase();
+    const q = prodInput.trim().toLocaleLowerCase("pl");
     if (!q) return [];
-    return allProducts.filter((p) => p.toLowerCase().includes(q) && !picked.includes(p)).slice(0, 8);
-  }, [prodInput, allProducts, picked]);
+    return products
+      .filter((p) => p.toLocaleLowerCase("pl").includes(q) && !hasProduct(picked, p))
+      .slice(0, 8);
+  }, [prodInput, products, picked]);
 
   const commitProduct = (raw: string) => {
-    const v = raw.trim();
+    const v = raw.trim().replaceAll(/\s+/g, " ").slice(0, RECIPE_PRODUCT_MAX_LENGTH);
     if (!v) return;
-    if (!picked.includes(v)) setPicked((prev) => [...prev, v]);
+    setPicked((prev) => (hasProduct(prev, v) ? prev : [...prev, v]));
     setProdInput("");
   };
 
   const onProdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); commitProduct(prodInput); }
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      commitProduct(prodInput);
+    }
     if (e.key === "Backspace" && !prodInput && picked.length > 0) {
       e.preventDefault();
       setPicked((prev) => prev.slice(0, -1));
     }
   };
 
+  const onProdChange = (value: string) => {
+    // Wklejenie "mąka, jajka, mleko" dodaje od razu trzy składniki.
+    if (value.includes(",")) {
+      const parts = value.split(",");
+      const last = parts.pop() ?? "";
+      parts.forEach(commitProduct);
+      setProdInput(last);
+      return;
+    }
+    setProdInput(value);
+  };
+
   const removeProduct = (p: string) => setPicked((prev) => prev.filter((x) => x !== p));
-  const canSave = name.trim().length > 1 && picked.length > 0;
+
+  // Składnik wpisany, ale niezatwierdzony Enterem, też się liczy – wcześniej
+  // przepadał po kliknięciu "Zapisz".
+  const pendingProducts = prodInput.trim() ? [...picked, prodInput] : picked;
+  const canSave = isRecipeValid({ name, products: pendingProducts });
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSave) return;
+    if (!canSave || loading) return;
 
-    await addRecipe({
-        name: name.trim(),
-        category,
-        products: picked.map((p) => p.trim()),
-        description: description.trim(),
-      } as Recipe)
-      
-    setName(""); setCategory("śniadanie"); setDescription(""); setPicked([]); setProdInput("");
-    onChange();
-    onCancel?.();
+    const ok = await onSubmit({ name, category, products: pendingProducts, description });
+    if (ok && !initial) {
+      setName("");
+      setCategory(DEFAULT_RECIPE_CATEGORY);
+      setDescription("");
+      setPicked([]);
+      setProdInput("");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-card max-w-2xl">
+    <form onSubmit={handleSubmit} className={className}>
       <div>
-        <label htmlFor="rf-name" className="form-label">Nazwa przepisu:</label>
-        <input id="rf-name" value={name} onChange={(e) => setName(e.target.value)}
-          className="input-field" placeholder="np. Naleśniki z twarogiem" required disabled={loading} />
+        <label htmlFor={`${prefix}-name`} className="form-label">Nazwa przepisu:</label>
+        <input
+          id={`${prefix}-name`}
+          ref={nameRef}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="input-field"
+          placeholder="np. Naleśniki z twarogiem"
+          required
+          minLength={RECIPE_NAME_MIN_LENGTH}
+          maxLength={RECIPE_NAME_MAX_LENGTH}
+          disabled={loading}
+        />
       </div>
       <div>
-        <label htmlFor="rf-category" className="form-label">Kategoria:</label>
-        <select id="rf-category" value={category} onChange={(e) => setCategory(e.target.value as RecipeCategory)}
-          className="input-field" disabled={loading}>
-          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        <label htmlFor={`${prefix}-category`} className="form-label">Kategoria:</label>
+        <select
+          id={`${prefix}-category`}
+          value={category}
+          onChange={(e) => setCategory(e.target.value as RecipeCategory)}
+          className="input-field"
+          disabled={loading}
+        >
+          {RECIPE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
       <div>
-        <label htmlFor="product" className="form-label">Składniki:</label>
+        <label htmlFor={`${prefix}-product`} className="form-label">Składniki:</label>
         <div className="flex gap-2">
-          <input id="product" value={prodInput} onChange={(e) => setProdInput(e.target.value)}
+          <input
+            id={`${prefix}-product`}
+            value={prodInput}
+            onChange={(e) => onProdChange(e.target.value)}
             onKeyDown={onProdKeyDown}
             placeholder="np. mąka, jajka, mleko (zatwierdź Enterem)"
-            className="input-field" disabled={loading} />
-          <button type="button" onClick={() => commitProduct(prodInput)}
+            className="input-field"
+            maxLength={RECIPE_PRODUCT_MAX_LENGTH}
+            autoComplete="off"
+            disabled={loading}
+          />
+          <button
+            type="button"
+            onClick={() => commitProduct(prodInput)}
             className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2 transition-colors disabled:opacity-50"
-            disabled={loading}>
+            disabled={loading || !prodInput.trim()}
+            aria-label="Dodaj składnik"
+          >
             Dodaj <PlusCircleIcon className="w-4 h-4" />
           </button>
         </div>
         {suggestions.length > 0 && (
-          <div className="mt-1 rounded-lg card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden">
+          <div className="mt-1 rounded-lg card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden max-h-48 overflow-y-auto">
             {suggestions.map((s) => (
-              <button key={s} type="button" onClick={() => commitProduct(s)}
-                className="w-full text-left px-4 py-2 hover:bg-surface text-text text-sm transition-colors">{s}</button>
+              <button
+                key={s}
+                type="button"
+                onClick={() => commitProduct(s)}
+                className="w-full text-left px-4 py-2 hover:bg-surface text-text text-sm transition-colors"
+              >
+                {s}
+              </button>
             ))}
           </div>
         )}
         {picked.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <ul className="mt-3 flex flex-wrap gap-2" aria-label="Wybrane składniki">
             {picked.map((p) => (
-              <span key={p} className="inline-flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-sm text-textSecondary">
+              <li key={p} className="inline-flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-sm text-textSecondary">
                 {p}
-                <button type="button" onClick={() => removeProduct(p)}
-                  className="text-textMuted hover:text-red-500 transition-colors" disabled={loading}>
+                <button
+                  type="button"
+                  onClick={() => removeProduct(p)}
+                  className="text-textMuted hover:text-red-500 transition-colors"
+                  disabled={loading}
+                  aria-label={`Usuń składnik ${p}`}
+                >
                   <X className="w-3.5 h-3.5" />
                 </button>
-              </span>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
       <div>
-        <label htmlFor="rf-desc" className="form-label">Sposób przygotowania / Opis:</label>
-        <textarea id="rf-desc" value={description} onChange={(e) => setDescription(e.target.value)}
-          className="input-field" rows={4} placeholder="Krótki opis lub kroki przygotowania…" disabled={loading} />
+        <label htmlFor={`${prefix}-desc`} className="form-label">Sposób przygotowania / Opis:</label>
+        <textarea
+          id={`${prefix}-desc`}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="input-field"
+          rows={initial ? 6 : 4}
+          maxLength={RECIPE_DESCRIPTION_MAX_LENGTH}
+          placeholder="Krótki opis lub kroki przygotowania…"
+          disabled={loading}
+        />
       </div>
       <FormButtons disabled={!canSave} onClickClose={onCancel} loading={loading} />
     </form>

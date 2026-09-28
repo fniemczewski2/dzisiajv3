@@ -9,7 +9,7 @@ import { useAbortController } from '@/hooks/useAbortController';
 import { isAbortError } from '@/lib/abortUtils';
 import { TrackedTrain, TrainInput } from '@/types/transport';
 
-function mapDbRowToTrain(row: {
+export function mapDbRowToTrain(row: {
   id: string;
   user_id: string;
   train_number: string;
@@ -196,6 +196,52 @@ export function useTrains() {
   };
 }
 
+/**
+ * Bilety na konkretny dzień – do planu dnia. W odróżnieniu od useTrains()
+ * nie tnie do okna ±6 h od teraz, bo plan pokazuje cały wybrany dzień.
+ */
+export function useTrainsForDate(dateStr: string) {
+  const { supabase, user } = useAuth();
+  const userId = user?.id;
+  const [trains, setTrains] = useState<TrackedTrain[]>([]);
+  const { getSignal } = useAbortController();
+
+  const fetchForDate = useCallback(async () => {
+    if (!userId || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      setTrains([]);
+      return;
+    }
+    const signal = getSignal();
+    try {
+      const { data, error } = await supabase
+        .from('user_trains')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', dateStr)
+        .order('departure_time', { ascending: true })
+        .abortSignal(signal);
+      if (error) throw error;
+      setTrains((data || []).map(mapDbRowToTrain).sort(sortByDepartureAsc));
+    } catch (err) {
+      if (isAbortError(err)) return;
+      // Plan dnia działa dalej bez biletów – nie zasypujemy użytkownika toastami.
+      setTrains([]);
+    }
+  }, [userId, supabase, dateStr, getSignal]);
+
+  useEffect(() => {
+    void fetchForDate();
+  }, [fetchForDate]);
+
+  return { trains, refresh: fetchForDate };
+}
+
+export interface TrainStatusOptions {
+  /** Co ile ms odświeżać status (0 = tylko raz). Odświeżanie pauzuje w ukrytej karcie. */
+  refreshMs?: number;
+  enabled?: boolean;
+}
+
 export function useTrainStatus(train: {
   trainNumber: string;
   date: string;
@@ -203,7 +249,8 @@ export function useTrainStatus(train: {
   to: string;
   departureTime: string;
   trainName: string;
-}) {
+}, options: TrainStatusOptions = {}) {
+  const { refreshMs = 0, enabled = true } = options;
   const [data, setData] = useState({
     delay: 0,
     platform: '...',
@@ -236,7 +283,9 @@ export function useTrainStatus(train: {
           signal: controller.signal,
         });
         if (response.status === 429) {
-          setData({ delay: 0, platform: '-', status: '429', loading: false, estimatedArrival: '', hide: false });
+          // Karta sprawdza dokładnie ten tekst – wcześniej ustawiane było '429',
+          // więc komunikat o limicie nigdy się nie pokazywał.
+          setData((prev) => ({ ...prev, status: 'Zbyt wiele zapytań', loading: false }));
           return;
         }
 
@@ -253,13 +302,30 @@ export function useTrainStatus(train: {
         });
       } catch (err) {
         if (isAbortError(err)) return;
-        setData({ delay: 0, platform: '-', status: 'Błąd połączenia', loading: false, estimatedArrival: '', hide: false });
+        // Zostawiamy ostatnie znane opóźnienie/peron – przy odświeżaniu chwilowy błąd sieci
+        // nie powinien ich kasować.
+        setData((prev) => ({ ...prev, status: prev.status && prev.status !== 'Błąd połączenia' ? prev.status : 'Błąd połączenia', loading: false }));
       }
     };
 
-    fetchStatus();
-    return () => controller.abort();
-  }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName]);
+    if (!enabled) {
+      setData((prev) => ({ ...prev, loading: false }));
+      return () => controller.abort();
+    }
+
+    void fetchStatus();
+
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    if (refreshMs > 0) {
+      intervalId = setInterval(() => {
+        if (typeof document === 'undefined' || document.visibilityState === 'visible') void fetchStatus();
+      }, refreshMs);
+    }
+    return () => {
+      controller.abort();
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName, refreshMs, enabled]);
 
   return data;
 }

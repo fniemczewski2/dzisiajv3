@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import { Clapperboard, MapPin } from "lucide-react";
+import { Clapperboard } from "lucide-react";
 import { useNotes } from "@/hooks/db/useNotes";
 import NoteList from "@/components/notes/NoteList";
 import { useRouter } from "next/router";
@@ -40,18 +40,10 @@ export default function NotesPage() {
               <button
                 onClick={() => router.push("/notes/movies")}
                 type='button'
-                title="Filmy"
+                title="Filmy i seriale"
                 className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
               >
                 <Clapperboard className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-              <button
-                onClick={() => router.push("/notes/places")}
-                type='button'
-                title="Miejsca"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
-              >
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>

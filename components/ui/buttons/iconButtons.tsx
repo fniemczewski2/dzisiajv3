@@ -35,10 +35,11 @@ export const ConfirmButton = ({ onClick, small = false, label = "OK" }: { onClic
   </button>
 );
 
-export const DeleteButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
+export const DeleteButton = ({ onClick, small = false, disabled = false }: { onClick: () => void; small?: boolean; disabled?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
+    disabled={disabled}
     className={actionButton({ color: "red", size: small ? "small" : "default" })}
     aria-label="usuń"
   >
@@ -63,10 +64,11 @@ export const NotifyButton = ({ onClick, small = false, disabled = false }: { onC
   </button>
 );
 
-export const EditButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
+export const EditButton = ({ onClick, small = false, disabled = false }: { onClick: () => void; small?: boolean; disabled?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
+    disabled={disabled}
     className={actionButton({ color: "blue", size: small ? "small" : "default" })}
     aria-label="edytuj"
   >

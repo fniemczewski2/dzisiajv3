@@ -40,6 +40,6 @@ describe("safeFileName", () => {
   });
 
   it("keeps Polish diacritics, which are valid in filenames", () => {
-    expect(safeFileName("Ĺšwiątecka")).toBe("Ĺšwiątecka");
+    expect(safeFileName("Świątecka")).toBe("Świątecka");
   });
 });

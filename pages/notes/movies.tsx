@@ -7,7 +7,7 @@ import { useMovies } from "@/hooks/db/useMovies";
 import Seo from "@/components/ui/SEO";
 
 export default function MoviesPage() {
-  const { movies, fetching, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes } = useMovies();
+  const { movies, fetching, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes, updateProgress, refreshFromTmdb } = useMovies();
 
   return (
     <>
@@ -17,9 +17,19 @@ export default function MoviesPage() {
         canonical="https://dzisiaj.fun/notes/movies"
         keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"
       />
-      {fetching
+      {fetching && movies.length === 0
         ? <SkeletonList count={4} variant="movie" />
-        : <MovieWatchlist movies={movies} addMovie={addMovie} updateMovie={updateMovie} deleteMovie={deleteMovie} toggleWatched={toggleWatched} updateNotes={updateNotes} loading={loading}/>
+        : <MovieWatchlist
+            movies={movies}
+            addMovie={addMovie}
+            updateMovie={updateMovie}
+            deleteMovie={deleteMovie}
+            toggleWatched={toggleWatched}
+            updateNotes={updateNotes}
+            updateProgress={updateProgress}
+            refreshFromTmdb={refreshFromTmdb}
+            loading={loading}
+          />
       }
     </>
   );

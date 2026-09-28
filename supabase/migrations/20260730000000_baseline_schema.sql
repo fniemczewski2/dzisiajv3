@@ -21,11 +21,11 @@ create extension if not exists "uuid-ossp";
 create extension if not exists pgcrypto;
 create extension if not exists postgis;
 
--- UZUPEŁNIJ realnymi wartościami (zapytanie w wiadomości w czacie).
+-- Wartości zgodne z RECIPE_CATEGORIES w types/recipes.ts.
 do $$
 begin
   if not exists (select 1 from pg_type where typname = 'recipe_category') then
-    create type public.recipe_category as enum ('sniadanie', 'obiad', 'kolacja', 'deser', 'przekaska');
+    create type public.recipe_category as enum ('śniadanie', 'zupa', 'danie główne', 'przystawka', 'sałatka', 'deser');
   end if;
 end $$;
 

@@ -12,7 +12,7 @@ const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
   { id: "m2", label: "Dobrze", color: "#3b82f6" },    
   { id: "m3", label: "Neutralnie", color: "#eab308" },
-  { id: "m4", label: "Ĺąle", color: "#f97316" },       
+  { id: "m4", label: "Źle", color: "#f97316" },       
   { id: "m5", label: "Okropnie", color: "#ef4444" },  
 ];
 
@@ -249,7 +249,7 @@ export default function SettingsForm({
           </div>
 
           <div>
-            <label htmlFor="sort_movies" className="form-label text-xs">Filmy:</label>
+            <label htmlFor="sort_movies" className="form-label text-xs">Filmy i seriale:</label>
             <select
               id="sort_movies"
               value={localSettings.sort_movies || "updated_desc"}
@@ -276,18 +276,6 @@ export default function SettingsForm({
             </select>
           </div>
 
-          <div>
-            <label htmlFor="sort_places" className="form-label text-xs">Miejsca:</label>
-            <select
-              id="sort_places"
-              value={localSettings.sort_places || "alphabetical"}
-              onChange={(e) => updateLocalField("sort_places", e.target.value)}
-              className="input-field"
-            >
-              <option value="alphabetical">Alfabetycznie</option>
-              <option value="distance">Odległość (najbliższe)</option>
-            </select>
-          </div>
           <div>
             <label htmlFor="sort_people" className="form-label text-xs">Ludzie:</label>
             <select

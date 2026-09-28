@@ -1,5 +1,6 @@
 ﻿// types/settings.ts
 
+import type { FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
 import { MoodOption } from "./moods";
 
 export interface Settings {
@@ -12,13 +13,12 @@ export interface Settings {
   show_mood_tracker: boolean;
 
   users: string[];
-  favorite_stops: { name: string; zone_id: string }[];
+  favorite_stops: FavoriteStop[];
 
   sort_notes: string;
   sort_shopping: string;
   sort_movies: string;
   sort_recipes: string;
-  sort_places: string;
 
   notif_morning_brief: boolean;
   notif_tasks: boolean;

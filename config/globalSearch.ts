@@ -19,7 +19,6 @@ export const GLOBAL_SEARCH_SOURCES: GlobalSearchSource[] = [
   { table: "notes", label: "Notatki", href: "/notes", select: "id, title", searchColumn: "title", labelColumn: "title" },
   { table: "letters", label: "Pisma", href: "/notes/letters", select: "id, signature, recipient", searchColumn: "recipient", labelColumn: "recipient", sublabelColumn: "signature" },
   { table: "people", label: "Osoby", href: "/people", select: "id, first_name", searchColumn: "first_name", labelColumn: "first_name" },
-  { table: "places", label: "Miejsca", href: "/places", select: "id, name", searchColumn: "name", labelColumn: "name" },
   { table: "recipes", label: "Przepisy", href: "/notes/recipes", select: "id, name", searchColumn: "name", labelColumn: "name" },
-  { table: "movies", label: "Filmy", href: "/notes/movies", select: "id, title", searchColumn: "title", labelColumn: "title" },
+  { table: "movies", label: "Filmy i seriale", href: "/notes/movies", select: "id, title", searchColumn: "title", labelColumn: "title" },
 ];

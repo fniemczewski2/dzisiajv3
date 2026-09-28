@@ -1,52 +1,57 @@
-﻿// hooks/db/useMovies.ts
+// hooks/db/useMovies.ts
 
-import { useCallback, useMemo } from "react";
-import type { Movie, MovieInsert } from "@/types/movies";
-import { useSettings } from "./useSettings";
+import { useCallback } from "react";
+import type { Movie, MovieInsert, NewMovieData } from "@/types/movies";
 import { useToast } from "@/providers/ToastProvider";
+import { buildMovieData, fetchMediaDetails } from "@/lib/tmdb";
 import { useCrudResource } from "./useCrudResource";
 
+// Tabela `movies` trzyma zarówno filmy, jak i seriale – komunikaty są neutralne.
 const MESSAGES = {
-  fetchError: "Błąd pobierania filmów.",
-  added: "Dodano film",
-  addError: "Błąd dodawania filmu.",
-  edited: "Zaktualizowano film",
-  editError: "Błąd aktualizacji filmu.",
-  deleted: "Usunięto film",
-  deleteError: "Błąd usuwania filmu.",
-  confirmDelete: "Czy chcesz usunąć film?",
+  fetchError: "Błąd pobierania filmów i seriali.",
+  added: "Dodano do listy",
+  addError: "Błąd dodawania pozycji.",
+  edited: "Zaktualizowano pozycję",
+  editError: "Błąd aktualizacji pozycji.",
+  deleted: "Usunięto z listy",
+  deleteError: "Błąd usuwania pozycji.",
+  confirmDelete: "Czy chcesz usunąć tę pozycję z listy?",
 };
 
 export function useMovies() {
-  const { settings } = useSettings();
   const { toast } = useToast();
   const crud = useCrudResource<Movie, MovieInsert>({
     table: "movies",
     insertPosition: "start",
+    // Bez znaczników czasu nowa pozycja lądowała na końcu przy sortowaniu po dacie.
+    buildOptimistic: (payload, tempId, userId) => {
+      const now = new Date().toISOString();
+      return { ...payload, id: tempId, user_id: userId, created_at: now, updated_at: now };
+    },
     messages: MESSAGES,
   });
 
-  const movies = useMemo(() => {
-    if (!settings) return crud.items;
-    const sorted = [...crud.items];
-    if (settings.sort_movies === "rating") {
-      sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (settings.sort_movies === "alphabetical") {
-      sorted.sort((a, b) => (a.title || "").localeCompare(b.title || "", "pl"));
-    } else {
-      sorted.sort(
-        (a, b) =>
-          new Date(b.updated_at || b.created_at || 0).getTime() -
-          new Date(a.updated_at || a.created_at || 0).getTime()
-      );
-    }
-    return sorted;
-  }, [crud.items, settings]);
+  const findMovie = useCallback((id: string) => crud.items.find((m) => m.id === id), [crud.items]);
+
+  const addMovie = useCallback(
+    async (data: NewMovieData): Promise<boolean> => {
+      const isTv = data.media_type === "tv";
+      const created = await crud.add({
+        ...data,
+        watched: false,
+        notes: "",
+        progress_season: isTv ? 1 : null,
+        progress_episode: isTv ? 0 : null,
+      });
+      return Boolean(created);
+    },
+    [crud]
+  );
 
   const updateMovie = useCallback(
     async (movie: Movie, options: { silent?: boolean } = {}): Promise<void> => {
-      const { id, ...updates } = movie;
-      await crud.patch(id, updates, {
+      const { id, user_id: _userId, created_at: _created, ...updates } = movie;
+      await crud.patch(id, { ...updates, updated_at: new Date().toISOString() }, {
         silent: options.silent,
         successMessage: MESSAGES.edited,
         errorMessage: MESSAGES.editError,
@@ -55,46 +60,100 @@ export function useMovies() {
     [crud]
   );
 
-  const deleteMovie = useCallback(
-    async (id: string): Promise<void> => {
-      await crud.remove(id);
-    },
-    [crud]
-  );
+  const deleteMovie = useCallback(async (id: string): Promise<void> => { await crud.remove(id); }, [crud]);
 
   const toggleWatched = useCallback(
     async (id: string): Promise<void> => {
-      const movie = crud.items.find((m) => m.id === id);
+      const movie = findMovie(id);
       if (!movie) return;
       const nextWatched = !movie.watched;
       await updateMovie({ ...movie, watched: nextWatched }, { silent: true });
-      toast.success(nextWatched ? "Oznaczono jako obejrzany" : "Cofnięto obejrzenie");
+      const isTv = movie.media_type === "tv";
+      toast.success(nextWatched ? `Oznaczono jako obejrzan${isTv ? "y serial" : "y"}` : "Cofnięto obejrzenie");
     },
-    [crud.items, updateMovie, toast]
+    [findMovie, updateMovie, toast]
   );
 
   const updateNotes = useCallback(
     async (id: string, notes: string): Promise<void> => {
-      const movie = crud.items.find((m) => m.id === id);
+      const movie = findMovie(id);
       if (!movie) return;
       await updateMovie({ ...movie, notes }, { silent: true });
+      toast.success("Zapisano notatki");
     },
-    [crud.items, updateMovie]
+    [findMovie, updateMovie, toast]
   );
 
-  const refresh = useCallback(async () => {
-    await crud.refetch();
-  }, [crud]);
+  /** Postęp serialu – zapis cichy, bo użytkownik klika go wielokrotnie. */
+  const updateProgress = useCallback(
+    async (id: string, season: number, episode: number): Promise<void> => {
+      const movie = findMovie(id);
+      if (!movie) return;
+      const maxSeason = movie.seasons_count && movie.seasons_count > 0 ? movie.seasons_count : Number.POSITIVE_INFINITY;
+      const s = Math.min(Math.max(1, Math.round(season)), maxSeason);
+      const e = Math.max(0, Math.round(episode));
+      await updateMovie({ ...movie, progress_season: s, progress_episode: e }, { silent: true });
+    },
+    [findMovie, updateMovie]
+  );
+
+  /** Pobiera aktualne dane z TMDB (nowe sezony, status, ocena, platformy). Notatki i postęp zostają. */
+  const refreshFromTmdb = useCallback(
+    async (id: string): Promise<void> => {
+      const movie = findMovie(id);
+      if (!movie?.tmdb_id) return;
+      const mediaType = movie.media_type ?? "movie";
+      try {
+        const details = await fetchMediaDetails(mediaType, movie.tmdb_id);
+        const fresh = buildMovieData(
+          {
+            tmdbId: movie.tmdb_id, mediaType, title: movie.title, year: movie.release_year ?? null,
+            rating: movie.rating, overview: movie.description ?? "", posterPath: movie.poster_path ?? null, genreIds: [],
+          },
+          details
+        );
+        const previousSeasons = movie.seasons_count ?? 0;
+        await updateMovie(
+          {
+            ...movie,
+            rating: fresh.rating,
+            platform: fresh.platform ?? movie.platform,
+            genre: movie.genre || fresh.genre,
+            description: movie.description || fresh.description,
+            poster_path: fresh.poster_path ?? movie.poster_path ?? null,
+            release_year: fresh.release_year ?? movie.release_year ?? null,
+            seasons_count: fresh.seasons_count,
+            episodes_count: fresh.episodes_count,
+            series_status: fresh.series_status,
+          },
+          { silent: true }
+        );
+        const newSeasons = (fresh.seasons_count ?? 0) - previousSeasons;
+        toast.success(
+          mediaType === "tv" && previousSeasons > 0 && newSeasons > 0
+            ? `Nowe sezony: +${newSeasons}`
+            : "Odświeżono dane z TMDB"
+        );
+      } catch {
+        toast.error("Nie udało się odświeżyć danych z TMDB");
+      }
+    },
+    [findMovie, updateMovie, toast]
+  );
+
+  const refresh = useCallback(async () => { await crud.refetch(); }, [crud]);
 
   return {
-    movies,
+    movies: crud.items,
     loading: crud.loading,
     fetching: crud.fetching,
-    addMovie: crud.add,
+    addMovie,
     updateMovie,
     deleteMovie,
     toggleWatched,
     updateNotes,
+    updateProgress,
+    refreshFromTmdb,
     refresh,
   };
 }

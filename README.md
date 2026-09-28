@@ -57,8 +57,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Transport miejski** — tablice odjazdów na żywo (GPS lub ulubione przystanki) + śledzenie pociągów PKP
 
 ### 🎬 Rozrywka
-- **Miejsca i mapa** — import z Google Maps, automatyczne tagowanie, filtrowanie po godzinach otwarcia
-- **Filmy i seriale** — integracja z TMDB, dostępność VOD w Polsce (Netflix, HBO Max, Disney+ i inne)
+- **Filmy i seriale** — wyszukiwanie filmów i seriali w TMDB, dostępność VOD w Polsce (Netflix, HBO Max, Disney+ i inne), liczba sezonów i status serialu, śledzenie postępu oglądania
 
 ### 🛠️ Narzędzia
 - **Udostępnianie** — współdzielenie zadań/kalendarza/list z zaufanymi użytkownikami
@@ -75,7 +74,6 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 | Język | TypeScript (strict) |
 | Backend / DB | [Supabase](https://supabase.com/) (PostgreSQL, Auth, Realtime) |
 | Drag & drop | `@dnd-kit` |
-| Mapy | `leaflet` |
 | Daty | `date-fns` |
 | PDF / kalendarz | `pdfmake`, `ical.js` |
 | QR / vCard | `qrcode.react` |
@@ -108,7 +106,6 @@ Utwórz plik `.env.local` w katalogu głównym. Zmienne oznaczone `NEXT_PUBLIC_`
 | `NEXT_PUBLIC_APP_URL` | OAuth, publiczne linki wizytówek | Bazowy URL aplikacji (np. `https://dzisiaj.fun`) |
 | `CALENDAR_TOKEN_ENCRYPTION_KEY` | Sync kalendarzy | 32-bajtowy klucz base64 do szyfrowania tokenów OAuth (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Logowanie Google, sync Google Calendar | Dane aplikacji OAuth w Google Cloud Console |
-| `GOOGLE_PLACES_API_KEY` | Import miejsc | Klucz do Google Places API |
 | `OUTLOOK_CLIENT_ID` / `OUTLOOK_CLIENT_SECRET` | Sync Outlook/Microsoft Graph | Rejestracja aplikacji w Azure AD |
 | `TMDB_API_KEY` | Filmy i seriale | Klucz do The Movie Database API |
 | `PLK_API_KEY` | Transport (pociągi) | Klucz do PKP PLK Portal Danych Pasażera |
@@ -135,7 +132,7 @@ Testy jednostkowe i komponentowe oparte o [Vitest](https://vitest.dev/) + [Testi
 
 ```
 __tests__/
-├── lib/                  # czyste funkcje: daty, CSV, tagowanie miejsc, szyfrowanie tokenów
+├── lib/                  # czyste funkcje: daty, CSV, szyfrowanie tokenów
 ├── hooks/                # np. useRetry (mechanizm ponawiania używany przez wszystkie hooki bazodanowe)
 ├── components/           # komponenty UI (m.in. CommonButtons)
 └── pages/api/            # walidatory/helpery endpointów API (allowlisty, sanityzacja, parsowanie)
@@ -166,7 +163,7 @@ npm run test
 
 ## 🗄️ Baza danych
 
-PostgreSQL przez Supabase. Główne tabele: `tasks`, `events`, `notes`, `letters`, `reports`, `reminders`, `meeting_polls` (z tabelami `meeting_poll_*` dla dat, odpowiedzi i dostępności), `day_schemas`, `bills`, `budgets`, `budget_categories`, `shopping_lists`, `recipes`, `places`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `connected_calendars`, `work_logs`, `user_trains`, `stops`, `push_subscriptions`, `notifications`, `settings`. Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych użytkowników, którym jawnie udostępniono dane).
+PostgreSQL przez Supabase. Główne tabele: `tasks`, `events`, `notes`, `letters`, `reports`, `reminders`, `meeting_polls` (z tabelami `meeting_poll_*` dla dat, odpowiedzi i dostępności), `day_schemas`, `bills`, `budgets`, `budget_categories`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `connected_calendars`, `work_logs`, `user_trains`, `stops`, `push_subscriptions`, `notifications`, `settings`. Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych użytkowników, którym jawnie udostępniono dane).
 
 ## 📱 PWA
 

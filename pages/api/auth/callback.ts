@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  const host = req.headers.host || 'localhost:3000';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  return res.redirect(`${protocol}://${host}/start?error=auth_failed`);
+  // Względne przekierowanie – nie budujemy URL-a z nagłówka Host, który
+  // kontroluje klient (host header injection / open redirect).
+  return res.redirect('/start?error=auth_failed');
 }

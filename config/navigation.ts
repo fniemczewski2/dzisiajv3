@@ -15,7 +15,6 @@ import {
   CookingPot,
   ShoppingCart,
   LucideIcon,
-  MapPin,
   Target,
   Clapperboard,
   Calculator,
@@ -68,7 +67,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
       { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
       { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },   
-      { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
+      { path: "/notes/movies", title: "Filmy i seriale", icon: Clapperboard, label: "Filmy" },
     
     ],
   },
@@ -85,7 +84,6 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     items: [
       { path: "/packing", title: "Pakowanie", icon: Backpack, label: "Pakowanie" },
       {path: "/transport", title: "Transport", icon: BusFront, label: "Transport" },
-      { path: "/notes/places", title: "Miejsca", icon: MapPin, label: "Miejsca" },
       { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
     ],
   },

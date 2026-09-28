@@ -12,6 +12,8 @@ import { useTrains } from "@/hooks/db/useTrains";
 import AddTrainForm from "@/components/transport/AddTrainWidget"; 
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
 import StationBoardWidget from "@/components/transport/StationBoard";
+import { favoriteKey } from "@/supabase/functions/_shared/stopGrouping";
+import type { StopGroup } from "@/types/transport";
 
 export default function TransportPage() {
   const { toast } = useToast();
@@ -26,8 +28,9 @@ export default function TransportPage() {
     suggestions,
     handleSuggestionClick,
     favoriteStops,
-    addFavoriteStop,
+    addNearbyToFavorites,
     removeFavoriteStop,
+    localityFor,
     loadingNearby,
     loadingFavorites,
     transportError
@@ -52,9 +55,19 @@ export default function TransportPage() {
     }
   }, [transportError, toast]);
 
-  const visibleFavorites = favoritesGroups.filter((group) => 
-    favoriteStops.some((stop) => stop.name === group.stop_name)
-  );
+  // Dopasowanie po kluczu wpisu (nazwa + położenie), nie po samej nazwie.
+  const favoriteKeys = new Set(favoriteStops.map(favoriteKey));
+  const visibleFavorites = favoritesGroups.filter((group) => favoriteKeys.has(group.key));
+
+  const renderStopTitle = (group: StopGroup) => {
+    const locality = localityFor(group);
+    return (
+      <h4 className="font-bold text-primary truncate pr-2 flex-1 min-w-0" title={locality ? `${group.stop_name}, ${locality}` : group.stop_name}>
+        {group.stop_name}
+        {locality && <span className="ml-1.5 text-xs font-medium text-textSecondary">{locality}</span>}
+      </h4>
+    );
+  };
 
   let favoritesContent;
 
@@ -70,10 +83,10 @@ export default function TransportPage() {
     favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
   } else {
     favoritesContent = visibleFavorites.map((group) => (
-      <div key={`group_${group.stop_name}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
+      <div key={`group_${group.key}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
         <div className="flex justify-between items-center mb-2 border-b pb-2">
-          <h4 className="font-bold text-primary truncate pr-2">{group.stop_name}</h4>
-          <DeleteButton onClick={() => removeFavoriteStop(group.stop_name)} small />
+          {renderStopTitle(group)}
+          <DeleteButton onClick={() => removeFavoriteStop(group.key)} small />
         </div>
         
         <div className="grid gap-3 min-w-0">
@@ -121,17 +134,13 @@ export default function TransportPage() {
     nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
   } else {
     nearbyContent = nearbyGroups.map((group) => (
-      <div key={`nearby_group_${group.stop_name}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
+      <div key={`nearby_group_${group.key}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
         <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
-          <h4 className="font-bold text-primary truncate pr-2 flex-1">{group.stop_name}</h4>
+          {renderStopTitle(group)}
           <div className="flex items-center gap-3 shrink-0">
             {group.distance && <span className="text-xs text-textSecondary whitespace-nowrap">{group.distance} m</span>}
-            <FavButton
-              onClick={() => {
-                addFavoriteStop(group.stop_name, group.zone_id || "AUTO");
-                toast.success(`Dodano do ulubionych: ${group.stop_name}`);
-              }}
-              small/>
+            {/* Toast pokazuje addFavoriteStop – wcześniej pojawiał się podwójnie. */}
+            <FavButton onClick={() => { void addNearbyToFavorites(group); }} small />
           </div>
         </div>
         

@@ -98,7 +98,12 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
       aria-labelledby={`confirm-msg-${item.id}`}
       onClose={() => answer(false)}
       onCancel={() => answer(false)}
-      className="flex flex-col gap-3 w-full max-w-sm px-4 py-4 rounded-xl border shadow-lg text-sm font-medium bg-card border-gray-200 dark:border-gray-700 backdrop:bg-black/40 open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
+      // Tailwind preflight zeruje marginesy (`* { margin: 0 }`), przez co <dialog>
+      // otwarty przez showModal() traci domyślne `margin: auto` i ląduje w lewym
+      // górnym rogu. `fixed inset-0 m-auto h-fit` przywraca wyśrodkowanie w pionie
+      // i poziomie. `open:flex` zamiast `flex`, żeby nie nadpisywać ukrywania
+      // zamkniętego dialogu (`dialog:not([open]) { display: none }`).
+      className="fixed inset-0 m-auto h-fit hidden open:flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm px-4 py-4 rounded-xl border shadow-lg text-sm font-medium bg-card border-gray-200 dark:border-gray-700 backdrop:bg-black/40 open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
     >
       <div className="flex items-start gap-3">
         <AlertTriangle aria-hidden="true" className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
@@ -193,12 +198,21 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
     [addNotification, remove]
   );
 
+  const notifications = useMemo(
+    () => toasts.filter((t): t is NotificationToast => t.kind === "notification"),
+    [toasts]
+  );
+  const confirms = useMemo(
+    () => toasts.filter((t): t is ConfirmToast => t.kind === "confirm"),
+    [toasts]
+  );
+
   const value = useMemo(() => ({
     toast: {
       success: (m: string, options?: NotificationOptions) => { addNotification(m, "success", true, options); },
       error:   (m: string) => { addNotification(m, "error"); },
       info:    (m: string, options?: NotificationOptions) => { addNotification(m, "info", true, options); },
-      loading: (m: string = "Ĺadowanie...") => addNotification(m, "loading", false),
+      loading: (m: string = "Ładowanie...") => addNotification(m, "loading", false),
       dismiss: (id: string) => remove(id),
       confirm,
       batch,
@@ -211,15 +225,17 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
       <div
         className="fixed bottom-32 left-1/2 -translate-x-1/2 z-9999 flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
       >
-        {toasts.map((item) => (
+        {notifications.map((item) => (
           <div key={item.id} className="pointer-events-auto w-full">
-            {item.kind === "confirm"
-              ? <ConfirmEl item={item} onRemove={remove} />
-              : <NotificationEl item={item} onRemove={remove} />
-            }
+            <NotificationEl item={item} onRemove={remove} />
           </div>
         ))}
       </div>
+      {/* Potwierdzenia renderujemy poza kontenerem powiadomień przyklejonym do
+          dołu ekranu – modalny <dialog> trafia do top layer i jest wyśrodkowany. */}
+      {confirms.map((item) => (
+        <ConfirmEl key={item.id} item={item} onRemove={remove} />
+      ))}
     </ToastContext.Provider>
   );
 }

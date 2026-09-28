@@ -104,9 +104,11 @@ export const FormButtons = ({ onClickSave, onClickClose, loading, disabled, smal
         small={small}
       />
     )}
+    {/* `disabled` dotyczy tylko zapisu (np. niepoprawny formularz) – zamknięcie
+        formularza musi być zawsze możliwe, blokujemy je jedynie w trakcie zapisu. */}
     <CloseButton
       onClick={onClickClose}
-      disabled={disabled}
+      loading={loading}
       small={small}
     />
   </div>

@@ -7,6 +7,7 @@ import TimeContextBadge from "../tasks/TimeContextBadge";
 import { formatTime } from "@/lib/dateUtils";
 import { PlanItemData } from "@/types/schemas";
 import { ConfirmButton, DeleteButton, actionButton } from "../ui/CommonButtons";
+import { TrainPlanItem } from "./TrainPlanItem";
 
 interface PlanItemProps {
   item: PlanItemData;
@@ -57,6 +58,7 @@ const getTimes = (e: PlanItemData["data"]) => {
 }
 
 export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }: Readonly<PlanItemProps>) => {
+  if (item.type === "train" && item.train) return <TrainPlanItem train={item.train} />;
   const quickLink = getQuickLink(item.title);
   const colors = priorityColors[item.data?.priority as 1 | 2 | 3 | 4 | 5] ?? priorityColors[3];
 

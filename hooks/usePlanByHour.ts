@@ -5,6 +5,8 @@ import type { PlanItemData, Schema, DailyOverride } from "@/types/schemas";
 import type { Event } from "@/types/events";
 import type { Task } from "@/types/tasks";
 import type { WorkLog } from "@/types/worklogs";
+import type { TrackedTrain } from "@/types/transport";
+import { planHourKey } from "@/lib/trainPlan";
 
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6);
 
@@ -33,6 +35,8 @@ interface UsePlanByHourArgs {
   events: Event[];
   workLogs: WorkLog[];
   scheduledTasks: Task[];
+  /** Bilety na ten dzień (useTrainsForDate). */
+  trains?: TrackedTrain[];
   currentDayOfWeek: number;
   isToday: boolean;
   overrides: DailyOverride[];
@@ -49,6 +53,7 @@ export function usePlanByHour({
   events,
   workLogs,
   scheduledTasks,
+  trains = [],
   currentDayOfWeek,
   isToday,
   overrides,
@@ -112,6 +117,27 @@ export function usePlanByHour({
       }
     });
 
+    trains.forEach((train) => {
+      const key = planHourKey(train);
+      if (!key) return;
+      // Plan zaczyna się o 6:00 – poranny pociąg dostaje własną godzinę,
+      // zamiast zniknąć z planu.
+      if (!map[key]) map[key] = [];
+      map[key].push({
+        id: train.id,
+        title: [train.trainName, train.trainNumber].filter(Boolean).join(" ") || "Pociąg",
+        type: "train",
+        train,
+      });
+      // W obrębie godziny pociągi po kolei wg minuty odjazdu, przed resztą pozycji.
+      map[key].sort((a, b) => {
+        if (a.type === "train" && b.type === "train") {
+          return (a.train?.departureTime ?? "").localeCompare(b.train?.departureTime ?? "");
+        }
+        return a.type === "train" ? -1 : b.type === "train" ? 1 : 0;
+      });
+    });
+
     if (isToday) {
       const currentHour = new Date().getHours();
       const filteredMap: Record<string, PlanItemData[]> = {};
@@ -121,7 +147,8 @@ export function usePlanByHour({
 
         if (hourNum < currentHour) {
           const shouldKeepPastHour = map[timeKey].some(item => {
-            if (item.type === "task" || item.type === "schema" || item.type === "worklog") return true;
+            // Pociąg zostaje w planie – może być opóźniony albo w trasie.
+            if (item.type === "task" || item.type === "schema" || item.type === "worklog" || item.type === "train") return true;
 
             if (item.type === "event" && item.data?.end_time) {
               const endH = getHourStr(item.data.end_time);
@@ -143,5 +170,5 @@ export function usePlanByHour({
     }
 
     return map;
-  }, [schemas, events, workLogs, scheduledTasks, currentDayOfWeek, isToday, overrides]);
+  }, [schemas, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides]);
 }
