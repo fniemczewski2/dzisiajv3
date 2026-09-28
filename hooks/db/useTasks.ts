@@ -9,6 +9,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import { readCache, writeCache } from "@/lib/offlineCache";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
 import { SLACK_TASK_CATEGORY } from "@/config/slack";
@@ -56,12 +57,20 @@ const getPriority = (task: Task): number => (task.status === "waiting_for_accept
 
 type TaskInput = Partial<Task> & { shared_with_email?: string };
 
+/**
+ * tasks.id to w bazie integer (Supabase zwraca liczbę), a część UI – np. plan
+ * dnia – przekazuje go jako tekst. Porównanie `===` liczby z tekstem zawodziło,
+ * więc optymistyczne aktualizacje nie trafiały w zadanie.
+ */
+const sameId = (a: unknown, b: unknown): boolean => String(a) === String(b);
+
 export function useTasks(dateFrom?: string, dateTo?: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
 
   const [rawTasks, setRawTasks] = useState<Task[]>([]);
+  const rawTasksRef = useLatestRef(rawTasks);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -209,10 +218,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      setRawTasks((prev) => {
-        rollbackRef.current = prev;
-        return prev.map((t) => (t.id === task.id ? { ...t, ...task } : t));
-      });
+      // Migawka synchronicznie – updater setState React wykonuje dopiero przy renderze,
+      // więc szybka odpowiedź (albo błąd) cofała listę do pustej/nieaktualnej migawki.
+      rollbackRef.current = rawTasksRef.current;
+      setRawTasks((prev) => prev.map((t) => (sameId(t.id, task.id) ? { ...t, ...task } : t)));
 
       try {
         const {
@@ -276,7 +285,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       );
       if (error) {
         pendingDeleteIdsRef.current.delete(String(id));
-        setRawTasks((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removed]));
+        setRawTasks((prev) => (prev.some((t) => sameId(t.id, id)) ? prev : [...prev, removed]));
         toast.error("Błąd usuwania zadania.");
         return;
       }
@@ -295,7 +304,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
       const ok = await toast.confirm("Czy chcesz usunąć zadanie?");
       if (!ok) return;
-      const removed = snapshot.find((t) => t.id === id);
+      const removed = snapshot.find((t) => sameId(t.id, id));
       if (!removed) return;
       pendingDeleteIdsRef.current.add(String(id));
       setRawTasks((prev) => prev.filter((t) => t.id !== id));
@@ -324,7 +333,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
               pendingDeleteIdsRef.current.delete(String(id));
 
               setRawTasks((prev) => {
-                if (prev.some((t) => t.id === id)) return prev;
+                if (prev.some((t) => sameId(t.id, id))) return prev;
                 return [...prev, removed];
               });
             }
@@ -336,26 +345,39 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   );
 
   const acceptTask = useCallback(
-    async (id: string) => {
+    async (id: string | number) => {
       if (!userId) {
         throw new Error("Unauthorized");
       }
+      // tasks.id to w bazie integer – Supabase zwraca liczbę, mimo że typ Task
+      // deklaruje string. Wcześniej `id.startsWith(...)` rzucało TypeError przed
+      // zapisem, a TaskItem połykał błąd – przycisk "Akceptuj" nic nie robił.
+      const cleanId = String(id).replace(/^task-/, "");
       setLoading(true);
-      const cleanId = id.startsWith("task-") ? id.replace("task-", "") : id;
-      setRawTasks((prev) => {
-        rollbackRef.current = prev;
-        return prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "pending" } : t));
-      });
+      // Migawka synchronicznie – updater setState React wykonuje dopiero przy renderze,
+      // więc szybka odpowiedź (albo błąd) cofała listę do pustej/nieaktualnej migawki.
+      rollbackRef.current = rawTasksRef.current;
+      setRawTasks((prev) => prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "pending" } : t)));
 
       try {
-        const { error } = await withRetry(async () =>
-          supabase.from("tasks").update({ status: "pending" }).eq("id", cleanId)
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from("tasks")
+            .update({ status: "pending" })
+            .eq("id", cleanId)
+            // Akceptuje odbiorca zlecenia, i tylko zadanie, które na to czeka.
+            .eq("for_user_id", userId)
+            .eq("status", "waiting_for_acceptance")
+            .select("id")
         );
         if (error) throw error;
+        // RLS i filtry nie zwracają błędu, tylko 0 zmienionych wierszy – bez tej
+        // kontroli użytkownik widziałby "Zaakceptowano", a po odświeżeniu nic.
+        if (!data || data.length === 0) throw new Error("NO_ROWS_UPDATED");
         toast.success("Zaakceptowano zadanie");
       } catch {
         setRawTasks(rollbackRef.current);
-        toast.error("Błąd akceptacji zadania.");
+        toast.error("Nie udało się zaakceptować zadania. Odśwież listę i spróbuj ponownie.");
       } finally {
         setLoading(false);
       }
@@ -369,10 +391,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      setRawTasks((prev) => {
-        rollbackRef.current = prev;
-        return prev.map((t) => (t.id === id ? { ...t, status: "done" } : t));
-      });
+      // Migawka synchronicznie – updater setState React wykonuje dopiero przy renderze,
+      // więc szybka odpowiedź (albo błąd) cofała listę do pustej/nieaktualnej migawki.
+      rollbackRef.current = rawTasksRef.current;
+      setRawTasks((prev) => prev.map((t) => (sameId(t.id, id) ? { ...t, status: "done" } : t)));
 
       try {
         const { data, error } = await withRetry(async () =>
@@ -405,10 +427,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      setRawTasks((prev) => {
-        rollbackRef.current = prev;
-        return prev.map((t) => (t.id === taskId ? { ...t, due_date: newDate } : t));
-      });
+      // Migawka synchronicznie – updater setState React wykonuje dopiero przy renderze,
+      // więc szybka odpowiedź (albo błąd) cofała listę do pustej/nieaktualnej migawki.
+      rollbackRef.current = rawTasksRef.current;
+      setRawTasks((prev) => prev.map((t) => (sameId(t.id, taskId) ? { ...t, due_date: newDate } : t)));
 
       try {
         const { data, error } = await withRetry(async () =>

@@ -377,10 +377,12 @@ function useTaskActions(props: Props) {
 
   const handleAccept = async () => {
     try {
+      // acceptTask sam pokazuje komunikat o sukcesie/błędzie i cofa zmianę.
       await acceptTask(task.id);
       onTasksChange();
-    } catch {
-      return;
+    } catch (err) {
+      // Wcześniej pusty catch ukrywał TypeError – teraz przynajmniej widać go w konsoli.
+      console.error("[TaskItem] Akceptacja zadania nie powiodła się:", err);
     }
   };
 
