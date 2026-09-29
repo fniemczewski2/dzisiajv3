@@ -53,3 +53,5 @@ next-env.d.ts
 
 # Supabase CLI – lokalny stan linkowania (ref projektu, host poolera)
 supabase/.temp/
+AUDYT.md
+supabase/migrations
