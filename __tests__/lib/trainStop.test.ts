@@ -40,8 +40,15 @@ describe("currentTrainStop", () => {
     expect(stop.planned!.getDate()).toBe(30);
   });
 
-  it("bez godziny przyjazdu zostaje przy stacji wyjazdu", () => {
+  it("po odjeździe bez godziny przyjazdu pokazuje przyjazd z pustą godziną, a nie odjazd", () => {
     const stop = currentTrainStop(train, { departurePlatform: "4" }, at("15:00"));
+    expect(stop.phase).toBe("arrival");
+    expect(stop.planned).toBeNull();
+    expect(stop.expected).toBeNull();
+  });
+
+  it("bez żadnych danych z serwera zostaje przy stacji wyjazdu", () => {
+    const stop = currentTrainStop(train, {}, at("15:00"));
     expect(stop.phase).toBe("departure");
   });
 

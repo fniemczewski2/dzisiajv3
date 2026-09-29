@@ -305,9 +305,11 @@ export function useTrainStatus(train: {
             departurePlatform: result.departurePlatform ?? result.platform,
             departureDelay: result.departureDelay ?? (result.status === 'W trasie' ? 0 : result.delay),
             actualDeparture: result.actualDeparture,
+            departed: result.departed ?? result.status === 'W trasie',
             arrivalPlatform: result.arrivalPlatform,
             arrivalDelay: result.arrivalDelay ?? (result.status === 'W trasie' ? result.delay : 0),
             plannedArrival: result.plannedArrival,
+            actualArrival: result.actualArrival,
             arrivalStation: result.arrivalStation,
           },
         });

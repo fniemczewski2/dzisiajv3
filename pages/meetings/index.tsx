@@ -27,26 +27,34 @@ export default function MeetingsPage() {
         canonical="https://dzisiaj.fun/meetings"
         keywords="ustalanie terminu, ankieta dostępności, spotkanie zespołu, planowanie spotkań"
       />
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="page-title">Terminy</h1>
-        {!showForm && <AddButton onClick={() => setShowForm(true)} />}
-      </div>
+      <div className="mx-auto w-full max-w-3xl">
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="page-title">Terminy</h1>
+          </div>
+          {!showForm && <AddButton onClick={() => setShowForm(true)} />}
+        </header>
 
-      {showForm && (
-        <section className="mb-6">
-          <MeetingPollForm
-            onCancel={() => setShowForm(false)}
-            onChange={() => {
-              setShowForm(false);
-              triggerRefresh();
-            }}
-          />
+        {showForm && (
+          <section className="mb-8" aria-label="Nowa ankieta">
+            <MeetingPollForm
+              onCancel={() => setShowForm(false)}
+              onChange={() => {
+                setShowForm(false);
+                triggerRefresh();
+              }}
+            />
+          </section>
+        )}
+
+        <section aria-label="Lista ankiet">
+          {fetching ? (
+            <SkeletonList count={3} variant="card" />
+          ) : (
+            <MeetingPollList refreshToken={refreshToken} onCreate={() => setShowForm(true)} />
+          )}
         </section>
-      )}
-
-      <section>
-        {fetching ? <SkeletonList count={3} variant="card" /> : <MeetingPollList refreshToken={refreshToken} />}
-      </section>
+      </div>
     </>
   );
 }

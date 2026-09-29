@@ -40,17 +40,19 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
     refreshMs: relevant ? STATUS_REFRESH_MS : 0,
   });
 
-  const planned = stop.planned ?? plannedDeparture(train);
+  const isArrival = stop.phase === "arrival";
+  // Po odjeździe nie wracamy do godziny odjazdu: gdy brak danych o przyjeździe, pokazujemy „—”.
+  const planned = isArrival ? stop.planned : stop.planned ?? plannedDeparture(train);
   const statusLower = status.toLowerCase();
   const cancelled = statusLower.includes("odwołany");
   const inTransit = statusLower.includes("w trasie");
   const rateLimited = status === "Zbyt wiele zapytań";
   const arrived = hide;
   const delayed = !cancelled && delay > 0;
-  const expected = stop.expected ?? expectedDeparture(train, delay);
+  const expected = isArrival ? stop.expected : stop.expected ?? expectedDeparture(train, delay);
   const platformValue = cleanValue(platform);
   const title = train.trainName ? train.trainName : train.trainNumber || "Pociąg";
-  const timeLabel = stop.phase === "arrival" ? `Przyjazd do: ${stop.station}` : `Odjazd z: ${stop.station}`;
+  const timeLabel = isArrival ? `Przyjazd do: ${stop.station}` : `Odjazd z: ${stop.station}`;
 
   let badge: { text: string; cls: string };
   if (cancelled) badge = { text: "Odwołany", cls: "bg-red-600 text-white" };
@@ -94,7 +96,7 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
                 formatHm(planned)
               )
             ) : (
-              train.departureTime || "—"
+              (!isArrival && train.departureTime) || "—"
             )}
           </span>
         </div>

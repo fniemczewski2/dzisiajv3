@@ -67,8 +67,14 @@ export interface TrainStatusResponse {
   arrivalPlatform?: string;
   arrivalDelay?: number;
   plannedArrival?: string;
+  /** Przewidywany przyjazd (ISO) z danych na żywo. */
+  actualArrival?: string;
+  /** Serwer ustalił, że pociąg opuścił już stację wyjazdu. */
+  departed?: boolean;
   /** Nazwa stacji, której dotyczą dane przyjazdu. */
   arrivalStation?: string;
+  /** Tylko z ?debug=1: skąd pochodzą dane (do diagnozy dopasowania stacji). */
+  debug?: Record<string, unknown>;
 }
 
 export interface StationBoardItem {

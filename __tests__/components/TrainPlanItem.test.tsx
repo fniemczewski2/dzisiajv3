@@ -72,3 +72,22 @@ describe("TrainPlanItem", () => {
     expect(await screen.findByText("Odwołany")).toBeInTheDocument();
   });
 });
+
+describe("TrainPlanItem: brak danych o przyjeździe", () => {
+  it("po odjeździe nie pokazuje godziny odjazdu jako przyjazdu", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          delay: 0, platform: "3", status: "W trasie", estimatedArrival: "", hide: false,
+          departurePlatform: "3", departureDelay: 0, departed: true, arrivalStation: "Warszawa Centralna",
+        }),
+        { status: 200 }
+      )
+    );
+    const train = makeTrain(soon(-20));
+    render(<TrainPlanItem train={train} />);
+
+    expect(await screen.findByText("Przyjazd do: Warszawa Centralna")).toBeInTheDocument();
+    expect(screen.queryByText(train.departureTime)).not.toBeInTheDocument();
+  });
+});

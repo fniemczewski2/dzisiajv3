@@ -1,10 +1,11 @@
 // components/meetingPolls/MeetingPollForm.tsx
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { CalendarPlus, CalendarRange, X } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { FormButtons } from "../ui/CommonButtons";
-import { X } from "lucide-react";
 import { getAppDate } from "@/lib/dateUtils";
+import { formatPollDay, generateTimeSlots, nextWorkingDays, pluralPl } from "@/lib/meetingPollGrid";
 import { MEETING_POLL_SLOT_DURATIONS, type MeetingPollSlotDuration } from "@/types/meetingPolls";
 
 interface MeetingPollFormProps {
@@ -17,6 +18,12 @@ const DURATION_LABELS: Record<MeetingPollSlotDuration, string> = {
   30: "30 minut",
   60: "1 godzina",
 };
+
+const QUICK_WORKING_DAYS = 5;
+
+function mergeDates(current: string[], added: string[]): string[] {
+  return [...new Set([...current, ...added])].sort();
+}
 
 export default function MeetingPollForm({ onChange, onCancel }: Readonly<MeetingPollFormProps>) {
   const { createPoll, loading } = useMeetingPolls();
@@ -31,20 +38,23 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
   const [dateToAdd, setDateToAdd] = useState(today);
 
   const addDate = () => {
-    if (!dateToAdd) return;
-    setDates((prev) => 
-      prev.includes(dateToAdd) 
-        ? prev 
-        : [...prev, dateToAdd].sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-    );
+    if (dateToAdd) setDates((prev) => mergeDates(prev, [dateToAdd]));
   };
 
-  const removeDate = (date: string) => {
-    setDates((prev) => prev.filter((d) => d !== date));
-  };
+  const addWorkingDays = () => setDates((prev) => mergeDates(prev, nextWorkingDays(today, QUICK_WORKING_DAYS)));
+
+  const removeDate = (date: string) => setDates((prev) => prev.filter((d) => d !== date));
+
+  const timesValid = timeEnd > timeStart;
+  const canSave = title.trim().length > 0 && dates.length > 0 && timesValid;
+
+  const slotsPerDay = useMemo(
+    () => (timesValid ? generateTimeSlots(timeStart, timeEnd, slotDuration).length : 0),
+    [timesValid, timeStart, timeEnd, slotDuration]
+  );
 
   const handleSave = async () => {
-    if (!title.trim() || dates.length === 0 || timeEnd <= timeStart) return;
+    if (!canSave) return;
     const created = await createPoll({
       title: title.trim(),
       description: description.trim() || null,
@@ -56,110 +66,159 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
     if (created) onChange();
   };
 
-  const canSave = title.trim().length > 0 && dates.length > 0 && timeEnd > timeStart;
-
   return (
-    <div className="form-card space-y-4">
+    <div className="form-card max-w-2xl space-y-5">
       <div>
-        <label htmlFor="mp-title" className="form-label">Nazwa spotkania:</label>
-        <input
-          id="mp-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="np. Spotkanie zespołu projektowego"
-          className="input-field"
-        />
+        <h2 className="font-display text-lg font-bold text-text">Nowa ankieta terminu</h2>
+        <p className="text-sm text-text-secondary">
+          Wybierz dni i godziny, wyślij link uczestnikom, a odpowiedzi zobaczysz na jednej siatce.
+        </p>
       </div>
 
-      <div>
-        <label htmlFor="mp-description" className="form-label">Opis (opcjonalnie):</label>
-        <textarea
-          id="mp-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="input-field"
-          rows={2}
-        />
-      </div>
-
-      <div>
-        <span className="form-label">Kandydackie dni:</span>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {dates.map((d) => (
-            <span
-              key={d}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950 text-primary border border-primary text-xs font-semibold"
-            >
-              {d}
-              <button
-                type="button"
-                onClick={() => removeDate(d)}
-                aria-label={`Usuń dzień ${d}`}
-                className="hover:text-red-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </span>
-          ))}
-          {dates.length === 0 && <p className="text-sm text-text-muted italic">Nie dodano jeszcze żadnego dnia.</p>}
+      <div className="space-y-3">
+        <div>
+          <label htmlFor="mp-title" className="form-label">Nazwa spotkania:</label>
+          <input
+            id="mp-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="np. Spotkanie zespołu projektowego"
+            className="input-field"
+          />
         </div>
-        <div className="flex items-center gap-2">
+
+        <div>
+          <label htmlFor="mp-description" className="form-label">Opis (opcjonalnie):</label>
+          <textarea
+            id="mp-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input-field"
+            rows={2}
+            placeholder="Kilka słów dla uczestników"
+          />
+        </div>
+      </div>
+
+      <fieldset className="space-y-3 rounded-xl border border-line p-4">
+        <legend className="px-1 text-sm font-semibold text-text">Kandydackie dni</legend>
+
+        {dates.length === 0 ? (
+          <p className="text-sm text-text-muted">Nie dodano jeszcze żadnego dnia.</p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {dates.map((d) => {
+              const { weekday, day } = formatPollDay(d);
+              return (
+                <li
+                  key={d}
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 py-1 pl-3 pr-1 text-sm font-semibold tabular-nums text-text"
+                >
+                  {weekday} {day}
+                  <button
+                    type="button"
+                    onClick={() => removeDate(d)}
+                    aria-label={`Usuń dzień ${weekday} ${day}`}
+                    className="rounded-full p-1 text-text-muted transition-colors hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/40 dark:hover:text-red-300"
+                  >
+                    <X aria-hidden="true" className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="date"
             aria-label="Dzień do dodania"
+            min={today}
             value={dateToAdd}
             onChange={(e) => setDateToAdd(e.target.value)}
-            className="input-field flex-1"
+            className="input-field w-auto min-w-40 flex-1"
           />
           <button
             type="button"
             onClick={addDate}
-            className="px-3 py-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-sm font-semibold transition-colors shrink-0"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line-strong bg-card px-3 py-2 text-sm font-semibold text-text transition-colors hover:bg-surface"
           >
+            <CalendarPlus aria-hidden="true" className="h-4 w-4" />
             Dodaj dzień
           </button>
+          <button
+            type="button"
+            onClick={addWorkingDays}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+          >
+            <CalendarRange aria-hidden="true" className="h-4 w-4" />
+            Najbliższe {QUICK_WORKING_DAYS} dni robocze
+          </button>
         </div>
-      </div>
+      </fieldset>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="mp-time-start" className="form-label">Od godziny:</label>
-          <input
-            id="mp-time-start"
-            type="time"
-            value={timeStart}
-            onChange={(e) => setTimeStart(e.target.value)}
-            className="input-field"
-          />
+      <fieldset className="space-y-3 rounded-xl border border-line p-4">
+        <legend className="px-1 text-sm font-semibold text-text">Godziny i długość slotu</legend>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="mp-time-start" className="form-label">Od godziny:</label>
+            <input
+              id="mp-time-start"
+              type="time"
+              value={timeStart}
+              onChange={(e) => setTimeStart(e.target.value)}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label htmlFor="mp-time-end" className="form-label">Do godziny:</label>
+            <input
+              id="mp-time-end"
+              type="time"
+              value={timeEnd}
+              onChange={(e) => setTimeEnd(e.target.value)}
+              aria-invalid={!timesValid}
+              aria-describedby={timesValid ? undefined : "mp-time-error"}
+              className="input-field"
+            />
+          </div>
         </div>
+        {!timesValid && (
+          <p id="mp-time-error" role="alert" className="text-xs text-red-700 dark:text-red-300">
+            Godzina końcowa musi być późniejsza niż początkowa.
+          </p>
+        )}
+
         <div>
-          <label htmlFor="mp-time-end" className="form-label">Do godziny:</label>
-          <input
-            id="mp-time-end"
-            type="time"
-            value={timeEnd}
-            onChange={(e) => setTimeEnd(e.target.value)}
-            className="input-field"
-          />
+          <span id="mp-duration-label" className="form-label">Długość pojedynczego slotu:</span>
+          <div role="radiogroup" aria-labelledby="mp-duration-label" className="grid grid-cols-3 gap-2">
+            {MEETING_POLL_SLOT_DURATIONS.map((d) => (
+              <label
+                key={d}
+                className="flex min-h-10 cursor-pointer items-center justify-center rounded-lg border border-line-strong bg-card px-2 py-2 text-sm font-semibold text-text transition-colors hover:bg-surface has-checked:border-transparent has-checked:bg-secondary has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary"
+              >
+                <input
+                  type="radio"
+                  name="mp-duration"
+                  value={d}
+                  checked={slotDuration === d}
+                  onChange={() => setSlotDuration(d)}
+                  className="sr-only"
+                />
+                {DURATION_LABELS[d]}
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
-      {timeEnd <= timeStart && (
-        <p className="text-xs text-red-600 dark:text-red-400">Godzina końcowa musi być późniejsza niż początkowa.</p>
+      </fieldset>
+
+      {canSave && (
+        <p className="rounded-lg bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
+          Uczestnicy zobaczą {dates.length} {pluralPl(dates.length, "dzień", "dni", "dni")} × {slotsPerDay}{" "}
+          {pluralPl(slotsPerDay, "slot", "sloty", "slotów")} dziennie.
+        </p>
       )}
-
-      <div>
-        <label htmlFor="mp-duration" className="form-label">Długość pojedynczego slotu:</label>
-        <select
-          id="mp-duration"
-          value={slotDuration}
-          onChange={(e) => setSlotDuration(Number(e.target.value) as MeetingPollSlotDuration)}
-          className="input-field"
-        >
-          {MEETING_POLL_SLOT_DURATIONS.map((d) => (
-            <option key={d} value={d}>{DURATION_LABELS[d]}</option>
-          ))}
-        </select>
-      </div>
 
       <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} disabled={!canSave} />
     </div>

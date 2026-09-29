@@ -23,13 +23,15 @@ export default function MeetingPollResultsPage() {
         description="Wyniki ankiety dostępności zespołu — widoczne wyłącznie dla organizatora."
         canonical="https://dzisiaj.fun/meetings"
       />
-      <Link
-        href="/meetings"
-        className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text mb-4 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Wróć do listy ankiet
-      </Link>
-      <MeetingPollResults pollId={id} />
+      <div className="mx-auto w-full max-w-5xl">
+        <Link
+          href="/meetings"
+          className="mb-4 inline-flex min-h-10 items-center gap-1.5 rounded-lg pr-3 text-sm font-medium text-text-secondary transition-colors hover:text-text"
+        >
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Wróć do listy ankiet
+        </Link>
+        <MeetingPollResults pollId={id} />
+      </div>
     </>
   );
 }

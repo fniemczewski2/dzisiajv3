@@ -1,6 +1,6 @@
 {
   "name": "dzisiaj.fun",
-  "version": "1.37.7",
+  "version": "1.38.4",
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -373,7 +373,10 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-purple-500',
     listItems: [
       <>
-        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu - aplikacja zbuduje z tego siatkę dostępności.
+        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu - aplikacja zbuduje z tego siatkę dostępności. Przycisk <em>Najbliższe 5 dni robocze</em> dodaje dni jednym kliknięciem.
+      </>,
+      <>
+        <K>Lista ankiet.</K> Ankiety są podzielone na otwarte i zamknięte, a przy każdej widać liczbę odpowiedzi, liczbę dni i termin zamknięcia. Zamkniętą ankietę możesz otworzyć ponownie.
       </>,
       <>
         <K>Publiczny link.</K> Każda ankieta ma link <em>/meet/…</em>, który możesz wysłać uczestnikom - odpowiadają bez zakładania konta, podając tylko imię (e-mail opcjonalnie).
@@ -386,6 +389,12 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Kto wypełnił ankietę.</K> Pod siatką znajdziesz listę uczestników z adresem e-mail, godziną wypełnienia i łączną liczbą godzin dostępności. Adresy wszystkich uczestników skopiujesz jednym kliknięciem.
+      </>,
+      <>
+        <K>Dostępność jednej osoby.</K> Nad siatką wybierz uczestnika (albo kliknij <em>Zobacz dostępność</em> na liście uczestników) - siatka pokaże wyłącznie terminy, które ta osoba zaznaczyła, a nad nią zobaczysz jej łączną dostępność i przedziały godzin w każdym dniu. Przycisk <em>Wszyscy</em> albo <em>Pokaż wszystkich</em> wraca do widoku całego zespołu.
+      </>,
+      <>
+        <K>Najlepsze terminy.</K> Gdy są już odpowiedzi, aplikacja podpowiada najdłuższe przedziały, w których dostępnych jest najwięcej osób. Kliknij propozycję, aby od razu ją wybrać.
       </>,
       <>
         <K>Kto jest wolny w danym terminie.</K> Kliknij pole siatki - pod nią pojawi się imienna lista osób dostępnych i niedostępnych w wybranym przedziale.

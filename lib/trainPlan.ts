@@ -63,15 +63,67 @@ export function cleanValue(v: string | null | undefined): string | null {
   return !t || t === "-" || t === "..." ? null : t;
 }
 
+const WARSAW_TZ = "Europe/Warsaw";
+const WARSAW_PARTS = new Intl.DateTimeFormat("en-GB", {
+  timeZone: WARSAW_TZ,
+  hourCycle: "h23",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+/** Przesunięcie strefy Europe/Warsaw względem UTC w danym momencie (ms), z uwzględnieniem czasu letniego. */
+function warsawOffsetMs(instant: number): number {
+  const parts = WARSAW_PARTS.formatToParts(new Date(instant));
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  const wallAsUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  return wallAsUtc - Math.floor(instant / 1000) * 1000;
+}
+
+const HAS_OFFSET = /(?:[zZ]|[+-]\d{2}:?\d{2})$/;
+const LOCAL_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?$/;
+
+/**
+ * Czas z API PKP PLK jako prawdziwy moment. Znacznik z przesunięciem (Z, +02:00)
+ * czytamy dosłownie, a bez przesunięcia traktujemy jako czas ścienny w Polsce –
+ * niezależnie od strefy serwera czy telefonu.
+ */
+export function parsePlkTime(value: string | null | undefined): Date | null {
+  const v = (value ?? "").trim();
+  if (!v) return null;
+
+  if (/[T ]\d{2}:\d{2}/.test(v) && HAS_OFFSET.test(v)) {
+    const d = new Date(v.replace(" ", "T"));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const m = LOCAL_DATE_TIME.exec(v);
+  if (!m) {
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const wall = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] ?? 0));
+  const firstGuess = wall - warsawOffsetMs(wall);
+  return new Date(wall - warsawOffsetMs(firstGuess));
+}
+
 export type TrainStopPhase = "departure" | "arrival";
 
 export interface TrainLiveDetails {
   departurePlatform?: string;
   departureDelay?: number;
   actualDeparture?: string;
+  /** Serwer ustalił, że pociąg opuścił już stację wyjazdu. */
+  departed?: boolean;
   arrivalPlatform?: string;
   arrivalDelay?: number;
+  /** Planowy przyjazd „HH:MM” z rozkładu (gdy rozkład zawiera całą trasę). */
   plannedArrival?: string;
+  /** Przewidywany przyjazd (ISO) z danych na żywo. */
+  actualArrival?: string;
   arrivalStation?: string;
 }
 
@@ -98,16 +150,31 @@ export function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefine
 
 /** Faktyczny odjazd ze stacji wyjazdu: z danych na żywo, a bez nich planowy + opóźnienie. */
 export function actualDepartureTime(t: TrainTimeInput, live: TrainLiveDetails): Date | null {
-  if (live.actualDeparture) {
-    const actual = new Date(live.actualDeparture);
-    if (!Number.isNaN(actual.getTime())) return actual;
-  }
-  return expectedDeparture(t, live.departureDelay ?? 0);
+  return parsePlkTime(live.actualDeparture) ?? expectedDeparture(t, live.departureDelay ?? 0);
+}
+
+/**
+ * Planowy i przewidywany przyjazd. Rozkład bywa niepełny (tylko stacja wyjazdu),
+ * więc gdy brakuje planowej godziny, wyliczamy ją z przewidywanego przyjazdu
+ * odejmując opóźnienie.
+ */
+export function arrivalTimes(
+  t: TrainTimeInput,
+  live: TrainLiveDetails
+): { planned: Date | null; expected: Date | null } {
+  const delay = Math.max(0, live.arrivalDelay ?? 0);
+  const actual = parsePlkTime(live.actualArrival);
+  const scheduled = plannedArrival(t, live.plannedArrival);
+  const planned = scheduled ?? (actual ? new Date(actual.getTime() - delay * 60_000) : null);
+  const expected = actual ?? (planned ? new Date(planned.getTime() + delay * 60_000) : null);
+  return { planned, expected };
 }
 
 /**
  * Stacja, której dane pokazujemy w planie dnia: do faktycznego odjazdu
  * (z opóźnieniem) – stacja wyjazdu, potem – stacja przyjazdu.
+ * Po odjeździe zawsze pokazujemy przyjazd; gdy brakuje godziny, zostaje pusta
+ * (widok pokaże „—”), a nie godzina odjazdu opisana jako przyjazd.
  */
 export function currentTrainStop(
   t: TrainTimeInput & { from?: string; to?: string },
@@ -115,17 +182,18 @@ export function currentTrainStop(
   now: Date = new Date()
 ): TrainStop {
   const departedAt = actualDepartureTime(t, live);
-  const arrivalPlanned = plannedArrival(t, live.plannedArrival);
-  const departed = departedAt !== null && now.getTime() >= departedAt.getTime();
+  const hasLiveData = Object.keys(live).length > 0;
+  const departedByTime = departedAt !== null && now.getTime() >= departedAt.getTime();
+  const departed = hasLiveData && (live.departed === true || departedByTime);
 
-  if (departed && arrivalPlanned) {
-    const delay = Math.max(0, live.arrivalDelay ?? 0);
+  if (departed) {
+    const { planned, expected } = arrivalTimes(t, live);
     return {
       phase: "arrival",
       station: live.arrivalStation || t.to || "",
-      planned: arrivalPlanned,
-      expected: new Date(arrivalPlanned.getTime() + delay * 60_000),
-      delay,
+      planned,
+      expected,
+      delay: Math.max(0, live.arrivalDelay ?? 0),
       platform: cleanValue(live.arrivalPlatform),
     };
   }

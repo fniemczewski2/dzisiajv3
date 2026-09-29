@@ -1,6 +1,5 @@
 // pages/api/transport/train-status.ts
 
-import { getAppDateTime } from '@/lib/dateUtils';
 import { createServerSupabase } from '@/lib/supabase/server';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type {
@@ -16,6 +15,8 @@ import type {
 } from '@/types/pkpplk';
 import { OPERATIONS_TTL_MS, STATIONS_TTL_MS } from '@/config/limits';
 import { resolveRouteStations } from '@/lib/trainRoute';
+import { buildStationDetails } from '@/lib/trainStatusDetails';
+import { parsePlkTime } from '@/lib/trainPlan';
 
 type ApiError = { error: string };
 
@@ -135,10 +136,10 @@ function isTrainCancelled(
   );
 }
 
-function isEventAlreadyOver(opStationTo: OperationStation | undefined, nowPl: Date): boolean {
+function isEventAlreadyOver(opStationTo: OperationStation | undefined, now: Date): boolean {
   if (!opStationTo) return false;
-  const toActualTime = opStationTo.actualArrival || opStationTo.actualDeparture;
-  return !!toActualTime && nowPl.getTime() > new Date(toActualTime).getTime();
+  const toActualTime = parsePlkTime(opStationTo.actualArrival || opStationTo.actualDeparture);
+  return !!toActualTime && now.getTime() > toActualTime.getTime();
 }
 
 function computeDelayMinutes(
@@ -148,36 +149,6 @@ function computeDelayMinutes(
 ): number {
   if (hasDepartedFrom) return opStationTo?.arrivalDelayMinutes ?? 0;
   return opStationFrom?.departureDelayMinutes ?? opStationFrom?.arrivalDelayMinutes ?? 0;
-}
-
-// The "is there live operations data for this train" branch of the status
-// computation — pulled out of handler, which was deeply nested (schedules
-// lookup -> operations lookup -> cancelled/arrived/departed checks) all in
-// one function body.
-function hhmm(value: string | undefined): string {
-  const m = /^(\d{1,2}):(\d{2})/.exec(value ?? "");
-  return m ? `${m[1].padStart(2, "0")}:${m[2]}` : "";
-}
-
-type StationDetails = Pick<
-  TrainStatusResponse,
-  "departurePlatform" | "departureDelay" | "actualDeparture" | "arrivalPlatform" | "arrivalDelay" | "plannedArrival" | "arrivalStation"
->;
-
-function stationDetails(
-  plannedFrom: RouteStation | undefined,
-  plannedTo: RouteStation | undefined,
-  opFrom?: OperationStation,
-  opTo?: OperationStation
-): StationDetails {
-  return {
-    departurePlatform: opFrom?.departurePlatform || plannedFrom?.departurePlatform || "",
-    departureDelay: opFrom?.departureDelayMinutes ?? opFrom?.arrivalDelayMinutes ?? 0,
-    actualDeparture: opFrom?.actualDeparture || "",
-    arrivalPlatform: opTo?.arrivalPlatform || plannedTo?.arrivalPlatform || "",
-    arrivalDelay: opTo?.arrivalDelayMinutes ?? 0,
-    plannedArrival: hhmm(plannedTo?.arrivalTime || plannedTo?.departureTime),
-  };
 }
 
 // The "is there live operations data for this train" branch of the status
@@ -213,7 +184,8 @@ function resolveDestination(
 async function computeStatus(
   plannedRoute: Route,
   query: StationQuery,
-  headers: Record<string, string>
+  headers: Record<string, string>,
+  debug = false
 ): Promise<TrainStatusResponse> {
   const { fromStationId } = query;
   const plannedFrom = findRouteStation(plannedRoute, fromStationId);
@@ -224,35 +196,53 @@ async function computeStatus(
   const plannedTo = findRouteStation(plannedRoute, toStationId);
   const arrivalStation = operationsData?.stations?.[toStationId] ?? query.nameOf(toStationId) ?? '';
 
+  const opStationFrom = trainData?.stations?.find((s) => s.stationId === fromStationId);
+  const opStationTo = trainData?.stations?.find((s) => s.stationId === toStationId);
+  const now = new Date();
+  const departureMoment = parsePlkTime(opStationFrom?.actualDeparture);
+  const hasDepartedFrom = !!departureMoment && now.getTime() > departureMoment.getTime();
+
+  const details = buildStationDetails({
+    plannedFrom, plannedTo, opFrom: opStationFrom, opTo: opStationTo, arrivalStation, departed: hasDepartedFrom,
+  });
+  const withDebug = (response: TrainStatusResponse): TrainStatusResponse =>
+    debug
+      ? {
+          ...response,
+          debug: {
+            from: { id: fromStationId, name: query.nameOf(fromStationId), searched: query.fromSearch },
+            to: { id: toStationId, name: arrivalStation, searched: query.toSearch },
+            scheduleStations: plannedRoute.stations?.length ?? 0,
+            scheduleHasDestination: !!plannedTo,
+            operationsTrainFound: !!trainData,
+            operationsStations: trainData?.stations?.length ?? 0,
+            operationsRoute: (trainData?.stations ?? []).map((st) => operationsData?.stations?.[st.stationId] ?? st.stationId),
+            rawFrom: opStationFrom ?? null,
+            rawTo: opStationTo ?? null,
+            serverNow: now.toISOString(),
+          },
+        }
+      : response;
+
   if (!operationsData || !trainData) {
-    return {
-      delay: 0, platform: platform || '-', status: 'Nie zaczął', estimatedArrival: '', hide: false,
-      ...stationDetails(plannedFrom, plannedTo), arrivalStation,
-    };
+    return withDebug({ delay: 0, platform: platform || '-', status: 'Nie zaczął', estimatedArrival: '', hide: false, ...details });
   }
 
-  const opStationFrom = trainData.stations?.find((s) => s.stationId === fromStationId);
-  const opStationTo = trainData.stations?.find((s) => s.stationId === toStationId);
-  const details = { ...stationDetails(plannedFrom, plannedTo, opStationFrom, opStationTo), arrivalStation };
-  const nowPl = getAppDateTime();
-  const hasDepartedFrom =
-    !!opStationFrom?.actualDeparture &&
-    nowPl.getTime() > new Date(opStationFrom.actualDeparture).getTime();
   const delay = computeDelayMinutes(hasDepartedFrom, opStationFrom, opStationTo);
 
   if (isTrainCancelled(operationsData, trainData, opStationFrom, opStationTo)) {
-    return { delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false, ...details };
+    return withDebug({ delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false, ...details });
   }
 
-  if (isEventAlreadyOver(opStationTo, nowPl)) {
-    return { delay: 0, platform: '-', status: '', estimatedArrival: '', hide: true, ...details };
+  if (isEventAlreadyOver(opStationTo, now)) {
+    return withDebug({ delay: 0, platform: '-', status: '', estimatedArrival: '', hide: true, ...details });
   }
 
   if (hasDepartedFrom) {
-    return { delay, platform, status: 'W trasie', estimatedArrival: opStationTo?.actualArrival || '', hide: false, ...details };
+    return withDebug({ delay, platform, status: 'W trasie', estimatedArrival: opStationTo?.actualArrival || '', hide: false, ...details });
   }
 
-  return { delay, platform: platform || '-', status: delay > 0 ? 'Opóźniony' : 'Nie zaczął', estimatedArrival: '', hide: false, ...details };
+  return withDebug({ delay, platform: platform || '-', status: delay > 0 ? 'Opóźniony' : 'Nie zaczął', estimatedArrival: '', hide: false, ...details });
 }
 
 export default async function handler(
@@ -345,7 +335,8 @@ export default async function handler(
     const status = await computeStatus(
       plannedRoute,
       { fromStationId, toStationId, fromSearch, toSearch, nameOf: (id) => namesById.get(id) },
-      headers
+      headers,
+      req.query.debug === '1'
     );
     return res.status(200).json(status);
   } catch (error) {

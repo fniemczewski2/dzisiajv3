@@ -125,8 +125,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: CalendarClock,
         path: "/meetings",
         guideId: "meetings",
-        status: "nowe",
-        since: "1.36.0",
+        status: "zmienione",
+        note: "Podgląd dostępności jednej osoby, podpowiedzi najlepszych terminów i przebudowana lista ankiet.",
       },
       {
         title: "Sprawozdania",
