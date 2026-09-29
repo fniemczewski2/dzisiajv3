@@ -130,10 +130,10 @@ export default function MovieWatchlist({
             onClick={() => setTypeFilter(t.value)}
             className={`px-3.5 py-1.5 rounded-full text-sm font-bold border whitespace-nowrap transition-colors ${
               typeFilter === t.value
-                ? "bg-primary text-white border-primary"
-                : "bg-surface text-textSecondary border-gray-200 dark:border-gray-700 hover:text-text"
+                ? "bg-secondary text-white border-primary"
+                : "bg-surface text-text-secondary border-gray-200 dark:border-gray-700 hover:text-text"
             }`}>
-            {t.label} <span className={typeFilter === t.value ? "opacity-80" : "text-textMuted"}>{t.count}</span>
+            {t.label} <span className={typeFilter === t.value ? "opacity-80" : "text-text-muted"}>{t.count}</span>
           </button>
         ))}
       </div>
@@ -150,7 +150,7 @@ export default function MovieWatchlist({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredMovies.length === 0 ? (
           <div className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
-            {isFiltering && <Search className="w-12 h-12 mx-auto mb-4 text-textMuted opacity-50" />}
+            {isFiltering && <Search className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />}
             <NoResultsState text={emptyText} isSearch={isFiltering} />
           </div>
         ) : (

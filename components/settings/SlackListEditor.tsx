@@ -59,14 +59,14 @@ export default function SlackListEditor({
         type="button"
         onClick={handleToggle}
         aria-expanded={expanded}
-        className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
+        className="text-xs font-bold text-primary hover:text-primary-strong transition-colors"
       >
         {expanded ? "Ukryj mapowanie" : "Mapowanie kolumn"}
       </button>
 
       {expanded && (
         <div className="mt-2 space-y-2 rounded-lg bg-surface p-3">
-          {columns === undefined && <p className="text-xs text-textMuted">Wczytuję kolumny…</p>}
+          {columns === undefined && <p className="text-xs text-text-muted">Wczytuję kolumny…</p>}
           {columns?.length === 0 && (
             <p className="text-xs text-red-600 dark:text-red-400">
               Nie udało się odczytać kolumn tej listy.
@@ -79,7 +79,7 @@ export default function SlackListEditor({
                 <div key={field} className="flex items-center gap-2">
                   <label
                     htmlFor={`col-${list.id}-${field}`}
-                    className="w-24 shrink-0 text-xs text-textSecondary"
+                    className="w-24 shrink-0 text-xs text-text-secondary"
                   >
                     {SLACK_FIELD_LABELS[field]}
                     {field === "title" && <span className="text-primary"> *</span>}
@@ -102,7 +102,7 @@ export default function SlackListEditor({
                 </div>
               ))}
 
-              <label className="flex items-center gap-2 text-xs text-textSecondary">
+              <label className="flex items-center gap-2 text-xs text-text-secondary">
                 <input
                   type="checkbox"
                   checked={isDefault}
@@ -112,7 +112,7 @@ export default function SlackListEditor({
                 Nowe zadania z aplikacji trafiają na tę listę
               </label>
 
-              <label className="flex items-start gap-2 text-xs text-textSecondary">
+              <label className="flex items-start gap-2 text-xs text-text-secondary">
                 <input
                   type="checkbox"
                   checked={syncEnabled}
@@ -121,7 +121,7 @@ export default function SlackListEditor({
                 />
                 <span>
                   Pobieraj zadania z tej listy{" "}
-                  <span className="block text-textMuted">
+                  <span className="block text-text-muted">
                     Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
                   </span>
                 </span>
@@ -131,7 +131,7 @@ export default function SlackListEditor({
                 <div>
                   <label
                     htmlFor={`slack-emails-${list.id}`}
-                    className="block text-xs text-textSecondary"
+                    className="block text-xs text-text-secondary"
                   >
                     Pobieraj tylko zadania przypisane do (adresy e-mail):
                   </label>
@@ -143,7 +143,7 @@ export default function SlackListEditor({
                     placeholder="jan@firma.pl, anna@firma.pl"
                     className="input-field w-full text-sm mt-1"
                   />
-                  <span className="block text-xs text-textMuted mt-1">
+                  <span className="block text-xs text-text-muted mt-1">
                     Puste = pobieraj wszystkie zadania z listy.
                   </span>
                 </div>

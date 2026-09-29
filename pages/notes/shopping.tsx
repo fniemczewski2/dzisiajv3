@@ -1,4 +1,4 @@
-﻿// pages/notes/shopping.tsx
+// pages/notes/shopping.tsx
 
 import React, { useState } from "react";
 import { useShoppingLists } from "@/hooks/db/useShoppingLists";
@@ -26,9 +26,9 @@ export default function ShoppingPage() {
         keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
       />
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text">
+          <h1 className="page-title">
             Listy zakupów
-          </h2>
+          </h1>
           {!showForm && <AddButton onClick={openNew} />}
         </div>
 

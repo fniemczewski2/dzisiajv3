@@ -1,4 +1,4 @@
-﻿// providers/ToastProvider.tsx
+// providers/ToastProvider.tsx
 
 import React, { createContext, useCallback, useContext, useEffect, useReducer, useRef, useMemo } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
@@ -31,18 +31,18 @@ function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const VARIANT_STYLES: Record<ToastVariant, string> = {
-  success: "bg-green-50 dark:bg-green-900/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300",
-  error:   "bg-red-50 dark:bg-red-900/80 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300",
-  info:    "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
-  loading: "bg-blue-50 dark:bg-blue-900/80 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300",
+  success: "border-l-green-600 dark:border-l-green-400 [--toast-icon:var(--color-green-700)] dark:[--toast-icon:var(--color-green-300)]",
+  error:   "border-l-red-600 dark:border-l-red-400 [--toast-icon:var(--color-red-700)] dark:[--toast-icon:var(--color-red-300)]",
+  info:    "border-l-blue-600 dark:border-l-blue-400 [--toast-icon:var(--color-blue-700)] dark:[--toast-icon:var(--color-blue-300)]",
+  loading: "border-l-blue-600 dark:border-l-blue-400 [--toast-icon:var(--color-blue-700)] dark:[--toast-icon:var(--color-blue-300)]",
 };
 
 function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
   switch (variant) {
-    case "success": return <CheckCircle className="w-4 h-4 shrink-0" />;
-    case "error":   return <XCircle className="w-4 h-4 shrink-0" />;
-    case "info":    return <Info className="w-4 h-4 shrink-0" />;
-    case "loading": return <Loader2 className="w-4 h-4 shrink-0 animate-spin text-primary" />;
+    case "success": return <CheckCircle aria-hidden="true" className="w-4.5 h-4.5 mt-px shrink-0 text-(--toast-icon)" />;
+    case "error":   return <XCircle aria-hidden="true" className="w-4.5 h-4.5 mt-px shrink-0 text-(--toast-icon)" />;
+    case "info":    return <Info aria-hidden="true" className="w-4.5 h-4.5 mt-px shrink-0 text-(--toast-icon)" />;
+    case "loading": return <Loader2 aria-hidden="true" className="w-4.5 h-4.5 mt-px shrink-0 animate-spin text-(--toast-icon)" />;
     default:        return null;
   }
 }
@@ -50,9 +50,9 @@ function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
 function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; onRemove: (id: string) => void }>) {
   return (
     <div
-      role="alert"
-      aria-live="assertive"
-      className={`flex items-start gap-3 w-full px-4 py-3 rounded-xl border shadow-lg text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`}
+      role={item.variant === "error" ? "alert" : "status"}
+      aria-live={item.variant === "error" ? "assertive" : "polite"}
+      className={`flex items-start gap-3 w-full pl-3.5 pr-2.5 py-3 rounded-xl border border-line border-l-4 bg-card text-text shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`}
     >
       <ToastIcon variant={item.variant} />
       <span className="flex-1 leading-snug">{item.message}</span>
@@ -60,7 +60,7 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
         <button
           onClick={() => { item.action?.onClick(); onRemove(item.id); }}
           type='button'
-          className="shrink-0 px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide bg-white/70 dark:bg-black/30 hover:bg-white dark:hover:bg-black/50 transition-colors"
+          className="shrink-0 -my-1 px-2.5 py-1 rounded-md text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
         >
           {item.action.label}
         </button>
@@ -68,10 +68,10 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
       <button
         onClick={() => onRemove(item.id)}
         type='button'
-        className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-        aria-label="Zamknij"
+        className="shrink-0 -my-1 p-1.5 rounded-md text-text-muted hover:text-text hover:bg-surface transition-colors"
+        aria-label="Zamknij powiadomienie"
       >
-        <X className="w-3.5 h-3.5" />
+        <X aria-hidden="true" className="w-4 h-4" />
       </button>
     </div>
   );
@@ -103,25 +103,25 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
       // górnym rogu. `fixed inset-0 m-auto h-fit` przywraca wyśrodkowanie w pionie
       // i poziomie. `open:flex` zamiast `flex`, żeby nie nadpisywać ukrywania
       // zamkniętego dialogu (`dialog:not([open]) { display: none }`).
-      className="fixed inset-0 m-auto h-fit hidden open:flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm px-4 py-4 rounded-xl border shadow-lg text-sm font-medium bg-card border-gray-200 dark:border-gray-700 backdrop:bg-black/40 open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
+      className="fixed inset-0 m-auto h-fit hidden open:flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm px-4 py-4 rounded-2xl border shadow-2xl text-sm font-medium bg-card border-line backdrop:bg-navy/50 backdrop:backdrop-blur-sm open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
     >
       <div className="flex items-start gap-3">
-        <AlertTriangle aria-hidden="true" className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
-        <span id={`confirm-msg-${item.id}`} className="flex-1 leading-snug text-text">{item.message}</span>
+        <AlertTriangle aria-hidden="true" className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-300" />
+        <span id={`confirm-msg-${item.id}`} className="flex-1 leading-snug text-text text-[15px]">{item.message}</span>
       </div>
       <div className="flex gap-2 justify-end">
         <button
           autoFocus
           onClick={() => answer(false)}
           type='button'
-          className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-surface hover:bg-surfaceHover text-textSecondary transition-colors border border-gray-200 dark:border-gray-700"
+          className="min-h-10 px-4 py-2 rounded-lg text-sm font-semibold bg-surface hover:bg-surface-hover text-text-secondary transition-colors border border-line"
         >
           {item.cancelLabel}
         </button>
         <button
           onClick={() => answer(true)}
           type='button'
-          className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-red-500 hover:bg-red-600 text-white transition-colors"
+          className="min-h-10 px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors"
         >
           {item.confirmLabel}
         </button>
@@ -131,6 +131,7 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
 }
 
 const AUTO_DISMISS_MS = 4000;
+const AUTO_DISMISS_WITH_ACTION_MS = 8000;
 
 export function ToastProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [toasts, dispatch] = useReducer(toastReducer, []);
@@ -146,7 +147,8 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
       dispatch({ type: "ADD", toast: { kind: "notification", id, message, variant, action: options?.action } });
 
       if (autoDismiss) {
-        setTimeout(() => remove(id), options?.durationMs ?? AUTO_DISMISS_MS);
+        const fallback = options?.action ? AUTO_DISMISS_WITH_ACTION_MS : AUTO_DISMISS_MS;
+        setTimeout(() => remove(id), options?.durationMs ?? fallback);
       }
 
       return id;
@@ -222,15 +224,16 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div
-        className="fixed bottom-32 left-1/2 -translate-x-1/2 z-9999 flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
+      <section
+        aria-label="Powiadomienia"
+        className="fixed bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 z-9999 flex flex-col items-center gap-2 w-full max-w-sm px-4 pointer-events-none"
       >
         {notifications.map((item) => (
           <div key={item.id} className="pointer-events-auto w-full">
             <NotificationEl item={item} onRemove={remove} />
           </div>
         ))}
-      </div>
+      </section>
       {/* Potwierdzenia renderujemy poza kontenerem powiadomień przyklejonym do
           dołu ekranu – modalny <dialog> trafia do top layer i jest wyśrodkowany. */}
       {confirms.map((item) => (

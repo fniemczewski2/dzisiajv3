@@ -1,4 +1,4 @@
-﻿// components/widgets/WaterTracker.tsx
+// components/widgets/WaterTracker.tsx
 
 import { Droplet } from "lucide-react";
 import { useDailyHabits } from "@/hooks/db/useDailyHabits";
@@ -63,6 +63,8 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
         />
         <input
           title="Poziom nawodnienia"
+          aria-label="Poziom nawodnienia"
+          aria-valuetext={`${displayWater} l z 2 l`}
           type="range"
           min="0"
           max="2.0"
@@ -76,7 +78,7 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
         />
       </div>
       
-      <div className="font-bold text-textSecondary w-17.5 text-right text-sm sm:text-base tabular-nums">
+      <div className="font-bold text-text-secondary w-17.5 text-right text-sm sm:text-base tabular-nums">
         {displayWater.toFixed(1)} <span className="text-xs sm:text-sm font-medium text-textSubtle">/ 2.0L</span>
       </div>
     </div>

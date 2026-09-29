@@ -88,7 +88,7 @@ export default function NoteEditForm({
           />
         </div>
         <div className="bg-white/50 dark:bg-black/20 p-2 rounded-xl border border-black/5 dark:border-white/5">
-          <span className="block text-xs font-bold text-textMuted uppercase tracking-wider mb-2 pl-1">
+          <span className="block text-xs font-bold text-text-muted mb-2 pl-1">
             Kolor tła
           </span>
           <div className="flex gap-3 items-center px-1">

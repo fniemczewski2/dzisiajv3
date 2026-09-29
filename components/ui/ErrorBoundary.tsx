@@ -1,4 +1,4 @@
-﻿// components/ui/ErrorBoundary.tsx
+// components/ui/ErrorBoundary.tsx
 
 import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, ChevronRight, ChevronDown, Home, RefreshCw } from 'lucide-react';
@@ -43,19 +43,21 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full card rounded-xl border border-gray-100 dark:border-gray-800 bg-card shadow-sm p-6 text-center">
-            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-text mb-2">
-              Coś poszło nie tak
+        <div role="alert" className="min-h-screen flex items-center justify-center p-4 bg-background text-text">
+          <div className="max-w-md w-full rounded-(--radius-card) border border-line bg-card shadow-lg p-6 sm:p-8 text-center">
+            <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+              <AlertTriangle aria-hidden="true" className="w-7 h-7" />
+            </span>
+            <h1 className="page-title mb-2">
+              Ten widok przestał działać
             </h1>
-            <p className="text-textSecondary mb-4">
-              Przepraszamy, wystąpił nieoczekiwany błąd.
+            <p className="text-text-secondary mb-6">
+              Spróbuj załadować widok ponownie. Jeśli błąd się powtórzy, przejdź na stronę główną.
             </p>
             
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details
-                className="text-left mb-6 p-3 bg-surface border border-gray-100 dark:border-gray-800 rounded-lg text-xs cursor-pointer overflow-hidden"
+                className="text-left mb-6 p-3 bg-surface border border-line rounded-lg text-xs cursor-pointer overflow-hidden"
                 open={this.state.showDetails}
               >
                 <summary
@@ -73,7 +75,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   Szczegóły błędu
                 </summary>
                 {this.state.showDetails && (
-                  <pre className="whitespace-pre-wrap overflow-auto mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-textMuted font-mono text-[10px]">
+                  <pre className="whitespace-pre-wrap overflow-auto mt-3 pt-3 border-t border-line text-text-muted font-mono text-[10px]">
                     {this.state.error.toString()}
                     {'\n\n'}
                     {this.state.error.stack}
@@ -86,17 +88,17 @@ export default class ErrorBoundary extends Component<Props, State> {
               <button
                 onClick={this.handleReset}
                 type='button'
-                className="flex w-full items-center justify-center px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg gap-2 transition-colors shadow-sm"
+                className="flex w-full items-center justify-center px-4 py-2 bg-secondary hover:bg-secondary-hover text-white font-medium rounded-lg gap-2 transition-colors shadow-sm"
               >
-                <RefreshCw className="w-5 h-5" />
-                Odśwież
+                <RefreshCw aria-hidden="true" className="w-5 h-5" />
+                Spróbuj ponownie
               </button>
               <button
                 onClick={() => (window.location.href = '/')}
                 type='button'
-                className="flex w-full items-center justify-center px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg gap-2 transition-colors border border-gray-200 dark:border-gray-800"
+                className="flex w-full items-center justify-center px-4 py-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg gap-2 transition-colors border border-line"
               >
-                <Home className="w-5 h-5" />
+                <Home aria-hidden="true" className="w-5 h-5" />
                 Strona główna
               </button>
             </div>

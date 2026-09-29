@@ -1,4 +1,4 @@
-﻿// components/budget/SummaryTable.tsx
+// components/budget/SummaryTable.tsx
 
 import React from "react";
 import { MonthData } from "@/types/bills";
@@ -15,13 +15,13 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Readonl
       <h3 className="font-bold mb-2 text-text">Budżet roczny</h3>
       <div className="card rounded-xl shadow-sm overflow-x-auto mb-4">
         <table className="w-full table-auto text-xs sm:text-sm">
-          <thead className="bg-surface text-textSecondary font-semibold border-b border-gray-200 dark:border-gray-700">
+          <thead className="bg-surface text-text-secondary font-semibold border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="px-1 sm:px-2 py-2 text-left">mc</th>
-              <th className="px-1 sm:px-2 py-2 text-right">wpływy</th>
-              <th className="px-1 sm:px-2 py-2 text-right">dokonane</th>
-              <th className="px-1 sm:px-2 py-2 text-right">plany</th>
-              <th className="px-1 sm:px-2 py-2 text-right">zostało</th>
+              <th scope="col" className="px-1 sm:px-2 py-2 text-left">mc</th>
+              <th scope="col" className="px-1 sm:px-2 py-2 text-right">wpływy</th>
+              <th scope="col" className="px-1 sm:px-2 py-2 text-right">dokonane</th>
+              <th scope="col" className="px-1 sm:px-2 py-2 text-right">plany</th>
+              <th scope="col" className="px-1 sm:px-2 py-2 text-right">zostało</th>
             </tr>
           </thead>
           <tbody className="text-text divide-y divide-gray-100 dark:divide-gray-800">
@@ -33,7 +33,7 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Readonl
               if (!loadedMonths.has(m)) {
                 return (
                   <tr key={m} className={rowClass}>
-                    <td className="px-1 sm:px-2 py-1.5 font-medium text-textSecondary">{monthNames[m - 1]}</td>
+                    <td className="px-1 sm:px-2 py-1.5 font-medium text-text-secondary">{monthNames[m - 1]}</td>
                     <td colSpan={4} className="text-center text-textSubtle px-1 py-1.5">
                       --
                     </td>
@@ -50,7 +50,7 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Readonl
 
               return (
                 <tr key={m} className={rowClass}>
-                  <td className="px-1 sm:px-2 py-1.5 font-medium text-textSecondary">{monthNames[m - 1]}</td>
+                  <td className="px-1 sm:px-2 py-1.5 font-medium text-text-secondary">{monthNames[m - 1]}</td>
                   <td className="text-right px-1 sm:px-2 py-1.5 text-green-600 dark:text-green-500 font-medium tabular-nums">{income.toFixed(2)}</td>
                   <td className="text-right px-1 sm:px-2 py-1.5 tabular-nums">{done.toFixed(2)}</td>
                   <td className="text-right px-1 sm:px-2 py-1.5 tabular-nums">{planned.toFixed(2)}</td>

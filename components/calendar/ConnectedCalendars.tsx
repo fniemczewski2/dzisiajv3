@@ -40,22 +40,22 @@ export default function ConnectedCalendars() {
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 flex items-center justify-center rounded-full bg-surface dark:bg-zinc-800">
-            <LinkIcon className="w-4 h-4 text-textSecondary" />
+            <LinkIcon className="w-4 h-4 text-text-secondary" />
           </div>
           <div className="text-left">
             <p className="font-bold text-text text-sm">Zewnętrzne Kalendarze</p>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-textMuted">
+            <p className="text-[10px] font-medium text-text-muted">
               {currentStatus()}
             </p>
           </div>
         </div>
-        {expanded ? <ChevronUp className="w-4 h-4 text-textMuted" /> : <ChevronDown className="w-4 h-4 text-textMuted" />}
+        {expanded ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
       </button>
 
       {expanded && (
         <div className="border-t border-gray-100 dark:border-gray-800 bg-card px-4 py-4 space-y-6">
           {loading ? (
-            <div className="flex items-center justify-center py-4 gap-2 text-textMuted">
+            <div className="flex items-center justify-center py-4 gap-2 text-text-muted">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm font-medium">Wczytywanie kont i kalendarzy...</span>
             </div>
@@ -77,7 +77,7 @@ export default function ConnectedCalendars() {
                             </div>
                             <div>
                               <div className="text-sm font-bold text-text capitalize">{account.provider}</div>
-                              <div className="text-xs text-textSecondary">{account.account_email}</div>
+                              <div className="text-xs text-text-secondary">{account.account_email}</div>
                               {account.sync_error && (
                                 <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500 font-medium mt-0.5">
                                   <AlertTriangle className="w-3 h-3 shrink-0" />
@@ -98,17 +98,17 @@ export default function ConnectedCalendars() {
 
                         <div className="p-2 space-y-1">
                           {accountCalendars.length === 0 ? (
-                            <p className="text-xs text-textMuted p-2">Brak kalendarzy do wyświetlenia.</p>
+                            <p className="text-xs text-text-muted p-2">Brak kalendarzy do wyświetlenia.</p>
                           ) : (
                             accountCalendars.map(cal => {
                               const isCurrentlyOn = selectedCalendars.includes(`${account.id}:::${cal.id}`);
                               const isToggling = togglingId === cal.id;
 
                               return (
-                                <div key={cal.id} className="flex items-center justify-between p-2 hover:bg-surfaceHover rounded-lg transition-colors">
+                                <div key={cal.id} className="flex items-center justify-between p-2 hover:bg-surface-hover rounded-lg transition-colors">
                                   <div className="flex items-center gap-3 overflow-hidden pr-4">
                                     <span className="text-sm text-text font-medium truncate">
-                                      {cal.summary} {cal.primary && <span className="text-xs text-textMuted ml-1">(Główny)</span>}
+                                      {cal.summary} {cal.primary && <span className="text-xs text-text-muted ml-1">(Główny)</span>}
                                     </span>
                                   </div>
                                   
@@ -148,10 +148,10 @@ export default function ConnectedCalendars() {
               <div className="pt-2">
                 <div className="form-label mb-2">Dodaj kolejne konto:</div>
                 <div className="grid grid-cols-2 gap-3">
-                  <button type='button' onClick={handleConnectGoogle} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
+                  <button type='button' onClick={handleConnectGoogle} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surface-hover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
                     <GoogleIcon /> Google
                   </button>
-                  <button type='button' onClick={handleConnectOutlook} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surfaceHover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
+                  <button type='button' onClick={handleConnectOutlook} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface hover:bg-surface-hover text-text font-bold text-sm rounded-lg border border-gray-200 dark:border-gray-700 transition-colors shadow-sm">
                     <MicrosoftIcon /> Outlook
                   </button>
                 </div>

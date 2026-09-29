@@ -1,4 +1,4 @@
-﻿// pages/settings.tsx
+// pages/settings.tsx
 
 import React from "react";
 import InstallButton from "@/components/settings/InstallButton";
@@ -57,10 +57,10 @@ export default function SettingsPage() {
         noindex={true} 
       />
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">
+          <h1 className="page-title">
             Menu&nbsp;&nbsp;
             <LoveButton/>
-          </h2>
+          </h1>
           <InstallButton />
         </div>
         {loading ? 

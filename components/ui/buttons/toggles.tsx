@@ -16,11 +16,11 @@ export interface IconActionButtonProps {
 }
 
 const ICON_ACTION_VARIANTS: Record<IconActionVariant, string> = {
-  default: "text-textMuted hover:text-text hover:bg-surfaceHover",
-  primary: "text-primary hover:bg-blue-100 dark:hover:bg-blue-900/40",
-  success: "text-green-600 hover:bg-green-600/10",
-  warning: "text-yellow-600 hover:bg-yellow-600/10",
-  danger: "text-textMuted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20",
+  default: "text-text-muted hover:text-text hover:bg-surface-hover",
+  primary: "text-primary hover:bg-primary/10",
+  success: "text-green-700 dark:text-green-300 hover:bg-green-600/10",
+  warning: "text-amber-700 dark:text-amber-300 hover:bg-amber-600/10",
+  danger: "text-text-muted hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30",
 };
 
 export const IconActionButton = ({ onClick, Icon, title, variant = "default", disabled = false }: Readonly<IconActionButtonProps>) => (
@@ -30,9 +30,9 @@ export const IconActionButton = ({ onClick, Icon, title, variant = "default", di
     disabled={disabled}
     title={title}
     aria-label={title}
-    className={`p-2 rounded-lg transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${ICON_ACTION_VARIANTS[variant]}`}
+    className={`inline-flex items-center justify-center min-w-9 min-h-9 p-2 rounded-lg transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${ICON_ACTION_VARIANTS[variant]}`}
   >
-    <Icon className="w-4 h-4" />
+    <Icon aria-hidden="true" className="w-4 h-4" />
   </button>
 );
 
@@ -49,10 +49,10 @@ export const ToggleChip = ({ label, active, onClick, disabled = false }: Readonl
     onClick={onClick}
     disabled={disabled}
     aria-pressed={active}
-    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border disabled:opacity-50 disabled:cursor-not-allowed ${
+    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border disabled:opacity-50 disabled:cursor-not-allowed ${
       active
-        ? "bg-secondary text-white border-primary shadow-sm"
-        : "bg-surface text-textSecondary hover:text-text border-gray-200 dark:border-gray-700"
+        ? "bg-secondary text-white border-transparent shadow-sm"
+        : "bg-surface text-text-secondary hover:text-text hover:bg-surface-hover border-line"
     }`}
   >
     {label}
@@ -75,7 +75,7 @@ export const ToggleSwitch = ({ id, checked, onChange, disabled = false }: Readon
     disabled={disabled}
     onClick={() => onChange(!checked)}
     className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-      checked ? "bg-secondary" : "bg-gray-300 dark:bg-gray-700"
+      checked ? "bg-secondary" : "bg-gray-400 dark:bg-gray-600"
     }`}
   >
     <span

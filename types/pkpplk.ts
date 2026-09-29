@@ -1,4 +1,4 @@
-﻿// types/pkpplk.ts
+// types/pkpplk.ts
 
 export interface Station {
   id: string;
@@ -60,6 +60,15 @@ export interface TrainStatusResponse {
   status: string;
   estimatedArrival: string;
   hide: boolean;
+  /** Szczegóły obu stacji – do przełączania widoku odjazd/przyjazd w planie dnia. */
+  departurePlatform?: string;
+  departureDelay?: number;
+  actualDeparture?: string;
+  arrivalPlatform?: string;
+  arrivalDelay?: number;
+  plannedArrival?: string;
+  /** Nazwa stacji, której dotyczą dane przyjazdu. */
+  arrivalStation?: string;
 }
 
 export interface StationBoardItem {

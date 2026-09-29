@@ -1,4 +1,4 @@
-﻿// components/people/PersonForm.tsx
+// components/people/PersonForm.tsx
 
 import React, { useState } from 'react';
 import { Person, PersonInsert } from '@/types/people';
@@ -57,14 +57,14 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
   const renderChip = (value: string, onRemove: () => void) => (
     <span
       key={value}
-      className="px-3 py-1 bg-surface text-textSecondary border border-gray-200 dark:border-gray-700 rounded-full text-sm flex items-center gap-1.5"
+      className="px-3 py-1 bg-surface text-text-secondary border border-gray-200 dark:border-gray-700 rounded-full text-sm flex items-center gap-1.5"
     >
       {value}
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Usuń ${value}`}
-        className="text-textMuted hover:text-red-500 transition-colors"
+        className="text-text-muted hover:text-red-500 transition-colors"
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -161,6 +161,7 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
             value={newPhone}
             onChange={(e) => setNewPhone(e.target.value)}
             placeholder="Nowy numer"
+            aria-label="Nowy numer telefonu"
             className="input-field flex-1"
           />
           <AddButton onClick={handleAddPhone} small />
@@ -179,7 +180,8 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
             type="email"
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
-            placeholder="Nowy email"
+            placeholder="Nowy e-mail"
+            aria-label="Nowy adres e-mail"
             className="input-field flex-1"
           />
           <AddButton onClick={handleAddEmail} small />

@@ -1,4 +1,4 @@
-﻿// components/settings/SettingsForm.tsx
+// components/settings/SettingsForm.tsx
 
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
@@ -72,7 +72,7 @@ export default function SettingsForm({
     <form onSubmit={handleFormSubmit} className="form-card mb-6">
       <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
         <h3 className="text-xl font-semibold flex items-center text-text">
-          <SettingsIcon className="w-5 h-5 mr-2 text-textMuted" />
+          <SettingsIcon className="w-5 h-5 mr-2 text-text-muted" />
           Ustawienia aplikacji
         </h3>
         <ThemeToggle />
@@ -109,7 +109,7 @@ export default function SettingsForm({
 
         {localSettings.show_habits && (
           <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Aktywne nawyki</h4>
+            <h4 className="text-xs font-bold text-text-muted mb-3">Aktywne nawyki</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
               {renderSwitch("habit_pills", "Leki")}
               {renderSwitch("habit_bath", "Higiena")}
@@ -126,12 +126,13 @@ export default function SettingsForm({
 
       {moodEnabled && (
         <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl"> 
-          <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">Nastroje</h4>
+          <h4 className="text-xs font-bold text-text-muted mb-3">Nastroje</h4>
           {moodOptions.map((opt: MoodOption, index: number) => (
             <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4">
               <div className="flex justify-between gap-2 md:mr-2 w-full sm:flex-1">
                 <input
                   type="text"
+                  aria-label={`Nazwa nastroju ${index + 1}`}
                   value={opt.label}
                   onChange={(e) => {
                     const newOpts = [...moodOptions];
@@ -172,9 +173,10 @@ export default function SettingsForm({
                   style={{ backgroundColor: opt.color }}
                   title="Wybierz własny kolor"
                 >
-                  <input 
-                    type="color" 
-                    value={opt.color} 
+                  <input
+                    type="color"
+                    aria-label={`Kolor nastroju: ${opt.label}`}
+                    value={opt.color}
                     onChange={(e) => {
                       const newOpts = [...moodOptions];
                       newOpts[index].color = e.target.value;
@@ -195,7 +197,7 @@ export default function SettingsForm({
                 const newOpts = [...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }];
                 updateLocalField("mood_options", newOpts);
               }}
-              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-secondary transition-colors mt-2 p-2"
+              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-strong transition-colors mt-2 p-2"
             >
               <PlusCircle className="w-4 h-4" /> Dodaj nastrój
             </button>
@@ -204,7 +206,7 @@ export default function SettingsForm({
       )}
       
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-textMuted mb-3">SORTOWANIE</h4>
+        <h4 className="text-xs font-bold text-text-muted mb-3">SORTOWANIE</h4>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -348,7 +350,7 @@ export default function SettingsForm({
             <button
               type="button"
               onClick={() => updateLocalField("users", [...(localSettings.users || []), ""])}
-              className="text-sm font-medium text-primary hover:text-secondary flex items-center mt-3"
+              className="text-sm font-medium text-primary hover:text-primary-strong flex items-center mt-3"
             >
               <PlusCircle className="w-4 h-4 mr-1.5" /> Dodaj użytkownika
             </button>
@@ -361,7 +363,7 @@ export default function SettingsForm({
           type="button"
           onClick={onRestoreDefaults}
           disabled={loading}
-          className="flex items-center text-sm font-medium text-textMuted hover:underline transition-colors px-2 py-1 disabled:opacity-50"
+          className="flex items-center text-sm font-medium text-text-muted hover:underline transition-colors px-2 py-1 disabled:opacity-50"
         >
           Przywróć domyślne
           <RotateCcw className="w-4 h-4 ml-2" />
@@ -370,7 +372,7 @@ export default function SettingsForm({
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-between relative">
             <button
               type="button"
-              className="hover:bg-surfaceHover gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 flex w-full md:flex-1 items-center justify-center pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-textSecondary font-medium rounded-lg shadow-sm"
+              className="hover:bg-surface-hover gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 flex w-full md:flex-1 items-center justify-center pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-text-secondary font-medium rounded-lg shadow-sm"
               onClick={() => router.push("/guide")}
             >
               Instrukcja 

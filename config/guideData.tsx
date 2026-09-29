@@ -1,4 +1,4 @@
-﻿// config/guideData.tsx
+// config/guideData.tsx
 
 import React from 'react';
 import {
@@ -30,6 +30,8 @@ import {
   Clock,
   User,
   IdCard,
+  MessageSquareShare,
+  TrainFront,
 } from 'lucide-react';
 
 export type GuideSection = {
@@ -195,6 +197,27 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Widoczność.</K> Domyślnie lista pokazuje tylko te przypomnienia, których termin już nadszedł. Kliknij <em>Pokaż wszystkie</em>, by wyświetlić całą bazę cyklicznych.
+      </>,
+    ],
+  },
+
+  {
+    id: 'slack',
+    title: 'Listy Slack',
+    mainIcon: <MessageSquareShare className="w-6 h-6" />,
+    iconColorClass: 'text-primary',
+    listItems: [
+      <>
+        <K>Połączenie.</K> W <em>Ustawieniach</em> połącz konto Slack i wklej link do listy (Slack Lists), którą chcesz synchronizować.
+      </>,
+      <>
+        <K>Synchronizacja w obie strony.</K> Zadania dodane lub zmienione w aplikacji trafiają na listę Slack, a zmiany ze Slacka wracają do Twoich zadań.
+      </>,
+      <>
+        <K>Lista domyślna.</K> Wskaż listę, na którą trafiają nowe zadania, jeśli masz ich kilka.
+      </>,
+      <>
+        <K>Kolumny.</K> Dopasuj kolumny listy Slack do pól zadania, np. terminu czy priorytetu.
       </>,
     ],
   },
@@ -398,7 +421,7 @@ export const guideSections: GuideSection[] = [
         <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki </em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie &quot;bieżące&quot;.
       </>,
       <>
-        <K>Import wyciągów bankowych. </K> Nowa funkcja &quot;Wczytaj CSV&quot; pozwala wgrać plik z mBanku. Algorytm automatycznie kategoryzuje wydatki i dodaje je do tabeli rachunków.
+        <K>Import wyciągów bankowych.</K> Przycisk <em>Wczytaj CSV</em> przyjmuje wyciągi z mBanku i PKO BP. Aplikacja sama dobiera kategorie na podstawie opisu operacji, a przed zapisem pokazuje tabelę z liczbą i sumą operacji w każdej kategorii. Duplikaty już zapisanych operacji są pomijane.
       </>,
       <>
         <K>Edytor kategorii. </K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w &quot;Kategorie&quot;, aby dodać własne.
@@ -518,10 +541,10 @@ export const guideSections: GuideSection[] = [
         <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską w Poznaniu (dane PEKA) i Szczecinie (dane ZDiTM). Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
       </>,
       <>
-        <K>Odjazdy GPS.</K> Sekcja <em>Najbliżej (GPS)</em> automatycznie wykrywa Twoją lokalizację i wyświetla przystanki w pobliżu z odległością w metrach.
+        <K>Odjazdy GPS.</K> Sekcja <em>Najbliżej (GPS)</em> pokazuje przystanki w pobliżu z odległością w metrach. Aplikacja pamięta pozycję przez 2 minuty i Twoją zgodę na lokalizację, więc nie pyta o nią przy każdym wejściu.
       </>,
       <>
-        <K>Ulubione przystanki.</K> Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS.
+        <K>Ulubione przystanki.</K> Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS. Przystanki o tej samej nazwie w różnych miejscowościach, np. <em>Dworcowa</em> w Poznaniu i w Luboniu, są rozróżniane i podpisane nazwą miejscowości.
       </>,
       <>
         <K>Wyszukiwarka.</K> Wpisz nazwę przystanku - aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do ulubionych.
@@ -529,8 +552,29 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare - rozkładowe.
       </>,
+    ],
+  },
+
+  {
+    id: 'trains',
+    title: 'Pociągi',
+    mainIcon: <TrainFront className="w-6 h-6" />,
+    iconColorClass: 'text-primary',
+    listItems: [
       <>
-        <K>Pociągi PKP.</K> Na tej samej stronie dodasz pociąg do śledzenia - ręcznie lub importując bilet PDF, z którego dane odczytają się automatycznie. Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK. Bilet pojawia się też w <em>Planie dnia</em> o godzinie odjazdu – z peronem, wagonem, miejscem i opóźnieniem odświeżanym na żywo.
+        <K>Dodawanie pociągu.</K> Na stronie <em>Transport</em> dodasz pociąg ręcznie albo wgrasz bilet PDF, z którego formularz wypełni się sam.
+      </>,
+      <>
+        <K>Sprawdź odczyt biletu.</K> Po wczytaniu biletu nad formularzem pojawia się informacja, które pola rozpoznano automatycznie, a których nie. Uzupełnij brakujące i sprawdź resztę przed zapisem.
+      </>,
+      <>
+        <K>Status na żywo.</K> Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK.
+      </>,
+      <>
+        <K>W planie dnia.</K> Pociąg pojawia się w <em>Planie dnia</em> o godzinie odjazdu, z peronem, wagonem, miejscem i opóźnieniem odświeżanym na żywo.
+      </>,
+      <>
+        <K>Tablice stacyjne.</K> Dodaj do trzech stacji, by śledzić ich odjazdy. Przy odświeżaniu poprzednie dane zostają na ekranie, a obok nazwy stacji widać godzinę ostatniej aktualizacji.
       </>,
     ],
   },
@@ -692,19 +736,22 @@ export const guideSections: GuideSection[] = [
         <K>Instalacja jako aplikacja (PWA).</K> Kliknij przycisk <em>Zainstaluj</em> w ustawieniach (pojawia się gdy przeglądarka obsługuje PWA). Na iOS: Safari <em>Udostępnij</em> <em>Dodaj do ekranu głównego</em>.
       </>,
       <>
-        <K>Tryb ciemny i jasny.</K> Przełącznik w prawym górnym rogu formularza ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.
+        <K>Tryb ciemny i jasny.</K> Przełącznik w formularzu ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.
       </>,
       <>
         <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów i osób.
       </>,
       <>
-        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie.
+        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie. Aplikacja pamięta włączone powiadomienia i sama odnawia subskrypcję, gdy system ją unieważni, np. po aktualizacji iOS.
+      </>,
+      <>
+        <K>iPhone i Apple Watch.</K> Na iPhonie powiadomienia działają w aplikacji dodanej do ekranu początkowego (iOS 16.4 lub nowszy). iOS przekazuje je na Apple Watch, gdy iPhone jest zablokowany, a zegarek jest na ręce. Jeśli nie docierają, sprawdź w aplikacji Watch na iPhonie ustawienia powiadomień i dublowanie alertów z iPhone’a.
       </>,
       <>
         <K>Zaufani użytkownicy.</K> Dodaj adresy email osób, z którymi chcesz współdzielić dane. Osoba musi mieć aktywne konto. Możesz dodać do 10 adresów.
       </>,
       <>
-        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację </em> odświeża GPS i wyświetla aktualne współrzędne. Wymagane dla: Pogody, sortowania Miejsc po odległości i sekcji &quot;Najbliżej&quot; w Transporcie.
+        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne. Lokalizacji używają Pogoda i sekcja <em>Najbliżej</em> w Transporcie. Aplikacja pamięta Twoją decyzję i ostatnią pozycję, więc okno zgody nie pojawia się przy każdym uruchomieniu. Po odmowie o zgodę zapyta dopiero, gdy użyjesz tego przycisku.
       </>,
       <>
         <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie usuwa żadnych danych użytkownika.

@@ -1,4 +1,4 @@
-﻿// components/budget/BudgetCategoriesEditor.tsx
+// components/budget/BudgetCategoriesEditor.tsx
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
@@ -52,6 +52,7 @@ function AddCategoryForm({
         ref={inputRef}
         type="text"
         placeholder="Nazwa kategorii…"
+        aria-label="Nazwa kategorii"
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="input-field flex-1 py-2"
@@ -109,12 +110,13 @@ function AmountEditor({
           step="1"
           min="0"
           placeholder="0"
+          aria-label="Kwota"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           className="input-field w-full py-1.5 text-sm text-right pr-8"
           disabled={saving}
         />
-        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-textMuted pointer-events-none">
+        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-text-muted pointer-events-none">
           zł
         </span>
       </div>
@@ -125,7 +127,7 @@ function AmountEditor({
         className={`shrink-0 text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-colors ${
           isMonthly
             ? "bg-secondary text-white border-primary"
-            : "bg-surface text-textSecondary border-gray-200 dark:border-gray-700 hover:border-gray-400"
+            : "bg-surface text-text-secondary border-gray-200 dark:border-gray-700 hover:border-gray-400"
         }`}
         title="Przełącz: miesięczny / roczny"
       >
@@ -209,9 +211,9 @@ export default function BudgetCategoriesEditor({
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <h3 className="font-bold text-text">
           Kategorie budżetu{" "}
-          <span className="text-textMuted font-normal">{year}</span>
+          <span className="text-text-muted font-normal">{year}</span>
           {categories.length > 0 && (
-            <span className="ml-2 text-xs text-textMuted font-normal tabular-nums">
+            <span className="ml-2 text-xs text-text-muted font-normal tabular-nums">
               ({categories.length}/{MAX_CATEGORIES})
             </span>
           )}
@@ -252,7 +254,7 @@ export default function BudgetCategoriesEditor({
                       {cat.name}
                     </span>
                     {(!cat.monthly_amounts || (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) === 0) && (
-                      <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
+                      <span className="shrink-0 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
                         brak limitu
                       </span>
                     )}
@@ -261,7 +263,7 @@ export default function BudgetCategoriesEditor({
                   <span className="text-sm font-bold tabular-nums text-text shrink-0">
                     {formatAmount(cat, selectedMonth)}{" "}
                     {(cat.monthly_amounts && (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) > 0) && (
-                      <span className="text-xs font-normal text-textMuted">
+                      <span className="text-xs font-normal text-text-muted">
                         {formatSuffix(cat)}
                       </span>
                     )}
@@ -272,7 +274,7 @@ export default function BudgetCategoriesEditor({
                       onClick={() => move(idx, -1)}
                       disabled={idx === 0 || loading}
                       type='button'
-                      className="p-0.5 text-textMuted hover:text-text disabled:opacity-20 transition-colors"
+                      className="p-0.5 text-text-muted hover:text-text disabled:opacity-20 transition-colors"
                     >
                       <ChevronUp className="w-3 h-3" />
                     </button>
@@ -280,7 +282,7 @@ export default function BudgetCategoriesEditor({
                       onClick={() => move(idx, 1)}
                       disabled={idx === categories.length - 1 || loading}
                       type='button'
-                      className="p-0.5 text-textMuted hover:text-text disabled:opacity-20 transition-colors"
+                      className="p-0.5 text-text-muted hover:text-text disabled:opacity-20 transition-colors"
                     >
                       <ChevronDown className="w-3 h-3" />
                     </button>

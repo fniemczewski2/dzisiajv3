@@ -1,4 +1,4 @@
-﻿// pages/transport.tsx
+// pages/transport.tsx
 
 import React, { useEffect, useState } from "react";
 import SearchBar from "@/components/ui/SearchBar";
@@ -64,7 +64,7 @@ export default function TransportPage() {
     return (
       <h4 className="font-bold text-primary truncate pr-2 flex-1 min-w-0" title={locality ? `${group.stop_name}, ${locality}` : group.stop_name}>
         {group.stop_name}
-        {locality && <span className="ml-1.5 text-xs font-medium text-textSecondary">{locality}</span>}
+        {locality && <span className="ml-1.5 text-xs font-medium text-text-secondary">{locality}</span>}
       </h4>
     );
   };
@@ -92,14 +92,14 @@ export default function TransportPage() {
         <div className="grid gap-3 min-w-0">
           {group.bollards?.map((bollard) => (
             <div key={bollard.bollard_code} className="min-w-0">
-              <span className="text-[10px] uppercase text-textSecondary font-mono">
+              <span className="text-[10px] uppercase text-text-secondary font-mono">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1 min-w-0">
                 {bollard.departures.map((dep) => (
-                  <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-border/50 last:border-0 min-w-0 w-full">
+                  <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-gray-200 dark:border-gray-800 last:border-0 min-w-0 w-full">
                     <span className="font-medium truncate">{dep.line}</span>
-                    <span className="truncate text-textSecondary" title={dep.direction}>
+                    <span className="truncate text-text-secondary" title={dep.direction}>
                       {dep.direction}
                     </span>
                     <span className={`whitespace-nowrap tabular-nums text-right ${dep.is_realtime ? "text-primary font-bold" : ""}`}>
@@ -127,7 +127,7 @@ export default function TransportPage() {
     nearbyContent = (
       <div className="text-center py-10 w-full" >
           <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
-          <p className="text-textSecondary">{locationError}</p>
+          <p className="text-text-secondary">{locationError}</p>
       </div>
     );
   } else if (nearbyGroups.length === 0) {
@@ -138,7 +138,7 @@ export default function TransportPage() {
         <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
           {renderStopTitle(group)}
           <div className="flex items-center gap-3 shrink-0">
-            {group.distance && <span className="text-xs text-textSecondary whitespace-nowrap">{group.distance} m</span>}
+            {group.distance && <span className="text-xs text-text-secondary whitespace-nowrap">{group.distance} m</span>}
             {/* Toast pokazuje addFavoriteStop – wcześniej pojawiał się podwójnie. */}
             <FavButton onClick={() => { void addNearbyToFavorites(group); }} small />
           </div>
@@ -146,15 +146,15 @@ export default function TransportPage() {
         
         <div className="grid gap-3 min-w-0">
           {group.bollards?.map((bollard) => (
-            <div key={`nearby_${bollard.bollard_code}`} className="bg-muted/30 p-2 rounded-lg min-w-0">
-              <span className="text-[10px] uppercase text-textSecondary font-mono">
+            <div key={`nearby_${bollard.bollard_code}`} className="bg-surface/60 p-2 rounded-lg min-w-0">
+              <span className="text-[10px] uppercase text-text-secondary font-mono">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1 min-w-0">
                 {bollard.departures.map((dep) => (
-                  <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-border/50 last:border-0 min-w-0 w-full">
+                  <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-gray-200 dark:border-gray-800 last:border-0 min-w-0 w-full">
                     <span className="font-medium truncate">{dep.line}</span>
-                    <span className="truncate text-textSecondary" title={dep.direction}>
+                    <span className="truncate text-text-secondary" title={dep.direction}>
                       {dep.direction}
                     </span>
                     <span className={`whitespace-nowrap tabular-nums text-right ${dep.is_realtime ? "text-primary font-bold" : ""}`}>
@@ -200,7 +200,7 @@ export default function TransportPage() {
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
       />
         <div className="flex items-center mb-4">
-          <h2 className="text-2xl font-semibold text-foreground">Transport</h2>
+          <h1 className="page-title">Transport</h1>
         </div>
 
         <div className="space-y-6">

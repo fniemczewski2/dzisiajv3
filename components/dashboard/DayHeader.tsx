@@ -1,4 +1,4 @@
-﻿// components/dashboard/DayHeader.tsx
+// components/dashboard/DayHeader.tsx
 
 import { Calendar, ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
 import { AddSpecificButton } from "../ui/CommonButtons";
@@ -37,35 +37,35 @@ export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraf
           <button
             onClick={onPrev}
             type='button'
-            className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+            className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
             title="Poprzedni dzień"
             aria-label="Poprzedni dzień"
             >
-            <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
+            <ChevronLeft aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         
           <div className="flex flex-col items-center flex-1">
-            <h3 className="font-bold text-base sm:text-2xl text-text text-center flex items-center justify-center">
-              {format(date, "d MMMM", { locale: pl })}
-            </h3>
-            {holiday && <span className="text-red-600 dark:text-red-400 text-[8px] font-medium uppercase tracking-wider mt-1">{holiday}</span>}
+            <h1 className="page-title text-xl sm:text-2xl text-center first-letter:uppercase" aria-live="polite">
+              {format(date, "eee, d\u00A0MMMM", { locale: pl })}
+            </h1>
+            {holiday && <span className="text-red-700 dark:text-red-300 text-xs font-medium mt-1">{holiday}</span>}
           </div>
         
           <button
             onClick={onNext}
             type='button'
-            className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+            className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
             title="Następny dzień"
             aria-label="Następny dzień"
           >
-            <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
+            <ChevronRight aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
          </div>
 
 
-          <div className="flex items-center gap-2">
-            <AddSpecificButton Icon={ListTodo} title={"Dodaj zadanie"} label={"zadanie"} action={() => handleAddDraft('task')} small={isSmallScreen}/>
-            <AddSpecificButton Icon={Calendar} title={"Dodaj wydarzenie"} label={"wydarzenie"} action={() => handleAddDraft('event')} small={isSmallScreen}/>
+          <div className="flex items-center gap-2 justify-between max-w-25 md:min-w-50">
+            <AddSpecificButton Icon={ListTodo} title={"Dodaj zadanie"} label={"Zadanie"} action={() => handleAddDraft('task')} small={isSmallScreen}/>
+            <AddSpecificButton Icon={Calendar} title={"Dodaj wydarzenie"} label={"Wydarzenie"} action={() => handleAddDraft('event')} small={isSmallScreen}/>
           </div>
         </div>
 

@@ -22,7 +22,7 @@ interface MovieCardProps {
   loading: boolean;
 }
 
-const chip = "flex items-center text-xs font-bold uppercase tracking-wider text-textSecondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md";
+const chip = "flex items-center text-xs font-bold text-text-secondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md";
 
 function toEditForm(movie: Movie) {
   return {
@@ -129,7 +129,7 @@ export default function MovieCard({
     <div className={`p-4 rounded-xl border transition-all duration-200 group ${
       movie.watched
         ? "bg-surface border-gray-200 dark:border-gray-800 opacity-60 grayscale-[0.3]"
-        : "card shadow-sm hover:shadow-md hover:border-primary dark:hover:border-primary-dark/50"
+        : "card shadow-sm hover:shadow-md hover:border-primary dark:hover:border-primary/50"
     }`}>
       <div className="flex flex-col h-full">
         <div className="flex-1">
@@ -140,9 +140,9 @@ export default function MovieCard({
             )}
             <div className="min-w-0 flex-1">
               <div className="mb-1.5"><MediaTypeBadge type={type} /></div>
-              <h3 className={`text-lg font-bold leading-tight break-words ${movie.watched ? "line-through text-textMuted" : "text-text"}`}>
+              <h3 className={`text-lg font-bold leading-tight break-words ${movie.watched ? "line-through text-text-muted" : "text-text"}`}>
                 {movie.title}
-                {movie.release_year && <span className="font-normal text-textMuted text-base"> ({movie.release_year})</span>}
+                {movie.release_year && <span className="font-normal text-text-muted text-base"> ({movie.release_year})</span>}
               </h3>
             </div>
           </div>
@@ -194,12 +194,12 @@ export default function MovieCard({
           {movie.description && (
             <div className="mt-2 mb-2">
               <button onClick={() => setShowDescription(!showDescription)} type="button" aria-expanded={showDescription}
-                className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors">
+                className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-strong transition-colors">
                 Opis
                 {showDescription ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {showDescription && (
-                <p className="mt-1.5 text-xs text-textSecondary leading-relaxed bg-surface p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 whitespace-pre-wrap">
+                <p className="mt-1.5 text-xs text-text-secondary leading-relaxed bg-surface p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 whitespace-pre-wrap">
                   {movie.description}
                 </p>
               )}
@@ -210,14 +210,14 @@ export default function MovieCard({
         <div className="pt-2 border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-3">
             <button type="button" onClick={() => toggleNotes(movie.id)} aria-expanded={expandedNotes.has(movie.id)}
-              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-textMuted hover:text-text transition-colors">
+              className="flex items-center gap-1.5 text-xs font-bold text-text-muted hover:text-text transition-colors">
               Notatki
               {expandedNotes.has(movie.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
             {movie.tmdb_id && (
               <button type="button" onClick={handleRefresh} disabled={refreshing || loading}
-                title={isTv ? "Pobierz nowe sezony, status i dostępność z TMDB" : "Odśwież ocenę i dostępność z TMDB"}
-                className="flex items-center gap-1 text-xs font-medium text-textMuted hover:text-text transition-colors disabled:opacity-50">
+                title={isTv ? "Pobierz nowe sezony, status i dostępność z TMDB" : "Odśwież ocenę i dostępność z TMDB"} aria-label={isTv ? "Pobierz nowe sezony, status i dostępność z TMDB" : "Odśwież ocenę i dostępność z TMDB"}
+                className="flex items-center gap-1 text-xs font-medium text-text-muted hover:text-text transition-colors disabled:opacity-50">
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Odśwież
               </button>
             )}

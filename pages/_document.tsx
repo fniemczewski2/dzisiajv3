@@ -26,9 +26,10 @@ export default class MyDocument extends Document<MyDocumentProps> {
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="default" />
           <meta name="apple-mobile-web-app-title" content="Dzisiaj.Fun" />
-          <meta name="theme-color" content="#2563EB" />
-          <meta name="msapplication-TileColor" content="#2563EB" />
-          <meta name="msapplication-navbutton-color" content="#2563EB" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F6F9" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#04080F" />
+          <meta name="msapplication-TileColor" content="#0A2947" />
+          <meta name="msapplication-navbutton-color" content="#0A2947" />
           <link rel="icon" href="/favicon.ico" />
           <meta name="csp-nonce" content={nonce} />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -39,7 +40,7 @@ export default class MyDocument extends Document<MyDocumentProps> {
 
           <meta name="referrer" content="origin-when-cross-origin" />
         </Head>
-        <body className="bg-background text-text transition-colors duration-300 p-4">
+        <body className="bg-background text-text font-sans transition-colors duration-300 p-3 sm:p-4">
           <Main />
           <NextScript />
         </body>

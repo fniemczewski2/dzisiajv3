@@ -18,7 +18,7 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: Readonl
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} hover:bg-primary bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} hover:bg-secondary-hover bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
     aria-label="dodaj"
   >
     {!small && "Dodaj"}
@@ -31,7 +31,7 @@ export const AddAnotherButton = ({ onClick, loading, disabled, small = false }: 
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
     aria-label="dodaj kolejny"
   >
     Następny
@@ -44,7 +44,7 @@ export const CloseButton = ({ onClick, loading, disabled, small = false }: Reado
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
     aria-label="zamknij"
   >
     {!small && "Zamknij"}
@@ -57,7 +57,7 @@ export const SaveButton = ({ onClick, loading, disabled, small = false }: Readon
     type="submit"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 hover:bg-primary bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
+    className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 hover:bg-secondary-hover bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
     aria-label="zapisz"
   >
     {!small && "Zapisz"}
@@ -70,7 +70,7 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Read
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
+    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
     aria-label="anuluj"
   >
     {!small && "Anuluj"}

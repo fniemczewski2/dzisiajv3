@@ -18,12 +18,14 @@ interface SlackListRow {
   list_title: string | null;
   column_map: ColumnMap;
   is_default: boolean;
+  sync_enabled: boolean | null;
+  assignee_emails: string[] | null;
 }
 
 export async function loadTargets(admin: SupabaseClient, userId?: string): Promise<SyncTarget[]> {
   let listQuery = admin
     .from("slack_lists")
-    .select("user_id, connection_id, list_id, list_title, column_map, is_default");
+    .select("user_id, connection_id, list_id, list_title, column_map, is_default, sync_enabled, assignee_emails");
   if (userId) listQuery = listQuery.eq("user_id", userId);
 
   const { data: listData, error: listError } = await listQuery;
@@ -73,6 +75,8 @@ export async function loadTargets(admin: SupabaseClient, userId?: string): Promi
         listTitle: row.list_title,
         columnMap: row.column_map,
         isDefault: row.is_default,
+        pullEnabled: row.sync_enabled !== false,
+        assigneeEmails: (row.assignee_emails ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean),
       },
     ];
   });

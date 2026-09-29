@@ -1,4 +1,4 @@
-﻿// components/Header.tsx
+// components/Header.tsx
 
 import { useState, useEffect } from "react";
 import {
@@ -12,7 +12,7 @@ import {
   CloudSun,
 } from "lucide-react";
 import { useRouter } from "next/router";
-import LoadingState from "./ui/LoadingState";
+import Link from "next/link";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
 import { useWeather } from "../hooks/useWeather";
 
@@ -62,22 +62,23 @@ function WeatherDetails({
     return (
       <button
         onClick={() => router.push("/weather")}
-        type='button'
-        className="flex flex-col items-end cursor-pointer group px-2 -m-2 rounded-xl hover:bg-surface transition-colors"
-        title="Kliknij, aby zobaczyć pełną prognozę"
+        type="button"
+        className="flex flex-col items-end cursor-pointer px-2.5 py-1.5 -m-1.5 rounded-xl hover:bg-(--header-hover) transition-colors focus-visible:outline-(--header-accent)"
+        aria-label={`Pogoda: ${currentTemp}°C, odczuwalnie od ${dailyMin}° do ${dailyMax}°. Otwórz pełną prognozę`}
       >
-        <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5 flex items-center gap-1">
+        <div className="font-display text-2xl sm:text-3xl font-semibold leading-none mb-1.5 flex items-center gap-1.5 tabular-nums">
           <WeatherIcon
             code={weatherCode}
-            className="w-5 h-5 sm:w-6 sm:h-6"
+            className="w-5 h-5 sm:w-6 sm:h-6 text-(--header-accent)"
           />
-          <span className="font-bold leading-none">{currentTemp}°C</span>
+          <span>{currentTemp}°</span>
         </div>
-        <span className="whitespace-nowrap text-[11px] sm:text-sm font-bold text-textMuted uppercase tracking-wider truncate">
-          min {dailyMin}° • max {dailyMax}°
+        <span className="whitespace-nowrap text-xs sm:text-sm font-medium text-(--header-muted) tabular-nums">
+          {dailyMin}° / {dailyMax}°
         </span>
         {airQuality && (
-          <span className="whitespace-nowrap text-[10px] sm:text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider">
+          <span className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-(--header-warn)/15 px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-(--header-warn)">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-(--header-warn)" />
             {airQuality}
           </span>
         )}
@@ -117,15 +118,15 @@ export default function Header() {
 
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
-        weekday: "short", year: "numeric", month: "long", day: "numeric",
+        weekday: "long", month: "long", day: "numeric",
       })
     );
-    setCurrentTime(now.toLocaleTimeString("pl-PL"));
+    setCurrentTime(now.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }));
 
     const timer = setInterval(() => {
       if (!isMounted) return;
       const tick = new Date();
-      setCurrentTime(tick.toLocaleTimeString("pl-PL"));
+      setCurrentTime(tick.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }));
 
       const newDateStr = `${tick.getFullYear()}-${String(tick.getMonth() + 1).padStart(2, "0")}-${String(tick.getDate()).padStart(2, "0")}`;
       setTodayDateString((prev) => (prev === newDateStr ? newDateStr : prev));
@@ -138,46 +139,52 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="card shadow-sm rounded-2xl p-4 transition-colors w-full max-w-[1600px] flex justify-center">
-      <span className="max-w-[1600px] w-full m-0 p-0 flex justify-between items-center gap-3">
-
-        <div className="shrink-0 flex flex-1 items-center">
+    <header className="w-full max-w-[1600px] rounded-card bg-(--header-bg) text-(--header-fg) shadow-lg border border-transparent dark:border-line-strong px-4 py-3.5 sm:px-6 sm:py-4 transition-colors">
+      <div className="w-full flex justify-between items-center gap-3">
+        <div className="flex flex-1 items-center min-w-0">
           <button
             onClick={() => router.push("/calendar?reset=true")}
-            className="flex flex-col items-start cursor-pointer group px-2 -m-2 min-w-0 rounded-xl hover:bg-surface transition-colors"
-            title="Kliknij, aby zobaczyć kalendarz"
-            type='button'
+            className="flex flex-col items-start cursor-pointer px-2.5 py-1.5 -m-1.5 min-w-0 rounded-xl hover:bg-(--header-hover) transition-colors focus-visible:outline-(--header-accent)"
+            aria-label={`${currentDate}. Otwórz kalendarz`}
+            type="button"
           >
-            <div className="text-2xl sm:text-3xl font-bold text-text tracking-tighter leading-none mb-1.5">
+            <div className="font-display text-2xl sm:text-3xl font-semibold leading-none mb-1.5 tabular-nums" suppressHydrationWarning>
               {currentTime}
             </div>
-            <span className="text-[11px] sm:text-sm font-bold text-textMuted uppercase tracking-wider truncate mb-1">
+            <span className="text-xs sm:text-sm font-medium text-(--header-muted) truncate mb-0.5 first-letter:uppercase">
               {currentDate}
             </span>
             <BirthdayIndicator date={todayDateString} />
           </button>
         </div>
 
-        <div className="hidden sm:flex flex-col flex-1 items-center justify-center">
-          <h1 className="text-2xl font-bold text-text tracking-wider">
-            Dzisiaj<span className="text-primary opacity-80">.Fun</span>
-          </h1>
-        </div>
+        <Link
+          href="/"
+          className="hidden sm:flex flex-1 items-center justify-center rounded-xl px-2 py-1 focus-visible:outline-(--header-accent)"
+          aria-label="Dzisiaj.Fun – strona główna"
+        >
+          <span className="font-display text-2xl font-bold" style={{ fontVariationSettings: '"opsz" 72' }}>
+            Dzisiaj<span className="text-(--header-accent)">.Fun</span>
+          </span>
+        </Link>
 
-        <div className="shrink-0 flex flex-1 justify-end items-center">
+        <div className="flex flex-1 justify-end items-center">
           {weatherLoading ? (
-            <LoadingState />
+            <div role="status" aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
+              <span className="block h-7 w-20 rounded-md bg-(--header-hover) animate-pulse" />
+              <span className="block h-3 w-14 rounded bg-(--header-hover) animate-pulse" />
+            </div>
           ) : (
-            <WeatherDetails 
-              currentTemp={currentTemp} 
-              dailyMin={dailyMin} 
-              dailyMax={dailyMax} 
-              weatherCode={weatherCode} 
-              airQuality={airQuality} 
+            <WeatherDetails
+              currentTemp={currentTemp}
+              dailyMin={dailyMin}
+              dailyMax={dailyMax}
+              weatherCode={weatherCode}
+              airQuality={airQuality}
             />
           )}
         </div>
-      </span>
+      </div>
     </header>
   );
 }

@@ -32,7 +32,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
 
     if (loading) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-surface text-textMuted text-xs font-bold text-center py-1.5 shadow-sm flex items-center justify-center gap-2">
+        <div className="absolute top-0 left-0 w-full bg-surface text-text-muted text-xs font-bold text-center py-1.5 shadow-sm flex items-center justify-center gap-2">
           <Loader2 className="w-3 h-3 animate-spin" /> Aktualizacja...
         </div>
       )
@@ -40,7 +40,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
 
     if (isRateLimited) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-yellow-500 text-white text-xs font-bold text-center py-1.5 shadow-sm">
+        <div className="absolute top-0 left-0 w-full bg-yellow-700 text-white text-xs font-bold text-center py-1.5 shadow-sm">
           Limit zapytań osiągnięty.
         </div>
       );
@@ -56,7 +56,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
 
     if (isDelayed) {
       return (
-        <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-xs font-bold text-center py-1.5 shadow-sm flex justify-center items-center gap-1">
+        <div className="absolute top-0 left-0 w-full bg-orange-700 text-white text-xs font-bold text-center py-1.5 shadow-sm flex justify-center items-center gap-1">
           <Clock className="w-3 h-3" /> Opóźnienie: {delay} min
         </div>
       );
@@ -71,7 +71,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
     }
 
     return (
-      <div className="absolute top-0 left-0 w-full bg-emerald-500 text-white text-xs font-bold text-center py-1.5 shadow-sm opacity-90">
+      <div className="absolute top-0 left-0 w-full bg-emerald-600 text-white text-xs font-bold text-center py-1.5 shadow-sm opacity-90">
         {status}
       </div>
     );
@@ -87,7 +87,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
             {train.departureTime}
           </p>
           <div className="inline-flex items-center gap-1 text-xs font-medium bg-surface px-2 py-1 rounded-md mt-1 border border-gray-100 dark:border-gray-800">
-            <MapPin className="w-3 h-3 text-textMuted" /> 
+            <MapPin className="w-3 h-3 text-text-muted" /> 
             {platform && platform !== "-" ? `Peron ${platform}` : 'Brak peronu'}
           </div>
         </div>
@@ -98,7 +98,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
               {train.trainNumber}
             </h4>
             {train.trainName && (
-            <p className="text-[10px] text-textMuted font-medium uppercase tracking-wider">
+            <p className="text-[10px] text-text-muted font-medium">
               {train.trainName}
             </p>
             )}
@@ -121,11 +121,11 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
       {(train.wagon && train.seat) && (
         <div className="flex gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 mt-2">
           <div className="flex-1 bg-surface rounded-lg p-2 text-center border border-gray-100 dark:border-gray-800">
-            <p className="text-[10px] uppercase tracking-wider text-textMuted font-semibold">Wagon</p>
+            <p className="text-[10px] text-text-muted font-semibold">Wagon</p>
             <p className="font-bold text-lg text-text">{train.wagon}</p>
           </div>
           <div className="flex-1 bg-surface rounded-lg p-2 text-center border border-gray-100 dark:border-gray-800">
-            <p className="text-[10px] uppercase tracking-wider text-textMuted font-semibold">Miejsce</p>
+            <p className="text-[10px] text-text-muted font-semibold">Miejsce</p>
             <p className="font-bold text-lg text-text">{train.seat}</p>
           </div>
         </div>

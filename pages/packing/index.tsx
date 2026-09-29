@@ -1,4 +1,4 @@
-﻿// pages/packing/index.tsx
+// pages/packing/index.tsx
 
 import React from "react";
 import { Backpack, Briefcase, Siren } from "lucide-react";
@@ -23,9 +23,9 @@ export default function PackingMenuPage() {
         keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"
       />
         <div className="w-full flex items-center mb-6">
-          <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
+          <h1 className="page-title mx-auto text-center first-letter:uppercase">
             Wybierz listę
-          </h2>
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
@@ -36,7 +36,7 @@ export default function PackingMenuPage() {
                 key={list.id}
                 onClick={() => router.push(`/packing/${list.id}`)}
                 type='button'
-                className="card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-surfaceHover transition-all hover:scale-[1.02] border border-transparent hover:border-primary/20"
+                className="card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-surface-hover transition-all hover:scale-[1.02] border border-transparent hover:border-primary/20"
               >
                 <div className={`p-4 rounded-full bg-blue-50 dark:bg-blue-950 text-primary`}>
                   <Icon className="w-8 h-8" />

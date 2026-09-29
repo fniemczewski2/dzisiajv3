@@ -21,7 +21,8 @@ function redirectWithError(res: NextApiResponse, reason: string) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
 
-  const { code, state } = req.query;
+  const { code, state, error: slackError } = req.query;
+  if (slackError === "access_denied") return redirectWithError(res, "cancelled");
   if (typeof code !== "string" || typeof state !== "string") {
     return redirectWithError(res, "missing_params");
   }
@@ -65,21 +66,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       process.env.SUPABASE_SECRET_KEY!
     );
 
-    const { error } = await admin.from("slack_connections").upsert(
-      {
-        user_id: user.id,
-        team_id: payload.team.id,
-        team_name: payload.team.name ?? null,
-        slack_user_id: payload.authed_user.id,
-        access_token: encryptToken(userToken),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id,team_id" }
-    );
+    const row = {
+      user_id: user.id,
+      team_id: payload.team.id,
+      team_name: payload.team.name ?? null,
+      slack_user_id: payload.authed_user.id,
+      access_token: encryptToken(userToken),
+      updated_at: new Date().toISOString(),
+    };
+
+    let { error } = await admin.from("slack_connections").upsert(row, { onConflict: "user_id,team_id" });
+
+    if (error?.code === "42P10") {
+      await admin.from("slack_connections").delete().eq("user_id", user.id).eq("team_id", payload.team.id);
+      ({ error } = await admin.from("slack_connections").insert(row));
+    }
 
     if (error) {
-      console.error("[slack/callback] Zapis połączenia nieudany:", error.message);
-      return redirectWithError(res, "store_failed");
+      console.error("[slack/callback] Zapis połączenia nieudany:", error.code, error.message);
+      return redirectWithError(res, error.code === "42P01" ? "missing_tables" : "store_failed");
     }
 
     const secure = appUrl.startsWith("https://") ? " Secure;" : "";

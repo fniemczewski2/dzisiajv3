@@ -1,4 +1,4 @@
-﻿// pages/bills/index.tsx
+// pages/bills/index.tsx
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
@@ -49,13 +49,13 @@ export default function BillsPage() {
       />
         <div className="flex justify-between items-center mb-6 gap-2">
           <div className="flex flex-row items-center gap-2 sm:gap-4">
-            <h2 className="text-2xl font-bold text-text">Finanse</h2>
+            <h1 className="page-title">Finanse</h1>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => router.push("/bills/budget")}
                 type='button'
                 title="Budżet"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
               >
                 <ChartColumnBig className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
@@ -63,7 +63,7 @@ export default function BillsPage() {
                 onClick={() => router.push("/bills/calculator")}
                 type='button'
                 title="Kalkulator Podziału"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
               >
                 <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>

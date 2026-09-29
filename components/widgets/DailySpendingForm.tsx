@@ -1,4 +1,4 @@
-﻿// components/widgets/DailySpendingForm.tsx
+// components/widgets/DailySpendingForm.tsx
 
 import React, { useRef, useState, useEffect } from "react";
 import { Coins } from "lucide-react";
@@ -50,7 +50,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
         <h3 className="font-medium text-sm sm:text-base">
           Wydatki
           {!isEditing && (
-            <span className="text-textMuted text-xs sm:text-sm ml-2 font-normal">
+            <span className="text-text-muted text-xs sm:text-sm ml-2 font-normal">
               {targetDate === today ? "dzisiaj" : `(${format(parseISO(targetDate), "d.MM", { locale: pl })})`}
             </span>
           )}
@@ -65,6 +65,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
             step="0.01"
             className="input-field h-7.5 w-20 sm:w-24 text-right tabular-nums text-text py-1 px-2 font-medium"
             title="Szybki wydatek"
+            aria-label="Kwota szybkiego wydatku"
             autoFocus
           />
           <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading} small/>
@@ -77,7 +78,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
           title="Kliknij, aby edytować"
         >
           {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"}
-          <span className="text-[10px] sm:text-xs font-medium text-textMuted uppercase tracking-wider">PLN</span>
+          <span className="text-[10px] sm:text-xs font-medium text-text-muted">PLN</span>
         </button>
       )}
     </div>

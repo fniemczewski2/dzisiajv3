@@ -38,13 +38,13 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
           className="flex justify-between items-center cursor-pointer select-none"
         >
         <div className="flex flex-col">
-          <h3 className="text-lg font-bold text-textPrimary">
+          <h3 className="text-lg font-bold text-text">
             {person.first_name} {person.last_name}
           </h3>
           {isExpanded && person.relationship && (<p className="text-sm text-primary">{person.relationship}</p>)}
         </div>
           
-          <button className="text-textSecondary" type='button' onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+          <button className="text-text-secondary" type='button' onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
             {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
         </div>
@@ -93,21 +93,21 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
             </div>
 
             {person.birthday && (
-              <div className="flex items-center gap-2 text-sm text-textSecondary">
+              <div className="flex items-center gap-2 text-sm text-text-secondary">
                 <Cake className="w-4 h-4 text-purple-500" />
                 {new Date(person.birthday).toLocaleDateString('pl-PL')}
               </div>
             )}
             
             {person.nameday && ( 
-              <div className="flex items-center gap-2 text-sm text-textSecondary">
+              <div className="flex items-center gap-2 text-sm text-text-secondary">
                 <Gift className="w-4 h-4 text-purple-500" />
                 {new Date(person.nameday).toLocaleDateString('pl-PL')}
               </div>
             )}
 
             {person.notes && (
-              <p className="text-sm text-textSecondary italic mt-2 border-t border-gray-100 dark:border-gray-800 pt-2">
+              <p className="text-sm text-text-secondary italic mt-2 border-t border-gray-100 dark:border-gray-800 pt-2">
                 {person.notes}
               </p>
             )}
@@ -118,7 +118,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
       <Modal open={showQR} onClose={() => setShowQR(false)} labelledBy="person-qr-modal-title">
         <div className="bg-surface p-6 rounded-2xl shadow-xl flex flex-col items-center gap-6 max-w-sm w-full border border-gray-200 dark:border-gray-800">
-          <h3 id="person-qr-modal-title" className="text-lg font-bold text-textPrimary text-center">
+          <h3 id="person-qr-modal-title" className="text-lg font-bold text-text text-center">
             Zeskanuj kod
           </h3>
 

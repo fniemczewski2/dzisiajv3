@@ -1,9 +1,9 @@
-﻿// pages/privacy.tsx
+// pages/privacy.tsx
 
 import Seo from "@/components/ui/SEO";
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-bg text-text font-sans">
+    <div className="min-h-screen bg-background text-text font-sans">
       <Seo
         title="Prywatność | Dzisiaj.Fun"
         description="Polityka prywatności aplikacjiDzisiaj.Fun. Dowiedz się, jak chronimy Twoje dane, w tym dane z kalendarzy Google i Microsoft Outlook."
@@ -12,8 +12,8 @@ export default function PrivacyPage() {
       />
 
       <main className="max-w-3xl mx-auto py-12 px-6">
-        <h1 className="text-3xl font-bold text-text mb-2">Polityka Prywatności</h1>
-        <p className="text-sm text-textMuted mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
+        <h1 className="page-title sm:text-4xl mb-2">Polityka Prywatności</h1>
+        <p className="text-sm text-text-muted mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
           Obowiązuje od: 1 stycznia 2025 r. &nbsp;•&nbsp; Aplikacja:Dzisiaj.Fun
         </p>
 
@@ -148,7 +148,7 @@ export default function PrivacyPage() {
           </p>
         </Section>
         
-        <p className="text-sm mt-12 text-textMuted pt-4">
+        <p className="text-sm mt-12 text-text-muted pt-4">
           W razie wprowadzenia istotnych zmian do Polityki Prywatności, zaktualizowana zostanie data &quot;Obowiązuje od&quot; na górze dokumentu.
         </p>
       </main>
@@ -160,7 +160,7 @@ function Section({ title, children }: { readonly title: string; readonly childre
   return (
     <section className="mb-10">
       <h2 className="text-xl font-bold text-text mb-4">{title}</h2>
-      <div className="text-textSecondary leading-relaxed text-sm space-y-2">{children}</div>
+      <div className="text-text-secondary leading-relaxed text-sm space-y-2">{children}</div>
     </section>
   );
 }

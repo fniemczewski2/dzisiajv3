@@ -27,7 +27,7 @@ export default function LocationSection({
         <button
           onClick={() => setShowDetails(!showDetails)}
           type='button'
-          className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
+          className="text-xs font-bold text-primary hover:text-primary-strong transition-colors"
         >
           {showDetails ? 'Ukryj tech.' : 'Techniczne'}
         </button>
@@ -36,7 +36,7 @@ export default function LocationSection({
       {showDetails && (
         <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-2">
-            <span className="font-semibold text-textSecondary">Aktualne współrzędne:</span>
+            <span className="font-semibold text-text-secondary">Aktualne współrzędne:</span>
             <span className="px-2.5 py-1 font-mono font-medium rounded-md card text-text">
               {locationStatus || 'Brak danych'}
             </span>

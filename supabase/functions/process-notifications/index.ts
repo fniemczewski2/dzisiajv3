@@ -367,7 +367,7 @@ async function processHydrationType(ctx: NotifCtx): Promise<void> {
     if (currentHour > 14 && currentHour <= 18 && amount < 1.5) remind = true
 
     if (remind) {
-      await sendPushAndLog(user.user_id, 'Czas na wodę! đź’§', `Wypito tylko ${amount} ${pluralizeLiters(amount)}. Uzupełnij płyny!`, '/', { slot: currentHour })
+      await sendPushAndLog(user.user_id, 'Czas na wodę! 💧', `Wypito tylko ${amount} ${pluralizeLiters(amount)}. Uzupełnij płyny!`, '/', { slot: currentHour })
     }
   }
 }
@@ -446,7 +446,7 @@ async function processOneDaySchema(
     if (!alreadySent) {
       await sendPushAndLog(
         schema.user_id,
-        `Teraz: ${item.label} đź•’`,
+        `Teraz: ${item.label} 🕒`,
         `Zgodnie ze schematem: "${schema.name}"`,
         '/',
         { label: item.label, time: currentTime, sub_type: 'day_schema_entry' }
@@ -483,7 +483,7 @@ async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
     if ((pendingCount && pendingCount > 0) || (doneCount && doneCount > 0)) {
       let msg = `Zrealizowano dziś ${doneCount} ${pluralize(doneCount, 'zadanie', 'zadania', 'zadań')}.`;
       if (pendingCount && pendingCount > 0) msg += ` Do zrobienia zostało ${pendingCount}.`;
-      await sendPushAndLog(user.user_id, 'Czas na podsumowanie đźŚ™', msg, '/')
+      await sendPushAndLog(user.user_id, 'Czas na podsumowanie 🌙', msg, '/')
     }
   }
 }
@@ -608,15 +608,15 @@ async function notifyAnniversary(
 
   const labels = kind === 'birthday'
     ? {
-        title: 'Urodziny đźŽ‚',
-        d0: `Dzisiaj są urodziny: ${name}! đźŽ‰`,
+        title: 'Urodziny 🎂',
+        d0: `Dzisiaj są urodziny: ${name}! 🎉`,
         d1: `Jutro są urodziny: ${name}.`,
         d7: `Za 7 dni urodziny obchodzi: ${name}.`,
         prefix: 'bday',
       }
     : {
-        title: 'Imieniny đź’',
-        d0: `Dzisiaj są imieniny: ${name}! đź’`,
+        title: 'Imieniny 💐',
+        d0: `Dzisiaj są imieniny: ${name}! 💐`,
         d1: `Jutro są imieniny: ${name}.`,
         d7: `Za 7 dni imieniny obchodzi: ${name}.`,
         prefix: 'nday',
@@ -665,7 +665,7 @@ async function notifyContactReminder(
 
   await ctx.sendPushAndLog(
     person.user_id,
-    'Przypomnienie o kontakcie đź“ž',
+    'Przypomnienie o kontakcie 📞',
     `Czas odezwać się do: ${person.first_name} ${person.last_name}.`,
     `/people`,
     { person_id: person.id, sub_type: 'contact_reminder' }

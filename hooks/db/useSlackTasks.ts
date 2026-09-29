@@ -42,7 +42,7 @@ async function callSlackApi<T>(url: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
-  const body = (await response.json()) as T & { error?: string };
+  const body = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new Error(body.error ?? "Błąd komunikacji ze Slackiem.");
   return body;
 }
@@ -54,6 +54,7 @@ export function useSlackTasks() {
   const [columnsByList, setColumnsByList] = useState<Record<string, SlackColumnOption[]>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -61,9 +62,11 @@ export function useSlackTasks() {
       const data = await callSlackApi<StatusResponse>("/api/slack?action=status");
       setAccounts(data.connections ?? []);
       setLists(data.lists ?? []);
-    } catch {
+      setStatusError(null);
+    } catch (err) {
       setAccounts([]);
       setLists([]);
+      setStatusError(err instanceof Error ? err.message : "Nie udało się odczytać połączeń ze Slackiem.");
     } finally {
       setLoading(false);
     }
@@ -211,6 +214,7 @@ export function useSlackTasks() {
   );
 
   return {
+    statusError,
     accounts,
     lists,
     columnsByList,

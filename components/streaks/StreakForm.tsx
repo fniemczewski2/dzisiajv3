@@ -87,8 +87,8 @@ export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormPr
                 title={`Wybierz ikonę: ${iName}`}
                 className={`p-1.5 sm:p-2.5 rounded-xl transition-all flex flex-col items-center justify-center ${
                   icon === iName
-                    ? "bg-surfaceHover text-text shadow-sm scale-110"
-                    : "bg-transparent text-textMuted hover:bg-surface hover:text-text"
+                    ? "bg-surface-hover text-text shadow-sm scale-110"
+                    : "bg-transparent text-text-muted hover:bg-surface hover:text-text"
                 }`}
               >
                 <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />

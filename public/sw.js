@@ -1,4 +1,4 @@
-﻿// public/sw.js
+// public/sw.js
 
 const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
@@ -154,6 +154,9 @@ self.addEventListener('push', (event) => {
         body: data.message || data.body,
         icon: '/icon.png',
         badge: '/icon.png',
+        lang: 'pl',
+        tag: data.tag || data.id || undefined,
+        timestamp: Date.now(),
         vibrate: [100, 50, 100],
         data: {
           dateOfArrival: Date.now(),
@@ -172,6 +175,24 @@ self.addEventListener('push', (event) => {
         // A malformed field in `data` (e.g. non-string title) would
         // otherwise reject inside event.waitUntil with no fallback.
         console.error('[sw] showNotification failed:', err);
+      }
+    })()
+  );
+});
+
+self.addEventListener('pushsubscriptionchange', (event) => {
+  event.waitUntil(
+    (async () => {
+      const options = event.oldSubscription?.options;
+      if (!options?.applicationServerKey) return;
+      try {
+        const subscription = await self.registration.pushManager.subscribe(options);
+        const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of clientsList) {
+          client.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGED', subscription: subscription.toJSON() });
+        }
+      } catch (err) {
+        console.error('[sw] Odnowienie subskrypcji push nie powiodło się:', err);
       }
     })()
   );

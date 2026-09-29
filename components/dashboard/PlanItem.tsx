@@ -1,7 +1,8 @@
-﻿// components/dashboard/PlanItem.tsx
+// components/dashboard/PlanItem.tsx
 
+import { getPriorityColors } from "@/config/priority";
 import React from "react";
-import { Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText } from "lucide-react";
+import { Calendar, Dumbbell, ShoppingCart, Clapperboard, ScrollText, Clock } from "lucide-react";
 import Link from "next/link";
 import TimeContextBadge from "../tasks/TimeContextBadge";
 import { formatTime } from "@/lib/dateUtils";
@@ -24,13 +25,6 @@ const getQuickLink = (title: string): { path: string; icon: React.ReactNode; lab
   return null;
 };
 
-const priorityColors: Record<number, { bg: string; text: string }> = {
-  1: { bg: "#fca5a5", text: "#B91C1C" },
-  2: { bg: "#fdba74", text: "#B91C1C" },
-  3: { bg: "#fde68a", text: "#A16207" },
-  4: { bg: "#a7f3d0", text: "#15803D" },
-  5: { bg: "#bbf7d0", text: "#15803D" },
-};
 
 const getLabel = (item: PlanItemData): string => {
   switch (item.type) {
@@ -60,7 +54,7 @@ const getTimes = (e: PlanItemData["data"]) => {
 export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }: Readonly<PlanItemProps>) => {
   if (item.type === "train" && item.train) return <TrainPlanItem train={item.train} />;
   const quickLink = getQuickLink(item.title);
-  const colors = priorityColors[item.data?.priority as 1 | 2 | 3 | 4 | 5] ?? priorityColors[3];
+  const colors = getPriorityColors(Number(item.data?.priority ?? 3));
 
   return (
     <div className="mb-2 p-2 rounded-lg flex justify-between items-center group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors">      
@@ -69,7 +63,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
           {item.type === "task" && (
             <span
               className="w-5 h-5 text-[10px] font-bold rounded flex items-center justify-center shadow-sm shrink-0"
-              style={{ backgroundColor: colors.bg, color: colors.text }}
+              style={colors}
             >
               {item.data?.priority}
             </span>
@@ -78,8 +72,8 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
         </p>
         <p className="flex items-center flex-wrap gap-2">
           {item.type === "task" && <TimeContextBadge dueDate={item.data?.due_date ?? ""} small />}
-          {(item.type === 'event' || item.type === 'worklog') && <span className="text-[10px] text-textMuted">{getTimes(item.data)}</span>}
-          <span className="text-[8px] font-semibold uppercase tracking-wider text-textMuted">
+          {(item.type === 'event' || item.type === 'worklog') && getTimes(item.data) && <span className="text-[10px] text-text-muted">{getTimes(item.data)}</span>}
+          <span className="text-[10px] font-semibold text-text-muted">
             {getLabel(item)}
           </span>
 
@@ -88,9 +82,6 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
       </div>
       <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
         {quickLink && (
-          // Reuses the shared `actionButton` cva variant instead of a
-          // hand-copied class string, so a future style tweak to that
-          // variant doesn't have to be re-applied here separately.
           <Link href={quickLink.path} title={quickLink.label} className={actionButton({ color: "blue" })}>
             {quickLink.icon}
           </Link>
@@ -99,6 +90,12 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
         {item.type === "event" && (
           <Link href="/calendar" title="Pokaż w kalendarzu" className={actionButton({ color: "blue" })}>
             <Calendar className="w-4 h-4" />
+          </Link>
+        )}
+
+        {item.type === "worklog" && (
+          <Link href="/worklogs" title="Pokaż czas pracy" className={actionButton({ color: "blue" })}>
+            <Clock className="w-4 h-4" />
           </Link>
         )}
 

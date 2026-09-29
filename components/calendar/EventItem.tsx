@@ -77,13 +77,13 @@ export default function EventItem({
 
   const fixedPlace = event?.place?.startsWith("https://") ? 
   ( 
-    <div className="flex items-center text-sm font-medium text-textSecondary truncate underline">
+    <div className="flex items-center text-sm font-medium text-text-secondary truncate underline">
       <Globe className="w-4 h-4 mr-2 text-primary" />
       <a href={event.place} rel="noreferrer" target="_blank">Link</a>
     </div>
 
   ) : (
-    <div className="flex items-center text-sm font-medium text-textSecondary truncate">
+    <div className="flex items-center text-sm font-medium text-text-secondary truncate">
       <MapPin className="w-4 h-4 mr-2 text-primary" />
       {event.place}
     </div>
@@ -191,20 +191,20 @@ export default function EventItem({
         <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
       </div>
       <div className="space-y-2.5 mb-4">
-        <div className="flex items-center text-sm font-medium text-textSecondary">
+        <div className="flex items-center text-sm font-medium text-text-secondary">
           <Clock className="w-4 h-4 mr-2 text-primary" />
           {renderedTime}
         </div>
         {event.place && fixedPlace}
         {event.display_share_info && (
-          <div className="flex items-center text-sm font-medium text-textSecondary truncate">
+          <div className="flex items-center text-sm font-medium text-text-secondary truncate">
             <User className="w-4 h-4 mr-2 text-primary" />
             <span className="truncate">{event.display_share_info}</span>
           </div>
         )}
       </div>
       {event.description && (
-        <p className="text-sm text-textSecondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 wrap-break-word whitespace-pre-wrap">
+        <p className="text-sm text-text-secondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 wrap-break-word whitespace-pre-wrap">
           {event.description}
         </p>
       )}

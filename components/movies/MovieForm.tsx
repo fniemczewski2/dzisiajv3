@@ -41,7 +41,7 @@ const EMPTY_META: TmdbMeta = { tmdb_id: null, poster_path: null, release_year: n
 export function MediaTypeBadge({ type }: Readonly<{ type: MediaType }>) {
   const Icon = type === "tv" ? Tv : Film;
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface border border-gray-200 dark:border-gray-700 text-textSecondary">
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary">
       <Icon className="w-3 h-3" aria-hidden="true" />
       {MEDIA_TYPE_LABELS[type]}
     </span>
@@ -179,7 +179,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               type="button"
               onClick={runSearch}
               disabled={fetching || !form.title.trim()}
-              className="px-4 py-2 bg-surface hover:bg-surfaceHover text-text shadow border border-gray-200 dark:border-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+              className="px-4 py-2 bg-surface hover:bg-surface-hover text-text shadow border border-gray-200 dark:border-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {fetching ? <><Loader2 className="w-4 h-4 animate-spin" /> Szukam...</> : <>Szukaj w TMDB <Search className="w-4 h-4" /></>}
             </button>
@@ -191,8 +191,8 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               <label key={f.value}
                 className={`cursor-pointer px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
                   filter === f.value
-                    ? "bg-primary text-white border-primary"
-                    : "bg-surface text-textSecondary border-gray-200 dark:border-gray-700 hover:text-text"
+                    ? "bg-secondary text-white border-primary"
+                    : "bg-surface text-text-secondary border-gray-200 dark:border-gray-700 hover:text-text"
                 }`}>
                 <input type="radio" name="tmdb-filter" value={f.value} checked={filter === f.value}
                   onChange={() => { setFilter(f.value); setOptions([]); }} className="sr-only" />
@@ -207,19 +207,19 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         {options.length > 0 && (
           <div className="md:col-span-2 bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-3">
             <p className="form-label">Wybierz z wyników ({options.length}):</p>
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-2 scrollbar-thin">
               {options.map((r) => {
                 const img = posterUrl(r.posterPath, "w92");
                 return (
                   <button key={`${r.mediaType}-${r.tmdbId}`} type="button" onClick={() => selectResult(r)}
                     disabled={fetching}
-                    className="w-full text-left p-3 card hover:bg-surfaceHover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60">
+                    className="w-full text-left p-3 card hover:bg-surface-hover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60">
                     <div className="flex gap-3">
                       {img ? (
                         <Image src={img} alt="" loading="lazy" width={48} height={72}
                           className="w-12 h-18 object-cover rounded shadow-sm shrink-0" />
                       ) : (
-                        <div className="w-12 h-18 rounded bg-surfaceHover shrink-0 flex items-center justify-center text-textMuted" aria-hidden="true">
+                        <div className="w-12 h-18 rounded bg-surface-hover shrink-0 flex items-center justify-center text-text-muted" aria-hidden="true">
                           {r.mediaType === "tv" ? <Tv className="w-5 h-5" /> : <Film className="w-5 h-5" />}
                         </div>
                       )}
@@ -228,11 +228,11 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
                           <MediaTypeBadge type={r.mediaType} />
                           <p className="font-semibold text-text">
                             {r.title}
-                            {r.year && <span className="text-textMuted font-normal"> ({r.year})</span>}
+                            {r.year && <span className="text-text-muted font-normal"> ({r.year})</span>}
                           </p>
                         </div>
                         {r.rating && <p className="text-sm text-accent mt-0.5">{r.rating.toFixed(1)}/10</p>}
-                        {r.overview && <p className="text-xs text-textSecondary mt-1 line-clamp-2">{r.overview}</p>}
+                        {r.overview && <p className="text-xs text-text-secondary mt-1 line-clamp-2">{r.overview}</p>}
                       </div>
                     </div>
                   </button>
@@ -240,7 +240,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               })}
             </div>
             <button type="button" onClick={() => setOptions([])}
-              className="mt-3 text-sm font-medium text-textMuted hover:text-text transition-colors">
+              className="mt-3 text-sm font-medium text-text-muted hover:text-text transition-colors">
               Zamknij wyniki
             </button>
           </div>
@@ -251,7 +251,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
             {selectedPoster && (
               <Image src={selectedPoster} alt="" width={40} height={60} className="w-10 h-15 object-cover rounded shrink-0" />
             )}
-            <div className="text-xs text-textSecondary space-y-0.5">
+            <div className="text-xs text-text-secondary space-y-0.5">
               <p className="font-bold text-text">Uzupełniono z TMDB{meta.release_year ? ` · ${meta.release_year}` : ""}</p>
               {form.mediaType === "tv" && (meta.seasons_count || meta.series_status) && (
                 <p>

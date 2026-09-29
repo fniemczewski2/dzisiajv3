@@ -1,4 +1,4 @@
-﻿// components/ui/Timer.tsx
+// components/ui/Timer.tsx
 
 import React from "react";
 import {
@@ -69,7 +69,7 @@ function getPhaseIcon(label: string) {
   if (lower.includes("przerwa") || lower.includes("rest") || lower.includes("break"))
     return <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />;
   if (lower.includes("ćwiczenia") || lower.includes("cwiczenia") || lower.includes("exercise"))
-    return <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />;
+    return <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-strong" />;
 
   return <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />;
 }
@@ -86,11 +86,11 @@ function TimerControlButtons({
         <button
           onClick={controls.prev}
           type='button'
-          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
-          title="Cofnij"
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surface-hover text-text-secondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
+          title="Cofnij" aria-label="Cofnij"
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Cofnij</span>
+          <span className="text-[11px] sm:text-xs font-bold">Cofnij</span>
         </button>
       )}
 
@@ -98,11 +98,11 @@ function TimerControlButtons({
         <button
           onClick={controls.cancel}
           type='button'
-          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-textMuted hover:text-red-500 rounded-xl transition-colors border hover:border-red-200 dark:hover:border-red-900/30"
-          title="Anuluj"
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 text-text-muted hover:text-red-500 rounded-xl transition-colors border hover:border-red-200 dark:hover:border-red-900/30"
+          title="Anuluj" aria-label="Anuluj"
         >
           <X className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Anuluj</span>
+          <span className="text-[11px] sm:text-xs font-bold">Anuluj</span>
         </button>
       )}
 
@@ -110,21 +110,21 @@ function TimerControlButtons({
         <button
           onClick={controls.pause}
           type='button'
-          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 hover:bg-primary bg-secondary border-transparent"
-          title={paused ? "Wznów" : "Pauza"}
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 text-white rounded-xl shadow-sm transition-all active:scale-95 hover:bg-secondary-hover bg-secondary border-transparent"
+          title={paused ? "Wznów" : "Pauza"} aria-label={paused ? "Wznów" : "Pauza"}
         >
           {paused ? <Play className="w-5 h-5 sm:w-6 sm:h-6" /> : <Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{paused ? "Wznów" : "Pauza"}</span>
+          <span className="text-[11px] sm:text-xs font-bold">{paused ? "Wznów" : "Pauza"}</span>
         </button>
       ) : (
         <button
           onClick={controls.start}
           type='button'
-          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 hover:bg-primary bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
-          title="Start"
+          className="flex flex-[1.5] flex-col items-center justify-center gap-1 py-2 sm:py-3 hover:bg-secondary-hover bg-secondary border border-transparent text-white rounded-xl shadow-sm transition-all active:scale-95"
+          title="Start" aria-label="Start"
         >
           <Play className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Start</span>
+          <span className="text-[11px] sm:text-xs font-bold">Start</span>
         </button>
       )}
 
@@ -132,15 +132,15 @@ function TimerControlButtons({
         <button
           onClick={controls.stop}
           type='button'
-          className={`flex flex-1 flex-col items-center justify-center bg-surface gap-1 py-2 sm:py-3 rounded-xl transition-colors text-textMuted border ${
+          className={`flex flex-1 flex-col items-center justify-center bg-surface gap-1 py-2 sm:py-3 rounded-xl transition-colors text-text-muted border ${
             isMultiPhase
               ? "hover:border-red-600/30 hover:dark:border-red-400/30 hover:text-red-600 hover:dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
               : "hover:border-green-600/30 hover:dark:border-green-400/30 hover:text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40"
           }`}
-          title={isMultiPhase ? "Zakończ" : "Zapisz do notatki"}
+          title={isMultiPhase ? "Zakończ" : "Zapisz do notatki"} aria-label={isMultiPhase ? "Zakończ" : "Zapisz do notatki"}
         >
           {isMultiPhase ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Save className="w-4 h-4 sm:w-5 sm:h-5" />}
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
+          <span className="text-[11px] sm:text-xs font-bold">
             {isMultiPhase ? "Stop" : "Zapisz"}
           </span>
         </button>
@@ -150,11 +150,11 @@ function TimerControlButtons({
         <button
           onClick={controls.next}
           type='button'
-          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surfaceHover text-textSecondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
-          title="Dalej"
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-2 sm:py-3 bg-surface hover:bg-surface-hover text-text-secondary border hover:border-gray-200 dark:hover:border-gray-700 rounded-xl transition-all"
+          title="Dalej" aria-label="Dalej"
         >
           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">Dalej</span>
+          <span className="text-[11px] sm:text-xs font-bold">Dalej</span>
         </button>
       )}
     </div>
@@ -193,7 +193,7 @@ export default function UniversalTimer({
         </h2>
         
         {isMultiPhase && (
-          <div className="text-[10px] sm:text-xs font-semibold text-textMuted uppercase tracking-wider">
+          <div className="text-[10px] sm:text-xs font-semibold text-text-muted">
             {nextPhase ? `Następne: ${nextPhase.label}` : "Następne: Koniec"}
           </div>
         )}
@@ -210,10 +210,10 @@ export default function UniversalTimer({
         
         {isMultiPhase && (
           <div className="flex items-center justify-center gap-2 mt-3 sm:mt-4">
-            <span className="bg-surface text-textSecondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border border-gray-200 dark:border-gray-700">
+            <span className="bg-surface text-text-secondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
               Runda {round}
             </span>
-            <span className="bg-surface text-textSecondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide border border-gray-200 dark:border-gray-700">
+            <span className="bg-surface text-text-secondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
               Faza {phaseIndex + 1} / {phases.length}
             </span>
           </div>

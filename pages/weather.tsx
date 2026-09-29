@@ -1,4 +1,4 @@
-﻿// pages/weather.tsx
+// pages/weather.tsx
 
 import {
   Sun,
@@ -51,7 +51,7 @@ function evaluateBiomet(forecast: WeatherData) {
   const w = forecast?.hourly.windspeed_10m?.[0];
 
   if (t == null || p == null || h == null || w == null) {
-    return { label: "Brak danych", color: "text-textMuted" };
+    return { label: "Brak danych", color: "text-text-muted" };
   }
 
   let score = 100;
@@ -232,16 +232,16 @@ export default function WeatherPage() {
         <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne 24h</h3>
         <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl shadow-md mb-6">
           <table className="min-w-full text-sm table-auto text-left">
-            <thead className="bg-surface text-textSecondary font-semibold border-b border-gray-200 dark:border-gray-700">
+            <thead className="bg-surface text-text-secondary font-semibold border-b border-gray-200 dark:border-gray-700">
               <tr>
-                <th className="p-2">Godz</th>
-                <th className="p-2">Temp.</th>
-                <th className="p-2">Opady</th>
-                <th className="p-2">Wiatr</th>
-                <th className="p-2">UV</th>
+                <th scope="col" className="p-2">Godz</th>
+                <th scope="col" className="p-2">Temp.</th>
+                <th scope="col" className="p-2">Opady</th>
+                <th scope="col" className="p-2">Wiatr</th>
+                <th scope="col" className="p-2">UV</th>
               </tr>
             </thead>
-            <tbody className="text-textSecondary">
+            <tbody className="text-text-secondary">
               {hourlyData.map((row) => (
                 <tr key={row.time} className={row.index % 2 === 0 ? "bg-card" : "bg-surface"}>
                   <td className="px-2 py-2 text-text font-medium">
@@ -264,7 +264,7 @@ export default function WeatherPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4 mb-6">
           {forecast.daily.time.slice(1).map((date: string, i: number) => (
             <div key={date} className="card p-4 rounded-xl text-center shadow">
-              <p className="text-sm text-textSecondary">
+              <p className="text-sm text-text-secondary">
                 {new Date(date).toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
               </p>
               <div className="my-2 flex justify-center">
@@ -290,7 +290,7 @@ export default function WeatherPage() {
         canonical="https://dzisiaj.fun/weather"
         keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
       />
-        <h2 className="text-xl mb-4 font-semibold text-text">Pogoda</h2>
+        <h1 className="page-title mb-4">Pogoda</h1>
         {content}
     </>
   );

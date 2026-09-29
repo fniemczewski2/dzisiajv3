@@ -43,13 +43,13 @@ export default function NoteCard({
       )}
       {note.archived && (
         <div className="absolute -top-2 -right-2 p-1.5 rounded-full shadow-sm card">
-          <Archive className="w-4 h-4 text-textMuted" />
+          <Archive className="w-4 h-4 text-text-muted" />
         </div>
       )}
 
       <div className="flex justify-between items-end border-b mb-3 border-gray-300 dark:border-gray-700">
         <h3 className="font-bold text-lg text-text pr-2">{note.title}</h3>
-        <p className="flex-1 text-[10px] text-textMuted font-medium text-right whitespace-nowrap">
+        <p className="flex-1 text-[10px] text-text-muted font-medium text-right whitespace-nowrap">
           {note.updated_at && formatTime(note.updated_at, true)}
         </p>
       </div>
@@ -58,7 +58,7 @@ export default function NoteCard({
         <div className="my-2 space-y-1.5">
           {groupNoteLines(note.items).map((block, blockIndex) => {
             const blockKey = `${note.id}-block-${blockIndex}`;
-            const itemClass = "text-sm text-textSecondary leading-relaxed marker:text-textMuted";
+            const itemClass = "text-sm text-text-secondary leading-relaxed marker:text-text-muted";
 
             if (block.kind === "bullet") {
               return (
@@ -85,7 +85,7 @@ export default function NoteCard({
             }
 
             return (
-              <p key={blockKey} className="text-sm text-textSecondary leading-relaxed">
+              <p key={blockKey} className="text-sm text-text-secondary leading-relaxed">
                 {renderNoteLineContent(block.lines[0], blockKey)}
               </p>
             );

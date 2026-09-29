@@ -1,4 +1,4 @@
-﻿// pages/streaks.tsx
+// pages/streaks.tsx
 
 import { useState } from "react";
 import StreakCard from "@/components/streaks/StreakCard";
@@ -61,9 +61,9 @@ export default function StreaksPage() {
       keywords="nawyki, cele, postępy, postanowienia, pasma, streaks, dyscyplina"
     />
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex flex-nowrap justify-between gap-2">
+          <h1 className="page-title flex flex-nowrap justify-between gap-2">
             Postępy
-          </h2>
+          </h1>
           {!showForm && <AddButton onClick={() => setShowForm(true)} />}
         </div>
 

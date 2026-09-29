@@ -1,4 +1,4 @@
-﻿// proxy.ts
+// proxy.ts
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -43,6 +43,7 @@ export default async function proxy(request: NextRequest) {
     path === '/privacy' ||
     path.startsWith('/.well-known') ||
     path.startsWith('/v/') ||
+    path === '/guide' ||
     path.startsWith('/meet/')
 
   if (!user && !isPublicRoute) {

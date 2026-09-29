@@ -3,7 +3,15 @@
 // targeting it (split out of the former 717-line pages/api/slack/sync.ts).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { listItems, itemExists, type SlackColumn, type SlackItem } from "@/lib/server/slackLists";
+import {
+  findAssigneeColumn,
+  itemExists,
+  listItems,
+  lookupUserIdByEmail,
+  readUserIds,
+  type SlackColumn,
+  type SlackItem,
+} from "@/lib/server/slackLists";
 import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { LinkRow, SyncCounters, SyncTarget, TaskRow } from "./types";
 import { fingerprint, itemChangedSince, itemUpdatedAt, resolveDirection, taskUpdatedAt } from "./taskMapping";
@@ -102,10 +110,12 @@ async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
     itemUpdatedAt: itemUpdatedAt(item),
   });
 
-  if (direction === "push") {
+  const effective = !target.pullEnabled && direction === "pull" ? (appChanged ? "push" : "none") : direction;
+
+  if (effective === "push") {
     await pushTask(admin, target, task, columns, link);
     counters.pushed += 1;
-  } else if (direction === "pull") {
+  } else if (effective === "pull") {
     await pullItem(admin, target, item, task, columns);
     counters.pulled += 1;
   }
@@ -136,6 +146,34 @@ async function processIncomingItem(
     if (isFatalSlackError(err)) throw err;
     recordSyncFailure(counters, err, `pozycja ${item.id}`);
   }
+}
+
+/**
+ * Filtr „pobieraj tylko zadania przypisane do”. Adresy zamieniamy na
+ * identyfikatory użytkowników Slacka; nieznane adresy są pomijane. Gdy lista
+ * nie ma kolumny osoby przypisanej, nie da się filtrować, więc nic nie importujemy.
+ */
+export async function buildAssigneeFilter(
+  target: Pick<SyncTarget, "token" | "assigneeEmails">,
+  columns: SlackColumn[],
+  lookup: (token: string, email: string) => Promise<string | null> = lookupUserIdByEmail
+): Promise<(item: SlackItem) => boolean> {
+  if (target.assigneeEmails.length === 0) return () => true;
+
+  const column = findAssigneeColumn(columns);
+  if (!column) return () => false;
+
+  const ids = new Set<string>();
+  for (const email of target.assigneeEmails) {
+    const id = await lookup(target.token, email);
+    if (id) ids.add(id);
+  }
+  if (ids.size === 0) return () => false;
+
+  return (item) => {
+    const field = item.fields?.find((f) => f.column_id === column.id || (column.key !== undefined && f.key === column.key));
+    return readUserIds(field).some((id) => ids.has(id));
+  };
 }
 
 export async function syncList(
@@ -190,7 +228,11 @@ export async function syncList(
     (pendingRows ?? []).map((r) => (r as { item_id: string }).item_id)
   );
 
+  if (!target.pullEnabled) return counters;
+
+  const accepts = await buildAssigneeFilter(target, columns);
   for (const item of items) {
+    if (!accepts(item)) continue;
     await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters);
   }
 

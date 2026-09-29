@@ -25,7 +25,7 @@ export default function MeetingPollResultsPage() {
       />
       <Link
         href="/meetings"
-        className="inline-flex items-center gap-1.5 text-sm text-textSecondary hover:text-text mb-4 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Wróć do listy ankiet
       </Link>

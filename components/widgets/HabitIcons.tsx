@@ -1,4 +1,4 @@
-﻿// components/widgets/HabitIcons.tsx
+// components/widgets/HabitIcons.tsx
 
 import {
   Pill, Bath, Dumbbell, Users,
@@ -44,7 +44,7 @@ export default function HabitIcons({ date }: Readonly<HabitIconsProps>) {
         return (
           <button
             key={key}
-            title={key}
+            title={key} aria-label={key}
             disabled={habitsLoading}
             onClick={() => toggleHabit(key)}
             type='button'
@@ -52,7 +52,7 @@ export default function HabitIcons({ date }: Readonly<HabitIconsProps>) {
               p-2 sm:p-3 flex-1 min-w-8 max-w-20 sm:max-w-none rounded-xl border transition-colors flex justify-center items-center
               ${isActive 
                 ? "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 shadow-sm" 
-                : "card text-textSecondary hover:bg-surface hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"
+                : "card text-text-secondary hover:bg-surface hover:border-gray-300 dark:hover:border-gray-600 shadow-sm"
               }
               ${habitsLoading ? "opacity-50 cursor-not-allowed" : ""}
             `}

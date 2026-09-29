@@ -68,14 +68,14 @@ export function FileSlot({
   return (
     <div className="flex items-center gap-2">
       <input ref={inputRef} type="file" accept="application/pdf" className="hidden" onChange={handleFile} />
-      <span className="text-xs font-bold uppercase tracking-wide text-textMuted w-20 shrink-0">{label}:</span>
+      <span className="text-xs font-bold text-text-muted w-20 shrink-0">{label}:</span>
       {path ? (
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleView}
             disabled={busy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textSecondary hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-colors disabled:opacity-50"
           >
             <Eye className="w-3.5 h-3.5" /> Podgląd
           </button>
@@ -83,7 +83,7 @@ export function FileSlot({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surfaceHover text-textMuted hover:text-text text-xs font-semibold transition-colors disabled:opacity-50"
+            className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-hover text-text-muted hover:text-text text-xs font-semibold transition-colors disabled:opacity-50"
           >
             Zamień
           </button>
@@ -93,7 +93,7 @@ export function FileSlot({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textSecondary hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-colors disabled:opacity-50"
         >
           <Upload className="w-3.5 h-3.5" /> Wgraj PDF
         </button>
@@ -175,7 +175,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
             return (
               <li key={l.id} className="bg-card border border-primary dark:border-primary rounded-2xl shadow-lg p-5 animate-in fade-in">
                 <div className="space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-textMuted">
+                  <p className="text-xs font-bold text-text-muted">
                     Sygnatura {edited.signature} - kategorii i sygnatury nie można zmienić po utworzeniu.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -264,15 +264,15 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono font-bold text-text">{l.signature}</span>
                     <CopyButtonSmall text={l.signature} label="sygnaturę" />
-                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold">
                       {l.category === "Inne" ? l.category_other : l.category}
                     </span>
                   </div>
-                  <p className="text-sm text-textSecondary mt-1 truncate">{l.recipient}</p>
+                  <p className="text-sm text-text-secondary mt-1 truncate">{l.recipient}</p>
                 </div>
                 <button
                   type='button'
-                  className="p-2 bg-surface text-textSecondary rounded-lg transition-colors shrink-0"
+                  className="p-2 bg-surface text-text-secondary rounded-lg transition-colors shrink-0"
                   onClick={() => toggleOpen(l.id)}
                   aria-label={open ? "Zwiń" : "Rozwiń"}
                 >
@@ -284,45 +284,45 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                 <div className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
                   <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-3">
                     <div>
-                      <dt className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Wystawiono</dt>
+                      <dt className="text-[10px] font-bold text-text-muted">Wystawiono</dt>
                       <dd className="text-text">{l.issue_date}</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Termin odpowiedzi</dt>
+                      <dt className="text-[10px] font-bold text-text-muted">Termin odpowiedzi</dt>
                       <dd className="text-text">{l.response_date ?? "-"}</dd>
                     </div>
                     {l.license_plate_number && (
                       <div>
-                        <dt className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Nr rejestracyjny</dt>
+                        <dt className="text-[10px] font-bold text-text-muted">Nr rejestracyjny</dt>
                         <dd className="text-text font-mono">{l.license_plate_number}</dd>
                       </div>
                     )}
                     {l.incident_date && (
                       <div>
-                        <dt className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Data zdarzenia</dt>
+                        <dt className="text-[10px] font-bold text-text-muted">Data zdarzenia</dt>
                         <dd className="text-text">{l.incident_date}</dd>
                       </div>
                     )}
                     {l.incident_place && (
                       <div className="col-span-2">
-                        <dt className="text-[10px] font-bold text-textMuted uppercase tracking-widest">Miejsce zdarzenia</dt>
+                        <dt className="text-[10px] font-bold text-text-muted">Miejsce zdarzenia</dt>
                         <dd className="text-text">{l.incident_place}</dd>
                       </div>
                     )}
                   </dl>
 
                   {l.description && (
-                    <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap">{l.description}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{l.description}</p>
                   )}
 
                   <div className="bg-surface border border-gray-200 dark:border-gray-800 rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest">
+                      <span className="text-[10px] font-bold text-text-muted">
                         Treść (przykład)
                       </span>
                       <CopyButtonSmall text={letterBody} label="treść pisma" />
                     </div>
-                    <pre className="text-xs text-textSecondary leading-relaxed whitespace-pre-wrap font-sans">
+                    <pre className="text-xs text-text-secondary leading-relaxed whitespace-pre-wrap font-sans">
                       {letterBody}
                     </pre>
                   </div>

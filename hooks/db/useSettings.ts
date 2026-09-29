@@ -1,4 +1,4 @@
-﻿// hooks/db/useSettings.ts
+// hooks/db/useSettings.ts
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -231,7 +231,7 @@ export function useSettings() {
       const { error } = await withRetry(async () =>
         supabase
           .from("settings")
-          .upsert({ user_id: userId, favorite_stops: JSON.stringify(updated) }, { onConflict: "user_id" })
+          .upsert({ user_id: userId, favorite_stops: updated }, { onConflict: "user_id" })
       );
       if (error) throw error;
     },

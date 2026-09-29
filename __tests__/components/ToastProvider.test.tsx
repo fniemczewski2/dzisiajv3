@@ -34,8 +34,9 @@ describe("ToastProvider confirm", () => {
     expect(dialog.className).toMatch(/\bm-auto\b/);
     expect(dialog.className).toMatch(/\binset-0\b/);
     // nie siedzi w kontenerze powiadomień przyklejonym do dołu ekranu
-    expect(dialog.closest(".bottom-32")).toBeNull();
-    expect(screen.getByText("Zapisano").closest(".bottom-32")).not.toBeNull();
+    const stack = screen.getByRole("region", { name: "Powiadomienia" });
+    expect(stack).not.toContainElement(dialog);
+    expect(stack).toContainElement(screen.getByText("Zapisano"));
 
     await userEvent.click(screen.getByRole("button", { name: "Usuń" }));
     await expect(promise).resolves.toBe(true);

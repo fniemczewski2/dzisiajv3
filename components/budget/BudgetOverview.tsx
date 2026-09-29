@@ -94,10 +94,10 @@ export default function BudgetOverview({
               key={v}
               onClick={() => setView(v)}
               type='button'
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                 view === v
                   ? "bg-secondary text-white shadow-sm"
-                  : "text-textMuted hover:text-text"
+                  : "text-text-muted hover:text-text"
               }`}
             >
               {v === "year" ? "Rok" : "Miesiąc"}
@@ -108,13 +108,13 @@ export default function BudgetOverview({
 
       <div className="mb-5">
         <div className="flex justify-between items-end text-sm mb-1.5">
-          <span className="font-medium text-textSecondary">
+          <span className="font-medium text-text-secondary">
             Razem
           </span>
           <span className="font-bold tabular-nums text-text text-right">
             {totalSpent.toFixed(0)} 
             {totalPlanned > 0 && (
-              <span className="text-textMuted font-normal text-xs ml-1">
+              <span className="text-text-muted font-normal text-xs ml-1">
                 +{totalPlanned.toFixed(0)} 
               </span>
             )}
@@ -123,12 +123,12 @@ export default function BudgetOverview({
         </div>
         <ProgressBar spent={totalSpent} planned={totalPlanned} max={totalLimit} />
         {isYear && totalIncome > 0 && (
-          <p className="text-xs text-textMuted mt-1.5 text-right">
+          <p className="text-xs text-text-muted mt-1.5 text-right">
             Przychody: {totalIncome.toFixed(0)} zł • Saldo: {(totalIncome - totalSpent - totalPlanned).toFixed(0)} zł
           </p>
         )}
         {!isYear && (
-          <p className="text-xs text-textMuted mt-1.5 text-right">
+          <p className="text-xs text-text-muted mt-1.5 text-right">
              Wyświetlane są dane i limity dla wybranego miesiąca
           </p>
         )}
@@ -150,12 +150,12 @@ export default function BudgetOverview({
                 <span className="font-medium text-text flex items-center gap-1.5">
                   {item.category.name}
                   {item.category.is_monthly && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded" title="Kategoria limitowana co miesiąc">
+                    <span className="text-[10px] font-bold text-primary bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded" title="Kategoria limitowana co miesiąc">
                       mies.
                     </span>
                   )}
                 </span>
-                <span className={`font-bold tabular-nums ${over ? "text-red-500" : "text-textSecondary"}`}>
+                <span className={`font-bold tabular-nums ${over ? "text-red-500" : "text-text-secondary"}`}>
                   {s.toFixed(0)} 
                   {p > 0 && <span className="text-[11px] font-normal opacity-70 ml-0.5">+{p.toFixed(0)}</span>} 
                   {l > 0 && ` / ${l.toFixed(0)}`} zł
@@ -164,7 +164,7 @@ export default function BudgetOverview({
               <ProgressBar spent={s} planned={p} max={l} danger={over} />
               
               {(!over && l > 0) && (
-                <p className="text-right text-[10px] text-textMuted mt-0.5">
+                <p className="text-right text-[10px] text-text-muted mt-0.5">
                   Zostało: {r.toFixed(0)} zł
                 </p>
               )}
@@ -180,8 +180,8 @@ export default function BudgetOverview({
         {((isYear ? uncategorised?.ySpent : uncategorised?.mSpent) > 0 || (isYear ? uncategorised?.yPlan : uncategorised?.mPlan) > 0) && (
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="font-medium text-textMuted italic">Inne</span>
-              <span className="font-bold tabular-nums text-textSecondary">
+              <span className="font-medium text-text-muted italic">Inne</span>
+              <span className="font-bold tabular-nums text-text-secondary">
                 {(isYear ? uncategorised.ySpent : uncategorised.mSpent).toFixed(0)} zł
                 {(isYear ? uncategorised.yPlan : uncategorised.mPlan) > 0 && (
                   <span className="text-[11px] font-normal opacity-70 ml-0.5">
@@ -197,7 +197,7 @@ export default function BudgetOverview({
         )}
 
         {summary.length === 0 && !uncategorised?.ySpent && !uncategorised?.yPlan && (
-          <p className="text-sm text-textMuted text-center py-4">
+          <p className="text-sm text-text-muted text-center py-4">
             Brak danych. Dodaj kategorie budżetu i rachunki.
           </p>
         )}

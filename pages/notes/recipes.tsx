@@ -39,7 +39,7 @@ export default function RecipesPage() {
         keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"
       />
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-text">Przepisy</h2>
+        <h1 className="page-title">Przepisy</h1>
         {!showForm && <AddButton onClick={() => setShowForm(true)} />}
       </div>
 

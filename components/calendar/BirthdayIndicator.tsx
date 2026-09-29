@@ -1,4 +1,4 @@
-﻿// components/calendar/BirthdayIndicator.tsx
+// components/calendar/BirthdayIndicator.tsx
 
 import { useMemo } from "react";
 import { useEvents, useVirtualBirthdayEvents } from "@/hooks/db/useEvents";
@@ -21,10 +21,10 @@ function HolidayIndicator({ dateStr, dateObj }: { readonly dateStr: string, read
   return (
     <div className="space-y-1">
       <span
-        className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
+        className="text-(--header-warn) font-semibold text-xs sm:text-sm flex items-center justify-start py-0.5"
         title={holiday}
       >
-        <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 shrink-0" /> 
+        <Star aria-hidden="true" className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 shrink-0" />
         <span className="truncate">{holiday}</span>
       </span>
     </div>
@@ -71,10 +71,10 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
     <div className="space-y-1">
       {holiday && (
         <span
-          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase tracking-wider px-1 py-0.5"
+          className="text-(--header-warn) font-semibold text-xs sm:text-sm flex items-center justify-start py-0.5"
           title={holiday}
         >
-          <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 shrink-0" /> 
+          <Star aria-hidden="true" className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 shrink-0" />
           <span className="truncate">{holiday}</span>
         </span>
       )}
@@ -82,12 +82,12 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
       {specialEvents.map((event) => (
         <span
           key={event.id}
-          className="text-red-500 dark:text-red-400 font-bold text-[10px] sm:text-sm text-right flex items-center justify-start uppercase py-0.5"
+          className="text-(--header-warn) font-semibold text-xs sm:text-sm flex items-center justify-start py-0.5"
           title={event.description || event.title}
         >
           {getEventIcon(event.title, event.description)}
           <span className="truncate">
-             {event.title.replace(/đźŽ‚ |đźŽ‰ /g, '')}
+             {event.title.replace(/\u{1F382} |\u{1F389} /gu, '')}
           </span>
         </span>
       ))}

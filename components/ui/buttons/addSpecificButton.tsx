@@ -29,7 +29,7 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router, sm
       }}
     type='button'
     title={title}
-    className={`group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surfaceHover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm ${small && "w-10"}`}
+    className={`group relative p-1.5 sm:p-2 bg-surface text-primary hover:bg-surface-hover rounded-lg border border-gray-200 dark:border-gray-800 transition-all flex flex-1 flex-col items-center justify-center gap-1 sm:gap-1.5 shadow-sm ${small && "w-10"}`}
     aria-label={`dodaj ${label}`}
   >
       <div className="relative top-0 w-5 h-5 sm:h-6 sm:w-6">
@@ -37,7 +37,7 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router, sm
         <Plus className="absolute left-3 top-2 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-surface rounded-full"/>
       </div>
     {!small &&
-      <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wide opacity-90 group-hover:opacity-100 text-center leading-tight">
+      <span className="text-[11px] sm:text-xs font-bold opacity-90 group-hover:opacity-100 text-center leading-tight">
         {label}
       </span>
     }

@@ -22,27 +22,46 @@ const makeTrain = (over: Partial<TrackedTrain> = {}): TrackedTrain => ({
 
 afterEach(() => vi.restoreAllMocks());
 
+const hm = (minutes: number) => soon(minutes).departureTime;
+
 describe("TrainPlanItem", () => {
-  it("shows departure, platform, wagon, seat and the live delay", async () => {
+  it("przed odjazdem pokazuje stację wyjazdu: czas z opóźnieniem, peron, miejsce", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ delay: 12, platform: "3", status: "Opóźniony", estimatedArrival: "", hide: false }), { status: 200 })
     );
     const train = makeTrain();
     render(<TrainPlanItem train={train} />);
 
-    expect(await screen.findByText("+12 min")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();            // peron
-    expect(screen.getByText("12")).toBeInTheDocument();           // wagon
-    expect(screen.getByText("45")).toBeInTheDocument();           // miejsce
-    expect(screen.getByText(train.departureTime)).toHaveClass("line-through"); // planowa, przekreślona
-    expect(screen.getByText("Poznań Główny")).toBeInTheDocument();
+    expect(await screen.findByText("+12")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("12 | 45")).toBeInTheDocument();
+    expect(screen.getByText(hm(52))).toBeInTheDocument();
+    expect(screen.getByText("Odjazd z: Poznań Główny")).toBeInTheDocument();
+  });
+
+  it("po faktycznym odjeździe pokazuje stację przyjazdu: czas przyjazdu i peron przyjazdu", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          delay: 3, platform: "3", status: "W trasie", estimatedArrival: "", hide: false,
+          departurePlatform: "3", departureDelay: 5, arrivalPlatform: "7", arrivalDelay: 3, plannedArrival: hm(60),
+        }),
+        { status: 200 }
+      )
+    );
+    render(<TrainPlanItem train={makeTrain(soon(-20))} />);
+
+    expect(await screen.findByText("7")).toBeInTheDocument();
+    expect(screen.getByText("+3")).toBeInTheDocument();
+    expect(screen.getByText(hm(63))).toBeInTheDocument();
+    expect(screen.getByText("Przyjazd do: Warszawa Centralna")).toBeInTheDocument();
   });
 
   it("does not call PKP for a train far in the future and shows dashes for unknown platform", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     render(<TrainPlanItem train={makeTrain({ ...soon(60 * 24 * 3), wagon: "", seat: "" })} />);
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3); // peron, wagon, miejsce
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2); // peron, miejsce
   });
 
   it("marks a cancelled train", async () => {

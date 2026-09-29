@@ -18,20 +18,20 @@ export default function SeriesProgress({ season, episode, seasonsCount, onChange
   const maxSeason = seasonsCount && seasonsCount > 0 ? seasonsCount : null;
   const canNextSeason = maxSeason === null || s < maxSeason;
   const btn =
-    "p-1.5 rounded-md bg-surface border border-gray-200 dark:border-gray-700 text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
+    "p-1.5 rounded-md bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary hover:text-text hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (
     <div className="mb-3 p-2.5 rounded-lg bg-surface border border-gray-100 dark:border-gray-800">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-textMuted mb-1.5">Postęp oglądania</p>
+      <p className="text-[10px] font-bold text-text-muted mb-1.5">Postęp oglądania</p>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-textSecondary">Sezon</span>
+          <span className="text-xs text-text-secondary">Sezon</span>
           <button type="button" className={btn} disabled={disabled || s <= 1}
             onClick={() => onChange(s - 1, 0)} aria-label="Poprzedni sezon">
             <Minus className="w-3.5 h-3.5" />
           </button>
           <span className="min-w-6 text-center font-bold text-text tabular-nums" aria-live="polite">
-            {s}{maxSeason ? <span className="text-textMuted font-normal">/{maxSeason}</span> : null}
+            {s}{maxSeason ? <span className="text-text-muted font-normal">/{maxSeason}</span> : null}
           </span>
           <button type="button" className={btn} disabled={disabled || !canNextSeason}
             onClick={() => onChange(s + 1, 0)} aria-label="Następny sezon">
@@ -39,7 +39,7 @@ export default function SeriesProgress({ season, episode, seasonsCount, onChange
           </button>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-textSecondary">Odcinek</span>
+          <span className="text-xs text-text-secondary">Odcinek</span>
           <button type="button" className={btn} disabled={disabled || e <= 0}
             onClick={() => onChange(s, e - 1)} aria-label="Cofnij odcinek">
             <Minus className="w-3.5 h-3.5" />

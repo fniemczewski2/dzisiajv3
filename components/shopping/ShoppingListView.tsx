@@ -1,4 +1,4 @@
-﻿// components/shopping/ShoppingListView.tsx
+// components/shopping/ShoppingListView.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, User } from "lucide-react";
@@ -135,7 +135,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
               </div>
               <ul className="list-none space-y-2.5 opacity-60 pointer-events-none grayscale-[0.5]">
                 {list.elements.map((el) => (
-                  <li key={el.id} className={`flex items-center justify-between ${el.completed ? "line-through text-textMuted" : "text-text"}`}>
+                  <li key={el.id} className={`flex items-center justify-between ${el.completed ? "line-through text-text-muted" : "text-text"}`}>
                     <div className="flex items-center flex-1 gap-3">
                       <input type="checkbox" checked={el.completed} readOnly className="h-5 w-5 rounded text-primary focus:ring-primary accent-primary cursor-not-allowed card" />
                       <span className="flex-1 font-medium">{el.text}</span>
@@ -153,7 +153,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
               <div className="flex-1 mr-4 min-w-0">
                 <h3 className="font-bold text-lg text-text leading-tight truncate">{list.name}</h3>
                 {list.display_share_info && (
-                  <div className="flex items-center text-sm font-medium text-textSecondary mt-2">
+                  <div className="flex items-center text-sm font-medium text-text-secondary mt-2">
                     <User className="w-4 h-4 mr-1.5 text-primary" />
                     <span className="truncate">{list.display_share_info}</span>
                   </div>
@@ -166,7 +166,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
             </div>
             <ul className="list-none mb-4 flex-1 space-y-1">
               {list.elements.map((el) => (
-                <li key={el.id} className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${el.completed ? "line-through text-textMuted" : "text-text"}`}>
+                <li key={el.id} className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${el.completed ? "line-through text-text-muted" : "text-text"}`}>
                   <div className="flex items-center flex-1 gap-3 min-w-0">
                     <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)}
                       className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
@@ -196,9 +196,9 @@ function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) 
   };
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-      <input type="text" placeholder="Nowy produkt..." value={text}
+      <input type="text" aria-label="Nowy produkt" placeholder="Nowy produkt…" value={text}
         onChange={(e) => setText(e.target.value)} className="input-field py-2 flex-1 min-w-0" />
-      <button className="flex items-center justify-center px-4 hover:bg-primary text-white font-bold rounded-xl bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt">
+      <button className="flex items-center justify-center px-4 hover:bg-secondary-hover text-white font-bold rounded-xl bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt" aria-label="Dodaj produkt">
         <Plus className="w-5 h-5" />
       </button>
     </form>

@@ -108,7 +108,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
         className="mb-6 max-w-md"
       />
 
-      <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 gay-y-2 mx-auto w-full">
+      <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 gap-y-2 mx-auto w-full">
         {filteredNotes.length === 0 && 
           <NoResultsState text="notatek"/>
         }
@@ -142,8 +142,8 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
 
       {filteredNotes.length === 0 && searchQuery && (
         <div className="text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl mt-4">
-          <Search className="w-12 h-12 mx-auto mb-4 text-textMuted opacity-50" />
-          <p className="text-textSecondary font-medium">
+          <Search className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />
+          <p className="text-text-secondary font-medium">
             <NoResultsState text="notatek" isSearch />
           </p>
         </div>

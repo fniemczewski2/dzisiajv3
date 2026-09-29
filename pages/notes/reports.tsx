@@ -1,4 +1,4 @@
-﻿// pages/notes/reports.tsx
+// pages/notes/reports.tsx
 
 import React, { useState, useRef, useEffect } from "react";
 import { X, Plus } from "lucide-react";
@@ -39,27 +39,27 @@ function ReportViewRow({
       <div className="flex-1">
         <div className="flex justify-between items-end border-b mb-3 border-black/5 dark:border-white/5">
           <h3 className="font-bold text-lg text-text pr-2">{report.topic}</h3>
-          <p className="flex-1 text-[10px] text-textMuted font-medium text-right whitespace-nowrap">
+          <p className="flex-1 text-[10px] text-text-muted font-medium text-right whitespace-nowrap">
             {format(new Date(report.date), "dd.MM.yyyy")}
           </p>
         </div>
         {report.participants && report.participants.length > 0 && (
-          <div className="text-sm text-textSecondary mb-3">
-            <span className="font-bold text-textMuted uppercase tracking-wider text-[10px] mr-2">Uczestnicy:</span>
+          <div className="text-sm text-text-secondary mb-3">
+            <span className="font-bold text-text-muted text-[10px] mr-2">Uczestnicy:</span>
             <span className="font-medium">{report.participants.join(", ")}</span>
           </div>
         )}
         {report.tasks && report.tasks.length > 0 && (
           <div className="mt-2 bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 mb-2">
-            <span className="font-bold text-textMuted uppercase tracking-wider text-[10px] block mb-1.5">Zadania:</span>
-            <ul className="list-none space-y-1 text-sm text-textSecondary">
+            <span className="font-bold text-text-muted text-[10px] block mb-1.5">Zadania:</span>
+            <ul className="list-none space-y-1 text-sm text-text-secondary">
               {report.tasks.map((task) => (
                 <li key={`task-${task.zadanie}-${task.data}-${task.osoba}`} className="flex gap-2">
                   <span className="text-primary">•</span>
                   <span>
                     <span className="font-medium text-text">{task.zadanie}</span>
                     {task.osoba && ` - ${task.osoba}`}
-                    {task.data && <span className="text-textMuted text-xs ml-1">({task.data})</span>}
+                    {task.data && <span className="text-text-muted text-xs ml-1">({task.data})</span>}
                   </span>
                 </li>
               ))}
@@ -136,14 +136,14 @@ function ReportEditRow({
                   onChange={(e) => updateAgenda(i, e.target.value)} />
                 {(editedReport.agenda?.length || 0) > 1 && (
                   <button type="button" onClick={() => removeAgenda(i)}
-                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors">
+                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-700 hover:text-white rounded-lg transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
             <button type="button" onClick={addAgenda}
-              className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary flex items-center gap-1 mt-2">
+              className="text-xs font-bold text-primary hover:text-primary-strong flex items-center gap-1 mt-2">
               <Plus className="w-4 h-4" /> Dodaj punkt
             </button>
           </div>
@@ -157,14 +157,14 @@ function ReportEditRow({
                   onChange={(e) => updateParticipant(i, e.target.value)} />
                 {(editedReport.participants?.length || 0) > 1 && (
                   <button type="button" onClick={() => removeParticipant(i)}
-                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors">
+                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-700 hover:text-white rounded-lg transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))}
             <button type="button" onClick={addParticipant}
-              className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary flex items-center gap-1 mt-2">
+              className="text-xs font-bold text-primary hover:text-primary-strong flex items-center gap-1 mt-2">
               <Plus className="w-4 h-4" /> Dodaj uczestnika
             </button>
           </div>
@@ -244,7 +244,7 @@ export default function ReportsPage() {
         keywords="raporty, podsumowania, spotkania, sprawozdania"
       />
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text">Sprawozdania</h2>
+          <h1 className="page-title">Sprawozdania</h1>
           {!showForm && <AddButton onClick={() => setShowForm(true)}/>}
         </div>
 

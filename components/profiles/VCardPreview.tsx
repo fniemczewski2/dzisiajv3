@@ -1,4 +1,4 @@
-﻿// components/profiles/VCardPreview.tsx
+// components/profiles/VCardPreview.tsx
 
 import React from 'react';
 import Image from 'next/image';
@@ -127,8 +127,8 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
         <button
           onClick={onBack}
           type='button'
-          className="flex items-center p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
-          title="Wróć do listy wizytówek"
+          className="flex items-center p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
+          title="Wróć do listy wizytówek" aria-label="Wróć do listy wizytówek"
         >
           <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" /> <p>Wróć</p>
         </button>
@@ -164,7 +164,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
           <div className="mt-6 space-y-5">
             {(profile.phones?.length > 0 || profile.emails?.length > 0) && (
               <div className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Kontakt</h3>
+                <h3 className="text-xs text-neutral-400 font-semibold mb-2">Kontakt</h3>
                 {profile.phones?.map((p) => (
                   <div key={`tel-${p.number}`} className="flex flex-col sm:flex-row justify-between sm:items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{p.type}</span>
@@ -192,7 +192,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
 
             {profile.addresses?.length > 0 && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
-                <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Adresy</h3>
+                <h3 className="text-xs text-neutral-400 font-semibold mb-2">Adresy</h3>
                 {profile.addresses.map((a) => (
                   <div key={`addr-${a.address}`} className="flex flex-row justify-between items-start text-sm py-1">
                     <span className="opacity-70 text-xs w-20 mt-1">{a.type}</span>
@@ -207,7 +207,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
 
             {profile.social_links?.length > 0 && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
-                <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Linki społecznościowe</h3>
+                <h3 className="text-xs text-neutral-400 font-semibold mb-2">Linki społecznościowe</h3>
                 {profile.social_links.map((social) => {
                   if (!social.url) return null;
                   const displayUser = getUsernameFromUrl(social.url, social.platform);
@@ -226,7 +226,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
 
             {hasBusinessData && (
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
-                <h3 className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-2">Pozostałe Dane</h3>
+                <h3 className="text-xs text-neutral-400 font-semibold mb-2">Pozostałe Dane</h3>
                 {bizData.nip && (
                   <div className="flex justify-between items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">NIP</span>
@@ -269,15 +269,16 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
             <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border dark:border-neutral-700 rounded-lg p-2">
               <input 
                 type="text" 
-                readOnly 
-                value={publicLink} 
+                readOnly
+                aria-label="Publiczny link do wizytówki"
+                value={publicLink}
                 className="flex-1 bg-transparent text-sm outline-none text-neutral-700 dark:text-neutral-300 truncate"
               />
               <CopyButtonSmall text={publicLink} label="link publiczny" />
             </div>
           </div>
         ) : (
-          <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-2 rounded w-full">
+          <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-2 rounded w-full">
             Wizytówka jest prywatna. Zmień ustawienia w edycji, aby wygenerować publiczny adres i aktywny kod QR.
           </p>
         )}

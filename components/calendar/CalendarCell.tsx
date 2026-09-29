@@ -56,7 +56,7 @@ const CalendarCell = memo(function CalendarCell({
       className={clsx(
         "flex flex-col relative text-left justify-between p-1 sm:p-2 sm:min-h-26.5 min-h-21.5 rounded-xl cursor-pointer overflow-hidden border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isOutside
-          ? "bg-transparent border-transparent text-textMuted opacity-50 hover:bg-surface"
+          ? "bg-transparent border-transparent text-text-muted opacity-50 hover:bg-surface"
           : "card shadow-sm hover:shadow-md",
         isToday && "ring-1 ring-primary"
       )}
@@ -68,7 +68,7 @@ const CalendarCell = memo(function CalendarCell({
           className={clsx(
             "text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors",
             isToday ? "bg-secondary text-white" : "text-text",
-            isOutside && !isToday && "text-textMuted",
+            isOutside && !isToday && "text-text-muted",
             holiday &&
               (isToday
                 ? "bg-red-600 dark:bg-red-400/80" 
@@ -88,7 +88,7 @@ const CalendarCell = memo(function CalendarCell({
 
         <div className="flex items-center gap-1 z-10">
           {(eCount != 0 && !isMobile) && (
-            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-textSecondary">
+            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-text-secondary">
               <Calendar size={12} />
               +{eCount}
             </div>

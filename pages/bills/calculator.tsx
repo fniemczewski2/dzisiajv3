@@ -1,4 +1,4 @@
-﻿// pages/bills/calculator.tsx
+// pages/bills/calculator.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
@@ -31,11 +31,11 @@ const InputField = ({
 }) => {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-xs font-bold uppercase tracking-wider text-textSecondary pl-1">
+      <label className="text-xs font-bold text-text-secondary pl-1">
         {label}
       </label>
       <div className="relative flex items-stretch">
-        <div className="bg-surface border border-gray-200 dark:border-gray-700 border-r-0 rounded-l-xl flex items-center justify-center w-11 text-textMuted shrink-0">
+        <div className="bg-surface border border-gray-200 dark:border-gray-700 border-r-0 rounded-l-xl flex items-center justify-center w-11 text-text-muted shrink-0">
           {icon || <Plus size={16} />}
         </div>
         <input
@@ -45,13 +45,14 @@ const InputField = ({
           step={step}
           defaultValue={defaultValue || ""}
           placeholder="0"
+          aria-label={typeof label === "string" ? label : undefined}
           onChange={onChange}
           readOnly={readOnly}
           className={`w-full py-2.5 px-3 rounded-r-xl outline-none font-medium text-text card focus:ring-2 focus:ring-primary focus:border-primary transition-all ${
             readOnly ? 'bg-surface cursor-not-allowed opacity-70' : ''
           }`}
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-textMuted pointer-events-none">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted pointer-events-none">
           {suffix}
         </span>
       </div>
@@ -185,15 +186,15 @@ export default function BillCalculator() {
           <button
             onClick={handleBack}
             type='button'
-            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
             aria-label="Wróć"
           >
             <Coins className="w-4 h-4" />
           </button>
 
-          <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide">
+          <h1 className="page-title mx-auto text-center first-letter:uppercase">
             Kalkulator Podziału
-          </h2>
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -213,7 +214,7 @@ export default function BillCalculator() {
               </div>
               
               <div className="mt-5 pt-4 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-sm font-medium uppercase tracking-wider text-textSecondary">Suma:</span>
+                  <span className="text-sm font-medium text-text-secondary">Suma:</span>
                   <span className="text-xl font-bold text-primary">{results.total.toFixed(2)} zł</span>
               </div>
             </section>
@@ -234,7 +235,7 @@ export default function BillCalculator() {
                   />
                   {rateLoading && <SkeletonLine className="h-3 w-40 mt-2 ml-1" />}
                   {!rateLoading && fetchedEuroRate && (
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-primary mt-2 ml-1">
+                      <p className="text-[10px] font-bold text-primary mt-2 ml-1">
                           Aktualny kurs z NBP: {fetchedEuroRate} zł
                       </p>
                   )}
@@ -247,6 +248,7 @@ export default function BillCalculator() {
                   <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
                     <h3 className="font-bold text-text">Osoba 1</h3>
                     <select 
+                        aria-label="Waluta – osoba 1"
                         value={currency1}
                         onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
                         className="text-xs font-bold card text-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
@@ -265,7 +267,7 @@ export default function BillCalculator() {
                         onChange={calculate} 
                       />
                       {currency1 !== "PLN" && (
-                        <div className="text-right text-[10px] font-bold uppercase tracking-wider text-textMuted mt-1">
+                        <div className="text-right text-[10px] font-bold text-text-muted mt-1">
                             w przeliczeniu: {results.grossPln1.toFixed(2)} zł
                         </div>
                       )}
@@ -281,7 +283,7 @@ export default function BillCalculator() {
                         onChange={calculate}
                         icon={<Minus size={16} />}
                       />
-                      <div className="text-right text-[10px] font-bold uppercase tracking-wider text-red-500 mt-1">
+                      <div className="text-right text-[10px] font-bold text-red-500 mt-1">
                         - {results.pitValue1.toFixed(2)} zł
                       </div>
                     </div>
@@ -290,7 +292,7 @@ export default function BillCalculator() {
                     </div>
                   </div>
                   <div className="text-right mt-5 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-textSecondary">Dochód Netto:</span>
+                    <span className="text-[10px] font-medium text-text-secondary">Dochód Netto:</span>
                     <span className="text-lg font-medium text-green-600 dark:text-green-500">{results.netIncome1.toFixed(2)} zł</span>
                   </div>
                 </div>
@@ -299,6 +301,7 @@ export default function BillCalculator() {
                   <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
                     <h3 className="font-medium text-text">Osoba 2</h3>
                     <select 
+                        aria-label="Waluta – osoba 2"
                         value={currency2}
                         onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
                         className="text-xs font-bold card text-text rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
@@ -317,7 +320,7 @@ export default function BillCalculator() {
                       onChange={calculate} 
                     />
                     {currency2 !== "PLN" && (
-                      <div className="text-right text-[10px] font-bold uppercase tracking-wider text-textMuted mt-1">
+                      <div className="text-right text-[10px] font-bold text-text-muted mt-1">
                           w przeliczeniu: {results.grossPln2.toFixed(2)} zł
                       </div>
                     )}
@@ -333,7 +336,7 @@ export default function BillCalculator() {
                       step={1}
                       onChange={calculate}
                     />
-                    <div className="text-right text-[10px] font-bold uppercase tracking-wider text-red-500 mt-1">
+                    <div className="text-right text-[10px] font-bold text-red-500 mt-1">
                       - {results.pitValue2.toFixed(2)} zł
                     </div>
                   </div>
@@ -342,7 +345,7 @@ export default function BillCalculator() {
                   </div>
                   </div>
                   <div className="text-right mt-5 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-textSecondary">Dochód Netto:</span>
+                    <span className="text-[10px] font-bold text-text-secondary">Dochód Netto:</span>
                     <span className="text-lg font-black text-green-600 dark:text-green-500">{results.netIncome2.toFixed(2)} zł</span>
                   </div>
                 </div>
@@ -357,25 +360,25 @@ export default function BillCalculator() {
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-textSecondary">Osoba 1</span>
+                    <span className="text-sm font-bold text-text-secondary">Osoba 1</span>
                     <span className="text-sm font-bold text-primary px-2.5 py-1">
                       {(results.share1 / results.total * 100 || 0).toFixed(0)}%
                     </span>
                   </div>
                   <div className="text-2xl font-bold text-text">
-                    {results.share1.toFixed(2)} <span className="text-base font-bold text-textMuted">zł</span>
+                    {results.share1.toFixed(2)} <span className="text-base font-bold text-text-muted">zł</span>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-textSecondary">Osoba 2</span>
+                    <span className="text-sm font-bold text-text-secondary">Osoba 2</span>
                     <span className="text-sm font-bold text-primary px-2.5 py-1">
                       {(results.share2 / results.total * 100 || 0).toFixed(0)}%
                     </span>
                   </div>
                   <div className="text-2xl font-bold text-text">
-                    {results.share2.toFixed(2)} <span className="text-base font-bold text-textMuted">zł</span>
+                    {results.share2.toFixed(2)} <span className="text-base font-bold text-text-muted">zł</span>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-﻿// pages/tasks/daySchema.tsx
+// pages/tasks/daySchema.tsx
 
 import React, { useMemo, useState } from "react";
 import { format } from "date-fns";
@@ -53,7 +53,7 @@ export default function DaySchemaPage() {
           keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
         />
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text">Plan dnia</h2>
+          <h1 className="page-title">Plan dnia</h1>
           {!showForm && <AddButton onClick={openNew} />}
         </div>
 
@@ -99,13 +99,13 @@ export default function DaySchemaPage() {
 
               {sortedEntries.map((entry) => (
                 <div key={entry.time} className="relative mb-3 flex items-center space-x-2">
-                  <span className="text-sm font-bold text-textMuted w-12 h-6 flex items-center shrink-0">{entry.time}</span>
-                  <span className="font-lg font-medium text-text">{entry.label}</span>
+                  <span className="text-sm font-bold text-text-muted w-12 h-6 flex items-center shrink-0">{entry.time}</span>
+                  <span className="text-lg font-medium text-text">{entry.label}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-textMuted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
+            <p className="text-text-muted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
           )}
         </div>
     </>

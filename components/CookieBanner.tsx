@@ -1,4 +1,4 @@
-﻿// components/CookieBanner.tsx
+// components/CookieBanner.tsx
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -21,25 +21,26 @@ export default function CookieBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-gray-200 dark:border-gray-800 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-100 transition-transform animate-in slide-in-from-bottom-full duration-500">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-textSecondary text-center sm:text-left">
-          Ta strona korzysta z ciasteczek (cookies) oraz podobnych technologii niezbędnych do działania aplikacji (np. autoryzacja sesji). 
-          Więcej informacji znajdziesz w naszej{' '}
-          <Link href="/privacy" className="text-primary hover:text-secondary hover:underline font-bold transition-colors">
-            Polityce Prywatności
+    <section
+      aria-label="Informacja o plikach cookie"
+      className="fixed inset-x-3 top-3 z-60 mx-auto max-w-lg sm:inset-x-auto sm:right-5 sm:top-5 sm:mx-0 sm:max-w-sm rounded-2xl border border-line bg-card p-4 sm:p-5 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300"
+    >
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-text-secondary leading-relaxed">
+          Używamy wyłącznie plików cookie niezbędnych do działania aplikacji, np. do utrzymania sesji logowania.
+          Szczegóły znajdziesz w{" "}
+          <Link href="/privacy" className="font-semibold text-primary underline-offset-4 hover:underline hover:text-primary-strong">
+            polityce prywatności
           </Link>.
-        </div>
-        <div className="flex gap-3 shrink-0 w-full sm:w-auto">
-          <button
-            onClick={acceptCookies}
-            type='button'
-            className="w-full sm:w-auto px-6 py-2.5 hover:bg-primary bg-secondary text-white text-sm font-bold rounded-lg transition-colors shadow-sm"
-          >
-            Rozumiem i akceptuję
-          </button>
-        </div>
+        </p>
+        <button
+          onClick={acceptCookies}
+          type="button"
+          className="self-end shrink-0 min-h-11 px-5 py-2.5 rounded-xl bg-secondary hover:bg-secondary-hover text-white text-sm font-semibold transition-colors"
+        >
+          Rozumiem
+        </button>
       </div>
-    </div>
+    </section>
   );
 }

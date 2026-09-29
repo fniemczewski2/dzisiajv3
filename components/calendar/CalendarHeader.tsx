@@ -18,7 +18,7 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
       <div className="flex items-center card rounded-2xl p-1 shadow-sm">
         <button
           onClick={onPrev}
-          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
           type='button'
           title="Poprzedni miesiąc"
           aria-label="Poprzedni miesiąc"
@@ -32,7 +32,7 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
 
         <button
           onClick={onNext}
-          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
           type='button'
           title="Następny miesiąc"
           aria-label="Następny miesiąc"

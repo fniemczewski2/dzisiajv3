@@ -1,4 +1,4 @@
-﻿// components/settings/LoveButton.tsx
+// components/settings/LoveButton.tsx
 
 import { Heart } from "lucide-react";
 import { useState } from "react";
@@ -42,10 +42,10 @@ export default function LoveButton() {
       disabled={loading || sent}
       className={`p-2.5 rounded-xl transition-colors border shadow-sm ${
         sent || loading
-          ? "bg-pink-500 border-pink-500 text-white shadow-pink-500/20"
+          ? "bg-pink-600 border-pink-500 text-white shadow-pink-500/20"
           : "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-900/50 hover:bg-pink-100 dark:hover:bg-pink-900/40 text-pink-500 dark:text-pink-400"
       }`}
-      title="Wyślij serduszko"
+      title="Wyślij serduszko" aria-label="Wyślij serduszko"
     >
       <Heart className={`w-5 h-5 ${sent ? "animate-pulse" : ""}`} fill={sent ? "#fff" : "none"} />
     </button>

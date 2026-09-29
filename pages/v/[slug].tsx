@@ -13,7 +13,7 @@ export default function PublicVCard({ profile, error }: Readonly<PublicVCardProp
   if (error || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-neutral-900">
-        <h1 className="text-xl text-neutral-500">Wizytówka nie istnieje lub nie jest już publiczna.</h1>
+        <h1 className="text-xl text-text-muted">Wizytówka nie istnieje lub nie jest już publiczna.</h1>
       </div>
     );
   }

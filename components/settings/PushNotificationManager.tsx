@@ -1,4 +1,4 @@
-﻿// components/settings/PushNotificationManager.tsx
+// components/settings/PushNotificationManager.tsx
 
 import React, { useEffect, useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
@@ -53,8 +53,8 @@ function DetailRow({ label, value, ok, warn = false }: { readonly label: string;
 
   return (
     <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
-      <span className="font-semibold text-textSecondary">{label}</span>
-      <span className={`px-2 py-1 rounded font-bold uppercase tracking-wide border ${colorClass}`}>
+      <span className="font-semibold text-text-secondary">{label}</span>
+      <span className={`px-2 py-1 rounded font-bold border ${colorClass}`}>
         {value}
       </span>
     </div>
@@ -89,7 +89,7 @@ function TechDetailsInfo({
   return (
     <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 space-y-3">
       <div className="flex items-center justify-between text-xs sm:text-sm">
-        <span className="font-semibold text-textSecondary">Platforma:</span>
+        <span className="font-semibold text-text-secondary">Platforma:</span>
         <div className="flex gap-2">
           <span className="px-2 py-1 rounded card text-text font-medium uppercase">
             {platformLabel}
@@ -155,10 +155,9 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
     try {
       if (isSubscribed) {
         await unsubscribeFromPush();
-        toast.success("Powiadomienia wyłączone.");
       } else {
         await subscribeToPush();
-        toast.success("Powiadomienia włączone.");
+        if ("Notification" in globalThis) setPermission(Notification.permission);
       }
     } catch {
       toast.error("Błąd powiadomień.");
@@ -225,7 +224,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
         <button 
           onClick={() => setShowDetails(!showDetails)}
           type='button'
-          className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors">
+          className="text-xs font-bold text-primary hover:text-primary-strong transition-colors">
           {showDetails ? "Ukryj tech." : "Techniczne"}
         </button>
       </div>
@@ -245,24 +244,24 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
       <div className="flex flex-wrap md:grid md:grid-cols-2 gap-3 pt-2">
         {isSupported && permission === "default" && (
           <button onClick={handleRequestPermission} type='button' disabled={loading}
-            className="flex-1 min-w-35 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-primary transition-colors disabled:opacity-50">
+            className="flex-1 min-w-35 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-secondary-hover transition-colors disabled:opacity-50">
             {loading ? "Czekaj..." : "Nadaj Uprawnienia"}
             <AlertCircle className="w-5 h-5" />
           </button>
         )}
         {isSupported && permission === "granted" && (
           <button onClick={handleToggleNotifications} type='button' disabled={loading}
-            className={`font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+            className={`font-semibold px-4 py-2 w-full bg-surface hover:bg-surface-hover text-text-secondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
               isSubscribed
                 ? "bg-red-5 dark:bg-red-950 border border-red-200 dark:border-red-900/50"
-                : "bg-surface hover:bg-surfaceHover"
+                : "bg-surface hover:bg-surface-hover"
             }`}>
             {buttonContent}
           </button>
         )}
         {isSubscribed && (
           <button onClick={handleTestNotification} type='button' disabled={loading}
-            className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+            className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surface-hover text-text-secondary rounded-lg flex justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
             Wyślij Test <CheckCircle className="w-5 h-5" />
           </button>
         )}

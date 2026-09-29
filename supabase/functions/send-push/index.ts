@@ -1,4 +1,4 @@
-﻿// supabase/functions/send-push/index.ts
+// supabase/functions/send-push/index.ts
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import webpush from 'npm:web-push@3.6.6'
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
     const sendPromises = subscriptions.map(async (sub) => {
       try {
-        await webpush.sendNotification(sub.subscription, payload)
+        await webpush.sendNotification(sub.subscription, payload, { TTL: 60 * 60 * 12, urgency: 'high' })
         return { success: true }
       } catch (error) {
         console.error('Błąd wysyłki push (WebPush):', error)

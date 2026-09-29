@@ -57,7 +57,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
         <button
           onClick={() => setShowDetails(!showDetails)}
           type="button"
-          className="text-xs font-bold uppercase tracking-wider text-primary hover:text-secondary transition-colors"
+          className="text-xs font-bold text-primary hover:text-primary-strong transition-colors"
         >
           {showDetails ? "Ukryj tech." : "Techniczne"}
         </button>
@@ -83,7 +83,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
           <TriangleAlert className="w-4 h-4  text-red-600 dark:text-red-400 shrink-0" aria-hidden="true" />
           Usunięcie konta
         </h4>
-        <p className="text-sm text-textSecondary mb-3">
+        <p className="text-sm text-text-secondary mb-3">
           Usuwa konto wraz ze wszystkimi danymi.
           Operacji nie da się cofnąć.
         </p>
@@ -109,7 +109,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
               className="input-field w-full"
               aria-describedby="delete-confirmation-hint"
             />
-            <p id="delete-confirmation-hint" className="text-xs text-textMuted">
+            <p id="delete-confirmation-hint" className="text-xs text-text-muted">
               Po usunięciu nastąpi wylogowanie. Odzyskanie danych nie będzie możliwe.
             </p>
             <div className="flex flex-wrap gap-2">
@@ -130,7 +130,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
                   setConfirmation("");
                 }}
                 disabled={deleting}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-surface hover:bg-surfaceHover text-textSecondary border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-surface hover:bg-surface-hover text-text-secondary border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-50"
               >
                 Anuluj
               </button>

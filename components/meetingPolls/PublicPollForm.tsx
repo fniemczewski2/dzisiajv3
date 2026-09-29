@@ -1,4 +1,4 @@
-﻿// components/meetingPolls/PublicPollForm.tsx
+// components/meetingPolls/PublicPollForm.tsx
 
 import React, { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
@@ -68,11 +68,11 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   }
 
   if (notFound || !poll) {
-    return <p className="text-textMuted text-center py-16">Ta ankieta nie istnieje albo została usunięta.</p>;
+    return <p className="text-text-muted text-center py-16">Ta ankieta nie istnieje albo została usunięta.</p>;
   }
 
   if (poll.status === "closed") {
-    return <p className="text-textMuted text-center py-16">Ta ankieta nie przyjmuje już odpowiedzi.</p>;
+    return <p className="text-text-muted text-center py-16">Ta ankieta nie przyjmuje już odpowiedzi.</p>;
   }
 
   if (submitted) {
@@ -80,7 +80,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
       <div className="text-center space-y-3 py-16">
         <CheckCircle2 className="w-10 h-10 text-primary mx-auto" />
         <p className="text-lg font-bold text-text">Dziękujemy!</p>
-        <p className="text-sm text-textSecondary">Twoja dostępność została zapisana.</p>
+        <p className="text-sm text-text-secondary">Twoja dostępność została zapisana.</p>
       </div>
     );
   }
@@ -88,8 +88,8 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-text">{poll.title}</h1>
-        {poll.description && <p className="text-sm text-textSecondary mt-1">{poll.description}</p>}
+        <h1 className="page-title">{poll.title}</h1>
+        {poll.description && <p className="text-sm text-text-secondary mt-1">{poll.description}</p>}
         {hasExistingResponse && (
           <p className="text-xs text-primary mt-2">
             Znaleźliśmy Twoją wcześniejszą odpowiedź - możesz ją tu poprawić.
@@ -126,16 +126,16 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
           <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onTouchMove={handleTouchMove}>
             <thead>
               <tr>
-                <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left" />
+                <th scope="col" className="sticky left-0 bg-card text-xs text-text-muted font-normal p-1 text-left" />
                 {poll.dates.map((d) => (
-                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-18">{d.split('-')[2] + "." + d.split('-')[1]}</th>
+                  <th scope="col" key={d} className="text-xs text-text-muted font-semibold p-1 min-w-18">{d.split('-')[2] + "." + d.split('-')[1]}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {times.map((time) => (
                 <tr key={time}>
-                  <td className="sticky left-0 bg-card text-xs text-textMuted p-1 pr-2 whitespace-nowrap">{time}</td>
+                  <td className="sticky left-0 bg-card text-xs text-text-muted p-1 pr-2 whitespace-nowrap">{time}</td>
                   {poll.dates.map((date) => {
                     const isSelected = selected.has(slotKey(date, time));
                     return (
@@ -143,7 +143,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
                         key={date}
                         {...cellHandlers("grid", slotKey(date, time))}
                         className={`w-12 h-8 text-center cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
-                          isSelected ? "bg-primary" : "bg-surface hover:bg-surfaceHover"
+                          isSelected ? "bg-primary" : "bg-surface hover:bg-surface-hover"
                         }`}
                       />
                     );

@@ -1,4 +1,4 @@
-﻿// pages/tasks/index.tsx
+// pages/tasks/index.tsx
 
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
@@ -109,12 +109,12 @@ export default function TasksPage() {
         keywords="zadania, lista to-do, projekty, priorytety, zarządzanie projektami"
       />
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text flex items-center gap-3">
+          <h1 className="page-title flex items-center gap-3">
             <span>Zadania</span>
             <span className="text-sm font-bold bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/70 px-2.5 py-1 rounded-lg">
               {todayDone}/{todayTotal}
             </span>
-          </h2>
+          </h1>
           {!showForm && <AddButton onClick={openNew} />}
         </div>
         
@@ -129,12 +129,12 @@ export default function TasksPage() {
                   title={opt.title}
                   className={`p-1 sm:px-3 sm:py-2 rounded-lg transition-all flex flex-1 flex-col items-center justify-center gap-1 ${
                     dateFilter === opt.value
-                      ? "bg-surfaceHover text-text shadow-md scale-105"
-                      : "bg-transparent text-textMuted hover:text-text hover:bg-surface"
+                      ? "bg-surface-hover text-text shadow-md scale-105"
+                      : "bg-transparent text-text-muted hover:text-text hover:bg-surface"
                   }`}
                 >
                   <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
-                  <span className="text-[8px] sm:text-[10px] font-bold uppercase">{opt.title}</span>
+                  <span className="text-[11px] sm:text-xs font-semibold">{opt.title}</span>
                 </button>
               );
             })}

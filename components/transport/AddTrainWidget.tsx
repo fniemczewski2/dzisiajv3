@@ -1,7 +1,7 @@
-﻿// components/transport/AddTrainWidget.tsx
+// components/transport/AddTrainWidget.tsx
 
 import React, { useState } from 'react';
-import { Upload } from 'lucide-react';
+import { ScanLine, Upload } from 'lucide-react';
 import { CancelButton, SaveButton } from '../ui/CommonButtons';
 import { useTicketUpload  } from '@/lib/trainTicketUtils'; 
 import { TicketFormData } from '@/types/transport';
@@ -24,7 +24,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
     seat: ''
   });
 
-  const { handleFileUpload, loading } = useTicketUpload({
+  const { handleFileUpload, loading, missingFromTicket, clearTicketReview } = useTicketUpload({
     setFormData,
     setExpanded
   }); 
@@ -32,6 +32,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onTrainAdded(formData);
+    clearTicketReview();
     setFormData({ trainNumber: '', trainName: '', date: '', departureTime: '', from: '', to: '', wagon: '', seat: ''});
     setExpanded(false);
   };
@@ -41,8 +42,21 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
   return (
     <>
       {expanded && (
-          <form onSubmit={handleSubmit} className="form-card">
-            
+          <form onSubmit={handleSubmit} className="form-card" aria-busy={loading}>
+            {missingFromTicket && (
+              <div role="status" className="flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-700/60 dark:bg-blue-900/40 dark:text-blue-100">
+                <ScanLine aria-hidden="true" className="h-5 w-5 shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold">Dane odczytane automatycznie z biletu</p>
+                  <p className="text-blue-800 dark:text-blue-200">
+                    {missingFromTicket.length > 0
+                      ? `Nie rozpoznano: ${missingFromTicket.join(', ')}. Uzupełnij je i sprawdź pozostałe pola przed zapisem.`
+                      : 'Sprawdź, czy wszystkie pola się zgadzają, zanim zapiszesz pociąg.'}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="trainNumber" className="form-label">Nr pociągu</label>
@@ -142,12 +156,12 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
             </div>
 
             <div className="flex flex-col md:flex-row items-center justify-end gap-3 mt-2 border-t border-gray-100 dark:border-gray-800">
-              <CancelButton onClick={() => setExpanded(false)} />
+              <CancelButton onClick={() => { clearTicketReview(); setExpanded(false); }} />
               <label 
-                className={`px-4 py-2 w-full md:flex-1 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
+                className={`px-4 py-2 w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
               >
                 .pdf
-                <Upload className="w-4 h-4 text-textSecondary" />
+                <Upload aria-hidden="true" className="w-4 h-4 text-text-secondary" />
                 <input 
                   type="file" 
                   accept="application/pdf"

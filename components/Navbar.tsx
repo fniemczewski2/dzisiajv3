@@ -1,4 +1,4 @@
-﻿// components/Navbar.tsx
+// components/Navbar.tsx
 
 import {
   Calendar,
@@ -120,14 +120,15 @@ export default function Navbar() {
           type="button"
           aria-label="Zamknij menu"
           onClick={() => setIsMenuOpen(false)}
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] animate-fadeIn cursor-default"
+          className="fixed inset-0 z-40 bg-navy/40 backdrop-blur-[2px] animate-fade-in cursor-default"
         />
       )}
 
-      <nav className={`${!isMenuOpen && "max-h-['65px']"} fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg card backdrop-blur-xl p-2 shadow-2xl rounded-2xl z-50 transition`}>
+      <nav aria-label="Nawigacja główna" className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-lg bg-card/90 border border-line backdrop-blur-xl backdrop-saturate-150 p-1.5 shadow-2xl rounded-(--radius-card) z-50 transition-colors">
         <div
           id="navbar-menu-panel"
           aria-hidden={!isMenuOpen}
+          inert={!isMenuOpen}
           className={`grid transition-all duration-300 ease-out ${
             isMenuOpen
               ? "grid-rows-[1fr] opacity-100 mb-2"
@@ -137,8 +138,8 @@ export default function Navbar() {
           <div className="overflow-hidden">
             <div className="max-h-[80vh] overflow-y-auto overscroll-contain space-y-2 pr-0.5">
               {NAVIGATION_CATEGORIES.map((category) => (
-                <div key={category.name} className="bg-surface rounded-xl p-2">
-                  <h3 className="text-[9px] sm:text-[10px] pb-1.5 px-1 font-bold text-textMuted uppercase tracking-widest">
+                <section key={category.name} aria-label={category.name} className="bg-surface rounded-xl p-2">
+                  <h3 className="text-xs pb-1.5 px-1 font-semibold text-text-muted">
                     {category.name}
                   </h3>
                   <div className="grid grid-cols-4 gap-1.5">
@@ -155,16 +156,16 @@ export default function Navbar() {
                       />
                     ))}
                   </div>
-                </div>
+                </section>
               ))}
               <div className="w-full flex items-center gap-2">
               <Link
                 href="/settings"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-xl bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-xl bg-surface hover:bg-surface-hover text-text-secondary hover:text-text transition-colors active:scale-[0.98]"
               >
                 <SettingsIcon className="w-4 h-4" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">
+                <span className="text-xs font-semibold">
                   Ustawienia
                 </span>
               </Link>
@@ -183,20 +184,20 @@ export default function Navbar() {
             aria-expanded={isMenuOpen}
             aria-controls="navbar-menu-panel"
             aria-label={isMenuOpen ? "Zamknij menu" : "Otwórz menu"}
-            className={`flex flex-col items-center justify-center flex-1 py-2 sm:py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${
+            className={`flex flex-col items-center justify-center flex-1 min-h-12 py-1.5 rounded-xl transition-colors duration-200 active:scale-95 ${
               isMenuOpen
-                ? "text-primary"
-                : "text-textMuted hover:text-text hover:bg-surface"
+                ? "text-primary bg-primary/10"
+                : "text-text-muted hover:text-text hover:bg-surface"
             }`}
           >
             {isMenuOpen ? (
-              <X className="w-5 h-5 sm:w-6 sm:h-6 mb-1 scale-110 transition-transform" />
+              <X aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform" />
             ) : (
-              <Menu className="w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform" />
+              <Menu aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform" />
             )}
             <span
-              className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${
-                isMenuOpen ? "font-bold" : "font-medium"
+              className={`text-[11px] sm:text-xs leading-none ${
+                isMenuOpen ? "font-semibold" : "font-medium"
               }`}
             >
               Menu
@@ -232,22 +233,28 @@ function MenuItemLink({
       href={href}
       title={title}
       onClick={onNavigate}
-      className="relative p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-card hover:bg-surfaceHover transition-all active:scale-95 flex flex-col items-center justify-center gap-1 group"
+      aria-current={isActive ? "page" : undefined}
+      className={`relative min-h-14 p-1.5 rounded-lg border transition-colors active:scale-95 flex flex-col items-center justify-center gap-1 group ${
+        isActive
+          ? "border-primary/50 bg-primary/10"
+          : "border-line hover:border-line-strong bg-card hover:bg-surface-hover"
+      }`}
     >
       <Icon
+        aria-hidden="true"
         className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-          isActive ? "text-primary" : "text-textMuted group-hover:text-text"
+          isActive ? "text-primary" : "text-text-muted group-hover:text-text"
         }`}
       />
       <span
-        className={`text-[8px] sm:text-[9px] text-center leading-tight font-bold tracking-wide uppercase ${
-          isActive ? "text-primary" : "text-textSecondary group-hover:text-text"
+        className={`text-[11px] text-center leading-tight font-semibold ${
+          isActive ? "text-primary" : "text-text-secondary group-hover:text-text"
         }`}
       >
         {label}
       </span>
       {badge && (
-        <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-red-500 dark:bg-red-600 text-white text-[8px] rounded-full shadow-sm border-2 border-card z-10">
+        <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded-full shadow-sm border-2 border-card z-10">
           {badge}
         </span>
       )}
@@ -262,20 +269,20 @@ function NavLink({ href, Icon, label, currentPath }: Readonly<NavLinkProps>) {
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center justify-center flex-1 py-2 sm:py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${
+      aria-current={isActive ? "page" : undefined}
+      className={`relative flex flex-col items-center justify-center flex-1 min-h-12 py-1.5 rounded-xl transition-colors duration-200 active:scale-95 ${
         isActive
-          ? "text-primary"
-          : "text-textMuted hover:text-text hover:bg-surface"
+          ? "text-primary bg-primary/10"
+          : "text-text-muted hover:text-text hover:bg-surface"
       }`}
     >
       <Icon
-        className={`w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform ${
-          isActive ? "scale-110" : ""
-        }`}
+        aria-hidden="true"
+        className="w-5 h-5 sm:w-6 sm:h-6 mb-1"
       />
       <span
-        className={`text-[9px] sm:text-[10px] uppercase tracking-wider leading-none ${
-          isActive ? "font-bold" : "font-medium"
+        className={`text-[11px] sm:text-xs leading-none ${
+          isActive ? "font-semibold" : "font-medium"
         }`}
       >
         {label}

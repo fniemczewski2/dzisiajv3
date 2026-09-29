@@ -11,7 +11,7 @@ export default function MenuGrid() {
   return (
     <div className="space-y-4 mb-4">
       <div className="card rounded-2xl shadow-sm p-2 sm:p-3">
-        <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-textMuted uppercase tracking-widest">
+        <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-text-muted">
           DODAJ
         </h3>
         <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
@@ -35,7 +35,7 @@ export default function MenuGrid() {
             key={category.name}
             className="card rounded-xl p-2 sm:p-3"
           >
-            <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-textMuted uppercase tracking-widest">
+            <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-text-muted">
               {category.name}
             </h3>
 
@@ -53,19 +53,19 @@ export default function MenuGrid() {
                     className={`
                       relative p-1.5 sm:p-2 rounded-lg border transition-all
                       flex flex-col items-center justify-center gap-1 sm:gap-1.5 flex-1 group
-                      bg-surface border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-surfaceHover text-textSecondary'
+                      bg-surface border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-surface-hover text-text-secondary'
                     `}
                   >
                     <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-primary' : 'text-textMuted group-hover:text-text'
+                      isActive ? 'text-primary' : 'text-text-muted group-hover:text-text'
                     }`} />
-                    <span className={`text-[8px] sm:text-[10px] text-center leading-tight font-bold tracking-wide uppercase ${
-                      isActive ? 'text-primary' : 'text-textSecondary group-hover:text-text'
+                    <span className={`text-[11px] sm:text-xs text-center leading-tight font-bold ${
+                      isActive ? 'text-primary' : 'text-text-secondary group-hover:text-text'
                     }`}>
                       {button.label}
                     </span>
                     {button.badge && (
-                      <span className="absolute -top-1.5 -right-0.5 sm:-right-1.5 px-1.5 py-0.5 bg-red-500 dark:bg-red-600 text-white text-[8px] rounded-full shadow-sm border-2 border-card z-10">
+                      <span className="absolute -top-1.5 -right-0.5 sm:-right-1.5 px-1.5 py-0.5 bg-red-600 dark:bg-red-600 text-white text-[10px] rounded-full shadow-sm border-2 border-card z-10">
                         {button.badge}
                       </span>
                     )}

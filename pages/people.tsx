@@ -1,4 +1,4 @@
-﻿// pages/people.tsx
+// pages/people.tsx
 
 import React, { useState } from 'react';
 import { usePeople } from '@/hooks/db/usePeople';
@@ -108,7 +108,7 @@ export default function PeoplePage() {
 
       <div className="max-w-4xl mx-auto p-4 flex flex-col gap-6 pb-24">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-2xl font-bold text-textPrimary">Osoby i relacje</h1>
+          <h1 className="page-title">Osoby i relacje</h1>
           
           {!isFormOpen && !editingPerson && (
             <div className="flex flex-wrap gap-2 w-full md:w-auto">

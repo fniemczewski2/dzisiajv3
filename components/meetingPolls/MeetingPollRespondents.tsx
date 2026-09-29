@@ -62,7 +62,7 @@ export default function MeetingPollRespondents({
           <Users className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
           Użytkownicy ({responses.length})
         </h4>
-          <button className="text-textSecondary" type='button' onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
+          <button className="text-text-secondary" type='button' onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>
             {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
       </div>
@@ -85,13 +85,13 @@ export default function MeetingPollRespondents({
                       )}
                     </p>
                     {response.respondent_email && (
-                      <p className="flex items-center gap-1.5 text-xs text-textSecondary break-all">
+                      <p className="flex items-center gap-1.5 text-xs text-text-secondary break-all">
                         <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                         {response.respondent_email}
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col items-end gap-0.5 text-right text-xs text-textMuted whitespace-nowrap">
+                  <div className="flex flex-col items-end gap-0.5 text-right text-xs text-text-muted whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4"/><p>{formatSubmittedAt(response.created_at)}</p>
                     </div>
@@ -104,7 +104,7 @@ export default function MeetingPollRespondents({
 
           {emails.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center gap-2">
-              <span className="text-xs text-textMuted">
+              <span className="text-xs text-text-muted">
                 Adresy e-mail ({emails.length}):
               </span>
               <CopyButtonSmall text={emails.join(", ")} label="adresy e-mail" />

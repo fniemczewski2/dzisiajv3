@@ -163,7 +163,7 @@ export default function RecipeForm({
           <button
             type="button"
             onClick={() => commitProduct(prodInput)}
-            className="px-4 py-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2 transition-colors disabled:opacity-50"
             disabled={loading || !prodInput.trim()}
             aria-label="Dodaj składnik"
           >
@@ -187,12 +187,12 @@ export default function RecipeForm({
         {picked.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2" aria-label="Wybrane składniki">
             {picked.map((p) => (
-              <li key={p} className="inline-flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-sm text-textSecondary">
+              <li key={p} className="inline-flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-sm text-text-secondary">
                 {p}
                 <button
                   type="button"
                   onClick={() => removeProduct(p)}
-                  className="text-textMuted hover:text-red-500 transition-colors"
+                  className="text-text-muted hover:text-red-500 transition-colors"
                   disabled={loading}
                   aria-label={`Usuń składnik ${p}`}
                 >

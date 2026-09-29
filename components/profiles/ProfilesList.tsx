@@ -1,4 +1,4 @@
-﻿// components/profiles/ProfilesList.tsx
+// components/profiles/ProfilesList.tsx
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -49,7 +49,7 @@ export default function ProfilesList() {
     await deleteProfile(id);
   };
 
-  if (error) return <div className="p-4 text-red-500 bg-red-100 rounded">Błąd: {error}</div>;
+  if (error) return <div className="p-4 text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 rounded-xl">Błąd: {error}</div>;
 
   if (view === 'form') {
     return (
@@ -73,7 +73,7 @@ export default function ProfilesList() {
   return (
     <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-textPrimary">Wizytówki</h1>
+            <h1 className="page-title">Wizytówki</h1>
             <AddButton
               onClick={handleAddClick}
               disabled={profiles.length >= 5 || loading}
@@ -89,7 +89,7 @@ export default function ProfilesList() {
             <div key={profile.id} className="card rounded-xl p-4">
               
               <div className="flex items-center gap-4 mb-4">
-                <div className="relative w-12 h-12 rounded-full bg-neutral-200 overflow-hidden shrink-0">
+                <div className="relative w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0">
                   {profile.avatar_url ? (
                     <Image src={profile.avatar_url} alt="" fill sizes="48px" className="object-cover" />
                   ) : (
@@ -100,7 +100,7 @@ export default function ProfilesList() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold dark:text-white truncate">{profile.profile_name}</h3>
                     {profile.is_public && (
-                      <span className="px-2 py-0.5 text-[11px] bg-blue-50 text-blue-800 font-semibold rounded-full">Publiczna</span>
+                      <span className="px-2 py-0.5 text-[11px] bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 font-semibold rounded-full">Publiczna</span>
                     )}
                   </div>
                   <p className="text-sm dark:text-gray-200 text-gray-800 truncate">{profile.full_name}</p>

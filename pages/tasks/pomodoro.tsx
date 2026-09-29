@@ -1,4 +1,4 @@
-﻿// pages/tasks/pomodoro.tsx
+// pages/tasks/pomodoro.tsx
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -131,12 +131,12 @@ const controls: TimerControls = {
           <button
             onClick={handleBack}
             type='button'
-            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
             aria-label="Wróć"
           >
             <ListTodo className="w-4 h-4" />
           </button>
-          <h2 className="text-xl font-semibold">Pomodoro</h2>
+          <h1 className="page-title">Pomodoro</h1>
         </div>
 
         <UniversalTimer

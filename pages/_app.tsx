@@ -1,8 +1,8 @@
-﻿// pages/_app.tsx
+// pages/_app.tsx
 
 import { useEffect, useState } from "react";
 import {type AppProps } from "next/app";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import "../styles/globals.css";
@@ -15,6 +15,13 @@ const inter = Inter({
   subsets: ["latin", "latin-ext"],
   display: "swap",
   variable: "--font-inter",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  axes: ["opsz", "wdth"],
+  variable: "--font-bricolage",
 });
 
 export default function MyApp({ Component, pageProps}: Readonly<AppProps>) {
@@ -33,7 +40,13 @@ export default function MyApp({ Component, pageProps}: Readonly<AppProps>) {
       <ErrorBoundary>
         <AuthProvider>
           <ToastProvider>
-            <div className={`${inter.variable} contents`}>
+            <style jsx global>{`
+              :root {
+                --font-inter: ${inter.style.fontFamily};
+                --font-bricolage: ${bricolage.style.fontFamily};
+              }
+            `}</style>
+            <div className="contents">
               <Layout>
                 <Component {...pageProps} />
                 <CookieBanner />

@@ -16,7 +16,7 @@ export default function DataExportSection() {
         <h3 className="text-lg font-bold">Kopia moich danych</h3>
       </div>
 
-      <p className="text-sm text-textSecondary mb-4">
+      <p className="text-sm text-text-secondary mb-4">
         Pobierz wszystkie swoje dane z aplikacji w jednym pliku JSON.
       </p>
 
@@ -25,7 +25,7 @@ export default function DataExportSection() {
         onClick={() => void exportData()}
         disabled={exporting}
         aria-busy={exporting}
-        className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg flex justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surface-hover text-text-secondary rounded-lg flex justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {exporting ? (
           <>
@@ -50,7 +50,7 @@ export default function DataExportSection() {
           >
             {percent}%
           </progress>
-          <p className="mt-2 text-xs text-textSecondary" aria-live="polite">
+          <p className="mt-2 text-xs text-text-secondary" aria-live="polite">
             Sekcja {progress.done} z {progress.total}
           </p>
         </div>

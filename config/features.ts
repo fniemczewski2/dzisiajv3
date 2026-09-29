@@ -1,337 +1,319 @@
-﻿// config/features.ts
+// config/features.ts
 
-import { 
-  Backpack, 
-  Bell, 
-  Calendar, 
-  ChartColumnBig, 
-  CheckCircle, 
-  Clapperboard,
-  Coins, 
-  CookingPot, 
-  Dumbbell, 
-  FileText, 
-  ListTodo, 
-  Logs,
-  Luggage, 
-  Pen, 
-  Settings, 
-  Shield, 
-  ShoppingCart, 
-  Star, 
-  Sun, 
-  Target,
-  Timer, 
-  UsersRound,
+import {
+  Backpack,
+  Bell,
+  BusFront,
   Calculator,
+  Calendar,
   CalendarClock,
-  Gavel,
-  Bus,
+  ChartColumnBig,
+  Clapperboard,
   Clock,
-  User,
+  Coins,
+  CookingPot,
+  Dumbbell,
+  Edit2,
+  Gavel,
+  HeartPulse,
   IdCard,
-  LucideIcon
+  LayoutDashboard,
+  ListTodo,
+  Logs,
+  MessageSquareShare,
+  ScrollText,
+  ShoppingCart,
+  Sun,
+  Target,
+  Timer,
+  TrainFront,
+  User,
+  type LucideIcon,
 } from "lucide-react";
+
+export type FeatureStatus = "nowe" | "zmienione";
+
+export type FeatureCategory =
+  | "Zadania"
+  | "Spotkania"
+  | "Notatki"
+  | "Finanse"
+  | "Wyjścia i wyjazdy"
+  | "Osobiste";
 
 export interface Feature {
   title: string;
   description: string;
   icon: LucideIcon;
-  category?: FeatureCategory;
-  path?: string; 
-  badge?: "Nowe" | "Beta" | "Popularne"; 
-  comingSoon?: boolean; 
+  path?: string;
+  guideId?: string;
+  status?: FeatureStatus;
+  /** Jedno zdanie o tym, co się zmieniło – pokazywane przy oznaczeniu. */
+  note?: string;
+  since?: string;
 }
-
-export type FeatureCategory = 
-  | "Produktywność"
-  | "Organizacja"
-  | "Finanse"
-  | "Styl życia"
-  | "Rozrywka"
-  | "Narzędzia";
 
 export interface FeatureGroup {
   category: FeatureCategory;
-  color: string;
+  summary: string;
   features: Feature[];
 }
 
+export const FEATURE_STATUS_LABEL: Record<FeatureStatus, string> = {
+  nowe: "Nowość",
+  zmienione: "Zmiana",
+};
+
 export const FEATURE_GROUPS: FeatureGroup[] = [
   {
-    category: "Produktywność",
-    color: "blue",
+    category: "Zadania",
+    summary: "Plan dnia i praca w skupieniu",
     features: [
       {
+        title: "Kokpit dnia",
+        description: "Oś czasu 06:00–23:00 z zadaniami, wydarzeniami, rutynami i pociągami. Przeciągasz zadanie na godzinę, a plan układa się sam.",
+        icon: LayoutDashboard,
+        path: "/",
+        guideId: "dashboard",
+      },
+      {
         title: "Zadania",
-        description: "Organizuj zadania z priorytetami i datami. Przeciągaj je bezpośrednio na oś czasu (Drag & Drop).",
+        description: "Priorytety, terminy, kategorie i filtry. Zadania od zaufanych osób przyjmujesz jednym kliknięciem.",
         icon: ListTodo,
-        category: "Produktywność",
         path: "/tasks",
-        badge: "Popularne",
+        guideId: "tasks_list",
+      },
+      {
+        title: "Plan dnia",
+        description: "Schematy powtarzalnych dni, które same trafiają do kokpitu, np. osobny plan na dni robocze i weekend.",
+        icon: Logs,
+        path: "/tasks/daySchema",
+        guideId: "day_schema",
       },
       {
         title: "Pomodoro",
-        description: "Zwiększ produktywność pracując w pełnym skupieniu z wbudowanym timerem Pomodoro.",
+        description: "Konfigurowalny timer pracy i przerw z sygnałem dźwiękowym. Ekran nie gaśnie w trakcie sesji.",
         icon: Timer,
-        category: "Produktywność",
         path: "/tasks/pomodoro",
+        guideId: "pomodoro",
       },
       {
-        title: "Harmonogram Dnia",
-        description: "Automatyzuj swoje rutyny. Twórz schematy dni, które same pojawią się w Twoim planie.",
-        icon: Logs,
-        category: "Produktywność",
-        path: "/tasks/daySchema",
-      },
-      {
-        title: "Czas Pracy",
-        description: "Rejestruj godziny pracy ręcznie lub automatycznie przez Skróty (Shortcuts) na telefonie. Zobacz sumę godzin za bieżący miesiąc.",
-        icon: Clock,
-        category: "Produktywność",
-        path: "/worklogs",
-        badge: "Nowe",
+        title: "Listy Slack",
+        description: "Dwukierunkowa synchronizacja zadań z listami Slack. Wybierasz listę domyślną i dopasowujesz kolumny do pól zadania.",
+        icon: MessageSquareShare,
+        path: "/settings",
+        guideId: "slack",
+        status: "nowe",
+        since: "1.37.0",
       },
     ],
   },
   {
-    category: "Organizacja",
-    color: "purple",
+    category: "Spotkania",
+    summary: "Kalendarz, ludzie i ustalenia",
     features: [
       {
         title: "Kalendarz",
-        description: "Planuj wydarzenia z dwukierunkową synchronizacją z Google Calendar i Outlookiem (Microsoft 365).",
+        description: "Wydarzenia z dwukierunkową synchronizacją z Google Calendar i Outlookiem (Microsoft 365).",
         icon: Calendar,
-        category: "Organizacja",
         path: "/calendar",
-        badge: "Popularne",
+        guideId: "calendar",
       },
       {
-        title: "Terminy Zespołowe",
-        description: "Ustal termin spotkania ankietą z siatką dostępności. Publiczny link działa bez konta, a finalizacja tworzy wydarzenia w kalendarzach.",
+        title: "Terminy zespołowe",
+        description: "Ankieta terminu z siatką dostępności. Link działa bez konta, a wybrany termin trafia do kalendarzy uczestników.",
         icon: CalendarClock,
-        category: "Organizacja",
         path: "/meetings",
-        badge: "Nowe",
-      },
-      {
-        title: "Notatki",
-        description: "Twórz szybkie zapiski listowe, oznaczaj je kolorami i buduj swoją bazę wiedzy.",
-        icon: Pen,
-        category: "Organizacja",
-        path: "/notes",
+        guideId: "meetings",
+        status: "nowe",
+        since: "1.36.0",
       },
       {
         title: "Sprawozdania",
-        description: "Protokołuj spotkania z agendą i uczestnikami, a na koniec eksportuj je do PDF.",
-        icon: FileText,
-        category: "Organizacja",
+        description: "Protokół spotkania z agendą, uczestnikami i zadaniami do wykonania, gotowy do eksportu w PDF.",
+        icon: ScrollText,
         path: "/notes/reports",
+        guideId: "reports",
+      },
+      {
+        title: "Osoby i relacje",
+        description: "Kontakty z priorytetem przypominania o kontakcie, kodem QR, vCard oraz importem i eksportem CSV.",
+        icon: User,
+        path: "/people",
+        guideId: "people",
       },
       {
         title: "Przypomnienia",
-        description: "Ustaw cykliczne przypomnienia, które automatycznie zamienią się w zadania we właściwym czasie.",
+        description: "Zadania cykliczne i powiadomienia push o urodzinach, imieninach oraz kontakcie z bliskimi.",
         icon: Bell,
-        category: "Organizacja",
-        badge: "Nowe",
+        path: "/tasks",
+        guideId: "reminders",
+      },
+    ],
+  },
+  {
+    category: "Notatki",
+    summary: "Zapiski, listy i kuchnia",
+    features: [
+      {
+        title: "Notatki",
+        description: "Szybkie zapiski z kolorami, przypinaniem i archiwum. Proste formatowanie i klikalne linki.",
+        icon: Edit2,
+        path: "/notes",
+        guideId: "notes",
+        status: "zmienione",
+        note: "Nowy pasek formatowania i automatyczne linki w treści.",
+        since: "1.37.16",
       },
       {
-        title: "Plecak",
-        description: "Autorska lista wyposażenia plecaka lub torebki (codzienne EDC).",
-        icon: Backpack,
-        category: "Organizacja",
-        path: "/packing/backpack",
+        title: "Listy zakupów",
+        description: "Do pięciu list jednocześnie. Udostępniona lista zmienia się u wszystkich w czasie rzeczywistym.",
+        icon: ShoppingCart,
+        path: "/notes/shopping",
+        guideId: "shopping",
       },
       {
-        title: "Walizka Podróżna",
-        description: "Inteligentna lista rzeczy na wyjazd. Podzielona na kategorie pakowania.",
-        icon: Luggage,
-        category: "Organizacja",
-        path: "/packing/suitcase",
+        title: "Przepisy",
+        description: "Książka kucharska z kategoriami, podpowiedziami składników i filtrem, który znajdzie danie z tego, co masz.",
+        icon: CookingPot,
+        path: "/notes/recipes",
+        guideId: "recipes",
       },
       {
-        title: "Plecak Bezpieczeństwa",
-        description: "Pełna gotowa lista niezbędnych rzeczy na wypadek kryzysu lub ewakuacji.",
-        icon: Shield,
-        category: "Organizacja",
-        path: "/packing/safety",
-      },
-      {
-        title: "Osoby i Relacje",
-        description: "Nie zapomnij odezwać się do bliskich. Ustaw priorytet kontaktu, a aplikacja przypomni Ci, gdy minie odpowiedni czas.",
-        icon: User,
-        category: "Organizacja",
-        path: "/people",
-      },
-      {
-        title: "Pisma",
-        description: "Rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i podpowiedzią ustawowego terminu odpowiedzi.",
-        icon: Gavel,
-        category: "Organizacja",
-        path: "/notes/letters",
-        badge: "Nowe",
+        title: "Filmy i seriale",
+        description: "Katalog z bazą TMDB i dostępnością w polskich serwisach VOD. Przy serialach śledzisz sezon i odcinek.",
+        icon: Clapperboard,
+        path: "/notes/movies",
+        guideId: "movies",
+        status: "nowe",
+        note: "Seriale: sezony, status emisji i postęp oglądania.",
+        since: "1.38.0",
       },
     ],
   },
   {
     category: "Finanse",
-    color: "yellow",
+    summary: "Wydatki, budżet i czas pracy",
     features: [
       {
         title: "Rachunki",
-        description: "Monitoruj swoje wydatki, odznaczaj opłacone faktury i miej pełną kontrolę nad budżetem.",
+        description: "Wydatki i wpływy z kategoriami oraz import wyciągów CSV z mBanku i PKO BP z automatycznymi kategoriami.",
         icon: Coins,
-        category: "Finanse",
         path: "/bills",
-        badge: "Popularne",
+        guideId: "bills",
+        status: "zmienione",
+        note: "Przed importem CSV widzisz, do jakich kategorii trafią operacje.",
       },
       {
-        title: "Budżet Roczny",
-        description: "Analizuj wydatki i zarządzaj kategoriami. Importuj wyciągi CSV z mBanku i PKO BP.",
+        title: "Budżet roczny",
+        description: "Plan i wykonanie w każdym miesiącu oraz przeliczenie wydatków na godziny pracy.",
         icon: ChartColumnBig,
-        category: "Finanse",
         path: "/bills/budget",
+        guideId: "budget",
       },
       {
-        title: "Kalkulator Rachunków",
-        description: "Sprawiedliwie podziel koszty życia z partnerem na podstawie dochodów (Algorytm hybrydowy).",
+        title: "Kalkulator rachunków",
+        description: "Sprawiedliwy podział wspólnych kosztów według dochodów, z obsługą EUR i kursem NBP.",
         icon: Calculator,
-        category: "Finanse",
         path: "/bills/calculator",
-        badge: "Nowe",
+        guideId: "calculator",
       },
       {
-        title: "Listy Zakupów",
-        description: "Twórz listy zakupów z możliwością odznaczania w czasie rzeczywistym z bliskimi.",
-        icon: ShoppingCart,
-        category: "Finanse",
-        path: "/notes/shopping",
-      },
-      {
-        title: "Przepisy",
-        description: "Książka kucharska z inteligentnym filtrowaniem po dodanych składnikach.",
-        icon: CookingPot,
-        category: "Finanse",
-        path: "/notes/recipes",
+        title: "Czas pracy",
+        description: "Godziny pracy wpisywane ręcznie lub automatycznie przez Skróty na iPhonie, z sumą za miesiąc.",
+        icon: Clock,
+        path: "/worklogs",
+        guideId: "worklogs",
       },
     ],
   },
   {
-    category: "Styl życia",
-    color: "green",
+    category: "Wyjścia i wyjazdy",
+    summary: "W drodze i przed wyjściem",
     features: [
       {
-        title: "Nawyki",
-        description: "Śledź codzienne nawyki: leki, higiena cyfrowa, tracker wody i śledzenie nastroju.",
-        icon: CheckCircle,
-        category: "Styl życia",
-        badge: "Popularne",
+        title: "Transport miejski",
+        description: "Odjazdy na żywo z przystanków w pobliżu i ulubionych w Poznaniu i Szczecinie.",
+        icon: BusFront,
+        path: "/transport",
+        guideId: "transport",
+        status: "zmienione",
+        note: "Przystanki rozróżniane po miejscowości, a lokalizacja nie jest pobierana przy każdym wejściu.",
+        since: "1.38.0",
       },
       {
-        title: "Postępy",
-        description: "Utrzymuj dyscyplinę (streaks). Algorytm pogratuluje Ci okrągłych kamieni milowych.",
-        icon: Target,
-        category: "Styl życia",
-        path: "/streaks",
-      },
-      {
-        title: "Trening Interwałowy",
-        description: "Zaawansowany stoper do treningów HIIT / Tabata z funkcją Wake-Lock.",
-        icon: Dumbbell,
-        category: "Styl życia",
-        path: "/training",
+        title: "Pociągi",
+        description: "Śledzenie pociągów PKP z opóźnieniem na żywo. Bilet PDF wypełnia formularz, a pociąg pojawia się w planie dnia.",
+        icon: TrainFront,
+        path: "/transport",
+        guideId: "trains",
+        status: "zmienione",
+        note: "Po odczycie biletu widać, których pól nie rozpoznano.",
       },
       {
         title: "Pogoda",
-        description: "Godzinowe prognozy pogody i autorski wskaźnik samopoczucia z alertami Smogowymi.",
+        description: "Prognoza godzinowa i 5-dniowa, jakość powietrza i autorski wskaźnik samopoczucia.",
         icon: Sun,
-        category: "Styl życia",
         path: "/weather",
+        guideId: "weather",
       },
       {
-        title: "Transport Miejski",
-        description: "Tablice odjazdów autobusów i tramwajów na żywo (GPS lub ulubione) oraz śledzenie pociągów PKP z importem biletu.",
-        icon: Bus,
-        category: "Styl życia",
-        path: "/transport",
-        badge: "Nowe",
-      },
-    ],
-  },
-  {
-    category: "Rozrywka",
-    color: "pink",
-    features: [
-      {
-        title: "Filmy i Seriale",
-        description: "Kataloguj produkcje integrując się z bazą TMDB. Sprawdzaj dostępność VOD (Netflix, HBO).",
-        icon: Clapperboard,
-        category: "Rozrywka",
-        path: "/notes/movies",
+        title: "Listy pakowania",
+        description: "Gotowe checklisty: codzienny plecak, walizka na wyjazd i plecak bezpieczeństwa na sytuacje kryzysowe.",
+        icon: Backpack,
+        path: "/packing",
+        guideId: "packing",
       },
     ],
   },
   {
-    category: "Narzędzia",
-    color: "gray",
+    category: "Osobiste",
+    summary: "Zdrowie, nawyki i sprawy urzędowe",
     features: [
       {
-        title: "Udostępnianie",
-        description: "Zbuduj listę Zaufanych Użytkowników by współdzielić z nimi zadania, kalendarz i listy.",
-        icon: UsersRound,
-        category: "Narzędzia",
-        badge: "Beta",
+        title: "Nawyki i nastrój",
+        description: "Codzienne nawyki, tracker wody i nastroju prosto z kokpitu, bez przechodzenia między ekranami.",
+        icon: HeartPulse,
+        path: "/",
+        guideId: "habits",
       },
       {
-        title: "Ustawienia Systemowe",
-        description: "Zarządzaj powiadomieniami Push, motywami oraz bazą danych na swoim koncie PWA.",
-        icon: Settings,
-        category: "Narzędzia",
-        path: "/settings",
+        title: "Postępy",
+        description: "Serie dni (streaks) z kamieniami milowymi, które pomagają utrzymać dyscyplinę.",
+        icon: Target,
+        path: "/streaks",
+        guideId: "streaks",
       },
       {
-        title: "Cyfrowa Wizytówka",
-        description: "Stwórz wizytówkę z kodem QR i udostępnij ją publicznym linkiem - nawet osobom bez konta w aplikacji.",
+        title: "Trening interwałowy",
+        description: "Timer HIIT i Tabata z konfigurowalnymi fazami i niegasnącym ekranem.",
+        icon: Dumbbell,
+        path: "/training",
+        guideId: "training",
+      },
+      {
+        title: "Pisma",
+        description: "Rejestr pism urzędowych z automatyczną sygnaturą, załącznikami i pilnowaniem ustawowych terminów odpowiedzi.",
+        icon: Gavel,
+        path: "/notes/letters",
+        guideId: "letters",
+        status: "nowe",
+        since: "1.35.0",
+      },
+      {
+        title: "Cyfrowa wizytówka",
+        description: "Wizytówka z kodem QR i publicznym linkiem, który otworzy każdy, także bez konta.",
         icon: IdCard,
-        category: "Narzędzia",
         path: "/profiles",
-        badge: "Nowe",
+        guideId: "profiles",
       },
     ],
   },
 ];
 
-export const features: Feature[] = FEATURE_GROUPS.flatMap(group => group.features);
+export const features: Feature[] = FEATURE_GROUPS.flatMap((group) => group.features);
 
-features.push({
-  title: "Wiele więcej...",
-  description: "Aplikacja stale się rozwija, regularnie dodajemy nowe, innowacyjne funkcje.",
-  icon: Star,
-  category: "Narzędzia",
-});
-
-export const getFeaturesByCategory = (category: FeatureCategory): Feature[] => {
-  return features.filter(feature => feature.category === category);
-};
-
-export const getPopularFeatures = (): Feature[] => {
-  return features.filter(feature => feature.badge === "Popularne");
-};
-
-export const getNewFeatures = (): Feature[] => {
-  return features.filter(feature => feature.badge === "Nowe");
-};
-
-export const getFeatureByTitle = (title: string): Feature | undefined => {
-  return features.find(feature => feature.title === title);
-};
-
-export const featureStats = {
-  total: features.length - 1, 
-  byCategory: FEATURE_GROUPS.reduce((acc, group) => {
-    acc[group.category] = group.features.length;
-    return acc;
-  }, {} as Record<FeatureCategory, number>),
-  popular: getPopularFeatures().length,
-  new: getNewFeatures().length,
-};
+export const getFeaturesWithStatus = (): (Feature & { category: FeatureCategory })[] =>
+  FEATURE_GROUPS.flatMap((group) =>
+    group.features.filter((f) => f.status).map((f) => ({ ...f, category: group.category }))
+  );

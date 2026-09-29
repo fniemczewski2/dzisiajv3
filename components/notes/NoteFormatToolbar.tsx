@@ -28,7 +28,7 @@ export default function NoteFormatToolbar({ textareaRef, disabled }: Readonly<No
   };
 
   const buttonClass =
-    "p-1.5 rounded-md hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+    "p-1.5 rounded-md hover:bg-surface-hover text-text-secondary hover:text-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <div className="flex items-center gap-1 p-1 rounded-lg bg-surface border border-gray-200 dark:border-gray-800 w-fit">

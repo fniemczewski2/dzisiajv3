@@ -1,4 +1,4 @@
-﻿// pages/api/transport/train-status.ts
+// pages/api/transport/train-status.ts
 
 import { getAppDateTime } from '@/lib/dateUtils';
 import { createServerSupabase } from '@/lib/supabase/server';
@@ -15,6 +15,7 @@ import type {
   TrainStatusResponse,
 } from '@/types/pkpplk';
 import { OPERATIONS_TTL_MS, STATIONS_TTL_MS } from '@/config/limits';
+import { resolveRouteStations } from '@/lib/trainRoute';
 
 type ApiError = { error: string };
 
@@ -153,22 +154,86 @@ function computeDelayMinutes(
 // computation — pulled out of handler, which was deeply nested (schedules
 // lookup -> operations lookup -> cancelled/arrived/departed checks) all in
 // one function body.
+function hhmm(value: string | undefined): string {
+  const m = /^(\d{1,2}):(\d{2})/.exec(value ?? "");
+  return m ? `${m[1].padStart(2, "0")}:${m[2]}` : "";
+}
+
+type StationDetails = Pick<
+  TrainStatusResponse,
+  "departurePlatform" | "departureDelay" | "actualDeparture" | "arrivalPlatform" | "arrivalDelay" | "plannedArrival" | "arrivalStation"
+>;
+
+function stationDetails(
+  plannedFrom: RouteStation | undefined,
+  plannedTo: RouteStation | undefined,
+  opFrom?: OperationStation,
+  opTo?: OperationStation
+): StationDetails {
+  return {
+    departurePlatform: opFrom?.departurePlatform || plannedFrom?.departurePlatform || "",
+    departureDelay: opFrom?.departureDelayMinutes ?? opFrom?.arrivalDelayMinutes ?? 0,
+    actualDeparture: opFrom?.actualDeparture || "",
+    arrivalPlatform: opTo?.arrivalPlatform || plannedTo?.arrivalPlatform || "",
+    arrivalDelay: opTo?.arrivalDelayMinutes ?? 0,
+    plannedArrival: hhmm(plannedTo?.arrivalTime || plannedTo?.departureTime),
+  };
+}
+
+// The "is there live operations data for this train" branch of the status
+// computation — pulled out of handler, which was deeply nested (schedules
+// lookup -> operations lookup -> cancelled/arrived/departed checks) all in
+// one function body.
+interface StationQuery {
+  fromStationId: string;
+  toStationId: string | null;
+  fromSearch: string;
+  toSearch: string;
+  nameOf: (id: string) => string | undefined;
+}
+
+/** Stacja docelowa wybrana z trasy pociągu, za stacją wyjazdu. */
+function resolveDestination(
+  query: StationQuery,
+  plannedRoute: Route,
+  trainData: TrainOperation | undefined,
+  operationsNames: Record<string, string> | undefined
+): string | null {
+  const routeIds = (trainData?.stations?.length ? trainData.stations : plannedRoute.stations ?? []).map((s) => s.stationId);
+  const nameOf = (id: string) => operationsNames?.[id] ?? query.nameOf(id);
+  const { toStationId } = resolveRouteStations(
+    routeIds,
+    nameOf,
+    { id: query.fromStationId, query: query.fromSearch },
+    { id: query.toStationId, query: query.toSearch }
+  );
+  return toStationId ?? query.toStationId;
+}
+
 async function computeStatus(
   plannedRoute: Route,
-  fromStationId: string,
-  toStationId: string,
+  query: StationQuery,
   headers: Record<string, string>
 ): Promise<TrainStatusResponse> {
-  const platform = findRouteStation(plannedRoute, fromStationId)?.departurePlatform || '-';
+  const { fromStationId } = query;
+  const plannedFrom = findRouteStation(plannedRoute, fromStationId);
+  const platform = plannedFrom?.departurePlatform || '-';
   const operationsData = await getOperations(fromStationId, headers);
   const trainData = operationsData?.trains?.find((t) => t.orderId === plannedRoute.orderId);
+  const toStationId = resolveDestination(query, plannedRoute, trainData, operationsData?.stations) ?? '';
+  const plannedTo = findRouteStation(plannedRoute, toStationId);
+  const arrivalStation = operationsData?.stations?.[toStationId] ?? query.nameOf(toStationId) ?? '';
 
   if (!operationsData || !trainData) {
-    return { delay: 0, platform: platform || '-', status: 'Nie zaczął', estimatedArrival: '', hide: false };
+    return {
+      delay: 0, platform: platform || '-', status: 'Nie zaczął', estimatedArrival: '', hide: false,
+      ...stationDetails(plannedFrom, plannedTo), arrivalStation,
+    };
   }
 
   const opStationFrom = trainData.stations?.find((s) => s.stationId === fromStationId);
   const opStationTo = trainData.stations?.find((s) => s.stationId === toStationId);
+  const details = { ...stationDetails(plannedFrom, plannedTo, opStationFrom, opStationTo), arrivalStation };
   const nowPl = getAppDateTime();
   const hasDepartedFrom =
     !!opStationFrom?.actualDeparture &&
@@ -176,18 +241,18 @@ async function computeStatus(
   const delay = computeDelayMinutes(hasDepartedFrom, opStationFrom, opStationTo);
 
   if (isTrainCancelled(operationsData, trainData, opStationFrom, opStationTo)) {
-    return { delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false };
+    return { delay: 0, platform: '-', status: 'Odwołany', estimatedArrival: '', hide: false, ...details };
   }
 
   if (isEventAlreadyOver(opStationTo, nowPl)) {
-    return { delay: 0, platform: '-', status: '', estimatedArrival: '', hide: true };
+    return { delay: 0, platform: '-', status: '', estimatedArrival: '', hide: true, ...details };
   }
 
   if (hasDepartedFrom) {
-    return { delay, platform, status: 'W trasie', estimatedArrival: opStationTo?.actualArrival || '', hide: false };
+    return { delay, platform, status: 'W trasie', estimatedArrival: opStationTo?.actualArrival || '', hide: false, ...details };
   }
 
-  return { delay, platform: platform || '-', status: delay > 0 ? 'Opóźniony' : 'Nie zaczął', estimatedArrival: '', hide: false };
+  return { delay, platform: platform || '-', status: delay > 0 ? 'Opóźniony' : 'Nie zaczął', estimatedArrival: '', hide: false, ...details };
 }
 
 export default async function handler(
@@ -235,7 +300,7 @@ export default async function handler(
     const fromStationId = matchStation(stations, fromSearch);
     const toStationId = matchStation(stations, toSearch);
 
-    if (!fromStationId || !toStationId) {
+    if (!fromStationId) {
       return res.status(200).json({
         delay: 0,
         platform: '-',
@@ -245,8 +310,11 @@ export default async function handler(
       });
     }
 
+    const dateStr = typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date) ? req.query.date : '';
+    const dateRange = dateStr ? `&dateFrom=${dateStr}&dateTo=${dateStr}` : '';
+
     const schedulesRes = await fetch(
-      `https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${fromStationId}`,
+      `https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${fromStationId}${dateRange}`,
       { headers }
     );
     if (schedulesRes.status === 429) {
@@ -273,7 +341,12 @@ export default async function handler(
       });
     }
 
-    const status = await computeStatus(plannedRoute, fromStationId, toStationId, headers);
+    const namesById = new Map(stations.map((st) => [st.id, st.name]));
+    const status = await computeStatus(
+      plannedRoute,
+      { fromStationId, toStationId, fromSearch, toSearch, nameOf: (id) => namesById.get(id) },
+      headers
+    );
     return res.status(200).json(status);
   } catch (error) {
     console.error(error);

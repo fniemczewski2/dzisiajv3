@@ -1,4 +1,4 @@
-﻿// components/meetingPolls/MeetingPollResults.tsx
+// components/meetingPolls/MeetingPollResults.tsx
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarCheck2, Trash2 } from "lucide-react";
@@ -137,7 +137,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const cellClass = (count: number): string => {
     if (totalResponses === 0 || count === 0) return "bg-surface";
     const ratio = count / totalResponses;
-    if (ratio >= 0.99) return "bg-primary text-white";
+    if (ratio >= 0.99) return "bg-secondary text-white";
     if (ratio >= 0.66) return "bg-blue-300 dark:bg-blue-800";
     if (ratio >= 0.33) return "bg-blue-200 dark:bg-blue-900";
     return "bg-blue-100 dark:bg-blue-950";
@@ -252,8 +252,8 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-text">{data.poll.title}</h3>
-        <p className="text-sm text-textSecondary mt-1">
+        <h1 className="page-title text-xl sm:text-2xl">{data.poll.title}</h1>
+        <p className="text-sm text-text-secondary mt-1">
           {totalResponses} {totalResponses === 1 ? "odpowiedź" : "odpowiedzi"}. Kliknij godzinę początkową, a
           potem końcową w tej samej kolumnie.
         </p>
@@ -266,9 +266,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
           <table className="border-collapse select-none">
             <thead>
               <tr>
-                <th className="sticky left-0 bg-card text-xs text-textMuted font-normal p-1 text-left"/>
+                <th scope="col" className="sticky left-0 bg-card text-xs text-text-muted font-normal p-1 text-left"/>
                 {data.dates.map((d) => (
-                  <th key={d} className="text-xs text-textMuted font-semibold p-1 min-w-18">
+                  <th scope="col" key={d} className="text-xs text-text-muted font-semibold p-1 min-w-18">
                     {d.split('-')[2] + "." + d.split('-')[1]}
                   </th>
                 ))}
@@ -277,7 +277,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             <tbody>
               {times.map((time, timeIndex) => (
                 <tr key={time}>
-                  <td className="sticky left-0 bg-card text-xs text-textMuted p-1 pr-2 whitespace-nowrap">{time}</td>
+                  <td className="sticky left-0 bg-card text-xs text-text-muted p-1 pr-2 whitespace-nowrap">{time}</td>
                   {data.dates.map((date) => {
                     const key = slotKey(date, time);
                     const count = countsByKey[key] ?? 0;
@@ -286,7 +286,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                       selection?.date === date && timeIndex >= selection.startIndex && timeIndex <= selection.endIndex;
                     const isAnchor = rangeAnchor?.date === date && rangeAnchor.index === timeIndex;
                     let ringClass = "";
-                    if (isAnchor) ringClass = "ring-2 ring-inset ring-secondary";
+                    if (isAnchor) ringClass = "ring-2 ring-inset ring-primary";
                     else if (isSelected) ringClass = "ring-2 ring-inset ring-primary";
                     return (
                       <td key={date} className="p-0 border border-white dark:border-neutral-950">
@@ -326,20 +326,20 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
           </p>
 
           {rangeAnchor && (
-            <p className="text-sm text-secondary">
+            <p className="text-sm text-primary-strong">
               Wybrano początek zakresu. Kliknij godzinę końcową w tej samej kolumnie albo zapisz pojedynczy slot.
             </p>
           )}
 
           {selectionAvailability.available.length > 0 && (
             <p className="text-sm text-text">
-              <span className="text-textMuted">Dostępni: </span>
+              <span className="text-text-muted">Dostępni: </span>
               {selectionAvailability.available.join(", ")}
             </p>
           )}
           {selectionAvailability.unavailable.length > 0 && (
-            <p className="text-sm text-textSecondary">
-              <span className="text-textMuted">Niedostępni: </span>
+            <p className="text-sm text-text-secondary">
+              <span className="text-text-muted">Niedostępni: </span>
               {selectionAvailability.unavailable.join(", ")}
             </p>
           )}
@@ -416,7 +416,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
               <li key={`${s.date}-${s.start_time}`} className="flex items-center justify-between text-sm gap-2">
                 <span className="min-w-0">
                   <span className="font-semibold text-text">{s.title}</span> - {s.date}, {s.start_time}-{s.end_time}
-                  <span className="text-textMuted"> • {calendarLabel(s.calendarChoice)}</span>
+                  <span className="text-text-muted"> • {calendarLabel(s.calendarChoice)}</span>
                 </span>
                 <IconActionButton onClick={() => removePending(i)} Icon={Trash2} title="Usuń z listy" variant="danger" />
               </li>

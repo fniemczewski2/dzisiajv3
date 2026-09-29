@@ -1,4 +1,4 @@
-﻿// pages/meetings/index.tsx
+// pages/meetings/index.tsx
 
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
@@ -28,7 +28,7 @@ export default function MeetingsPage() {
         keywords="ustalanie terminu, ankieta dostępności, spotkanie zespołu, planowanie spotkań"
       />
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-text">Terminy</h2>
+        <h1 className="page-title">Terminy</h1>
         {!showForm && <AddButton onClick={() => setShowForm(true)} />}
       </div>
 

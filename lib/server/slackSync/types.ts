@@ -34,6 +34,10 @@ export interface SyncTarget {
   listTitle: string | null;
   columnMap: ColumnMap;
   isDefault: boolean;
+  /** false: zadania jadą tylko z aplikacji do Slacka, nic nie wraca. */
+  pullEnabled: boolean;
+  /** Pobieraj tylko pozycje przypisane do tych adresów; pusta lista = wszystkie. */
+  assigneeEmails: string[];
 }
 
 export interface SyncCounters {

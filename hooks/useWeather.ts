@@ -1,7 +1,8 @@
-﻿// hooks/useWeather.ts
+// hooks/useWeather.ts
 
 import { useState, useEffect } from 'react';
 import { WeatherData, WeatherState, AirQualityData } from '@/types/weather';
+import { requestSmartLocation } from '@/lib/locationUtils';
 
 export function useWeather() {
   const [state, setState] = useState<WeatherState>({
@@ -25,8 +26,10 @@ export function useWeather() {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
+    requestSmartLocation({
+      maxAgeMs: 30 * 60 * 1000,
+      highAccuracy: false,
+      onSuccess: async ({ coords }) => {
         try {
           const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
           forecastUrl.searchParams.set("latitude", coords.latitude.toString());
@@ -83,13 +86,12 @@ export function useWeather() {
           }
         }
       },
-      () => {
+      onError: () => {
         if (isMounted) {
           setState(prev => ({ ...prev, loading: false, error: "Nie można uzyskać lokalizacji." }));
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+    });
 
     return () => {
       isMounted = false;

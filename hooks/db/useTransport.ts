@@ -1,4 +1,4 @@
-﻿// hooks/db/useTransport.ts
+// hooks/db/useTransport.ts
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -7,6 +7,7 @@ import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limit
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useRetry } from "@/hooks/useRetry";
 import { LocalSearchResult, StopGroup } from "@/types/transport";
+import { withFavoriteKeys, withNearbyKeys } from "@/lib/stopGroupKeys";
 import {
   ambiguousNames,
   clusterStops,
@@ -98,7 +99,7 @@ export function useTransport(autoRefresh = false) {
         setLocationError("Lokalizacja jest wymagana, aby pokazać przystanki w pobliżu.");
         setNearbyGroups([]);
       } else if (parsed?.success) {
-        setNearbyGroups(parsed.success);
+        setNearbyGroups(withNearbyKeys(parsed.success as StopGroup[]));
         setLocationError(null);
       }
     } catch {
@@ -116,6 +117,7 @@ export function useTransport(autoRefresh = false) {
 
       requestSmartLocation({
         forcePrompt,
+        maxAgeMs: 2 * 60 * 1000,
         onSuccess: (position) => {
           lastCoords.current = { lat: position.coords.latitude, lng: position.coords.longitude };
           void fetchNearbyData();
@@ -161,7 +163,8 @@ export function useTransport(autoRefresh = false) {
         });
 
         if (error) throw error;
-        const groups: StopGroup[] = data?.success || [];
+        const parsed = typeof data === "string" ? JSON.parse(data) : data;
+        const groups = withFavoriteKeys((parsed?.success ?? []) as StopGroup[], stops);
         setFavoritesGroups(groups);
         lastFetchTime.current[cacheKey] = now;
 

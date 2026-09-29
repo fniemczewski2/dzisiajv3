@@ -1,13 +1,46 @@
 // components/settings/SlackListsSection.tsx
 
-import React, { useState } from "react";
-import { Hash, Link2, RefreshCw, Loader2, Star, Link2Off } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useToast } from "@/providers/ToastProvider";
+import { AlertCircle, Hash, Link2, RefreshCw, Loader2, Star, Link2Off } from "lucide-react";
 import { useSlackTasks, type SlackListConfig } from "@/hooks/db/useSlackTasks";
 import SlackListEditor from "./SlackListEditor";
 import { AddButton, DeleteButton, FormButtons, SecondaryFullButton } from "../ui/CommonButtons";
 
+const CONNECT_ERRORS: Record<string, string> = {
+  cancelled: "Anulowano łączenie ze Slackiem.",
+  missing_params: "Slack nie zwrócił kodu autoryzacji. Spróbuj połączyć ponownie.",
+  invalid_state: "Sesja łączenia wygasła albo została otwarta w innej przeglądarce. Połącz ponownie w tym samym oknie.",
+  auth_failed: "Po powrocie ze Slacka nie było aktywnej sesji w aplikacji. Zaloguj się i połącz ponownie w tym samym oknie przeglądarki.",
+  token_exchange_failed: "Slack odrzucił wymianę kodu. Sprawdź SLACK_CLIENT_SECRET i adres przekierowania w konfiguracji aplikacji Slack.",
+  missing_tables: "Brakuje tabel integracji w bazie danych. Uruchom migracje Supabase.",
+  store_failed: "Nie udało się zapisać połączenia w bazie danych.",
+  unexpected: "Wystąpił nieoczekiwany błąd podczas łączenia ze Slackiem.",
+};
+
+function useSlackConnectResult(onConnected: () => void) {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const { slack: connected, slack_error: error, ...rest } = router.query;
+    if (!connected && !error) return;
+
+    if (connected === "connected") {
+      toast.success("Połączono ze Slackiem. Dodaj listę, którą chcesz synchronizować.");
+      onConnected();
+    } else if (typeof error === "string") {
+      toast.error(CONNECT_ERRORS[error] ?? CONNECT_ERRORS.unexpected);
+    }
+    void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+  }, [router, toast, onConnected]);
+}
+
 export default function SlackListsSection() {
   const slack = useSlackTasks();
+  useSlackConnectResult(slack.refresh);
   const [listInputs, setListInputs] = useState<
     Record<string, { url: string; title: string; syncEnabled: boolean }>
   >({});
@@ -30,10 +63,32 @@ export default function SlackListsSection() {
   if (slack.loading) {
     return (
       <section className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4">
-        <p className="flex items-center gap-2 text-sm text-textSecondary">
+        <p className="flex items-center gap-2 text-sm text-text-secondary">
           <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
           Sprawdzam połączenia ze Slackiem…
         </p>
+      </section>
+    );
+  }
+
+  if (slack.statusError) {
+    return (
+      <section className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4">
+        <div role="alert" className="flex items-start gap-3 text-sm text-red-800 dark:text-red-200">
+          <AlertCircle className="w-5 h-5 shrink-0" aria-hidden="true" />
+          <div className="space-y-2">
+            <p className="font-semibold">Nie udało się sprawdzić połączeń ze Slackiem</p>
+            <p className="text-text-secondary">{slack.statusError}</p>
+            <button
+              type="button"
+              onClick={() => void slack.refresh()}
+              className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-text hover:bg-surface-hover"
+            >
+              <RefreshCw className="w-4 h-4" aria-hidden="true" />
+              Spróbuj ponownie
+            </button>
+          </div>
+        </div>
       </section>
     );
   }
@@ -54,7 +109,7 @@ export default function SlackListsSection() {
             onClick={() => void slack.syncNow()}
             disabled={slack.busy}
             aria-busy={slack.busy}
-            className="px-3 py-1.5 text-sm bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 text-sm bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <RefreshCw className={`w-4 h-4 ${slack.busy ? "animate-spin" : ""}`} aria-hidden="true" />
             Synchronizuj
@@ -71,7 +126,7 @@ export default function SlackListsSection() {
                 type="button"
                 onClick={() => void slack.disconnectAccount(account.id)}
                 disabled={slack.busy}
-                className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                className="text-xs font-bold text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
               >
                 <Link2Off className="w-4 h-4" />
               </button>
@@ -95,7 +150,7 @@ export default function SlackListsSection() {
                         />
                       )}
                       <span className="truncate">{list.list_title ?? list.list_id}</span>
-                      <span className="text-xs text-textMuted font-mono">{list.list_id}</span>
+                      <span className="text-xs text-text-muted font-mono">{list.list_id}</span>
                     </p>
                     <DeleteButton
                       small
@@ -152,7 +207,7 @@ export default function SlackListsSection() {
                 className="input-field"
                 id={`slack-list-title-${account.id}`}
               />
-              <label className="flex items-start gap-2 mt-3 text-xs text-textSecondary">
+              <label className="flex items-start gap-2 mt-3 text-xs text-text-secondary">
                 <input
                   type="checkbox"
                   checked={inputFor(account.id).syncEnabled}
@@ -162,7 +217,7 @@ export default function SlackListsSection() {
                 />
                 <span>
                   Pobieraj zadania z tej listy{" "}
-                  <span className="block text-textMuted">
+                  <span className="block text-text-muted">
                     Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
                   </span>
                 </span>

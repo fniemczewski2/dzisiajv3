@@ -100,7 +100,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                     className={`p-2 rounded-lg transition-colors flex justify-center items-center ${
                       editedIcon === item.name
                         ? 'bg-secondary text-white shadow-sm'
-                        : 'hover:bg-surface text-textSecondary hover:text-text'
+                        : 'hover:bg-surface text-text-secondary hover:text-text'
                     }`}
                   >
                     <IconComponent className="w-5 h-5" />
@@ -146,7 +146,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
             ) : (
               <>
                 <h3 className="font-bold text-lg text-text leading-tight wrap-break-word">{streak.name}</h3>
-                <p className="text-xs font-semibold text-textMuted mt-1 uppercase tracking-widest">
+                <p className="text-xs font-semibold text-text-muted mt-1">
                   Od: {parseISO(streak.start_date).toLocaleDateString("pl-PL")}
                 </p>
               </>
@@ -158,17 +158,17 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
       <div className="mt-auto">
         {!isEditing && (
           <div className="text-center py-4 bg-surface rounded-xl border border-gray-100 dark:border-gray-800/50 mb-3">
-            <div className="text-5xl font-bold text-prmiary tracking-tighter drop-shadow-sm">
+            <div className="text-5xl font-bold text-primary tracking-tighter drop-shadow-sm">
               {days}
             </div>
-            <div className="text-[11px] font-medium uppercase tracking-widest text-textSecondary mt-1">
+            <div className="text-[11px] font-medium text-text-secondary mt-1">
               {dayLabel} z rzędu
             </div>
           </div>
         )}
         {milestone && !isEditing && (
           <div className="mb-3 text-center">
-            <div className="inline-block text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+            <div className="inline-block text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
               {milestone}
             </div>
           </div>
@@ -177,15 +177,15 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
         {!isEditing && (
           <div className="grid grid-cols-3 gap-2 text-center mb-3">
             <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Tygodnie</div>
+              <div className="text-[10px] font-bold text-text-muted mb-0.5">Tygodnie</div>
               <div className="font-bold text-text">{Math.floor(days / 7)}</div>
             </div>
             <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Miesiące</div>
+              <div className="text-[10px] font-bold text-text-muted mb-0.5">Miesiące</div>
               <div className="font-bold text-text">{Math.floor(days / 30)}</div>
             </div>
             <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Lata</div>
+              <div className="text-[10px] font-bold text-text-muted mb-0.5">Lata</div>
               <div className="font-bold text-text">
                 {days >= 365 ? Math.floor(days / 365) : "0"}
               </div>

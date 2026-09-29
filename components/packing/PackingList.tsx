@@ -1,4 +1,4 @@
-﻿// components/packing/PackingList.tsx
+// components/packing/PackingList.tsx
 
 import React, { useState } from "react";
 import { ChevronLeft } from "lucide-react";
@@ -30,14 +30,14 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
           <button
             onClick={handleBack}
             type='button'
-            className="w-10 h-10 bg-surface hover:bg-surfaceHover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-textSecondary hover:text-text rounded-xl transition-colors absolute left-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            title="Powrót"
+            className="w-10 h-10 bg-surface hover:bg-surface-hover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-text-secondary hover:text-text rounded-xl transition-colors absolute left-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            title="Powrót" aria-label="Powrót"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="font-bold text-lg sm:text-xl text-text mx-auto text-center capitalize tracking-wide truncate px-14">
+          <h1 className="page-title text-xl sm:text-2xl mx-auto text-center first-letter:uppercase truncate px-14">
             {headerTitle}
-          </h2>
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -53,7 +53,7 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
                     <li key={item} className="my-1">
                       <label 
                         className={`flex items-start gap-3 rounded-lg p-1 -ml-1 transition-colors hover:bg-surface cursor-pointer ${
-                          isChecked ? "text-textMuted line-through" : "text-text font-medium"
+                          isChecked ? "text-text-muted line-through" : "text-text font-medium"
                         }`}
                       >
                         <input

@@ -43,17 +43,17 @@ export default function MeetingPollList({ refreshToken }: Readonly<MeetingPollLi
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-bold text-text truncate">{poll.title}</p>
-                <p className="text-xs text-textMuted mt-0.5">
+                <p className="text-xs text-text-muted mt-0.5">
                   {poll.time_start.slice(0, 5)}-{poll.time_end.slice(0, 5)} •{" "}
                   {otwarta ? "Otwarta" : "Zamknięta"}
                 </p>
                 {otwarta && poll.closes_at && (
-                  <p className="text-xs text-textMuted mt-0.5">
+                  <p className="text-xs text-text-muted mt-0.5">
                     Zamknie się: {formatTime(poll.closes_at, true)}
                   </p>
                 )}
               </div>
-              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold uppercase tracking-wider shrink-0">
+              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold shrink-0">
                 {poll.slot_duration_minutes} min
               </span>
             </div>

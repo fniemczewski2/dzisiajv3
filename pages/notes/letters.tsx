@@ -1,4 +1,4 @@
-﻿// pages/notes/letters.tsx
+// pages/notes/letters.tsx
 
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
@@ -25,7 +25,7 @@ export default function LettersPage() {
         keywords="UDIP, wniosek, skarga, wykroczenie, pismo urzędowe, korespondencja"
       />
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-text">Pisma</h2>
+        <h1 className="page-title">Pisma</h1>
         {!showForm && <AddButton onClick={() => setShowForm(true)} />}
       </div>
 

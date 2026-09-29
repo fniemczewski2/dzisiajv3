@@ -1,4 +1,4 @@
-﻿// pages/worklogs.tsx
+// pages/worklogs.tsx
 
 import React, { SyntheticEvent, useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
@@ -147,7 +147,7 @@ export default function WorkLogsPage() {
             <NoResultsState text='wpisów' />
           ) : (
             <>
-              <div className="mb-4 text-textSecondary font-medium flex gap-3 items-center px-1">
+              <div className="mb-4 text-text-secondary font-medium flex gap-3 items-center px-1">
                 <span>Wpisy: {workLogs.length}</span>
                 <span className="text-primary font-bold">
                   Suma: {sumText}
@@ -164,7 +164,7 @@ export default function WorkLogsPage() {
                       <div className="flex items-center justify-center gap-2 bg-surface text-primary px-3 py-1.5 rounded-lg font-bold shadow-sm">
                         <Clock className='w-4 h-4 sm:w-5 sm:h-5'/> {calculateDuration(log.start_time, log.end_time)}
                       </div>
-                      <div className="space-y-2 text-sm text-textSecondary font-medium">
+                      <div className="space-y-2 text-sm text-text-secondary font-medium">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-primary/70" />
                           {format(new Date(log.start_time), 'dd MMMM yyyy', { locale: pl })}
@@ -192,8 +192,8 @@ export default function WorkLogsPage() {
   return (
       <div className="space-y-6 pb-20">         
           <div className="flex items-center justify-between gap-4 w-full">
-            <h1 className="text-2xl font-bold text-text flex items-center gap-3">
-             Godziny pracy
+            <h1 className="page-title flex items-center gap-3">
+             Czas pracy
             </h1>
             
             {!isFormOpen && <AddButton onClick={() => setIsFormOpen(true)} />}
@@ -204,7 +204,7 @@ export default function WorkLogsPage() {
               onClick={onPrev}
               type='button'
               aria-label="Poprzedni miesiąc"
-              className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+              className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -217,7 +217,7 @@ export default function WorkLogsPage() {
               onClick={onNext}
               type='button'
               aria-label="Następny miesiąc"
-              className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-textSecondary hover:text-text transition-colors"
+              className="p-2 sm:p-2.5 hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>

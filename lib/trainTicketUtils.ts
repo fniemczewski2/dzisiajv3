@@ -1,4 +1,4 @@
-﻿// lib/trainTicketUtils.ts
+// lib/trainTicketUtils.ts
 
 import { useToast } from "@/providers/ToastProvider";
 import { TicketFormData } from "@/types/transport";
@@ -9,8 +9,20 @@ interface UseTicketUploadProps {
   setExpanded?: (expanded: boolean) => void;
 }
 
+const TICKET_FIELD_LABELS: Record<keyof TicketFormData, string> = {
+  trainNumber: 'numer pociągu',
+  trainName: 'nazwa pociągu',
+  date: 'data',
+  departureTime: 'godzina odjazdu',
+  from: 'stacja początkowa',
+  to: 'stacja docelowa',
+  wagon: 'wagon',
+  seat: 'miejsce',
+};
+
 export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicketUploadProps>) {
   const [loading, setLoading] = useState(false);
+  const [missingFromTicket, setMissingFromTicket] = useState<string[] | null>(null);
   const { toast } = useToast();
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,19 +46,24 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
 
       if (res.ok) {
         if (toastId && toast.dismiss) toast.dismiss(toastId);
-        toast.success('Bilet odczytany');
-        
-        setFormData({
+        const parsed: TicketFormData = {
           trainNumber: data.trainNumber || '',
           trainName: data.trainName || '',
-          date: data.date ? data.date.split('.').reverse().join('-') : '', 
+          date: data.date ? data.date.split('.').reverse().join('-') : '',
           departureTime: data.departureTime || '',
           from: data.from || '',
           to: data.to || '',
           wagon: data.wagon || '',
           seat: data.seat || ''
-        });
-        
+        };
+        const missing = (Object.keys(TICKET_FIELD_LABELS) as (keyof TicketFormData)[])
+          .filter((key) => !parsed[key])
+          .map((key) => TICKET_FIELD_LABELS[key]);
+
+        toast.success(missing.length ? 'Bilet odczytany częściowo – uzupełnij brakujące pola' : 'Bilet odczytany – sprawdź dane przed zapisem');
+        setFormData(parsed);
+        setMissingFromTicket(missing);
+
         setExpanded?.(true); 
       } else {
         if (toastId && toast.dismiss) toast.dismiss(toastId);
@@ -62,5 +79,10 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
     }
   };
 
-  return { handleFileUpload, loading };
+  return {
+    handleFileUpload,
+    loading,
+    missingFromTicket,
+    clearTicketReview: () => setMissingFromTicket(null),
+  };
 }

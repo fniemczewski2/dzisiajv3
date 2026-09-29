@@ -1,4 +1,4 @@
-﻿// components/ui/SearchBar.tsx
+// components/ui/SearchBar.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Clock, X } from "lucide-react";
@@ -107,7 +107,7 @@ export default function SearchBar({
     <div className={`relative ${className}`}>
 
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-textMuted pointer-events-none" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
         <input
           ref={inputRef}
           type="text"
@@ -116,6 +116,7 @@ export default function SearchBar({
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          aria-label={placeholder || "Szukaj"}
           autoComplete="off"
           spellCheck={false}
           className="w-full rounded-xl pl-11 pr-10 py-2.5 card shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all"
@@ -124,7 +125,7 @@ export default function SearchBar({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-textMuted hover:text-text transition-colors"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
             aria-label="Wyczyść wyszukiwanie"
           >
             <X className="w-4 h-4" />
@@ -133,7 +134,7 @@ export default function SearchBar({
       </div>
 
       {value && resultsCount !== undefined && (
-        <p className="text-sm font-medium text-textSecondary mt-2.5 pl-1">
+        <p className="text-sm font-medium text-text-secondary mt-2.5 pl-1">
           {resultsLabel ?? `Znaleziono: ${resultsCount}`}
         </p>
       )}
@@ -143,19 +144,19 @@ export default function SearchBar({
           ref={dropdownRef}
           role="listbox"
           aria-label="Podpowiedzi wyszukiwania"
-          className="absolute z-50 w-full mt-2 card rounded-xl shadow-lg max-h-64 overflow-y-auto custom-scrollbar"
+          className="absolute z-50 w-full mt-2 card rounded-xl shadow-lg max-h-64 overflow-y-auto scrollbar-thin"
         >
 
           {!value && history.length > 0 && (
             <div className="p-2">
               <div className="flex items-center justify-between px-3 py-2 mb-1">
-                <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-text-muted">
                   Ostatnie wyszukiwania
                 </span>
                 <button
                   type="button"
                   onClick={clearHistory}
-                  className="text-[11px] font-semibold text-textMuted hover:text-text transition-colors"
+                  className="text-[11px] font-semibold text-text-muted hover:text-text transition-colors"
                 >
                   Wyczyść
                 </button>
@@ -169,7 +170,7 @@ export default function SearchBar({
                   onClick={() => handleSuggestionClick(query)}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
                 >
-                  <Clock className="w-4 h-4 text-textMuted group-hover:text-primary transition-colors shrink-0" />
+                  <Clock className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0" />
                   <span className="text-text font-medium truncate">{query}</span>
                 </button>
               ))}
@@ -179,7 +180,7 @@ export default function SearchBar({
           {value && filteredSuggestions.length > 0 && (
             <div className="p-2">
               <div className="px-3 py-2 mb-1">
-                <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-text-muted">
                   Sugestie
                 </span>
               </div>
@@ -192,7 +193,7 @@ export default function SearchBar({
                   onClick={() => handleSuggestionClick(suggestion)}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
                 >
-                  <Search className="w-4 h-4 text-textMuted group-hover:text-primary transition-colors shrink-0" />
+                  <Search className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0" />
                   <span className="text-text font-medium truncate">{suggestion}</span>
                 </button>
               ))}

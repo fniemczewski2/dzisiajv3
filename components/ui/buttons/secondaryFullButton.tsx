@@ -11,8 +11,8 @@ const secondaryFullButton = cva(
   {
     variants: {
       variant: {
-        default: "bg-surface hover:bg-surfaceHover text-textSecondary border-gray-200 dark:border-gray-800",
-        danger: "bg-surface hover:bg-surfaceHover text-red-600 dark:text-red-400 border-gray-200 dark:border-gray-800",
+        default: "bg-surface hover:bg-surface-hover text-text-secondary border-gray-200 dark:border-gray-800",
+        danger: "bg-surface hover:bg-surface-hover text-red-600 dark:text-red-400 border-gray-200 dark:border-gray-800",
       },
     },
     defaultVariants: { variant: "default" },

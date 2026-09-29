@@ -1,5 +1,6 @@
-﻿// components/tasks/TaskItem.tsx
+// components/tasks/TaskItem.tsx
 
+import { getPriorityColors } from "@/config/priority";
 import React, { useState, useRef, useEffect, memo } from "react";
 import { format, parseISO, addDays } from "date-fns";
 import { Minus, Plus } from "lucide-react";
@@ -73,9 +74,9 @@ function TaskEditForm({
           <div>
             <div className="form-label">Priorytet:</div>
             <div className="flex items-stretch gap-1.5 mt-1">
-              <button type="button" onClick={decreasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"><Minus size={18} /></button>
+              <button type="button" onClick={decreasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"><Minus size={18} /></button>
               <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">{editedTask.priority}</div>
-              <button type="button" onClick={increasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"><Plus size={18} /></button>
+              <button type="button" onClick={increasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"><Plus size={18} /></button>
             </div>
           </div>
           <div>
@@ -190,18 +191,8 @@ function TaskViewActions({
   );
 }
 
-const getPriorityColors = (priority: number) => {
-  switch (priority) {
-    case 1: return { backgroundColor: "#fca5a5", color: "#B91C1C" };
-    case 2: return { backgroundColor: "#fdba74", color: "#B91C1C" };
-    case 3: return { backgroundColor: "#fde68a", color: "#A16207" };
-    case 4: return { backgroundColor: "#a7f3d0", color: "#15803D" };
-    default: return { backgroundColor: "#bbf7d0", color: "#15803D" };
-  }
-};
-
 const getTitleClasses = (isDone: boolean, isHighPriority: boolean, isOverdue: boolean) => {
-  if (isDone) return "text-textMuted line-through";
+  if (isDone) return "text-text-muted line-through";
   if (isHighPriority || isOverdue) return "text-red-600 dark:text-red-400";
   return "text-text";
 };
@@ -218,7 +209,7 @@ function TaskDetails({ task }: { readonly task: Task }) {
   return (
     <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface border border-gray-100 dark:border-gray-800 p-3">
       {hasDescription && (
-        <span className="text-xs text-textSecondary whitespace-pre-wrap leading-relaxed">
+        <span className="text-xs text-text-secondary whitespace-pre-wrap leading-relaxed">
           {task.description}
         </span>
       )}
@@ -282,7 +273,7 @@ function TaskView({
         <div className="flex flex-wrap gap-2 items-center">
           <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
           {task.category && (
-            <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-textSecondary rounded-md text-[10px] md:text-sm font-bold uppercase tracking-wider">
+            <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary rounded-md text-[10px] md:text-sm font-bold">
               {task.category}
             </span>
           )}

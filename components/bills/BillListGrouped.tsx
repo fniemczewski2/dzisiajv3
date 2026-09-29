@@ -46,13 +46,13 @@ interface BillGroupContentProps {
 function CategoryBadge({ category }: { readonly category?: BudgetCategory | null }) {
   if (!category) {
     return (
-      <span className="text-[10px] font-bold uppercase tracking-wider text-textMuted bg-surface border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded">
+      <span className="text-[10px] font-bold text-text-muted bg-surface border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded">
         Inne
       </span>
     );
   }
   return (
-    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-blue-50 dark:bg-blue-900/30 border border-primary px-1.5 py-0.5 rounded">
+    <span className="text-[10px] font-bold text-primary bg-blue-50 dark:bg-blue-900/30 border border-primary px-1.5 py-0.5 rounded">
       {category.name}
     </span>
   );
@@ -60,7 +60,7 @@ function CategoryBadge({ category }: { readonly category?: BudgetCategory | null
 
 function RecurringBadge() {
   return (
-    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
+    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
       <RefreshCw className="w-2.5 h-2.5" /> Cykliczny
     </span>
   );
@@ -74,12 +74,12 @@ function AccordionShell({ label, defaultOpen = false, children }: Readonly<Accor
       <button
         onClick={() => setIsOpen(!isOpen)}
         type='button'
-        className="w-full flex justify-between items-center p-4 bg-surface hover:bg-surfaceHover transition-colors"
+        className="w-full flex justify-between items-center p-4 bg-surface hover:bg-surface-hover transition-colors"
       >
-        <h4 className="text-sm font-bold text-textSecondary uppercase tracking-wider">
+        <h4 className="text-sm font-bold text-text-secondary first-letter:uppercase">
           {label}
         </h4>
-        {isOpen ? <ChevronUp className="w-5 h-5 text-textMuted" /> : <ChevronDown className="w-5 h-5 text-textMuted" />}
+        {isOpen ? <ChevronUp className="w-5 h-5 text-text-muted" /> : <ChevronDown className="w-5 h-5 text-text-muted" />}
       </button>
 
       {isOpen && <div className="p-4">{children}</div>}
@@ -366,7 +366,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
             {b.is_recurring && <RecurringBadge />}
           </div>
           {b.description && (
-            <span className="text-textSecondary text-sm">{b.description}</span>
+            <span className="text-text-secondary text-sm">{b.description}</span>
           )}
           <span className="text-xs text-textSubtle font-medium">
             {format(parseISO(b.date), "dd.MM.yyyy")}
@@ -390,7 +390,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
     <div className="space-y-6">
       {incomeItems.length > 0 && (
         <div>
-          <h5 className="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-wider mb-3 px-1 border-b border-green-100 dark:border-green-900/30 pb-2">
+          <h5 className="text-xs font-bold text-green-600 dark:text-green-500 mb-3 px-1 border-b border-green-100 dark:border-green-900/30 pb-2">
             Wpływy
           </h5>
           <ul className="space-y-3">
@@ -400,7 +400,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
       )}
       {expenseItems.length > 0 && (
         <div>
-          <h5 className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-wider p-2 ">
+          <h5 className="text-xs font-bold text-red-600 dark:text-red-500 p-2 ">
             Wydatki
           </h5>
           <ul className="space-y-3">
@@ -414,7 +414,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
           onClick={handleLoadMore} 
           disabled={fetching} 
           type='button'
-          className="w-full py-3 bg-surface hover:bg-surfaceHover text-textMuted hover:text-text border border-gray-200 dark:border-gray-800 rounded-xl text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow-sm mt-4"
+          className="w-full py-3 bg-surface hover:bg-surface-hover text-text-muted hover:text-text border border-gray-200 dark:border-gray-800 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-sm mt-4"
         >
           {fetching ? <Loader2 className="w-5 h-5 animate-spin" /> : "Więcej..."}
         </button>

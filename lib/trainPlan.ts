@@ -62,3 +62,89 @@ export function cleanValue(v: string | null | undefined): string | null {
   const t = (v ?? "").trim();
   return !t || t === "-" || t === "..." ? null : t;
 }
+
+export type TrainStopPhase = "departure" | "arrival";
+
+export interface TrainLiveDetails {
+  departurePlatform?: string;
+  departureDelay?: number;
+  actualDeparture?: string;
+  arrivalPlatform?: string;
+  arrivalDelay?: number;
+  plannedArrival?: string;
+  arrivalStation?: string;
+}
+
+export interface TrainStop {
+  phase: TrainStopPhase;
+  /** Nazwa stacji, której dotyczą czas i peron. */
+  station: string;
+  planned: Date | null;
+  /** Czas z opóźnieniem (równy planowemu, gdy pociąg jest punktualny). */
+  expected: Date | null;
+  delay: number;
+  platform: string | null;
+}
+
+/** Planowy przyjazd; kurs przez północ przesuwa przyjazd na następny dzień. */
+export function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefined): Date | null {
+  const departure = plannedDeparture(t);
+  if (!departure || !arrivalTime) return null;
+  const arrival = plannedDeparture({ date: t.date, departureTime: arrivalTime });
+  if (!arrival) return null;
+  if (arrival.getTime() < departure.getTime()) arrival.setDate(arrival.getDate() + 1);
+  return arrival;
+}
+
+/** Faktyczny odjazd ze stacji wyjazdu: z danych na żywo, a bez nich planowy + opóźnienie. */
+export function actualDepartureTime(t: TrainTimeInput, live: TrainLiveDetails): Date | null {
+  if (live.actualDeparture) {
+    const actual = new Date(live.actualDeparture);
+    if (!Number.isNaN(actual.getTime())) return actual;
+  }
+  return expectedDeparture(t, live.departureDelay ?? 0);
+}
+
+/**
+ * Stacja, której dane pokazujemy w planie dnia: do faktycznego odjazdu
+ * (z opóźnieniem) – stacja wyjazdu, potem – stacja przyjazdu.
+ */
+export function currentTrainStop(
+  t: TrainTimeInput & { from?: string; to?: string },
+  live: TrainLiveDetails,
+  now: Date = new Date()
+): TrainStop {
+  const departedAt = actualDepartureTime(t, live);
+  const arrivalPlanned = plannedArrival(t, live.plannedArrival);
+  const departed = departedAt !== null && now.getTime() >= departedAt.getTime();
+
+  if (departed && arrivalPlanned) {
+    const delay = Math.max(0, live.arrivalDelay ?? 0);
+    return {
+      phase: "arrival",
+      station: live.arrivalStation || t.to || "",
+      planned: arrivalPlanned,
+      expected: new Date(arrivalPlanned.getTime() + delay * 60_000),
+      delay,
+      platform: cleanValue(live.arrivalPlatform),
+    };
+  }
+
+  const delay = Math.max(0, live.departureDelay ?? 0);
+  return {
+    phase: "departure",
+    station: t.from ?? "",
+    planned: plannedDeparture(t),
+    expected: departedAt ?? expectedDeparture(t, delay),
+    delay,
+    platform: cleanValue(live.departurePlatform),
+  };
+}
+
+/** Tekst względny dla bieżącej stacji: „za 25 min” przed odjazdem, „przyjazd za 40 min” w trasie. */
+export function relativeStopTime(stop: Pick<TrainStop, "phase" | "expected">, now: Date = new Date()): string | null {
+  if (!stop.expected) return null;
+  if (stop.phase === "departure") return relativeDeparture(stop.expected, now);
+  const text = relativeDeparture(stop.expected, now);
+  return text === "odjechał" ? "na miejscu" : `przyjazd ${text}`;
+}

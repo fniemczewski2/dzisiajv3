@@ -92,7 +92,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
             ))}
           </div>
           <button type="button" onClick={() => setAgenda([...agenda, createItem()])}
-            className="text-sm font-medium text-primary hover:text-secondary mt-2 flex items-center">
+            className="text-sm font-medium text-primary hover:text-primary-strong mt-2 flex items-center">
             <Plus className="w-4 h-4 mr-1" /> Dodaj punkt
           </button>
         </div>
@@ -111,7 +111,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
             ))}
           </div>
           <button type="button" onClick={() => setParticipants([...participants, createItem()])}
-            className="text-sm font-medium text-primary hover:text-secondary mt-2 flex items-center">
+            className="text-sm font-medium text-primary hover:text-primary-strong mt-2 flex items-center">
             <Plus className="w-4 h-4 mr-1" /> Dodaj osobę
           </button>
         </div>
@@ -139,7 +139,7 @@ export default function ReportForm({ onChange, onCancel }: Readonly<ReportFormPr
             </div>
           ))}
           <button type="button" onClick={() => setTasks([...tasks, createTask()])}
-            className="text-sm font-medium text-primary hover:text-secondary flex items-center mt-1">
+            className="text-sm font-medium text-primary hover:text-primary-strong flex items-center mt-1">
             <Plus className="w-4 h-4 mr-1" /> Dodaj zadanie
           </button>
         </div>

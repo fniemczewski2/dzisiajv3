@@ -1,6 +1,6 @@
-﻿// components/budget/BankCSV.tsx
+// components/budget/BankCSV.tsx
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { Upload, AlertCircle, CheckCircle2, FileText } from "lucide-react";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { useBills } from "@/hooks/db/useBills";
@@ -23,6 +23,21 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
   const [missingCategories, setMissingCategories] = useState<string[]>([]);
   const [duplicatesCount, setDuplicatesCount] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const categoryBreakdown = useMemo(() => {
+    const groups = new Map<string, { count: number; total: number }>();
+    for (const t of parsedData) {
+      const key = t.mappedCategory.trim() || "Bez kategorii";
+      const entry = groups.get(key) ?? { count: 0, total: 0 };
+      entry.count += 1;
+      entry.total += t.is_income ? t.amount : -t.amount;
+      groups.set(key, entry);
+    }
+    return [...groups.entries()].sort((a, b) => b[1].count - a[1].count);
+  }, [parsedData]);
+
+  const formatPln = (value: number) =>
+    value.toLocaleString("pl-PL", { style: "currency", currency: "PLN", maximumFractionDigits: 2 });
 
   const handleFileParse = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,13 +106,14 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
 
   const insertBills = async (transactions: ParsedTransaction[], availableCategories: BudgetCategory[]) => {
     const tick = toast.batch((n) => `Dodano rachunki (${n})`);
+    let skipped = 0;
 
     for (const t of transactions) {
       const catTarget = t.mappedCategory.trim().toLowerCase();
       const categoryObj = availableCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
       
       if (!categoryObj?.id) {
-        console.warn("Pominięto operację", t);
+        skipped += 1;
         continue;
       }
 
@@ -117,6 +133,10 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
         }
         throw billError;
       }
+    }
+
+    if (skipped > 0) {
+      toast.info(`Pominięto ${skipped} operacji bez pasującej kategorii. Dodaj je ręcznie w Rachunkach.`);
     }
   };
 
@@ -150,7 +170,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
         
         <div className="max-h-6 flex items-center">
         {parsedData.length === 0 && (
-          <label className="cursor-pointer p-2 bg-surface hover:bg-surfaceHover text-textSecondary rounded-lg border border-gray-200 dark:border-gray-700 transition-colors flex items-center gap-2 font-medium text-sm">
+          <label className="cursor-pointer p-2 bg-surface hover:bg-surface-hover text-text-secondary rounded-lg border border-line transition-colors flex items-center gap-2 font-medium text-sm focus-within:ring-2 focus-within:ring-primary/70">
             <Upload className="w-3.5 h-3.5" />
             <input
               ref={fileInputRef}
@@ -165,32 +185,64 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       </div>
 
       {parsedData.length > 0 && (
-        <div className="bg-surface border border-gray-100 dark:border-gray-800 rounded-xl p-5 animate-in fade-in slide-in-from-top-4 mt-4">
-          <h4 className="font-bold text-text mb-3">Podsumowanie importu</h4>
+        <div className="bg-surface border border-line rounded-2xl p-5 animate-in fade-in slide-in-from-top-4 mt-4">
+          <h4 className="font-semibold text-text mb-3">Podsumowanie importu</h4>
           
-          <ul className="space-y-2 mb-5 text-sm text-textSecondary">
+          <ul className="space-y-2 mb-5 text-sm text-text-secondary">
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              <CheckCircle2 aria-hidden="true" className="w-4 h-4 text-green-700 dark:text-green-300" />
               <span>Gotowe do importu: <strong>{parsedData.length} operacji</strong></span>
             </li>
             
             {duplicatesCount > 0 && (
-              <li className="flex items-center gap-2 text-textMuted">
-                <AlertCircle className="w-4 h-4 text-amber-500" />
+              <li className="flex items-center gap-2 text-text-muted">
+                <AlertCircle aria-hidden="true" className="w-4 h-4 text-amber-700 dark:text-amber-300" />
                 <span>Pominięto duplikatów: <strong>{duplicatesCount}</strong> (istnieją już w bazie)</span>
               </li>
             )}
             
             {missingCategories.length > 0 && (
-              <li className="flex items-start gap-2 pt-2 border-t border-gray-200 dark:border-gray-700 mt-2">
-                <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 pt-2 border-t border-line mt-2">
+                <AlertCircle aria-hidden="true" className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                 <div>
                   <span className="font-medium text-text">Brakuje niezbędnych kategorii.</span>
-                  <p className="text-textMuted mt-0.5">Zostaną one dodane automatycznie: {missingCategories.join(", ")}.</p>
+                  <p className="text-text-muted mt-0.5">Zostaną one dodane automatycznie: {missingCategories.join(", ")}.</p>
                 </div>
               </li>
             )}
           </ul>
+
+          {categoryBreakdown.length > 0 && (
+            <div className="mb-5">
+              <p className="text-sm font-medium text-text mb-1">Przypisane kategorie</p>
+              <p className="text-xs text-text-muted mb-2">
+                Kategorie dobrano automatycznie na podstawie opisu operacji. Sprawdź je przed importem, a pomyłki popraw później w Rachunkach.
+              </p>
+              <div className="overflow-x-auto rounded-xl border border-line bg-card">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">Liczba i suma operacji w każdej kategorii</caption>
+                  <thead>
+                    <tr className="text-left text-xs text-text-muted">
+                      <th scope="col" className="px-3 py-2 font-medium">Kategoria</th>
+                      <th scope="col" className="px-3 py-2 font-medium text-right">Operacje</th>
+                      <th scope="col" className="px-3 py-2 font-medium text-right">Suma</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categoryBreakdown.map(([name, { count, total }]) => (
+                      <tr key={name} className="border-t border-line">
+                        <td className="px-3 py-2 text-text">{name}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-text-secondary">{count}</td>
+                        <td className={`px-3 py-2 text-right tabular-nums font-medium ${total >= 0 ? "text-green-700 dark:text-green-300" : "text-text"}`}>
+                          {formatPln(total)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           <FormButtons onClickSave={handleImport} onClickClose={handleCancel} loading={loading}/>
         </div>

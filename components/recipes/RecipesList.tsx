@@ -69,18 +69,18 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
           onClick={() => setShowFilters((s) => !s)}
           aria-expanded={showFilters}
           disabled={products.length === 0}
-          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-10.5 sm:min-w-35 shrink-0 card text-textSecondary hover:text-text hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-10.5 sm:min-w-35 shrink-0 card text-text-secondary hover:text-text hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
           {prodFilter.length > 0 && (
-            <span className="ml-1 rounded-full bg-primary text-white text-xs px-2 py-0.5">{prodFilter.length}</span>
+            <span className="ml-1 rounded-full bg-secondary text-white text-xs px-2 py-0.5">{prodFilter.length}</span>
           )}
         </button>
       </div>
 
       {showFilters && products.length > 0 && (
         <div className="max-w-2xl mx-auto card p-4 rounded-xl shadow-sm">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-textMuted mb-3 block">
+          <span className="text-[11px] font-bold text-text-muted mb-3 block">
             Pokaż przepisy zawierające wszystkie zaznaczone składniki:
           </span>
           <div className="flex flex-wrap gap-2">
@@ -91,7 +91,7 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
           {prodFilter.length > 0 && (
             <button
               type="button"
-              className="mt-4 w-full py-2 bg-surface hover:bg-surfaceHover text-textSecondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+              className="mt-4 w-full py-2 bg-surface hover:bg-surface-hover text-text-secondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
               onClick={() => setProdFilter([])}
             >
               Wyczyść filtry składników
@@ -134,18 +134,18 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
                   <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {r.category && (
-                      <span className="inline-block px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                      <span className="inline-block px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold">
                         {r.category}
                       </span>
                     )}
                     {(r.products?.length ?? 0) > 0 && (
-                      <span className="text-xs text-textMuted">
+                      <span className="text-xs text-text-muted">
                         {r.products.length} {pluralizeIngredients(r.products.length)}
                       </span>
                     )}
                   </div>
                 </div>
-                <span className="p-2 bg-surface text-textSecondary rounded-lg shrink-0" aria-hidden="true">
+                <span className="p-2 bg-surface text-text-secondary rounded-lg shrink-0" aria-hidden="true">
                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                 </span>
               </button>
@@ -153,7 +153,7 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
                 <div id={panelId} className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
                   {r.products && r.products.length > 0 && (
                     <div className="pt-3">
-                      <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Składniki:</span>
+                      <span className="text-[10px] font-bold text-text-muted block mb-2">Składniki:</span>
                       <ul className="flex flex-wrap gap-1.5">
                         {r.products.map((p) => (
                           <li key={p} className="text-xs px-2 py-1 rounded-lg card text-text font-medium">{p}</li>
@@ -163,8 +163,8 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
                   )}
                   {r.description && (
                     <div>
-                      <span className="text-[10px] font-bold text-textMuted uppercase tracking-widest block mb-2">Przygotowanie:</span>
-                      <p className="text-sm text-textSecondary leading-relaxed whitespace-pre-wrap">{r.description}</p>
+                      <span className="text-[10px] font-bold text-text-muted block mb-2">Przygotowanie:</span>
+                      <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{r.description}</p>
                     </div>
                   )}
                   <div className="flex justify-end w-full gap-1.5 pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">

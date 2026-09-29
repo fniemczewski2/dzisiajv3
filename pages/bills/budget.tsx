@@ -1,4 +1,4 @@
-﻿// pages/bills/budget.tsx
+// pages/bills/budget.tsx
 
 import React, { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
@@ -110,16 +110,16 @@ export default function BudgetPage() {
           <button
             onClick={handleBack}
             type='button'
-            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
             aria-label="Wróć"
           >
             <Coins className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-2">
-            <h2 className="font-bold text-xl text-text mx-auto text-center capitalize tracking-wide hidden sm:block">
+            <h1 className="page-title mx-auto text-center first-letter:uppercase sr-only sm:not-sr-only">
               Budżet
-            </h2>
+            </h1>
             <div className="card flex items-center justify-between gap-2 p-2 rounded-xl">
             <button
               onClick={handlePrevMonth}

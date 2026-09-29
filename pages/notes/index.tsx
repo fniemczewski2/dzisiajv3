@@ -1,4 +1,4 @@
-﻿// pages/notes/index.tsx
+// pages/notes/index.tsx
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
@@ -33,15 +33,15 @@ export default function NotesPage() {
       />
         <div className="flex justify-between items-center mb-6 gap-2">
           <div className="flex flex-row items-center gap-3 sm:gap-4">
-            <h2 className="text-2xl font-bold text-text">
+            <h1 className="page-title">
               Notatki
-            </h2>
+            </h1>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => router.push("/notes/movies")}
                 type='button'
                 title="Filmy i seriale"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-textSecondary hover:text-text hover:bg-surfaceHover transition-colors shadow-sm"
+                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
               >
                 <Clapperboard className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>

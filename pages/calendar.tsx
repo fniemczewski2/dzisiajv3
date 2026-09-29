@@ -1,4 +1,4 @@
-﻿// pages/calendar.tsx
+// pages/calendar.tsx
 
 import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect } from "react";
@@ -65,7 +65,7 @@ export default function CalendarPage() {
         ) : (
         <>
           <div className="flex justify-between items-center mb-6 gap-2">
-            <h2 className="text-2xl font-bold text-text">Kalendarz</h2>
+            <h1 className="page-title">Kalendarz</h1>
             {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}
           </div>
 

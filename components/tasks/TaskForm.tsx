@@ -1,4 +1,4 @@
-﻿// components/tasks/TaskForm.tsx
+// components/tasks/TaskForm.tsx
 
 import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "@/types/tasks";
@@ -112,16 +112,16 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
           <div className="form-label">Priorytet:</div>
           <div className="flex items-stretch gap-1.5 mt-1">
             <button type="button" onClick={decreasePriority}
-              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
-              title="Zmniejsz priorytet">
+              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"
+              title="Zmniejsz priorytet" aria-label="Zmniejsz priorytet">
               <Minus size={18} />
             </button>
             <div className="input-field flex-1 flex items-center justify-center card rounded-lg text-text shadow-inner">
               {priority}
             </div>
             <button type="button" onClick={increasePriority}
-              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surfaceHover text-textSecondary hover:text-text transition-colors shadow-sm shrink-0"
-              title="Zwiększ priorytet">
+              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"
+              title="Zwiększ priorytet" aria-label="Zwiększ priorytet">
               <Plus size={18} />
             </button>
           </div>
@@ -171,12 +171,12 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
           {isSlackCategory && (
             <div className="mt-2">
               <label htmlFor="slack-list" className="form-label">Lista Slack:</label>
-              {slackListsLoading && <p className="text-xs text-textMuted">Wczytuję listy…</p>}
+              {slackListsLoading && <p className="text-xs text-text-muted">Wczytuję listy…</p>}
               {!slackListsLoading && slackListsError && (
                 <p className="text-xs text-red-600 dark:text-red-400">{slackListsError}</p>
               )}
               {!slackListsLoading && !slackListsError && slackLists.length === 0 && (
-                <p className="text-xs text-textMuted">
+                <p className="text-xs text-text-muted">
                   Brak gotowych list. Podłącz listę i zmapuj w niej kolumnę tytułu w Ustawieniach.
                 </p>
               )}

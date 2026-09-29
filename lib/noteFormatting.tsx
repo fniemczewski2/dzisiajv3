@@ -42,7 +42,7 @@ function renderLinkToken(part: string, key: string): React.ReactNode {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary hover:text-secondary underline font-medium transition-colors break-all"
+        className="text-primary hover:text-primary-strong underline font-medium transition-colors break-all"
       >
         {displayText}
       </a>

@@ -39,11 +39,32 @@ export function extractListId(input: string): string | null {
   return match ? match[1].toUpperCase() : null;
 }
 
-function handleAuthUrl(res: NextApiResponse) {
+function requestHost(req: NextApiRequest): string | null {
+  const forwarded = req.headers["x-forwarded-host"];
+  const host = (Array.isArray(forwarded) ? forwarded[0] : forwarded) ?? req.headers.host;
+  return host ? host.split(",")[0].trim().toLowerCase() : null;
+}
+
+function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
   const clientId = process.env.SLACK_CLIENT_ID;
   if (!clientId) return res.status(500).json({ error: "Brak konfiguracji SLACK_CLIENT_ID." });
+  if (!process.env.SLACK_CLIENT_SECRET) {
+    return res.status(500).json({ error: "Brak konfiguracji SLACK_CLIENT_SECRET." });
+  }
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+
+  // Slack wraca zawsze pod adres z NEXT_PUBLIC_APP_URL. Jeśli aplikacja jest
+  // otwarta pod innym adresem (np. www albo podgląd Vercela), ciasteczko stanu
+  // i sesja logowania zostają pod starym adresem i połączenie się nie zapisze.
+  const expectedHost = new URL(appUrl).host.toLowerCase();
+  const currentHost = requestHost(req);
+  if (currentHost && currentHost !== expectedHost) {
+    return res.status(409).json({
+      error: `Otwórz aplikację pod adresem ${appUrl} i połącz Slacka stamtąd.`,
+      app_url: appUrl,
+    });
+  }
   const nonce = randomBytes(24).toString("base64url");
 
   const secure = appUrl.startsWith("https://") ? " Secure;" : "";
@@ -139,6 +160,12 @@ async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiR
 
   if (error) {
     console.error("[slack/index] slack_lists:", error.message);
+    if (error.code === "42703" || error.code === "42P01") {
+      throw new ApiError(
+        500,
+        `Baza danych nie ma aktualnej struktury integracji Slack (${error.message}). Uruchom migracje Supabase: npx supabase db push.`
+      );
+    }
     throw new ApiError(500, `Nie udało się odczytać list Slack: ${error.message}`);
   }
 
@@ -351,7 +378,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  if (action === "auth-url") return handleAuthUrl(res);
+  if (action === "auth-url") return handleAuthUrl(req, res);
 
   const admin = adminClient();
 

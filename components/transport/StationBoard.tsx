@@ -1,4 +1,4 @@
-﻿// components/transport/StationBoard.tsx
+// components/transport/StationBoard.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Trash2, RefreshCw, Plus, AlertCircle } from 'lucide-react';
@@ -53,43 +53,57 @@ const getStatusBadgeClassesSmall = (status: string, isCancelled: boolean, isDela
     return 'bg-green-500';
 };
 
+interface BoardState {
+  items: StationBoardItem[];
+  loading: boolean;
+  error: string;
+  updatedAt?: number;
+}
+
+const EMPTY_BOARD: BoardState = { items: [], loading: false, error: '' };
+
+const formatClock = (timestamp: number) =>
+  new Date(timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
 export default function StationBoardWidget() {
   const { addTrain } = useTrains();
   const isSmallScreen = useResponsive();
   
   const [selectedStations, setSelectedStations] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
-  const [boardsData, setBoardsData] = useState<Record<string, { items: StationBoardItem[]; loading: boolean; error: string }>>({});
+  const [boardsData, setBoardsData] = useState<Record<string, BoardState>>({});
 
-    const fetchBoard = useCallback(async (stationName: string) => {
+  const fetchBoard = useCallback(async (stationName: string) => {
     setBoardsData(prev => ({
       ...prev,
-      [stationName]: { ...(prev[stationName] || { items: [] }), loading: true, error: '' }
+      [stationName]: { ...(prev[stationName] ?? EMPTY_BOARD), loading: true, error: '' }
     }));
+
+    const fail = (error: string) =>
+      setBoardsData(prev => ({
+        ...prev,
+        [stationName]: { ...(prev[stationName] ?? EMPTY_BOARD), loading: false, error }
+      }));
 
     try {
       const res = await fetch(`/api/transport/station-board?stationName=${encodeURIComponent(stationName)}`);
       if (res.status === 429) {
-        setBoardsData(prev => ({
-        ...prev,
-        [stationName]: { items: [], loading: false, error: 'Spróbuj ponownie później' }
-      }));
+        fail('Zbyt wiele zapytań. Odśwież za minutę.');
+        return;
       }
       if (!res.ok) {
-        const errData: { error?: string } = await res.json();
-        throw new Error(errData.error || 'Błąd pobierania tablicy');
+        const errData: { error?: string } = await res.json().catch(() => ({}));
+        fail(errData.error || 'Nie udało się pobrać tablicy odjazdów.');
+        return;
       }
       const data: StationBoardResponse = await res.json();
-      
+
       setBoardsData(prev => ({
         ...prev,
-        [stationName]: { items: data.items || [], loading: false, error: '' }
+        [stationName]: { items: data.items || [], loading: false, error: '', updatedAt: Date.now() }
       }));
     } catch {
-      setBoardsData(prev => ({
-        ...prev,
-        [stationName]: { items: [], loading: false, error: 'Błąd połączenia' }
-      }));
+      fail('Brak połączenia z serwerem. Sprawdź internet i odśwież.');
     }
   }, []);
 
@@ -145,20 +159,35 @@ export default function StationBoardWidget() {
     await addTrain(trainData); 
   };
 
-  const renderBoardState = (board: { items: StationBoardItem[]; loading: boolean; error: string }) => {
-    if (board.error) {
+  const renderBoardState = (board: BoardState): React.ReactNode => {
+    const errorBanner = board.error ? (
+      <div role="alert" className="m-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-800/60 dark:bg-red-900/30 dark:text-red-200 flex items-center gap-2">
+        <AlertCircle aria-hidden="true" className="w-4 h-4 shrink-0" />
+        <span>
+          {board.error}
+          {board.items.length > 0 && board.updatedAt && ` Pokazuję dane z ${formatClock(board.updatedAt)}.`}
+        </span>
+      </div>
+    ) : null;
+
+    if (board.items.length === 0 && board.error) {
+      return errorBanner;
+    }
+
+    if (board.items.length === 0 && board.loading) {
       return (
-        <div className="p-6 text-center text-sm text-red-500 flex items-center justify-center gap-2">
-          <AlertCircle className="w-4 h-4" /> {board.error}
+        <div className='flex items-center justify-center w-full py-6'>
+          <LoadingState label="Ładowanie odjazdów" />
         </div>
       );
     }
 
-    if (board.loading) {
+    if (board.items.length > 0 && board.error) {
       return (
-        <div className='flex items-center justify-center w-full'>
-          <LoadingState/>
-        </div>
+        <>
+          {errorBanner}
+          {renderBoardState({ ...board, error: '' })}
+        </>
       );
     }
 
@@ -169,13 +198,13 @@ export default function StationBoardWidget() {
     return (
       <table className="w-full text-left text-xs border-collapse">
         <thead>
-          <tr className="border-b border-gray-100 dark:border-gray-800 text-textMuted font-semibold">
-            <th className="py-2 px-2">Godz.</th>
-            <th className="py-2 px-2">Pociąg</th>
-            <th className="py-2 px-2">Kierunek</th>
-            <th className="py-2 px-2 text-center">{!isSmallScreen && "Peron"}</th>
-            <th className="py-2 px-2">{!isSmallScreen && "Status"}</th>
-            <th className="py-2 px-2 text-right"></th>
+          <tr className="border-b border-gray-100 dark:border-gray-800 text-text-muted font-semibold">
+            <th scope="col" className="py-2 px-2">Godz.</th>
+            <th scope="col" className="py-2 px-2">Pociąg</th>
+            <th scope="col" className="py-2 px-2">Kierunek</th>
+            <th scope="col" className="py-2 px-2 text-center">{!isSmallScreen && "Peron"}</th>
+            <th scope="col" className="py-2 px-2">{!isSmallScreen && "Status"}</th>
+            <th scope="col" className="py-2 px-2 text-right"></th>
           </tr>
         </thead>
         <tbody>
@@ -195,14 +224,14 @@ export default function StationBoardWidget() {
                 <td className={`px-1 py-1 leading-tight whitespace-nowrap w-min ${isSmallScreen && "flex flex-col"}`}>
                   <span className="text-text font-bold text-[14px] sm:text-sm">{item.plannedTime}</span>
                   {isDelayed && (
-                    <span className="ml-1 text-red-600 text-[10px] text-semibold text-right">
+                    <span className="ml-1 text-red-700 dark:text-red-300 text-[11px] font-semibold text-right">
                       +{item.delay}
                     </span>
                   )}
                 </td>
                 <td className='px-1 leading-tight'>
                   <div className="text-text leading-tight text-[12px] sm:text-sm">{item.trainOperator} {item.trainNumber}</div>
-                  {item.trainName && <div className="text-[8px] sm:text-[11px] text-textMuted truncate max-w-15 md:max-w-30">{item.trainName}</div>}
+                  {item.trainName && <div className="text-[10px] sm:text-[11px] text-text-muted truncate max-w-15 md:max-w-30">{item.trainName}</div>}
                 </td>
                 <td className="px-1 leading-tight text-text font-semibold truncate max-w-22.5 md:max-w-40" title={item.to}>
                   {item.to}
@@ -215,7 +244,7 @@ export default function StationBoardWidget() {
                   <button
                     onClick={() => handleTrackTrain(item)}
                     type='button'
-                    className="inline-flex items-center gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
+                    className="inline-flex items-center gap-1 bg-primary/10 hover:bg-secondary-hover text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
                     title="Dodaj ten pociąg do Moich Pociągów"
                     disabled={isCancelled}
                   >
@@ -237,10 +266,11 @@ export default function StationBoardWidget() {
         
         <form onSubmit={handleAddStation} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-textMuted" />
+            <Search aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-text-muted" />
             <input
               type="text"
               placeholder="Poznań Główny"
+              aria-label="Nazwa stacji"
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               className="input-field pl-9 py-2 w-full text-sm"
@@ -253,13 +283,17 @@ export default function StationBoardWidget() {
 
       <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">
         {selectedStations.map(station => {
-          const board = boardsData[station] || { items: [], loading: true, error: '' };
+          const board = boardsData[station] ?? { ...EMPTY_BOARD, loading: true };
           return (
-            <div key={station} className="card rounded-xl border border-gray-100 dark:border-gray-800 bg-card shadow-sm overflow-hidden flex flex-col">
-              <div className="bg-surface px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-text text-base capitalize">
+            <div key={station} className="card max-w-none rounded-2xl bg-card shadow-sm overflow-hidden flex flex-col">
+              <div className="bg-surface px-4 py-3 border-b border-line flex justify-between items-center gap-3">
+                <div className="flex flex-col min-w-0">
+                  <h2 className="font-semibold text-text text-base first-letter:uppercase truncate">
                     {station}
+                  </h2>
+                  <span className="text-xs text-text-muted tabular-nums" aria-live="polite">
+                    {board.loading && board.items.length > 0 && 'Aktualizuję…'}
+                    {!board.loading && board.updatedAt && `Stan na ${formatClock(board.updatedAt)}`}
                   </span>
                 </div>
                 
@@ -267,18 +301,21 @@ export default function StationBoardWidget() {
                   <button
                     onClick={() => fetchBoard(station)}
                     type='button'
-                    className="w-min h-min my-auto p-1.5 sm:p-2 bg-surface hover:bg-surfaceHover text-textSecondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800"
+                    className="w-min h-min my-auto p-1.5 sm:p-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800"
                     title="Odśwież teraz"
+                    aria-label={`Odśwież odjazdy: ${station}`}
+                    disabled={board.loading}
                   >
-                    <RefreshCw className={`w-4 h-4 ${board.loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw aria-hidden="true" className={`w-4 h-4 ${board.loading ? 'animate-spin' : ''}`} />
                   </button>
                   <button
                     onClick={() => handleRemoveStation(station)}
                     type='button'
-                    className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-textMuted hover:text-red-500 transition-colors"
+                    className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-text-muted hover:text-red-700 dark:hover:text-red-300 transition-colors"
                     title="Usuń stację"
+                    aria-label={`Usuń stację ${station}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 aria-hidden="true" className="w-4 h-4" />
                   </button>
                 </div>
               </div>

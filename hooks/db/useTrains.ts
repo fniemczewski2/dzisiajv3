@@ -1,6 +1,7 @@
-﻿// hooks/db/useTrains.ts
+// hooks/db/useTrains.ts
 
 import { useState, useEffect, useCallback } from 'react';
+import { currentTrainStop, type TrainLiveDetails } from '@/lib/trainPlan';
 import { useAuth } from '@/providers/AuthProvider';
 import { getAppDateTime } from '@/lib/dateUtils';
 import { useToast } from '@/providers/ToastProvider';
@@ -258,6 +259,7 @@ export function useTrainStatus(train: {
     loading: true,
     estimatedArrival: '',
     hide: false,
+    live: {} as TrainLiveDetails,
   });
 
   useEffect(() => {
@@ -299,6 +301,15 @@ export function useTrainStatus(train: {
           loading: false,
           estimatedArrival: result.estimatedArrival || '',
           hide: result.hide || false,
+          live: {
+            departurePlatform: result.departurePlatform ?? result.platform,
+            departureDelay: result.departureDelay ?? (result.status === 'W trasie' ? 0 : result.delay),
+            actualDeparture: result.actualDeparture,
+            arrivalPlatform: result.arrivalPlatform,
+            arrivalDelay: result.arrivalDelay ?? (result.status === 'W trasie' ? result.delay : 0),
+            plannedArrival: result.plannedArrival,
+            arrivalStation: result.arrivalStation,
+          },
         });
       } catch (err) {
         if (isAbortError(err)) return;
@@ -328,4 +339,29 @@ export function useTrainStatus(train: {
   }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName, refreshMs, enabled]);
 
   return data;
+}
+
+/**
+ * Status pociągu do planu dnia. Zwraca to samo co useTrainStatus, ale `platform`
+ * i `delay` dotyczą stacji wyjazdu do faktycznego odjazdu (z opóźnieniem),
+ * a potem stacji przyjazdu. Pełny opis bieżącej stacji jest w `stop`.
+ */
+export function useTrainPlanStatus(
+  train: Parameters<typeof useTrainStatus>[0],
+  options: TrainStatusOptions = {}
+) {
+  const status = useTrainStatus(train, options);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const stop = currentTrainStop(train, status.live, now);
+  return {
+    ...status,
+    delay: stop.delay,
+    platform: status.loading && !stop.platform ? status.platform : stop.platform ?? '-',
+    stop,
+  };
 }

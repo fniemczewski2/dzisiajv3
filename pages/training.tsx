@@ -1,4 +1,4 @@
-﻿// pages/training.tsx
+// pages/training.tsx
 
 import React, { useState } from "react";
 import UniversalTimer from "@/components/ui/Timer";
@@ -56,7 +56,7 @@ export default function TrainingPage() {
         keywords="trening, interwały, stoper, hiit, tabata, fitness"
       />
         <div className="max-w-2xl mx-auto space-y-6">
-          <h2 className="text-2xl font-bold text-text mb-6">Trening</h2>
+          <h1 className="page-title mb-6">Trening</h1>
 
           <UniversalTimer
             secondsLeft={secondsLeft}
@@ -71,15 +71,15 @@ export default function TrainingPage() {
           {(!running && !paused) && (
             <div className="p-6 card rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
-                <Settings2 className="w-5 h-5 text-textMuted" />
-                <h3 className="font-bold text-text uppercase tracking-wider text-sm">
+                <Settings2 className="w-5 h-5 text-text-muted" />
+                <h3 className="font-bold text-text text-sm">
                   Konfiguracja interwałów
                 </h3>
               </div>
               
               <div className="space-y-4">
                 <div className="flex w-full items-center justify-between">
-                  <label htmlFor="work_time" className="font-medium text-textSecondary text-sm">Czas pracy:</label>
+                  <label htmlFor="work_time" className="font-medium text-text-secondary text-sm">Czas pracy:</label>
                   <div className="flex items-center gap-2">
                     <input
                       id="work_time"
@@ -90,11 +90,11 @@ export default function TrainingPage() {
                       onChange={(e) => setWorkSec(Number(e.target.value))}
                       className="input-field w-20 text-center tabular-nums py-1.5"
                     />
-                    <span className="text-xs font-semibold text-textMuted uppercase tracking-wider w-8">sek</span>
+                    <span className="text-xs font-semibold text-text-muted w-8">sek</span>
                   </div>
                 </div>
                 <div className="flex w-full items-center justify-between">
-                  <label htmlFor="short_break" className="font-medium text-textSecondary text-sm">Krótka przerwa:</label>
+                  <label htmlFor="short_break" className="font-medium text-text-secondary text-sm">Krótka przerwa:</label>
                   <div className="flex items-center gap-2">
                     <input
                       id="short_break"
@@ -105,16 +105,16 @@ export default function TrainingPage() {
                       onChange={(e) => setRestSec(Number(e.target.value))}
                       className="input-field w-20 text-center tabular-nums py-1.5"
                     />
-                    <span className="text-xs font-semibold text-textMuted uppercase tracking-wider w-8">sek</span>
+                    <span className="text-xs font-semibold text-text-muted w-8">sek</span>
                   </div>
                 </div>
 
  
                 <div className="flex w-full items-center justify-between">
                   <span>
-                    <label htmlFor="series" className="font-medium text-textSecondary text-sm">Serie</label>
-                    <span className="font-medium text-textSecondary text-sm"> i </span>
-                    <label htmlFor="cycles" className="font-medium text-textSecondary text-sm">Cykle:</label>
+                    <label htmlFor="series" className="font-medium text-text-secondary text-sm">Serie</label>
+                    <span className="font-medium text-text-secondary text-sm"> i </span>
+                    <label htmlFor="cycles" className="font-medium text-text-secondary text-sm">Cykle:</label>
                   </span>
                   <div className="flex items-center gap-2">
                     <input
@@ -127,7 +127,7 @@ export default function TrainingPage() {
                       className="input-field w-16 text-center tabular-nums py-1.5"
                       title="Ilość ćwiczeń w jednym cyklu"
                     />
-                    <X className="w-4 h-4 text-textMuted" />
+                    <X className="w-4 h-4 text-text-muted" />
                     <input
                       id="cycles"
                       type="number"
@@ -142,7 +142,7 @@ export default function TrainingPage() {
                 </div>
                 {cycles > 1 && (
                   <div className="flex w-full items-center justify-between animate-in fade-in slide-in-from-top-2">
-                    <label htmlFor="long_break" className="font-medium text-textSecondary text-sm">Długa przerwa:</label>
+                    <label htmlFor="long_break" className="font-medium text-text-secondary text-sm">Długa przerwa:</label>
                     <div className="flex items-center gap-2">
                       <input
                         id="long_break"
@@ -153,7 +153,7 @@ export default function TrainingPage() {
                         onChange={(e) => setLongRestSec(Number(e.target.value))}
                         className="input-field w-20 text-center tabular-nums py-1.5"
                       />
-                      <span className="text-xs font-semibold text-textMuted uppercase tracking-wider w-8">sek</span>
+                      <span className="text-xs font-semibold text-text-muted w-8">sek</span>
                     </div>
                   </div>
                 )}

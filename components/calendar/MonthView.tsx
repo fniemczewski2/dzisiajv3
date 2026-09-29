@@ -166,7 +166,7 @@ const MonthView = memo(function MonthView({
 
   return (
     <div className="space-y-0.5 sm:space-y-2">
-      <div className="grid grid-cols-7 text-center font-bold text-xs sm:text-sm text-textMuted uppercase tracking-wider pb-2 border-b border-gray-100 dark:border-gray-800">
+      <div className="grid grid-cols-7 text-center font-bold text-xs sm:text-sm text-text-muted pb-2 border-b border-gray-100 dark:border-gray-800">
         {weekdayNamesPL.map((d) => <div key={d} className="py-1">{d}</div>)}
       </div>
 

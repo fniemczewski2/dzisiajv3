@@ -12,14 +12,14 @@ export default function VersionInfo() {
   ) : (
     <div className="space-y-3">
       <div className="flex items-center justify-between text-xs sm:text-sm">
-        <span className="font-semibold text-textSecondary">Wersja aplikacji:</span>
+        <span className="font-semibold text-text-secondary">Wersja aplikacji:</span>
         <span className="px-2.5 py-1 font-mono font-bold rounded-md bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/50">
           {version}
         </span>
       </div>
 
       <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-3">
-        <span className="font-semibold text-textSecondary">Data aktualizacji:</span>
+        <span className="font-semibold text-text-secondary">Data aktualizacji:</span>
         <span className="px-2.5 py-1 font-mono font-medium rounded-md bg-card text-text border border-gray-200 dark:border-gray-700">
           {commitDate}
         </span>
@@ -39,7 +39,7 @@ export default function VersionInfo() {
       </div>
 
       {loading ? (
-        <div className="text-sm font-medium text-textMuted animate-pulse">Pobieranie informacji o wersji...</div>
+        <div className="text-sm font-medium text-text-muted animate-pulse">Pobieranie informacji o wersji...</div>
       ) : statusContent}
     </div>
   );

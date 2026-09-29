@@ -1,4 +1,4 @@
-﻿// components/meetingPolls/MeetingPollForm.tsx
+// components/meetingPolls/MeetingPollForm.tsx
 
 import React, { useState } from "react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
@@ -101,11 +101,12 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
               </button>
             </span>
           ))}
-          {dates.length === 0 && <p className="text-sm text-textMuted italic">Nie dodano jeszcze żadnego dnia.</p>}
+          {dates.length === 0 && <p className="text-sm text-text-muted italic">Nie dodano jeszcze żadnego dnia.</p>}
         </div>
         <div className="flex items-center gap-2">
           <input
             type="date"
+            aria-label="Dzień do dodania"
             value={dateToAdd}
             onChange={(e) => setDateToAdd(e.target.value)}
             className="input-field flex-1"
@@ -113,7 +114,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
           <button
             type="button"
             onClick={addDate}
-            className="px-3 py-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-textSecondary hover:text-blue-600 dark:hover:text-blue-400 text-sm font-semibold transition-colors shrink-0"
+            className="px-3 py-2 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-sm font-semibold transition-colors shrink-0"
           >
             Dodaj dzień
           </button>
