@@ -139,9 +139,6 @@ export default function Navbar() {
             <div className="max-h-[80vh] overflow-y-auto overscroll-contain space-y-2 pr-0.5">
               {NAVIGATION_CATEGORIES.map((category) => (
                 <section key={category.name} aria-label={category.name} className="bg-surface rounded-xl p-2">
-                  <h3 className="text-xs pb-1.5 px-1 font-semibold text-text-muted">
-                    {category.name}
-                  </h3>
                   <div className="grid grid-cols-4 gap-1.5">
                     {category.items.map((item) => (
                       <MenuItemLink
@@ -247,7 +244,7 @@ function MenuItemLink({
         }`}
       />
       <span
-        className={`text-[11px] text-center leading-tight font-semibold ${
+        className={`text-[10px] text-center leading-tight font-semibold ${
           isActive ? "text-primary" : "text-text-secondary group-hover:text-text"
         }`}
       >

@@ -118,7 +118,7 @@ export default function Header() {
 
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
-        weekday: "long", month: "long", day: "numeric",
+        weekday: "long", month: "short", day: "numeric",
       })
     );
     setCurrentTime(now.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }));
