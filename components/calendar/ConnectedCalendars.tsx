@@ -79,9 +79,9 @@ export default function ConnectedCalendars() {
                               <div className="text-sm font-bold text-text capitalize">{account.provider}</div>
                               <div className="text-xs text-text-secondary">{account.account_email}</div>
                               {account.sync_error && (
-                                <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500 font-medium mt-0.5">
+                                <div className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 font-medium mt-0.5">
                                   <AlertTriangle className="w-3 h-3 shrink-0" />
-                                  <span>Wymaga ponownej autoryzacji — połącz konto ponownie</span>
+                                  <span>Wymaga ponownej autoryzacji – połącz konto ponownie</span>
                                 </div>
                               )}
                             </div>

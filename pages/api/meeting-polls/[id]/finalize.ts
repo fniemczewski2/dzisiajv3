@@ -39,7 +39,7 @@ async function loadFinalizeContext(req: NextApiRequest, res: NextApiResponse): P
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Brak autoryzacji." });
     return null;
   }
 
@@ -188,7 +188,7 @@ async function finalizeOneSlot(
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const ctx = await loadFinalizeContext(req, res);
   if (!ctx) return;

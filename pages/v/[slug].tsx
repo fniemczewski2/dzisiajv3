@@ -1,5 +1,5 @@
 import { GetServerSideProps } from 'next';
-import Head from 'next/head';
+import Seo from '@/components/ui/SEO';
 import { createClient } from '@supabase/supabase-js';
 import VCardPreview from '@/components/profiles/VCardPreview';
 import { VCardProfile } from '@/types/profiles';
@@ -20,9 +20,15 @@ export default function PublicVCard({ profile, error }: Readonly<PublicVCardProp
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10">
-      <Head>
-        <title>{profile.full_name} | Wizytówka</title>
-      </Head>
+      <Seo
+        title={`${profile.full_name} – wizytówka`}
+        description={`Wizytówka: ${profile.full_name}${profile.organization ? `, ${profile.organization}` : ""}. Dane kontaktowe do zapisania w telefonie.`}
+        canonical={`https://dzisiaj.fun/v/${profile.public_slug}`}
+        ogType="profile"
+        // Dane osobowe: wizytówka jest do udostępniania linkiem lub kodem QR,
+        // nie do wyszukiwarek.
+        noindex={true}
+      />
       
       <VCardPreview 
         profile={profile} 
@@ -42,7 +48,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const { data: profile, error } = await supabase
     .from('vcard_profiles')
-    .select('*')
+    .select('full_name, organization, avatar_url, emails, phones, addresses, social_links, business_data, color_light, color_dark, is_public, public_slug')
     .eq('public_slug', slug)
     .eq('is_public', true)
     .single();

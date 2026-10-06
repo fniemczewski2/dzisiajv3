@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import Head from "next/head";
+import Seo from "@/components/ui/SEO";
 import { SkeletonSlotGrid } from "@/components/ui/Skeleton";
 
 const PublicPollForm = dynamic(() => import("@/components/meetingPolls/PublicPollForm"), {
@@ -18,10 +18,13 @@ export default function PublicMeetingPollPage() {
 
   return (
     <>
-      <Head>
-        <title>Ustal termin spotkania | Dzisiaj.Fun</title>
-        <meta name="robots" content="noindex, nofollow" />
-      </Head>
+      <Seo
+        title="Ustal termin spotkania"
+        description="Zaznacz, kiedy masz czas – organizator zobaczy wspólną dostępność wszystkich uczestników."
+        canonical={`https://dzisiaj.fun/meet/${token}`}
+        noindex={true}
+        nofollow={true}
+      />
       <PublicPollForm token={token} />
     </>
   );

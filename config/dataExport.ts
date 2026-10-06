@@ -13,9 +13,9 @@ export const EXPORT_TABLES: ExportTable[] = [
   { table: "daily_overrides", label: "Wyjatki od schematow" },
   { table: "events", label: "Wydarzenia" },
   { table: "meeting_polls", label: "Ankiety terminow" },
-  { table: "meeting_poll_dates", label: "Ankiety - dni" },
-  { table: "meeting_poll_responses", label: "Ankiety - odpowiedzi" },
-  { table: "meeting_poll_availabilities", label: "Ankiety - dostepnosc" },
+  { table: "meeting_poll_dates", label: "Ankiety – dni" },
+  { table: "meeting_poll_responses", label: "Ankiety – odpowiedzi" },
+  { table: "meeting_poll_availabilities", label: "Ankiety – dostępność" },
   { table: "notes", label: "Notatki" },
   { table: "letters", label: "Pisma" },
   { table: "reports", label: "Sprawozdania" },
@@ -35,11 +35,11 @@ export const EXPORT_TABLES: ExportTable[] = [
   { table: "work_logs", label: "Czas pracy" },
   { table: "user_trains", label: "Sledzone pociagi" },
   { table: "notifications", label: "Powiadomienia" },
-  { table: "slack_task_links", label: "Slack - zadania" },
-  { table: 'slack_task_targets', label: 'Slack - zadania' },
+  { table: "slack_task_links", label: "Slack – zadania" },
+  { table: 'slack_task_targets', label: 'Slack – zadania' },
   { 
     table: 'slack_lists', 
-    label: 'Slack - listy',
+    label: 'Slack – listy',
     columns: 'id,user_id,list_id,list_title,column_map,is_default,created_at,updated_at'
   },
   {

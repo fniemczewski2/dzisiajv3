@@ -58,8 +58,8 @@ export default function StartPage() {
   return (
     <>
       <Seo
-        title="Rozpocznij | Dzisiaj.Fun"
-        description="Poznaj Dzisiaj.Fun - kompleksową aplikację, która pomoże Ci uporządkować i zorganizować każdy dzień."
+        title="Dzisiaj.Fun – zadania, kalendarz, budżet i notatki"
+        description="Zadania, kalendarz, rachunki, budżet, notatki i listy zakupów w jednej aplikacji. Synchronizacja z Kalendarzem Google i Outlookiem, instalacja jako aplikacja na telefonie."
         canonical="https://dzisiaj.fun/start"
         keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />

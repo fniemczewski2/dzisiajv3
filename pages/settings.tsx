@@ -51,8 +51,8 @@ export default function SettingsPage() {
   return (
     <>
       <Seo
-        title="Ustawienia | Dzisiaj.Fun"
-        description="Dostosuj działanie aplikacjiDzisiaj.Fun. Zmień preferencje, powiadomienia i wygląd interfejsu."
+        title="Ustawienia"
+        description="Dostosuj działanie aplikacji Dzisiaj.Fun: preferencje, powiadomienia, integrację ze Slackiem i Skrótami Siri oraz eksport danych."
         canonical="https://dzisiaj.fun/settings"
         keywords="ustawienia, konfiguracja, personalizacja, profil, motyw"
         noindex={true} 

@@ -149,7 +149,7 @@ export default function MovieCard({
 
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {movie.rating != null && movie.rating > 0 && (
-              <span className="flex items-center text-xs font-bold text-yellow-600 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md">
+              <span className="flex items-center text-xs font-bold text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md">
                 <Star className="w-3.5 h-3.5 mr-1 fill-current" />
                 {movie.rating.toFixed(1)}
               </span>

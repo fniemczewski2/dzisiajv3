@@ -124,7 +124,7 @@ export function translateSlackError(code: string | undefined): string {
       return "Pozycja listy nie istnieje już w Slacku.";
     case "invalid_column_id":
     case "column_not_found":
-      return "Mapowanie kolumn jest nieaktualne - lista w Slacku zmieniła strukturę.";
+      return "Mapowanie kolumn jest nieaktualne – lista w Slacku zmieniła strukturę.";
     case "invalid_arguments":
     case "invalid_arg_name":
       return "Slack odrzucił parametry zapytania. Zaktualizuj integrację.";

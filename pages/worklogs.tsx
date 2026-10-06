@@ -11,6 +11,7 @@ import { SkeletonList } from "@/components/ui/Skeleton";
 import { WorkLog, WorkLogInsert } from '@/types/worklogs';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
+import Seo from '@/components/ui/SEO';
 
 const toIsoWithLocalOffset = (localValue: string): string => {
   const date = new Date(localValue);
@@ -171,7 +172,7 @@ export default function WorkLogsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-primary/70" />
-                          {format(parseLocal(log.start_time), 'HH:mm')} - {log.end_time ? format(parseLocal(log.end_time), 'HH:mm') : "..."}
+                          {format(parseLocal(log.start_time), 'HH:mm')}–{log.end_time ? format(parseLocal(log.end_time), 'HH:mm') : "..."}
                         </div>
                       </div>
                     </div>
@@ -190,7 +191,13 @@ export default function WorkLogsPage() {
 }
 
   return (
-      <div className="space-y-6 pb-20">         
+    <>
+      <Seo
+        title="Czas pracy"
+        description="Ewidencja czasu pracy: wpisy z godziną rozpoczęcia, zakończenia i opisem, zestawione miesiącami. Wpisy można dodawać skrótem Siri."
+        canonical="https://dzisiaj.fun/worklogs"
+      />
+      <div className="space-y-6 pb-20">
           <div className="flex items-center justify-between gap-4 w-full">
             <h1 className="page-title flex items-center gap-3">
              Czas pracy
@@ -234,5 +241,6 @@ export default function WorkLogsPage() {
           }
         </section>
       </div>
+    </>
   );
 }

@@ -21,7 +21,7 @@ function redirectWithError(res: NextApiResponse, reason: string) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 

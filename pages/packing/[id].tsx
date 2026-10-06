@@ -11,11 +11,11 @@ export default function DynamicPackingPage() {
   const listData = useMemo(() => {
     switch (id) {
       case "backpack":
-        return { pageTitle: "Plecak | Dzisiaj.Fun", headerTitle: "Plecak", categories: BACKPACK };
+        return { pageTitle: "Plecak", headerTitle: "Plecak", description: "Lista rzeczy do spakowania do plecaka na krótki wyjazd – odhaczaj spakowane rzeczy.", categories: BACKPACK };
       case "safety":
-        return { pageTitle: "Plecak Bezpieczeństwa | Dzisiaj.Fun", headerTitle: "Plecak Bezpieczeństwa", categories: SAFETY };
+        return { pageTitle: "Plecak bezpieczeństwa", headerTitle: "Plecak bezpieczeństwa", description: "Lista rzeczy do plecaka bezpieczeństwa na wypadek ewakuacji lub sytuacji kryzysowej.", categories: SAFETY };
       case "suitcase":
-        return { pageTitle: "Walizka | Dzisiaj.Fun", headerTitle: "Walizka", categories: SUITCASE };
+        return { pageTitle: "Walizka", headerTitle: "Walizka", description: "Lista rzeczy do spakowania do walizki na dłuższy wyjazd – odhaczaj spakowane rzeczy.", categories: SUITCASE };
       case undefined:
         return null;
       default:
@@ -33,14 +33,12 @@ export default function DynamicPackingPage() {
 
   return (
     <>
-      <Seo 
-        title={listData.pageTitle}  description="Spakuj wszystko, co niezbędne." />
-              <Seo
-                title="Budżet | Dzisiaj.Fun"
-                description="Analizuj swoje wydatki, przeglądaj statystyki finansowe i mądrze zaplanuj domowy budżet."
-                canonical="https://dzisiaj.fun/bills/budget"
-                keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
-              />
+      <Seo
+        title={listData.pageTitle}
+        description={listData.description}
+        canonical={`https://dzisiaj.fun/packing/${String(router.query.id ?? "")}`}
+        noindex={true}
+      />
       <PackingList 
         headerTitle={listData.headerTitle} 
         categories={listData.categories} 

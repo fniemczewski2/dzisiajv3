@@ -215,7 +215,7 @@ export function useMeetingPolls() {
           toast.error(data.error ?? "Błąd finalizacji terminu.");
           return null;
         }
-        toast.success("Termin zapisany w kalendarzu - i u dostępnych, zalogowanych uczestników.");
+        toast.success("Termin zapisany w kalendarzu – i u dostępnych, zalogowanych uczestników.");
         return data.results as FinalizeResultSlot[];
       } catch {
         toast.error("Błąd finalizacji terminu.");

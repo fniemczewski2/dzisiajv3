@@ -23,7 +23,7 @@ export async function handleOAuthCallback(
 ) {
   const { code, state } = req.query;
 
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
   if (!code || !state) return res.redirect(307, "/calendar?error=missing_params");
 
   const cookieNonce = req.cookies[config.stateCookieName];

@@ -21,8 +21,8 @@ interface SeoProps {
 }
 
 export default function Seo({
-  title = "Dzisiaj.Fun - Zarządzaj Zadaniami, Notatkami i Kalendarzem",
-  description = "Dzisiaj.Fun to kompleksowa aplikacja do zarządzania czasem i produktywnością. Organizuj zadania, notatki, rachunki, kalendarz i wiele więcej.",
+  title = "Dzisiaj.Fun – zadania, kalendarz, budżet i notatki",
+  description = "Zadania, kalendarz, rachunki, budżet, notatki i listy zakupów w jednej aplikacji. Synchronizacja z Kalendarzem Google i Outlookiem.",
   canonical = "https://dzisiaj.fun",
   ogImage = "https://dzisiaj.fun/og-image.png",
   ogType = "website",
@@ -30,7 +30,7 @@ export default function Seo({
   noindex = false,
   nofollow = false,
   structuredData,
-  keywords = "zarządzanie zadaniami, produktywność, notatki, kalendarz, pomodoro, eisenhower matrix, organizacja czasu, todo list, planner",
+  keywords = "zadania, kalendarz, notatki, rachunki, budżet, listy zakupów, pomodoro, organizacja czasu, planner",
   author = "Dzisiaj.Fun",
   publishedTime,
   modifiedTime,

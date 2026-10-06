@@ -80,14 +80,10 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     setSharedEmail("");
   };
 
+  // Właściciel usuwa listę, odbiorca się z niej wypisuje – rozróżnia to
+  // useShoppingLists.deleteShoppingList.
   const handleDelete = async (list: ShoppingList) => {
-    const isOwner = list.user_id === user?.id;
-
-    if (isOwner) {
-      await deleteShoppingList(list.id!);
-    } else {
-      await editShoppingList(list.id!, { shared_with_id: list.user_id });
-    }
+    await deleteShoppingList(list.id!);
   };
 
   const toggleElement = (list: ShoppingList, elId: string) => {
@@ -161,7 +157,10 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
               </div>
               <div className="flex gap-1.5 shrink-0">
                 <EditButton onClick={() => handleEdit(list)} />
-                <DeleteButton onClick={() => handleDelete(list)} />
+                <DeleteButton
+                  onClick={() => handleDelete(list)}
+                  ariaLabel={isOwner ? "usuń listę" : "wypisz się z listy"}
+                />
               </div>
             </div>
             <ul className="list-none mb-4 flex-1 space-y-1">

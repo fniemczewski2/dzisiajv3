@@ -175,8 +175,8 @@ export default function BillCalculator() {
   return (
     <>
     <Seo
-      title="Kalkulator | Dzisiaj.Fun"
-      description="Szybki kalkulator wspierający zarządzanie Twoimi codziennymi wydatkami i wyliczeniami."
+      title="Kalkulator kosztów"
+      description="Podziel wspólne koszty mieszkania między dwie osoby proporcjonalnie do dochodów netto – z uwzględnieniem ZUS, zaliczki na PIT i kursu EUR/PLN."
       canonical="https://dzisiaj.fun/bills/calculator"
       keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
     />
@@ -283,7 +283,7 @@ export default function BillCalculator() {
                         onChange={calculate}
                         icon={<Minus size={16} />}
                       />
-                      <div className="text-right text-[10px] font-bold text-red-500 mt-1">
+                      <div className="text-right text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">
                         - {results.pitValue1.toFixed(2)} zł
                       </div>
                     </div>
@@ -336,7 +336,7 @@ export default function BillCalculator() {
                       step={1}
                       onChange={calculate}
                     />
-                    <div className="text-right text-[10px] font-bold text-red-500 mt-1">
+                    <div className="text-right text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">
                       - {results.pitValue2.toFixed(2)} zł
                     </div>
                   </div>

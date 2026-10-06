@@ -28,6 +28,9 @@
   --color-surface-hover: var(--theme-surface-hover);
   --color-line: var(--theme-line);
   --color-line-strong: var(--theme-line-strong);
+  /* Obramowanie pól formularza: min. 3:1 względem tła karty (WCAG 1.4.11),
+     bo na karcie to jedyna wizualna granica pola. */
+  --color-input: var(--theme-input-border);
 
   --color-navy: #0A2947;
   --color-navy-deep: #061A2E;
@@ -176,6 +179,107 @@
   --color-yellow-900: #52330F;
   --color-yellow-950: #301C05;
 
+  /* Skale dopasowane do pozostałych: te same kroki jasności (OKLCH) co
+     red (ciepłe) albo blue/green (chłodne), więc np. *-600 ma taki sam
+     kontrast na białym tle w każdej rodzinie. Wcześniej te kolory szły
+     z domyślnej palety Tailwinda i odstawały nasyceniem. */
+
+  --color-orange-50: #FCF3EE;
+  --color-orange-100: #F9E3D8;
+  --color-orange-200: #F3C6B0;
+  --color-orange-300: #EAA17B;
+  --color-orange-400: #DD773C;
+  --color-orange-500: #C5590A;
+  --color-orange-600: #A74B07;
+  --color-orange-700: #893C06;
+  --color-orange-800: #6E2F05;
+  --color-orange-900: #582402;
+  --color-orange-950: #381400;
+
+  --color-pink-50: #FCF2F5;
+  --color-pink-100: #F9E1E9;
+  --color-pink-200: #F2C1D3;
+  --color-pink-300: #E899B8;
+  --color-pink-400: #DA6C9B;
+  --color-pink-500: #C84683;
+  --color-pink-600: #B0316F;
+  --color-pink-700: #90285A;
+  --color-pink-800: #722247;
+  --color-pink-900: #581D38;
+  --color-pink-950: #371022;
+
+  --color-rose-50: var(--color-pink-50);
+  --color-rose-100: var(--color-pink-100);
+  --color-rose-200: var(--color-pink-200);
+  --color-rose-300: var(--color-pink-300);
+  --color-rose-400: var(--color-pink-400);
+  --color-rose-500: var(--color-pink-500);
+  --color-rose-600: var(--color-pink-600);
+  --color-rose-700: var(--color-pink-700);
+  --color-rose-800: var(--color-pink-800);
+  --color-rose-900: var(--color-pink-900);
+  --color-rose-950: var(--color-pink-950);
+
+  --color-violet-50: #F3F2FC;
+  --color-violet-100: #E4E1F9;
+  --color-violet-200: #CAC4F0;
+  --color-violet-300: #AFA3E6;
+  --color-violet-400: #9382D8;
+  --color-violet-500: #7963C2;
+  --color-violet-600: #644CAA;
+  --color-violet-700: #513E8A;
+  --color-violet-800: #40316E;
+  --color-violet-900: #322754;
+  --color-violet-950: #292145;
+
+  --color-purple-50: var(--color-violet-50);
+  --color-purple-100: var(--color-violet-100);
+  --color-purple-200: var(--color-violet-200);
+  --color-purple-300: var(--color-violet-300);
+  --color-purple-400: var(--color-violet-400);
+  --color-purple-500: var(--color-violet-500);
+  --color-purple-600: var(--color-violet-600);
+  --color-purple-700: var(--color-violet-700);
+  --color-purple-800: var(--color-violet-800);
+  --color-purple-900: var(--color-violet-900);
+  --color-purple-950: var(--color-violet-950);
+
+  --color-indigo-50: var(--color-violet-50);
+  --color-indigo-100: var(--color-violet-100);
+  --color-indigo-200: var(--color-violet-200);
+  --color-indigo-300: var(--color-violet-300);
+  --color-indigo-400: var(--color-violet-400);
+  --color-indigo-500: var(--color-violet-500);
+  --color-indigo-600: var(--color-violet-600);
+  --color-indigo-700: var(--color-violet-700);
+  --color-indigo-800: var(--color-violet-800);
+  --color-indigo-900: var(--color-violet-900);
+  --color-indigo-950: var(--color-violet-950);
+
+  --color-cyan-50: #E9F6F9;
+  --color-cyan-100: #CCECF2;
+  --color-cyan-200: #9CD8E4;
+  --color-cyan-300: #68BFD0;
+  --color-cyan-400: #35A3B7;
+  --color-cyan-500: #0A889B;
+  --color-cyan-600: #127787;
+  --color-cyan-700: #06606E;
+  --color-cyan-800: #0A4D58;
+  --color-cyan-900: #0A3D46;
+  --color-cyan-950: #05252B;
+
+  --color-teal-50: var(--color-green-50);
+  --color-teal-100: var(--color-green-100);
+  --color-teal-200: var(--color-green-200);
+  --color-teal-300: var(--color-green-300);
+  --color-teal-400: var(--color-green-400);
+  --color-teal-500: var(--color-green-500);
+  --color-teal-600: var(--color-green-600);
+  --color-teal-700: var(--color-green-700);
+  --color-teal-800: var(--color-green-800);
+  --color-teal-900: var(--color-green-900);
+  --color-teal-950: var(--color-green-950);
+
   --radius-card: 1.125rem;
 
   --shadow-xs: 0 1px 1px 0 var(--shadow-ink);
@@ -244,6 +348,7 @@
     --theme-accent: #0C6E61;
     --theme-line: #DCE3EC;
     --theme-line-strong: #C3CEDB;
+    --theme-input-border: #7C8BA0;
 
     --header-bg: #0A2947;
     --header-fg: #FFFFFF;
@@ -294,6 +399,7 @@
     --theme-accent: #4FC1AE;
     --theme-line: #1A2636;
     --theme-line-strong: #2A3A4F;
+    --theme-input-border: #5E6F84;
 
     --header-bg: #0A2947;
     --header-fg: #FFFFFF;
@@ -394,7 +500,7 @@
 
 @layer components {
   .input-field {
-    @apply w-full min-h-10 px-3 py-2 text-base rounded-lg bg-card border border-line-strong text-text transition-all focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed aria-invalid:border-red-500 aria-invalid:ring-red-500/40;
+    @apply w-full min-h-10 px-3 py-2 text-base rounded-lg bg-card border border-input text-text transition-all focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed aria-invalid:border-red-500 aria-invalid:ring-red-500/40;
   }
 
   .form-card {

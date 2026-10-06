@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isCron = verifyCronRequest(req);
 
   const allowedMethod = isCron ? req.method === "GET" || req.method === "POST" : req.method === "POST";
-  if (!allowedMethod) return res.status(405).json({ error: "Method Not Allowed" });
+  if (!allowedMethod) return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const admin = adminClient();
   let scopedUserId: string | undefined;
@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isCron) {
     const supabase = createServerSupabase(req, res);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return res.status(401).json({ error: "Unauthorized" });
+    if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
     scopedUserId = user.id;
   }
 

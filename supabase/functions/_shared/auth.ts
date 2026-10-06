@@ -25,7 +25,7 @@ export const jsonHeaders = {
 };
 
 export function unauthorized(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
     status: 401,
     headers: jsonHeaders,
   });

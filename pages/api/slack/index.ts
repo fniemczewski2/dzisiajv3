@@ -390,7 +390,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const supabase = createServerSupabase(req, res);
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return res.status(401).json({ error: "Unauthorized" });
+  if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
 
   if (action === "auth-url") return handleAuthUrl(req, res);
 

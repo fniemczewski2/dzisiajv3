@@ -46,7 +46,7 @@ export default function SummaryTable({ data, monthNames, loadedMonths }: Readonl
               const planned = monthData?.plannedExpense ?? 0;
               const remaining = income - done - planned;
 
-              const remainingClass = remaining < 0 ? "text-red-500 font-bold" : "text-text font-bold";
+              const remainingClass = remaining < 0 ? "text-red-600 dark:text-red-400 font-bold" : "text-text font-bold";
 
               return (
                 <tr key={m} className={rowClass}>

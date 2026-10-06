@@ -12,8 +12,8 @@ export default function MoviesPage() {
   return (
     <>
       <Seo
-        title="Filmy i Seriale | Dzisiaj.Fun"
-        description="Kataloguj produkcje do obejrzenia, wystawiaj oceny i twórz swoją prywatną filmotekę."
+        title="Filmy i seriale"
+        description="Wyszukuj tytuły w bazie TMDB, zapisuj filmy i seriale do obejrzenia, oceniaj obejrzane i śledź postęp sezonów."
         canonical="https://dzisiaj.fun/notes/movies"
         keywords="filmy, seriale, do obejrzenia, watchlist, recenzje filmowe"
       />

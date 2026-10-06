@@ -64,8 +64,8 @@ export default function GuidePage() {
   return (
     <>
       <Seo
-        title="Instrukcja | Dzisiaj.Fun"
-        description="Instrukcje, porady i wskazówki, jak w pełni wykorzystać aplikację Dzisiaj.Fun."
+        title="Instrukcja"
+        description="Opis modułów aplikacji Dzisiaj.Fun z instrukcjami krok po kroku i wskazówkami."
         canonical="https://dzisiaj.fun/guide"
         keywords="przewodnik, pomoc, instrukcja obsługi, tutorial, faq"
       />

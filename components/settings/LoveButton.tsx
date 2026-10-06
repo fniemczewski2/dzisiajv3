@@ -55,7 +55,7 @@ export default function LoveButton() {
       className={`p-2.5 rounded-xl transition-colors border shadow-sm ${
         sent || loading
           ? "bg-pink-600 border-pink-500 text-white shadow-pink-500/20"
-          : "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-900/50 hover:bg-pink-100 dark:hover:bg-pink-900/40 text-pink-500 dark:text-pink-400"
+          : "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-900/50 hover:bg-pink-100 dark:hover:bg-pink-900/40 text-pink-600 dark:text-pink-400"
       }`}
       title="Wyślij serduszko" aria-label="Wyślij serduszko"
     >

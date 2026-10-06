@@ -340,7 +340,7 @@ Deno.serve(async (req) => {
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(jwt);
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
       status: 401,
       headers: jsonHeaders,
     });
@@ -372,7 +372,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ success: [] }), { headers: jsonHeaders });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Internal Server Error";
+    const msg = error instanceof Error ? error.message : "Błąd serwera.";
     return new Response(JSON.stringify({ error: msg }), { status: 400, headers: jsonHeaders });
   }
 });

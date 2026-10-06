@@ -150,7 +150,7 @@ export default function EventForm({
           <select id="calendar" value={selectedCalendar}
             onChange={(e) => setSelectedCalendar(e.target.value)}
             className="input-field" disabled={loading}>
-            <option value="local">Aplikacja - kalendarz domyślny</option>
+            <option value="local">Aplikacja – kalendarz domyślny</option>
             {calendars.map((cal) => (
               <option key={cal.id} value={cal.id}>
                 {cal.provider === 'google' ? 'Google: ' : ''}{cal.calendar_name || cal.google_calendar_id}

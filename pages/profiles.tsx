@@ -8,7 +8,8 @@ import Seo from '@/components/ui/SEO';
 export default function ProfilesPage() {  
   return (
     <>
-      <Seo title="Wizytówka | Dzisiaj" description="Zarządzaj swoimi wizytówkami i udostępniaj kontakty." />
+      <Seo
+        canonical="https://dzisiaj.fun/profiles" title="Wizytówki" description="Twórz wizytówki z danymi kontaktowymi i udostępniaj je przez link, kod QR lub plik vCard." />
       <ProfilesList />
     </>
   )

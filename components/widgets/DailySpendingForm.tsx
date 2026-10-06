@@ -50,7 +50,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
   return (
     <div className="widget flex justify-between items-center px-4 py-3 gap-3">
       <div className="flex items-center text-text gap-4">
-        <span className="text-yellow-500">
+        <span className="text-amber-600 dark:text-amber-400">
           <Coins className="w-5 h-5" />
         </span>
         <h3 className="font-medium text-sm sm:text-base">

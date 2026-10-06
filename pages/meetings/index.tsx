@@ -22,8 +22,8 @@ export default function MeetingsPage() {
   return (
     <>
       <Seo
-        title="Zespołowe ustalanie terminów | Dzisiaj.Fun"
-        description="Twórz ankiety dostępności zespołu, wysyłaj link uczestnikom bez konieczności logowania i finalizuj termin bezpośrednio w kalendarzu."
+        title="Ustalanie terminów"
+        description="Twórz ankiety dostępności, wysyłaj uczestnikom link – bez zakładania konta – i zapisuj wybrany termin w kalendarzu."
         canonical="https://dzisiaj.fun/meetings"
         keywords="ustalanie terminu, ankieta dostępności, spotkanie zespołu, planowanie spotkań"
       />

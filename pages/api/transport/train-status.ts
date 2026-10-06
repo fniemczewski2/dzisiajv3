@@ -249,11 +249,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<TrainStatusResponse | ApiError>
 ) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Metoda niedozwolona.' });
 
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) return res.status(401).json({ error: 'Unauthorized' });
+  if (userError || !user) return res.status(401).json({ error: 'Brak autoryzacji.' });
 
   const { trainNumber, from, to, trainName } = req.query;
   if (

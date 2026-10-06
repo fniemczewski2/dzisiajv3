@@ -27,7 +27,6 @@ interface ImportedEventRow {
   place: string;
   repeat: 'none';
   google_event_id: string;
-  shared_with_id: null;
 }
 
 /**
@@ -39,7 +38,8 @@ interface ImportedEventRow {
  * tytułu/godziny w Google lub Outlooku trafia do aplikacji. Wcześniej
  * "ON CONFLICT DO NOTHING" zamrażało wydarzenie w stanie z pierwszego importu.
  * Lokalne edycje zaimportowanego wydarzenia są przy synchronizacji nadpisywane
- * – kalendarz zewnętrzny jest źródłem prawdy.
+ * – kalendarz zewnętrzny jest źródłem prawdy. Wyjątek: shared_with_id nie
+ * jest w wierszach, więc udostępnienie ustawione w aplikacji zostaje.
  */
 async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
   if (rows.length === 0) return 0;
@@ -184,7 +184,6 @@ function buildGoogleEventRows(
       place: ev.location || "",
       repeat: "none",
       google_event_id: ev.id,
-      shared_with_id: null,
     });
   }
   return rows;
@@ -263,7 +262,6 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
         place: ev.location?.displayName || "",
         repeat: "none",
         google_event_id: ev.id,
-        shared_with_id: null,
       });
     }
     rows.forEach((r) => seenIds.add(r.google_event_id));
@@ -286,20 +284,20 @@ async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainA
   }
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   // Reuse the shared cron-auth helper instead of re-implementing the same
   // timing-safe comparison locally — keeps this endpoint in sync with any
   // future fix to the shared implementation.
   if (!verifyCronRequest(req)) {
-    return res.status(401).json({ error: "Unauthorized." });
+    return res.status(401).json({ error: "Brak autoryzacji." });
   }
 
   const CONCURRENCY_LIMIT = 5;
 
   try {
     const accounts = await loadAllConnectedCalendars();
-    if (accounts.length === 0) return res.json({ message: "No accounts to synchronize." });
+    if (accounts.length === 0) return res.json({ message: "Brak kont do synchronizacji." });
 
     const targets = accounts.filter(a => a.google_calendar_id !== '@account_connection');
     const tokenCache: TokenCache = {};
@@ -344,6 +342,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.json({ success: failedAccounts.length === 0, imported: totalImported, removed: totalRemoved, failedAccounts });
   } catch (error) {
     console.error("[CRON ERROR]:", error);
-    return res.status(500).json({ error: "Synchronization failed." });
+    return res.status(500).json({ error: "Synchronizacja nie powiodła się." });
   }
 }

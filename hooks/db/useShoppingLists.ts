@@ -126,25 +126,61 @@ export function useShoppingLists() {
     [userId, supabase, lists, fetchShoppingLists, toast, withRetry]
   );
 
+  /**
+   * „Usuń” działa zależnie od roli:
+   *  - właściciel kasuje listę (także u osoby, której ją udostępnił);
+   *  - odbiorca tylko się wypisuje – lista znika u niego, a właściciel
+   *    zachowuje ją jako nieudostępnioną.
+   * Wypisanie idzie przez RPC leave_shared_shopping_list: zwykły UPDATE
+   * z JWT odbiorcy jest blokowany przez RLS, bo po zmianie przestałby on
+   * widzieć wiersz. Polityka DELETE pozwala usuwać wyłącznie właścicielowi.
+   */
   const deleteShoppingList = useCallback(
     async (id: string) => {
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
-      const ok = await toast.confirm(`Czy chcesz usunąć listę zakupów?`);
+      const list = lists.find((l) => l.id === id);
+      const isOwner = !list || list.user_id === userId;
+
+      let question = "Czy chcesz wypisać się z tej listy? Zniknie z Twoich list, a właściciel zachowa ją u siebie.";
+      if (isOwner) {
+        question = list?.shared_with_id
+          ? "Czy chcesz usunąć listę zakupów? Lista jest udostępniona – zniknie także u drugiej osoby."
+          : "Czy chcesz usunąć listę zakupów?";
+      }
+      const ok = await toast.confirm(question);
       if (!ok) return;
+
       setLoading(true);
       const previous = lists;
       setLists((prev) => prev.filter((l) => l.id !== id));
 
       try {
-        const { error } = await withRetry(async () => supabase.from("shopping_lists").delete().eq("id", id));
-        if (error) throw error;
-        toast.success("Usunięto listę zakupów");
+        if (isOwner) {
+          const { data, error } = await withRetry(async () =>
+            supabase.from("shopping_lists").delete().eq("id", id).eq("user_id", userId).select("id")
+          );
+          if (error) throw error;
+          // RLS nie zwraca błędu, tylko 0 usuniętych wierszy.
+          if (!data || data.length === 0) throw new Error("NO_ROWS_DELETED");
+          toast.success("Usunięto listę zakupów");
+        } else {
+          const { data, error } = await withRetry(async () =>
+            supabase.rpc("leave_shared_shopping_list", { p_list_id: id })
+          );
+          if (error) throw error;
+          // false = nie byłeś już odbiorcą tej listy (np. właściciel zdjął udostępnienie).
+          if (data !== true) throw new Error("NOT_A_RECIPIENT");
+          toast.success("Wypisano Cię z listy zakupów");
+        }
       } catch {
         setLists(previous);
-        toast.error("Błąd usuwania listy zakupów.");
+        toast.error(
+          isOwner
+            ? "Błąd usuwania listy zakupów."
+            : "Nie udało się wypisać z listy. Odśwież listy i spróbuj ponownie."
+        );
       } finally {
         setLoading(false);
       }

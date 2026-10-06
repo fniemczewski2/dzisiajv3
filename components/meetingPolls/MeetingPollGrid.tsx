@@ -176,7 +176,7 @@ export default function MeetingPollGrid({
                         onClick={() => onActivate(date, timeIndex)}
                         title={tooltip}
                         aria-label={`${date} ${time}: ${availabilityLabel}${
-                          isAnchor ? ". Początek zakresu - wybierz godzinę końcową" : ""
+                          isAnchor ? ". Początek zakresu – wybierz godzinę końcową" : ""
                         }`}
                         aria-pressed={inSelection}
                         className={`flex h-9 w-full min-w-14 cursor-pointer items-center justify-center text-xs font-semibold tabular-nums transition-colors hover:brightness-95 dark:hover:brightness-110 ${tone} ${

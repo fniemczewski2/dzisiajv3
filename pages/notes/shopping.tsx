@@ -20,8 +20,8 @@ export default function ShoppingPage() {
   return (
     <>
       <Seo
-        title="Listy Zakupów | Dzisiaj.Fun"
-        description="Kategoryzuj niezbędne produkty i twórz inteligentne listy zakupów."
+        title="Listy zakupów"
+        description="Twórz listy zakupów pogrupowane według kategorii i udostępniaj je domownikom."
         canonical="https://dzisiaj.fun/notes/shopping"
         keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
       />

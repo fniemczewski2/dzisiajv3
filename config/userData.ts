@@ -4,6 +4,7 @@
 // nadrzędnymi, np. slack_lists przed slack_connections.
 export const USER_DATA_TABLES = [
   "shortcut_tokens",
+  "slack_deleted_tasks",
   "slack_task_targets",
   "slack_task_links",
   "slack_lists",
@@ -23,7 +24,6 @@ export const USER_DATA_TABLES = [
   "day_schemas",
   "mood_entries",
   "streaks",
-  "reminders",
   "tasks",
   "events",
   "meeting_polls",

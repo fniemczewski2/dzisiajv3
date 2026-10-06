@@ -35,13 +35,24 @@ export const ConfirmButton = ({ onClick, small = false, label = "OK" }: { onClic
   </button>
 );
 
-export const DeleteButton = ({ onClick, small = false, disabled = false }: { onClick: () => void; small?: boolean; disabled?: boolean }) => (
+export const DeleteButton = ({
+  onClick,
+  small = false,
+  disabled = false,
+  ariaLabel = "usuń",
+}: {
+  onClick: () => void;
+  small?: boolean;
+  disabled?: boolean;
+  /** Dla czytników ekranu, gdy „Usuń” robi coś innego niż kasowanie (np. wypisanie z listy). */
+  ariaLabel?: string;
+}) => (
   <button
     onClick={onClick}
     type="button"
     disabled={disabled}
     className={actionButton({ color: "red", size: small ? "small" : "default" })}
-    aria-label="usuń"
+    aria-label={ariaLabel}
   >
     <Trash2 className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Usuń</span>}

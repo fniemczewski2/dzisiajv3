@@ -5,8 +5,8 @@ export const BACKPACK = [
     title: "Apteczka",
     items: [
       "Plastry",
-      "Plaster bezopatrunkowy - taśma",
-      "Plaster bezopatrunkowy - arkusz",
+      "Plaster bezopatrunkowy – taśma",
+      "Plaster bezopatrunkowy – arkusz",
       "Hydrożel",
       "Bandaż 10 cm",
       "Bandaż półelastyczny 5 cm",

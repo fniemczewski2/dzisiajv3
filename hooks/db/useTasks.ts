@@ -200,7 +200,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         if (isOffline()) {
           const { shared_with_email: _sharedEmail, display_share_info: _shareInfo, ...offlinePayload } = task;
           await enqueueInsert("tasks", { ...offlinePayload, user_id: userId });
-          toast.info("Brak sieci - zadanie zostanie zapisane po odzyskaniu połączenia.");
+          toast.info("Brak sieci – zadanie zostanie zapisane po odzyskaniu połączenia.");
           return undefined;
         }
         setRawTasks((prev) => prev.filter((t) => t.id !== tempId));

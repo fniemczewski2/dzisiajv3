@@ -155,7 +155,7 @@ export default function BudgetOverview({
                     </span>
                   )}
                 </span>
-                <span className={`font-bold tabular-nums ${over ? "text-red-500" : "text-text-secondary"}`}>
+                <span className={`font-bold tabular-nums ${over ? "text-red-600 dark:text-red-400" : "text-text-secondary"}`}>
                   {s.toFixed(0)} 
                   {p > 0 && <span className="text-[11px] font-normal opacity-70 ml-0.5">+{p.toFixed(0)}</span>} 
                   {l > 0 && ` / ${l.toFixed(0)}`} zł
@@ -169,7 +169,7 @@ export default function BudgetOverview({
                 </p>
               )}
              {over && (
-                <p className="text-right text-[10px] text-red-500 mt-0.5">
+                <p className="text-right text-[10px] text-red-600 dark:text-red-400 mt-0.5">
                  +{Math.abs(r).toFixed(0)} zł
                 </p>
               )}

@@ -137,7 +137,7 @@ function ReportEditRow({
                   onChange={(e) => updateAgenda(i, e.target.value)} />
                 {(editedReport.agenda?.length || 0) > 1 && (
                   <button type="button" onClick={() => removeAgenda(i)}
-                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-700 hover:text-white rounded-lg transition-colors">
+                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-700 hover:text-white rounded-lg transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 )}
@@ -158,7 +158,7 @@ function ReportEditRow({
                   onChange={(e) => updateParticipant(i, e.target.value)} />
                 {(editedReport.participants?.length || 0) > 1 && (
                   <button type="button" onClick={() => removeParticipant(i)}
-                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-700 hover:text-white rounded-lg transition-colors">
+                    className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-700 hover:text-white rounded-lg transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 )}
@@ -247,8 +247,8 @@ export default function ReportsPage() {
   return (
     <>
       <Seo
-        title="Sprawozdania | Dzisiaj.Fun"
-        description="Twórz i przeglądaj sprawozdania ze swoich spotkań."
+        title="Sprawozdania"
+        description="Notuj przebieg spotkań – temat, agendę, uczestników i zadania – i zapisuj sprawozdanie jako PDF."
         canonical="https://dzisiaj.fun/notes/reports"
         keywords="raporty, podsumowania, spotkania, sprawozdania"
       />

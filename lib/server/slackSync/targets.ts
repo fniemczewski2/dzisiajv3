@@ -97,7 +97,7 @@ export async function loadTasks(admin: SupabaseClient, userId: string): Promise<
   }
 
   console.warn(
-    "[slack/sync] tabela tasks nie ma kolumny updated_at - w konfliktach wygrywa wersja ze Slacka"
+    "[slack/sync] tabela tasks nie ma kolumny updated_at – w konfliktach wygrywa wersja ze Slacka"
   );
 
   const fallback = await admin

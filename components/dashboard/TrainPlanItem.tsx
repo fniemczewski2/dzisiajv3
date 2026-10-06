@@ -20,7 +20,7 @@ function Detail({ label, value }: Readonly<{ label: string; value: string | null
   return (
     <div className="flex items-end justify-center min-w-0">
       <span className="text-[10px] text-text-muted">{label}:&nbsp;</span>
-      <span className={`text-sm font-bold tabular-nums truncate ${value ? "text-text" : "text-text-muted"}`}>{value ?? "—"}</span>
+      <span className={`text-sm font-bold tabular-nums truncate ${value ? "text-text" : "text-text-muted"}`}>{value ?? "–"}</span>
     </div>
   );
 }
@@ -58,7 +58,7 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   if (cancelled) badge = { text: "Odwołany", cls: "bg-red-600 text-white" };
   else if (delayed) badge = { text: `+${delay}`, cls: "bg-orange-700 text-white" };
   else if ((relevant || inTransit || arrived) && (!loading && !rateLimited && status && status !== "Błąd połączenia")) badge = { text: "Planowo", cls: "bg-emerald-600 text-white" };
-  else badge = { text: "Brak danych", cls: "bg-gray-400 text-white" };
+  else badge = { text: "Brak danych", cls: "bg-gray-600 text-white" };
   return (
     <div className={"mb-2 p-2 rounded-lg group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors"}>
       <div className="flex items-start justify-between gap-2">
@@ -96,7 +96,7 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
                 formatHm(planned)
               )
             ) : (
-              (!isArrival && train.departureTime) || "—"
+              (!isArrival && train.departureTime) || "–"
             )}
           </span>
         </div>

@@ -50,8 +50,8 @@ export default function TrainingPage() {
   return (
     <>
       <Seo
-        title="Trening Interwałowy | Dzisiaj.Fun"
-        description="Ćwicz z wbudowanym stoperem. Skonfiguruj własne czasy pracy i przerw do treningów HIIT i Tabata."
+        title="Trening interwałowy"
+        description="Stoper do treningów interwałowych, np. HIIT i Tabata. Ustaw czas pracy, przerwy i liczbę rund."
         canonical="https://dzisiaj.fun/training"
         keywords="trening, interwały, stoper, hiit, tabata, fitness"
       />

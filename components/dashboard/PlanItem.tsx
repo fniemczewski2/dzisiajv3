@@ -41,9 +41,9 @@ const getTimes = (e: PlanItemData["data"]) => {
       const isSameDay = e.start_time.slice(0, 10) === e.end_time.slice(0, 10);
     
       const renderedTime = isSameDay ? (
-        <>{formatTime(e.start_time)} - {formatTime(e.end_time)}</>
+        <>{formatTime(e.start_time)}–{formatTime(e.end_time)}</>
       ) : (
-        <>{formatTime(e.start_time, true)} - {formatTime(e.end_time, true)}</>
+        <>{formatTime(e.start_time, true)} – {formatTime(e.end_time, true)}</>
       );
     return renderedTime
   }

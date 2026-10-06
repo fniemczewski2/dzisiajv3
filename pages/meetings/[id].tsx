@@ -19,9 +19,10 @@ export default function MeetingPollResultsPage() {
   return (
     <>
       <Seo
-        title="Wyniki ankiety | Dzisiaj.Fun"
-        description="Wyniki ankiety dostępności zespołu — widoczne wyłącznie dla organizatora."
+        title="Wyniki ankiety"
+        description="Wyniki ankiety dostępności – widoczne tylko dla organizatora."
         canonical="https://dzisiaj.fun/meetings"
+        noindex={true}
       />
       <div className="mx-auto w-full max-w-5xl">
         <Link

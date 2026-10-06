@@ -672,7 +672,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                 onChange={(e) => setSlotCalendar(e.target.value)}
                 className="input-field"
               >
-                <option value="local">Aplikacja - kalendarz domyślny</option>
+                <option value="local">Aplikacja – kalendarz domyślny</option>
                 {calendarOptions.map((cal) => (
                   <option key={cal.id} value={cal.id}>
                     {cal.provider === "google" ? "Google: " : "Outlook: "}
@@ -697,7 +697,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             {pendingSlots.map((s, i) => (
               <li key={`${s.date}-${s.start_time}`} className="flex items-center justify-between gap-2 text-sm">
                 <span className="min-w-0">
-                  <span className="font-semibold text-text">{s.title}</span> - {s.date}, {s.start_time}-{s.end_time}
+                  <span className="font-semibold text-text">{s.title}</span> – {s.date}, {s.start_time}–{s.end_time}
                   <span className="text-text-muted"> • {calendarLabel(s.calendarChoice)}</span>
                 </span>
                 <IconActionButton onClick={() => removePending(i)} Icon={Trash2} title="Usuń z listy" variant="danger" />
@@ -720,7 +720,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
           <ul className="space-y-1 text-sm">
             {finalizedResults.map((r) => (
               <li key={`${r.date}-${r.start_time}`}>
-                {r.date}, {r.start_time}-{r.end_time} - zaproszono {r.invitedParticipants} zalogowanych uczestników.
+                {r.date}, {r.start_time}–{r.end_time} – zaproszono {r.invitedParticipants} zalogowanych uczestników.
               </li>
             ))}
           </ul>

@@ -9,6 +9,7 @@ import LoadingState from "@/components/ui/LoadingState";
 import { SkeletonTaskList, SkeletonCalendar, SkeletonRow } from "@/components/ui/Skeleton";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "@/lib/dateUtils";
+import Seo from "@/components/ui/SEO";
 
 function DayViewSkeleton() {
   return (
@@ -69,10 +70,18 @@ export default function IndexPage() {
   if (!user) return null;
 
   return (
-    <MainView 
-      view={settings.main_view} 
-      viewDate={viewDate} 
-      onDateChange={setViewDate} 
-    />
+    <>
+      <Seo
+        title="Mój dzień"
+        description="Twój dzień w jednym miejscu: zadania, wydarzenia z kalendarza i plan godzinowy."
+        canonical="https://dzisiaj.fun"
+        noindex={true}
+      />
+      <MainView
+        view={settings.main_view}
+        viewDate={viewDate}
+        onDateChange={setViewDate}
+      />
+    </>
   );
 }

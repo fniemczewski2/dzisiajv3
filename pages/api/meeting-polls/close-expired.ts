@@ -6,7 +6,7 @@ import { verifyCronRequest } from "@/lib/server/cronAuth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!verifyCronRequest(req)) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ error: "Brak autoryzacji." });
   }
 
   const admin = createClient(

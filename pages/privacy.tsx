@@ -5,8 +5,8 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background text-text font-sans">
       <Seo
-        title="Prywatność | Dzisiaj.Fun"
-        description="Polityka prywatności aplikacjiDzisiaj.Fun. Dowiedz się, jak chronimy Twoje dane, w tym dane z kalendarzy Google i Microsoft Outlook."
+        title="Polityka prywatności"
+        description="Polityka prywatności aplikacji Dzisiaj.Fun: jakie dane przetwarzamy, w jakim celu, komu je przekazujemy (m.in. Google, Microsoft, Slack) i jakie masz prawa."
         canonical="https://dzisiaj.fun/privacy"
         keywords="prywatność, rodo, regulamin, ochrona danych, polityka prywatności, google calendar, outlook"
       />
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <main className="max-w-3xl mx-auto py-12 px-6">
         <h1 className="page-title sm:text-4xl mb-2">Polityka Prywatności</h1>
         <p className="text-sm text-text-muted mb-10 border-b border-gray-200 dark:border-gray-800 pb-4">
-          Obowiązuje od: 1 stycznia 2025 r. &nbsp;•&nbsp; Aplikacja:Dzisiaj.Fun
+          Obowiązuje od: 6 października 2026 r. &nbsp;•&nbsp; Aplikacja: Dzisiaj.Fun
         </p>
 
         <Section title="1. Administrator danych">
@@ -41,11 +41,23 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Wydarzenia z kalendarzy (Google Calendar / Microsoft Outlook):</strong>{" "}
-              <span>Za Twoją wyraźną zgodą pobieramy tytuły, godziny rozpoczęcia i zakończenia, opisy oraz lokalizacje wydarzeń w celu ich wyświetlenia na wspólnej siatce kalendarza wewnątrz aplikacjiDzisiaj.Fun.</span>
+              <span>Za Twoją wyraźną zgodą pobieramy tytuły, godziny rozpoczęcia i zakończenia, opisy oraz lokalizacje wydarzeń w celu ich wyświetlenia na wspólnej siatce kalendarza wewnątrz aplikacji Dzisiaj.Fun.</span>
             </Li>
             <Li>
               <strong>Tokeny autoryzacyjne (OAuth):</strong>{" "}
               <span>Jeśli połączysz aplikację z zewnętrznym kalendarzem, przechowujemy token dostępu i token odświeżania. Umożliwiają one synchronizację kalendarza w tle. Tokeny są przechowywane w bezpiecznej, zaszyfrowanej bazie danych.</span>
+            </Li>
+            <Li>
+              <strong>Integracja ze Slackiem (opcjonalna):</strong>{" "}
+              <span>Jeśli połączysz konto Slack, przechowujemy identyfikator i nazwę przestrzeni roboczej, Twój identyfikator użytkownika Slack oraz zaszyfrowany token dostępu. Aplikacja prosi o uprawnienia do odczytu i zapisu list Slacka (<em>lists:read</em>, <em>lists:write</em>), odczytu plików (<em>files:read</em>) oraz odczytu użytkowników i ich adresów e-mail (<em>users:read</em>, <em>users:read.email</em>) – te ostatnie służą do dopasowania osób przypisanych do elementów listy. Z wybranymi przez Ciebie listami synchronizowane są tytuł, opis, termin, priorytet i status zadań, w obie strony.</span>
+            </Li>
+            <Li>
+              <strong>Powiadomienia push (opcjonalne):</strong>{" "}
+              <span>Po włączeniu powiadomień przechowujemy subskrypcję Web Push Twojej przeglądarki: adres usługi powiadomień i klucze szyfrujące. Treść powiadomień (np. przypomnienia) jest szyfrowana przed wysłaniem zgodnie ze standardem Web Push.</span>
+            </Li>
+            <Li>
+              <strong>Skróty Siri – automatyczny czas pracy (opcjonalne):</strong>{" "}
+              <span>Po wygenerowaniu tokenu w ustawieniach przechowujemy wyłącznie jego skrót kryptograficzny (SHA-256), datę utworzenia i datę ostatniego użycia – samego tokenu nie da się z nich odtworzyć. Skrót wywołany na Twoim urządzeniu tworzy lub zamyka wpis czasu pracy z godziną rozpoczęcia albo zakończenia.</span>
             </Li>
             <Li>
               <strong>Dane techniczne:</strong>{" "}
@@ -71,7 +83,10 @@ export default function PrivacyPage() {
 
         <Section title="4. Usuwanie danych i odłączanie kont">
           <p>
-            W każdej chwili masz pełną kontrolę nad swoimi danymi. Możesz odłączyć integrację z Google Calendar lub Microsoft Outlook z poziomu ustawień kalendarza w aplikacji.
+            W każdej chwili możesz odłączyć integrację z Google Calendar lub Microsoft Outlook z poziomu ustawień kalendarza w aplikacji.
+          </p>
+          <p className="mt-2">
+            Pozostałe integracje wyłączysz w Ustawieniach: odłączenie Slacka usuwa token dostępu i konfigurację list (elementy już utworzone w Slacku pozostają w Twojej przestrzeni roboczej), wyłączenie powiadomień usuwa subskrypcję push, a unieważnienie tokenu Skrótów Siri usuwa jego skrót – skrót na telefonie przestaje wtedy działać.
           </p>
           <p className="mt-2">
             <strong>Skutki odłączenia:</strong> Odłączenie konta powoduje natychmiastowe i bezpowrotne usunięcie z naszej bazy danych Twoich tokenów dostępowych, przypisanego adresu e-mail oraz pobranych wydarzeń. Aplikacja natychmiastowo traci dostęp do Twoich zewnętrznych kalendarzy.
@@ -81,13 +96,13 @@ export default function PrivacyPage() {
         <Section title="5. Podstawa prawna przetwarzania (RODO)">
           <ul className="space-y-2 list-none">
             <Li>
-              <strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) - przetwarzanie niezbędne do świadczenia usługi dostępu do aplikacji.
+              <strong>Umowa</strong> (art. 6 ust. 1 lit. b RODO) – przetwarzanie niezbędne do świadczenia usługi dostępu do aplikacji.
             </Li>
             <Li>
-              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) - integracja z kalendarzami Google i Microsoft jest całkowicie dobrowolna i wymaga Twojej wyraźnej, aktywnej zgody w procesie OAuth.
+              <strong>Zgoda</strong> (art. 6 ust. 1 lit. a RODO) – integracje z kalendarzami Google i Microsoft oraz ze Slackiem, powiadomienia push i Skróty Siri są dobrowolne i włączasz je samodzielnie (w przypadku Google, Microsoft i Slacka – przez wyraźną zgodę w procesie OAuth).
             </Li>
             <Li>
-              <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) - monitorowanie działania i logi błędów służące zapewnieniu stabilności aplikacji.
+              <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – monitorowanie działania i logi błędów służące zapewnieniu stabilności aplikacji.
             </Li>
           </ul>
         </Section>
@@ -98,13 +113,19 @@ export default function PrivacyPage() {
           </p>
           <ul className="space-y-2 list-none">
             <Li>
-              <strong>Supabase Inc.</strong> - dostawca bazy danych i systemu uwierzytelniania. 
+              <strong>Supabase Inc.</strong> – dostawca bazy danych i systemu uwierzytelniania.
             </Li>
             <Li>
-              <strong>Vercel Inc.</strong> - bezpieczny hosting infrastruktury serwerowej aplikacji.
+              <strong>Vercel Inc.</strong> – bezpieczny hosting infrastruktury serwerowej aplikacji.
             </Li>
             <Li>
-              <strong>Alphabet Inc. / Microsoft Corp.</strong> - bezpośrednia komunikacja z serwerami dostawców przy autoryzacji i synchronizacji
+              <strong>Alphabet Inc. / Microsoft Corp.</strong> – bezpośrednia komunikacja z serwerami dostawców przy autoryzacji i synchronizacji kalendarzy.
+            </Li>
+            <Li>
+              <strong>Slack Technologies, LLC (Salesforce)</strong> – tylko po połączeniu konta Slack: wymiana danych zadań z wybranymi listami w Twojej przestrzeni roboczej.
+            </Li>
+            <Li>
+              <strong>Usługi powiadomień przeglądarek</strong> (Google, Apple, Mozilla, Microsoft – zależnie od przeglądarki) – tylko po włączeniu powiadomień: dostarczają zaszyfrowaną treść powiadomienia na Twoje urządzenie.
             </Li>
           </ul>
         </Section>
@@ -113,7 +134,7 @@ export default function PrivacyPage() {
           <p className="mb-3">Zgodnie z przepisami prawa (m.in. RODO), przysługuje Ci prawo do:</p>
           <ul className="space-y-2 list-none">
             <Li><strong>Dostępu</strong> do swoich danych oraz <strong>sprostowania</strong> danych nieprawidłowych.</Li>
-            <Li><strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong> - w każdej chwili możesz zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.</Li>
+            <Li><strong>Usunięcia danych (&quot;prawo do bycia zapomnianym&quot;)</strong> – w każdej chwili możesz zażądać całkowitego usunięcia konta oraz wszystkich zgromadzonych informacji.</Li>
             <Li><strong>Ograniczenia przetwarzania</strong> oraz <strong>przenoszenia danych</strong>.</Li>
             <Li><strong>Cofnięcia zgody</strong> na integracje zewnętrzne bez wpływu na zgodność z prawem przetwarzania przed jej cofnięciem.</Li>
             <Li><strong>Wniesienia skargi</strong> do Prezesa Urzędu Ochrony Danych Osobowych (PUODO).</Li>
@@ -136,9 +157,12 @@ export default function PrivacyPage() {
 
         <Section title="9. Okres przechowywania danych">
           <ul className="space-y-2 list-none">
-            <Li>Dane podstawowe (treści użytkownika) - przez czas istnienia konta w aplikacji.</Li>
-            <Li>Tokeny integracji kalendarzowych - wyłącznie do momentu odłączenia kalendarza lub usunięcia konta głównego.</Li>
-            <Li>Logi błędów systemowych - maksymalnie do 30 dni.</Li>
+            <Li>Dane podstawowe (treści użytkownika) – przez czas istnienia konta w aplikacji.</Li>
+            <Li>Tokeny integracji kalendarzowych – wyłącznie do momentu odłączenia kalendarza lub usunięcia konta głównego.</Li>
+            <Li>Token i konfiguracja integracji ze Slackiem – do momentu odłączenia Slacka lub usunięcia konta.</Li>
+            <Li>Subskrypcje powiadomień push – do momentu wyłączenia powiadomień, wygaśnięcia subskrypcji w przeglądarce lub usunięcia konta.</Li>
+            <Li>Skrót tokenu Skrótów Siri – do momentu jego unieważnienia, wygenerowania nowego tokenu lub usunięcia konta.</Li>
+            <Li>Logi błędów systemowych – maksymalnie do 30 dni.</Li>
           </ul>
         </Section>
 

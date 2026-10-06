@@ -81,12 +81,12 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
             <div className="flex flex-col gap-2 mt-2">
               {person.phones?.map((phone, _i) => (
-                <a key={phone} href={`tel:${phone}`} className="flex items-center gap-2 text-sm text-blue-500 hover:underline">
+                <a key={phone} href={`tel:${phone}`} className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
                   <Phone className="w-4 h-4" /> {phone}
                 </a>
               ))}
               {person.emails?.map((email, _i) => (
-                <a key={email} href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-blue-500 hover:underline">
+                <a key={email} href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
                   <Mail className="w-4 h-4" /> {email}
                 </a>
               ))}

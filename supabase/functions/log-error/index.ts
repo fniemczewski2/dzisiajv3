@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+    return new Response(JSON.stringify({ error: "Metoda niedozwolona." }), {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+    return new Response(JSON.stringify({ error: "Nieprawidłowy format JSON." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
   const { context, message, stack } = body;
 
   if (!context || !message) {
-    return new Response(JSON.stringify({ error: "context and message are required" }), {
+    return new Response(JSON.stringify({ error: "Pola context i message są wymagane." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
   const jwt = authHeader.slice(7);
   const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
   if (userError || !user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
 
   if (error) {
     console.error("[log-error] DB insert failed:", error.message);
-    return new Response(JSON.stringify({ error: "DB insert failed" }), {
+    return new Response(JSON.stringify({ error: "Nie udało się zapisać błędu w bazie." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

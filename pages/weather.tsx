@@ -25,22 +25,22 @@ import { useWeather } from "@/hooks/useWeather";
 import { HourlyRow, WeatherData } from "@/types/weather";
 
 function WeatherIcon({ code }: { readonly code: number }) {
-  if (code <= 1) return <Sun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
-  if (code === 2) return <CloudSun className="w-10 h-10 text-yellow-500 drop-shadow-sm" />;
+  if (code <= 1) return <Sun className="w-10 h-10 text-amber-600 dark:text-amber-400 drop-shadow-sm" />;
+  if (code === 2) return <CloudSun className="w-10 h-10 text-amber-600 dark:text-amber-400 drop-shadow-sm" />;
   if (code <= 3) return <Cloud className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
   if (code <= 48) return <CloudFog className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
   if (code <= 67) return <CloudDrizzle className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
-  if (code <= 77) return <CloudSnow className="w-10 h-10 text-blue-300 drop-shadow-sm" />;
+  if (code <= 77) return <CloudSnow className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
   if (code <= 82) return <CloudRain className="w-10 h-10 text-primary drop-shadow-sm" />;
-  if (code <= 86) return <CloudSnow className="w-10 h-10 text-blue-300 drop-shadow-sm" />;
-  return <CloudLightning className="w-10 h-10 text-yellow-500 dark:text-yellow-400 drop-shadow-sm" />;
+  if (code <= 86) return <CloudSnow className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
+  return <CloudLightning className="w-10 h-10 text-amber-600 dark:text-amber-400 drop-shadow-sm" />;
 }
 
 function airQualityColor(value: number): string {
   if (value <= 20) return "text-green-600 dark:text-green-400";
-  if (value <= 35) return "text-green-500";
-  if (value <= 50) return "text-yellow-500 dark:text-yellow-400";
-  if (value <= 100) return "text-orange-500 dark:text-orange-400";
+  if (value <= 35) return "text-green-600 dark:text-green-400";
+  if (value <= 50) return "text-yellow-700 dark:text-yellow-400";
+  if (value <= 100) return "text-orange-600 dark:text-orange-400";
   return "text-red-600 dark:text-red-400";
 }
 
@@ -68,7 +68,7 @@ function evaluateBiomet(forecast: WeatherData) {
   if (score < 0) score = 0;
 
   if (score >= 75) return { label: "Korzystny", color: "text-green-600 dark:text-green-400" };
-  if (score >= 50) return { label: "Umiarkowany", color: "text-yellow-600 dark:text-yellow-400" };
+  if (score >= 50) return { label: "Umiarkowany", color: "text-yellow-700 dark:text-yellow-400" };
   return { label: "Niekorzystny", color: "text-red-600 dark:text-red-400" };
 }
 
@@ -185,7 +185,7 @@ export default function WeatherPage() {
           </div>
         
           <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Sun className="w-5 h-5 text-yellow-500" />
+            <Sun className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             <div className="flex flex-col text-text">
               <span className="font-medium">UV max</span>
               <span className="text-sm">{forecast.daily.uv_index_max?.[0] ?? "-"}</span>
@@ -203,7 +203,7 @@ export default function WeatherPage() {
           )}
 
           <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Sunrise className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+            <Sunrise className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Wschód</span>
               <span className="text-sm">
@@ -285,8 +285,8 @@ export default function WeatherPage() {
   return (
     <>
       <Seo
-        title="Pogoda | Dzisiaj.Fun"
-        description="Bądź na bieżąco. Sprawdź aktualną prognozę pogody, by idealnie zaplanować swój dzień."
+        title="Pogoda"
+        description="Prognoza pogody dla Twojej lokalizacji z jakością powietrza, indeksem UV oraz godzinami wschodu i zachodu słońca."
         canonical="https://dzisiaj.fun/weather"
         keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
       />

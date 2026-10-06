@@ -92,7 +92,7 @@ export default function SlackListEditor({
                     }
                     className="input-field flex-1 min-w-0 text-sm"
                   >
-                    <option value="">— nie synchronizuj —</option>
+                    <option value="">– nie synchronizuj –</option>
                     {columns.map((column) => (
                       <option key={column.id} value={column.id}>
                         {column.name} ({column.type})

@@ -71,7 +71,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
       .eq('google_calendar_id', '@account_connection')
       .maybeSingle<ConnectedCalendarRow>();
 
-    if (dbError || !mainAcc) return res.status(404).json({ error: 'Brak konta Outlook' });
+    if (dbError || !mainAcc) return res.status(404).json({ error: 'Brak połączonego konta Outlook.' });
 
     const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
 
@@ -117,14 +117,14 @@ function buildOutlookEventRows(
       place: ev.location?.displayName || '',
       repeat: 'none',
       google_event_id: ev.id,
-      shared_with_id: null
+      // Bez shared_with_id – zob. komentarz w google-calendar/index.ts.
     });
   }
   return rows;
 }
 
 async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona.' });
 
   try {
     const { calendarId, accountId } = (req.body ?? {}) as { calendarId?: unknown; accountId?: unknown };
@@ -255,11 +255,11 @@ async function exportEventsToOutlook(
 }
 
 async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona.' });
 
   try {
     const { calendarId, eventIds } = req.body ?? {};
-    if (!calendarId) return res.status(400).json({ error: 'calendarId required' });
+    if (!calendarId) return res.status(400).json({ error: 'Brak identyfikatora kalendarza.' });
 
     const { data: mainAcc } = await supabase
       .from('connected_calendars')
@@ -283,8 +283,8 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
     }
 
     const { data: events, error: fetchErr } = await query;
-    if (fetchErr) return res.status(500).json({ error: 'Failed to fetch local events' });
-    if (!events?.length) return res.json({ exported: 0, skipped: 0, message: 'No events found in selected range' });
+    if (fetchErr) return res.status(500).json({ error: 'Nie udało się pobrać wydarzeń z aplikacji.' });
+    if (!events?.length) return res.json({ exported: 0, skipped: 0, message: 'Brak wydarzeń w wybranym zakresie.' });
 
     const { exported, skipped } = await exportEventsToOutlook(supabase, events as ExportableEvent[], accessToken, calendarId);
     return res.json({ exported, skipped });
@@ -312,5 +312,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (action === 'export') return handleExport(req, res, supabase, user);
   if (action === 'disconnect') return handleDisconnect(req, res, supabase, user);
 
-  return res.status(404).json({ error: 'Nieznana akcja' });
+  return res.status(404).json({ error: 'Nieznana akcja.' });
 }

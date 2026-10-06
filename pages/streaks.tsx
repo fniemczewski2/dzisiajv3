@@ -55,8 +55,8 @@ export default function StreaksPage() {
   return (
     <>
     <Seo
-      title="Postępy | Dzisiaj.Fun"
-      description="Zbuduj żelazną dyscyplinę, śledź i przedłużaj swoje pasma sukcesów."
+      title="Postępy"
+      description="Śledź nawyki i przedłużaj swoje serie dzień po dniu."
       canonical="https://dzisiaj.fun/streaks"
       keywords="nawyki, cele, postępy, postanowienia, pasma, streaks, dyscyplina"
     />

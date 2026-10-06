@@ -60,7 +60,7 @@ function CategoryBadge({ category }: { readonly category?: BudgetCategory | null
 
 function RecurringBadge() {
   return (
-    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
+    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
       <RefreshCw className="w-2.5 h-2.5" /> Cykliczny
     </span>
   );
@@ -375,7 +375,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
       <li key={b.id} className="card p-4 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3 transition">
         <div className="flex flex-col flex-1 space-y-1.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-bold text-lg tabular-nums ${b.is_income ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>
+            <span className={`font-bold text-lg tabular-nums ${b.is_income ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-400"}`}>
               {b.is_income ? "+" : "-"}{b.amount.toFixed(2)} zł
             </span>
             <CategoryBadge category={b.category} />
@@ -416,7 +416,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
       )}
       {expenseItems.length > 0 && (
         <div>
-          <h5 className="text-xs font-bold text-red-600 dark:text-red-500 p-2 ">
+          <h5 className="text-xs font-bold text-red-600 dark:text-red-400 p-2 ">
             Wydatki
           </h5>
           <ul className="space-y-3">

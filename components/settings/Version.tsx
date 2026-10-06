@@ -6,7 +6,7 @@ import { useVersion } from "@/hooks/useVersion";
 export default function VersionInfo() {
   const { version, commitDate, loading, error } = useVersion();
   const statusContent = error ? (
-    <div className="text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
+    <div className="text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
       Błąd: {error}
     </div>
   ) : (

@@ -33,8 +33,8 @@ export default function RecipesPage() {
   return (
     <>
       <Seo
-        title="Przepisy | Dzisiaj.Fun"
-        description="Zbieraj swoje ulubione przepisy kulinarne w jednej, prostej w użyciu książce kucharskiej."
+        title="Przepisy"
+        description="Zbieraj przepisy z listą składników w kategoriach: śniadania, zupy, dania główne, przystawki, sałatki i desery."
         canonical="https://dzisiaj.fun/notes/recipes"
         keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"
       />

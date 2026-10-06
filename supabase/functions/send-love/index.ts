@@ -46,21 +46,21 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-  if (req.method !== "POST") return respond({ error: "Method not allowed" }, 405);
+  if (req.method !== "POST") return respond({ error: "Metoda niedozwolona." }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) return respond({ error: "Unauthorized" }, 401);
+  if (!authHeader.startsWith("Bearer ")) return respond({ error: "Brak autoryzacji." }, 401);
   const jwt = authHeader.slice("Bearer ".length);
 
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
   try {
     const { data: { user }, error: userError } = await admin.auth.getUser(jwt);
-    if (userError || !user?.email) return respond({ error: "Unauthorized" }, 401);
+    if (userError || !user?.email) return respond({ error: "Brak autoryzacji." }, 401);
     const senderEmail = user.email.toLowerCase();
 
     // Limit liczony z istniejących powiadomień – działa niezależnie od tego,

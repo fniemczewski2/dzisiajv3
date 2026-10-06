@@ -232,7 +232,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           </div>
         </button>
         <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" ref={fileInputRef} onChange={onAvatarFileChange} className="hidden" />
-        {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
+        {uploading && <span className="text-xs text-neutral-500 dark:text-neutral-400 animate-pulse">Wgrywanie...</span>}
       </div>
 
         <h3 className="font-semibold text-base flex items-center gap-2">
@@ -423,7 +423,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             </label>
             
             {slugStatus === 'taken' && (
-              <p className="mt-1.5 text-xs font-medium text-red-500" role="alert">Ten adres jest już zajęty. Proszę wpisać inny.</p>
+              <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400" role="alert">Ten adres jest już zajęty. Proszę wpisać inny.</p>
             )}
           </div>
         )}

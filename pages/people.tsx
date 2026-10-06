@@ -104,7 +104,8 @@ export default function PeoplePage() {
 
   return (
     <>
-      <Seo title="Osoby | Dzisiaj" description="Zarządzaj kontaktami i pamiętaj o swoich bliskich." />
+      <Seo
+        canonical="https://dzisiaj.fun/people" title="Osoby" description="Kontakty bliskich z datami urodzin i imienin, które pojawiają się w kalendarzu." />
 
       <div className="max-w-4xl mx-auto p-4 flex flex-col gap-6 pb-24">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

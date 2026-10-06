@@ -194,8 +194,8 @@ export default function TransportPage() {
   return (
     <>
       <Seo
-        title="Transport | Dzisiaj.Fun"
-        description="Sprawdzaj rzeczywiste odjazdy komunikacji miejskiej i zarządzaj swoimi ulubionymi przystankami."
+        title="Transport"
+        description="Odjazdy z ulubionych przystanków i bieżący status śledzonych pociągów, w tym opóźnienia."
         canonical="https://dzisiaj.fun/transport"
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
       />

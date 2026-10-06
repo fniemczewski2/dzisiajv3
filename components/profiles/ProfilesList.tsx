@@ -93,7 +93,7 @@ export default function ProfilesList() {
                   {profile.avatar_url ? (
                     <Image src={profile.avatar_url} alt="" fill sizes="48px" className="object-cover" />
                   ) : (
-                    <span className="w-full h-full flex items-center justify-center text-neutral-400 text-xs">Brak</span>
+                    <span className="w-full h-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 text-xs">Brak</span>
                   )}
                 </div>
                 <div>

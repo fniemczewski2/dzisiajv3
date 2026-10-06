@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     if (!subscriptions || subscriptions.length === 0) {
       console.log(`Brak subskrypcji push dla użytkownika: ${userId}`);
       return new Response(
-        JSON.stringify({ message: 'No subscriptions found for this UUID' }),
+        JSON.stringify({ message: 'Brak subskrypcji powiadomień dla tego użytkownika.' }),
         { headers: jsonHeaders }
       )
     }

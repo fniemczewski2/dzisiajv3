@@ -26,11 +26,14 @@ async function deleteUserRows(
   const report: Record<string, number | string> = {};
 
   for (const table of USER_DATA_TABLES) {
+    // select("user_id"), nie "id": settings, daily_habits, shortcut_tokens czy
+    // slack_task_targets nie mają kolumny id, a PostgREST odrzucał wtedy całe
+    // żądanie – wiersze zostawały, a klucze obce blokowały usunięcie konta.
     const { data, error } = await admin
       .from(table)
       .delete()
       .eq("user_id", userId)
-      .select("id");
+      .select("user_id");
     if (error) {
       // Szczegóły tylko w logach – raport trafia do przeglądarki.
       console.error(`[account/delete] ${table}:`, error.message);
@@ -88,11 +91,11 @@ async function deleteUserFiles(admin: SupabaseClient, userId: string): Promise<n
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "POST") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const supabase = createServerSupabase(req, res);
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return res.status(401).json({ error: "Unauthorized" });
+  if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
   const confirmation = String((req.body as { confirmation?: string })?.confirmation ?? "");
   if (confirmation.trim() !== ACCOUNT_DELETE_CONFIRMATION) {
     return res.status(400).json({ error: "Nieprawidłowa fraza potwierdzająca." });

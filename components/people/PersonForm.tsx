@@ -115,12 +115,12 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
             onChange={(e) => setFormData((prev) => ({ ...prev, priority: Number.parseInt(e.target.value, 10) }))}
             className="input-field"
           >
-            <option value={0}>0 - Brak przypomnienia</option>
-            <option value={1}>1 - Raz na 2 tygodnie</option>
-            <option value={2}>2 - Raz na miesiąc</option>
-            <option value={3}>3 - Raz na 2 miesiące</option>
-            <option value={4}>4 - Raz na rok</option>
-            <option value={5}>5 - Brak przypomnienia</option>
+            <option value={0}>0 – Brak przypomnienia</option>
+            <option value={1}>1 – Raz na 2 tygodnie</option>
+            <option value={2}>2 – Raz na miesiąc</option>
+            <option value={3}>3 – Raz na 2 miesiące</option>
+            <option value={4}>4 – Raz na rok</option>
+            <option value={5}>5 – Brak przypomnienia</option>
           </select>
         </div>
       </div>

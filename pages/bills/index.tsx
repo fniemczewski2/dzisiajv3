@@ -42,8 +42,8 @@ export default function BillsPage() {
   return (
     <>
       <Seo
-        title="Rachunki | Dzisiaj.Fun"
-        description="Miej pełną kontrolę nad stałymi opłatami, śledź terminy płatności i unikaj opóźnień."
+        title="Rachunki"
+        description="Stałe opłaty, wydatki i przychody z terminami płatności, pogrupowane według miesięcy lub kategorii."
         canonical="https://dzisiaj.fun/bills"
         keywords="rachunki, płatności, opłaty stałe, finanse osobiste, przypomnienia finansowe"
       />

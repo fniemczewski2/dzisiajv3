@@ -101,8 +101,8 @@ export default function BudgetPage() {
   return (
     <>
       <Seo
-        title="Budżet | Dzisiaj.Fun"
-        description="Analizuj swoje wydatki, przeglądaj statystyki finansowe i mądrze zaplanuj domowy budżet."
+        title="Budżet"
+        description="Zaplanuj budżet w kategoriach i porównuj go z wydatkami w ujęciu miesięcznym i rocznym."
         canonical="https://dzisiaj.fun/bills/budget"
         keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
       />

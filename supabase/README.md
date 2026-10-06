@@ -24,10 +24,11 @@ z `pg_dump`, a nie z ręcznie pisanego zapytania.
 
 ### Opcja B: SQL Editor w Dashboardzie
 
-Jeśli nie chcesz jeszcze instalować CLI, uruchom `introspect_schema.sql`
-z tego folderu w Dashboard → SQL Editor. Zwraca strukturę wszystkich tabel
-w `public` (kolumny, typy, klucze, status RLS, wszystkie polityki) jako
-czytelny JSON per tabela. Skopiuj wynik i wklej do dalszej analizy.
+Uruchom `introspect_schema.sql` z tego folderu w Dashboard → SQL Editor.
+Zwraca jeden JSON z całym schematem `public` (kolumny, klucze, indeksy,
+triggery, RLS, polityki, uprawnienia ról, funkcje z kodem), Storage,
+triggerami na `auth.users` oraz listą wykrytych problemów bezpieczeństwa
+(`security_findings`). Zapytanie tylko czyta katalog systemowy.
 
 ## Krok 2: przegląd i pierwsza migracja
 
@@ -53,3 +54,22 @@ supabase db push
 
 Dzięki temu każda zmiana ma historię w git, przechodzi code review i da się
 odtworzyć całą bazę od zera na nowym środowisku.
+
+## Stan na 2026-10: migracje poza repozytorium
+
+Pliki z `supabase/migrations/` zostały usunięte z repo (wersja 1.38.7), a folder
+jest w `.gitignore`. Wcześniejsza ręcznie pisana migracja bazowa nie
+odpowiadała produkcji (brak kluczy obcych do `auth.users`, inne kolumny
+`tasks`, tabela `reminders`, której na produkcji nie ma).
+
+Dopóki tak zostaje:
+
+1. Zmiany na produkcję wprowadzaj skryptem SQL w SQL Editorze i pisz je
+   idempotentnie (`if not exists`, `drop … if exists`, `create or replace`),
+   żeby ponowne uruchomienie było bezpieczne.
+2. Po każdej zmianie uruchom `introspect_schema.sql` – sekcja
+   `security_findings` powinna zawierać tylko pozycje świadomie zaakceptowane
+   (np. publiczny odczyt `stops`, tabele obsługiwane wyłącznie przez
+   service_role).
+3. Docelowo: `supabase db pull` jako nowa migracja bazowa odzwierciedlająca
+   produkcję i ponowne wersjonowanie folderu `migrations/`.

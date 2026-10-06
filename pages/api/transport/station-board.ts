@@ -28,15 +28,15 @@ export default async function handler(
 ) {
   const { stationName } = req.query;
   const apiKey = process.env.PLK_API_KEY;
-  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const supabase = createServerSupabase(req, res);
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return res.status(401).json({ error: "Unauthorized" });
+  if (error || !user) return res.status(401).json({ error: "Brak autoryzacji." });
 
-  if (!stationName || Array.isArray(stationName)) return res.status(400).json({ error: 'No stationName' });
+  if (!stationName || Array.isArray(stationName)) return res.status(400).json({ error: 'Brak nazwy stacji.' });
 
-  if (!apiKey) return res.status(500).json({ error: 'Server config error' });
+  if (!apiKey) return res.status(500).json({ error: 'Błąd konfiguracji serwera.' });
 
   try {
     const headers = {

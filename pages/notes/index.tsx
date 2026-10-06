@@ -26,8 +26,8 @@ export default function NotesPage() {
   return (
     <>
       <Seo
-        title="Notatki | Dzisiaj.Fun"
-        description="Twórz szybkie zapiski, gromadź ważne informacje i buduj swoją podręczną bazę wiedzy."
+        title="Notatki"
+        description="Szybkie notatki z prostym formatowaniem tekstu – zapisuj pomysły, informacje i listy w jednym miejscu."
         canonical="https://dzisiaj.fun/notes"
         keywords="notatki, second brain, baza wiedzy, zapiski, notatnik online"
       />

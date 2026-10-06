@@ -200,7 +200,8 @@ function buildImportRows(
       place: ev.location || "",
       repeat: "none",
       google_event_id: ev.id,
-      shared_with_id: null,
+      // Bez shared_with_id: upsert aktualizuje istniejące wydarzenia i zdjąłby
+      // udostępnienie ustawione w aplikacji. Nowe wiersze dostają NULL domyślnie.
     });
   }
   return { rows, skipped };
@@ -230,11 +231,11 @@ async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, row
 async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, accountId } = req.body ?? {};
   if (typeof calendarId !== "string" || typeof accountId !== "string" || !calendarId || !accountId) {
-    return res.status(400).json({ error: "Missing params" });
+    return res.status(400).json({ error: "Brak wymaganych parametrów." });
   }
 
   const accessToken = await getValidGoogleToken(auth, accountId);
-  if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
+  if (!accessToken) return res.status(400).json({ error: "Brak połączenia z Kalendarzem Google." });
 
   const timeMin = new Date();
   timeMin.setMonth(timeMin.getMonth() - 1);
@@ -257,7 +258,7 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   }
 
   const { items: allItems, failedStatus } = await fetchAllGoogleEvents(url, accessToken);
-  if (failedStatus) return res.status(failedStatus).json({ error: "Failed to fetch from Google" });
+  if (failedStatus) return res.status(failedStatus).json({ error: "Nie udało się pobrać danych z Google." });
 
   const sb = getServiceSupabase(auth.token);
   const { rows, skipped: skippedRows } = buildImportRows(allItems, isBirthdayVirtual, auth.user.id, accountId);
@@ -314,7 +315,7 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, auth:
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const auth = await getUserFromBearer(req);
-    if (!auth) return res.status(401).json({ error: "Unauthorized" });
+    if (!auth) return res.status(401).json({ error: "Brak autoryzacji." });
 
     const { action } = req.query;
     if (action === "auth-url" && req.method === "GET") return handleAuthUrl(res);
@@ -322,7 +323,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action === "import" && req.method === "POST") return await handleImport(req, res, auth);
     if (action === "export" && req.method === "POST") return await handleExport(req, res, auth);
     if (action === "disconnect" && req.method === "DELETE") return await handleDisconnect(req, res, auth);
-    return res.status(404).json({ error: "Unknown action" });
+    return res.status(404).json({ error: "Nieznana akcja." });
   } catch (error) {
     console.error("[GOOGLE-CALENDAR ERROR]:", error);
     return res.status(500).json({ error: "Wystąpił nieoczekiwany błąd" });
@@ -331,13 +332,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, eventIds, accountId } = req.body ?? {};
-  if (typeof calendarId !== "string" || !calendarId) return res.status(400).json({ error: "calendarId required" });
+  if (typeof calendarId !== "string" || !calendarId) return res.status(400).json({ error: "Brak identyfikatora kalendarza." });
   if (eventIds !== undefined && (!Array.isArray(eventIds) || eventIds.some((id) => typeof id !== "string"))) {
-    return res.status(400).json({ error: "eventIds must be an array of strings" });
+    return res.status(400).json({ error: "Pole eventIds musi być listą identyfikatorów." });
   }
 
   const accessToken = await getValidGoogleToken(auth, accountId);
-  if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
+  if (!accessToken) return res.status(400).json({ error: "Brak połączenia z Kalendarzem Google." });
 
   const sb = getServiceSupabase(auth.token);
   let query = sb.from("events").select("*").eq("user_id", auth.user.id);
@@ -349,8 +350,8 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   }
 
   const { data: events, error: fetchErr } = await query;
-  if (fetchErr) return res.status(500).json({ error: "Failed to fetch local events" });
-  if (!events?.length) return res.json({ exported: 0, skipped: 0, message: "No events found in selected range" });
+  if (fetchErr) return res.status(500).json({ error: "Nie udało się pobrać wydarzeń z aplikacji." });
+  if (!events?.length) return res.json({ exported: 0, skipped: 0, message: "Brak wydarzeń w wybranym zakresie." });
 
   const exportOne = async (ev: (typeof events)[number]): Promise<boolean> => {
     const body = { summary: ev.title, description: ev.description || "", location: ev.place || "", start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: "Europe/Warsaw" }, end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: "Europe/Warsaw" } };
