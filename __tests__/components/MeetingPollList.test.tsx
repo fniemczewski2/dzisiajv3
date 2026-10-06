@@ -28,7 +28,7 @@ vi.mock("@/hooks/db/useMeetingPolls", () => ({
 }));
 
 const table = (rows: { poll_id: string }[]) => ({
-  select: () => ({ in: async () => ({ data: rows, error: null }) }),
+  select: () => ({ in: () => Promise.resolve({ data: rows, error: null }) }),
 });
 vi.mock("@/providers/AuthProvider", () => ({
   useAuth: () => ({

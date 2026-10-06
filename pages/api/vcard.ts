@@ -6,10 +6,10 @@ import type { VCardProfile } from '@/types/profiles';
 
 export function escVCardValue(raw: string): string {
 return raw
-  .replaceAll(/\\/g, String.raw`\\`)
+  .replaceAll('\\', String.raw`\\`)
   .replaceAll(/\r?\n/g, String.raw`\n`)
-  .replaceAll(/;/g, String.raw`\;`)
-  .replaceAll(/,/g, String.raw`\,`);
+  .replaceAll(';', String.raw`\;`)
+  .replaceAll(',', String.raw`\,`);
 }
 
 export function sanitizeTypeToken(raw: string): string {

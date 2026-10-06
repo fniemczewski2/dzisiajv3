@@ -21,9 +21,9 @@ const ABBREVIATIONS: [RegExp, string][] = [
 ];
 
 export function normalizeStationName(name: string): string {
-  let s = ` ${name.toLowerCase().replace(/\./g, ". ").replace(/\s+/g, " ").trim()} `;
+  let s = ` ${name.toLowerCase().replaceAll('.', ". ").replaceAll(/\s+/g, " ").trim()} `;
   for (const [pattern, replacement] of ABBREVIATIONS) s = s.replace(pattern, replacement);
-  return s.replace(/\./g, " ").replace(/[-–]/g, " ").replace(/\s+/g, " ").trim();
+  return s.replaceAll('.', " ").replaceAll(/[-–]/g, " ").replaceAll(/\s+/g, " ").trim();
 }
 
 /** 4 – ta sama nazwa, 3 – jedna jest początkiem drugiej, 2 – zawiera, 0 – brak. */

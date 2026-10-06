@@ -183,7 +183,7 @@ export default function MeetingPollList({ refreshToken, onCreate }: Readonly<Mee
   }, []);
 
   const idsKey = useMemo(
-    () => polls.map((p) => p.id).sort().join(","),
+    () => polls.map((p) => p.id).sort((a, b) => a.localeCompare(b)).join(","),
     [polls]
   );
 

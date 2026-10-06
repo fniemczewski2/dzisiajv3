@@ -7,7 +7,7 @@ const deleteEq2 = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createServerSupabase: () => ({
-    auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
+    auth: { getUser: () => Promise.resolve({ data: { user: { id: "user-1" } } }) },
   }),
 }));
 
@@ -24,13 +24,15 @@ vi.mock("@supabase/supabase-js", () => ({
 vi.mock("@/lib/server/tokenCrypto", () => ({ encryptToken: (t: string) => `enc:${t}` }));
 
 vi.mock("@/lib/server/fetchWithTimeout", () => ({
-  fetchWithTimeout: async () => ({
-    json: async () => ({
-      ok: true,
-      team: { id: "T1", name: "Zespół" },
-      authed_user: { id: "U1", access_token: "xoxp-1" },
+  fetchWithTimeout: () =>
+    Promise.resolve({
+      json: () =>
+        Promise.resolve({
+          ok: true,
+          team: { id: "T1", name: "Zespół" },
+          authed_user: { id: "U1", access_token: "xoxp-1" },
+        }),
     }),
-  }),
 }));
 
 import handler from "@/pages/api/slack/callback";

@@ -37,7 +37,7 @@ ${urls}
 </urlset>`;
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+export const getServerSideProps: GetServerSideProps = ({ res }) => {
   res.setHeader("Content-Type", "text/xml; charset=utf-8");
   res.setHeader(
     "Cache-Control",
@@ -45,7 +45,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   );
   res.write(generateSiteMap());
   res.end();
-  return { props: {} };
+  return Promise.resolve({ props: {} });
 };
 
 export default function SiteMap() {

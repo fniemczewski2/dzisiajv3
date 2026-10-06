@@ -45,11 +45,11 @@ vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => auth }));
 vi.mock("@/hooks/db/useSettings", () => ({ useSettings: () => settingsValue }));
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => toastValue }));
 vi.mock("@/hooks/useRetry", () => ({ useRetry: () => retry }));
-vi.mock("@/lib/offlineCache", () => ({ readCache: async () => null, writeCache: async () => {} }));
+vi.mock("@/lib/offlineCache", () => ({ readCache: () => Promise.resolve(null), writeCache: () => Promise.resolve() }));
 vi.mock("@/hooks/db/useSlackTasks", () => ({ triggerSlackSync: () => {} }));
 vi.mock("@/lib/share", () => ({
-  resolveSharedEmails: async (list: unknown[]) => list.map(() => ({ display_share_info: null })),
-  getUserIdByEmail: async () => null,
+  resolveSharedEmails: (list: unknown[]) => Promise.resolve(list.map(() => ({ display_share_info: null }))),
+  getUserIdByEmail: () => Promise.resolve(null),
 }));
 
 import { useTasks } from "@/hooks/db/useTasks";

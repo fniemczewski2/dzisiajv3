@@ -34,7 +34,8 @@ describe("clusterStops", () => {
 
   it("splits same-named stops in different towns into separate groups", () => {
     expect(dworcowa).toHaveLength(2);
-    expect(dworcowa.map((c) => c.stop_codes).sort()).toEqual([["DWOR01", "DWOR02"], ["LDWO01", "LDWO02"]]);
+    const codes = dworcowa.map((c) => c.stop_codes).sort((a, b) => a.join(",").localeCompare(b.join(",")));
+    expect(codes).toEqual([["DWOR01", "DWOR02"], ["LDWO01", "LDWO02"]]);
   });
 
   it("keeps nearby posts of one stop together and ignores posts without a code", () => {

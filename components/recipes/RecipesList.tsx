@@ -114,7 +114,7 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
                   initial={{ name: r.name, category: r.category, products: r.products ?? [], description: r.description ?? "" }}
                   onSubmit={(data) => handleSaveEdit(r, data)}
                   onCancel={() => setEditingId(null)}
-                  autoFocus
+                  focusNameOnOpen
                 />
               </li>
             );

@@ -114,7 +114,7 @@ const STATUS_SYNONYMS: Record<TaskStatus, string[]> = {
 };
 
 function canonical(value: string): string {
-  return value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return value.trim().toLowerCase().replaceAll(/[\s-]+/g, "_");
 }
 
 export function normalizeTaskStatus(raw: string | null | undefined): TaskStatus | null {

@@ -8,11 +8,11 @@ function mockStatus(response: unknown, ok = true) {
   vi.stubGlobal(
     "fetch",
     vi.fn(
-      async () =>
-        ({
+      () =>
+        Promise.resolve({
           ok,
-          json: async () => response,
-        }) as unknown as Response
+          json: () => Promise.resolve(response),
+        } as unknown as Response)
     )
   );
 }

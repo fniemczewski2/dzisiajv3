@@ -124,7 +124,7 @@ export default function Navbar() {
         />
       )}
 
-      <nav aria-label="Nawigacja główna" className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-lg bg-card/90 border border-line backdrop-blur-xl backdrop-saturate-150 p-1.5 shadow-2xl rounded-(--radius-card) z-50 transition-colors">
+      <nav aria-label="Nawigacja główna" className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-lg bg-card/90 border border-line backdrop-blur-xl backdrop-saturate-150 p-1.5 shadow-2xl rounded-card z-50 transition-colors">
         <div
           id="navbar-menu-panel"
           aria-hidden={!isMenuOpen}

@@ -67,9 +67,9 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
       const baseName = formData.full_name || formData.profile_name;
       const safeName = baseName
         .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
-        .replace(/[^a-z0-9]+/g, '-') 
-        .replace(/^-|-$/g, ''); 
+        .normalize("NFD").replaceAll(/[\u0300-\u036f]/g, "")
+        .replaceAll(/[^a-z0-9]+/g, '-')
+        .replaceAll(/^-|-$/g, '');
       
       setFormData(prev => ({ ...prev, public_slug: safeName }));
     }
@@ -104,7 +104,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSlugManuallyEdited(true);
-    const formatted = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+    const formatted = e.target.value.toLowerCase().replaceAll(/[^a-z0-9-]/g, '-').replaceAll(/-+/g, '-');
     setFormData(prev => ({ ...prev, public_slug: formatted }));
   };
 

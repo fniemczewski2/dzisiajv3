@@ -110,8 +110,9 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
         <span id={`confirm-msg-${item.id}`} className="flex-1 leading-snug text-text text-[15px]">{item.message}</span>
       </div>
       <div className="flex gap-2 justify-end">
+        {/* Bez autoFocus: showModal() sam ustawia fokus na pierwszym
+            interaktywnym elemencie dialogu, czyli na tym (bezpiecznym) przycisku. */}
         <button
-          autoFocus
           onClick={() => answer(false)}
           type='button'
           className="min-h-10 px-4 py-2 rounded-lg text-sm font-semibold bg-surface hover:bg-surface-hover text-text-secondary transition-colors border border-line"

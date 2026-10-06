@@ -47,7 +47,7 @@ import MeetingPollResults from "@/components/meetingPolls/MeetingPollResults";
 
 beforeEach(() => {
   current = DATA;
-  stable.getPollResults.mockImplementation(async () => current);
+  stable.getPollResults.mockImplementation(() => Promise.resolve(current));
 });
 
 describe("MeetingPollResults", () => {

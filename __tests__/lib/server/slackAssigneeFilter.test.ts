@@ -19,7 +19,7 @@ describe("buildAssigneeFilter", () => {
   });
 
   it("przepuszcza tylko pozycje przypisane do wskazanych osób", async () => {
-    const lookup = vi.fn(async (_t: string, email: string) => (email === "jan@firma.pl" ? "U_JAN" : null));
+    const lookup = vi.fn((_t: string, email: string) => Promise.resolve(email === "jan@firma.pl" ? "U_JAN" : null));
     const accepts = await buildAssigneeFilter(
       { token: "t", assigneeEmails: ["jan@firma.pl", "nikt@firma.pl"] },
       columns,
@@ -34,7 +34,7 @@ describe("buildAssigneeFilter", () => {
     const accepts = await buildAssigneeFilter(
       { token: "t", assigneeEmails: ["jan@firma.pl"] },
       [columns[0]],
-      async () => "U_JAN"
+      () => Promise.resolve("U_JAN")
     );
     expect(accepts(item("1", ["U_JAN"]))).toBe(false);
   });

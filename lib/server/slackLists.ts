@@ -385,7 +385,7 @@ export interface SlackFieldValue {
 }
 
 function canonical(value: string): string {
-  return value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return value.trim().toLowerCase().replaceAll(/[\s-]+/g, "_");
 }
 
 function matchChoice(column: SlackColumn, rawValue: string): string | null {

@@ -87,7 +87,7 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
         >
           {getEventIcon(event.title, event.description)}
           <span className="truncate">
-             {event.title.replace(/\u{1F382} |\u{1F389} /gu, '')}
+             {event.title.replaceAll(/\u{1F382} |\u{1F389} /gu, '')}
           </span>
         </span>
       ))}

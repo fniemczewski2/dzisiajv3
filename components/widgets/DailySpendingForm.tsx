@@ -20,6 +20,12 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Fokus dopiero po kliknięciu "edytuj" (akcja użytkownika) – zamiast
+  // atrybutu autoFocus, który przenosi fokus przy samym zamontowaniu.
+  useEffect(() => {
+    if (isEditing) inputRef.current?.focus();
+  }, [isEditing]);
+
   useEffect(() => {
     if (inputRef.current && habits) {
       inputRef.current.value = habits.daily_spending?.toFixed(2) ?? "0";
@@ -66,7 +72,6 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
             className="input-field h-7.5 w-20 sm:w-24 text-right tabular-nums text-text py-1 px-2 font-medium"
             title="Szybki wydatek"
             aria-label="Kwota szybkiego wydatku"
-            autoFocus
           />
           <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading} small/>
         </div>

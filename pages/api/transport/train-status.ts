@@ -315,7 +315,7 @@ export default async function handler(
     }
     const schedulesData: SchedulesResponse = await schedulesRes.json();
 
-    const pureNumber = trainNumber.replace(/\D/g, '');
+    const pureNumber = trainNumber.replaceAll(/\D/g, '');
     const baseNumber = pureNumber.length > 1 ? pureNumber.slice(0, -1) : pureNumber;
     const trainNameStr = Array.isArray(trainName) ? trainName[0] : trainName;
 

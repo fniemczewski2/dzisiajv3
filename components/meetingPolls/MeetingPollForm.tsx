@@ -22,7 +22,8 @@ const DURATION_LABELS: Record<MeetingPollSlotDuration, string> = {
 const QUICK_WORKING_DAYS = 5;
 
 function mergeDates(current: string[], added: string[]): string[] {
-  return [...new Set([...current, ...added])].sort();
+  // Daty w formacie YYYY-MM-DD – porównanie tekstowe daje kolejność chronologiczną.
+  return [...new Set([...current, ...added])].sort((a, b) => a.localeCompare(b));
 }
 
 export default function MeetingPollForm({ onChange, onCancel }: Readonly<MeetingPollFormProps>) {

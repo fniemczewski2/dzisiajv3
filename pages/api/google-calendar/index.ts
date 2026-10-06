@@ -88,7 +88,7 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
 }
 
 
-async function handleAuthUrl(res: NextApiResponse) {
+function handleAuthUrl(res: NextApiResponse) {
   const nonce = randomBytes(24).toString("base64url");
   res.setHeader("Set-Cookie", `gcal_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
 
@@ -317,7 +317,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
 
     const { action } = req.query;
-    if (action === "auth-url" && req.method === "GET") return await handleAuthUrl(res);
+    if (action === "auth-url" && req.method === "GET") return handleAuthUrl(res);
     if (action === "list-calendars" && req.method === "GET") return await handleListCalendars(req, res, auth);
     if (action === "import" && req.method === "POST") return await handleImport(req, res, auth);
     if (action === "export" && req.method === "POST") return await handleExport(req, res, auth);

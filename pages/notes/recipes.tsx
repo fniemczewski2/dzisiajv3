@@ -50,7 +50,7 @@ export default function RecipesPage() {
             loading={loading}
             onSubmit={handleAdd}
             onCancel={() => setShowForm(false)}
-            autoFocus
+            focusNameOnOpen
           />
         </section>
       )}

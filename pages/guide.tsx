@@ -20,7 +20,7 @@ const featureByGuideId = new Map<string, Feature>(
 );
 
 const slug = (value: string) =>
-  value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/[^a-z0-9]+/g, "-");
+  value.toLowerCase().normalize("NFD").replaceAll(/[\u0300-\u036f]/g, "").replaceAll('ł', "l").replaceAll(/[^a-z0-9]+/g, "-");
 
 const GROUPS = [
   ...FEATURE_GROUPS.map((group) => {

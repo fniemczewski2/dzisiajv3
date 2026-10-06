@@ -28,7 +28,8 @@ interface RecipeFormProps {
   /** Zwraca `true`, gdy zapis się udał (formularz może się wtedy zamknąć/wyczyścić). */
   onSubmit: (recipe: NewRecipe) => Promise<boolean>;
   onCancel?: () => void;
-  autoFocus?: boolean;
+  /** Ustawia fokus na polu nazwy po otwarciu formularza (akcja użytkownika, nie ładowanie strony). */
+  focusNameOnOpen?: boolean;
   className?: string;
 }
 
@@ -40,7 +41,7 @@ export default function RecipeForm({
   initial,
   onSubmit,
   onCancel,
-  autoFocus = false,
+  focusNameOnOpen = false,
   className = "form-card max-w-2xl",
 }: Readonly<RecipeFormProps>) {
   const start = initial ?? EMPTY;
@@ -55,8 +56,8 @@ export default function RecipeForm({
   const prefix = useId();
 
   useEffect(() => {
-    if (autoFocus) nameRef.current?.focus();
-  }, [autoFocus]);
+    if (focusNameOnOpen) nameRef.current?.focus();
+  }, [focusNameOnOpen]);
 
   const suggestions = useMemo(() => {
     const q = prodInput.trim().toLocaleLowerCase("pl");

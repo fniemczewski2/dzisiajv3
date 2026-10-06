@@ -65,7 +65,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
     if (profile.organization) vcf += `ORG:${profile.organization}\n`;
     
     profile.phones?.forEach(phone => {
-      const cleanNumber = phone.number.replace(/\s+/g, '');
+      const cleanNumber = phone.number.replaceAll(/\s+/g, '');
       vcf += `TEL;TYPE=${phone.type.toUpperCase()},VOICE:${cleanNumber}\n`;
     });
     
@@ -94,7 +94,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${profile.full_name?.replace(/\s+/g, '_') || 'wizytowka'}.vcf`);
+    link.setAttribute('download', `${profile.full_name?.replaceAll(/\s+/g, '_') || 'wizytowka'}.vcf`);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -170,7 +170,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                   <div key={`tel-${p.number}`} className="flex flex-col sm:flex-row justify-between sm:items-center text-sm py-1">
                     <span className="opacity-70 text-xs w-20">{p.type}</span>
                     <div className="flex-1 flex justify-end items-center gap-2">
-                      <a href={`tel:${p.number.replace(/\s+/g, '')}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                      <a href={`tel:${p.number.replaceAll(/\s+/g, '')}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
                         {p.number}
                       </a>
                       <CopyButtonSmall text={p.number} label="numer" />

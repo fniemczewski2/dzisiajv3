@@ -62,15 +62,15 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
           <span className="flex h-4 w-4 items-center justify-center rounded bg-accent text-white dark:text-background">
             <Check aria-hidden="true" className="h-3 w-3" strokeWidth={3} />
           </span>
-          Zaznaczona dostępność
+          <span>Zaznaczona dostępność</span>
         </li>
         <li className="flex items-center gap-1.5">
           <span className="h-4 w-4 rounded bg-surface ring-1 ring-inset ring-line-strong" />
-          Brak zaznaczenia
+          <span>Brak zaznaczenia</span>
         </li>
         <li className="flex items-center gap-1.5">
           <span className="h-4 w-4 rounded bg-amber-400" />
-          Wybrany zakres
+          <span>Wybrany zakres</span>
         </li>
       </ul>
     );
@@ -79,7 +79,7 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
     <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-secondary" aria-label="Legenda">
       <li className="flex items-center gap-1.5">
         <span className="h-4 w-4 rounded bg-surface ring-1 ring-inset ring-line-strong" />
-        Nikt
+        <span>Nikt</span>
       </li>
       <li className="flex items-center gap-1.5">
         <span className="flex gap-0.5" aria-hidden="true">
@@ -88,11 +88,11 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
           <span className="h-4 w-3 bg-blue-300 dark:bg-blue-700" />
           <span className="h-4 w-3 rounded-r bg-secondary" />
         </span>
-        Im ciemniej, tym więcej osób
+        <span>Im ciemniej, tym więcej osób</span>
       </li>
       <li className="flex items-center gap-1.5">
         <span className="h-4 w-4 rounded bg-amber-400" />
-        Wybrany zakres
+        <span>Wybrany zakres</span>
       </li>
     </ul>
   );

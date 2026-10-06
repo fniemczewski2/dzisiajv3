@@ -31,17 +31,17 @@ const calls: Call[] = [];
 function mockSlack(responder: (method: string) => unknown) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string, init: RequestInit) => {
+    vi.fn((url: string, init: RequestInit) => {
       const body = init.body
         ? (JSON.parse(String(init.body)) as Record<string, unknown>)
         : {};
       calls.push({ url, method: String(init.method), body });
       const method = url.split("/api/")[1].split("?")[0];
-      return {
+      return Promise.resolve({
         status: 200,
         headers: { get: () => null },
-        json: async () => responder(method),
-      } as unknown as Response;
+        json: () => Promise.resolve(responder(method)),
+      } as unknown as Response);
     })
   );
 }
