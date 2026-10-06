@@ -128,7 +128,7 @@ export function useConnectedCalendars(expanded: boolean) {
   );
 
   useEffect(() => {
-    fetchAccountsAndCalendars(!expanded);
+    void fetchAccountsAndCalendars(!expanded);
   }, [expanded, fetchAccountsAndCalendars]);
 
   const handleToggleCalendar = useCallback(

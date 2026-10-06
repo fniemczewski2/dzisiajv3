@@ -106,7 +106,15 @@ async function loadFinalizeContext(req: NextApiRequest, res: NextApiResponse): P
   return { user, supabase, poll, slots, responses: responses ?? [], availabilitySet };
 }
 
-async function inviteParticipants(ctx: FinalizeContext, slot: FinalizeSlotValidated, title: string): Promise<number> {
+/** Id wydarzeń utworzonych w tym wywołaniu – do wycofania przy błędzie. */
+type CreatedEvents = string[];
+
+async function inviteParticipants(
+  ctx: FinalizeContext,
+  slot: FinalizeSlotValidated,
+  title: string,
+  created: CreatedEvents
+): Promise<number> {
   const requiredTimes = generateTimeSlots(slot.start_time, slot.end_time, ctx.poll.slot_duration_minutes);
   let invitedParticipants = 0;
 
@@ -118,24 +126,32 @@ async function inviteParticipants(ctx: FinalizeContext, slot: FinalizeSlotValida
     );
     if (!isFullyAvailable) continue;
 
-    const { error: participantEventError } = await supabaseAdmin.from("events").insert({
-      user_id: response.user_id,
-      title,
-      description: `Ustalone na podstawie ankiety „${ctx.poll.title}".`,
-      start_time: `${slot.date}T${slot.start_time}:00`,
-      end_time: `${slot.date}T${slot.end_time}:00`,
-      place: slot.place ?? "",
-      repeat: "none",
-    });
+    const { data: participantEvent, error: participantEventError } = await supabaseAdmin
+      .from("events")
+      .insert({
+        user_id: response.user_id,
+        title,
+        description: `Ustalone na podstawie ankiety „${ctx.poll.title}".`,
+        start_time: `${slot.date}T${slot.start_time}:00`,
+        end_time: `${slot.date}T${slot.end_time}:00`,
+        place: slot.place ?? "",
+        repeat: "none",
+      })
+      .select("id")
+      .single();
 
-    if (!participantEventError) invitedParticipants++;
+    if (!participantEventError && participantEvent) {
+      created.push(participantEvent.id as string);
+      invitedParticipants++;
+    }
   }
   return invitedParticipants;
 }
 
 async function finalizeOneSlot(
   ctx: FinalizeContext,
-  slot: FinalizeSlotValidated
+  slot: FinalizeSlotValidated,
+  created: CreatedEvents
 ): Promise<{ error: string } | { slot: FinalizeResultSlot }> {
   const title = slot.title?.trim() || ctx.poll.title;
 
@@ -157,7 +173,8 @@ async function finalizeOneSlot(
     return { error: `Błąd tworzenia wydarzenia dla terminu ${slot.date} ${slot.start_time}.` };
   }
 
-  const invitedParticipants = await inviteParticipants(ctx, slot, title);
+  created.push(organizerEvent.id as string);
+  const invitedParticipants = await inviteParticipants(ctx, slot, title, created);
 
   return {
     slot: {
@@ -176,10 +193,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ctx = await loadFinalizeContext(req, res);
   if (!ctx) return;
 
+  // Atomowe "zajęcie" finalizacji. Wcześniej każde ponowne wywołanie (podwójny
+  // klik, retry) znów wstawiało wydarzenia do kalendarzy uczestników kluczem
+  // service_role.
+  const { data: claimed, error: claimError } = await ctx.supabase
+    .from("meeting_polls")
+    .update({ finalized_at: new Date().toISOString() })
+    .eq("id", ctx.poll.id)
+    .eq("user_id", ctx.user.id)
+    .is("finalized_at", null)
+    .select("id");
+  if (claimError) {
+    console.error("[meeting-polls/finalize] claim:", claimError.message);
+    return res.status(500).json({ error: "Błąd finalizacji ankiety." });
+  }
+  if (!claimed || claimed.length === 0) {
+    return res.status(409).json({ error: "Ta ankieta została już sfinalizowana." });
+  }
+
+  const created: CreatedEvents = [];
   const results: FinalizeResultSlot[] = [];
   for (const slot of ctx.slots) {
-    const outcome = await finalizeOneSlot(ctx, slot);
-    if ("error" in outcome) return res.status(500).json({ error: outcome.error });
+    const outcome = await finalizeOneSlot(ctx, slot, created);
+    if ("error" in outcome) {
+      // Wycofujemy częściowy wynik, żeby ponowna próba nie zdublowała wydarzeń.
+      if (created.length > 0) {
+        await supabaseAdmin.from("events").delete().in("id", created);
+      }
+      await ctx.supabase.from("meeting_polls").update({ finalized_at: null }).eq("id", ctx.poll.id);
+      return res.status(500).json({ error: outcome.error });
+    }
     results.push(outcome.slot);
   }
 

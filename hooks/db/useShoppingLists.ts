@@ -153,7 +153,7 @@ export function useShoppingLists() {
   );
 
   useEffect(() => {
-    fetchShoppingLists();
+    void fetchShoppingLists();
   }, [fetchShoppingLists]);
 
   return {

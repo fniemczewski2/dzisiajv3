@@ -8,6 +8,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/providers/ToastProvider';
 import { VCardProfile } from '@/types/profiles';
+import { sanitizeHref } from '@/lib/sanitize';
 
 interface VCardPreviewProps {
   profile: VCardProfile;
@@ -209,12 +210,15 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs text-neutral-400 font-semibold mb-2">Linki społecznościowe</h3>
                 {profile.social_links.map((social) => {
-                  if (!social.url) return null;
+                  // Strona /v/[slug] jest publiczna, a URL pochodzi od właściciela
+                  // profilu – dopuszczamy tylko http(s)/mailto/tel.
+                  const safeUrl = social.url ? sanitizeHref(social.url) : null;
+                  if (!safeUrl) return null;
                   const displayUser = getUsernameFromUrl(social.url, social.platform);
                   return (
                     <div key={`social-${social.url}`} className="flex flex-row justify-between items-center gap-2">
                         <SocialIcon platform={social.platform} />
-                        <a href={social.url} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate w-full" title={social.url}>
+                        <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 dark:text-blue-400 hover:underline truncate w-full" title={social.url}>
                           {displayUser}
                         </a>
                         <CopyButtonSmall text={social.url} label="link" />

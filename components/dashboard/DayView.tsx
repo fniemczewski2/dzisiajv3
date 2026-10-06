@@ -166,7 +166,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
        
        await moveSchema(schemaId, newTime);
     } else {
-       handleDragEnd(event);
+       void handleDragEnd(event);
     }
   };
 
@@ -190,7 +190,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       await hideSchema(id);
     } else {
       await setDoneTask(id);
-      fetchTasks();
+      void fetchTasks();
     }
   }, [hideSchema, setDoneTask, fetchTasks]);
 
@@ -245,7 +245,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                       currentDate={date} 
                       selectedDate={date} 
                       addAnother={() => handleAddDraft('event')}
-                      onEventsChange={() => { fetchEvents(); handleRemoveDraft(draft.id); }} 
+                      onEventsChange={() => { void fetchEvents(); handleRemoveDraft(draft.id); }} 
                       addEvent={addEvent}
                       onCancel={() => handleRemoveDraft(draft.id)} 
                       loading={loadingEvents}
@@ -256,7 +256,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                       selectedDate={dateStr}
                       addTask={addTask}
                       addAnother={() => handleAddDraft('task')}
-                      onTasksChange={() => { fetchTasks(); handleRemoveDraft(draft.id); }} 
+                      onTasksChange={() => { void fetchTasks(); handleRemoveDraft(draft.id); }} 
                       onCancel={() => handleRemoveDraft(draft.id)} 
                       loading={loadingTasks}
                       addMany
@@ -314,7 +314,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                     <TaskForm 
                       selectedDate={dateStr}
                       addTask={addTask}
-                      onTasksChange={() => { fetchTasks(); setShowTaskForm(false); }} 
+                      onTasksChange={() => { void fetchTasks(); setShowTaskForm(false); }} 
                       onCancel={() => setShowTaskForm(false)} 
                       loading={loadingTasks}
                     />
@@ -348,7 +348,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                     <EventForm 
                       currentDate={date} 
                       selectedDate={date} 
-                      onEventsChange={() => { fetchEvents(); setShowEventForm(false); }} 
+                      onEventsChange={() => { void fetchEvents(); setShowEventForm(false); }} 
                       addEvent={addEvent}
                       onCancel={() => setShowEventForm(false)} 
                       loading={loadingEvents}

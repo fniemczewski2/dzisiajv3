@@ -49,9 +49,22 @@ export function encryptToken(plaintext: string): string {
   ].join(":");
 }
 
+let warnedAboutPlaintext = false;
+
 export function decryptToken(stored: string | null | undefined): string {
   if (!stored) return "";
-  if (!stored.startsWith(`${VERSION_PREFIX}:`)) return stored;
+  if (!stored.startsWith(`${VERSION_PREFIX}:`)) {
+    // Tokeny sprzed wprowadzenia szyfrowania. Zaszyfruj je skryptem
+    // scripts/encrypt-legacy-tokens.mjs, potem ustaw REJECT_PLAINTEXT_TOKENS=1.
+    if (process.env.REJECT_PLAINTEXT_TOKENS === "1") {
+      throw new Error("Odrzucono niezaszyfrowany token (REJECT_PLAINTEXT_TOKENS=1).");
+    }
+    if (!warnedAboutPlaintext) {
+      warnedAboutPlaintext = true;
+      console.warn("[tokenCrypto] W bazie są niezaszyfrowane tokeny – uruchom scripts/encrypt-legacy-tokens.mjs.");
+    }
+    return stored;
+  }
 
   const parts = stored.split(":");
   if (parts.length !== 4) {

@@ -1,26 +1,47 @@
 // pages/api/worklogs/auto.ts
+//
+// Webhook dla Siri Shortcuts. Użytkownika identyfikuje WYŁĄCZNIE jego własny
+// token (Ustawienia → Skróty Siri). Wcześniej endpoint przyjmował `userId`
+// z treści żądania i jeden globalny sekret, więc każdy posiadacz sekretu mógł
+// zapisywać czas pracy na dowolnym koncie.
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getAppDateTime } from '@/lib/dateUtils';
-import { getErrorMessage } from '@/lib/errorUtils';
-import { validateUuid } from '@/lib/sanitize';
-import crypto from 'node:crypto';
+import { hashShortcutToken, looksLikeShortcutToken } from '@/lib/server/shortcutTokens';
+import { checkRateLimit, clientIp } from '@/lib/server/rateLimit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
 );
 
-function verifyShortcutsSecret(req: NextApiRequest, expectedSecret: string): boolean {
-  const headerSecret = req.headers['x-api-secret'];
-  const providedSecret =
-    (typeof headerSecret === 'string' ? headerSecret : '') ||
-    (typeof req.body?.secret === 'string' ? req.body.secret : '');
+function extractToken(req: NextApiRequest): string | null {
+  const authorization = req.headers.authorization;
+  if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
+    return authorization.slice('Bearer '.length).trim();
+  }
+  const headerToken = req.headers['x-api-secret'];
+  if (typeof headerToken === 'string') return headerToken.trim();
+  const bodyToken = (req.body as { token?: unknown } | undefined)?.token;
+  return typeof bodyToken === 'string' ? bodyToken.trim() : null;
+}
 
-  const expectedHash = crypto.createHash('sha256').update(expectedSecret).digest();
-  const providedHash = crypto.createHash('sha256').update(providedSecret).digest();
-  return crypto.timingSafeEqual(expectedHash, providedHash);
+async function resolveUserId(token: string): Promise<string | null> {
+  const { data, error } = await supabaseAdmin
+    .from('shortcut_tokens')
+    .select('user_id')
+    .eq('token_hash', hashShortcutToken(token))
+    .maybeSingle<{ user_id: string }>();
+  if (error || !data) return null;
+
+  // Informacyjnie dla użytkownika ("ostatnio użyty"); błąd nie blokuje akcji.
+  await supabaseAdmin
+    .from('shortcut_tokens')
+    .update({ last_used_at: new Date().toISOString() })
+    .eq('user_id', data.user_id);
+
+  return data.user_id;
 }
 
 interface ActionResult {
@@ -29,14 +50,15 @@ interface ActionResult {
 }
 
 async function handleStart(userId: string, now: ReturnType<typeof getAppDateTime>): Promise<ActionResult> {
-  const { data: existing } = await supabaseAdmin
+  const { data: existing, error: existingError } = await supabaseAdmin
     .from('work_logs')
     .select('id')
     .eq('user_id', userId)
     .is('end_time', null)
-    .maybeSingle();
+    .limit(1);
 
-  if (existing) return { status: 400, body: { error: 'Open work log found.' } };
+  if (existingError) throw existingError;
+  if (existing && existing.length > 0) return { status: 400, body: { error: 'Open work log found.' } };
 
   const { data, error } = await supabaseAdmin
     .from('work_logs')
@@ -68,6 +90,7 @@ async function handleEnd(userId: string, now: ReturnType<typeof getAppDateTime>)
     .from('work_logs')
     .update({ end_time: now })
     .eq('id', openLog.id)
+    .eq('user_id', userId)
     .select()
     .maybeSingle();
 
@@ -78,37 +101,30 @@ async function handleEnd(userId: string, now: ReturnType<typeof getAppDateTime>)
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
-  const { userId, action } = req.body ?? {};
-
-  const expectedSecret = process.env.SHORTCUTS_API_SECRET;
-  if (!expectedSecret) {
-    console.error("[SHORTCUTS] No SHORTCUTS_API_SECRET defined.");
-    return res.status(500).json({ error: "Server configuration error." });
+  if (!checkRateLimit(`worklogs-auto:${clientIp(req)}`, 30, 60_000)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'Too many requests.' });
   }
 
-  if (!verifyShortcutsSecret(req, expectedSecret)) {
+  const token = extractToken(req);
+  if (!looksLikeShortcutToken(token)) {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
-  const validUserId = validateUuid(userId);
-  if (!validUserId || !action) {
-    return res.status(400).json({ error: 'No required data.' });
+  const { action } = (req.body ?? {}) as { action?: unknown };
+  if (action !== 'start' && action !== 'end') {
+    return res.status(400).json({ error: 'Unknown action.' });
   }
 
   try {
-    const now = getAppDateTime();
+    const userId = await resolveUserId(token);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized.' });
 
-    if (action === 'start') {
-      const result = await handleStart(validUserId, now);
-      return res.status(result.status).json(result.body);
-    }
-    if (action === 'end') {
-      const result = await handleEnd(validUserId, now);
-      return res.status(result.status).json(result.body);
-    }
-    return res.status(400).json({ error: 'Unknown action.' });
+    const now = getAppDateTime();
+    const result = action === 'start' ? await handleStart(userId, now) : await handleEnd(userId, now);
+    return res.status(result.status).json(result.body);
   } catch (error) {
     console.error('Błąd worklogs auto:', error);
-    return res.status(500).json({ error: getErrorMessage(error, 'Server error.') });
+    return res.status(500).json({ error: 'Server error.' });
   }
 }

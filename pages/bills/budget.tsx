@@ -49,12 +49,12 @@ export default function BudgetPage() {
 
   const handleBack = () => {
     const parts = router.pathname.split("/").filter(Boolean);
-    router.push(parts.length > 1 ? `/${parts.slice(0, -1).join("/")}` : "/");
+    void router.push(parts.length > 1 ? `/${parts.slice(0, -1).join("/")}` : "/");
   };
 
   const handleCategoriesChange = () => {
-    fetchCategories();
-    refreshSummary();
+    void fetchCategories();
+    void refreshSummary();
   };
 
   const handlePrevMonth = () => {

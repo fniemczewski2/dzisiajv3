@@ -22,7 +22,7 @@ export default function StartPage() {
       const searchParams = new URLSearchParams(window.location.search);
       let nextUrl = searchParams.get('next') || '/';
       if (!nextUrl.startsWith('/')) nextUrl = '/'; 
-      router.replace(nextUrl);
+      void router.replace(nextUrl);
     }
   }, [user, loadingUser, router]);
 

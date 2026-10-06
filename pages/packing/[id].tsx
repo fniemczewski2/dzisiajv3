@@ -25,7 +25,7 @@ export default function DynamicPackingPage() {
 
   useEffect(() => {
     if (!listData && router.isReady) {
-      router.push("/packing");
+      void router.push("/packing");
     }
   }, [listData, router.isReady, router]);
 

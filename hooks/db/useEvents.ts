@@ -70,7 +70,7 @@ export function useVirtualBirthdayEvents(): Event[] {
   }, [userId, supabase, toast, withRetry, getSignal]);
 
   useEffect(() => {
-    fetchVirtualEvents();
+    void fetchVirtualEvents();
   }, [fetchVirtualEvents]);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export function useEvents(
   }, [supabase, userId, rangeStart, rangeEnd, toast, withRetry, getSignal]);
 
   useEffect(() => {
-    fetchEvents();
+    void fetchEvents();
   }, [fetchEvents]);
 
   useEffect(() => {

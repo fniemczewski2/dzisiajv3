@@ -48,7 +48,7 @@ export function useDailyOverrides(dateStr: string) {
   }, [supabase, userId, dateStr, toast, withRetry, getSignal]);
 
   useEffect(() => {
-    fetchOverrides();
+    void fetchOverrides();
   }, [fetchOverrides]);
 
   const hideSchema = useCallback(

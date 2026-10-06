@@ -3,18 +3,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/server/tokenCrypto";
-import { timingSafeEqual } from "node:crypto";
-
-function safeEqual(a: string, b: string): boolean {
-  const ba = Buffer.from(a);
-  const bb = Buffer.from(b);
-  return ba.length === bb.length && timingSafeEqual(ba, bb);
-}
-
-/** Nonce jest jednorazowy – kasujemy ciasteczko niezależnie od wyniku. */
-function clearStateCookie(res: NextApiResponse, name: string) {
-  res.setHeader("Set-Cookie", `${name}=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`);
-}
+import { safeEqual } from "@/lib/server/safeEqual";
+import { clearStateCookie } from "@/lib/server/oauthState";
 
 export interface OAuthProviderConfig {
   provider: "google" | "outlook";

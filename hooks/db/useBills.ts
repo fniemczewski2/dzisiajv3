@@ -160,7 +160,7 @@ export function useBills(options: FetchOptions = {}) {
   );
 
   useEffect(() => {
-    fetchBills(false, 1, BILLS_PAGE_LIMIT);
+    void fetchBills(false, 1, BILLS_PAGE_LIMIT);
   }, [fetchBills]);
 
   const addBill = useCallback(

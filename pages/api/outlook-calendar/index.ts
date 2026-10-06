@@ -95,28 +95,19 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
   }
 }
 
-async function collectNewOutlookEvents(
-  supabase: SupabaseClient,
+function buildOutlookEventRows(
   events: OutlookEventsResponse["value"],
   userId: string,
   accountId: string
-): Promise<object[]> {
-  const eventsToInsert = [];
+): object[] {
+  const rows = [];
   for (const ev of events || []) {
     if (ev.isCancelled) continue;
-
-    const { data: dup } = await supabase
-      .from('events')
-      .select('id')
-      .eq('google_event_id', ev.id)
-      .eq('calendar_id', accountId)
-      .maybeSingle();
-    if (dup) continue;
 
     const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
     const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
 
-    eventsToInsert.push({
+    rows.push({
       user_id: userId,
       calendar_id: accountId,
       title: ev.subject || '(bez tytułu)',
@@ -129,15 +120,28 @@ async function collectNewOutlookEvents(
       shared_with_id: null
     });
   }
-  return eventsToInsert;
+  return rows;
 }
 
 async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona' });
 
   try {
-    const { calendarId, accountId } = req.body;
-    
+    const { calendarId, accountId } = (req.body ?? {}) as { calendarId?: unknown; accountId?: unknown };
+    if (typeof calendarId !== 'string' || typeof accountId !== 'string' || !calendarId || !accountId) {
+      return res.status(400).json({ error: 'Brak wymaganych parametrów' });
+    }
+
+    // accountId trafia do events.calendar_id – musi być kalendarzem tego
+    // użytkownika (RLS na insert sprawdza tylko user_id).
+    const { data: ownedCalendar } = await supabase
+      .from('connected_calendars')
+      .select('id')
+      .eq('id', accountId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!ownedCalendar) return res.status(404).json({ error: 'Nie znaleziono kalendarza' });
+
     const { data: mainAcc } = await supabase
       .from('connected_calendars')
       .select('*')
@@ -164,11 +168,18 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
           
       if (!msRes.ok) break;
       const data: OutlookEventsResponse = await msRes.json();
-      const eventsToInsert = await collectNewOutlookEvents(supabase, data.value, user.id, accountId);
+      const rows = buildOutlookEventRows(data.value, user.id, accountId);
 
-      if (eventsToInsert.length > 0) {
-        await supabase.from('events').insert(eventsToInsert);
-        imported += eventsToInsert.length;
+      // Jeden upsert na stronę zamiast osobnego SELECT-a na każde wydarzenie.
+      if (rows.length > 0) {
+        const { error: upsertError } = await supabase
+          .from('events')
+          .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
+        if (upsertError) {
+          console.error('[outlook import] upsert error:', upsertError.message);
+        } else {
+          imported += rows.length;
+        }
       }
 
       fetchUrl = data['@odata.nextLink']; 

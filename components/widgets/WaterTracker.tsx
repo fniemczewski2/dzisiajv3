@@ -42,7 +42,7 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
     // Hook aktualizuje `habits` optymistycznie, więc po wyczyszczeniu draftu
     // widget od razu pokazuje nową wartość - bez mrugnięcia na starą.
     if (finalWater !== savedWater) {
-      updateWater(Number(finalWater.toFixed(1)));
+      void updateWater(Number(finalWater.toFixed(1)));
     }
   };
 

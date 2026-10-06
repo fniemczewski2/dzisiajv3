@@ -1,13 +1,7 @@
 // lib/server/cronAuth.ts
 
-import { timingSafeEqual } from "node:crypto";
 import type { NextApiRequest } from "next";
-
-function safeEqual(expected: string, provided: string): boolean {
-  const a = Buffer.from(expected);
-  const b = Buffer.from(provided);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
+import { safeEqual } from "@/lib/server/safeEqual";
 
 export function verifyCronRequest(req: NextApiRequest): boolean {
   const expected = process.env.CRON_SECRET;

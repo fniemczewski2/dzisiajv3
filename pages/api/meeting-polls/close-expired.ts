@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (error) {
     console.error("[meeting-polls/close-expired]:", error.message);
-    return res.status(500).json({ error: `Nie udało się zamknąć ankiet: ${error.message}` });
+    return res.status(500).json({ error: "Nie udało się zamknąć ankiet." });
   }
 
   return res.status(200).json({ closed: data?.length ?? 0 });

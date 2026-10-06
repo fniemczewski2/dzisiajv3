@@ -46,7 +46,7 @@ export default function TransportPage() {
         toast.error("Błąd pobierania pociągów");
       }
     };
-    fetchAll();
+    void fetchAll();
   }, [refresh, toast]);
 
   useEffect(() => {

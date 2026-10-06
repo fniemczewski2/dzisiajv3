@@ -240,16 +240,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('[parse-ticket]:', error);
 
     if (error instanceof PdfReadError) {
-      return res.status(422).json({
-        error: 'Nie udało się odczytać treści PDF.',
-        detail: error.message,
-      });
+      return res.status(422).json({ error: 'Nie udało się odczytać treści PDF.' });
     }
 
-    return res.status(500).json({
-      error: 'Błąd wczytywania PDF. Sprawdź, czy plik nie jest uszkodzony.',
-      detail: error instanceof Error ? error.message : String(error),
-    });
+    return res.status(500).json({ error: 'Błąd wczytywania PDF. Sprawdź, czy plik nie jest uszkodzony.' });
   } finally {
     if (filepath) {
       await fs.unlink(filepath).catch((unlinkErr: unknown) => {

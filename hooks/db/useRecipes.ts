@@ -117,7 +117,7 @@ export function useRecipes() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchProducts().then((p) => {
+    void fetchProducts().then((p) => {
       if (!cancelled) setProductDictionary(p);
     });
     return () => {

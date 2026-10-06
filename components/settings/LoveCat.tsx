@@ -80,7 +80,7 @@ const channel = supabase
     navigator.serviceWorker?.addEventListener("message", handleMessage);
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
       navigator.serviceWorker?.removeEventListener("message", handleMessage);
       pendingTimeouts.forEach((id) => clearTimeout(id));
       pendingTimeouts.clear();

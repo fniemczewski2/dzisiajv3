@@ -43,7 +43,7 @@ export function useMoods(startDate?: string, endDate?: string) {
     }
   }, [supabase, userId, startDate, endDate, toast, withRetry, getSignal]);
 
-  useEffect(() => { fetchMoods(); }, [fetchMoods]);
+  useEffect(() => { void fetchMoods(); }, [fetchMoods]);
 
   const logMood = useCallback(
     async (date: string, moodId: string | null) => {

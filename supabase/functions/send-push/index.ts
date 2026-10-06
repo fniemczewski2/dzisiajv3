@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
             .eq('id', sub.id)
         }
 
-        return { success: false, error: error.message }
+        return { success: false }
       }
     })
 
@@ -95,9 +95,9 @@ Deno.serve(async (req) => {
       { headers: jsonHeaders }
     )
   } catch (error) {
-    console.error("Critical error in send-push:", error.message);
+    console.error("Critical error in send-push:", error instanceof Error ? error.message : error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Nie udało się wysłać powiadomienia." }),
       { status: 400, headers: jsonHeaders }
     )
   }

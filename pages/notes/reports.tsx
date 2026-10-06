@@ -10,6 +10,7 @@ import { AddButton, EditButton, DeleteButton, PdfButton, FormButtons } from "@/c
 import { format } from "date-fns";
 import Seo from "@/components/ui/SEO";
 import { SkeletonReport } from "@/components/ui/Skeleton";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ReportViewRowProps {
   report: Report;
@@ -205,6 +206,7 @@ function ReportEditRow({
 
 export default function ReportsPage() {
   const { reports, fetching, fetchReports, editReport, deleteReport, loading } = useReports();
+  const { toast } = useToast();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedReport, setEditedReport] = useState<Report | null>(null);
@@ -233,7 +235,14 @@ export default function ReportsPage() {
   const updArr = <K extends keyof Report>(field: K, arr: Report[K]) => upd(field, arr);
 
   const handleGenerate = async (report: Report) => {
-    generateReportPDF(report);
+    try {
+      // Dynamiczny import pdfmake może się nie udać (offline / nieaktualny chunk po
+      // deployu) – bez obsługi kliknięcie po prostu nic nie robiło.
+      await generateReportPDF(report);
+    } catch (err) {
+      console.error("[reports] Generowanie PDF nie powiodło się:", err);
+      toast.error("Nie udało się wygenerować PDF.");
+    }
   };
   return (
     <>
@@ -251,7 +260,7 @@ export default function ReportsPage() {
         {showForm && (
           <div className="mb-6">
             <ReportForm
-              onChange={() => { fetchReports(); setShowForm(false); }}
+              onChange={() => { void fetchReports(); setShowForm(false); }}
               onCancel={() => setShowForm(false)}
             />
           </div>

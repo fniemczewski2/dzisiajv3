@@ -31,21 +31,58 @@ async function deleteUserRows(
       .delete()
       .eq("user_id", userId)
       .select("id");
-    report[table] = error ? error.message : (data?.length ?? 0);
+    if (error) {
+      // Szczegóły tylko w logach – raport trafia do przeglądarki.
+      console.error(`[account/delete] ${table}:`, error.message);
+      report[table] = "error";
+    } else {
+      report[table] = data?.length ?? 0;
+    }
   }
+
+  // Zadania zlecone temu użytkownikowi przez innych zostają u zleceniodawcy,
+  // ale bez wskazania na usuwane konto.
+  const { error: unassignError } = await admin.from("tasks").update({ for_user_id: null }).eq("for_user_id", userId);
+  if (unassignError) console.error("[account/delete] tasks.for_user_id:", unassignError.message);
+  for (const table of ["events", "shopping_lists"] as const) {
+    const { error } = await admin.from(table).update({ shared_with_id: null }).eq("shared_with_id", userId);
+    if (error) console.error(`[account/delete] ${table}.shared_with_id:`, error.message);
+  }
+
   return report;
+}
+
+const STORAGE_PAGE = 1000;
+
+/** Wszystkie ścieżki plików pod prefiksem – rekurencyjnie i ze stronicowaniem. */
+async function listAllPaths(admin: SupabaseClient, bucket: string, prefix: string): Promise<string[]> {
+  const paths: string[] = [];
+  for (let offset = 0; ; offset += STORAGE_PAGE) {
+    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: STORAGE_PAGE, offset });
+    if (error || !data?.length) break;
+
+    for (const entry of data) {
+      const fullPath = `${prefix}/${entry.name}`;
+      // Foldery w Storage nie mają id (to tylko prefiksy).
+      if (!entry.id) paths.push(...(await listAllPaths(admin, bucket, fullPath)));
+      else paths.push(fullPath);
+    }
+    if (data.length < STORAGE_PAGE) break;
+  }
+  return paths;
 }
 
 async function deleteUserFiles(admin: SupabaseClient, userId: string): Promise<number> {
   let removed = 0;
 
   for (const bucket of USER_STORAGE_BUCKETS) {
-    const { data, error } = await admin.storage.from(bucket).list(userId, { limit: 1000 });
-    if (error || !data?.length) continue;
-
-    const paths = data.map((file) => `${userId}/${file.name}`);
-    const { error: removeError } = await admin.storage.from(bucket).remove(paths);
-    if (!removeError) removed += paths.length;
+    const paths = await listAllPaths(admin, bucket, userId);
+    for (let i = 0; i < paths.length; i += STORAGE_PAGE) {
+      const chunk = paths.slice(i, i + STORAGE_PAGE);
+      const { error: removeError } = await admin.storage.from(bucket).remove(chunk);
+      if (removeError) console.error(`[account/delete] storage ${bucket}:`, removeError.message);
+      else removed += chunk.length;
+    }
   }
   return removed;
 }

@@ -31,30 +31,86 @@ interface ImportedEventRow {
 }
 
 /**
- * Batch upsert zamiast N+1 (osobny SELECT dedup + INSERT per event).
- * Wymaga częściowego indeksu unikalnego (zob. supabase/migrations/
- * 20260720120000_events_dedup_index.sql):
- *   CREATE UNIQUE INDEX events_calendar_google_event_uidx
- *     ON events (calendar_id, google_event_id)
- *     WHERE google_event_id IS NOT NULL;
- * `ignoreDuplicates: true` = "ON CONFLICT DO NOTHING", więc istniejące
- * wydarzenia nie są nadpisywane (zachowuje dotychczasowe zachowanie dedup).
+ * Batch upsert zamiast N+1. Wymaga indeksu unikalnego
+ * events_calendar_google_event_uidx (calendar_id, google_event_id) –
+ * zob. supabase/migrations/20261005000000_events_google_event_unique.sql.
+ *
+ * Bez `ignoreDuplicates`: istniejące wydarzenia są aktualizowane, więc zmiana
+ * tytułu/godziny w Google lub Outlooku trafia do aplikacji. Wcześniej
+ * "ON CONFLICT DO NOTHING" zamrażało wydarzenie w stanie z pierwszego importu.
+ * Lokalne edycje zaimportowanego wydarzenia są przy synchronizacji nadpisywane
+ * – kalendarz zewnętrzny jest źródłem prawdy.
  */
 async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
   if (rows.length === 0) return 0;
 
   const { error } = await supabaseService
     .from('events')
-    .upsert(rows, {
-      onConflict: 'calendar_id,google_event_id',
-      ignoreDuplicates: true,
-    });
+    .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
 
   if (error) {
-    console.error('[CRON] events upsert error:', error.message);
-    return 0;
+    // Rzucamy, żeby synchronizacja kalendarza nie została uznana za pełną –
+    // inaczej usuwanie nieaktualnych wydarzeń skasowałoby niezapisane wiersze.
+    throw new Error(`events upsert: ${error.message}`);
   }
   return rows.length;
+}
+
+const PAGE_SIZE = 1000;
+const DELETE_CHUNK = 200;
+
+/**
+ * Usuwa wydarzenia tego kalendarza z okna synchronizacji, których nie było
+ * w odpowiedzi Google/Outlooka (usunięte lub odwołane u źródła).
+ * Wywoływane tylko po pełnym, udanym pobraniu wszystkich stron.
+ */
+async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeMin: Date, timeMax: Date): Promise<number> {
+  const staleIds: string[] = [];
+
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await supabaseService
+      .from('events')
+      .select('id, google_event_id')
+      .eq('calendar_id', calendarId)
+      .not('google_event_id', 'is', null)
+      .gte('start_time', timeMin.toISOString())
+      .lt('start_time', timeMax.toISOString())
+      .order('id')
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`events stale lookup: ${error.message}`);
+
+    for (const row of data ?? []) {
+      if (!seenIds.has(row.google_event_id as string)) staleIds.push(row.id as string);
+    }
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+
+  for (let i = 0; i < staleIds.length; i += DELETE_CHUNK) {
+    const { error } = await supabaseService
+      .from('events')
+      .delete()
+      .in('id', staleIds.slice(i, i + DELETE_CHUNK));
+    if (error) throw new Error(`events stale delete: ${error.message}`);
+  }
+  return staleIds.length;
+}
+
+async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
+  // PostgREST domyślnie ucina odpowiedź do 1000 wierszy – bez stronicowania
+  // konta powyżej tego progu po cichu przestawały się synchronizować.
+  const all: ConnectedCalendarRow[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await supabaseService
+      .from('connected_calendars')
+      .select('*')
+      .order('id')
+      .range(from, from + PAGE_SIZE - 1)
+      .returns<ConnectedCalendarRow[]>();
+    if (error) throw error;
+    all.push(...(data ?? []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return all;
 }
 
 async function getAccessToken(
@@ -63,11 +119,19 @@ async function getAccessToken(
   tokenCache: TokenCache,
   mainAccountsCache: MainAccountsCache
 ): Promise<string | null> {
-  const mainAcc = accounts.find(a => a.account_email === acc.account_email && a.google_calendar_id === '@account_connection' && a.provider === acc.provider);
+  // Dopasowanie MUSI obejmować user_id: dwóch użytkowników aplikacji może
+  // podłączyć to samo konto Google/Outlook i wtedy kalendarz jednego
+  // synchronizował się tokenem drugiego (także po odwołaniu dostępu).
+  const mainAcc = accounts.find(a =>
+    a.user_id === acc.user_id &&
+    a.account_email === acc.account_email &&
+    a.google_calendar_id === '@account_connection' &&
+    a.provider === acc.provider
+  );
   const storedRefreshToken = decryptToken(mainAcc?.refresh_token);
   if (!storedRefreshToken || !mainAcc) return null;
 
-  const cacheKey = `${acc.provider}-${mainAcc.account_email}`;
+  const cacheKey = `${acc.user_id}:${acc.provider}:${mainAcc.account_email}`;
   if (tokenCache[cacheKey]) return tokenCache[cacheKey];
 
   let accessToken = '';
@@ -126,8 +190,14 @@ function buildGoogleEventRows(
   return rows;
 }
 
-async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
-  let importedCount = 0;
+interface CalendarSyncResult {
+  imported: number;
+  removed: number;
+}
+
+async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<CalendarSyncResult> {
+  let imported = 0;
+  const seenIds = new Set<string>();
   const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
   const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
 
@@ -149,21 +219,24 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     });
 
     if (!googleRes.ok) {
-      console.error(`[CRON] Google fetch failed for calendar ${acc.id}:`, googleRes.status);
-      break;
+      // Niepełna lista – nie wolno na jej podstawie usuwać wydarzeń.
+      throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
     const data: GoogleEventsListResponse = await googleRes.json();
     pageToken = data.nextPageToken;
 
     const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
-    importedCount += await upsertImportedEvents(rows);
+    rows.forEach((r) => seenIds.add(r.google_event_id));
+    imported += await upsertImportedEvents(rows);
   } while (pageToken);
 
-  return importedCount;
+  const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
+  return { imported, removed };
 }
 
-async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<number> {
-  let importedCount = 0;
+async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<CalendarSyncResult> {
+  let imported = 0;
+  const seenIds = new Set<string>();
   let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
   while (fetchUrl) {
@@ -172,8 +245,7 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
     });
 
     if (!msRes.ok) {
-      console.error(`[CRON] Outlook fetch failed for calendar ${acc.id}:`, msRes.status);
-      break;
+      throw new Error(`Outlook fetch failed for calendar ${acc.id}: ${msRes.status}`);
     }
     const data: OutlookEventsResponse = await msRes.json();
 
@@ -194,11 +266,13 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
         shared_with_id: null,
       });
     }
-    importedCount += await upsertImportedEvents(rows);
+    rows.forEach((r) => seenIds.add(r.google_event_id));
+    imported += await upsertImportedEvents(rows);
     fetchUrl = data['@odata.nextLink'];
   }
 
-  return importedCount;
+  const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
+  return { imported, removed };
 }
 
 async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainAccountsCache) {
@@ -224,13 +298,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const CONCURRENCY_LIMIT = 5;
 
   try {
-    const { data: accounts, error: dbError } = await supabaseService
-      .from("connected_calendars")
-      .select("*")
-      .returns<ConnectedCalendarRow[]>();
-
-    if (dbError) throw dbError;
-    if (!accounts || accounts.length === 0) return res.json({ message: "No accounts to synchronize." });
+    const accounts = await loadAllConnectedCalendars();
+    if (accounts.length === 0) return res.json({ message: "No accounts to synchronize." });
 
     const targets = accounts.filter(a => a.google_calendar_id !== '@account_connection');
     const tokenCache: TokenCache = {};
@@ -241,16 +310,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timeMax = new Date();
     timeMax.setFullYear(timeMax.getFullYear() + 1);
 
-    const processAccount = async (acc: ConnectedCalendarRow): Promise<number> => {
+    const noop: CalendarSyncResult = { imported: 0, removed: 0 };
+    const processAccount = async (acc: ConnectedCalendarRow): Promise<CalendarSyncResult> => {
       const accessToken = await getAccessToken(acc, accounts, tokenCache, mainAccountsCache);
-      if (!accessToken) return 0;
+      if (!accessToken) return noop;
 
       if (acc.provider === 'google') return syncGoogleCalendar(acc, accessToken, timeMin, timeMax);
       if (acc.provider === 'outlook') return syncOutlookCalendar(acc, accessToken, timeMin, timeMax);
-      return 0;
+      return noop;
     };
 
     let totalImported = 0;
+    let totalRemoved = 0;
     const failedAccounts: string[] = [];
 
     for (let i = 0; i < targets.length; i += CONCURRENCY_LIMIT) {
@@ -259,7 +330,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       results.forEach((result, idx) => {
         if (result.status === "fulfilled") {
-          totalImported += result.value;
+          totalImported += result.value.imported;
+          totalRemoved += result.value.removed;
         } else {
           console.error(`[CRON] Sync failed for account ${chunk[idx].id}:`, result.reason);
           failedAccounts.push(chunk[idx].id);
@@ -269,10 +341,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await updateMainTokens(tokenCache, mainAccountsCache);
     }
 
-    return res.json({ success: failedAccounts.length === 0, imported: totalImported, failedAccounts });
+    return res.json({ success: failedAccounts.length === 0, imported: totalImported, removed: totalRemoved, failedAccounts });
   } catch (error) {
     console.error("[CRON ERROR]:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "Synchronization failed." });
   }
 }

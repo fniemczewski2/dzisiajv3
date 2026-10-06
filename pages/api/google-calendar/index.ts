@@ -15,14 +15,12 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-function getRedirectUri(req: NextApiRequest): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-    return `${baseUrl}/api/google-calendar/callback`;
-  }
-  const host = req.headers.host || "localhost:3000";
-  const proto = host.includes("localhost") ? "http" : "https";
-  return `${proto}://${host}/api/google-calendar/callback`;
+// Musi być identyczne z redirect_uri w lib/server/oauthCallback.ts. Wcześniej
+// przy braku NEXT_PUBLIC_APP_URL budowaliśmy je z nagłówka Host (kontroluje go
+// klient), a callback i tak używał NEXT_PUBLIC_APP_URL || localhost.
+function getRedirectUri(): string {
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  return `${baseUrl}/api/google-calendar/callback`;
 }
 
 function getServiceSupabase(token?: string) {
@@ -50,8 +48,11 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
       .eq("id", accountId)
       .eq("user_id", auth.user.id)
       .maybeSingle<Pick<ConnectedCalendarRow, "account_email">>();
-    
-    if (calInfo) targetEmail = calInfo.account_email;
+
+    // Nieznane konto = brak tokenu. Wcześniej po cichu braliśmy pierwsze
+    // podłączone konto Google, więc import/eksport trafiał nie tam, gdzie trzeba.
+    if (!calInfo) return null;
+    targetEmail = calInfo.account_email;
   }
 
   let query = sb.from("connected_calendars")
@@ -87,7 +88,7 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
 }
 
 
-async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
+async function handleAuthUrl(res: NextApiResponse) {
   const nonce = randomBytes(24).toString("base64url");
   res.setHeader("Set-Cookie", `gcal_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
 
@@ -104,7 +105,7 @@ async function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
 
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
-  url.searchParams.set("redirect_uri", getRedirectUri(req));
+  url.searchParams.set("redirect_uri", getRedirectUri());
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", scopes);
   url.searchParams.set("access_type", "offline");
@@ -211,9 +212,10 @@ async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, row
   const BATCH_SIZE = 500;
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
     const batch = rows.slice(i, i + BATCH_SIZE);
+    // Aktualizujemy istniejące (zmiany po stronie Google), jak cron w
+    // /api/calendar/sync-calendars.
     const { error } = await sb.from("events").upsert(batch, {
       onConflict: "calendar_id,google_event_id",
-      ignoreDuplicates: true,
     });
     if (error) {
       console.error("[gcal import] upsert error:", error.message);
@@ -227,7 +229,9 @@ async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, row
 
 async function handleImport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, accountId } = req.body ?? {};
-  if (!calendarId || !accountId) return res.status(400).json({ error: "Missing params" });
+  if (typeof calendarId !== "string" || typeof accountId !== "string" || !calendarId || !accountId) {
+    return res.status(400).json({ error: "Missing params" });
+  }
 
   const accessToken = await getValidGoogleToken(auth, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });
@@ -313,7 +317,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!auth) return res.status(401).json({ error: "Unauthorized" });
 
     const { action } = req.query;
-    if (action === "auth-url" && req.method === "GET") return await handleAuthUrl(req, res);
+    if (action === "auth-url" && req.method === "GET") return await handleAuthUrl(res);
     if (action === "list-calendars" && req.method === "GET") return await handleListCalendars(req, res, auth);
     if (action === "import" && req.method === "POST") return await handleImport(req, res, auth);
     if (action === "export" && req.method === "POST") return await handleExport(req, res, auth);
@@ -321,14 +325,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: "Unknown action" });
   } catch (error) {
     console.error("[GOOGLE-CALENDAR ERROR]:", error);
-    const message = error instanceof Error ? error.message : "Wystąpił nieoczekiwany błąd";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "Wystąpił nieoczekiwany błąd" });
   }
 }
 
 async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
   const { calendarId, eventIds, accountId } = req.body ?? {};
-  if (!calendarId) return res.status(400).json({ error: "calendarId required" });
+  if (typeof calendarId !== "string" || !calendarId) return res.status(400).json({ error: "calendarId required" });
+  if (eventIds !== undefined && (!Array.isArray(eventIds) || eventIds.some((id) => typeof id !== "string"))) {
+    return res.status(400).json({ error: "eventIds must be an array of strings" });
+  }
 
   const accessToken = await getValidGoogleToken(auth, accountId);
   if (!accessToken) return res.status(400).json({ error: "Not connected to Google Calendar" });

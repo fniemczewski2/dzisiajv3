@@ -68,7 +68,7 @@ export default function EventForm({
         setCalendars(data);
       }
     };
-    fetchCalendars();
+    void fetchCalendars();
   }, [userId, supabase]);
 
   useEffect(() => {

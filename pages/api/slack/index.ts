@@ -92,7 +92,7 @@ async function loadConnections(admin: SupabaseClient, userId: string): Promise<C
 
   if (error) {
     console.error("[slack/index] slack_connections:", error.message);
-    throw new ApiError(500, `Nie udało się odczytać połączeń Slack: ${error.message}`);
+    throw new ApiError(500, "Nie udało się odczytać połączeń Slack.");
   }
   return (data ?? []) as ConnectionRow[];
 }
@@ -163,10 +163,10 @@ async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiR
     if (error.code === "42703" || error.code === "42P01") {
       throw new ApiError(
         500,
-        `Baza danych nie ma aktualnej struktury integracji Slack (${error.message}). Uruchom migracje Supabase: npx supabase db push.`
+        "Baza danych nie ma aktualnej struktury integracji Slack. Uruchom migracje Supabase: npx supabase db push."
       );
     }
-    throw new ApiError(500, `Nie udało się odczytać list Slack: ${error.message}`);
+    throw new ApiError(500, "Nie udało się odczytać list Slack.");
   }
 
   return res.status(200).json({
@@ -216,7 +216,7 @@ async function handleAddList(
     return res.status(400).json({
       error: duplicate
         ? "Ta lista jest już podłączona."
-        : `Nie udało się zapisać listy: ${error.message}`,
+        : "Nie udało się zapisać listy.",
     });
   }
   return res.status(200).json({ list_id: listId, columns });
@@ -297,16 +297,30 @@ async function handleSaveList(
 
 async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
   const body = req.body as { task_id?: number; list_id?: string };
-  if (!body?.task_id) return res.status(400).json({ error: "Brak identyfikatora zadania." });
+  const taskId = Number(body?.task_id);
+  if (!Number.isSafeInteger(taskId) || taskId <= 0) {
+    return res.status(400).json({ error: "Brak identyfikatora zadania." });
+  }
+
+  // task_id to kolejne liczby całkowite, a zapisy idą kluczem service_role –
+  // bez tej kontroli dało się nadpisać lub skasować routing cudzego zadania.
+  const { data: ownedTask } = await admin
+    .from("tasks")
+    .select("id")
+    .eq("id", taskId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!ownedTask) return res.status(404).json({ error: "Nie znaleziono zadania." });
 
   if (!body.list_id) {
     const { error } = await admin
       .from("slack_task_targets")
       .delete()
-      .eq("task_id", body.task_id)
+      .eq("task_id", taskId)
       .eq("user_id", userId);
     if (error) {
-      throw new ApiError(500, `Nie udało się wyczyścić listy zadania: ${error.message}`);
+      console.error("[slack/index] slack_task_targets delete:", error.message);
+      throw new ApiError(500, "Nie udało się wyczyścić listy zadania.");
     }
     return res.status(200).json({ cleared: true });
   }
@@ -319,7 +333,7 @@ async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextA
     .maybeSingle();
   if (!owned) return res.status(400).json({ error: "Nie znaleziono tej listy." });
 
-  const targetRow = { task_id: body.task_id, user_id: userId, list_id: body.list_id };
+  const targetRow = { task_id: taskId, user_id: userId, list_id: body.list_id };
   const { error: upsertError } = await admin
     .from("slack_task_targets")
     .upsert(targetRow, { onConflict: "task_id" });
@@ -327,14 +341,14 @@ async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextA
   if (upsertError) {
     if (upsertError.code !== "42P10") {
       console.error("[slack/index] slack_task_targets upsert:", upsertError.message);
-      throw new ApiError(500, `Nie udało się zapisać listy zadania: ${upsertError.message}`);
+      throw new ApiError(500, "Nie udało się zapisać listy zadania.");
     }
 
-    await admin.from("slack_task_targets").delete().eq("task_id", body.task_id);
+    await admin.from("slack_task_targets").delete().eq("task_id", taskId).eq("user_id", userId);
     const { error: insertError } = await admin.from("slack_task_targets").insert(targetRow);
     if (insertError) {
       console.error("[slack/index] slack_task_targets insert:", insertError.message);
-      throw new ApiError(500, `Nie udało się zapisać listy zadania: ${insertError.message}`);
+      throw new ApiError(500, "Nie udało się zapisać listy zadania.");
     }
   }
   return res.status(200).json({ list_id: body.list_id });

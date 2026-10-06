@@ -58,7 +58,7 @@ export default function IndexPage() {
 
   useEffect(() => {
     if (!loadingUser && !user) {
-      router.replace("/start");
+      void router.replace("/start");
     }
   }, [user, loadingUser, router]);
 

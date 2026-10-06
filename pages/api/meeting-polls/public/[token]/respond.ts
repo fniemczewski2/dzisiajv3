@@ -154,18 +154,18 @@ async function upsertResponseRecord(
       .maybeSingle();
     if (existingError || !existing) return { error: "Nieprawidłowy token edycji odpowiedzi.", status: 403 };
 
+    // user_id nadpisujemy tylko, gdy edytuje zalogowana osoba – edycja z
+    // innego (niezalogowanego) urządzenia nie odpina odpowiedzi od konta.
+    const update: Record<string, unknown> = { respondent_name: respondentName, respondent_email: respondentEmail };
+    if (sessionUserId) update.user_id = sessionUserId;
+
     const { error: updateError } = await supabaseAdmin
       .from("meeting_poll_responses")
-      .update({ respondent_name: respondentName, respondent_email: respondentEmail, user_id: sessionUserId })
+      .update(update)
       .eq("id", existing.id);
     if (updateError) return { error: "Błąd zapisu odpowiedzi.", status: 500 };
 
-    const { error: deleteError } = await supabaseAdmin
-      .from("meeting_poll_availabilities")
-      .delete()
-      .eq("response_id", existing.id);
-    if (deleteError) return { error: "Błąd aktualizacji dostępności.", status: 500 };
-
+    // Dostępności NIE są tu kasowane – zob. replaceAvailabilities().
     return { responseId: existing.id, responseEditToken: editToken };
   }
 
@@ -184,6 +184,40 @@ async function upsertResponseRecord(
 
   if (insertError || !created) return { error: "Błąd zapisu odpowiedzi.", status: 500 };
   return { responseId: created.id, responseEditToken: newEditToken };
+}
+
+type AvailabilityRow = { response_id: string; date: string; start_time: string };
+
+/**
+ * Edycja odpowiedzi: najpierw dopisujemy nowe terminy, dopiero potem usuwamy
+ * te, których już nie ma. Wcześniej było odwrotnie (DELETE wszystkiego, potem
+ * INSERT) bez transakcji – nieudany INSERT zostawiał odpowiedź bez żadnego
+ * terminu. Teraz błąd na każdym kroku zostawia stare dane w całości lub
+ * nadmiarowe terminy, które usunie kolejna edycja.
+ */
+async function replaceAvailabilities(responseId: string, rows: AvailabilityRow[]): Promise<boolean> {
+  const { error: upsertError } = await supabaseAdmin
+    .from("meeting_poll_availabilities")
+    .upsert(rows, { onConflict: "response_id,date,start_time", ignoreDuplicates: true });
+  if (upsertError) return false;
+
+  const { data: current, error: currentError } = await supabaseAdmin
+    .from("meeting_poll_availabilities")
+    .select("id, date, start_time")
+    .eq("response_id", responseId);
+  if (currentError) return false;
+
+  const wanted = new Set(rows.map((r) => slotKey(r.date, r.start_time)));
+  const staleIds = (current ?? [])
+    .filter((a) => !wanted.has(slotKey(a.date as string, a.start_time as string)))
+    .map((a) => a.id as string);
+
+  if (staleIds.length === 0) return true;
+  const { error: deleteError } = await supabaseAdmin
+    .from("meeting_poll_availabilities")
+    .delete()
+    .in("id", staleIds);
+  return !deleteError;
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse, token: string) {
@@ -205,18 +239,24 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   if ("error" in upsertResult) return res.status(upsertResult.status).json({ error: upsertResult.error });
   const { responseId, responseEditToken } = upsertResult;
 
-  const rows = slots.map((s) => ({
+  // Deduplikacja: powtórzony termin w żądaniu łamał unikalny klucz
+  // (response_id, date, start_time) i odrzucał całą odpowiedź.
+  const uniqueSlots = new Map(slots.map((s) => [slotKey(s.date, s.start_time), s]));
+  const rows: AvailabilityRow[] = [...uniqueSlots.values()].map((s) => ({
     response_id: responseId,
-    date: s?.date,
-    start_time: s?.start_time,
+    date: s.date,
+    start_time: s.start_time,
   }));
 
-  const { error: availError } = await supabaseAdmin.from("meeting_poll_availabilities").insert(rows);
-  if (availError) {
-    if (!editToken) {
+  if (editToken) {
+    const ok = await replaceAvailabilities(responseId, rows);
+    if (!ok) return res.status(500).json({ error: "Błąd aktualizacji dostępności." });
+  } else {
+    const { error: availError } = await supabaseAdmin.from("meeting_poll_availabilities").insert(rows);
+    if (availError) {
       await supabaseAdmin.from("meeting_poll_responses").delete().eq("id", responseId);
+      return res.status(500).json({ error: "Błąd zapisu dostępności." });
     }
-    return res.status(500).json({ error: "Błąd zapisu dostępności." });
   }
 
   const result: MeetingPollResponseSubmitResult = { edit_token: responseEditToken };

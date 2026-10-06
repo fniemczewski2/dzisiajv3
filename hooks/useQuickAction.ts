@@ -17,7 +17,7 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
       onActionAdd();
       if (removeQueryAfterTrigger) {
         const { action: _action, ...rest } = router.query;
-        router.replace(
+        void router.replace(
           { pathname: router.pathname, query: rest },
           undefined,
           { shallow: true }

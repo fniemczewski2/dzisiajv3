@@ -64,7 +64,7 @@ export function useVersion(): VersionInfo {
       }
     }
 
-    fetchVersion();
+    void fetchVersion();
   }, []);
 
   return versionInfo;

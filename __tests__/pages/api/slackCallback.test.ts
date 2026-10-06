@@ -40,6 +40,7 @@ function run(query: Record<string, string>, cookies: Record<string, string> = { 
   const res = {
     redirect: vi.fn(),
     setHeader: vi.fn(),
+    appendHeader: vi.fn(),
     status: vi.fn().mockReturnThis(),
     json: vi.fn(),
   };

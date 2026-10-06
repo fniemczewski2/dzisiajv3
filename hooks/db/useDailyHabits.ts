@@ -179,7 +179,7 @@ export function useDailyHabits(date?: string) {
   );
 
   useEffect(() => {
-    fetchHabits();
+    void fetchHabits();
   }, [fetchHabits]);
 
   return { habits, fetching, loading, fetchHabits, toggleHabit, updateWater, updateSpending };

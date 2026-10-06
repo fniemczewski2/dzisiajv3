@@ -159,7 +159,7 @@ export default function BillCalculator() {
   const router = useRouter();
   const handleBack = () => {
     const parts = router.pathname.split("/").filter(Boolean);
-    router.push(parts.length > 1 ? `/${parts.slice(0, -1).join("/")}` : "/");
+    void router.push(parts.length > 1 ? `/${parts.slice(0, -1).join("/")}` : "/");
   };
 
   const getCurrencySymbol = (curr: string) => {

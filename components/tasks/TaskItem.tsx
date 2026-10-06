@@ -383,7 +383,8 @@ function useTaskActions(props: Props) {
         const minutes = Math.floor(timerSeconds / 60);
         const newNote = `Czas: ${minutes} min`;
         const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
-        await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
+        const { error } = await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
+        if (error) throw error;
         onTasksChange();
     }
   };
@@ -441,7 +442,9 @@ const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
             stop: () => {
               setTimerRunning(false);
               setTimerPaused(false);
-              actions.stopTimerAndSave(timerSeconds);
+              actions.stopTimerAndSave(timerSeconds).catch((err: unknown) => {
+                console.error("[TaskItem] Nie udało się zapisać czasu zadania:", err);
+              });
               setTimerSeconds(0);
             },
             cancel: () => {

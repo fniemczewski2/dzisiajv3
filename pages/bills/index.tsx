@@ -76,7 +76,7 @@ export default function BillsPage() {
           <div className="mb-6 animate-in fade-in slide-in-from-top-4">
             <BillForm
               categories={categories}
-              onChange={() => { fetchBills(); setShowForm(false); }}
+              onChange={() => { void fetchBills(); setShowForm(false); }}
               onCancel={() => setShowForm(false)}
             />
           </div>
@@ -87,7 +87,7 @@ export default function BillsPage() {
             <BillForm
               categories={categories}
               initial={editingBill}
-              onChange={() => { fetchBills(); setEditingBill(null); }}
+              onChange={() => { void fetchBills(); setEditingBill(null); }}
               onCancel={() => setEditingBill(null)}
             />
           </div>

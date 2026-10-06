@@ -168,7 +168,7 @@ export function useSettings() {
       }
     };
 
-    loadSettings();
+    void loadSettings();
 
     return () => { cancelled = true; };
   }, [loadingUser, userId, supabase, toast, withRetry, getSignal]);

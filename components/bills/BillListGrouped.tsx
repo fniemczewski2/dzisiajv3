@@ -101,48 +101,64 @@ export default function BillListGrouped({ year, onBillsChange }: Readonly<BillLi
   useEffect(() => {
     const loadMonths = async () => {
       setGroupsLoading(true);
-      const activeIndexes = await fetchActiveMonths(year);
+      try {
+        const activeIndexes = await fetchActiveMonths(year);
 
-      const generatedMonths = activeIndexes.map((monthIndex) => {
-        const date = new Date(year, monthIndex, 1);
-        return {
-          id: monthIndex,
-          date,
-          label: format(date, "LLLL yyyy", { locale: pl }),
-          isCurrentMonth: isSameMonth(date, new Date()),
-        };
-      });
+        const generatedMonths = activeIndexes.map((monthIndex) => {
+          const date = new Date(year, monthIndex, 1);
+          return {
+            id: monthIndex,
+            date,
+            label: format(date, "LLLL yyyy", { locale: pl }),
+            isCurrentMonth: isSameMonth(date, new Date()),
+          };
+        });
 
-      setActiveMonths(generatedMonths);
-      setGroupsLoading(false);
+        setActiveMonths(generatedMonths);
+      } finally {
+        // Bez finally odrzucenie (np. "Unauthorized") zostawiało groupsLoading=true
+        // i komponent na stałe renderował null.
+        setGroupsLoading(false);
+      }
     };
 
-    if (sortMode === "month") loadMonths();
+    if (sortMode === "month") {
+      loadMonths().catch((err: unknown) => {
+        console.error("[BillListGrouped] Nie udało się wczytać miesięcy:", err);
+      });
+    }
   }, [year, sortMode, fetchActiveMonths]);
 
   useEffect(() => {
     const loadCategories = async () => {
       setGroupsLoading(true);
-      const activeIds = await fetchActiveCategories(year);
+      try {
+        const activeIds = await fetchActiveCategories(year);
 
-      const generatedCategories = activeIds
-        .map((id) => {
-          if (id === "none") return { id: "none", name: "Inne" };
-          const cat = categories.find((c) => c.id === id);
-          return cat ? { id: cat.id, name: cat.name } : null;
-        })
-        .filter((c): c is { id: string; name: string } => c !== null)
-        .sort((a, b) => {
-          if (a.id === "none") return 1;
-          if (b.id === "none") return -1;
-          return a.name.localeCompare(b.name, "pl");
-        });
+        const generatedCategories = activeIds
+          .map((id) => {
+            if (id === "none") return { id: "none", name: "Inne" };
+            const cat = categories.find((c) => c.id === id);
+            return cat ? { id: cat.id, name: cat.name } : null;
+          })
+          .filter((c): c is { id: string; name: string } => c !== null)
+          .sort((a, b) => {
+            if (a.id === "none") return 1;
+            if (b.id === "none") return -1;
+            return a.name.localeCompare(b.name, "pl");
+          });
 
-      setActiveCategories(generatedCategories);
-      setGroupsLoading(false);
+        setActiveCategories(generatedCategories);
+      } finally {
+        setGroupsLoading(false);
+      }
     };
 
-    if (sortMode === "category" && !categoriesLoading) loadCategories();
+    if (sortMode === "category" && !categoriesLoading) {
+      loadCategories().catch((err: unknown) => {
+        console.error("[BillListGrouped] Nie udało się wczytać kategorii:", err);
+      });
+    }
   }, [year, sortMode, categoriesLoading, categories, fetchActiveCategories]);
 
   if (groupsLoading || categoriesLoading) return null;
@@ -229,7 +245,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
   };
 
   const handleRefresh = useCallback(() => {
-    fetchBills(false, 1, page * limit);
+    void fetchBills(false, 1, page * limit);
     if (onBillsChange) onBillsChange();
   }, [fetchBills, page, onBillsChange]);
 
@@ -269,7 +285,7 @@ function BillGroupContent({ fetchOptions, onBillsChange, year }: Readonly<BillGr
   const handleLoadMore = () => {
     const next = page + 1;
     setPage(next);
-    fetchBills(true, next, limit); 
+    void fetchBills(true, next, limit); 
   };
 
   if (expenseItems.length === 0 && incomeItems.length === 0) {

@@ -34,11 +34,12 @@ function groupTargetsByUser(targets: SyncTarget[]): Map<string, SyncTarget[]> {
 }
 
 function resolveSyncErrorMessage(err: unknown): string {
-  // Błędy spoza Slacka (baza, sieć) mają własny komunikat - nie chowamy ich
-  // za ogólnym "Slack odrzucił żądanie."
+  // Kody Slacka tłumaczymy na komunikat dla użytkownika. Błędy bazy/sieci
+  // trafiają do logów serwera, a klient dostaje ogólny komunikat – surowe
+  // komunikaty PostgREST zdradzały strukturę bazy.
   const code = (err as { slackError?: string }).slackError;
   if (code) return translateSlackError(code);
-  return err instanceof Error ? err.message : String(err);
+  return "Błąd synchronizacji (szczegóły w logach serwera).";
 }
 
 async function syncOneTargetSafely(
@@ -127,7 +128,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .json({ lists: results.length, results });
   } catch (err) {
     console.error("[slack/sync]:", err);
-    const detail = err instanceof Error ? err.message : String(err);
-    return res.status(500).json({ error: `Synchronizacja nie powiodła się: ${detail}` });
+    return res.status(500).json({ error: "Synchronizacja nie powiodła się." });
   }
 }

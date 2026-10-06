@@ -109,7 +109,6 @@ Utwórz plik `.env.local` w katalogu głównym. Zmienne oznaczone `NEXT_PUBLIC_`
 | `OUTLOOK_CLIENT_ID` / `OUTLOOK_CLIENT_SECRET` | Sync Outlook/Microsoft Graph | Rejestracja aplikacji w Azure AD |
 | `TMDB_API_KEY` | Filmy i seriale | Klucz do The Movie Database API |
 | `PLK_API_KEY` | Transport (pociągi) | Klucz do PKP PLK Portal Danych Pasażera |
-| `SHORTCUTS_API_SECRET` | Automatyczny czas pracy | Współdzielony sekret dla endpointu Siri Shortcuts (`/api/worklogs/auto`) |
 | `CRON_SECRET` | Cron sync kalendarzy | Sekret chroniący `/api/calendar/sync-calendars` |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Powiadomienia push | Klucz publiczny VAPID (Web Push) |
 
@@ -172,7 +171,8 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 ## 🔐 Bezpieczeństwo
 
 - Tokeny OAuth kalendarzy (Google/Outlook) są szyfrowane (AES-256-GCM) przed zapisem do bazy — zob. `lib/server/tokenCrypto.ts`.
-- Endpointy webhook/cron (`/api/worklogs/auto`, `/api/calendar/sync-calendars`) porównują sekrety w czasie stałym (`crypto.timingSafeEqual` na skrótach SHA-256).
+- Endpointy cron (`/api/calendar/sync-calendars`, `/api/meeting-polls/close-expired`, `/api/slack/sync`) porównują `CRON_SECRET` w czasie stałym (`lib/server/safeEqual.ts`).
+- `/api/worklogs/auto` (Siri Shortcuts) uwierzytelnia **tokenem per użytkownik** generowanym w Ustawieniach (w bazie tylko SHA-256, tabela `shortcut_tokens`). Globalny `SHORTCUTS_API_SECRET` nie jest już używany.
 - Endpointy proxy do zewnętrznych API (TMDB, Google Places) wymagają zalogowanego użytkownika i nie przekazują kluczy API do klienta.
 - Skonfigurowane nagłówki bezpieczeństwa (`X-Frame-Options`, `Strict-Transport-Security`, `Permissions-Policy`, CSP) w `next.config.mjs`.
 

@@ -38,7 +38,7 @@ export default function CalendarPage() {
   const goToNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
   const handleAfterAdd = useCallback(() => {
-    fetchEvents();
+    void fetchEvents();
   }, [fetchEvents]);
 
   const handleCancelForm = useCallback(() => setShowForm(false), []);
@@ -47,7 +47,7 @@ export default function CalendarPage() {
   useEffect(() => {
     if (router.query.reset === "true") {
       setSelectedDate(null); 
-      router.replace("/calendar", undefined, { shallow: true });
+      void router.replace("/calendar", undefined, { shallow: true });
     }
   }, [router.query.reset, router]);
 

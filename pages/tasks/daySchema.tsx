@@ -63,7 +63,7 @@ export default function DaySchemaPage() {
               initialSchema={editing}
               onCancel={closeForm}
               onSchemaSaved={() => {
-                fetchSchemas();
+                void fetchSchemas();
                 closeForm();
               }}
             />

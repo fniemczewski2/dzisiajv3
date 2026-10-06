@@ -38,7 +38,7 @@ export function useEuroRate() {
       }
     };
 
-    fetchRate();
+    void fetchRate();
 
     return () => controller.abort();
   }, []);

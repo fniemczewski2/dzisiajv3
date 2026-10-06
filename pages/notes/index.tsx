@@ -55,7 +55,7 @@ export default function NotesPage() {
           <div className="mb-6 animate-in fade-in slide-in-from-top-4">
             <NoteForm
               onChange={() => {
-                fetchNotes();
+                void fetchNotes();
                 setShowForm(false);
               }}
               onCancel={() => setShowForm(false)}

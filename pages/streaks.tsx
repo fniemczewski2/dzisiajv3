@@ -27,7 +27,7 @@ export default function StreaksPage() {
   };
 
   const handleFormChange = () => {
-    refetch();
+    void refetch();
     setShowForm(false);
   };
 

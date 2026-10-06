@@ -145,7 +145,7 @@ export default function TasksPage() {
             <TaskForm
               addTask={addTask}
               onTasksChange={() => {
-                fetchTasks();
+                void fetchTasks();
                 closeForm();
               }}
               onCancel={closeForm}

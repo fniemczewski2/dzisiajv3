@@ -51,7 +51,7 @@ export function useBudgetCategories(year: number) {
     }
   }, [supabase, userId, year, toast, withRetry, getSignal]);
 
-  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+  useEffect(() => { void fetchCategories(); }, [fetchCategories]);
 
   const addCategory = useCallback(
     async (payload: { name: string; monthly_amounts: number[]; is_monthly: boolean }): Promise<BudgetCategory | undefined> => {

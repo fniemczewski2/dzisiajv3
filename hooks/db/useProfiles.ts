@@ -147,7 +147,7 @@ export function useProfiles() {
   );
 
   useEffect(() => {
-    fetchProfiles();
+    void fetchProfiles();
   }, [fetchProfiles]);
 
   return {

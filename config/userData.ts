@@ -1,8 +1,17 @@
 // config/userData.ts
 
+// Kolejność ma znaczenie: tabele podrzędne (z kluczami obcymi) przed
+// nadrzędnymi, np. slack_lists przed slack_connections.
 export const USER_DATA_TABLES = [
+  "shortcut_tokens",
+  "slack_task_targets",
   "slack_task_links",
+  "slack_lists",
   "slack_connections",
+  // Odpowiedzi, które użytkownik wysłał do CUDZYCH ankiet (imię i e-mail);
+  // odpowiedzi do jego własnych ankiet znikają kaskadowo z meeting_polls.
+  "meeting_poll_responses",
+  "errors",
   "notifications",
   "push_subscriptions",
   "connected_calendars",

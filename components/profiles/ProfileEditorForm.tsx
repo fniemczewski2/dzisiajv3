@@ -231,7 +231,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
               <span className="text-white text-xs font-medium">Zmień</span>
           </div>
         </button>
-        <input type="file" accept="image/*" ref={fileInputRef} onChange={onAvatarFileChange} className="hidden" />
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" ref={fileInputRef} onChange={onAvatarFileChange} className="hidden" />
         {uploading && <span className="text-xs text-neutral-500 animate-pulse">Wgrywanie...</span>}
       </div>
 

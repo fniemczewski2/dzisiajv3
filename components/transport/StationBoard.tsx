@@ -115,7 +115,7 @@ export default function StationBoardWidget() {
         setSelectedStations(parsedStations);
         
         parsedStations.forEach((station: string) => {
-          fetchBoard(station);
+          void fetchBoard(station);
         });
       } catch {
         setSelectedStations([]);

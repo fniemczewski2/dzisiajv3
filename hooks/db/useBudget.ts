@@ -183,7 +183,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
   }, [userId, data, supabase, toast, withRetry]);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
   return { data, fetching, loading, loadedMonths, updateRate, saveRates, refetch: loadData };

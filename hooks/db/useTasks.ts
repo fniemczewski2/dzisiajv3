@@ -450,7 +450,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   );
 
   useEffect(() => {
-    fetchTasks();
+    void fetchTasks();
   }, [fetchTasks]);
 
   return {

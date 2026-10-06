@@ -113,9 +113,9 @@ const controls: TimerControls = {
     const pathParts = router.pathname.split("/").filter(Boolean);
     if (pathParts.length > 1) {
       const parentPath = "/" + pathParts.slice(0, -1).join("/");
-      router.push(parentPath);
+      void router.push(parentPath);
     } else {
-      router.push("/");
+      void router.push("/");
     }
   }, [router]);
 

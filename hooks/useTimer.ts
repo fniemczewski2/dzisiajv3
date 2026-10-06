@@ -54,21 +54,21 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
 
     if (running && !paused) {
-      requestWakeLock();
+      void requestWakeLock();
     } else {
-      releaseWakeLock();
+      void releaseWakeLock();
     }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && running && !paused) {
-        requestWakeLock();
+        void requestWakeLock();
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       stale = true;
-      releaseWakeLock();
+      void releaseWakeLock();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [running, paused, toast]);

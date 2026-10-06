@@ -16,6 +16,7 @@ import { Settings } from "@/types/settings";
 import Seo from "@/components/ui/SEO";
 import SlackListsSection from "@/components/settings/SlackListsSection";
 import DataExportSection from "@/components/settings/DataExportSection";
+import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -83,6 +84,8 @@ export default function SettingsPage() {
           />
 
           <SlackListsSection />
+
+          <ShortcutTokenSection />
           
           <UserSection
             email={user?.email}

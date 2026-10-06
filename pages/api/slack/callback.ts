@@ -5,6 +5,8 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/server/tokenCrypto";
 import { fetchWithTimeout } from "@/lib/server/fetchWithTimeout";
+import { safeEqual } from "@/lib/server/safeEqual";
+import { clearStateCookie } from "@/lib/server/oauthState";
 import { SLACK_API_BASE, SLACK_STATE_COOKIE, SLACK_REQUEST_TIMEOUT_MS } from "@/config/slack";
 
 interface SlackOAuthResponse {
@@ -21,21 +23,26 @@ function redirectWithError(res: NextApiResponse, reason: string) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
 
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+
+  // Nonce jest jednorazowy: kasujemy go na każdej ścieżce, także przy błędzie
+  // (wcześniej tylko po sukcesie, więc nieudana próba zostawiała ważny nonce).
+  const cookieNonce = req.cookies[SLACK_STATE_COOKIE];
+  clearStateCookie(res, SLACK_STATE_COOKIE, appUrl.startsWith("https://"));
+
   const { code, state, error: slackError } = req.query;
   if (slackError === "access_denied") return redirectWithError(res, "cancelled");
   if (typeof code !== "string" || typeof state !== "string") {
     return redirectWithError(res, "missing_params");
   }
 
-  const cookieNonce = req.cookies[SLACK_STATE_COOKIE];
-  if (!cookieNonce || cookieNonce !== state) return redirectWithError(res, "invalid_state");
+  if (!cookieNonce || !safeEqual(cookieNonce, state)) return redirectWithError(res, "invalid_state");
 
   const supabase = createServerSupabase(req, res);
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return redirectWithError(res, "auth_failed");
 
   try {
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
     const body = new URLSearchParams({
       client_id: process.env.SLACK_CLIENT_ID ?? "",
       client_secret: process.env.SLACK_CLIENT_SECRET ?? "",
@@ -87,11 +94,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return redirectWithError(res, error.code === "42P01" ? "missing_tables" : "store_failed");
     }
 
-    const secure = appUrl.startsWith("https://") ? " Secure;" : "";
-    res.setHeader(
-      "Set-Cookie",
-      `${SLACK_STATE_COOKIE}=; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=0`
-    );
     return res.redirect("/settings?slack=connected");
   } catch (err) {
     console.error("[slack/callback]:", err);
