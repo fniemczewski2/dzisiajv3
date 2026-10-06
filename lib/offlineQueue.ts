@@ -76,12 +76,12 @@ export async function flushQueue(supabase: SupabaseClient): Promise<{ sent: numb
   let failed = 0;
 
   for (const entry of entries) {
-    const { error } = await supabase.from(entry.table).insert(entry.payload);
+    const { error } = await supabase.from(entry.table).insert(entry.payload); // NOSONAR – kolejka offline – zapisy muszą zachować kolejność dodania (FIFO)
     if (error) {
       failed += 1;
       continue;
     }
-    await withStore("readwrite", (store) => store.delete(entry.id));
+    await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR – kolejka offline – zapisy muszą zachować kolejność dodania (FIFO)
     sent += 1;
   }
   return { sent, failed };

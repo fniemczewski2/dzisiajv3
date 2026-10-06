@@ -112,7 +112,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error: queryError } = await withRetry(async () => {
+      const { data, error: queryError } = await withRetry(() => {
         let query = supabase.from("tasks").select('*').or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
         if (dateFrom) query = query.gte("due_date", dateFrom);
         if (dateTo) query = query.lte("due_date", dateTo);
@@ -178,7 +178,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           if (fetchedId) finalForUserId = fetchedId;
         }
 
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("tasks")
             .insert({
@@ -241,7 +241,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           finalForUserId = fetchedId || userId;
         }
 
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase
             .from("tasks")
             .update({
@@ -280,7 +280,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   // keep the function-nesting depth down.
   const commitDelete = useCallback(
     async (id: string, removed: Task) => {
-      const { error } = await withRetry(async () =>
+      const { error } = await withRetry(() =>
         supabase.from("tasks").delete().eq("id", id)
       );
       if (error) {
@@ -360,7 +360,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setRawTasks((prev) => prev.map((t) => (String(t.id) === cleanId ? { ...t, status: "pending" } : t)));
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("tasks")
             .update({ status: "pending" })
@@ -397,7 +397,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setRawTasks((prev) => prev.map((t) => (sameId(t.id, id) ? { ...t, status: "done" } : t)));
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("tasks")
             .update({ status: "done" })
@@ -433,7 +433,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setRawTasks((prev) => prev.map((t) => (sameId(t.id, taskId) ? { ...t, due_date: newDate } : t)));
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase.from("tasks").update({ due_date: newDate }).eq("id", taskId).select().single()
         );
         if (error) throw error;

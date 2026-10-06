@@ -8,6 +8,7 @@ import { User, SupabaseClient } from '@supabase/supabase-js';
 import { ConnectedCalendarRow } from '@/types/connectedCalendars';
 import { OutlookTokenResponse, OutlookEventsResponse, OutlookCalendarsResponse } from '@/types/outlookCalendar';
 import { warsawNaiveToRFC3339 } from '@/lib/server/calendarTime';
+import { mapPool } from "@/lib/asyncPool";
 
 async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenResponse | null> {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
@@ -162,17 +163,17 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
     let imported = 0;
 
     while (fetchUrl) {
-      const msRes: Response = await fetch(fetchUrl, {
+      const msRes: Response = await fetch(fetchUrl, { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
         headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
       });
           
       if (!msRes.ok) break;
-      const data: OutlookEventsResponse = await msRes.json();
+      const data: OutlookEventsResponse = await msRes.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
       const rows = buildOutlookEventRows(data.value, user.id, accountId);
 
       // Jeden upsert na stronę zamiast osobnego SELECT-a na każde wydarzenie.
       if (rows.length > 0) {
-        const { error: upsertError } = await supabase
+        const { error: upsertError } = await supabase // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
           .from('events')
           .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
         if (upsertError) {
@@ -224,7 +225,7 @@ async function exportEventsToOutlook(
   let exported = 0;
   let skipped = 0;
 
-  for (const ev of events) {
+  await mapPool(events, 5, async (ev) => {
     const body = {
       subject: ev.title,
       body: { contentType: 'text', content: ev.description || '' },
@@ -250,7 +251,7 @@ async function exportEventsToOutlook(
     } else {
       skipped++;
     }
-  }
+  });
   return { exported, skipped };
 }
 

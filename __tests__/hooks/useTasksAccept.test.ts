@@ -26,7 +26,10 @@ function updateBuilder(payload: unknown) {
   updates.push(entry);
   const b: Record<string, unknown> = {};
   b.eq = (col: string, val: unknown) => { entry.filters.push([col, val]); return b; };
-  b.select = () => Promise.resolve(updateResult);
+  // .select() zwraca dalej builder (jak w Supabase), żeby .select(...).single()
+  // działało – wcześniej rzucało TypeError, a test przechodził przypadkiem.
+  const selected = { single: () => Promise.resolve(updateResult), then: (res: (v: unknown) => void) => res(updateResult) };
+  b.select = () => selected;
   b.then = (res: (v: unknown) => void) => res(updateResult);
   return b;
 }
@@ -110,5 +113,9 @@ describe("useTasks id handling", () => {
     act(() => { pending = Promise.resolve(result.current.setDoneTask("42")); });
     await waitFor(() => expect(result.current.tasks[0]?.status).toBe("done"));
     await act(async () => { await pending; });
+    // Zapis się udał – status zostaje „done”, bez wycofania.
+    expect(result.current.tasks[0]?.status).toBe("done");
+    expect(toast.success).toHaveBeenCalledWith("Wykonano zadanie");
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });

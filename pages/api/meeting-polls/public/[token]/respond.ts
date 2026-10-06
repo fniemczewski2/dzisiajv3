@@ -274,9 +274,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("Retry-After", "600");
       return res.status(429).json({ error: "Zbyt wiele odpowiedzi. Spróbuj ponownie za kilka minut." });
     }
-    return handlePost(req, res, token);
+    await handlePost(req, res, token);
+    return;
   }
 
-  if (req.method === "GET") return handleGet(req, res, token);
+  if (req.method === "GET") {
+    await handleGet(req, res, token);
+    return;
+  }
   return res.status(405).json({ error: "Metoda niedozwolona." });
 }

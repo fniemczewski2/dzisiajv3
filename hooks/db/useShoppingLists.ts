@@ -31,7 +31,7 @@ export function useShoppingLists() {
     setFetching(true);
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from("shopping_lists")
             .select("*")
@@ -72,7 +72,7 @@ export function useShoppingLists() {
           sharedWithUuid = await getUserIdByEmail(sharedWithEmail, supabase);
         }
 
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase
             .from("shopping_lists")
             .insert([{ name, shared_with_id: sharedWithUuid, elements: [], user_id: userId }])
@@ -109,7 +109,7 @@ export function useShoppingLists() {
           finalUpdates.shared_with_id = await getUserIdByEmail(sharedWithEmail, supabase);
         }
 
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("shopping_lists").update(finalUpdates).eq("id", id)
         );
         if (error) throw error;
@@ -158,7 +158,7 @@ export function useShoppingLists() {
 
       try {
         if (isOwner) {
-          const { data, error } = await withRetry(async () =>
+          const { data, error } = await withRetry(() =>
             supabase.from("shopping_lists").delete().eq("id", id).eq("user_id", userId).select("id")
           );
           if (error) throw error;
@@ -166,7 +166,7 @@ export function useShoppingLists() {
           if (!data || data.length === 0) throw new Error("NO_ROWS_DELETED");
           toast.success("Usunięto listę zakupów");
         } else {
-          const { data, error } = await withRetry(async () =>
+          const { data, error } = await withRetry(() =>
             supabase.rpc("leave_shared_shopping_list", { p_list_id: id })
           );
           if (error) throw error;

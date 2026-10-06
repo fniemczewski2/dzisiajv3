@@ -44,7 +44,7 @@ export function usePushNotifications(userId: string | undefined) {
     const subscriptionJSON = subscription.toJSON();
     const endpoint = subscriptionJSON.endpoint;
 
-    const { data: allSubs, error: fetchError } = await withRetry(async () =>
+    const { data: allSubs, error: fetchError } = await withRetry(() =>
       supabase.from('push_subscriptions').select('*').eq('user_id', userId)
     );
     if (fetchError) throw fetchError;
@@ -55,13 +55,13 @@ export function usePushNotifications(userId: string | undefined) {
     });
 
     const { error } = existing
-      ? await withRetry(async () =>
+      ? await withRetry(() =>
           supabase
             .from('push_subscriptions')
             .update({ subscription: subscriptionJSON, user_agent: navigator.userAgent, last_used: new Date().toISOString() })
             .eq('id', existing.id)
         )
-      : await withRetry(async () =>
+      : await withRetry(() =>
           supabase.from('push_subscriptions').insert({ user_id: userId, subscription: subscriptionJSON, user_agent: navigator.userAgent })
         );
     if (error) throw error;
@@ -162,7 +162,7 @@ export function usePushNotifications(userId: string | undefined) {
         const endpoint = subscription.toJSON().endpoint
         await subscription.unsubscribe()
 
-        const { data: allSubs } = await withRetry(async () =>
+        const { data: allSubs } = await withRetry(() =>
           supabase.from('push_subscriptions').select('*').eq('user_id', userId)
         );
 
@@ -175,7 +175,7 @@ export function usePushNotifications(userId: string | undefined) {
         })
 
         if (toDelete) {
-          const { error } = await withRetry(async () =>
+          const { error } = await withRetry(() =>
             supabase.from('push_subscriptions').delete().eq('id', toDelete.id)
           );
           if (error) throw error

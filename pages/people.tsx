@@ -14,6 +14,7 @@ import NoResultsState from '@/components/ui/NoResultsState';
 import Seo from '@/components/ui/SEO';
 import { useToast } from '@/providers/ToastProvider';
 import { useSettings } from '@/hooks/db/useSettings';
+import { mapPool } from "@/lib/asyncPool";
 
 export default function PeoplePage() {
   const { people, loading, fetching, addPerson, editPerson, deletePerson, logContact } = usePeople();
@@ -37,10 +38,10 @@ export default function PeoplePage() {
 
   const handleImport = async (contacts: PersonInsert[]) => {
     const tick = toast.batch((n) => `Zaimportowano kontakty (${n})`);
-    for (const contact of contacts) {
+    await mapPool(contacts, 3, async (contact) => {
       await addPerson(contact);
       tick();
-    }
+    });
   };
 
   const openAddForm = () => {

@@ -3,6 +3,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { verifyCronSecret, jsonHeaders, corsHeaders, unauthorized } from "../_shared/auth.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
+import { mapPool } from "../_shared/asyncPool.ts";
 
 interface RecurringTask {
   id: number;
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
     const finished: string[] = [];
     const failed: string[] = [];
 
-    for (const task of (data ?? []) as RecurringTask[]) {
+    await mapPool((data ?? []) as RecurringTask[], 5, async (task) => {
       // Each task is isolated in its own try/catch so a thrown network/DB
       // error on one row (not just a returned `error` field) doesn't abort
       // processing of the remaining recurring tasks in this run.
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
         console.error("process-reminders: task failed", task.id, taskErr);
         failed.push(task.title);
       }
-    }
+    });
 
     return new Response(
       JSON.stringify({ success: true, rolled, finished, failed }),

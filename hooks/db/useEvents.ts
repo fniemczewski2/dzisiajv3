@@ -26,7 +26,7 @@ export function useVirtualBirthdayEvents(): Event[] {
     const signal = getSignal();
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from("people")
             .select("id, first_name, last_name, birthday, nameday, priority")
@@ -115,7 +115,7 @@ export function useEvents(
     setFetching(true);
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase.from("events").select("*").or(`user_id.eq.${userId},shared_with_id.eq.${userId}`).abortSignal(signal),
         signal
       );
@@ -160,7 +160,7 @@ export function useEvents(
           targetSharedId = await getUserIdByEmail(sharedWithEmail, supabase);
         }
 
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("events")
             .insert({ ...eventData, user_id: userId, shared_with_id: targetSharedId })
@@ -211,7 +211,7 @@ export function useEvents(
           targetSharedId = sharedWithEmail.trim() === "" ? null : await getUserIdByEmail(sharedWithEmail, supabase);
         }
 
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase
             .from("events")
             .update({ ...eventData, shared_with_id: targetSharedId })
@@ -248,7 +248,7 @@ export function useEvents(
       setRawEvents((prev) => prev.filter((e) => e.id !== originalId));
 
       try {
-        const { error } = await withRetry(async () => supabase.from("events").delete().eq("id", originalId));
+        const { error } = await withRetry(() => supabase.from("events").delete().eq("id", originalId));
         if (error) throw error;
         toast.success("Usunięto wydarzenie");
       } catch {

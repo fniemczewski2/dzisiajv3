@@ -48,7 +48,7 @@ export function useDailyHabits(date?: string) {
     setFetching(true);
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase.from("daily_habits").select("*").eq("date", targetDate).eq("user_id", userId).abortSignal(signal).maybeSingle(),
         signal
       );
@@ -83,7 +83,7 @@ export function useDailyHabits(date?: string) {
       setHabits((h) => (h ? { ...h, [key]: newValue } : h));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("daily_habits").upsert(
             {
               date: targetDate,
@@ -120,7 +120,7 @@ export function useDailyHabits(date?: string) {
       setHabits((h) => (h ? { ...h, water_amount: validAmount } : h));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("daily_habits").upsert(
             {
               date: targetDate,
@@ -156,7 +156,7 @@ export function useDailyHabits(date?: string) {
       setHabits((h) => (h ? { ...h, daily_spending: validAmount } : h));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("daily_habits").upsert(
             {
               date: targetDate,

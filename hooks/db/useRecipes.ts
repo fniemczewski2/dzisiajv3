@@ -74,7 +74,7 @@ export function useRecipes() {
     const signal = getProductsSignal();
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase.from("products").select("name").eq("user_id", userId).order("name", { ascending: true }).abortSignal(signal),
         signal
       );
@@ -88,12 +88,12 @@ export function useRecipes() {
   }, [supabase, userId, toast, withRetry, getProductsSignal]);
 
   const addRecipe = useCallback(
-    async (recipe: NewRecipe): Promise<Recipe | undefined> => crud.add(recipe),
+    (recipe: NewRecipe): Promise<Recipe | undefined> => crud.add(recipe),
     [crud]
   );
 
   const editRecipe = useCallback(
-    async (recipe: Recipe): Promise<Recipe | undefined> => {
+    (recipe: Recipe): Promise<Recipe | undefined> => {
       const clean = normalizeRecipe(recipe);
       return crud.patch(recipe.id, {
         name: clean.name,
@@ -106,7 +106,7 @@ export function useRecipes() {
   );
 
   const deleteRecipe = useCallback(
-    async (id: string): Promise<boolean> => crud.remove(id),
+    (id: string): Promise<boolean> => crud.remove(id),
     [crud]
   );
 

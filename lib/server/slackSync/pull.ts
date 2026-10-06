@@ -85,13 +85,13 @@ export async function applyAppDeletions(admin: SupabaseClient, target: SyncTarge
   let removed = 0;
   for (const tombstone of (data ?? []) as { id: string; item_id: string }[]) {
     try {
-      await deleteItem(target.token, target.listId, tombstone.item_id);
+      await deleteItem(target.token, target.listId, tombstone.item_id); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
       removed += 1;
     } catch (err) {
       // pozycja mogła zostać już usunięta ręcznie w Slacku - to nie jest błąd
       if (!isMissingItemError(err)) throw err;
     }
-    await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id);
+    await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
   }
   return removed;
 }

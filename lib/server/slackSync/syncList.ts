@@ -165,7 +165,7 @@ export async function buildAssigneeFilter(
 
   const ids = new Set<string>();
   for (const email of target.assigneeEmails) {
-    const id = await lookup(target.token, email);
+    const id = await lookup(target.token, email); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
     if (id) ids.add(id);
   }
   if (ids.size === 0) return () => false;
@@ -216,7 +216,7 @@ export async function syncList(
     admin, target, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters,
   };
   for (const task of tasks) {
-    await processTaskSync(taskCtx, task);
+    await processTaskSync(taskCtx, task); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
   }
 
   const { data: pendingRows } = await admin
@@ -233,7 +233,7 @@ export async function syncList(
   const accepts = await buildAssigneeFilter(target, columns);
   for (const item of items) {
     if (!accepts(item)) continue;
-    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters);
+    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
   }
 
   return counters;

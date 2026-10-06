@@ -104,7 +104,7 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       const monthEnd = format(endOfMonth(targetDateForMonth), "yyyy-MM-dd");
 
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from("bills")
             .select("amount, date, category_id, is_income, done")

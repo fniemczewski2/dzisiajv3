@@ -45,7 +45,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       const dateEnd = `${nextYear}-${nextMonthStr}-01`;
 
       const { data: bills, error: billsError } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from("bills")
             .select("amount,date,is_income,done")
@@ -58,7 +58,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
       if (billsError) throw billsError;
 
       const { data: habits, error: habitsError } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from("daily_habits")
             .select("date,daily_spending")
@@ -98,7 +98,7 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         throw new Error("Unauthorized");
       }
       const { data: ratesData, error } = await withRetry(
-        async () => supabase.from("budgets").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
+        () => supabase.from("budgets").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
         signal
       );
       if (error) throw error;
@@ -164,14 +164,14 @@ export function useBudgetData(year: number, monthRange?: [number, number]) {
         if (m >= 1 && m <= 12) payload[`${MONTH_KEYS[m - 1]}_rate`] = Number(monthData.rate) || 0;
       });
 
-      const { data: existing, error: selectError } = await withRetry(async () =>
+      const { data: existing, error: selectError } = await withRetry(() =>
         supabase.from("budgets").select("id").eq("user_id", userId).maybeSingle()
       );
       if (selectError) throw selectError;
 
       const { error: dbError } = existing?.id
-        ? await withRetry(async () => supabase.from("budgets").update(payload).eq("id", existing.id))
-        : await withRetry(async () => supabase.from("budgets").insert([payload]));
+        ? await withRetry(() => supabase.from("budgets").update(payload).eq("id", existing.id))
+        : await withRetry(() => supabase.from("budgets").insert([payload]));
 
       if (dbError) throw dbError;
       toast.success("Zapisano stawki budżetu");

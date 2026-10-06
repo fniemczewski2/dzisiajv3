@@ -40,6 +40,7 @@ import MeetingPollRespondents, { initialsOf } from "./MeetingPollRespondents";
 import MeetingPollGrid, { GridLegend, type GridSelection } from "./MeetingPollGrid";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 
+import { mapPool } from "@/lib/asyncPool";
 interface MeetingPollResultsProps {
   pollId: string;
 }
@@ -487,11 +488,11 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        for (let i = 0; i < pendingSlots.length; i++) {
+        await mapPool(pendingSlots, 3, async (slot, i) => {
           const result = results[i];
-          if (!result) continue;
-          await exportSlotToCalendar(pendingSlots[i], result, session.access_token);
-        }
+          if (!result) return;
+          await exportSlotToCalendar(slot, result, session.access_token);
+        });
       }
 
       setFinalizedResults(results);

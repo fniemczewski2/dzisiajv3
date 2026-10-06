@@ -91,7 +91,7 @@ async function syncUserTargets(
 
   const results: SyncResult[] = [];
   for (const target of userTargets) {
-    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask));
+    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask)); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
   }
   return results;
 }
@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: SyncResult[] = [];
     for (const [userId, userTargets] of byUser) {
       if (scopedUserId && userId !== scopedUserId) continue;
-      results.push(...(await syncUserTargets(admin, userId, userTargets)));
+      results.push(...(await syncUserTargets(admin, userId, userTargets))); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
     }
 
     const failed = results.filter((r) => "error" in r).length;

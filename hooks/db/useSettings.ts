@@ -115,7 +115,7 @@ export function useSettings() {
       setFetching(true);
       try {
         const { data, error } = await withRetry(
-          async () => supabase.from("settings").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
+          () => supabase.from("settings").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
           signal
         );
 
@@ -180,7 +180,7 @@ export function useSettings() {
     }
     setLoading(true);
     try {
-      const { error } = await withRetry(async () =>
+      const { error } = await withRetry(() =>
         supabase.from("settings").upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" })
       );
       if (error) throw error;
@@ -207,7 +207,7 @@ export function useSettings() {
       globalThis.dispatchEvent(new CustomEvent("settingsUpdated", { detail: updated }));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("settings").upsert({ user_id: userId, ...updated }, { onConflict: "user_id" })
         );
         if (error) throw error;
@@ -228,7 +228,7 @@ export function useSettings() {
   const saveFavoriteStops = useCallback(
     async (updated: FavoriteStop[]) => {
       if (!userId) throw new Error("Unauthorized");
-      const { error } = await withRetry(async () =>
+      const { error } = await withRetry(() =>
         supabase
           .from("settings")
           .upsert({ user_id: userId, favorite_stops: updated }, { onConflict: "user_id" })

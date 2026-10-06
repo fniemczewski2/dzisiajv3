@@ -11,6 +11,7 @@ import { ConnectedCalendarRow } from "@/types/connectedCalendars";
 import { GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
 import { ExternalCalendar } from "@/types/events";
 
+import { mapPool, chunk } from "@/lib/asyncPool";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -128,9 +129,9 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
 
   const allCalendars: ExternalCalendar[] = [];
 
-  for (const mainAcc of mainAccounts) {
+  await mapPool(mainAccounts, 3, async (mainAcc) => {
     const accessToken = await getValidGoogleToken(auth, mainAcc.id);
-    if (!accessToken) continue;
+    if (!accessToken) return;
 
     const r = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", { headers: { Authorization: `Bearer ${accessToken}` } });
 
@@ -148,7 +149,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
         primaryAccountId: mainAcc.id
       });
     }
-  }
+  });
   return res.json({ connected: allCalendars.length > 0, calendars: allCalendars });
 }
 
@@ -160,10 +161,10 @@ async function fetchAllGoogleEvents(url: URL, accessToken: string): Promise<{ it
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } }); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
     if (!r.ok) return { items: allItems, failedStatus: r.status };
 
-    const data: GoogleEventsListResponse = await r.json();
+    const data: GoogleEventsListResponse = await r.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
     allItems.push(...(data.items || []));
     pageToken = data.nextPageToken;
   } while (pageToken);
@@ -211,8 +212,8 @@ async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, row
   let imported = 0;
   let skipped = 0;
   const BATCH_SIZE = 500;
-  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    const batch = rows.slice(i, i + BATCH_SIZE);
+  // Paczki są niezależne – zapisujemy po kilka naraz.
+  await mapPool(chunk(rows, BATCH_SIZE), 3, async (batch) => {
     // Aktualizujemy istniejące (zmiany po stronie Google), jak cron w
     // /api/calendar/sync-calendars.
     const { error } = await sb.from("events").upsert(batch, {
@@ -224,7 +225,7 @@ async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, row
     } else {
       imported += batch.length;
     }
-  }
+  });
   return { imported, skipped };
 }
 
@@ -367,10 +368,8 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
 
   const EXPORT_CONCURRENCY = 5;
   let exported = 0, skipped = 0;
-  for (let i = 0; i < events.length; i += EXPORT_CONCURRENCY) {
-    const chunk = events.slice(i, i + EXPORT_CONCURRENCY);
-    const results = await Promise.allSettled(chunk.map(exportOne));
-    results.forEach((r) => (r.status === "fulfilled" && r.value ? exported++ : skipped++));
-  }
+  // Pula zamiast paczek: kolejne wydarzenie startuje, gdy zwolni się miejsce.
+  const results = await mapPool(events, EXPORT_CONCURRENCY, (ev) => exportOne(ev).catch(() => false));
+  results.forEach((ok) => (ok ? exported++ : skipped++));
   return res.json({ exported, skipped });
 }

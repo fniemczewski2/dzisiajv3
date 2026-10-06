@@ -22,7 +22,9 @@ async function waitBeforeRetry(attempt: number, signal?: AbortSignal): Promise<v
 
 export function useRetry() {
   return useCallback(async function withRetry<T>(
-    operation: () => Promise<T>,
+    // PromiseLike, a nie Promise: zapytania Supabase to „thenable” – można je
+    // przekazać wprost (`() => supabase.from(…)`), bez owijania w async.
+    operation: () => PromiseLike<T>,
     signal?: AbortSignal
   ): Promise<T> {
     let lastResult: T | undefined;
@@ -30,10 +32,10 @@ export function useRetry() {
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       if (signal?.aborted) throw createAbortError();
-      if (attempt > 0) await waitBeforeRetry(attempt, signal);
+      if (attempt > 0) await waitBeforeRetry(attempt, signal); // NOSONAR – ponawianie – kolejna próba dopiero po nieudanej poprzedniej
 
       try {
-        lastResult = await operation();
+        lastResult = await operation(); // NOSONAR – ponawianie – kolejna próba dopiero po nieudanej poprzedniej
         lastThrown = undefined;
         if (!hasResultError(lastResult)) return lastResult;
       } catch (err) {

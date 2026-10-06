@@ -11,6 +11,7 @@ import { BudgetCategory, ParsedTransaction } from "@/types/bills";
 import { processCsvText, readFileAsText } from "@/lib/csvUtils";
 import { BILLS_DEDUP_FETCH_LIMIT } from "@/config/limits";
 import { getPostgresErrorCode } from "@/lib/errorUtils";
+import { mapPool } from "@/lib/asyncPool";
 
 export default function BankCsvImporter({ year }: { readonly year: number }) {
   const { user, supabase } = useAuth(); 
@@ -98,7 +99,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       const targetName = missingCat.toLowerCase().trim();
       if (updatedCategories.some(c => c.name.toLowerCase().trim() === targetName)) continue;
 
-      const resolved = await resolveMissingCategory(missingCat);
+      const resolved = await resolveMissingCategory(missingCat); // NOSONAR – pytania o brakujące kategorie wyświetlamy użytkownikowi po kolei
       if (resolved) updatedCategories.push(resolved);
     }
     return updatedCategories;
@@ -108,13 +109,13 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
     const tick = toast.batch((n) => `Dodano rachunki (${n})`);
     let skipped = 0;
 
-    for (const t of transactions) {
+    await mapPool(transactions, 3, async (t) => {
       const catTarget = t.mappedCategory.trim().toLowerCase();
       const categoryObj = availableCategories.find((c) => c.name.trim().toLowerCase() === catTarget);
       
       if (!categoryObj?.id) {
         skipped += 1;
-        continue;
+        return;
       }
 
       try {
@@ -133,7 +134,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
         }
         throw billError;
       }
-    }
+    });
 
     if (skipped > 0) {
       toast.info(`Pominięto ${skipped} operacji bez pasującej kategorii. Dodaj je ręcznie w Rachunkach.`);

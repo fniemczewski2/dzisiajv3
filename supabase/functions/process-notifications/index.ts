@@ -3,6 +3,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
 import { getErrorMessage } from '../_shared/errors.ts';
+import { mapPool } from "../_shared/asyncPool.ts";
 
 interface ScheduleEntry {
   label: string;
@@ -142,8 +143,8 @@ interface NotifCtx {
 async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, wasAlreadySentToday, sendPushAndLog } = ctx;
   const { data: users } = await supabase.from('settings').select('user_id').eq('notif_morning_brief', true).not('user_id', 'is', null)
-  for (const user of users || []) {
-    if (await wasAlreadySentToday(user.user_id, 'morning_brief')) continue;
+  await mapPool(users || [], 5, async (user) => {
+    if (await wasAlreadySentToday(user.user_id, 'morning_brief')) return;
 
     const { count: tasksCount } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).eq('due_date', today).neq('status', 'done')
     const { count: eventsCount } = await supabase.from('events').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).like('start_time', `${today}%`)
@@ -154,7 +155,7 @@ async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
       if (tasksCount && tasksCount > 0) msgParts.push(`${tasksCount} ${pluralize(tasksCount, 'zadanie', 'zadania', 'zadań')}`);
       await sendPushAndLog(user.user_id, 'Dzień dobry!', `Masz dziś ${msgParts.join(' i ')}.`, '/')
     }
-  }
+  });
 }
 
 function groupTasksByUser(tasks: readonly NotifiableTask[]): Map<string, NotifiableTask[]> {
@@ -191,7 +192,7 @@ async function notifyTaskGroup(
   buildSingle: (t: NotifiableTask) => { title: string; message: string; url: string },
   buildMultiple: (tasks: NotifiableTask[]) => { title: string; message: string; url: string }
 ): Promise<void> {
-  for (const [userId, tasks] of tasksByUser) {
+  await mapPool(tasksByUser, 5, async ([userId, tasks]) => {
     const unsentTasks = tasks.filter(t => !isTaskNotifSent(sentNotifs, userId, subType, t.id));
 
     if (unsentTasks.length === 1) {
@@ -203,7 +204,7 @@ async function notifyTaskGroup(
       const taskIds = unsentTasks.map(t => t.id).join(',');
       await ctx.sendPushAndLog(userId, title, message, url, { task_id: taskIds, sub_type: subType });
     }
-  }
+  });
 }
 
 async function processUpcomingTaskType(ctx: NotifCtx): Promise<void> {
@@ -307,7 +308,7 @@ async function notifyEventParticipants(
 
   const { nowStr, in5MinsStr, in1DayStr, in7DaysStr } = windows;
 
-  for (const userId of participants) {
+  await mapPool(participants, 5, async (userId) => {
     let title = '', message = '', rType = ''
 
     if (evTime <= in5MinsStr && evTime > nowStr && !sentReminders.has('5min')) {
@@ -319,7 +320,7 @@ async function notifyEventParticipants(
     }
 
     if (rType) await sendPushAndLog(userId, title, message, '/calendar', { event_id: ev.id, reminder_type: rType })
-  }
+  });
 }
 
 async function processUpcomingEventType(ctx: NotifCtx): Promise<void> {
@@ -341,15 +342,15 @@ async function processUpcomingEventType(ctx: NotifCtx): Promise<void> {
   const { data: events } = await supabase.from('events').select('*')
     .gte('start_time', nowStr).lte('start_time', in7DaysStr)
 
-  for (const ev of events || []) {
+  await mapPool(events || [], 5, async (ev) => {
     await notifyEventParticipants(ctx, ev, allowedIds, { nowStr, in5MinsStr, in1DayStr, in7DaysStr });
-  }
+  });
 }
 
 async function processHydrationType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, currentHour, startOfDayUTC, sendPushAndLog } = ctx;
   const { data: users } = await supabase.from('settings').select('user_id').eq('show_water_tracker', true).eq('notif_water', true)
-  for (const user of users || []) {
+  await mapPool(users || [], 5, async (user) => {
     const { data: alreadySent } = await supabase.from('notifications')
       .select('id')
       .eq('user_id', user.user_id)
@@ -357,7 +358,7 @@ async function processHydrationType(ctx: NotifCtx): Promise<void> {
       .gte('created_at', startOfDayUTC)
       .contains('data', { slot: currentHour })
       .maybeSingle();
-    if (alreadySent) continue;
+    if (alreadySent) return;
 
     const { data: habit } = await supabase.from('daily_habits').select('water_amount').eq('user_id', user.user_id).eq('date', today).maybeSingle()
     const amount = habit?.water_amount || 0
@@ -369,7 +370,7 @@ async function processHydrationType(ctx: NotifCtx): Promise<void> {
     if (remind) {
       await sendPushAndLog(user.user_id, 'Czas na wodę! 💧', `Wypito tylko ${amount} ${pluralizeLiters(amount)}. Uzupełnij płyny!`, '/', { slot: currentHour })
     }
-  }
+  });
 }
 
 const HABIT_CHECKS: { setting: keyof HabitSettingsRow; habitField: keyof DailyHabitRow; label: string }[] = [
@@ -394,8 +395,8 @@ function buildIncompleteHabitsList(s: HabitSettingsRow, habit: DailyHabitRow | n
 async function processDailyHabitsType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, wasAlreadySentToday, sendPushAndLog } = ctx;
   const { data: usersSettings } = await supabase.from('settings').select('*').eq('notif_habits', true)
-  for (const s of usersSettings || []) {
-    if (await wasAlreadySentToday(s.user_id, 'daily_habits')) continue;
+  await mapPool(usersSettings || [], 5, async (s) => {
+    if (await wasAlreadySentToday(s.user_id, 'daily_habits')) return;
 
     const { data: habit } = await supabase.from('daily_habits').select('*').eq('date', today).eq('user_id', s.user_id).maybeSingle()
     const incomplete = buildIncompleteHabitsList(s, habit);
@@ -405,7 +406,7 @@ async function processDailyHabitsType(ctx: NotifCtx): Promise<void> {
       const msg = `Masz ${incomplete.length} ${actStr} do zrobienia: ${incomplete.slice(0, 3).join(', ')}${incomplete.length > 3 ? '...' : ''}`
       await sendPushAndLog(s.user_id, 'Nawyki', msg, '/habits', { incomplete })
     }
-  }
+  });
 }
 
 async function processOneDaySchema(
@@ -434,7 +435,7 @@ async function processOneDaySchema(
     item.notify === true && Math.abs(timeToMinutes(item.time) - currentMinutes) <= 1
   );
 
-  for (const item of itemsToNotify) {
+  await mapPool(itemsToNotify, 5, async (item) => {
     const { data: alreadySent } = await supabase.from('notifications')
       .select('id')
       .eq('user_id', schema.user_id)
@@ -452,7 +453,7 @@ async function processOneDaySchema(
         { label: item.label, time: currentTime, sub_type: 'day_schema_entry' }
       );
     }
-  }
+  });
 }
 
 async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
@@ -466,16 +467,16 @@ async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
   const currentDayObj = new Date(realNow.getTime() + (currentHour * 3600000));
   const currentDayIndex = (currentDayObj.getDay() + 6) % 7;
 
-  for (const schema of daySchemas || []) {
+  await mapPool(daySchemas || [], 5, async (schema) => {
     await processOneDaySchema(ctx, schema, currentDayIndex, currentMinutes, currentTime);
-  }
+  });
 }
 
 async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, wasAlreadySentToday, sendPushAndLog } = ctx;
   const { data: users } = await supabase.from('settings').select('user_id').eq('notif_evening', true).not('user_id', 'is', null)
-  for (const user of users || []) {
-    if (await wasAlreadySentToday(user.user_id, 'evening_audit')) continue;
+  await mapPool(users || [], 5, async (user) => {
+    if (await wasAlreadySentToday(user.user_id, 'evening_audit')) return;
 
     const { count: doneCount } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).eq('due_date', today).eq('status', 'done')
     const { count: pendingCount } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).eq('due_date', today).neq('status', 'done')
@@ -485,7 +486,7 @@ async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
       if (pendingCount && pendingCount > 0) msg += ` Do zrobienia zostało ${pendingCount}.`;
       await sendPushAndLog(user.user_id, 'Czas na podsumowanie 🌙', msg, '/')
     }
-  }
+  });
 }
 
 async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
@@ -499,7 +500,7 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
     .gte('response_date', today)
     .lte('response_date', tomorrowStr);
 
-  for (const letter of letters || []) {
+  await mapPool(letters || [], 5, async (letter) => {
     const { data: alreadySent } = await supabase
       .from('notifications')
       .select('id')
@@ -508,7 +509,7 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
       .gte('created_at', startOfDayUTC)
       .contains('data', { letter_id: letter.id })
       .maybeSingle();
-    if (alreadySent) continue;
+    if (alreadySent) return;
 
     const dueLabel = letter.response_date === today ? 'dziś' : 'jutro';
     await sendPushAndLog(
@@ -519,7 +520,7 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
       { letter_id: letter.id, due: letter.response_date }
     );
     incrementProcessed();
-  }
+  });
 }
 
 async function processPollClosingType(ctx: NotifCtx): Promise<void> {
@@ -545,7 +546,7 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
     .eq('status', 'open')
     .in('id', closingIds);
 
-  for (const poll of polls || []) {
+  await mapPool(polls || [], 5, async (poll) => {
     const { data: alreadySent } = await supabase
       .from('notifications')
       .select('id')
@@ -554,7 +555,7 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
       .gte('created_at', startOfDayUTC)
       .contains('data', { poll_id: poll.id })
       .maybeSingle();
-    if (alreadySent) continue;
+    if (alreadySent) return;
 
     const { count } = await supabase
       .from('meeting_poll_responses')
@@ -569,7 +570,7 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
       { poll_id: poll.id }
     );
     incrementProcessed();
-  }
+  });
 }
 
 function getMMDD(d: Date): string {
@@ -726,9 +727,9 @@ async function processPeopleType(ctx: NotifCtx): Promise<void> {
     .eq('type', 'people')
     .gte('created_at', new Date(realNow.getFullYear(), 0, 1).toISOString());
 
-  for (const p of people) {
+  await mapPool(people, 5, async (p) => {
     await processOnePerson(ctx, p, userSettings, windows, currentYearStr, sentNotifs, sevenDaysAgoUTC);
-  }
+  });
 }
 
 const NOTIFICATION_HANDLERS: Record<string, (ctx: NotifCtx) => Promise<void>> = {

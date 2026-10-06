@@ -208,7 +208,7 @@ export function useTransport(autoRefresh = false) {
 
       try {
         const q = searchQuery.trim().replaceAll(/[%_\\]/g, (m) => `\\${m}`);
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("stops")
             .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")

@@ -32,7 +32,7 @@ async function fetchProviderCalendars(
 
   try {
     const res = await withRetry(
-      async () =>
+      () =>
         fetch(`${endpoint}?action=list-calendars`, {
           headers: { Authorization: `Bearer ${accessToken}` },
           signal,
@@ -86,7 +86,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
       try {
         const { data: accountsData, error } = await withRetry(
-          async () =>
+          () =>
             supabase
               .from('connected_calendars')
               .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at, sync_error')
@@ -150,7 +150,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
         if (isCurrentlyOn) {
           if (cal.accountId) {
-            await withRetry(async () =>
+            await withRetry(() =>
               fetch(`${baseApiUrl}?action=disconnect&subCalendarId=${cal.accountId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${session.access_token}` },
@@ -160,7 +160,7 @@ export function useConnectedCalendars(expanded: boolean) {
           toast.success(`Odłączono kalendarz: ${cal.summary}`);
           globalThis.dispatchEvent(new Event("refreshEvents"));
         } else {
-          const { data: newAcc, error: insertErr } = await withRetry(async () =>
+          const { data: newAcc, error: insertErr } = await withRetry(() =>
             supabase
               .from('connected_calendars')
               .insert({
@@ -176,7 +176,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
           if (insertErr) throw insertErr;
 
-          await withRetry(async () =>
+          await withRetry(() =>
             fetch(`${baseApiUrl}?action=import`, {
               method: 'POST',
               headers: {
@@ -220,7 +220,7 @@ export function useConnectedCalendars(expanded: boolean) {
         }
 
         const baseApiUrl = provider === 'google' ? '/api/google-calendar' : '/api/outlook-calendar';
-        const res = await withRetry(async () =>
+        const res = await withRetry(() =>
           fetch(`${baseApiUrl}?action=disconnect&email=${encodeURIComponent(email)}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${session.access_token}` },
@@ -255,7 +255,7 @@ export function useConnectedCalendars(expanded: boolean) {
         toast.error("Zaloguj się ponownie.");
         return;
       }
-      const res = await withRetry(async () =>
+      const res = await withRetry(() =>
         fetch('/api/google-calendar?action=auth-url', {
           headers: { Authorization: `Bearer ${session.access_token}` },
         })
@@ -283,7 +283,7 @@ export function useConnectedCalendars(expanded: boolean) {
         return;
       }
 
-      const res = await withRetry(async () =>
+      const res = await withRetry(() =>
         fetch('/api/outlook-calendar?action=auth-url', {
           headers: { Authorization: `Bearer ${session.access_token}` },
         })

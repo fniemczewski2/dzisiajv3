@@ -68,7 +68,7 @@ export function useTrains() {
       const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from('user_trains')
             .select('*')
@@ -124,7 +124,7 @@ export function useTrains() {
       setTrains((prev) => [...prev, optimisticTrain].sort(sortByDepartureAsc));
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from('user_trains')
             .insert([{
@@ -172,7 +172,7 @@ export function useTrains() {
       setTrains((prev) => prev.filter((t) => t.id !== id));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from('user_trains').delete().eq('id', id).eq('user_id', userId)
         );
         if (error) throw error;

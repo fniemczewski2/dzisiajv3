@@ -125,7 +125,7 @@ export function useBills(options: FetchOptions = {}) {
         const to = from + limit - 1;
 
         const { data, error, count } = await withRetry(
-          async () => buildFetchBillsQuery(supabase, userId, fetchOptions).range(from, to).abortSignal(signal),
+          () => buildFetchBillsQuery(supabase, userId, fetchOptions).range(from, to).abortSignal(signal),
           signal
         );
 
@@ -174,7 +174,7 @@ export function useBills(options: FetchOptions = {}) {
       setLoading(true);
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("bills")
             .insert({ ...bill, user_id: userId, parent_bill_id: null })
@@ -206,7 +206,7 @@ export function useBills(options: FetchOptions = {}) {
               recurring_until: null,
               parent_bill_id: parent.id,
             }));
-            const { error: childError } = await withRetry(async () =>
+            const { error: childError } = await withRetry(() =>
               supabase.from("bills").insert(children)
             );
             if (childError) throw childError;
@@ -237,7 +237,7 @@ export function useBills(options: FetchOptions = {}) {
       setExpenseItems((prev) => prev.map((b) => (b.id === bill.id ? { ...b, ...bill } : b)));
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("bills")
             .update({
@@ -260,7 +260,7 @@ export function useBills(options: FetchOptions = {}) {
 
         if (editOptions.updateFutureRecurring) {
           const today = format(new Date(), "yyyy-MM-dd");
-          await withRetry(async () =>
+          await withRetry(() =>
             supabase
               .from("bills")
               .update({ amount: bill.amount, description: bill.description, category_id: bill.category_id })
@@ -298,12 +298,12 @@ export function useBills(options: FetchOptions = {}) {
       try {
         if (deleteFutureRecurring) {
           const today = format(new Date(), "yyyy-MM-dd");
-          await withRetry(async () =>
+          await withRetry(() =>
             supabase.from("bills").delete().eq("parent_bill_id", id).gte("date", today)
           );
         }
 
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("bills").delete().eq("id", id).eq("user_id", userId)
         );
         if (error) throw error;
@@ -327,7 +327,7 @@ export function useBills(options: FetchOptions = {}) {
       setLoading(true);
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("bills").update({ done: true }).eq("id", id).eq("user_id", userId)
         );
         if (error) throw error;
@@ -354,7 +354,7 @@ export function useBills(options: FetchOptions = {}) {
       const signal = getActiveMonthsSignal();
       try {
         const { data, error } = await withRetry(
-          async () => buildActiveMonthsQuery(supabase, userId, year, categoryId).abortSignal(signal),
+          () => buildActiveMonthsQuery(supabase, userId, year, categoryId).abortSignal(signal),
           signal
         );
 
@@ -388,7 +388,7 @@ export function useBills(options: FetchOptions = {}) {
       const signal = getActiveCategoriesSignal();
       try {
         const { data, error } = await withRetry(
-          async () => buildActiveCategoriesQuery(supabase, userId, year).abortSignal(signal),
+          () => buildActiveCategoriesQuery(supabase, userId, year).abortSignal(signal),
           signal
         );
 

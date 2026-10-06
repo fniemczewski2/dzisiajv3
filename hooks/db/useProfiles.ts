@@ -30,7 +30,7 @@ export function useProfiles() {
     setError(null);
     try {
       const { data, error: fetchError } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from('vcard_profiles')
             .select('*')
@@ -66,7 +66,7 @@ export function useProfiles() {
       setProfiles((prev) => [...prev, optimisticProfile]);
 
       try {
-        const { data, error: insertError } = await withRetry(async () =>
+        const { data, error: insertError } = await withRetry(() =>
           supabase.from('vcard_profiles').insert([{ ...profileData, user_id: userId }]).select().single()
         );
 
@@ -97,7 +97,7 @@ export function useProfiles() {
       setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
 
       try {
-        const { data, error: updateError } = await withRetry(async () =>
+        const { data, error: updateError } = await withRetry(() =>
           supabase.from('vcard_profiles').update(updates).eq('id', id).select().single()
         );
 
@@ -131,7 +131,7 @@ export function useProfiles() {
       setProfiles((prev) => prev.filter((p) => p.id !== id));
 
       try {
-        const { error: deleteError } = await withRetry(async () =>
+        const { error: deleteError } = await withRetry(() =>
           supabase.from('vcard_profiles').delete().eq('id', id)
         );
         if (deleteError) throw deleteError;

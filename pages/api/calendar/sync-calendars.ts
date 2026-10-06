@@ -12,6 +12,7 @@ import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from '@/types/con
 import { GoogleEventsListResponse } from '@/types/googleCalendar';
 import { OutlookEventsResponse } from '@/types/outlookCalendar';
 
+import { mapPool, chunk } from "@/lib/asyncPool";
 const supabaseService = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
@@ -68,7 +69,7 @@ async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeM
   const staleIds: string[] = [];
 
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService
+    const { data, error } = await supabaseService // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
       .from('events')
       .select('id, google_event_id')
       .eq('calendar_id', calendarId)
@@ -85,13 +86,13 @@ async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeM
     if (!data || data.length < PAGE_SIZE) break;
   }
 
-  for (let i = 0; i < staleIds.length; i += DELETE_CHUNK) {
+  await mapPool(chunk(staleIds, DELETE_CHUNK), 3, async (ids) => {
     const { error } = await supabaseService
       .from('events')
       .delete()
-      .in('id', staleIds.slice(i, i + DELETE_CHUNK));
+      .in('id', ids);
     if (error) throw new Error(`events stale delete: ${error.message}`);
-  }
+  });
   return staleIds.length;
 }
 
@@ -100,7 +101,7 @@ async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
   // konta powyżej tego progu po cichu przestawały się synchronizować.
   const all: ConnectedCalendarRow[] = [];
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService
+    const { data, error } = await supabaseService // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
       .from('connected_calendars')
       .select('*')
       .order('id')
@@ -213,7 +214,7 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const googleRes = await fetchWithTimeout(fetchUrl.toString(), {
+    const googleRes = await fetchWithTimeout(fetchUrl.toString(), { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
@@ -221,12 +222,12 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
       // Niepełna lista – nie wolno na jej podstawie usuwać wydarzeń.
       throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
-    const data: GoogleEventsListResponse = await googleRes.json();
+    const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
     pageToken = data.nextPageToken;
 
     const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows);
+    imported += await upsertImportedEvents(rows); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
   } while (pageToken);
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
@@ -239,14 +240,14 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
   let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
   while (fetchUrl) {
-    const msRes: Response = await fetchWithTimeout(fetchUrl, {
+    const msRes: Response = await fetchWithTimeout(fetchUrl, { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
       headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
     });
 
     if (!msRes.ok) {
       throw new Error(`Outlook fetch failed for calendar ${acc.id}: ${msRes.status}`);
     }
-    const data: OutlookEventsResponse = await msRes.json();
+    const data: OutlookEventsResponse = await msRes.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
 
     const rows: ImportedEventRow[] = [];
     for (const ev of data.value || []) {
@@ -265,7 +266,7 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
       });
     }
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows);
+    imported += await upsertImportedEvents(rows); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
     fetchUrl = data['@odata.nextLink'];
   }
 
@@ -274,14 +275,13 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
 }
 
 async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainAccountsCache) {
-  for (const [key, token] of Object.entries(tokenCache)) {
+  await mapPool(Object.entries(tokenCache), 5, async ([key, token]) => {
     const mainAcc = mainAccountsCache[key];
-    if (mainAcc) {
-       await supabaseService.from("connected_calendars")
-        .update({ access_token: encryptToken(token), expires_at: new Date(Date.now() + 3600000).toISOString() })
-        .eq("id", mainAcc.id);
-    }
-  }
+    if (!mainAcc) return;
+    await supabaseService.from("connected_calendars")
+      .update({ access_token: encryptToken(token), expires_at: new Date(Date.now() + 3600000).toISOString() })
+      .eq("id", mainAcc.id);
+  });
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
@@ -322,22 +322,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let totalRemoved = 0;
     const failedAccounts: string[] = [];
 
-    for (let i = 0; i < targets.length; i += CONCURRENCY_LIMIT) {
-      const chunk = targets.slice(i, i + CONCURRENCY_LIMIT);
-      const results = await Promise.allSettled(chunk.map(processAccount));
+    // Pula: kolejne konto startuje, gdy tylko zwolni się miejsce (wcześniej
+    // paczki po 5 czekały na najwolniejsze konto w paczce). Błąd jednego konta
+    // nie przerywa pozostałych.
+    await mapPool(targets, CONCURRENCY_LIMIT, async (acc) => {
+      try {
+        const result = await processAccount(acc);
+        totalImported += result.imported;
+        totalRemoved += result.removed;
+      } catch (reason) {
+        console.error(`[CRON] Sync failed for account ${acc.id}:`, reason);
+        failedAccounts.push(acc.id);
+      }
+    });
 
-      results.forEach((result, idx) => {
-        if (result.status === "fulfilled") {
-          totalImported += result.value.imported;
-          totalRemoved += result.value.removed;
-        } else {
-          console.error(`[CRON] Sync failed for account ${chunk[idx].id}:`, result.reason);
-          failedAccounts.push(chunk[idx].id);
-        }
-      });
-
-      await updateMainTokens(tokenCache, mainAccountsCache);
-    }
+    await updateMainTokens(tokenCache, mainAccountsCache);
 
     return res.json({ success: failedAccounts.length === 0, imported: totalImported, removed: totalRemoved, failedAccounts });
   } catch (error) {

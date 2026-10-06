@@ -81,8 +81,9 @@ const nextConfig = {
         : []),
     ],
   },
-  async headers() {
-    return [
+  // Next.js oczekuje obietnicy; nic tu nie czekamy, więc bez `async`.
+  headers() {
+    return Promise.resolve([
       {
         source: '/((?!_next/static|_next/image|favicon.ico).*)',
         headers: [
@@ -117,7 +118,7 @@ const nextConfig = {
           },
         ],
       },
-    ];
+    ]);
   },
 };
 

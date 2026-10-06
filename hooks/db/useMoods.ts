@@ -26,7 +26,7 @@ export function useMoods(startDate?: string, endDate?: string) {
     const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () => {
+      const { data, error } = await withRetry(() => {
         let query = supabase.from("mood_entries").select("*").eq("user_id", userId);
         if (startDate) query = query.gte("date", startDate);
         if (endDate) query = query.lte("date", endDate);
@@ -60,7 +60,7 @@ export function useMoods(startDate?: string, endDate?: string) {
       });
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("mood_entries")
             .upsert({ user_id: userId, date, mood_id: moodId }, { onConflict: "user_id, date" })

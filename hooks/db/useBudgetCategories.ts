@@ -30,7 +30,7 @@ export function useBudgetCategories(year: number) {
     setFetching(true);
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from("budget_categories")
             .select("*")
@@ -77,7 +77,7 @@ export function useBudgetCategories(year: number) {
       setCategories((prev) => [...prev, optimisticCategory]);
 
       try {
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase
             .from("budget_categories")
             .insert({
@@ -121,7 +121,7 @@ export function useBudgetCategories(year: number) {
       setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("budget_categories").update(updates).eq("id", id).eq("user_id", userId)
         );
         if (error) throw error;
@@ -149,7 +149,7 @@ export function useBudgetCategories(year: number) {
       setCategories((prev) => prev.filter((c) => c.id !== id));
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from("budget_categories").delete().eq("id", id).eq("user_id", userId)
         );
         if (error) throw error;
@@ -175,7 +175,7 @@ export function useBudgetCategories(year: number) {
       setLoading(true);
 
       try {
-        const results = await withRetry(async () =>
+        const results = await withRetry(() =>
           Promise.all(
             reordered.map((cat, idx) =>
               supabase.from("budget_categories").update({ sort_order: idx }).eq("id", cat.id).eq("user_id", userId)
@@ -212,7 +212,7 @@ export function useBudgetCategories(year: number) {
           sort_order: i,
         }));
 
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase.from("budget_categories").upsert(rows, { onConflict: "user_id,year,name" }).select()
         );
 

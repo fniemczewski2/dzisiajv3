@@ -54,7 +54,7 @@ async function updateFieldsIndividually(
 ): Promise<void> {
   for (const field of fields) {
     try {
-      await updateItem(target.token, target.listId, itemId, [field]);
+      await updateItem(target.token, target.listId, itemId, [field]); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
     } catch (err) {
       if (!isFieldRejection(err)) throw err;
       console.warn(

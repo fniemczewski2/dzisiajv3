@@ -3,6 +3,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { mapPool, chunk } from "@/lib/asyncPool";
 import {
   USER_DATA_TABLES,
   USER_STORAGE_BUCKETS,
@@ -29,7 +30,7 @@ async function deleteUserRows(
     // select("user_id"), nie "id": settings, daily_habits, shortcut_tokens czy
     // slack_task_targets nie mają kolumny id, a PostgREST odrzucał wtedy całe
     // żądanie – wiersze zostawały, a klucze obce blokowały usunięcie konta.
-    const { data, error } = await admin
+    const { data, error } = await admin // NOSONAR – kolejność tabel ma znaczenie – podrzędne przed nadrzędnymi (klucze obce)
       .from(table)
       .delete()
       .eq("user_id", userId)
@@ -47,10 +48,10 @@ async function deleteUserRows(
   // ale bez wskazania na usuwane konto.
   const { error: unassignError } = await admin.from("tasks").update({ for_user_id: null }).eq("for_user_id", userId);
   if (unassignError) console.error("[account/delete] tasks.for_user_id:", unassignError.message);
-  for (const table of ["events", "shopping_lists"] as const) {
+  await mapPool(["events", "shopping_lists"] as const, 4, async (table) => {
     const { error } = await admin.from(table).update({ shared_with_id: null }).eq("shared_with_id", userId);
     if (error) console.error(`[account/delete] ${table}.shared_with_id:`, error.message);
-  }
+  });
 
   return report;
 }
@@ -61,15 +62,15 @@ const STORAGE_PAGE = 1000;
 async function listAllPaths(admin: SupabaseClient, bucket: string, prefix: string): Promise<string[]> {
   const paths: string[] = [];
   for (let offset = 0; ; offset += STORAGE_PAGE) {
-    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: STORAGE_PAGE, offset });
+    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: STORAGE_PAGE, offset }); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
     if (error || !data?.length) break;
 
-    for (const entry of data) {
+    await mapPool(data, 4, async (entry) => { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
       const fullPath = `${prefix}/${entry.name}`;
       // Foldery w Storage nie mają id (to tylko prefiksy).
       if (!entry.id) paths.push(...(await listAllPaths(admin, bucket, fullPath)));
       else paths.push(fullPath);
-    }
+    });
     if (data.length < STORAGE_PAGE) break;
   }
   return paths;
@@ -78,15 +79,14 @@ async function listAllPaths(admin: SupabaseClient, bucket: string, prefix: strin
 async function deleteUserFiles(admin: SupabaseClient, userId: string): Promise<number> {
   let removed = 0;
 
-  for (const bucket of USER_STORAGE_BUCKETS) {
+  await mapPool(USER_STORAGE_BUCKETS, USER_STORAGE_BUCKETS.length, async (bucket) => {
     const paths = await listAllPaths(admin, bucket, userId);
-    for (let i = 0; i < paths.length; i += STORAGE_PAGE) {
-      const chunk = paths.slice(i, i + STORAGE_PAGE);
-      const { error: removeError } = await admin.storage.from(bucket).remove(chunk);
+    await mapPool(chunk(paths, STORAGE_PAGE), 2, async (part) => {
+      const { error: removeError } = await admin.storage.from(bucket).remove(part);
       if (removeError) console.error(`[account/delete] storage ${bucket}:`, removeError.message);
-      else removed += chunk.length;
-    }
-  }
+      else removed += part.length;
+    });
+  });
   return removed;
 }
 

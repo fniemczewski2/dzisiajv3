@@ -61,13 +61,13 @@ async function getStationsDictionary(
   }
 }
 
-async function getOperations(
+function getOperations(
   fromStationId: string,
   headers: Record<string, string>
 ): Promise<OperationsResponse | null> {
   const cached = operationsCache.get(fromStationId);
   if (cached && Date.now() - cached.fetchedAt < OPERATIONS_TTL_MS) {
-    return cached.data;
+    return Promise.resolve(cached.data);
   }
 
   const inFlight = operationsInFlight.get(fromStationId);

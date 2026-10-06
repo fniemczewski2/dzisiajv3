@@ -27,7 +27,7 @@ export function useDailyOverrides(dateStr: string) {
     setFetching(true);
     try {
       const { data, error } = await withRetry(
-        async () =>
+        () =>
           supabase
             .from('daily_overrides')
             .select('schema_id, new_time, is_hidden')
@@ -69,7 +69,7 @@ export function useDailyOverrides(dateStr: string) {
       });
 
       try {
-        const { data: existing } = await withRetry(async () =>
+        const { data: existing } = await withRetry(() =>
           supabase
             .from('daily_overrides')
             .select('id')
@@ -80,10 +80,10 @@ export function useDailyOverrides(dateStr: string) {
         );
 
         const { error } = existing
-          ? await withRetry(async () =>
+          ? await withRetry(() =>
               supabase.from('daily_overrides').update({ is_hidden: true }).eq('id', existing.id)
             )
-          : await withRetry(async () =>
+          : await withRetry(() =>
               supabase.from('daily_overrides').insert({
                 user_id: userId,
                 date: dateStr,
@@ -124,7 +124,7 @@ export function useDailyOverrides(dateStr: string) {
       });
 
       try {
-        const { data: existing } = await withRetry(async () =>
+        const { data: existing } = await withRetry(() =>
           supabase
             .from('daily_overrides')
             .select('id')
@@ -135,13 +135,13 @@ export function useDailyOverrides(dateStr: string) {
         );
 
         const { error } = existing
-          ? await withRetry(async () =>
+          ? await withRetry(() =>
               supabase
                 .from('daily_overrides')
                 .update({ new_time: newTime, is_hidden: false })
                 .eq('id', existing.id)
             )
-          : await withRetry(async () =>
+          : await withRetry(() =>
               supabase.from('daily_overrides').insert({
                 user_id: userId,
                 date: dateStr,

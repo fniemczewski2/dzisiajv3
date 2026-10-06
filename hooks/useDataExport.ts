@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
+import { mapPool } from "@/lib/asyncPool";
 import {
   EXPORT_TABLES,
   EXPORT_PAGE_SIZE,
@@ -46,7 +47,7 @@ export function useDataExport() {
 
       for (let page = 0; ; page++) {
         const from = page * EXPORT_PAGE_SIZE;
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() => // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
           supabase
             .from(table)
             .select(columns ?? "*")
@@ -82,16 +83,25 @@ export function useDataExport() {
       const data: Record<string, ExportRow[]> = {};
       const skipped: { table: string; error: string }[] = [];
 
-      for (const [index, entry] of EXPORT_TABLES.entries()) {
+      // Tabele są niezależne – pobieramy po kilka naraz. Wyniki składamy
+      // w kolejności EXPORT_TABLES, żeby plik zawsze miał ten sam układ.
+      let done = 0;
+      type Fetched =
+        | { entry: (typeof EXPORT_TABLES)[number]; rows: ExportRow[] }
+        | { entry: (typeof EXPORT_TABLES)[number]; error: string };
+      const fetched = await mapPool(EXPORT_TABLES, 4, async (entry): Promise<Fetched> => {
         try {
-          data[entry.table] = await fetchTable(entry);
+          return { entry, rows: await fetchTable(entry) };
         } catch (err) {
-          skipped.push({
-            table: entry.table,
-            error: err instanceof Error ? err.message : "Nieznany blad",
-          });
+          return { entry, error: err instanceof Error ? err.message : "Nieznany błąd" };
+        } finally {
+          done += 1;
+          setProgress({ done, total: EXPORT_TABLES.length });
         }
-        setProgress({ done: index + 1, total: EXPORT_TABLES.length });
+      });
+      for (const result of fetched) {
+        if ("rows" in result) data[result.entry.table] = result.rows;
+        else skipped.push({ table: result.entry.table, error: result.error });
       }
 
       const payload: ExportFile = {

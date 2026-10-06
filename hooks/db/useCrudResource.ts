@@ -79,7 +79,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
     const signal = getSignal();
     setFetching(true);
     try {
-      const { data, error } = await withRetry(async () => {
+      const { data, error } = await withRetry(() => {
         const base = supabase.from(cfg.table).select("*");
         let query = cfg.buildQuery
           ? cfg.buildQuery(base, userId)
@@ -158,7 +158,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
           ? cfg.prepareInsert(payload, userId)
           : { ...payload, user_id: userId };
 
-        const { data, error } = await withRetry(async () =>
+        const { data, error } = await withRetry(() =>
           supabase.from(cfg.table).insert(row).select().single()
         );
         if (error) throw error;
@@ -194,7 +194,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         const payload = cfg.prepareUpdate ? cfg.prepareUpdate(updates) : updates;
 
         if (cfg.applyServerRowOnEdit) {
-          const { data, error } = await withRetry(async () =>
+          const { data, error } = await withRetry(() =>
             supabase.from(cfg.table).update(payload).eq("id", id).select().single()
           );
           if (error) throw error;
@@ -204,7 +204,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
           return updated;
         }
 
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from(cfg.table).update(payload).eq("id", id)
         );
         if (error) throw error;
@@ -237,7 +237,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
       });
 
       try {
-        const { error } = await withRetry(async () =>
+        const { error } = await withRetry(() =>
           supabase.from(cfg.table).delete().eq("id", id)
         );
         if (error) throw error;

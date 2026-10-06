@@ -8,6 +8,14 @@ import { format } from "date-fns";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
+import {
+  DEFAULT_EVENT_DURATION_MIN,
+  LOCAL_DATE_FORMAT,
+  QUICK_EVENT_DURATIONS,
+  addMinutesToLocal,
+  defaultTimedStart,
+  durationBetween,
+} from "@/lib/eventTimes";
 
 interface ConnectedCalendarOption {
   id: string;
@@ -49,6 +57,8 @@ export default function EventForm({
   const [allDay, setAllDay] = useState(true);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  // Wybrana szybka długość (30 min / 1 h / 2 h). null = koniec ustawiony ręcznie.
+  const [durationMin, setDurationMin] = useState<number | null>(DEFAULT_EVENT_DURATION_MIN);
   const [place, setPlace] = useState("");
   const [share, setShare] = useState("null");
   const [repeat, setRepeat] = useState<Event["repeat"]>("none");
@@ -71,15 +81,56 @@ export default function EventForm({
     void fetchCalendars();
   }, [userId, supabase]);
 
+  // Zależności po znaczniku czasu, a nie po obiekcie Date: domyślna wartość
+  // `currentDate = getAppDateTime()` tworzy nowy obiekt przy każdym renderze
+  // i kasowałaby wpisane przez użytkownika godziny.
+  const refTime = (selectedDate ?? currentDate)?.getTime() ?? null;
+
   useEffect(() => {
-    const ref = selectedDate ?? currentDate;
-    const fmt = allDay ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm";
-    setStart(ref ? format(ref, fmt) : "");
-    setEnd(ref ? format(ref, fmt) : "");
-  }, [selectedDate, currentDate, allDay]);
+    if (refTime === null) {
+      setStart(""); setEnd("");
+      return;
+    }
+    const ref = new Date(refTime);
+    if (allDay) {
+      const day = format(ref, LOCAL_DATE_FORMAT);
+      setStart(day); setEnd(day);
+    } else {
+      const first = defaultTimedStart(ref);
+      setStart(first);
+      setEnd(addMinutesToLocal(first, DEFAULT_EVENT_DURATION_MIN));
+      setDurationMin(DEFAULT_EVENT_DURATION_MIN);
+    }
+  }, [refTime, allDay]);
+
+  const handleStartChange = (value: string) => {
+    setStart(value);
+    if (allDay) {
+      // Koniec nie może być przed początkiem.
+      if (end && value > end) setEnd(value);
+      return;
+    }
+    // Zmiana początku przesuwa koniec: o wybraną szybką długość, a gdy koniec
+    // był ustawiony ręcznie – o domyślną godzinę.
+    setEnd(addMinutesToLocal(value, durationMin ?? DEFAULT_EVENT_DURATION_MIN));
+    if (durationMin === null) setDurationMin(DEFAULT_EVENT_DURATION_MIN);
+  };
+
+  const handleEndChange = (value: string) => {
+    setEnd(value);
+    if (allDay) return;
+    // Ręczna zmiana końca: podświetlamy szybką opcję tylko, gdy długość się zgadza.
+    const minutes = durationBetween(start, value);
+    setDurationMin(QUICK_EVENT_DURATIONS.some((d) => d.minutes === minutes) ? minutes : null);
+  };
+
+  const applyDuration = (minutes: number) => {
+    setDurationMin(minutes);
+    if (start) setEnd(addMinutesToLocal(start, minutes));
+  };
 
   const resetForm = () => {
-    setTitle(""); setDescription(""); setStart(""); setEnd("");
+    setTitle(""); setDescription(""); setStart(""); setEnd(""); setDurationMin(DEFAULT_EVENT_DURATION_MIN);
     setPlace(""); setShare("null"); setRepeat("none"); 
     setSelectedCalendar("local"); 
   };
@@ -127,16 +178,35 @@ export default function EventForm({
         <div>
           <label htmlFor="start" className="form-label">Początek:</label>
           <input id="start" type={allDay ? "date" : "datetime-local"} value={start}
-            onChange={(e) => setStart(e.target.value)}
+            onChange={(e) => handleStartChange(e.target.value)}
             className="input-field text-xs w-full min-w-0 px-1" required disabled={loading} />
         </div>
         <div>
           <label htmlFor="end" className="form-label">Koniec:</label>
           <input id="end" type={allDay ? "date" : "datetime-local"} value={end}
-            onChange={(e) => setEnd(e.target.value)}
+            onChange={(e) => handleEndChange(e.target.value)}
+            min={start || undefined}
             className="input-field text-xs w-full min-w-0 px-1" required disabled={loading} />
         </div>
       </div>
+
+      {!allDay && (
+        <fieldset className="flex flex-wrap items-center gap-2" disabled={loading}>
+          <legend className="sr-only">Czas trwania</legend>
+          <span className="text-xs font-medium text-text-secondary" aria-hidden="true">Czas trwania:</span>
+          {QUICK_EVENT_DURATIONS.map(({ minutes, label }) => (
+            <button
+              key={minutes}
+              type="button"
+              onClick={() => applyDuration(minutes)}
+              aria-pressed={durationMin === minutes}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-line bg-surface text-text-secondary hover:bg-surface-hover transition-colors aria-pressed:bg-secondary aria-pressed:text-white aria-pressed:border-transparent disabled:opacity-60"
+            >
+              {label}
+            </button>
+          ))}
+        </fieldset>
+      )}
       
       <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>

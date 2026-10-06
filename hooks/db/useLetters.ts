@@ -126,7 +126,7 @@ export function useLetters() {
   });
 
   const editLetter = useCallback(
-    async (id: string, updates: LetterUpdate) => crud.patch(id, updates),
+    (id: string, updates: LetterUpdate) => crud.patch(id, updates),
     [crud]
   );
   const deleteLetter = useCallback(

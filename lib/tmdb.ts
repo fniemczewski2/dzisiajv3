@@ -139,6 +139,6 @@ export async function searchMedia(query: string, filter: MediaType | "all" = "al
   return normalizeSearchResults(data, filter).slice(0, 8);
 }
 
-export async function fetchMediaDetails(mediaType: MediaType, tmdbId: number, signal?: AbortSignal) {
+export function fetchMediaDetails(mediaType: MediaType, tmdbId: number, signal?: AbortSignal) {
   return tmdbFetch<TmdbDetailsResponse>(`/${mediaType}/${tmdbId}`, { append_to_response: "watch/providers" }, signal);
 }

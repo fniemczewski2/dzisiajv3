@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { generateTimeSlots } from "@/lib/meetingPollGrid";
 import { validateFinalizeSlot, type FinalizeSlotValidated } from "@/lib/sanitize";
 import type { FinalizeRequest, FinalizeResponse, FinalizeResultSlot } from "@/types/meetingPolls";
+import { mapPool } from "@/lib/asyncPool";
 
 const MAX_SLOTS_PER_FINALIZE = 20;
 
@@ -118,13 +119,13 @@ async function inviteParticipants(
   const requiredTimes = generateTimeSlots(slot.start_time, slot.end_time, ctx.poll.slot_duration_minutes);
   let invitedParticipants = 0;
 
-  for (const response of ctx.responses) {
-    if (!response.user_id || response.user_id === ctx.user.id) continue;
+  await mapPool(ctx.responses, 5, async (response) => {
+    if (!response.user_id || response.user_id === ctx.user.id) return;
 
     const isFullyAvailable = requiredTimes.every((t) =>
       ctx.availabilitySet.has(`${response.id}|${slot.date}|${t}`)
     );
-    if (!isFullyAvailable) continue;
+    if (!isFullyAvailable) return;
 
     const { data: participantEvent, error: participantEventError } = await supabaseAdmin
       .from("events")
@@ -144,7 +145,7 @@ async function inviteParticipants(
       created.push(participantEvent.id as string);
       invitedParticipants++;
     }
-  }
+  });
   return invitedParticipants;
 }
 
@@ -213,17 +214,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const created: CreatedEvents = [];
   const results: FinalizeResultSlot[] = [];
+  let failure: string | null = null;
   for (const slot of ctx.slots) {
-    const outcome = await finalizeOneSlot(ctx, slot, created);
+    const outcome = await finalizeOneSlot(ctx, slot, created); // NOSONAR – terminy po kolei: przy pierwszym błędzie przerywamy i wycofujemy całość
     if ("error" in outcome) {
-      // Wycofujemy częściowy wynik, żeby ponowna próba nie zdublowała wydarzeń.
-      if (created.length > 0) {
-        await supabaseAdmin.from("events").delete().in("id", created);
-      }
-      await ctx.supabase.from("meeting_polls").update({ finalized_at: null }).eq("id", ctx.poll.id);
-      return res.status(500).json({ error: outcome.error });
+      failure = outcome.error;
+      break;
     }
     results.push(outcome.slot);
+  }
+
+  if (failure !== null) {
+    // Wycofujemy częściowy wynik, żeby ponowna próba nie zdublowała wydarzeń.
+    if (created.length > 0) {
+      await supabaseAdmin.from("events").delete().in("id", created);
+    }
+    await ctx.supabase.from("meeting_polls").update({ finalized_at: null }).eq("id", ctx.poll.id);
+    return res.status(500).json({ error: failure });
   }
 
   const response: FinalizeResponse = { results };
