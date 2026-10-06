@@ -134,7 +134,9 @@ export function usePlanByHour({
         if (a.type === "train" && b.type === "train") {
           return (a.train?.departureTime ?? "").localeCompare(b.train?.departureTime ?? "");
         }
-        return a.type === "train" ? -1 : b.type === "train" ? 1 : 0;
+        if (a.type === "train") return -1;
+        if (b.type === "train") return 1;
+        return 0;
       });
     });
 

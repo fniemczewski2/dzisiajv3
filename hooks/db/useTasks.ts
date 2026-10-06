@@ -16,6 +16,7 @@ import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { UNDO_WINDOW_MS } from "@/config/limits";
 import { enqueueInsert, isOffline } from "@/lib/offlineQueue";
 
+import { omit } from "@/lib/objectUtils";
 const createSortFunction = (sortOrder: string, getPriority: (task: Task) => number) => {
   switch (sortOrder) {
     case "due_date":
@@ -167,7 +168,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
-      const { shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...taskData } = task;
+      const sharedWithEmail = task.shared_with_email;
+      const taskData = omit(task, ["shared_with_email", "display_share_info"]);
       const optimisticTask = { ...taskData, id: tempId, user_id: userId } as Task;
       setRawTasks((prev) => [...prev, optimisticTask]);
 
@@ -198,7 +200,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         return data as Task;
       } catch {
         if (isOffline()) {
-          const { shared_with_email: _sharedEmail, display_share_info: _shareInfo, ...offlinePayload } = task;
+          const offlinePayload = omit(task, ["shared_with_email", "display_share_info"]);
           await enqueueInsert("tasks", { ...offlinePayload, user_id: userId });
           toast.info("Brak sieci – zadanie zostanie zapisane po odzyskaniu połączenia.");
           return undefined;
@@ -224,16 +226,10 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setRawTasks((prev) => prev.map((t) => (sameId(t.id, task.id) ? { ...t, ...task } : t)));
 
       try {
-        const {
-          shared_with_email: sharedWithEmail,
-          display_share_info: _displayShareInfo,
-          id: _id,
-          user_id: _userId,
-          created_at: _createdAt,
-          updated_at: _updatedAt,
-          done_at: _doneAt,
-          ...taskData
-        } = task;
+        const sharedWithEmail = task.shared_with_email;
+        const taskData = omit(task, [
+          "shared_with_email", "display_share_info", "id", "user_id", "created_at", "updated_at", "done_at",
+        ]);
         let finalForUserId = taskData.for_user_id;
 
         if (sharedWithEmail !== undefined) {

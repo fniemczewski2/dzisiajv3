@@ -29,7 +29,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
     setExpanded
   }); 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     onTrainAdded(formData);
     clearTicketReview();

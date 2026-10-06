@@ -177,7 +177,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     setFormData(p => ({ ...p, business_data: { ...p.business_data, [field]: value } }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 

@@ -10,6 +10,8 @@ import MovieCard from "./MovieCard";
 import NoResultsState from "../ui/NoResultsState";
 import type { MediaType, Movie, NewMovieData } from "@/types/movies";
 
+
+const EMPTY_LABEL: Partial<Record<string, string>> = { tv: "seriali", movie: "filmów" };
 interface MoviesProps {
   movies: Movie[];
   addMovie: (movie: NewMovieData) => Promise<boolean>;
@@ -108,7 +110,7 @@ export default function MovieWatchlist({
     { value: "tv", label: "Seriale", count: counts.tv },
   ];
 
-  const emptyText = typeFilter === "tv" ? "seriali" : typeFilter === "movie" ? "filmów" : "filmów ani seriali";
+  const emptyText = EMPTY_LABEL[typeFilter] ?? "filmów ani seriali";
   const isFiltering = searchQuery.trim().length > 0;
 
   return (

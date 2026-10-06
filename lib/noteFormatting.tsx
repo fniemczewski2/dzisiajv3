@@ -21,12 +21,18 @@ const URL_RE = /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+)/gi;
 // minor extra leniency (allowing a label to start/end with "-") is fine.
 const BARE_DOMAIN_RE = /(\b(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s<>()]*)?\b)/gi;
 
-const TRAILING_PUNCT_RE = /[.,;:!?)\]]+$/;
+const TRAILING_PUNCT = new Set([".", ",", ";", ":", "!", "?", ")", "]"]);
+
+/** Interpunkcja na końcu tokenu (np. „example.com).”) – liniowo, bez regexu. */
+function trailingPunctuation(text: string): string {
+  let i = text.length;
+  while (i > 0 && TRAILING_PUNCT.has(text[i - 1])) i--;
+  return text.slice(i);
+}
 const MAX_RENDER_LENGTH = 5000;
 
-function renderLinkToken(part: string, key: string): React.ReactNode {
-  const trailingMatch = TRAILING_PUNCT_RE.exec(part);
-  const trailing = trailingMatch ? trailingMatch[0] : "";
+function renderLinkToken(part: string, key: string): React.JSX.Element {
+  const trailing = trailingPunctuation(part);
   const linkText = trailing ? part.slice(0, -trailing.length) : part;
   const href = linkText.includes(".") ? sanitizeHref(linkText) : null;
 
@@ -57,7 +63,7 @@ function linkifyBareDomains(text: string, keyPrefix: string): React.ReactNode[] 
 
   return parts.map((part, i) => {
     if (i % 2 !== 1 || !part) {
-      return part ? <React.Fragment key={`${keyPrefix}-${i}`}>{part}</React.Fragment> : null;
+      return <React.Fragment key={`${keyPrefix}-${i}`}>{part}</React.Fragment>;
     }
     return renderLinkToken(part, `${keyPrefix}-${i}`);
   });
@@ -67,7 +73,7 @@ function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
   if (!text) return [];
   const parts = text.split(URL_RE);
 
-  return parts.flatMap((part, i) => {
+  return parts.flatMap((part, i): React.ReactNode[] => {
     // split() with a capturing group returns matches at odd indices.
     if (i % 2 !== 1 || !part) {
       return linkifyBareDomains(part, `${keyPrefix}-t-${i}`);

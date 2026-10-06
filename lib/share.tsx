@@ -6,7 +6,7 @@ export async function resolveSharedEmails<T extends { user_id: string; shared_wi
   items: T[],
   userId: string,
   supabase: SupabaseClient,
-  emailCacheRef: React.MutableRefObject<Record<string, string>>
+  emailCacheRef: React.RefObject<Record<string, string>>
 ): Promise<(T & { display_share_info: string | null })[]> {
   const neededIds = Array.from(
     new Set(

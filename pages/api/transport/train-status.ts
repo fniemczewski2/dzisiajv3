@@ -32,24 +32,24 @@ async function getStationsDictionary(
 ): Promise<{ stations: Station[] | null; rateLimited: boolean; upstreamError: boolean }> {
   const isFresh = stationsCache && Date.now() - stationsFetchedAt < STATIONS_TTL_MS;
   if (isFresh) return { stations: stationsCache, rateLimited: false, upstreamError: false };
-    stationsInFlight ??= (async () => {
-      const res = await fetch(
-        `https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?pageSize=10000`,
-        { headers }
-      );
-      if (res.status === 429) {
-        const err: Error & { rateLimited?: boolean } = new Error('rate limited');
-        err.rateLimited = true;
-        throw err;
-      }
-      if (!res.ok) return null;
-      const data: StationsDictionaryResponse = await res.json();
-      stationsCache = data.stations;
-      stationsFetchedAt = Date.now();
-      return data.stations;
-    })().finally(() => {
-      stationsInFlight = null;
-    });
+  stationsInFlight ??= (async () => {
+    const res = await fetch(
+      `https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?pageSize=10000`,
+      { headers }
+    );
+    if (res.status === 429) {
+      const err: Error & { rateLimited?: boolean } = new Error('rate limited');
+      err.rateLimited = true;
+      throw err;
+    }
+    if (!res.ok) return null;
+    const data: StationsDictionaryResponse = await res.json();
+    stationsCache = data.stations;
+    stationsFetchedAt = Date.now();
+    return data.stations;
+  })().finally(() => {
+    stationsInFlight = null;
+  });
   
 
   try {

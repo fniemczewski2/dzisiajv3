@@ -9,6 +9,8 @@ import { buildMovieData, fetchMediaDetails, posterUrl, searchMedia } from "@/lib
 import { MEDIA_TYPE_LABELS, type MediaSearchResult, type MediaType, type NewMovieData } from "@/types/movies";
 import { isAbortError } from "@/lib/abortUtils";
 
+
+const NOT_FOUND_LABEL: Partial<Record<string, string>> = { tv: "serialu", movie: "filmu" };
 interface MovieAddFormProps {
   onSubmit: (movie: NewMovieData) => Promise<boolean>;
   onCancel: () => void;
@@ -75,7 +77,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
     try {
       const results = await searchMedia(form.title, filter, newSignal());
       if (results.length > 0) setOptions(results);
-      else setTmdbError(`Nie znaleziono ${filter === "tv" ? "serialu" : filter === "movie" ? "filmu" : "filmu ani serialu"}. Spróbuj innego tytułu.`);
+      else setTmdbError(`Nie znaleziono ${NOT_FOUND_LABEL[filter] ?? "filmu ani serialu"}. Spróbuj innego tytułu.`);
     } catch (err) {
       if (!isAbortError(err)) toast.error("Wystąpił błąd wyszukiwania TMDB");
     } finally {

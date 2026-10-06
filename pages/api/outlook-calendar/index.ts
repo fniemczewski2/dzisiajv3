@@ -10,6 +10,7 @@ import { OutlookTokenResponse, OutlookEventsResponse, OutlookCalendarsResponse }
 import { warsawNaiveToRFC3339 } from '@/lib/server/calendarTime';
 import { mapPool } from "@/lib/asyncPool";
 
+import { resolveExportTarget, canAttachToTarget, type ExportTarget } from '@/lib/server/exportTarget';
 async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenResponse | null> {
   const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
     method: 'POST',
@@ -208,6 +209,8 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supab
 
 interface ExportableEvent {
   id: string;
+  repeat?: string | null;
+  calendar_id?: string | null;
   title: string;
   description: string | null;
   place: string | null;
@@ -220,12 +223,17 @@ async function exportEventsToOutlook(
   supabase: SupabaseClient,
   events: ExportableEvent[],
   accessToken: string,
-  calendarId: string
+  calendarId: string,
+  target: ExportTarget | null
 ): Promise<{ exported: number; skipped: number }> {
   let exported = 0;
   let skipped = 0;
 
   await mapPool(events, 5, async (ev) => {
+    if (target && !canAttachToTarget(ev, target)) {
+      skipped++;
+      return;
+    }
     const body = {
       subject: ev.title,
       body: { contentType: 'text', content: ev.description || '' },
@@ -246,7 +254,11 @@ async function exportEventsToOutlook(
 
     if (r.ok) {
       const created = await r.json();
-      await supabase.from('events').update({ google_event_id: created.id }).eq('id', ev.id);
+      // Przypinamy do kalendarza, żeby cron nie dodał duplikatu (zob. google-calendar).
+      await supabase
+        .from('events')
+        .update(target ? { google_event_id: created.id, calendar_id: target.rowId } : { google_event_id: created.id })
+        .eq('id', ev.id);
       exported++;
     } else {
       skipped++;
@@ -259,16 +271,26 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona.' });
 
   try {
-    const { calendarId, eventIds } = req.body ?? {};
+    const { eventIds, connectedCalendarId } = req.body ?? {};
+    let { calendarId } = req.body ?? {};
+
+    const target = connectedCalendarId
+      ? await resolveExportTarget(supabase, user.id, 'outlook', connectedCalendarId)
+      : null;
+    if (connectedCalendarId && !target) return res.status(404).json({ error: 'Nie znaleziono kalendarza.' });
+    if (target) calendarId = target.calendarId;
     if (!calendarId) return res.status(400).json({ error: 'Brak identyfikatora kalendarza.' });
 
-    const { data: mainAcc } = await supabase
+    // Konto Microsoft, do którego należy wybrany kalendarz. Wcześniej
+    // maybeSingle() bez filtra po koncie zwracało błąd przy dwóch kontach.
+    let mainQuery = supabase
       .from('connected_calendars')
       .select('*')
       .eq('user_id', user.id)
       .eq('provider', 'outlook')
-      .eq('google_calendar_id', '@account_connection')
-      .maybeSingle<ConnectedCalendarRow>();
+      .eq('google_calendar_id', '@account_connection');
+    if (target) mainQuery = mainQuery.eq('account_email', target.accountEmail);
+    const { data: mainAcc } = await mainQuery.limit(1).maybeSingle<ConnectedCalendarRow>();
 
     if (!mainAcc) return res.status(400).json({ error: 'Brak podłączonego konta Microsoft' });
 
@@ -287,7 +309,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
     if (fetchErr) return res.status(500).json({ error: 'Nie udało się pobrać wydarzeń z aplikacji.' });
     if (!events?.length) return res.json({ exported: 0, skipped: 0, message: 'Brak wydarzeń w wybranym zakresie.' });
 
-    const { exported, skipped } = await exportEventsToOutlook(supabase, events as ExportableEvent[], accessToken, calendarId);
+    const { exported, skipped } = await exportEventsToOutlook(supabase, events as ExportableEvent[], accessToken, calendarId, target);
     return res.json({ exported, skipped });
   } catch {
     return res.status(500).json({ error: 'Błąd eksportu do kalendarza Outlook' });

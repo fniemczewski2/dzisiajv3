@@ -9,10 +9,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 
 const supabase = {
   from: () => ({ select: () => ({ eq: () => ({ neq: () => Promise.resolve({ data: [] }) }) }) }),
+  auth: { getSession: () => Promise.resolve({ data: { session: null } }) },
 };
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => supabase }));
 vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => ({ user: { id: "me" } }) }));
 vi.mock("@/hooks/db/useSettings", () => ({ useSettings: () => ({ settings: { users: [] } }) }));
+vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { success: vi.fn(), error: vi.fn() } }) }));
 
 import EventForm from "@/components/calendar/EventForm";
 

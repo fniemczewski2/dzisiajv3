@@ -10,6 +10,16 @@ import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 
+import { omit } from "@/lib/objectUtils";
+function deleteQuestion(isOwner: boolean, isShared: boolean): string {
+  if (!isOwner) {
+    return "Czy chcesz wypisać się z tej listy? Zniknie z Twoich list, a właściciel zachowa ją u siebie.";
+  }
+  return isShared
+    ? "Czy chcesz usunąć listę zakupów? Lista jest udostępniona – zniknie także u drugiej osoby."
+    : "Czy chcesz usunąć listę zakupów?";
+}
+
 export function useShoppingLists() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -68,7 +78,7 @@ export function useShoppingLists() {
 
       try {
         let sharedWithUuid: string | null = null;
-        if (sharedWithEmail !== undefined && sharedWithEmail !== null) {
+        if (sharedWithEmail) {
           sharedWithUuid = await getUserIdByEmail(sharedWithEmail, supabase);
         }
 
@@ -100,8 +110,8 @@ export function useShoppingLists() {
       }
       setLoading(true);
       const previous = lists;
-      const { shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...finalUpdates } =
-        updates;
+      const sharedWithEmail = updates.shared_with_email;
+      const finalUpdates = omit(updates, ["shared_with_email", "display_share_info"]);
       setLists((prev) => prev.map((l) => (l.id === id ? { ...l, ...finalUpdates } : l)));
 
       try {
@@ -135,6 +145,30 @@ export function useShoppingLists() {
    * z JWT odbiorcy jest blokowany przez RLS, bo po zmianie przestałby on
    * widzieć wiersz. Polityka DELETE pozwala usuwać wyłącznie właścicielowi.
    */
+  const deleteOwnList = useCallback(
+    async (id: string) => {
+      const { data, error } = await withRetry(() =>
+        supabase.from("shopping_lists").delete().eq("id", id).eq("user_id", userId).select("id")
+      );
+      if (error) throw error;
+      // RLS nie zwraca błędu, tylko 0 usuniętych wierszy.
+      if (!data || data.length === 0) throw new Error("NO_ROWS_DELETED");
+    },
+    [supabase, userId, withRetry]
+  );
+
+  const leaveSharedList = useCallback(
+    async (id: string) => {
+      const { data, error } = await withRetry(() =>
+        supabase.rpc("leave_shared_shopping_list", { p_list_id: id })
+      );
+      if (error) throw error;
+      // false = nie byłeś już odbiorcą tej listy (np. właściciel zdjął udostępnienie).
+      if (data !== true) throw new Error("NOT_A_RECIPIENT");
+    },
+    [supabase, withRetry]
+  );
+
   const deleteShoppingList = useCallback(
     async (id: string) => {
       if (!userId) {
@@ -143,13 +177,7 @@ export function useShoppingLists() {
       const list = lists.find((l) => l.id === id);
       const isOwner = !list || list.user_id === userId;
 
-      let question = "Czy chcesz wypisać się z tej listy? Zniknie z Twoich list, a właściciel zachowa ją u siebie.";
-      if (isOwner) {
-        question = list?.shared_with_id
-          ? "Czy chcesz usunąć listę zakupów? Lista jest udostępniona – zniknie także u drugiej osoby."
-          : "Czy chcesz usunąć listę zakupów?";
-      }
-      const ok = await toast.confirm(question);
+      const ok = await toast.confirm(deleteQuestion(isOwner, Boolean(list?.shared_with_id)));
       if (!ok) return;
 
       setLoading(true);
@@ -158,20 +186,10 @@ export function useShoppingLists() {
 
       try {
         if (isOwner) {
-          const { data, error } = await withRetry(() =>
-            supabase.from("shopping_lists").delete().eq("id", id).eq("user_id", userId).select("id")
-          );
-          if (error) throw error;
-          // RLS nie zwraca błędu, tylko 0 usuniętych wierszy.
-          if (!data || data.length === 0) throw new Error("NO_ROWS_DELETED");
+          await deleteOwnList(id);
           toast.success("Usunięto listę zakupów");
         } else {
-          const { data, error } = await withRetry(() =>
-            supabase.rpc("leave_shared_shopping_list", { p_list_id: id })
-          );
-          if (error) throw error;
-          // false = nie byłeś już odbiorcą tej listy (np. właściciel zdjął udostępnienie).
-          if (data !== true) throw new Error("NOT_A_RECIPIENT");
+          await leaveSharedList(id);
           toast.success("Wypisano Cię z listy zakupów");
         }
       } catch {
@@ -185,7 +203,7 @@ export function useShoppingLists() {
         setLoading(false);
       }
     },
-    [userId, supabase, lists, toast, withRetry]
+    [userId, lists, toast, deleteOwnList, leaveSharedList]
   );
 
   useEffect(() => {

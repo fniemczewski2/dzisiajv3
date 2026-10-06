@@ -25,6 +25,30 @@ function Detail({ label, value }: Readonly<{ label: string; value: string | null
   );
 }
 
+type Badge = { text: string; cls: string };
+
+const ON_TIME_BADGE_CLASS = "bg-emerald-600 text-white";
+
+function statusBadge(o: { cancelled: boolean; delayed: boolean; delay: number; onTime: boolean }): Badge {
+  if (o.cancelled) return { text: "Odwołany", cls: "bg-red-600 text-white" };
+  if (o.delayed) return { text: `+${o.delay}`, cls: "bg-orange-700 text-white" };
+  if (o.onTime) return { text: "Planowo", cls: ON_TIME_BADGE_CLASS };
+  return { text: "Brak danych", cls: "bg-gray-600 text-white" };
+}
+
+function TimeValue({ planned, expected, delayed, fallback }: Readonly<{
+  planned: Date | null | undefined;
+  expected: Date | null | undefined;
+  delayed: boolean;
+  fallback: string;
+}>) {
+  if (!planned) return <>{fallback}</>;
+  if (delayed && expected) {
+    return <span className="text-orange-600 dark:text-orange-400">{formatHm(expected)}</span>;
+  }
+  return <>{formatHm(planned)}</>;
+}
+
 export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTrain }>) => {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -54,11 +78,9 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   const title = train.trainName ? train.trainName : train.trainNumber || "Pociąg";
   const timeLabel = isArrival ? `Przyjazd do: ${stop.station}` : `Odjazd z: ${stop.station}`;
 
-  let badge: { text: string; cls: string };
-  if (cancelled) badge = { text: "Odwołany", cls: "bg-red-600 text-white" };
-  else if (delayed) badge = { text: `+${delay}`, cls: "bg-orange-700 text-white" };
-  else if ((relevant || inTransit || arrived) && (!loading && !rateLimited && status && status !== "Błąd połączenia")) badge = { text: "Planowo", cls: "bg-emerald-600 text-white" };
-  else badge = { text: "Brak danych", cls: "bg-gray-600 text-white" };
+  const onTime =
+    (relevant || inTransit || arrived) && !loading && !rateLimited && Boolean(status) && status !== "Błąd połączenia";
+  const badge = statusBadge({ cancelled, delayed, delay, onTime });
   return (
     <div className={"mb-2 p-2 rounded-lg group bg-surface border border-gray-200 dark:border-gray-800 shadow-sm text-text transition-colors"}>
       <div className="flex items-start justify-between gap-2">
@@ -74,11 +96,9 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
         </div>
         <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
           {loading && relevant && <Loader2 className="w-3.5 h-3.5 animate-spin text-text-muted" aria-label="Aktualizacja statusu" />}
-          {badge && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${badge.cls}`} aria-live="polite">
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${badge.cls}`} aria-live="polite">
               {badge.text}
             </span>
-          )}
           <Link href="/transport" title="Pokaż w transporcie" className={actionButton({ color: "blue" })}>
             <TrainFront className="w-4 h-4" />
           </Link>
@@ -89,15 +109,12 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
         <div className="flex flex-col min-w-0" title={timeLabel}>
           <span className="sr-only">{timeLabel}</span>
           <span className="text-sm font-bold tabular-nums">
-            {planned ? (
-              delayed && expected ? (
-                <span className="text-orange-600 dark:text-orange-400">{formatHm(expected)}</span>
-              ) : (
-                formatHm(planned)
-              )
-            ) : (
-              (!isArrival && train.departureTime) || "–"
-            )}
+            <TimeValue
+              planned={planned}
+              expected={expected}
+              delayed={delayed}
+              fallback={(!isArrival && train.departureTime) || "–"}
+            />
           </span>
         </div>
         

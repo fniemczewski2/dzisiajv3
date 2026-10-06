@@ -20,10 +20,30 @@ const TICKET_FIELD_LABELS: Record<keyof TicketFormData, string> = {
   seat: 'miejsce',
 };
 
+type ParsedTicketResponse = Partial<Record<keyof TicketFormData, string>>;
+
+/** Odpowiedź /api/transport/parse-ticket → pola formularza (data z DD.MM.RRRR na RRRR-MM-DD). */
+function toTicketFormData(data: ParsedTicketResponse): TicketFormData {
+  return {
+    trainNumber: data.trainNumber || '',
+    trainName: data.trainName || '',
+    date: data.date ? data.date.split('.').reverse().join('-') : '',
+    departureTime: data.departureTime || '',
+    from: data.from || '',
+    to: data.to || '',
+    wagon: data.wagon || '',
+    seat: data.seat || '',
+  };
+}
+
 export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicketUploadProps>) {
   const [loading, setLoading] = useState(false);
   const [missingFromTicket, setMissingFromTicket] = useState<string[] | null>(null);
   const { toast } = useToast();
+  const dismissLoading = (toastId: string | undefined) => {
+    if (toastId && toast.dismiss) toast.dismiss(toastId);
+  };
+
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -43,19 +63,10 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
       });
       
       const data = await res.json();
+      dismissLoading(toastId);
 
       if (res.ok) {
-        if (toastId && toast.dismiss) toast.dismiss(toastId);
-        const parsed: TicketFormData = {
-          trainNumber: data.trainNumber || '',
-          trainName: data.trainName || '',
-          date: data.date ? data.date.split('.').reverse().join('-') : '',
-          departureTime: data.departureTime || '',
-          from: data.from || '',
-          to: data.to || '',
-          wagon: data.wagon || '',
-          seat: data.seat || ''
-        };
+        const parsed = toTicketFormData(data);
         const missing = (Object.keys(TICKET_FIELD_LABELS) as (keyof TicketFormData)[])
           .filter((key) => !parsed[key])
           .map((key) => TICKET_FIELD_LABELS[key]);
@@ -66,12 +77,11 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
 
         setExpanded?.(true); 
       } else {
-        if (toastId && toast.dismiss) toast.dismiss(toastId);
         toast.error(data.error || 'Nie udało się odczytać biletu');
       }
     } catch (error) {
       console.error('Błąd podczas przesyłania biletu:', error);
-      if (toastId && toast.dismiss) toast.dismiss(toastId);
+      dismissLoading(toastId);
       toast.error('Błąd połączenia z serwerem');
     } finally {
       setLoading(false);

@@ -1,7 +1,7 @@
 ﻿// lib/amountUtils.ts
 
 export function isValidAmountInput(raw: string): boolean {
-  return /^\d*[.,]?\d*$/.test(raw);
+  return /^\d*(?:[.,]\d*)?$/.test(raw);
 }
 
 export function parseAmountInput(raw: string): number {

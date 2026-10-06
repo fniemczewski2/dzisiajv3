@@ -8,6 +8,8 @@ import { format } from "date-fns";
 import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/providers/ToastProvider";
+import { exportEventToCalendar, calendarTargetLabel, type CalendarTarget } from "@/lib/calendarExport";
 import {
   DEFAULT_EVENT_DURATION_MIN,
   LOCAL_DATE_FORMAT,
@@ -17,12 +19,6 @@ import {
   durationBetween,
 } from "@/lib/eventTimes";
 
-interface ConnectedCalendarOption {
-  id: string;
-  calendar_name: string | null;
-  google_calendar_id: string;
-  provider: "google" | "outlook";
-}
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -48,6 +44,7 @@ export default function EventForm({
   const { user } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
+  const { toast } = useToast();
   
   const userOptions = settings?.users ?? [];
   const supabase = createClient();
@@ -63,7 +60,7 @@ export default function EventForm({
   const [share, setShare] = useState("null");
   const [repeat, setRepeat] = useState<Event["repeat"]>("none");
 
-  const [calendars, setCalendars] = useState<ConnectedCalendarOption[]>([]);
+  const [calendars, setCalendars] = useState<CalendarTarget[]>([]);
   const [selectedCalendar, setSelectedCalendar] = useState("local");
 
   useEffect(() => {
@@ -124,6 +121,14 @@ export default function EventForm({
     setDurationMin(QUICK_EVENT_DURATIONS.some((d) => d.minutes === minutes) ? minutes : null);
   };
 
+  // Cykliczne wydarzenie zostaje w aplikacji: do Google/Outlooka trafiłoby jako
+  // pojedyncze, a synchronizacja zdjęłaby potem powtarzanie także w aplikacji.
+  const isRecurring = repeat !== "none";
+  const handleRepeatChange = (value: Event["repeat"]) => {
+    setRepeat(value);
+    if (value !== "none") setSelectedCalendar("local");
+  };
+
   const applyDuration = (minutes: number) => {
     setDurationMin(minutes);
     if (start) setEnd(addMinutesToLocal(start, minutes));
@@ -138,7 +143,7 @@ export default function EventForm({
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    await addEvent({
+    const created = await addEvent({
           id: "",
           title: title.trim(),
           description: description.trim(),
@@ -149,6 +154,19 @@ export default function EventForm({
           repeat,
           user_id: userId || "",
         });
+
+    // „Dodaj do”: wydarzenie powstaje w aplikacji, a potem jest wysyłane do
+    // wybranego kalendarza Google/Outlook i do niego przypinane.
+    const target = calendars.find((c) => c.id === selectedCalendar);
+    if (created?.id && target) {
+      const { data: { session } } = await supabase.auth.getSession();
+      const ok = session ? await exportEventToCalendar(target, created.id, session.access_token) : false;
+      if (ok) {
+        toast.success(`Dodano też do kalendarza ${calendarTargetLabel(target)}`);
+      } else {
+        toast.error(`Wydarzenie zapisano w aplikacji, ale nie udało się dodać go do kalendarza ${calendarTargetLabel(target)}.`);
+      }
+    }
 
     resetForm();
     onEventsChange();
@@ -219,14 +237,20 @@ export default function EventForm({
           <label htmlFor="calendar" className="form-label">Dodaj do:</label>
           <select id="calendar" value={selectedCalendar}
             onChange={(e) => setSelectedCalendar(e.target.value)}
+            aria-describedby={isRecurring && calendars.length > 0 ? "calendar-recurring-hint" : undefined}
             className="input-field" disabled={loading}>
             <option value="local">Aplikacja – kalendarz domyślny</option>
             {calendars.map((cal) => (
-              <option key={cal.id} value={cal.id}>
-                {cal.provider === 'google' ? 'Google: ' : ''}{cal.calendar_name || cal.google_calendar_id}
+              <option key={cal.id} value={cal.id} disabled={isRecurring}>
+                {calendarTargetLabel(cal)}
               </option>
             ))}
           </select>
+          {isRecurring && calendars.length > 0 && (
+            <p id="calendar-recurring-hint" className="mt-1 text-xs text-text-muted">
+              Wydarzenia cykliczne zapisujemy tylko w kalendarzu aplikacji.
+            </p>
+          )}
         </div>
       </div>
 
@@ -243,7 +267,7 @@ export default function EventForm({
         <div>
           <label htmlFor="repeat" className="form-label">Powtarzaj:</label>
           <select id="repeat" value={repeat}
-            onChange={(e) => setRepeat(e.target.value as Event["repeat"])}
+            onChange={(e) => handleRepeatChange(e.target.value as Event["repeat"])}
             className="input-field" disabled={loading}>
             <option value="none">Nie</option>
             <option value="weekly">Co tydzień</option>

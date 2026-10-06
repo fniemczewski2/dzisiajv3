@@ -234,7 +234,7 @@ export default function BillCalculator() {
                     onChange={calculate} 
                   />
                   {rateLoading && <SkeletonLine className="h-3 w-40 mt-2 ml-1" />}
-                  {!rateLoading && fetchedEuroRate && (
+                  {!rateLoading && Boolean(fetchedEuroRate) && (
                       <p className="text-[10px] font-bold text-primary mt-2 ml-1">
                           Aktualny kurs z NBP: {fetchedEuroRate} zł
                       </p>

@@ -35,7 +35,7 @@ const checkIsStandalone = (): boolean => {
 const checkIsSupported = (): boolean => {
   return (
     typeof globalThis !== "undefined" &&
-    globalThis.navigator !== undefined &&
+    typeof navigator !== "undefined" &&
     "serviceWorker" in globalThis.navigator &&
     "PushManager" in globalThis &&
     "Notification" in globalThis

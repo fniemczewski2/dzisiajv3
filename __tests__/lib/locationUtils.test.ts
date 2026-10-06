@@ -27,7 +27,7 @@ describe("requestSmartLocation", () => {
     const second = vi.fn();
     requestSmartLocation({ onSuccess: second, onError: vi.fn(), maxAgeMs: 60_000 });
     expect(getCurrentPosition).toHaveBeenCalledTimes(1);
-    expect(second.mock.calls[0][0].coords.latitude).toBe(52.4);
+    expect(second.mock.calls[0][0].coords.latitude).toBeCloseTo(52.4);
   });
 
   it("nie wywołuje okna zgody po zapamiętanej odmowie", () => {

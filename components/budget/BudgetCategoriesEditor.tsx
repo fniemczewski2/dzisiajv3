@@ -37,7 +37,7 @@ function AddCategoryForm({
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
     await onAdd(name.trim());
@@ -80,7 +80,7 @@ function AmountEditor({
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const numAmount = Number.parseFloat(amount) || 0;
     

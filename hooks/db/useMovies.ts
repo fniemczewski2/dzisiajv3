@@ -6,6 +6,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { buildMovieData, fetchMediaDetails } from "@/lib/tmdb";
 import { useCrudResource } from "./useCrudResource";
 
+import { omit } from "@/lib/objectUtils";
 // Tabela `movies` trzyma zarówno filmy, jak i seriale – komunikaty są neutralne.
 const MESSAGES = {
   fetchError: "Błąd pobierania filmów i seriali.",
@@ -50,7 +51,8 @@ export function useMovies() {
 
   const updateMovie = useCallback(
     async (movie: Movie, options: { silent?: boolean } = {}): Promise<void> => {
-      const { id, user_id: _userId, created_at: _created, ...updates } = movie;
+      const { id } = movie;
+      const updates = omit(movie, ["id", "user_id", "created_at"]);
       await crud.patch(id, { ...updates, updated_at: new Date().toISOString() }, {
         silent: options.silent,
         successMessage: MESSAGES.edited,
@@ -69,7 +71,8 @@ export function useMovies() {
       const nextWatched = !movie.watched;
       await updateMovie({ ...movie, watched: nextWatched }, { silent: true });
       const isTv = movie.media_type === "tv";
-      toast.success(nextWatched ? `Oznaczono jako obejrzan${isTv ? "y serial" : "y"}` : "Cofnięto obejrzenie");
+      const watchedMessage = isTv ? "Oznaczono jako obejrzany serial" : "Oznaczono jako obejrzany";
+      toast.success(nextWatched ? watchedMessage : "Cofnięto obejrzenie");
     },
     [findMovie, updateMovie, toast]
   );

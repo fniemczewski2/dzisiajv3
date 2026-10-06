@@ -153,15 +153,30 @@ export function extractRoute(rawText: string): string {
   return dataIdx > 0 ? lines[dataIdx - 1] : '';
 }
 
+/**
+ * Numer i nazwa pociągu z fragmentu „Pociąg: … Wagon”. Najpierw wycinamy ten
+ * fragment po znacznikach, a dopiero potem dopasowujemy krótki, zakotwiczony
+ * wzorzec – poprzedni regex z `\\s*` i `(.*?)` miał nadliniowy czas działania.
+ * Tekst ma już zwinięte białe znaki do pojedynczych spacji.
+ */
+function extractTrain(text: string): { trainNumber: string; trainName: string } {
+  const start = text.indexOf('Pociąg:');
+  const end = start === -1 ? -1 : text.indexOf('Wagon', start);
+  if (end === -1) return { trainNumber: '', trainName: '' };
+
+  const segment = text.slice(start + 'Pociąg:'.length, end).trim();
+  const match = /^([A-Za-z]{0,20} ?\d{1,10})(?: ?\/ ?\d{1,10})?/.exec(segment);
+  if (!match) return { trainNumber: '', trainName: '' };
+  return { trainNumber: match[1].trim(), trainName: segment.slice(match[0].length).trim() };
+}
+
 export function parseTicketData(rawText: string): ParsedTicket {
   const route = extractRoute(rawText);
   const { from, to } = extractStationNames(route);
 
   const cleanText = rawText.replaceAll(/\s+/g, ' ');
 
-  const trainMatch = /Pociąg:\s*([A-Za-z]{0,20}\s*\d{1,10})(?:\s*\/\s*\d{1,10})?(.*?)Wagon/.exec(cleanText);
-  const trainNumber = trainMatch ? trainMatch[1].trim() : '';
-  const trainName = trainMatch ? trainMatch[2].trim() : '';
+  const { trainNumber, trainName } = extractTrain(cleanText);
 
   const dateMatch = /Data odjazdu.{0,100}?(\d{2}\.\d{2}\.\d{4})/.exec(cleanText);
   const date = dateMatch ? dateMatch[1] : '';

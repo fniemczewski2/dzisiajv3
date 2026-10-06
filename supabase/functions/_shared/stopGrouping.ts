@@ -81,56 +81,71 @@ function mostCommon(values: string[]): string {
  * + łańcuch słupków, w którym każdy leży w promieniu `radiusM` od innego
  * (single-linkage). Słupki bez kodu są pomijane – nie da się dla nich pobrać odjazdów.
  */
-export function clusterStops(posts: readonly StopPost[], radiusM = CLUSTER_RADIUS_M): StopCluster[] {
+function isUsablePost(p: StopPost): boolean {
+  return Boolean(p.stop_code && p.stop_name) && Number.isFinite(p.stop_lat) && Number.isFinite(p.stop_lon);
+}
+
+/** Słupki pogrupowane po sieci i znormalizowanej nazwie. */
+function groupByNetworkAndName(posts: readonly StopPost[]): Map<string, StopPost[]> {
   const byName = new Map<string, StopPost[]>();
   for (const p of posts) {
-    if (!p.stop_code || !p.stop_name || !Number.isFinite(p.stop_lat) || !Number.isFinite(p.stop_lon)) continue;
+    if (!isUsablePost(p)) continue;
     const key = `${networkOf(p.zone_id)}|${normalizeStopName(p.stop_name)}`;
     const list = byName.get(key);
     if (list) list.push(p);
     else byName.set(key, [p]);
   }
+  return byName;
+}
 
+/** Oznacza numerem `cluster` wszystkie słupki osiągalne od `seed` krokami ≤ radiusM. */
+function floodFill(unique: readonly StopPost[], assigned: number[], seed: number, cluster: number, radiusM: number): void {
+  assigned[seed] = cluster;
+  const queue = [seed];
+  while (queue.length) {
+    const cur = unique[queue.pop() as number];
+    for (let j = 0; j < unique.length; j++) {
+      if (assigned[j] !== -1) continue;
+      if (distanceM(cur.stop_lat, cur.stop_lon, unique[j].stop_lat, unique[j].stop_lon) <= radiusM) {
+        assigned[j] = cluster;
+        queue.push(j);
+      }
+    }
+  }
+}
+
+/** Dzieli słupki o tej samej nazwie na skupiska położone blisko siebie. */
+function splitByDistance(unique: readonly StopPost[], radiusM: number): StopPost[][] {
+  const assigned = new Array<number>(unique.length).fill(-1);
+  let count = 0;
+  for (let i = 0; i < unique.length; i++) {
+    if (assigned[i] === -1) floodFill(unique, assigned, i, count++, radiusM);
+  }
+  return Array.from({ length: count }, (_, c) => unique.filter((_, i) => assigned[i] === c));
+}
+
+function toCluster(members: readonly StopPost[]): StopCluster {
+  const codes = members.map((m) => m.stop_code as string).sort((a, b) => a.localeCompare(b));
+  const lat = members.reduce((s, m) => s + m.stop_lat, 0) / members.length;
+  const lon = members.reduce((s, m) => s + m.stop_lon, 0) / members.length;
+  const network = networkOf(members[0].zone_id);
+  return {
+    key: `${network}:${codes[0]}`,
+    name: members[0].stop_name.trim(),
+    network,
+    zone_id: mostCommon(members.map((m) => m.zone_id ?? "AUTO")),
+    stop_codes: codes,
+    lat: Math.round(lat * 1e6) / 1e6,
+    lon: Math.round(lon * 1e6) / 1e6,
+  };
+}
+
+export function clusterStops(posts: readonly StopPost[], radiusM = CLUSTER_RADIUS_M): StopCluster[] {
   const clusters: StopCluster[] = [];
-  for (const group of byName.values()) {
+  for (const group of groupByNetworkAndName(posts).values()) {
     // Deduplikacja po kodzie (to samo zapytanie może zwrócić słupek dwa razy).
     const unique = Array.from(new Map(group.map((p) => [p.stop_code as string, p])).values());
-    const assigned = new Array<number>(unique.length).fill(-1);
-    let next = 0;
-
-    for (let i = 0; i < unique.length; i++) {
-      if (assigned[i] !== -1) continue;
-      assigned[i] = next;
-      const queue = [i];
-      while (queue.length) {
-        const cur = unique[queue.pop() as number];
-        for (let j = 0; j < unique.length; j++) {
-          if (assigned[j] !== -1) continue;
-          if (distanceM(cur.stop_lat, cur.stop_lon, unique[j].stop_lat, unique[j].stop_lon) <= radiusM) {
-            assigned[j] = next;
-            queue.push(j);
-          }
-        }
-      }
-      next++;
-    }
-
-    for (let c = 0; c < next; c++) {
-      const members = unique.filter((_, i) => assigned[i] === c);
-      const codes = members.map((m) => m.stop_code as string).sort();
-      const lat = members.reduce((s, m) => s + m.stop_lat, 0) / members.length;
-      const lon = members.reduce((s, m) => s + m.stop_lon, 0) / members.length;
-      const network = networkOf(members[0].zone_id);
-      clusters.push({
-        key: `${network}:${codes[0]}`,
-        name: members[0].stop_name.trim(),
-        network,
-        zone_id: mostCommon(members.map((m) => m.zone_id ?? "AUTO")),
-        stop_codes: codes,
-        lat: Math.round(lat * 1e6) / 1e6,
-        lon: Math.round(lon * 1e6) / 1e6,
-      });
-    }
+    for (const members of splitByDistance(unique, radiusM)) clusters.push(toCluster(members));
   }
   return clusters;
 }

@@ -11,6 +11,7 @@ import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 
+import { omit } from "@/lib/objectUtils";
 export function useVirtualBirthdayEvents(): Event[] {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -150,7 +151,8 @@ export function useEvents(
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
-      const { id: _id, shared_with_email: sharedWithEmail, display_share_info: _displayShareInfo, ...eventData } = event;
+      const sharedWithEmail = event.shared_with_email;
+      const eventData = omit(event, ["id", "shared_with_email", "display_share_info"]);
       const optimisticEvent = { ...eventData, id: tempId, user_id: userId } as Event;
       setRawEvents((prev) => [...prev, optimisticEvent]);
 
@@ -198,13 +200,8 @@ export function useEvents(
 
       try {
         const originalId = event.id.split("_")[0];
-        const {
-          id: _id,
-          user_id: _userId,
-          shared_with_email: sharedWithEmail,
-          display_share_info: _displayShareInfo,
-          ...eventData
-        } = event;
+        const sharedWithEmail = event.shared_with_email;
+        const eventData = omit(event, ["id", "user_id", "shared_with_email", "display_share_info"]);
         let targetSharedId = eventData.shared_with_id || null;
 
         if (sharedWithEmail !== undefined) {

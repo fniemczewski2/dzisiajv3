@@ -15,10 +15,10 @@ describe("checkRateLimit", () => {
 
 describe("clientIp", () => {
   it("prefers platform headers over a client-controlled x-forwarded-for", () => {
-    expect(clientIp({ headers: { "x-forwarded-for": "1.1.1.1, 9.9.9.9", "x-real-ip": "9.9.9.9" } })).toBe("9.9.9.9");
+    expect(clientIp({ headers: { "x-forwarded-for": "192.0.2.1, 198.51.100.9", "x-real-ip": "198.51.100.9" } })).toBe("198.51.100.9");
   });
   it("falls back to the proxy-appended (last) x-forwarded-for entry", () => {
-    expect(clientIp({ headers: { "x-forwarded-for": "6.6.6.6, 2.2.2.2" } })).toBe("2.2.2.2");
+    expect(clientIp({ headers: { "x-forwarded-for": "203.0.113.6, 198.51.100.2" } })).toBe("198.51.100.2");
   });
   it("returns unknown without headers", () => {
     expect(clientIp({ headers: {} })).toBe("unknown");

@@ -171,7 +171,7 @@ export default function StationBoardWidget() {
     ) : null;
 
     if (board.items.length === 0 && board.error) {
-      return errorBanner;
+      return <>{errorBanner}</>;
     }
 
     if (board.items.length === 0 && board.loading) {

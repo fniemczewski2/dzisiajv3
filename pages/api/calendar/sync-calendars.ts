@@ -106,7 +106,7 @@ async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
       .select('*')
       .order('id')
       .range(from, from + PAGE_SIZE - 1)
-      .returns<ConnectedCalendarRow[]>();
+      .overrideTypes<ConnectedCalendarRow[], { merge: false }>();
     if (error) throw error;
     all.push(...(data ?? []));
     if (!data || data.length < PAGE_SIZE) break;

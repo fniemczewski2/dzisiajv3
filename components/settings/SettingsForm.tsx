@@ -47,7 +47,7 @@ export default function SettingsForm({
     setLocalSettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault(); 
     onSave(localSettings);
   };

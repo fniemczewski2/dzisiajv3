@@ -17,8 +17,17 @@ export function sanitizeTypeToken(raw: string): string {
   return cleaned || 'OTHER';
 }
 
+/** Obcina podkreślenia z obu końców – liniowo (regex /_+$/ miał nadliniowy czas). */
+function trimUnderscores(text: string): string {
+  let start = 0;
+  let end = text.length;
+  while (start < end && text[start] === '_') start++;
+  while (end > start && text[end - 1] === '_') end--;
+  return text.slice(start, end);
+}
+
 export function safeFileName(raw: string | undefined): string {
-  const cleaned = (raw ?? '').replaceAll(/[^\p{L}\p{N}_-]+/gu, '_').replaceAll(/^_+|_+$/g, '');
+  const cleaned = trimUnderscores((raw ?? '').replaceAll(/[^\p{L}\p{N}_-]+/gu, '_'));
   return cleaned || 'wizytowka';
 }
 

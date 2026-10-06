@@ -3,6 +3,7 @@
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import { omit } from "@/lib/objectUtils";
 interface UseQuickActionOptions {
   onActionAdd?: () => void;
   removeQueryAfterTrigger?: boolean;
@@ -16,7 +17,7 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
     if (router.query.action === "add" && onActionAdd) {
       onActionAdd();
       if (removeQueryAfterTrigger) {
-        const { action: _action, ...rest } = router.query;
+        const rest = omit(router.query, ["action"]);
         void router.replace(
           { pathname: router.pathname, query: rest },
           undefined,

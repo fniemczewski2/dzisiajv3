@@ -31,7 +31,6 @@ import { effectivePollStatus } from "@/lib/meetingPollDeadline";
 import { formatTime } from "@/lib/dateUtils";
 import type {
   MeetingPollResults as MeetingPollResultsData,
-  MeetingPollResponseRow,
   FinalizeSlotInput,
   FinalizeResultSlot,
 } from "@/types/meetingPolls";
@@ -41,8 +40,43 @@ import MeetingPollGrid, { GridLegend, type GridSelection } from "./MeetingPollGr
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 
 import { mapPool } from "@/lib/asyncPool";
+import { exportEventToCalendar, calendarTargetLabel } from "@/lib/calendarExport";
 interface MeetingPollResultsProps {
   pollId: string;
+}
+
+/** Imiona osób dostępnych w każdym terminie (klucz: slotKey). */
+function respondentNamesBySlot(
+  data: {
+    responses: readonly { id: string; respondent_name: string }[];
+    availabilities: readonly { response_id: string; date: string; start_time: string }[];
+  } | null | undefined
+): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  if (!data) return map;
+  const nameByResponseId = new Map(data.responses.map((r) => [r.id, r.respondent_name]));
+  for (const a of data.availabilities) {
+    const name = nameByResponseId.get(a.response_id);
+    if (!name) continue;
+    const key = slotKey(a.date, a.start_time);
+    map[key] ??= [];
+    map[key].push(name);
+  }
+  return map;
+}
+
+/** Publiczny link do ankiety (pusty, dopóki nie znamy adresu strony). */
+function shareLink(origin: string, token: string): string {
+  return origin ? `${origin}/meet/${token}` : "";
+}
+
+function calendarDisplayName(cal: ConnectedCalendarOption): string {
+  return cal.calendar_name || cal.google_calendar_id;
+}
+
+function calendarChoiceLabel(options: readonly ConnectedCalendarOption[], choice: string): string {
+  const option = choice === "local" ? undefined : options.find((c) => c.id === choice);
+  return option ? calendarTargetLabel(option) : "kalendarz aplikacji";
 }
 
 interface ConnectedCalendarOption {
@@ -363,18 +397,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     return map;
   }, [data]);
 
-  const respondentsByKey = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    if (!data) return map;
-    const nameByResponseId = new Map(data.responses.map((r) => [r.id, r.respondent_name]));
-    for (const a of data.availabilities) {
-      const key = slotKey(a.date, a.start_time);
-      const name = nameByResponseId.get(a.response_id);
-      if (!name) continue;
-      (map[key] ??= []).push(name);
-    }
-    return map;
-  }, [data]);
+  const respondentsByKey = useMemo(() => respondentNamesBySlot(data), [data]);
 
   const slotsByResponse = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -451,12 +474,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     setPendingSlots((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const calendarLabel = (choice: string): string => {
-    if (choice === "local") return "kalendarz aplikacji";
-    const option = calendarOptions.find((c) => c.id === choice);
-    if (!option) return "kalendarz aplikacji";
-    return `${option.provider === "google" ? "Google: " : "Outlook: "}${option.calendar_name || option.google_calendar_id}`;
-  };
+  const calendarLabel = (choice: string): string => calendarChoiceLabel(calendarOptions, choice);
 
   const exportSlotToCalendar = async (
     slot: PendingSlot,
@@ -467,14 +485,10 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     const option = calendarOptions.find((c) => c.id === slot.calendarChoice);
     if (!option) return;
 
-    const endpoint = option.provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
-    try {
-      await fetch(`${endpoint}?action=export`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ calendarId: option.google_calendar_id, eventIds: [result.organizerEventId] }),
-      });
-    } catch {
+    // Helper sprawdza odpowiedź serwera i przekazuje wybrany kalendarz, więc
+    // wydarzenie trafia na właściwe konto i zostaje do niego przypięte.
+    const ok = await exportEventToCalendar(option, result.organizerEventId, accessToken);
+    if (!ok) {
       toast.error(`Nie udało się dodać terminu ${slot.date} do kalendarza ${calendarLabel(slot.calendarChoice)}.`);
     }
   };
@@ -514,7 +528,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   }
 
   const isOpen = effectivePollStatus(data.poll) === "open";
-  const link = origin ? `${origin}/meet/${data.poll.share_token}` : "";
+  const link = shareLink(origin, data.poll.share_token);
   const selectionDay = selection ? formatPollDay(selection.date) : null;
 
   return (
@@ -677,7 +691,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                 {calendarOptions.map((cal) => (
                   <option key={cal.id} value={cal.id}>
                     {cal.provider === "google" ? "Google: " : "Outlook: "}
-                    {cal.calendar_name || cal.google_calendar_id}
+                    {calendarDisplayName(cal)}
                   </option>
                 ))}
               </select>

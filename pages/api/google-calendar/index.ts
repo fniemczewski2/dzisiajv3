@@ -12,6 +12,7 @@ import { GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEve
 import { ExternalCalendar } from "@/types/events";
 
 import { mapPool, chunk } from "@/lib/asyncPool";
+import { resolveExportTarget, canAttachToTarget } from "@/lib/server/exportTarget";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -123,7 +124,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, au
     .eq("user_id", auth.user.id)
     .eq("provider", "google")
     .eq("google_calendar_id", "@account_connection")
-    .returns<Pick<ConnectedCalendarRow, "id" | "account_email">[]>();
+    .overrideTypes<Pick<ConnectedCalendarRow, "id" | "account_email">[], { merge: false }>();
 
   if (!mainAccounts || mainAccounts.length === 0) return res.json({ connected: false, calendars: [] });
 
@@ -332,16 +333,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
-  const { calendarId, eventIds, accountId } = req.body ?? {};
-  if (typeof calendarId !== "string" || !calendarId) return res.status(400).json({ error: "Brak identyfikatora kalendarza." });
+  const { eventIds, accountId, connectedCalendarId } = req.body ?? {};
+  let { calendarId } = req.body ?? {};
   if (eventIds !== undefined && (!Array.isArray(eventIds) || eventIds.some((id) => typeof id !== "string"))) {
     return res.status(400).json({ error: "Pole eventIds musi być listą identyfikatorów." });
   }
 
-  const accessToken = await getValidGoogleToken(auth, accountId);
+  const sb = getServiceSupabase(auth.token);
+
+  // Kalendarz wybrany w aplikacji (wiersz connected_calendars): z niego konto
+  // i id kalendarza Google, a po wysłaniu wydarzenie zostaje do niego przypięte.
+  const target = connectedCalendarId
+    ? await resolveExportTarget(sb, auth.user.id, "google", connectedCalendarId)
+    : null;
+  if (connectedCalendarId && !target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
+  if (target) calendarId = target.calendarId;
+  if (typeof calendarId !== "string" || !calendarId) return res.status(400).json({ error: "Brak identyfikatora kalendarza." });
+
+  const accessToken = await getValidGoogleToken(auth, target ? target.rowId : accountId);
   if (!accessToken) return res.status(400).json({ error: "Brak połączenia z Kalendarzem Google." });
 
-  const sb = getServiceSupabase(auth.token);
   let query = sb.from("events").select("*").eq("user_id", auth.user.id);
   if (eventIds?.length) query = query.in("id", eventIds);
   else {
@@ -355,6 +366,7 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   if (!events?.length) return res.json({ exported: 0, skipped: 0, message: "Brak wydarzeń w wybranym zakresie." });
 
   const exportOne = async (ev: (typeof events)[number]): Promise<boolean> => {
+    if (target && !canAttachToTarget(ev, target)) return false;
     const body = { summary: ev.title, description: ev.description || "", location: ev.place || "", start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: "Europe/Warsaw" }, end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: "Europe/Warsaw" } };
     const method = ev.google_event_id ? "PUT" : "POST";
     const endpoint = buildGoogleEventsUrl(calendarId, ev.google_event_id ?? undefined);
@@ -362,7 +374,12 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
     const r = await fetch(endpoint, { method, headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) return false;
     const created = await r.json();
-    await sb.from("events").update({ google_event_id: created.id }).eq("id", ev.id);
+    // calendar_id + google_event_id: cron synchronizacji rozpozna to wydarzenie
+    // (upsert po tej parze) zamiast dodać jego duplikat po imporcie z Google.
+    await sb
+      .from("events")
+      .update(target ? { google_event_id: created.id, calendar_id: target.rowId } : { google_event_id: created.id })
+      .eq("id", ev.id);
     return true;
   };
 

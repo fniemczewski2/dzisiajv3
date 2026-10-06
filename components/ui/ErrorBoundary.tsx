@@ -39,7 +39,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        return <>{this.props.fallback}</>;
       }
 
       return (
@@ -107,6 +107,6 @@ export default class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return <>{this.props.children}</>;
   }
 }

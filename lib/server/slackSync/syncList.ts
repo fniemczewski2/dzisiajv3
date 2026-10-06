@@ -65,16 +65,30 @@ interface SyncTaskContext {
 // Reconciles a single task against its (possibly absent) Slack item. Pulled
 // out to a top-level function — as a closure inside syncList, its branching
 // counted directly against that function's cognitive complexity.
+/** Zadanie bez powiązania z tą listą: tworzymy element w Slacku, jeśli powinno tu trafić. */
+async function pushUnlinkedTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
+  const { admin, target, columns, linkedAnywhere, targetListByTask, counters } = ctx;
+  if (linkedAnywhere.has(task.id)) return;
+  if (!belongsOnList(task, targetListByTask.get(task.id), target)) return;
+  await pushTask(admin, target, task, columns, undefined);
+  linkedAnywhere.add(task.id);
+  counters.created_in_slack += 1;
+}
+
+type SyncDirection = ReturnType<typeof resolveDirection>;
+
+/** Gdy pobieranie ze Slacka jest wyłączone, zmiana po stronie Slacka nie wygrywa. */
+function effectiveDirection(direction: SyncDirection, pullEnabled: boolean, appChanged: boolean): SyncDirection | "none" {
+  if (pullEnabled || direction !== "pull") return direction;
+  return appChanged ? "push" : "none";
+}
+
 async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
-  const { admin, target, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters } = ctx;
+  const { admin, target, columns, linkByTask, itemById, counters } = ctx;
   const link = linkByTask.get(task.id);
 
   if (!link) {
-    if (linkedAnywhere.has(task.id)) return;
-    if (!belongsOnList(task, targetListByTask.get(task.id), target)) return;
-    await pushTask(admin, target, task, columns, undefined);
-    linkedAnywhere.add(task.id);
-    counters.created_in_slack += 1;
+    await pushUnlinkedTask(ctx, task);
     return;
   }
   if (task.category !== SLACK_TASK_CATEGORY) return;
@@ -110,7 +124,7 @@ async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
     itemUpdatedAt: itemUpdatedAt(item),
   });
 
-  const effective = !target.pullEnabled && direction === "pull" ? (appChanged ? "push" : "none") : direction;
+  const effective = effectiveDirection(direction, target.pullEnabled, appChanged);
 
   if (effective === "push") {
     await pushTask(admin, target, task, columns, link);

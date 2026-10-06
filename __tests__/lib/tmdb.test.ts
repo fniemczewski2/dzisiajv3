@@ -28,7 +28,7 @@ describe("normalizeSearchResults", () => {
       ["tv", "Wiedźmin", 2019],
       ["tv", "Bez plakatu", null],
     ]);
-    expect(r[0].rating).toBe(8.4);
+    expect(r[0].rating).toBeCloseTo(8.4);
   });
 
   it("filters by media type", () => {

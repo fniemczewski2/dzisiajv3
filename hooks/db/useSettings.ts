@@ -259,7 +259,8 @@ export function useSettings() {
 
       try {
         await saveFavoriteStops(updated);
-        toast.success(`Dodano do ulubionych: ${stop.name}${stop.locality ? ` (${stop.locality})` : ""}`);
+        const locality = stop.locality ? ` (${stop.locality})` : "";
+        toast.success(`Dodano do ulubionych: ${stop.name}${locality}`);
         return true;
       } catch {
         setSettings((prev) => ({ ...prev, favorite_stops: previous }));

@@ -68,17 +68,24 @@ function indexFieldsByColumn(fields: SlackItemField[] | undefined): Map<string, 
 // Returns the value to write for this field, or undefined to skip it
 // entirely (no matching cell, or the cell's value doesn't survive
 // normalization e.g. an unrecognized status).
-function resolvePatchValue(
+/** Wpisuje do łatki wartość pola ze Slacka; puste lub nierozpoznane pomija. */
+function applyPatchValue(
+  patch: Record<string, unknown>,
   field: SlackMappableTaskField,
   cell: SlackItemField,
   column: SlackColumn | undefined
-): string | number | null | undefined {
+): void {
   const raw = readFieldValue(cell, column);
-  if (raw === null) return undefined;
+  if (raw === null) return;
 
-  if (field === "priority") return Number(raw) || null;
-  if (field === "status") return normalizeTaskStatus(raw) ?? undefined;
-  return raw;
+  if (field === "priority") {
+    patch[field] = Number(raw) || null;
+  } else if (field === "status") {
+    const status = normalizeTaskStatus(raw);
+    if (status !== null) patch[field] = status;
+  } else {
+    patch[field] = raw;
+  }
 }
 
 export function itemToTaskPatch(
@@ -97,8 +104,7 @@ export function itemToTaskPatch(
     const cell = byColumn.get(columnId);
     if (!cell) continue;
 
-    const value = resolvePatchValue(field, cell, columnById.get(columnId));
-    if (value !== undefined) patch[field] = value;
+    applyPatchValue(patch, field, cell, columnById.get(columnId));
   }
   return patch as Partial<TaskRow>;
 }

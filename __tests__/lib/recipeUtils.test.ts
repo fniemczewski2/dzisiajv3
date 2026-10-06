@@ -12,8 +12,9 @@ import {
 } from "@/lib/recipeUtils";
 import { RECIPE_CATEGORIES, isRecipeCategory, type Recipe } from "@/types/recipes";
 
+let recipeSeq = 0;
 const recipe = (over: Partial<Recipe>): Recipe => ({
-  id: over.id ?? Math.random().toString(36),
+  id: over.id ?? `recipe-${++recipeSeq}`,
   name: "Przepis",
   category: "deser",
   products: [],

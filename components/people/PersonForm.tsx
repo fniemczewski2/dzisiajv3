@@ -29,7 +29,7 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSave(formData);
   };

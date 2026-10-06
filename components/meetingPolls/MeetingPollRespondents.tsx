@@ -122,7 +122,7 @@ export default function MeetingPollRespondents({
                         </p>
                       )}
                       <p className="text-xs text-text-muted">
-                        Odpowiedź: {formatSubmittedAt(response.created_at)} 
+                        Odpowiedź: {formatSubmittedAt(response.created_at)} • {availabilitySummary(slots, slotDurationMinutes)}
                       </p>
                     </div>
                   

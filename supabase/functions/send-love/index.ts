@@ -42,6 +42,44 @@ function normalizeEmails(list: unknown): string[] {
     .filter(Boolean);
 }
 
+type Client = ReturnType<typeof createClient>;
+
+async function readTrustedEmails(admin: Client, userId: string): Promise<string[]> {
+  const { data, error } = await admin.from("settings").select("users").eq("user_id", userId).maybeSingle();
+  if (error) throw error;
+  return normalizeEmails(data?.users);
+}
+
+/** Limit liczony z istniejących powiadomień – działa niezależnie od liczby instancji funkcji. */
+async function isRateLimited(admin: Client, userId: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - LOVE_WINDOW_MINUTES * 60_000).toISOString();
+  const { count, error } = await admin
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("type", "love_message")
+    .eq("data->>sender_id", userId)
+    .gte("created_at", windowStart);
+  if (error) throw error;
+  return (count ?? 0) >= LOVE_LIMIT;
+}
+
+type RecipientResult = { ok: true; userId: string } | { ok: false; body: Record<string, unknown> };
+
+/** Pierwsza osoba z listy zaufanych nadawcy – tylko jeśli ona też ufa nadawcy (wzajemność). */
+async function resolveRecipient(admin: Client, asSender: Client, senderId: string, senderEmail: string): Promise<RecipientResult> {
+  const recipientEmail = (await readTrustedEmails(admin, senderId))[0];
+  if (!recipientEmail) return { ok: false, body: { success: false, message: "Brak odbiorców" } };
+  if (recipientEmail === senderEmail) return { ok: false, body: NOT_DELIVERABLE };
+
+  const { data: targetUserId, error } = await asSender.rpc("find_user_id_by_email", { p_email: recipientEmail });
+  if (error) throw error;
+  if (!targetUserId) return { ok: false, body: NOT_DELIVERABLE };
+
+  const trustedByRecipient = await readTrustedEmails(admin, targetUserId as string);
+  if (!trustedByRecipient.includes(senderEmail)) return { ok: false, body: NOT_DELIVERABLE };
+  return { ok: true, userId: targetUserId as string };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -63,30 +101,9 @@ Deno.serve(async (req) => {
     if (userError || !user?.email) return respond({ error: "Brak autoryzacji." }, 401);
     const senderEmail = user.email.toLowerCase();
 
-    // Limit liczony z istniejących powiadomień – działa niezależnie od tego,
-    // ile instancji funkcji obsługuje ruch.
-    const windowStart = new Date(Date.now() - LOVE_WINDOW_MINUTES * 60_000).toISOString();
-    const { count: recentCount, error: countError } = await admin
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("type", "love_message")
-      .eq("data->>sender_id", user.id)
-      .gte("created_at", windowStart);
-    if (countError) throw countError;
-    if ((recentCount ?? 0) >= LOVE_LIMIT) {
+    if (await isRateLimited(admin, user.id)) {
       return respond({ success: false, message: "Za dużo serduszek naraz – spróbuj za kilka minut." }, 429);
     }
-
-    const { data: senderSettings, error: settingsError } = await admin
-      .from("settings")
-      .select("users")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (settingsError) throw settingsError;
-
-    const recipientEmail = normalizeEmails(senderSettings?.users)[0];
-    if (!recipientEmail) return respond({ success: false, message: "Brak odbiorców" });
-    if (recipientEmail === senderEmail) return respond(NOT_DELIVERABLE);
 
     // RPC z JWT nadawcy: find_user_id_by_email jest nadane rolom
     // `authenticated`, nie `anon`/`public`.
@@ -94,21 +111,9 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
       global: { headers: { Authorization: `Bearer ${jwt}` } },
     });
-    const { data: targetUserId, error: lookupError } = await asSender.rpc("find_user_id_by_email", {
-      p_email: recipientEmail,
-    });
-    if (lookupError) throw lookupError;
-    if (!targetUserId) return respond(NOT_DELIVERABLE);
-
-    const { data: recipientSettings, error: recipientSettingsError } = await admin
-      .from("settings")
-      .select("users")
-      .eq("user_id", targetUserId)
-      .maybeSingle();
-    if (recipientSettingsError) throw recipientSettingsError;
-    if (!normalizeEmails(recipientSettings?.users).includes(senderEmail)) {
-      return respond(NOT_DELIVERABLE);
-    }
+    const recipient = await resolveRecipient(admin, asSender, user.id, senderEmail);
+    if (!recipient.ok) return respond(recipient.body);
+    const targetUserId = recipient.userId;
 
     const title = "Kocham Cię!";
     const message = "Ktoś przesyła Ci dużo miłości!";
