@@ -15,7 +15,7 @@ interface CalendarHeaderProps {
 export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly<CalendarHeaderProps>) {
   return (
     <div className={clsx("flex items-center px-4 pb-4 sm:pb-6 my-2 sm:my-4 justify-center")}>
-      <div className="flex items-center card rounded-2xl p-1 shadow-sm">
+      <div className="flex items-center card rounded-card p-1 shadow-sm">
         <button
           onClick={onPrev}
           className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"

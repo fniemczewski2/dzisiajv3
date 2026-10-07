@@ -69,7 +69,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
               <CircleUser className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
               Zalogowano jako
             </h4>
-            <span className="px-2.5 py-1 font-mono font-medium rounded-md card text-text truncate max-w-full">
+            <span className="px-2.5 py-1 font-mono font-medium rounded-lg card text-text truncate max-w-full">
               {email || "Brak danych"}
             </span>
           </div>

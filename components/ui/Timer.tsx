@@ -90,7 +90,7 @@ function TimerControlButtons({
           title="Cofnij" aria-label="Cofnij"
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-[11px] sm:text-xs font-bold">Cofnij</span>
+          <span className="text-xs font-bold">Cofnij</span>
         </button>
       )}
 
@@ -102,7 +102,7 @@ function TimerControlButtons({
           title="Anuluj" aria-label="Anuluj"
         >
           <X className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-[11px] sm:text-xs font-bold">Anuluj</span>
+          <span className="text-xs font-bold">Anuluj</span>
         </button>
       )}
 
@@ -114,7 +114,7 @@ function TimerControlButtons({
           title={paused ? "Wznów" : "Pauza"} aria-label={paused ? "Wznów" : "Pauza"}
         >
           {paused ? <Play className="w-5 h-5 sm:w-6 sm:h-6" /> : <Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
-          <span className="text-[11px] sm:text-xs font-bold">{paused ? "Wznów" : "Pauza"}</span>
+          <span className="text-xs font-bold">{paused ? "Wznów" : "Pauza"}</span>
         </button>
       ) : (
         <button
@@ -124,7 +124,7 @@ function TimerControlButtons({
           title="Start" aria-label="Start"
         >
           <Play className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="text-[11px] sm:text-xs font-bold">Start</span>
+          <span className="text-xs font-bold">Start</span>
         </button>
       )}
 
@@ -140,7 +140,7 @@ function TimerControlButtons({
           title={isMultiPhase ? "Zakończ" : "Zapisz do notatki"} aria-label={isMultiPhase ? "Zakończ" : "Zapisz do notatki"}
         >
           {isMultiPhase ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Save className="w-4 h-4 sm:w-5 sm:h-5" />}
-          <span className="text-[11px] sm:text-xs font-bold">
+          <span className="text-xs font-bold">
             {isMultiPhase ? "Stop" : "Zapisz"}
           </span>
         </button>
@@ -154,7 +154,7 @@ function TimerControlButtons({
           title="Dalej" aria-label="Dalej"
         >
           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-[11px] sm:text-xs font-bold">Dalej</span>
+          <span className="text-xs font-bold">Dalej</span>
         </button>
       )}
     </div>
@@ -182,7 +182,7 @@ export default function UniversalTimer({
 
   return (
     <div 
-      className={`w-full max-w-md mx-auto card shadow-md rounded-2xl flex flex-col items-center transition-colors ${
+      className={`w-full max-w-md mx-auto card shadow-md rounded-card flex flex-col items-center transition-colors ${
         compact ? "p-4 gap-3 sm:gap-4" : "p-6 gap-6"
       }`}
     >
@@ -193,7 +193,7 @@ export default function UniversalTimer({
         </h2>
         
         {isMultiPhase && (
-          <div className="text-[10px] sm:text-xs font-semibold text-text-muted">
+          <div className="text-xs font-semibold text-text-muted">
             {nextPhase ? `Następne: ${nextPhase.label}` : "Następne: Koniec"}
           </div>
         )}
@@ -210,10 +210,10 @@ export default function UniversalTimer({
         
         {isMultiPhase && (
           <div className="flex items-center justify-center gap-2 mt-3 sm:mt-4">
-            <span className="bg-surface text-text-secondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
+            <span className="bg-surface text-text-secondary text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
               Runda {round}
             </span>
-            <span className="bg-surface text-text-secondary text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
+            <span className="bg-surface text-text-secondary text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-700">
               Faza {phaseIndex + 1} / {phases.length}
             </span>
           </div>

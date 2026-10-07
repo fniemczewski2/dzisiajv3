@@ -46,13 +46,13 @@ interface BillGroupContentProps {
 function CategoryBadge({ category }: { readonly category?: BudgetCategory | null }) {
   if (!category) {
     return (
-      <span className="text-[10px] font-bold text-text-muted bg-surface border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded">
+      <span className="text-xs font-bold text-text-muted bg-surface border border-gray-200 dark:border-gray-700 px-1.5 py-0.5 rounded-lg">
         Inne
       </span>
     );
   }
   return (
-    <span className="text-[10px] font-bold text-primary bg-blue-50 dark:bg-blue-900/30 border border-primary px-1.5 py-0.5 rounded">
+    <span className="text-xs font-bold text-primary bg-blue-50 dark:bg-blue-900/30 border border-primary px-1.5 py-0.5 rounded-lg">
       {category.name}
     </span>
   );
@@ -60,7 +60,7 @@ function CategoryBadge({ category }: { readonly category?: BudgetCategory | null
 
 function RecurringBadge() {
   return (
-    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
+    <span className="flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded-lg">
       <RefreshCw className="w-2.5 h-2.5" /> Cykliczny
     </span>
   );

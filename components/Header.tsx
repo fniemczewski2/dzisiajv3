@@ -77,7 +77,7 @@ function WeatherDetails({
           {dailyMin}° / {dailyMax}°
         </span>
         {airQuality && (
-          <span className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-(--header-warn)/15 px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-(--header-warn)">
+          <span className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-(--header-warn)/15 px-2 py-0.5 text-xs font-semibold text-(--header-warn)">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-(--header-warn)" />
             {airQuality}
           </span>
@@ -171,8 +171,8 @@ export default function Header() {
         <div className="flex flex-1 justify-end items-center">
           {weatherLoading ? (
             <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
-              <span className="block h-7 w-20 rounded-md bg-(--header-hover) animate-pulse" />
-              <span className="block h-3 w-14 rounded bg-(--header-hover) animate-pulse" />
+              <span className="block h-7 w-20 rounded-lg bg-(--header-hover) animate-pulse" />
+              <span className="block h-3 w-14 rounded-lg bg-(--header-hover) animate-pulse" />
             </output>
           ) : (
             <WeatherDetails

@@ -1,5 +1,4 @@
-﻿// pages/api/calendar/sync-calendars.ts
-
+﻿
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { verifyCronRequest } from '@/lib/server/cronAuth';
@@ -38,6 +37,7 @@ async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
     .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
 
   if (error) {
+
     throw new Error(`events upsert: ${error.message}`);
   }
   return rows.length;
@@ -78,9 +78,10 @@ async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeM
 }
 
 async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
+
   const all: ConnectedCalendarRow[] = [];
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService // NOSONAR 
+    const { data, error } = await supabaseService // NOSONAR
       .from('connected_calendars')
       .select('*')
       .order('id')
@@ -99,6 +100,7 @@ async function getAccessToken(
   tokenCache: TokenCache,
   mainAccountsCache: MainAccountsCache
 ): Promise<string | null> {
+
   const mainAcc = accounts.find(a =>
     a.user_id === acc.user_id &&
     a.account_email === acc.account_email &&
@@ -122,10 +124,12 @@ async function getAccessToken(
   if (accessToken) {
     tokenCache[cacheKey] = accessToken;
     mainAccountsCache[cacheKey] = mainAcc;
+
     if (mainAcc.sync_error) {
       await supabaseService.from('connected_calendars').update({ sync_error: null }).eq('id', mainAcc.id);
     }
   } else {
+
     await supabaseService
       .from('connected_calendars')
       .update({ sync_error: 'token_refresh_failed' })
@@ -184,18 +188,20 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const googleRes = await fetchWithTimeout(fetchUrl.toString(), { // NOSONAR 
+    const googleRes = await fetchWithTimeout(fetchUrl.toString(), { // NOSONAR
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!googleRes.ok) {
+
       throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
-    const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR 
+    const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR
     pageToken = data.nextPageToken;
 
     const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows); // NOSONAR 
+    imported += await upsertImportedEvents(rows); // NOSONAR
   } while (pageToken);
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
@@ -208,13 +214,14 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
   let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
   while (fetchUrl) {
-    const msRes: Response = await fetchWithTimeout(fetchUrl, { // NOSONAR 
+    const msRes: Response = await fetchWithTimeout(fetchUrl, { // NOSONAR
+      headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
     });
 
     if (!msRes.ok) {
       throw new Error(`Outlook fetch failed for calendar ${acc.id}: ${msRes.status}`);
     }
-    const data: OutlookEventsResponse = await msRes.json(); // NOSONAR 
+    const data: OutlookEventsResponse = await msRes.json(); // NOSONAR
 
     const rows: ImportedEventRow[] = [];
     for (const ev of data.value || []) {
@@ -252,6 +259,7 @@ async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainA
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
+
   if (!verifyCronRequest(req)) {
     return res.status(401).json({ error: "Brak autoryzacji." });
   }
@@ -284,6 +292,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let totalImported = 0;
     let totalRemoved = 0;
     const failedAccounts: string[] = [];
+
     await mapPool(targets, CONCURRENCY_LIMIT, async (acc) => {
       try {
         const result = await processAccount(acc);

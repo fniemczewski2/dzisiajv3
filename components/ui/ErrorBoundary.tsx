@@ -75,7 +75,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   Szczegóły błędu
                 </summary>
                 {this.state.showDetails && (
-                  <pre className="whitespace-pre-wrap overflow-auto mt-3 pt-3 border-t border-line text-text-muted font-mono text-[10px]">
+                  <pre className="whitespace-pre-wrap overflow-auto mt-3 pt-3 border-t border-line text-text-muted font-mono text-xs">
                     {this.state.error.toString()}
                     {'\n\n'}
                     {this.state.error.stack}

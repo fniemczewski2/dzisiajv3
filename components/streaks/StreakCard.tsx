@@ -72,7 +72,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
   const dayLabel = days === 1 ? "dzień" : "dni";
 
   return (
-    <div className="card rounded-2xl shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
+    <div className="card rounded-card shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3 flex-1 relative">
           <button
@@ -161,7 +161,7 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
             <div className="text-5xl font-bold text-primary tracking-tighter drop-shadow-sm">
               {days}
             </div>
-            <div className="text-[11px] font-medium text-text-secondary mt-1">
+            <div className="text-xs font-medium text-text-secondary mt-1">
               {dayLabel} z rzędu
             </div>
           </div>
@@ -177,15 +177,15 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
         {!isEditing && (
           <div className="grid grid-cols-3 gap-2 text-center mb-3">
             <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-[10px] font-bold text-text-muted mb-0.5">Tygodnie</div>
+              <div className="text-xs font-bold text-text-muted mb-0.5">Tygodnie</div>
               <div className="font-bold text-text">{Math.floor(days / 7)}</div>
             </div>
             <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-[10px] font-bold text-text-muted mb-0.5">Miesiące</div>
+              <div className="text-xs font-bold text-text-muted mb-0.5">Miesiące</div>
               <div className="font-bold text-text">{Math.floor(days / 30)}</div>
             </div>
             <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-[10px] font-bold text-text-muted mb-0.5">Lata</div>
+              <div className="text-xs font-bold text-text-muted mb-0.5">Lata</div>
               <div className="font-bold text-text">
                 {days >= 365 ? Math.floor(days / 365) : "0"}
               </div>

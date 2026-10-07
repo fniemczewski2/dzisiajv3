@@ -1,4 +1,4 @@
-# Supabase — schemat i RLS pod kontrolą wersji
+# Supabase - schemat i RLS pod kontrolą wersji
 
 Do tej pory tabele i polityki RLS były konfigurowane wyłącznie przez Dashboard
 Supabase i nie istniały nigdzie w repozytorium. Ten folder to początek
@@ -19,7 +19,7 @@ supabase db pull
 
 `db pull` wygeneruje pierwszą migrację w `supabase/migrations/` na podstawie
 faktycznego stanu produkcji (tabele, kolumny, indeksy, RLS, triggery,
-funkcje) — to najbardziej kompletna i wiarygodna metoda, bo korzysta
+funkcje) - to najbardziej kompletna i wiarygodna metoda, bo korzysta
 z `pg_dump`, a nie z ręcznie pisanego zapytania.
 
 ### Opcja B: SQL Editor w Dashboardzie

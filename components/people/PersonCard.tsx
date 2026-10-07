@@ -117,7 +117,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
       </div>
 
       <Modal open={showQR} onClose={() => setShowQR(false)} labelledBy="person-qr-modal-title">
-        <div className="bg-surface p-6 rounded-2xl shadow-xl flex flex-col items-center gap-6 max-w-sm w-full border border-gray-200 dark:border-gray-800">
+        <div className="bg-surface p-6 rounded-card shadow-xl flex flex-col items-center gap-6 max-w-sm w-full border border-gray-200 dark:border-gray-800">
           <h3 id="person-qr-modal-title" className="text-lg font-bold text-text text-center">
             Zeskanuj kod
           </h3>

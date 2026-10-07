@@ -210,7 +210,7 @@ export default function BillForm({
               type="checkbox"
               checked={updateFuture}
               onChange={(e) => setUpdateFuture(e.target.checked)}
-              className="h-4 w-4 rounded accent-primary shrink-0"
+              className="h-4 w-4 rounded-lg accent-primary shrink-0"
             />
             <span>Zastosuj zmiany do przyszłych powtórzeń</span>
           </label>

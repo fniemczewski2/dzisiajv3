@@ -504,7 +504,7 @@
   }
 
   .form-card {
-    @apply bg-card border border-line p-4 md:p-6 rounded-2xl shadow-sm transition-colors flex flex-col gap-3 md:gap-4 max-w-lg animate-fade-in;
+    @apply bg-card border border-line p-4 md:p-6 rounded-card shadow-sm transition-colors flex flex-col gap-3 md:gap-4 max-w-lg animate-fade-in;
   }
 
   .form-label {
@@ -512,7 +512,7 @@
   }
 
   .widget {
-    @apply mb-2 sm:mb-4 bg-card border border-line overflow-hidden rounded-2xl shadow-sm transition;
+    @apply mb-2 sm:mb-4 bg-card border border-line overflow-hidden rounded-card shadow-sm transition-colors;
   }
 
   select.input-field {
@@ -525,7 +525,9 @@
   }
 
   .card {
-    @apply bg-card border max-w-md md:max-w-3xl border-line shadow-sm hover:shadow-md transition animate-fade-in;
+    /* Karta to powierzchnia, nie przycisk: bez reakcji na hover (sugerowała
+       klikalność) i bez animacji wejścia przy każdym renderze listy. */
+    @apply bg-card border max-w-md md:max-w-3xl border-line shadow-sm transition-colors;
   }
 
   .page-title {

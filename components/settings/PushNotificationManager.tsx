@@ -54,7 +54,7 @@ function DetailRow({ label, value, ok, warn = false }: { readonly label: string;
   return (
     <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
       <span className="font-semibold text-text-secondary">{label}</span>
-      <span className={`px-2 py-1 rounded font-bold border ${colorClass}`}>
+      <span className={`px-2 py-1 rounded-lg font-bold border ${colorClass}`}>
         {value}
       </span>
     </div>
@@ -91,11 +91,11 @@ function TechDetailsInfo({
       <div className="flex items-center justify-between text-xs sm:text-sm">
         <span className="font-semibold text-text-secondary">Platforma:</span>
         <div className="flex gap-2">
-          <span className="px-2 py-1 rounded card text-text font-medium uppercase">
+          <span className="px-2 py-1 rounded-lg card text-text font-medium">
             {platformLabel}
           </span>
           {isStandalone && (
-            <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold border border-green-200 dark:border-green-500/30 uppercase">
+            <span className="px-2 py-1 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold border border-green-200 dark:border-green-500/30">
               PWA
             </span>
           )}

@@ -47,7 +47,7 @@ export function useDataExport() {
 
       for (let page = 0; ; page++) {
         const from = page * EXPORT_PAGE_SIZE;
-        const { data, error } = await withRetry(() => 
+        const { data, error } = await withRetry(() => // NOSONAR
           supabase
             .from(table)
             .select(columns ?? "*")

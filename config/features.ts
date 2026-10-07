@@ -129,7 +129,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         note: "Podgląd dostępności jednej osoby, podpowiedzi najlepszych terminów i przebudowana lista ankiet.",
       },
       {
-        title: "Sprawozdania",
+        title: "Protokoły",
         description: "Protokół spotkania z agendą, uczestnikami i zadaniami do wykonania, gotowy do eksportu w PDF.",
         icon: ScrollText,
         path: "/notes/reports",
@@ -245,7 +245,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         title: "Pociągi",
         description: "Śledzenie pociągów PKP z opóźnieniem na żywo. Bilet PDF wypełnia formularz, a pociąg pojawia się w planie dnia.",
         icon: TrainFront,
-        path: "/transport",
+        path: "/trains",
         guideId: "trains",
         status: "zmienione",
         note: "Po odczycie biletu widać, których pól nie rozpoznano.",

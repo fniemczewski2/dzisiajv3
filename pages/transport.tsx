@@ -1,23 +1,18 @@
 // pages/transport.tsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import SearchBar from "@/components/ui/SearchBar";
 import { useTransport } from "@/hooks/db/useTransport";
 import NoResultsState from "@/components/ui/NoResultsState";
-import { SkeletonStopCard, SkeletonTrainCard } from "@/components/ui/Skeleton";
+import { SkeletonStopCard } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
-import { AddButton, DeleteButton, FavButton } from "@/components/ui/CommonButtons";
+import { DeleteButton, FavButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
-import { useTrains } from "@/hooks/db/useTrains";
-import AddTrainForm from "@/components/transport/AddTrainWidget"; 
-import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
-import StationBoardWidget from "@/components/transport/StationBoard";
 import { favoriteKey } from "@/supabase/functions/_shared/stopGrouping";
 import type { StopGroup } from "@/types/transport";
 
 export default function TransportPage() {
   const { toast } = useToast();
-  const [expanded, setExpanded] = useState(false);
 
   const {
     nearbyGroups,
@@ -36,18 +31,6 @@ export default function TransportPage() {
     transportError
   } = useTransport(true);
 
-  const { trains, addTrain, deleteTrain, refresh, fetching: trainsFetching } = useTrains();
-
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        await refresh();
-      } catch {
-        toast.error("Błąd pobierania pociągów");
-      }
-    };
-    void fetchAll();
-  }, [refresh, toast]);
 
   useEffect(() => {
     if (transportError) {
@@ -61,10 +44,10 @@ export default function TransportPage() {
   const renderStopTitle = (group: StopGroup) => {
     const locality = localityFor(group);
     return (
-      <h4 className="font-bold text-primary truncate pr-2 flex-1 min-w-0" title={locality ? `${group.stop_name}, ${locality}` : group.stop_name}>
+      <h3 className="font-bold text-primary truncate pr-2 flex-1 min-w-0" title={locality ? `${group.stop_name}, ${locality}` : group.stop_name}>
         {group.stop_name}
         {locality && <span className="ml-1.5 text-xs font-medium text-text-secondary">{locality}</span>}
-      </h4>
+      </h3>
     );
   };
 
@@ -91,7 +74,7 @@ export default function TransportPage() {
         <div className="grid gap-3 min-w-0">
           {group.bollards?.map((bollard) => (
             <div key={bollard.bollard_code} className="min-w-0">
-              <span className="text-[10px] uppercase text-text-secondary font-mono">
+              <span className="text-xs font-medium text-text-secondary">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1 min-w-0">
@@ -146,7 +129,7 @@ export default function TransportPage() {
         <div className="grid gap-3 min-w-0">
           {group.bollards?.map((bollard) => (
             <div key={`nearby_${bollard.bollard_code}`} className="bg-surface/60 p-2 rounded-lg min-w-0">
-              <span className="text-[10px] uppercase text-text-secondary font-mono">
+              <span className="text-xs font-medium text-text-secondary">
                 {bollard.bollard_code}
               </span>
               <div className="mt-1 min-w-0">
@@ -169,37 +152,17 @@ export default function TransportPage() {
     ));
   }
 
-  let trainsContent;
-
-  if (trainsFetching) {
-    trainsContent = (
-      <>
-        <SkeletonTrainCard />
-        <SkeletonTrainCard />
-      </>
-    );
-  } else if (trains.length === 0) {
-    trainsContent = <NoResultsState text="zaplanowanych podróży kolejowych" />;
-  } else {
-    trainsContent = trains.map((train) => (
-      <TrackedTrainCard 
-        key={train.id} 
-        train={train} 
-        onDelete={deleteTrain}
-      />
-    ));
-  }
 
   return (
     <>
       <Seo
-        title="Transport"
-        description="Odjazdy z ulubionych przystanków i bieżący status śledzonych pociągów, w tym opóźnienia."
+        title="Komunikacja miejska"
+        description="Odjazdy na żywo z ulubionych przystanków i przystanków w pobliżu – autobusy i tramwaje w Poznaniu i Szczecinie."
         canonical="https://dzisiaj.fun/transport"
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
       />
         <div className="flex items-center mb-4">
-          <h1 className="page-title">Transport</h1>
+          <h1 className="page-title">Komunikacja miejska</h1>
         </div>
 
         <div className="space-y-6">
@@ -212,37 +175,18 @@ export default function TransportPage() {
           />
 
           <section className="min-w-0">
-            <h3 className="text-lg font-semibold mb-3">Ulubione</h3>
+            <h2 className="text-lg font-semibold mb-3">Ulubione</h2>
             <div className="space-y-4 min-w-0">
               {favoritesContent}
             </div>
           </section>
           
           <section className="min-w-0">
-            <h3 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h3>
+            <h2 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h2>
             <div className="space-y-4 min-w-0">
                {nearbyContent}
             </div>
           </section>
-        <StationBoardWidget /> 
-        <section className="min-w-0">
-          <div className="flex items-center justify-between mb-3">
-             <h3 className="text-lg font-semibold">
-                Twoje pociągi
-             </h3>
-              {!expanded && (
-                <AddButton
-                  onClick={() => setExpanded((p) => !p)}
-                />
-              )}
-          </div>
-          <AddTrainForm onTrainAdded={addTrain} expanded={expanded} setExpanded={setExpanded}/>
-          <div className="grid md:grid-cols-2 gap-6 items-start mt-4 min-w-0">
-            <div className="space-y-4 min-w-0">
-              {trainsContent}
-            </div>
-          </div>
-        </section>
         </div>
     </>
   );

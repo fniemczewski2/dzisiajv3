@@ -69,7 +69,7 @@ export default function TrainingPage() {
           />
 
           {(!running && !paused) && (
-            <div className="p-6 card rounded-2xl shadow-sm transition-colors mt-8 max-w-sm mx-auto">
+            <div className="p-6 card rounded-card shadow-sm transition-colors mt-8 max-w-sm mx-auto">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
                 <Settings2 className="w-5 h-5 text-text-muted" />
                 <h3 className="font-bold text-text text-sm">

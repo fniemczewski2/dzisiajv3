@@ -69,7 +69,7 @@ export default function MeetingPollRespondents({
   if (responses.length === 0) return null;
 
   return (
-    <section className="card max-w-none rounded-2xl p-4 sm:p-5" aria-labelledby="respondents-heading">
+    <section className="card max-w-none rounded-card p-4 sm:p-5" aria-labelledby="respondents-heading">
       <div className="flex items-center justify-between gap-2">
         <h2 id="respondents-heading" className="flex items-center gap-2 font-display text-lg font-bold text-text">
           <Users className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />

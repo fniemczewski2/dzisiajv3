@@ -157,7 +157,7 @@ export default function WorkLogsPage() {
               
               <ul className="flex flex-wrap gap-4 sm:gap-6">
                 {workLogs.map((log) => (
-                  <li key={log.id} className="card rounded-2xl p-5 flex flex-col justify-between group relative transition-all hover:shadow-md">
+                  <li key={log.id} className="card rounded-card p-5 flex flex-col justify-between group relative transition-all hover:shadow-md">
                     <div className="mb-4 space-y-2">
                       <p className="font-bold text-text text-lg leading-tight mb-3">
                         {log.description}
@@ -206,7 +206,7 @@ export default function WorkLogsPage() {
             {!isFormOpen && <AddButton onClick={() => setIsFormOpen(true)} />}
         </div>
         <div className='flex items-center justify-center'>
-          <div className="flex items-center card rounded-2xl p-1 shadow-sm w-fit sm:flex-none justify-between">
+          <div className="flex items-center card rounded-card p-1 shadow-sm w-fit sm:flex-none justify-between">
             <button
               onClick={onPrev}
               type='button'

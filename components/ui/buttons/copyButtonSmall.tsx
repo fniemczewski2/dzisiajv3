@@ -25,7 +25,7 @@ export const CopyButtonSmall = ({ text, label }: { text: string; label?: string 
     <button
       onClick={handleCopy}
       type='button'
-      className="p-1.5 text-text-muted hover:text-primary hover:bg-primary/10 rounded-md transition flex items-center gap-1"
+      className="p-1.5 text-text-muted hover:text-primary hover:bg-primary/10 rounded-lg transition flex items-center gap-1"
       title={`Skopiuj ${label || 'wartość'}`}
       aria-label={`Skopiuj ${label || 'wartość'}`}
     >

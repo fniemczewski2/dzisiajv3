@@ -250,16 +250,16 @@ function TaskView({
   handleReschedule: (days: number) => void;
 }>) {
   return (
-    <div className="card min-w-0 p-4 w-full rounded-2xl transition-all flex flex-col text-left">
+    <div className="card min-w-0 p-4 w-full rounded-card transition-all flex flex-col text-left">
       <div className="space-y-3 flex-1">
         
         <button 
           type="button" 
           onClick={() => setIsTimerActive(true)} 
-          className="flex justify-start gap-3 items-start cursor-pointer focus:outline-none w-full text-left"
+          className="flex justify-start gap-3 items-start cursor-pointer w-full text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
         >
           <span
-            className="w-6 h-6 shrink-0 mt-0.5 text-xs font-bold rounded-md flex items-center justify-center shadow-sm"
+            className="w-6 h-6 shrink-0 mt-0.5 text-xs font-bold rounded-lg flex items-center justify-center shadow-sm"
             style={getPriorityColors(task.priority)}
             title={`Priorytet ${task.priority}`}
           >
@@ -273,7 +273,7 @@ function TaskView({
         <div className="flex flex-wrap gap-2 items-center">
           <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
           {task.category && (
-            <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary rounded-md text-[10px] md:text-sm font-bold">
+            <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary rounded-lg text-xs md:text-sm font-bold">
               {task.category}
             </span>
           )}

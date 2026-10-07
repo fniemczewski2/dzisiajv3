@@ -38,7 +38,7 @@ const GROUPS = [
 function GuideCard({ section }: Readonly<{ section: GuideSection }>) {
   const feature = featureByGuideId.get(section.id);
   return (
-    <article id={section.id} className="scroll-mt-6 rounded-2xl border border-line bg-card p-5 sm:p-6 shadow-sm">
+    <article id={section.id} className="scroll-mt-6 rounded-card border border-line bg-card p-5 sm:p-6 shadow-sm">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface text-primary [&_svg]:h-5 [&_svg]:w-5">
           {section.mainIcon}
@@ -94,7 +94,7 @@ export default function GuidePage() {
         </nav>
 
         {changed.length > 0 && (
-          <section aria-labelledby="guide-news" className="mb-10 rounded-2xl border border-line bg-card p-5 sm:p-6 shadow-sm">
+          <section aria-labelledby="guide-news" className="mb-10 rounded-card border border-line bg-card p-5 sm:p-6 shadow-sm">
             <h2 id="guide-news" className="font-display text-xl font-bold text-text mb-4">Co nowego</h2>
             <ul className="divide-y divide-line">
               {changed.map((feature) => (

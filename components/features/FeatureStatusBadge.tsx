@@ -10,7 +10,7 @@ const STYLES: Record<FeatureStatus, string> = {
 export default function FeatureStatusBadge({ status, since }: Readonly<{ status: FeatureStatus; since?: string }>) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${STYLES[status]}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${STYLES[status]}`}
       title={since ? `${FEATURE_STATUS_LABEL[status]} w wersji ${since}` : undefined}
     >
       <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />

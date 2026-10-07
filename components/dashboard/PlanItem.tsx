@@ -62,7 +62,7 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
         <p className="flex items-center gap-2 font-bold text-sm leading-tight truncate">
           {item.type === "task" && (
             <span
-              className="w-5 h-5 text-[10px] font-bold rounded flex items-center justify-center shadow-sm shrink-0"
+              className="w-5 h-5 text-xs font-bold rounded-lg flex items-center justify-center shadow-sm shrink-0"
               style={colors}
             >
               {item.data?.priority}
@@ -72,8 +72,8 @@ export const PlanItem = React.memo(({ item, onMarkAsDone, onRemoveFromSchedule }
         </p>
         <p className="flex items-center flex-wrap gap-2">
           {item.type === "task" && <TimeContextBadge dueDate={item.data?.due_date ?? ""} small />}
-          {(item.type === 'event' || item.type === 'worklog') && getTimes(item.data) && <span className="text-[10px] text-text-muted">{getTimes(item.data)}</span>}
-          <span className="text-[10px] font-semibold text-text-muted">
+          {(item.type === 'event' || item.type === 'worklog') && getTimes(item.data) && <span className="text-xs text-text-muted">{getTimes(item.data)}</span>}
+          <span className="text-xs font-semibold text-text-muted">
             {getLabel(item)}
           </span>
 

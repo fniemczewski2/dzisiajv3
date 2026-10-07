@@ -22,7 +22,7 @@ interface MovieCardProps {
   loading: boolean;
 }
 
-const chip = "flex items-center text-xs font-bold text-text-secondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-md";
+const chip = "flex items-center text-xs font-bold text-text-secondary bg-surface border border-gray-200 dark:border-gray-700 px-2 py-1 rounded-lg";
 
 function toEditForm(movie: Movie) {
   return {
@@ -136,7 +136,7 @@ export default function MovieCard({
           <div className="flex gap-3 mb-3">
             {poster && (
               <Image src={poster} alt="" width={56} height={84} loading="lazy"
-                className="w-14 h-21 object-cover rounded-md shadow-sm shrink-0" />
+                className="w-14 h-21 object-cover rounded-lg shadow-sm shrink-0" />
             )}
             <div className="min-w-0 flex-1">
               <div className="mb-1.5"><MediaTypeBadge type={type} /></div>
@@ -149,7 +149,7 @@ export default function MovieCard({
 
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {movie.rating != null && movie.rating > 0 && (
-              <span className="flex items-center text-xs font-bold text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-md">
+              <span className="flex items-center text-xs font-bold text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
                 <Star className="w-3.5 h-3.5 mr-1 fill-current" />
                 {movie.rating.toFixed(1)}
               </span>

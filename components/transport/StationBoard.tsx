@@ -12,7 +12,7 @@ import { TrainInput } from '@/types/transport';
 
 const renderStatusInfo = (status: string, statusClasses: string) => {
     return (
-      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusClasses}`}>
+      <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${statusClasses}`}>
         {status}
       </span>
     )
@@ -65,8 +65,15 @@ const EMPTY_BOARD: BoardState = { items: [], loading: false, error: '' };
 const formatClock = (timestamp: number) =>
   new Date(timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
 
-export default function StationBoardWidget() {
-  const { addTrain } = useTrains();
+interface StationBoardWidgetProps {
+  /** Dodanie pociągu przez stronę – lista „Twoje pociągi” odświeża się od razu.
+   *  Bez tej funkcji widżet zapisuje przez własną instancję useTrains. */
+  onTrainAdded?: ReturnType<typeof useTrains>["addTrain"];
+}
+
+export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoardWidgetProps> = {}) {
+  const { addTrain: addTrainDirectly } = useTrains();
+  const addTrain = onTrainAdded ?? addTrainDirectly;
   const isSmallScreen = useResponsive();
   
   const [selectedStations, setSelectedStations] = useState<string[]>([]);
@@ -224,14 +231,14 @@ export default function StationBoardWidget() {
                 <td className={`px-1 py-1 leading-tight whitespace-nowrap w-min ${isSmallScreen && "flex flex-col"}`}>
                   <span className="text-text font-bold text-[14px] sm:text-sm">{item.plannedTime}</span>
                   {isDelayed && (
-                    <span className="ml-1 text-red-700 dark:text-red-300 text-[11px] font-semibold text-right">
+                    <span className="ml-1 text-red-700 dark:text-red-300 text-xs font-semibold text-right">
                       +{item.delay}
                     </span>
                   )}
                 </td>
                 <td className='px-1 leading-tight'>
                   <div className="text-text leading-tight text-[12px] sm:text-sm">{item.trainOperator} {item.trainNumber}</div>
-                  {item.trainName && <div className="text-[10px] sm:text-[11px] text-text-muted truncate max-w-15 md:max-w-30">{item.trainName}</div>}
+                  {item.trainName && <div className="text-xs text-text-muted truncate max-w-15 md:max-w-30">{item.trainName}</div>}
                 </td>
                 <td className="px-1 leading-tight text-text font-semibold truncate max-w-22.5 md:max-w-40" title={item.to}>
                   {item.to}
@@ -244,7 +251,7 @@ export default function StationBoardWidget() {
                   <button
                     onClick={() => handleTrackTrain(item)}
                     type='button'
-                    className="inline-flex items-center gap-1 bg-primary/10 hover:bg-secondary-hover text-primary hover:text-white rounded-md font-bold text-[11px] transition-all shadow-sm"
+                    className="inline-flex items-center gap-1 bg-primary/10 hover:bg-secondary-hover text-primary hover:text-white rounded-lg font-bold text-xs transition-all shadow-sm"
                     title="Dodaj ten pociąg do Moich Pociągów"
                     disabled={isCancelled}
                   >
@@ -262,7 +269,7 @@ export default function StationBoardWidget() {
   return (
     <div className="space-y-6 mt-6">
       
-        <h3 className="text-lg font-semibold mb-3">Twoje stacje</h3>
+        <h2 className="text-lg font-semibold mb-3">Twoje stacje</h2>
         
         <form onSubmit={handleAddStation} className="flex gap-2">
           <div className="relative flex-1">
@@ -285,12 +292,12 @@ export default function StationBoardWidget() {
         {selectedStations.map(station => {
           const board = boardsData[station] ?? { ...EMPTY_BOARD, loading: true };
           return (
-            <div key={station} className="card max-w-none rounded-2xl bg-card shadow-sm overflow-hidden flex flex-col">
+            <div key={station} className="card max-w-none rounded-card bg-card shadow-sm overflow-hidden flex flex-col">
               <div className="bg-surface px-4 py-3 border-b border-line flex justify-between items-center gap-3">
                 <div className="flex flex-col min-w-0">
-                  <h2 className="font-semibold text-text text-base first-letter:uppercase truncate">
+                  <h3 className="font-semibold text-text text-base first-letter:uppercase truncate">
                     {station}
-                  </h2>
+                  </h3>
                   <span className="text-xs text-text-muted tabular-nums" aria-live="polite">
                     {board.loading && board.items.length > 0 && 'Aktualizuję…'}
                     {!board.loading && board.updatedAt && `Stan na ${formatClock(board.updatedAt)}`}

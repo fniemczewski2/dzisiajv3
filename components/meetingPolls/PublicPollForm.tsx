@@ -1,7 +1,7 @@
 // components/meetingPolls/PublicPollForm.tsx
 
 import React, { useEffect, useMemo, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { Check, CheckCircle2 } from "lucide-react";
 import { usePublicMeetingPoll } from "@/hooks/usePublicMeetingPoll";
 import { generateTimeSlots, slotKey } from "@/lib/meetingPollGrid";
 import type { MeetingPollSlot } from "@/types/meetingPolls";
@@ -122,7 +122,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
       </div>
 
       <div>
-        <div className="card rounded-2xl shadow-sm p-4 overflow-x-auto">
+        <div className="card rounded-card shadow-sm p-4 overflow-x-auto">
           <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onTouchMove={handleTouchMove}>
             <thead>
               <tr>
@@ -135,17 +135,34 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
             <tbody>
               {times.map((time) => (
                 <tr key={time}>
-                  <td className="sticky left-0 bg-card text-xs text-text-muted p-1 pr-2 whitespace-nowrap">{time}</td>
+                  <th scope="row" className="sticky left-0 bg-card text-xs text-text-muted font-normal text-left p-1 pr-2 whitespace-nowrap">{time}</th>
                   {poll.dates.map((date) => {
-                    const isSelected = selected.has(slotKey(date, time));
+                    const key = slotKey(date, time);
+                    const isSelected = selected.has(key);
+                    const [, month, day] = date.split("-");
                     return (
                       <td
                         key={date}
-                        {...cellHandlers("grid", slotKey(date, time))}
-                        className={`w-12 h-8 text-center cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
+                        {...cellHandlers("grid", key)}
+                        className={`w-12 h-8 p-0 text-center cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
                           isSelected ? "bg-primary" : "bg-surface hover:bg-surface-hover"
                         }`}
-                      />
+                      >
+                        {/* Przycisk daje dostęp z klawiatury i czytnika ekranu. Mysz i dotyk
+                            obsługuje przeciąganie na komórce (useDragSelectGrid), więc tu
+                            reagujemy tylko na kliknięcie z klawiatury (detail === 0). */}
+                        <button
+                          type="button"
+                          aria-pressed={isSelected}
+                          aria-label={`${day}.${month}, ${time}`}
+                          onClick={(e) => {
+                            if (e.detail === 0) applyMode(key, isSelected ? "deselect" : "select");
+                          }}
+                          className="w-full h-full flex items-center justify-center focus-visible:-outline-offset-2"
+                        >
+                          {isSelected && <Check className="w-4 h-4 text-white dark:text-background" aria-hidden="true" />}
+                        </button>
+                      </td>
                     );
                   })}
                 </tr>

@@ -42,7 +42,7 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {categories.map((cat) => (
-            <div key={cat.title} className="card rounded-2xl shadow-sm p-4 sm:p-5 flex flex-col h-full">
+            <div key={cat.title} className="card rounded-card shadow-sm p-4 sm:p-5 flex flex-col h-full">
               <h3 className="font-bold text-lg text-text mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
                 {cat.title}
               </h3>
@@ -60,7 +60,7 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggle(item)} 
-                          className="mt-0.5 h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
+                          className="mt-0.5 h-5 w-5 shrink-0 rounded-lg text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
                         />
                         <span className="flex-1 leading-tight select-none pt-0.5">{item}</span>
                       </label>

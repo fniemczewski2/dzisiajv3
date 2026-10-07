@@ -280,7 +280,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
             </div>
           </div>
         ) : (
-          <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-2 rounded w-full">
+          <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg w-full">
             Wizytówka jest prywatna. Zmień ustawienia w edycji, aby wygenerować publiczny adres i aktywny kod QR.
           </p>
         )}

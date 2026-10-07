@@ -17,7 +17,7 @@ export const generateReportPDF = async (report: Report) => {
   const participantList = Array.from({ length: 12 }, (_, i) => {
     const name = report.participants?.[i] || "";
     if (i === 0) return `Moderacja: ${name}`;
-    if (i === 1) return `Sprawozdanie: ${name}`;
+    if (i === 1) return `Protokół: ${name}`;
     return name;
   });
 
@@ -98,5 +98,5 @@ export const generateReportPDF = async (report: Report) => {
     defaultStyle: { font: "Roboto" },
   };
 
-  pdfMake.createPdf(docDefinition).download(`sprawozdanie-${report.topic || "spotkanie"}.pdf`);
+  pdfMake.createPdf(docDefinition).download(`protokół-${report.topic || "spotkanie"}.pdf`);
 };

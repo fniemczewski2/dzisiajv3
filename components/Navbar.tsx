@@ -193,7 +193,7 @@ export default function Navbar() {
               <Menu aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-transform" />
             )}
             <span
-              className={`text-[11px] sm:text-xs leading-none ${
+              className={`text-xs leading-none ${
                 isMenuOpen ? "font-semibold" : "font-medium"
               }`}
             >
@@ -244,14 +244,14 @@ function MenuItemLink({
         }`}
       />
       <span
-        className={`text-[10px] text-center leading-tight font-semibold ${
+        className={`text-xs text-center leading-tight font-semibold ${
           isActive ? "text-primary" : "text-text-secondary group-hover:text-text"
         }`}
       >
         {label}
       </span>
       {badge && (
-        <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded-full shadow-sm border-2 border-card z-10">
+        <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full shadow-sm border-2 border-card z-10">
           {badge}
         </span>
       )}
@@ -278,7 +278,7 @@ function NavLink({ href, Icon, label, currentPath }: Readonly<NavLinkProps>) {
         className="w-5 h-5 sm:w-6 sm:h-6 mb-1"
       />
       <span
-        className={`text-[11px] sm:text-xs leading-none ${
+        className={`text-xs leading-none ${
           isActive ? "font-semibold" : "font-medium"
         }`}
       >

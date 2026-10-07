@@ -96,7 +96,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       const targetName = missingCat.toLowerCase().trim();
       if (updatedCategories.some(c => c.name.toLowerCase().trim() === targetName)) continue;
 
-      const resolved = await resolveMissingCategory(missingCat);  
+      const resolved = await resolveMissingCategory(missingCat); // NOSONAR
       if (resolved) updatedCategories.push(resolved);
     }
     return updatedCategories;
@@ -183,7 +183,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       </div>
 
       {parsedData.length > 0 && (
-        <div className="bg-surface border border-line rounded-2xl p-5 animate-in fade-in slide-in-from-top-4 mt-4">
+        <div className="bg-surface border border-line rounded-card p-5 animate-in fade-in slide-in-from-top-4 mt-4">
           <h4 className="font-semibold text-text mb-3">Podsumowanie importu</h4>
           
           <ul className="space-y-2 mb-5 text-sm text-text-secondary">

@@ -1,5 +1,3 @@
-// lib/offlineQueue.ts
-
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { OFFLINE_QUEUE_DB, OFFLINE_QUEUE_STORE } from "@/config/limits";
 
@@ -45,6 +43,7 @@ export function isOffline(): boolean {
 
 export async function enqueueInsert(table: string, payload: Record<string, unknown>): Promise<void> {
   const entry: QueuedInsert = {
+
     id: `${table}-${Date.now()}-${crypto.randomUUID()}`,
     table,
     payload,
@@ -79,6 +78,7 @@ export async function flushQueue(supabase: SupabaseClient): Promise<{ sent: numb
       continue;
     }
     await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
+    sent += 1;
   }
   return { sent, failed };
 }

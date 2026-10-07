@@ -86,7 +86,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
           <p className="text-2xl font-bold text-text leading-none">
             {train.departureTime}
           </p>
-          <div className="inline-flex items-center gap-1 text-xs font-medium bg-surface px-2 py-1 rounded-md mt-1 border border-gray-100 dark:border-gray-800">
+          <div className="inline-flex items-center gap-1 text-xs font-medium bg-surface px-2 py-1 rounded-lg mt-1 border border-gray-100 dark:border-gray-800">
             <MapPin className="w-3 h-3 text-text-muted" /> 
             {platform && platform !== "-" ? `Peron ${platform}` : 'Brak peronu'}
           </div>
@@ -98,7 +98,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
               {train.trainNumber}
             </h4>
             {train.trainName && (
-            <p className="text-[10px] text-text-muted font-medium">
+            <p className="text-xs text-text-muted font-medium">
               {train.trainName}
             </p>
             )}
@@ -121,11 +121,11 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
       {(train.wagon && train.seat) && (
         <div className="flex gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 mt-2">
           <div className="flex-1 bg-surface rounded-lg p-2 text-center border border-gray-100 dark:border-gray-800">
-            <p className="text-[10px] text-text-muted font-semibold">Wagon</p>
+            <p className="text-xs text-text-muted font-semibold">Wagon</p>
             <p className="font-bold text-lg text-text">{train.wagon}</p>
           </div>
           <div className="flex-1 bg-surface rounded-lg p-2 text-center border border-gray-100 dark:border-gray-800">
-            <p className="text-[10px] text-text-muted font-semibold">Miejsce</p>
+            <p className="text-xs text-text-muted font-semibold">Miejsce</p>
             <p className="font-bold text-lg text-text">{train.seat}</p>
           </div>
         </div>

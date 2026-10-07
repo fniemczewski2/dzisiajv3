@@ -56,7 +56,7 @@ export default function StreaksPage() {
     <>
     <Seo
       title="Postępy"
-      description="Śledź nawyki i przedłużaj swoje serie dzień po dniu."
+      description="Śledź nawyki i przedłużaj swoje serie dzień po dniu – zobacz, ile dni z rzędu udało Ci się wytrwać."
       canonical="https://dzisiaj.fun/streaks"
       keywords="nawyki, cele, postępy, postanowienia, pasma, streaks, dyscyplina"
     />

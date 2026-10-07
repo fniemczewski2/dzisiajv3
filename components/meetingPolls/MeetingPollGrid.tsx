@@ -59,17 +59,17 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
     return (
       <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-secondary" aria-label="Legenda">
         <li className="flex items-center gap-1.5">
-          <span className="flex h-4 w-4 items-center justify-center rounded bg-accent text-white dark:text-background">
+          <span className="flex h-4 w-4 items-center justify-center rounded-lg bg-accent text-white dark:text-background">
             <Check aria-hidden="true" className="h-3 w-3" strokeWidth={3} />
           </span>
           <span>Zaznaczona dostępność</span>
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="h-4 w-4 rounded bg-surface ring-1 ring-inset ring-line-strong" />
+          <span className="h-4 w-4 rounded-lg bg-surface ring-1 ring-inset ring-line-strong" />
           <span>Brak zaznaczenia</span>
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="h-4 w-4 rounded bg-amber-400" />
+          <span className="h-4 w-4 rounded-lg bg-amber-400" />
           <span>Wybrany zakres</span>
         </li>
       </ul>
@@ -78,7 +78,7 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
   return (
     <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-secondary" aria-label="Legenda">
       <li className="flex items-center gap-1.5">
-        <span className="h-4 w-4 rounded bg-surface ring-1 ring-inset ring-line-strong" />
+        <span className="h-4 w-4 rounded-lg bg-surface ring-1 ring-inset ring-line-strong" />
         <span>Nikt</span>
       </li>
       <li className="flex items-center gap-1.5">
@@ -91,7 +91,7 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
         <span>Im ciemniej, tym więcej osób</span>
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="h-4 w-4 rounded bg-amber-400" />
+        <span className="h-4 w-4 rounded-lg bg-amber-400" />
         <span>Wybrany zakres</span>
       </li>
     </ul>
@@ -133,7 +133,7 @@ export default function MeetingPollGrid({
                   key={date}
                   className="sticky top-0 z-20 min-w-14 bg-card px-1 pb-2 pt-1 text-center font-normal"
                 >
-                  <span className="block text-[11px] leading-none text-text-muted">{weekday}</span>
+                  <span className="block text-xs leading-none text-text-muted">{weekday}</span>
                   <span className="mt-1 block text-sm font-semibold leading-none text-text tabular-nums">{day}</span>
                 </th>
               );

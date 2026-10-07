@@ -53,7 +53,7 @@ function PollCard({
   const resultsHref = `/meetings/${poll.id}`;
 
   return (
-    <li className="card max-w-none space-y-4 rounded-2xl p-4 sm:p-5">
+    <li className="card max-w-none space-y-4 rounded-card p-4 sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-2">
           <Link
@@ -97,7 +97,7 @@ function PollCard({
             rel="noopener noreferrer"
             aria-label="Otwórz ankietę w nowej karcie"
             title="Otwórz ankietę w nowej karcie"
-            className="rounded-md p-1.5 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary"
+            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <ExternalLink aria-hidden="true" className="h-4 w-4" />
           </a>

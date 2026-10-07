@@ -57,7 +57,7 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
         <button
           onClick={() => { item.action?.onClick(); onRemove(item.id); }}
           type='button'
-          className="shrink-0 -my-1 px-2.5 py-1 rounded-md text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
+          className="shrink-0 -my-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
         >
           {item.action.label}
         </button>
@@ -65,7 +65,7 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
       <button
         onClick={() => onRemove(item.id)}
         type='button'
-        className="shrink-0 -my-1 p-1.5 rounded-md text-text-muted hover:text-text hover:bg-surface transition-colors"
+        className="shrink-0 -my-1 p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface transition-colors"
         aria-label="Zamknij powiadomienie"
       >
         <X aria-hidden="true" className="w-4 h-4" />
@@ -107,7 +107,7 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
       aria-labelledby={`confirm-msg-${item.id}`}
       onClose={() => answer(false)}
       onCancel={() => answer(false)}
-      className="fixed inset-0 m-auto h-fit hidden open:flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm px-4 py-4 rounded-2xl border shadow-2xl text-sm font-medium bg-card border-line backdrop:bg-navy/50 backdrop:backdrop-blur-sm open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
+      className="fixed inset-0 m-auto h-fit hidden open:flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm px-4 py-4 rounded-card border shadow-2xl text-sm font-medium bg-card border-line backdrop:bg-navy/50 backdrop:backdrop-blur-sm open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
     >
       <div className="flex items-start gap-3">
         <AlertTriangle aria-hidden="true" className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-300" />

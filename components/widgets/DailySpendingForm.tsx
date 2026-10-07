@@ -81,7 +81,7 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
           title="Kliknij, aby edytować"
         >
           {habits.daily_spending ? habits.daily_spending.toFixed(2) : "0.00"}
-          <span className="text-[10px] sm:text-xs font-medium text-text-muted">PLN</span>
+          <span className="text-xs font-medium text-text-muted">PLN</span>
         </button>
       )}
     </div>

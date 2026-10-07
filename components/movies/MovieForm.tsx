@@ -1,5 +1,3 @@
-// components/movies/MovieForm.tsx
-
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { Film, Loader2, Search, Tv } from "lucide-react";
@@ -8,7 +6,6 @@ import { useToast } from "@/providers/ToastProvider";
 import { buildMovieData, fetchMediaDetails, posterUrl, searchMedia } from "@/lib/tmdb";
 import { MEDIA_TYPE_LABELS, type MediaSearchResult, type MediaType, type NewMovieData } from "@/types/movies";
 import { isAbortError } from "@/lib/abortUtils";
-
 
 const NOT_FOUND_LABEL: Partial<Record<string, string>> = { tv: "serialu", movie: "filmu" };
 interface MovieAddFormProps {
@@ -36,14 +33,13 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { title: "", genre: "", rating: "", platform: "", description: "", mediaType: "movie" };
 
-/** Metadane z TMDB, których użytkownik nie edytuje ręcznie. */
 type TmdbMeta = Pick<NewMovieData, "tmdb_id" | "poster_path" | "release_year" | "seasons_count" | "episodes_count" | "series_status">;
 const EMPTY_META: TmdbMeta = { tmdb_id: null, poster_path: null, release_year: null, seasons_count: null, episodes_count: null, series_status: null };
 
 export function MediaTypeBadge({ type }: Readonly<{ type: MediaType }>) {
   const Icon = type === "tv" ? Tv : Film;
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary">
+    <span className="inline-flex items-center gap-1 text-xs font-bold px-1.5 py-0.5 rounded-lg bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary">
       <Icon className="w-3 h-3" aria-hidden="true" />
       {MEDIA_TYPE_LABELS[type]}
     </span>
@@ -94,6 +90,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         details = await fetchMediaDetails(result.mediaType, result.tmdbId, newSignal());
       } catch (err) {
         if (isAbortError(err)) return;
+
         toast.info("Nie udało się pobrać szczegółów – uzupełniono podstawowe dane.");
       }
       const data = buildMovieData(result, details);
@@ -133,6 +130,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       description: form.description.trim() || null,
       media_type: form.mediaType,
       ...meta,
+
       seasons_count: isTv ? meta.seasons_count : null,
       episodes_count: isTv ? meta.episodes_count : null,
       series_status: isTv ? meta.series_status : null,
@@ -144,6 +142,14 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       setOptions([]);
       setTmdbError(null);
     }
+  };
+
+  const onTitleChange = (value: string) => {
+    update("title", value);
+    setOptions([]);
+    setTmdbError(null);
+
+    if (meta.tmdb_id) setMeta(EMPTY_META);
   };
 
   const selectedPoster = posterUrl(meta.poster_path, "w92");
@@ -160,7 +166,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               required
               maxLength={300}
               value={form.title}
-              onChange={(e) => update("title", e.target.value)}
+              onChange={(e) => onTitleChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !meta.tmdb_id) { e.preventDefault(); void runSearch(); }
               }}
@@ -209,9 +215,9 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
                     <div className="flex gap-3">
                       {img ? (
                         <Image src={img} alt="" loading="lazy" width={48} height={72}
-                          className="w-12 h-18 object-cover rounded shadow-sm shrink-0" />
+                          className="w-12 h-18 object-cover rounded-lg shadow-sm shrink-0" />
                       ) : (
-                        <div className="w-12 h-18 rounded bg-surface-hover shrink-0 flex items-center justify-center text-text-muted" aria-hidden="true">
+                        <div className="w-12 h-18 rounded-lg bg-surface-hover shrink-0 flex items-center justify-center text-text-muted" aria-hidden="true">
                           {r.mediaType === "tv" ? <Tv className="w-5 h-5" /> : <Film className="w-5 h-5" />}
                         </div>
                       )}
@@ -241,7 +247,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         {meta.tmdb_id && (
           <div className="md:col-span-2 flex items-center gap-3 p-3 rounded-lg bg-surface border border-gray-200 dark:border-gray-700">
             {selectedPoster && (
-              <Image src={selectedPoster} alt="" width={40} height={60} className="w-10 h-15 object-cover rounded shrink-0" />
+              <Image src={selectedPoster} alt="" width={40} height={60} className="w-10 h-15 object-cover rounded-lg shrink-0" />
             )}
             <div className="text-xs text-text-secondary space-y-0.5">
               <p className="font-bold text-text">Uzupełniono z TMDB{meta.release_year ? ` · ${meta.release_year}` : ""}</p>

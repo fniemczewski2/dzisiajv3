@@ -141,7 +141,7 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
       </ul>
 
       {filteredNotes.length === 0 && searchQuery && (
-        <div className="text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl mt-4">
+        <div className="text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-card mt-4">
           <Search className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />
           <p className="text-text-secondary font-medium">
             <NoResultsState text="notatek" isSearch />

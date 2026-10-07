@@ -59,7 +59,7 @@ export default function StartPage() {
     <>
       <Seo
         title="Dzisiaj.Fun – zadania, kalendarz, budżet i notatki"
-        description="Zadania, kalendarz, rachunki, budżet, notatki i listy zakupów w jednej aplikacji. Synchronizacja z Kalendarzem Google i Outlookiem, instalacja jako aplikacja na telefonie."
+        description="Zadania, kalendarz, rachunki, budżet, notatki i listy zakupów w jednej aplikacji. Synchronizacja z Kalendarzem Google i Outlookiem."
         canonical="https://dzisiaj.fun/start"
         keywords="aplikacja produktywność, organizacja czasu, planner, darmowy organizer"
       />

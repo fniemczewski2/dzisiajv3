@@ -134,7 +134,7 @@ export default function TasksPage() {
                   }`}
                 >
                   <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
-                  <span className="text-[11px] sm:text-xs font-semibold">{opt.title}</span>
+                  <span className="text-xs font-semibold">{opt.title}</span>
                 </button>
               );
             })}

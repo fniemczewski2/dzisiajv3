@@ -19,7 +19,7 @@ const STATUS_REFRESH_MS = 120_000;
 function Detail({ label, value }: Readonly<{ label: string; value: string | null }>) {
   return (
     <div className="flex items-end justify-center min-w-0">
-      <span className="text-[10px] text-text-muted">{label}:&nbsp;</span>
+      <span className="text-xs text-text-muted">{label}:&nbsp;</span>
       <span className={`text-sm font-bold tabular-nums truncate ${value ? "text-text" : "text-text-muted"}`}>{value ?? "–"}</span>
     </div>
   );
@@ -93,10 +93,10 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
         </div>
         <div className="flex items-center gap-1.5 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
           {loading && relevant && <Loader2 className="w-3.5 h-3.5 animate-spin text-text-muted" aria-label="Aktualizacja statusu" />}
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${badge.cls}`} aria-live="polite">
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${badge.cls}`} aria-live="polite">
               {badge.text}
             </span>
-          <Link href="/transport" title="Pokaż w transporcie" className={actionButton({ color: "blue" })}>
+          <Link href="/trains" title="Pokaż w pociągach" className={actionButton({ color: "blue" })}>
             <TrainFront className="w-4 h-4" />
           </Link>
         </div>

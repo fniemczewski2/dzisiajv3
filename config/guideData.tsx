@@ -67,7 +67,7 @@ export const guideSections: GuideSection[] = [
         <K>Widgety na górze strony.</K> Tuż nad główną treścią widoczne są: ikony nawyków, pasek wody, tracker nastroju i pole dziennych wydatków. Możesz je aktualizować bezpośrednio z kokpitu, bez przechodzenia do innej sekcji.
       </>,
       <>
-        <K>Skróty do modułów.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się ikonka skrótu:<ul><li> <em>trening</em> – Trening,</li><li> <em>zakupy</em> – Listy zakupów,</li><li> <em>spotkanie</em> – Sprawozdania,</li><li> <em>film</em> – Filmy.</li></ul>
+        <K>Skróty do modułów.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się ikonka skrótu:<ul><li> <em>trening</em> – Trening,</li><li> <em>zakupy</em> – Listy zakupów,</li><li> <em>spotkanie</em> – Protokoły,</li><li> <em>film</em> – Filmy.</li></ul>
       </>,
       <>
         <K>Licznik ukończenia.</K> W nagłówku sekcji zadań widoczny jest wskaźnik <em>wykonane/wszystkie</em> dla bieżącego dnia, np. 3/7.
@@ -293,15 +293,15 @@ export const guideSections: GuideSection[] = [
 
   {
     id: 'reports',
-    title: 'Sprawozdania ze spotkań',
+    title: 'Protokoły ze spotkań',
     mainIcon: <ScrollText className="w-6 h-6" />,
     iconColorClass: 'text-slate-500',
     listItems: [
       <>
-        <K>Struktura protokołu.</K> Każde sprawozdanie zawiera: temat i datę spotkania, agendę (lista punktów), uczestników (z rolami moderatora i sprawozdawcy dla pierwszych dwóch pozycji) oraz zadania z osobą odpowiedzialną i datą.
+        <K>Struktura protokołu.</K> Każdy protokół zawiera: temat i datę spotkania, agendę (lista punktów), uczestników (z rolami moderatora i sprawozdawcy dla pierwszych dwóch pozycji) oraz zadania z osobą odpowiedzialną i datą.
       </>,
       <>
-        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie sprawozdania, by pobrać gotowy, sformatowany dokument PDF, gotowy do wysłania mailem lub archiwizacji.
+        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie protokoły, by pobrać gotowy, sformatowany dokument PDF, gotowy do wysłania mailem lub archiwizacji.
       </>,
       <>
         <K>Edycja po fakcie.</K> Możesz wracać do sprawozdań i uzupełniać brakujące dane. Każdą sekcję można rozszerzać o kolejne punkty agendy, uczestników lub zadania za pomocą przycisku <em>Dodaj</em>.
@@ -571,7 +571,7 @@ export const guideSections: GuideSection[] = [
     iconColorClass: 'text-primary',
     listItems: [
       <>
-        <K>Dodawanie pociągu.</K> Na stronie <em>Transport</em> dodasz pociąg ręcznie albo wgrasz bilet PDF, z którego formularz wypełni się sam.
+        <K>Dodawanie pociągu.</K> Na stronie <em>Pociągi</em> dodasz pociąg ręcznie albo wgrasz bilet PDF, z którego formularz wypełni się sam.
       </>,
       <>
         <K>Sprawdź odczyt biletu.</K> Po wczytaniu biletu nad formularzem pojawia się informacja, które pola rozpoznano automatycznie, a których nie. Uzupełnij brakujące i sprawdź resztę przed zapisem.

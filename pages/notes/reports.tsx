@@ -36,23 +36,23 @@ function ReportViewRow({
   onGenerate
 }: Readonly<ReportViewRowProps>) {
   return (
-    <li className="p-5 mb-4 break-inside-avoid card rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full">
+    <li className="p-5 mb-4 break-inside-avoid card rounded-card shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full">
       <div className="flex-1">
         <div className="flex justify-between items-end border-b mb-3 border-black/5 dark:border-white/5">
           <h3 className="font-bold text-lg text-text pr-2">{report.topic}</h3>
-          <p className="flex-1 text-[10px] text-text-muted font-medium text-right whitespace-nowrap">
+          <p className="flex-1 text-xs text-text-muted font-medium text-right whitespace-nowrap">
             {format(new Date(report.date), "dd.MM.yyyy")}
           </p>
         </div>
         {report.participants && report.participants.length > 0 && (
           <div className="text-sm text-text-secondary mb-3">
-            <span className="font-bold text-text-muted text-[10px] mr-2">Uczestnicy:</span>
+            <span className="font-bold text-text-muted text-xs mr-2">Uczestnicy:</span>
             <span className="font-medium">{report.participants.join(", ")}</span>
           </div>
         )}
         {report.tasks && report.tasks.length > 0 && (
           <div className="mt-2 bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 mb-2">
-            <span className="font-bold text-text-muted text-[10px] block mb-1.5">Zadania:</span>
+            <span className="font-bold text-text-muted text-xs block mb-1.5">Zadania:</span>
             <ul className="list-none space-y-1 text-sm text-text-secondary">
               {report.tasks.map((task) => (
                 <li key={`task-${task.zadanie}-${task.data}-${task.osoba}`} className="flex gap-2">
@@ -116,7 +116,7 @@ function ReportEditRow({
   const addTask = () => updArr("tasks", [...(editedReport.tasks || []), { zadanie: "", data: "", osoba: "" }]);
 
   return (
-    <li className="p-5 break-inside-avoid bg-card border border-primary rounded-2xl shadow-lg space-y-4 animate-in fade-in mb-4">
+    <li className="p-5 break-inside-avoid bg-card border border-primary rounded-card shadow-lg space-y-4 mb-4">
       <div>
         <label htmlFor={`${editPrefix}-topic`} className="form-label">Temat spotkania:</label>
         <input id={`${editPrefix}-topic`} ref={topicRef} type="text" value={editedReport.topic || ""}
@@ -245,13 +245,13 @@ export default function ReportsPage() {
   return (
     <>
       <Seo
-        title="Sprawozdania"
-        description="Notuj przebieg spotkań – temat, agendę, uczestników i zadania – i zapisuj sprawozdanie jako PDF."
+        title="Protokoły"
+        description="Notuj przebieg spotkań – temat, agendę, uczestników i zadania – i zapisuj protokół jako PDF."
         canonical="https://dzisiaj.fun/notes/reports"
-        keywords="raporty, podsumowania, spotkania, sprawozdania"
+        keywords="raporty, podsumowania, spotkania, protokoły"
       />
         <div className="flex justify-between items-center mb-6">
-          <h1 className="page-title">Sprawozdania</h1>
+          <h1 className="page-title">Protokoły</h1>
           {!showForm && <AddButton onClick={() => setShowForm(true)}/>}
         </div>
 

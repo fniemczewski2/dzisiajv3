@@ -88,7 +88,7 @@ const CalendarCell = memo(function CalendarCell({
 
         <div className="flex items-center gap-1 z-10">
           {(eCount != 0 && !isMobile) && (
-            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-md text-[10px] font-bold text-text-secondary">
+            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-lg text-xs font-bold text-text-secondary">
               <Calendar size={12} />
               +{eCount}
             </div>

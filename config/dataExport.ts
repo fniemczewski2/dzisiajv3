@@ -18,7 +18,7 @@ export const EXPORT_TABLES: ExportTable[] = [
   { table: "meeting_poll_availabilities", label: "Ankiety – dostępność" },
   { table: "notes", label: "Notatki" },
   { table: "letters", label: "Pisma" },
-  { table: "reports", label: "Sprawozdania" },
+  { table: "reports", label: "Protokoły" },
   { table: "shopping_lists", label: "Listy zakupow" },
   { table: "products", label: "Produkty" },
   { table: "recipes", label: "Przepisy" },

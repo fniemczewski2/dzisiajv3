@@ -116,7 +116,7 @@ export default function GlobalSearch() {
       </button>
 
       <Modal open={open} onClose={close} label="Wyszukiwarka globalna" className="mt-[12vh]">
-        <div className="card w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+        <div className="card w-full max-w-lg rounded-card shadow-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
               <Search className="w-4 h-4 text-text-muted shrink-0" aria-hidden="true" />
               <input
@@ -140,7 +140,7 @@ export default function GlobalSearch() {
               )}
               {grouped.map(([groupLabel, groupHits]) => (
                 <div key={groupLabel} className="py-1">
-                  <p className="px-4 py-1 text-[10px] font-bold text-text-muted">
+                  <p className="px-4 py-1 text-xs font-bold text-text-muted">
                     {groupLabel}
                   </p>
                   {groupHits.map((hit) => (

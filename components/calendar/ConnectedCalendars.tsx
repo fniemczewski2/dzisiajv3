@@ -44,7 +44,7 @@ export default function ConnectedCalendars() {
           </div>
           <div className="text-left">
             <p className="font-bold text-text text-sm">Zewnętrzne Kalendarze</p>
-            <p className="text-[10px] font-medium text-text-muted">
+            <p className="text-xs font-medium text-text-muted">
               {currentStatus()}
             </p>
           </div>
@@ -118,7 +118,7 @@ export default function ConnectedCalendars() {
                                     aria-checked={isCurrentlyOn}
                                     onClick={() => handleToggleCalendar(account, cal, isCurrentlyOn)}
                                     disabled={isToggling}
-                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
                                       isCurrentlyOn ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
                                     } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
                                   >

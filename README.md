@@ -1,6 +1,6 @@
-# Dzisiaj.Fun — Personal Productivity & Life Management App
+# Dzisiaj.Fun - Personal Productivity & Life Management App
 
-**Dzisiaj.Fun** ("Today.Fun") to polskojęzyczna aplikacja webowa (PWA) do zarządzania czasem, zadaniami i codziennym życiem — jedno miejsce na zadania, kalendarz, finanse, nawyki, kontakty i wiele więcej.
+**Dzisiaj.Fun** ("Today.Fun") to polskojęzyczna aplikacja webowa (PWA) do zarządzania czasem, zadaniami i codziennym życiem - jedno miejsce na zadania, kalendarz, finanse, nawyki, kontakty i wiele więcej.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![React](https://img.shields.io/badge/React-19-blue)
@@ -10,7 +10,7 @@
 
 **Live:** [https://dzisiaj.fun](https://dzisiaj.fun)
 
-> Numer wersji nie jest trzymany statycznie w tym pliku — aplikacja pobiera go na żywo z wiadomości ostatniego commita (format `Ver X.Y.Z`) i wyświetla w **Ustawieniach → Informacje o wersji**.
+> Numer wersji nie jest trzymany statycznie w tym pliku - aplikacja pobiera go na żywo z wiadomości ostatniego commita (format `Ver X.Y.Z`) i wyświetla w **Ustawieniach → Informacje o wersji**.
 
 ## Spis treści
 
@@ -31,39 +31,39 @@
 Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.ts`](./config/features.ts) (karty na stronie startowej) i w [`config/guideData.tsx`](./config/guideData.tsx) (przewodnik w aplikacji pod `/guide`). Poniżej skrót.
 
 ### 📋 Produktywność
-- **Zadania** — priorytety, daty, filtry, przeciąganie (drag & drop) na oś czasu kokpitu
-- **Pomodoro** — konfigurowalny timer pracy/przerwy z Wake Lock i dźwiękiem
-- **Harmonogram dnia** — powtarzalne schematy dnia, które same pojawiają się w planie
-- **Czas pracy** — ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
+- **Zadania** - priorytety, daty, filtry, przeciąganie (drag & drop) na oś czasu kokpitu
+- **Pomodoro** - konfigurowalny timer pracy/przerwy z Wake Lock i dźwiękiem
+- **Harmonogram dnia** - powtarzalne schematy dnia, które same pojawiają się w planie
+- **Czas pracy** - ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
 
 ### 🗓️ Organizacja
-- **Kalendarz** — wydarzenia z dwukierunkową synchronizacją Google Calendar i Outlook/Microsoft Graph
-- **Terminy zespołowe** — ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników
-- **Notatki**, **Sprawozdania** (agenda, uczestnicy, zadania → eksport PDF), **Przypomnienia** cykliczne
-- **Listy pakowania** — plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
-- **Osoby i relacje** — kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
-- **Pisma** — rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i pilnowaniem ustawowych terminów odpowiedzi
+- **Kalendarz** - wydarzenia z dwukierunkową synchronizacją Google Calendar i Outlook/Microsoft Graph
+- **Terminy zespołowe** - ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników
+- **Notatki**, **Protokoły** (agenda, uczestnicy, zadania → eksport PDF), **Przypomnienia** cykliczne
+- **Listy pakowania** - plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
+- **Osoby i relacje** - kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
+- **Pisma** - rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i pilnowaniem ustawowych terminów odpowiedzi
 
 ### 💰 Finanse
-- **Rachunki** i **Budżet roczny** — kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
-- **Kalkulator rachunków** — sprawiedliwy podział kosztów wg dochodów (algorytm hybrydowy)
+- **Rachunki** i **Budżet roczny** - kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
+- **Kalkulator rachunków** - sprawiedliwy podział kosztów wg dochodów (algorytm hybrydowy)
 - **Listy zakupów** (współdzielone w czasie rzeczywistym) i **Przepisy** (filtrowanie po składnikach)
 
 ### 🏃 Styl życia
-- **Nawyki** — 8 codziennych nawyków + tracker wody i nastroju
+- **Nawyki** - 8 codziennych nawyków + tracker wody i nastroju
 - **Postępy (streaks)** z kamieniami milowymi
 - **Trening interwałowy** (HIIT/Tabata) z Wake Lock
-- **Pogoda** — prognoza godzinowa/5-dniowa, autorski wskaźnik biometeorologiczny, jakość powietrza (Open-Meteo)
-- **Transport miejski** — tablice odjazdów na żywo (GPS lub ulubione przystanki) + śledzenie pociągów PKP
+- **Pogoda** - prognoza godzinowa/5-dniowa, autorski wskaźnik biometeorologiczny, jakość powietrza (Open-Meteo)
+- **Transport miejski** - tablice odjazdów na żywo (GPS lub ulubione przystanki) + śledzenie pociągów PKP
 
 ### 🎬 Rozrywka
-- **Filmy i seriale** — wyszukiwanie filmów i seriali w TMDB, dostępność VOD w Polsce (Netflix, HBO Max, Disney+ i inne), liczba sezonów i status serialu, śledzenie postępu oglądania
+- **Filmy i seriale** - wyszukiwanie filmów i seriali w TMDB, dostępność VOD w Polsce (Netflix, HBO Max, Disney+ i inne), liczba sezonów i status serialu, śledzenie postępu oglądania
 
 ### 🛠️ Narzędzia
-- **Udostępnianie** — współdzielenie zadań/kalendarza/list z zaufanymi użytkownikami
-- **Cyfrowa wizytówka** — wiele profili vCard z publicznym linkiem (`/v/twoj-link`), własnymi kolorami i danymi firmowymi
-- **Ustawienia systemowe** — motyw, powiadomienia push, sortowanie, instalacja jako PWA
-- **Kopia moich danych** — eksport wszystkich danych użytkownika do pliku JSON (bez haseł, tokenów OAuth i kluczy push)
+- **Udostępnianie** - współdzielenie zadań/kalendarza/list z zaufanymi użytkownikami
+- **Cyfrowa wizytówka** - wiele profili vCard z publicznym linkiem (`/v/twoj-link`), własnymi kolorami i danymi firmowymi
+- **Ustawienia systemowe** - motyw, powiadomienia push, sortowanie, instalacja jako PWA
+- **Kopia moich danych** - eksport wszystkich danych użytkownika do pliku JSON (bez haseł, tokenów OAuth i kluczy push)
 
 ## 🏗️ Stack technologiczny
 
@@ -96,13 +96,13 @@ Aplikacja wystartuje na `http://localhost:3000`.
 
 ## 🔑 Zmienne środowiskowe
 
-Utwórz plik `.env.local` w katalogu głównym. Zmienne oznaczone `NEXT_PUBLIC_` trafiają do kodu klienckiego — nie umieszczaj tam nic wrażliwego.
+Utwórz plik `.env.local` w katalogu głównym. Zmienne oznaczone `NEXT_PUBLIC_` trafiają do kodu klienckiego - nie umieszczaj tam nic wrażliwego.
 
 | Zmienna | Wymagana do | Opis |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Wszystko | URL projektu Supabase |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Wszystko | Publiczny klucz Supabase (anon/publishable) |
-| `SUPABASE_SECRET_KEY` | API cron/webhooki | Klucz serwisowy (service role) — tylko po stronie serwera |
+| `SUPABASE_SECRET_KEY` | API cron/webhooki | Klucz serwisowy (service role) - tylko po stronie serwera |
 | `NEXT_PUBLIC_APP_URL` | OAuth, publiczne linki wizytówek | Bazowy URL aplikacji (np. `https://dzisiaj.fun`) |
 | `CALENDAR_TOKEN_ENCRYPTION_KEY` | Sync kalendarzy | 32-bajtowy klucz base64 do szyfrowania tokenów OAuth (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Logowanie Google, sync Google Calendar | Dane aplikacji OAuth w Google Cloud Console |
@@ -158,7 +158,7 @@ npm run test
 └── __tests__/      # testy automatyczne (Vitest)
 ```
 
-**Konwencja hooków bazodanowych** (`hooks/db/*`): każdy zwraca `{ data, loading, fetching, ...akcje }` — `fetching` to stan pierwszego ładowania (do pokazania skeletonu), `loading` to stan trwającej mutacji (do blokowania przycisków). Każda akcja mutująca sama obsługuje potwierdzenie (dla usuwania), optymistyczną aktualizację, retry i toast sukcesu/błędu — komponenty wywołują je bezpośrednio, bez własnego opakowania.
+**Konwencja hooków bazodanowych** (`hooks/db/*`): każdy zwraca `{ data, loading, fetching, ...akcje }` - `fetching` to stan pierwszego ładowania (do pokazania skeletonu), `loading` to stan trwającej mutacji (do blokowania przycisków). Każda akcja mutująca sama obsługuje potwierdzenie (dla usuwania), optymistyczną aktualizację, retry i toast sukcesu/błędu - komponenty wywołują je bezpośrednio, bez własnego opakowania.
 
 ## 🗄️ Baza danych
 
@@ -170,20 +170,26 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 
 ## 🔐 Bezpieczeństwo
 
-- Tokeny OAuth kalendarzy (Google/Outlook) są szyfrowane (AES-256-GCM) przed zapisem do bazy — zob. `lib/server/tokenCrypto.ts`.
+- Tokeny OAuth kalendarzy (Google/Outlook) są szyfrowane (AES-256-GCM) przed zapisem do bazy - zob. `lib/server/tokenCrypto.ts`.
 - Endpointy cron (`/api/calendar/sync-calendars`, `/api/meeting-polls/close-expired`, `/api/slack/sync`) porównują `CRON_SECRET` w czasie stałym (`lib/server/safeEqual.ts`).
 - `/api/worklogs/auto` (Siri Shortcuts) uwierzytelnia **tokenem per użytkownik** generowanym w Ustawieniach (w bazie tylko SHA-256, tabela `shortcut_tokens`). Globalny `SHORTCUTS_API_SECRET` nie jest już używany.
 - Endpointy proxy do zewnętrznych API (TMDB, Google Places) wymagają zalogowanego użytkownika i nie przekazują kluczy API do klienta.
 - Skonfigurowane nagłówki bezpieczeństwa (`X-Frame-Options`, `Strict-Transport-Security`, `Permissions-Policy`, CSP) w `next.config.mjs`.
 
+## 📚 Dokumentacja
+
+- [Architektura](docs/ARCHITECTURE.md) – jak aplikacja jest zbudowana, granica bezpieczeństwa, przepływy danych, decyzje.
+- [API](docs/API.md) – endpointy Next.js, Edge Functions i funkcje RPC.
+- [Runbook](docs/RUNBOOK.md) – wdrożenie, zmiany w bazie, cron, awarie, rotacja sekretów.
+
 ## 🤝 Contributing
 
 1. Forkuj repozytorium
 2. Utwórz branch (`git checkout -b feature/nazwa-funkcji`)
-3. Commituj zmiany (`git commit -m 'Ver x.y.z - opis zmiany'`) — numer wersji w wiadomości commita jest odczytywany na żywo przez aplikację
+3. Commituj zmiany (`git commit -m 'Ver x.y.z - opis zmiany'`) - numer wersji w wiadomości commita jest odczytywany na żywo przez aplikację
 4. Uruchom `npm run lint` i `npm run test` przed otwarciem PR
 5. Otwórz Pull Request
 
 ## 📝 Licencja
 
-Projekt prywatny — wszystkie prawa zastrzeżone.
+Projekt prywatny - wszystkie prawa zastrzeżone.

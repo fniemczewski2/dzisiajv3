@@ -108,7 +108,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
 
         if (isEditing && editedList) {
           return (
-            <li key={list.id} className="p-5 break-inside-avoid card rounded-2xl shadow-lg space-y-4 animate-in fade-in">
+            <li key={list.id} className="p-5 break-inside-avoid card rounded-card shadow-lg space-y-4 animate-in fade-in">
               <div className="space-y-4">
                 <div>
                   <label htmlFor="name" className="form-label">Nazwa listy:</label>
@@ -131,7 +131,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                 {list.elements.map((el) => (
                   <li key={el.id} className={`flex items-center justify-between ${el.completed ? "line-through text-text-muted" : "text-text"}`}>
                     <div className="flex items-center flex-1 gap-3">
-                      <input type="checkbox" checked={el.completed} readOnly className="h-5 w-5 rounded text-primary focus:ring-primary accent-primary cursor-not-allowed card" />
+                      <input type="checkbox" checked={el.completed} readOnly className="h-5 w-5 rounded-lg text-primary focus:ring-primary accent-primary cursor-not-allowed card" />
                       <span className="flex-1 font-medium">{el.text}</span>
                     </div>
                   </li>
@@ -142,7 +142,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
         }
 
         return (
-          <li key={list.id} className="p-5 break-inside-avoid card rounded-2xl shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full">
+          <li key={list.id} className="p-5 break-inside-avoid card rounded-card shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1 mr-4 min-w-0">
                 <h3 className="font-bold text-lg text-text leading-tight truncate">{list.name}</h3>
@@ -166,7 +166,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                 <li key={el.id} className={`flex items-center justify-between p-1.5 -mx-1.5 rounded-lg transition-colors hover:bg-surface ${el.completed ? "line-through text-text-muted" : "text-text"}`}>
                   <div className="flex items-center flex-1 gap-3 min-w-0">
                     <input type="checkbox" checked={el.completed} onChange={() => toggleElement(list, el.id)}
-                      className="h-5 w-5 shrink-0 rounded text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
+                      className="h-5 w-5 shrink-0 rounded-lg text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
                   <DeleteButton onClick={() => removeElement(list, el.id)} small />

@@ -263,14 +263,14 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           <label className="block">
             <span className="form-label mb-1 block">Wersja jasna</span>
             <div className="flex gap-3 items-center">
-              <input type="color" value={formData.color_light} onChange={e => setFormData(prev => ({ ...prev, color_light: e.target.value }))} className="w-12 h-12 rounded cursor-pointer" />
+              <input type="color" value={formData.color_light} onChange={e => setFormData(prev => ({ ...prev, color_light: e.target.value }))} className="w-12 h-12 rounded-lg cursor-pointer" />
               <span className="text-sm font-mono">{formData.color_light}</span>
             </div>
           </label>
           <label className="block">
             <span className="form-label mb-1 block">Wersja ciemna</span>
             <div className="flex gap-3 items-center">
-              <input type="color" value={formData.color_dark} onChange={e => setFormData(prev => ({ ...prev, color_dark: e.target.value }))} className="w-12 h-12 rounded cursor-pointer" />
+              <input type="color" value={formData.color_dark} onChange={e => setFormData(prev => ({ ...prev, color_dark: e.target.value }))} className="w-12 h-12 rounded-lg cursor-pointer" />
               <span className="text-sm font-mono">{formData.color_dark}</span>
             </div>
           </label>
@@ -389,7 +389,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             id="is_public"
             checked={formData.is_public}
             onChange={e => setFormData(prev => ({ ...prev, is_public: e.target.checked }))}
-            className="w-5 h-5 mt-0.5 rounded text-primary cursor-pointer"
+            className="w-5 h-5 mt-0.5 rounded-lg text-primary cursor-pointer"
           />
           <label htmlFor="is_public" className="text-sm cursor-pointer select-none">
             <span className="font-semibold block mb-1">Udostępnij publicznie</span>

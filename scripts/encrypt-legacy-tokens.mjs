@@ -1,5 +1,3 @@
-// scripts/encrypt-legacy-tokens.mjs
-
 import { createCipheriv, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
@@ -38,11 +36,6 @@ const isPlaintext = (value) => typeof value === "string" && value !== "" && !val
 
 const admin = createClient(requireEnv("NEXT_PUBLIC_SUPABASE_URL"), requireEnv("SUPABASE_SECRET_KEY"));
 
-/**
- * Szyfruje jawne tokeny na jednej stronie wyników. Wiersze są niezależne,
- * więc zapisy idą równolegle (strona ma najwyżej PAGE wierszy).
- * Zwraca liczbę wierszy, które miały jawny token.
- */
 async function encryptPage(table, pk, columns, rows) {
   const pending = [];
   for (const row of rows) {
@@ -67,16 +60,18 @@ let total = 0;
 for (const { table, key: pk, columns } of TARGETS) {
   let found = 0;
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await admin // NOSONAR 
+    const { data, error } = await admin // NOSONAR
+      .from(table)
       .select([pk, ...columns].join(", "))
       .order(pk)
       .range(from, from + PAGE - 1);
     if (error) {
+
       console.warn(`[${table}] pominięto: ${error.message}`);
       break;
     }
 
-    found += await encryptPage(table, pk, columns, data ?? []); // NOSONAR 
+    found += await encryptPage(table, pk, columns, data ?? []); // NOSONAR
     if (!data || data.length < PAGE) break;
   }
   console.log(`[${table}] wierszy z jawnym tokenem: ${found}${APPLY ? " (zaszyfrowano)" : ""}`);

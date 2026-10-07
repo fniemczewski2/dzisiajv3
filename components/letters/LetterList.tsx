@@ -158,7 +158,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           if (isEditing && edited) {
             const isTrafficViolation = edited.category === "Wykroczenie drogowe";
             return (
-              <li key={l.id} className="bg-card border border-primary dark:border-primary rounded-2xl shadow-lg p-5 animate-in fade-in">
+              <li key={l.id} className="bg-card border border-primary dark:border-primary rounded-card shadow-lg p-5 animate-in fade-in">
                 <div className="space-y-4">
                   <p className="text-xs font-bold text-text-muted">
                     Sygnatura {edited.signature} - kategorii i sygnatury nie można zmienić po utworzeniu.
@@ -243,13 +243,13 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           }
 
           return (
-            <li key={l.id} className="card rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
+            <li key={l.id} className="card rounded-card shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
               <div className="flex items-center justify-between p-4 gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono font-bold text-text">{l.signature}</span>
                     <CopyButtonSmall text={l.signature} label="sygnaturę" />
-                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-md text-[10px] font-semibold">
+                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-lg text-xs font-semibold">
                       {l.category === "Inne" ? l.category_other : l.category}
                     </span>
                   </div>
@@ -269,28 +269,28 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                 <div className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
                   <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-3">
                     <div>
-                      <dt className="text-[10px] font-bold text-text-muted">Wystawiono</dt>
+                      <dt className="text-xs font-bold text-text-muted">Wystawiono</dt>
                       <dd className="text-text">{l.issue_date}</dd>
                     </div>
                     <div>
-                      <dt className="text-[10px] font-bold text-text-muted">Termin odpowiedzi</dt>
+                      <dt className="text-xs font-bold text-text-muted">Termin odpowiedzi</dt>
                       <dd className="text-text">{l.response_date ?? "-"}</dd>
                     </div>
                     {l.license_plate_number && (
                       <div>
-                        <dt className="text-[10px] font-bold text-text-muted">Nr rejestracyjny</dt>
+                        <dt className="text-xs font-bold text-text-muted">Nr rejestracyjny</dt>
                         <dd className="text-text font-mono">{l.license_plate_number}</dd>
                       </div>
                     )}
                     {l.incident_date && (
                       <div>
-                        <dt className="text-[10px] font-bold text-text-muted">Data zdarzenia</dt>
+                        <dt className="text-xs font-bold text-text-muted">Data zdarzenia</dt>
                         <dd className="text-text">{l.incident_date}</dd>
                       </div>
                     )}
                     {l.incident_place && (
                       <div className="col-span-2">
-                        <dt className="text-[10px] font-bold text-text-muted">Miejsce zdarzenia</dt>
+                        <dt className="text-xs font-bold text-text-muted">Miejsce zdarzenia</dt>
                         <dd className="text-text">{l.incident_place}</dd>
                       </div>
                     )}
@@ -302,7 +302,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
 
                   <div className="bg-surface border border-gray-200 dark:border-gray-800 rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-bold text-text-muted">
+                      <span className="text-xs font-bold text-text-muted">
                         Treść (przykład)
                       </span>
                       <CopyButtonSmall text={letterBody} label="treść pisma" />

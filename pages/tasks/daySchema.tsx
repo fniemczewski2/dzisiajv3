@@ -77,7 +77,7 @@ export default function DaySchemaPage() {
           {schemas.map((schema) => (
             <li
               key={schema.id}
-              className="flex justify-between items-center card p-3 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm"
+              className="flex justify-between items-center card p-3 rounded-card border border-gray-200 dark:border-gray-800 shadow-sm"
             >
               <span className="font-bold text-text ml-1">{schema.name}</span>
               <div className="flex gap-1.5 shrink-0">
@@ -92,7 +92,7 @@ export default function DaySchemaPage() {
         </ul>
         )}
 
-        <div className="mb-6 card p-5 rounded-2xl shadow-sm">
+        <div className="mb-6 card p-5 rounded-card shadow-sm">
           {sortedEntries.length > 0 ? (
             <div className="relative border-gray-200 dark:border-gray-700 py-2">
               <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />

@@ -93,7 +93,7 @@ export default function EventItem({
     const editPrefix = `edit-event-${event.id}`;
     
     return (
-      <div className="p-4 w-full max-w-md bg-card border border-primary dark:border-primary rounded-2xl shadow-lg space-y-4">
+      <div className="p-4 w-full max-w-md bg-card border border-primary dark:border-primary rounded-card shadow-lg space-y-4">
         <div>
           <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł wydarzenia:</label>
           <input 
@@ -186,7 +186,7 @@ export default function EventItem({
   }
 
   return (
-    <div className="p-4 w-full max-w-md card rounded-2xl transition-all flex flex-col">
+    <div className="p-4 w-full max-w-md card rounded-card transition-all flex flex-col">
       <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
         <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
       </div>

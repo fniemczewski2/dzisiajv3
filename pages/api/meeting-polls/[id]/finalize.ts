@@ -26,7 +26,7 @@ interface FinalizeContext {
 
 /**
  * Loads and validates everything finalize needs, replying with the
- * appropriate error status itself and returning null on any failure — this
+ * appropriate error status itself and returning null on any failure - this
  * is what used to be a long chain of sequential `if (...) return res...`
  * checks directly in the handler.
  */

@@ -150,26 +150,26 @@ export default function BudgetOverview({
                 <span className="font-medium text-text flex items-center gap-1.5">
                   {item.category.name}
                   {item.category.is_monthly && (
-                    <span className="text-[10px] font-bold text-primary bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded" title="Kategoria limitowana co miesiąc">
+                    <span className="text-xs font-bold text-primary bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-lg" title="Kategoria limitowana co miesiąc">
                       mies.
                     </span>
                   )}
                 </span>
                 <span className={`font-bold tabular-nums ${over ? "text-red-600 dark:text-red-400" : "text-text-secondary"}`}>
                   {s.toFixed(0)} 
-                  {p > 0 && <span className="text-[11px] font-normal opacity-70 ml-0.5">+{p.toFixed(0)}</span>} 
+                  {p > 0 && <span className="text-xs font-normal opacity-70 ml-0.5">+{p.toFixed(0)}</span>}
                   {l > 0 && ` / ${l.toFixed(0)}`} zł
                 </span>
               </div>
               <ProgressBar spent={s} planned={p} max={l} danger={over} />
               
               {(!over && l > 0) && (
-                <p className="text-right text-[10px] text-text-muted mt-0.5">
+                <p className="text-right text-xs text-text-muted mt-0.5">
                   Zostało: {r.toFixed(0)} zł
                 </p>
               )}
              {over && (
-                <p className="text-right text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                <p className="text-right text-xs text-red-600 dark:text-red-400 mt-0.5">
                  +{Math.abs(r).toFixed(0)} zł
                 </p>
               )}
@@ -184,7 +184,7 @@ export default function BudgetOverview({
               <span className="font-bold tabular-nums text-text-secondary">
                 {(isYear ? uncategorised.ySpent : uncategorised.mSpent).toFixed(0)} zł
                 {(isYear ? uncategorised.yPlan : uncategorised.mPlan) > 0 && (
-                  <span className="text-[11px] font-normal opacity-70 ml-0.5">
+                  <span className="text-xs font-normal opacity-70 ml-0.5">
                     +{(isYear ? uncategorised.yPlan : uncategorised.mPlan).toFixed(0)}
                   </span>
                 )}

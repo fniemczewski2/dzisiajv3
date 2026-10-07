@@ -36,7 +36,7 @@ export const AddSpecificButton = ({ path, Icon, title, label, action, router, sm
         <Plus className="absolute left-3 top-2 sm:top-3 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-surface rounded-full"/>
       </div>
     {!small &&
-      <span className="text-[11px] sm:text-xs font-bold opacity-90 group-hover:opacity-100 text-center leading-tight">
+      <span className="text-xs font-bold opacity-90 group-hover:opacity-100 text-center leading-tight">
         {label}
       </span>
     }

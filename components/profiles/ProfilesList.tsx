@@ -100,7 +100,7 @@ export default function ProfilesList() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold dark:text-white truncate">{profile.profile_name}</h3>
                     {profile.is_public && (
-                      <span className="px-2 py-0.5 text-[11px] bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 font-semibold rounded-full">Publiczna</span>
+                      <span className="px-2 py-0.5 text-xs bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 font-semibold rounded-full">Publiczna</span>
                     )}
                   </div>
                   <p className="text-sm dark:text-gray-200 text-gray-800 truncate">{profile.full_name}</p>

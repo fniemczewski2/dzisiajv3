@@ -28,7 +28,7 @@ export default function NoteCard({
   return (
     <li
       className={clsx(
-        "relative break-inside-avoid p-4 max-w-sm min-w-75 rounded-2xl shadow-sm flex flex-col justify-start border card border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md max-h-fit mt-4 first:mt-0",
+        "relative break-inside-avoid p-4 max-w-sm min-w-75 rounded-card shadow-sm flex flex-col justify-start border card border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md max-h-fit mt-4 first:mt-0",
         colorMap[note.bg_color],
         note.archived && "opacity-60 grayscale-[0.3]"
       )}
@@ -46,7 +46,7 @@ export default function NoteCard({
 
       <div className="flex justify-between items-end border-b mb-3 border-gray-300 dark:border-gray-700">
         <h3 className="font-bold text-lg text-text pr-2">{note.title}</h3>
-        <p className="flex-1 text-[10px] text-text-muted font-medium text-right whitespace-nowrap">
+        <p className="flex-1 text-xs text-text-muted font-medium text-right whitespace-nowrap">
           {note.updated_at && formatTime(note.updated_at, true)}
         </p>
       </div>

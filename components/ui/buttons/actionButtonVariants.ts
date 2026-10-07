@@ -23,4 +23,4 @@ export const actionButton = cva(
 );
 
 export const actionIcon = (small?: boolean) => (small ? "w-4 h-4" : "w-4 h-4 sm:w-5 sm:h-5 mb-1");
-export const ACTION_LABEL_CLASS = "text-[11px] sm:text-xs font-semibold";
+export const ACTION_LABEL_CLASS = "text-xs font-semibold";

@@ -113,7 +113,7 @@ function PersonAvatar({ name, size = "md" }: Readonly<{ name: string; size?: "sm
     <span
       aria-hidden="true"
       className={`flex shrink-0 items-center justify-center rounded-full bg-secondary font-bold text-white ${
-        size === "sm" ? "h-6 w-6 text-[10px]" : "h-10 w-10 text-sm"
+        size === "sm" ? "h-6 w-6 text-xs" : "h-10 w-10 text-sm"
       }`}
     >
       {initialsOf(name)}
@@ -145,7 +145,7 @@ function PersonSummary({
   }, [ranges]);
 
   return (
-    <section className="card max-w-none rounded-2xl p-4 sm:p-5" aria-labelledby="person-summary-heading">
+    <section className="card max-w-none rounded-card p-4 sm:p-5" aria-labelledby="person-summary-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
           <PersonAvatar name={person.name} />
@@ -199,7 +199,7 @@ function PersonSummary({
                     {dayRanges.map((range) => (
                       <span
                         key={range.start}
-                        className="rounded-md bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 tabular-nums dark:bg-green-900/50 dark:text-green-200"
+                        className="rounded-lg bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 tabular-nums dark:bg-green-900/50 dark:text-green-200"
                       >
                         {range.start}–{range.end}
                       </span>
@@ -232,7 +232,7 @@ function BestRangesCard({
   return (
     <section
       aria-labelledby="best-ranges-heading"
-      className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5"
+      className="rounded-card border border-primary/30 bg-primary/5 p-4 sm:p-5"
     >
       <h2 id="best-ranges-heading" className="flex items-center gap-2 font-display text-lg font-bold text-text">
         <Sparkles aria-hidden="true" className="h-5 w-5 text-primary" />
@@ -595,7 +595,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             )
           )}
 
-          <section ref={gridRef} aria-labelledby="grid-heading" className="card max-w-none space-y-3 rounded-2xl p-4 sm:p-5">
+          <section ref={gridRef} aria-labelledby="grid-heading" className="card max-w-none space-y-3 rounded-card p-4 sm:p-5">
             <div className="space-y-1">
               <h2 id="grid-heading" className="font-display text-lg font-bold text-text">
                 {focused ? `Dostępność: ${focused.respondent_name}` : "Dostępność zespołu"}

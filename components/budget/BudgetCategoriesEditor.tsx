@@ -254,7 +254,7 @@ export default function BudgetCategoriesEditor({
                       {cat.name}
                     </span>
                     {(!cat.monthly_amounts || (cat.is_monthly ? cat.monthly_amounts[selectedMonth] : cat.monthly_amounts[0]) === 0) && (
-                      <span className="shrink-0 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded">
+                      <span className="shrink-0 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-1.5 py-0.5 rounded-lg">
                         brak limitu
                       </span>
                     )}

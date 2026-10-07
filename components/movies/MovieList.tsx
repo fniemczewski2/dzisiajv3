@@ -150,7 +150,7 @@ export default function MovieWatchlist({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredMovies.length === 0 ? (
-          <div className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl">
+          <div className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-card">
             {isFiltering && <Search className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />}
             <NoResultsState text={emptyText} isSearch={isFiltering} />
           </div>

@@ -23,7 +23,7 @@ export default function CookieBanner() {
   return (
     <section
       aria-label="Informacja o plikach cookie"
-      className="fixed inset-x-3 top-3 z-60 mx-auto max-w-lg sm:inset-x-auto sm:right-5 sm:top-5 sm:mx-0 sm:max-w-sm rounded-2xl border border-line bg-card p-4 sm:p-5 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300"
+      className="fixed inset-x-3 top-3 z-60 mx-auto max-w-lg sm:inset-x-auto sm:right-5 sm:top-5 sm:mx-0 sm:max-w-sm rounded-card border border-line bg-card p-4 sm:p-5 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300"
     >
       <div className="flex flex-col gap-3">
         <p className="text-sm text-text-secondary leading-relaxed">

@@ -1,5 +1,3 @@
-// lib/server/slackSync/pull.ts
-
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { deleteItem, isMissingItemError, type SlackColumn, type SlackItem } from "@/lib/server/slackLists";
 import { SLACK_TASK_CATEGORY, DEFAULT_TASK_STATUS } from "@/config/slack";
@@ -84,8 +82,12 @@ export async function applyAppDeletions(admin: SupabaseClient, target: SyncTarge
   for (const tombstone of (data ?? []) as { id: string; item_id: string }[]) {
     try {
       await deleteItem(target.token, target.listId, tombstone.item_id); // NOSONAR
+      removed += 1;
     } catch (err) {
+
       if (!isMissingItemError(err)) throw err;
     }
     await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id); // NOSONAR
+  }
+  return removed;
 }

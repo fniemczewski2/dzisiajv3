@@ -20,6 +20,7 @@ import {
   Calculator,
   LayoutDashboard,
   BusFront,
+  TrainFront,
   User,
   IdCard,
   Clock,
@@ -57,7 +58,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     items: [
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
       { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy" },
-      { path: "/notes/reports", title: "Sprawozdanie", icon: ScrollText, label: "Sprawozdanie" },
+      { path: "/notes/reports", title: "Protokół", icon: ScrollText, label: "Protokół" },
       { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
     ]
   },
@@ -83,7 +84,8 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   { name: "Wyjścia i wyjazdy",
     items: [
       { path: "/packing", title: "Pakowanie", icon: Backpack, label: "Pakowanie" },
-      {path: "/transport", title: "Transport", icon: BusFront, label: "Transport" },
+      { path: "/transport", title: "Komunikacja miejska", icon: BusFront, label: "Komunikacja" },
+      { path: "/trains", title: "Pociągi", icon: TrainFront, label: "Pociągi" },
       { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
     ],
   },

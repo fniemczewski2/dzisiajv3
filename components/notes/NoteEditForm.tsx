@@ -57,7 +57,7 @@ export default function NoteEditForm({
 
   return (
     <li className={clsx(
-        "break-inside-avoid border-2 py-4 px-5 my-2 sm:m-3 max-w-sm min-w-[300px] rounded-2xl shadow-lg flex flex-col max-h-fit transition-colors",
+        "break-inside-avoid border-2 py-4 px-5 my-2 sm:m-3 max-w-sm min-w-[300px] rounded-card shadow-lg flex flex-col max-h-fit transition-colors",
         note.bg_color === "zinc-50" ? "card" : colorMap[note.bg_color]
       )}
     >

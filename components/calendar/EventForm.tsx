@@ -174,7 +174,7 @@ export default function EventForm({
       <div className="flex items-center">
         <input id="allDay" type="checkbox" checked={allDay}
           onChange={(e) => setAllDay(e.target.checked)}
-          className="h-4 w-4 text-primary bg-transparent border-gray-300 dark:border-gray-600 rounded focus:ring-primary"
+          className="h-4 w-4 text-primary bg-transparent border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary"
           disabled={loading} />
         <label htmlFor="allDay" className="ml-2 text-sm font-medium text-text">
           Wydarzenie całodniowe

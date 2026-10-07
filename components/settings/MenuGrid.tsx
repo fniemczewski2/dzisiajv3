@@ -10,8 +10,8 @@ export default function MenuGrid() {
 
   return (
     <div className="space-y-4 mb-4">
-      <div className="card rounded-2xl shadow-sm p-2 sm:p-3">
-        <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-text-muted">
+      <div className="card rounded-card shadow-sm p-2 sm:p-3">
+        <h3 className="text-xs pb-2 sm:pb-3 px-2 font-bold text-text-muted">
           DODAJ
         </h3>
         <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
@@ -35,7 +35,7 @@ export default function MenuGrid() {
             key={category.name}
             className="card rounded-xl p-2 sm:p-3"
           >
-            <h3 className="text-[10px] sm:text-[11px] pb-2 sm:pb-3 px-2 font-bold text-text-muted">
+            <h3 className="text-xs pb-2 sm:pb-3 px-2 font-bold text-text-muted">
               {category.name}
             </h3>
 
@@ -59,13 +59,13 @@ export default function MenuGrid() {
                     <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110 ${
                       isActive ? 'text-primary' : 'text-text-muted group-hover:text-text'
                     }`} />
-                    <span className={`text-[11px] sm:text-xs text-center leading-tight font-bold ${
+                    <span className={`text-xs text-center leading-tight font-bold ${
                       isActive ? 'text-primary' : 'text-text-secondary group-hover:text-text'
                     }`}>
                       {button.label}
                     </span>
                     {button.badge && (
-                      <span className="absolute -top-1.5 -right-0.5 sm:-right-1.5 px-1.5 py-0.5 bg-red-600 dark:bg-red-600 text-white text-[10px] rounded-full shadow-sm border-2 border-card z-10">
+                      <span className="absolute -top-1.5 -right-0.5 sm:-right-1.5 px-1.5 py-0.5 bg-red-600 dark:bg-red-600 text-white text-xs rounded-full shadow-sm border-2 border-card z-10">
                         {button.badge}
                       </span>
                     )}

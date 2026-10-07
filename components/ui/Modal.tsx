@@ -15,13 +15,13 @@ interface ModalProps {
 /**
  * Native <dialog>-based modal. Replaces the previous pattern of a
  * `<div role="dialog">` overlay with a manual onClick-outside-to-close
- * handler — that pattern needed a hand-rolled focus trap and keyboard
+ * handler - that pattern needed a hand-rolled focus trap and keyboard
  * handling that this app never actually had. `<dialog>` gets focus
  * trapping, Escape-to-close, and top-layer stacking from the browser for
  * free.
  *
  * `showModal`/`close`/`open` aren't implemented in jsdom (the test
- * environment) as of this writing, so every call is feature-detected —
+ * environment) as of this writing, so every call is feature-detected -
  * that also protects real users on the rare browser without <dialog>
  * support instead of throwing at them.
  */

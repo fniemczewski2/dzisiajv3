@@ -195,7 +195,7 @@ const MonthView = memo(function MonthView({
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={`${event.id}-${start.toISOString()}`}
-                className="bg-secondary opacity-90 text-white text-[10px] sm:text-xs rounded-sm truncate h-4 sm:h-4.5 px-1 flex items-center shadow-sm"
+                className="bg-secondary opacity-90 text-white text-xs rounded-lg truncate h-4 sm:h-4.5 px-1 flex items-center shadow-sm"
                 style={{ gridColumnStart: col + 1, gridColumnEnd: `span ${span}`, gridRowStart: row + 1 }}
                 title={event.title}
               >

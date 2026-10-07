@@ -33,7 +33,7 @@ export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraf
     <>
       <div className="flex items-center justify-between gap-2 relative">
 
-        <div className="flex items-center card rounded-2xl p-1 w-full hover:shadow-sm">
+        <div className="flex items-center card rounded-card p-1 w-full hover:shadow-sm">
           <button
             onClick={onPrev}
             type='button'

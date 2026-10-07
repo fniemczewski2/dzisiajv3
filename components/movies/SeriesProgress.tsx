@@ -18,11 +18,11 @@ export default function SeriesProgress({ season, episode, seasonsCount, onChange
   const maxSeason = seasonsCount && seasonsCount > 0 ? seasonsCount : null;
   const canNextSeason = maxSeason === null || s < maxSeason;
   const btn =
-    "p-1.5 rounded-md bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary hover:text-text hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
+    "p-1.5 rounded-lg bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary hover:text-text hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (
     <div className="mb-3 p-2.5 rounded-lg bg-surface border border-gray-100 dark:border-gray-800">
-      <p className="text-[10px] font-bold text-text-muted mb-1.5">Postęp oglądania</p>
+      <p className="text-xs font-bold text-text-muted mb-1.5">Postęp oglądania</p>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-text-secondary">Sezon</span>

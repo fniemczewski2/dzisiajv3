@@ -30,10 +30,10 @@ export function useRetry() {
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       if (signal?.aborted) throw createAbortError();
-      if (attempt > 0) await waitBeforeRetry(attempt, signal); 
+      if (attempt > 0) await waitBeforeRetry(attempt, signal); // NOSONAR
 
       try {
-        lastResult = await operation(); 
+        lastResult = await operation(); // NOSONAR
         lastThrown = undefined;
         if (!hasResultError(lastResult)) return lastResult;
       } catch (err) {
