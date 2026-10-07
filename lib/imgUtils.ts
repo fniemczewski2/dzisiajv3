@@ -23,9 +23,6 @@ export function useImages() {
       if (!e.target.files || e.target.files.length === 0) return;
       const file = e.target.files[0];
 
-      // Rozszerzenie bierzemy z typu MIME, nie z nazwy pliku – bucket jest
-      // publiczny, więc "zdjecie.html" nie może wylądować jako .html.
-      // Te same ograniczenia egzekwuje Storage (migracja 20261005000005).
       const fileExt = AVATAR_EXTENSIONS[file.type];
       if (!fileExt) {
         toast.error('Dozwolone formaty: JPG, PNG, WEBP, GIF.');

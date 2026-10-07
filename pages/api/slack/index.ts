@@ -54,9 +54,6 @@ function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 
-  // Slack wraca zawsze pod adres z NEXT_PUBLIC_APP_URL. Jeśli aplikacja jest
-  // otwarta pod innym adresem (np. www albo podgląd Vercela), ciasteczko stanu
-  // i sesja logowania zostają pod starym adresem i połączenie się nie zapisze.
   const expectedHost = new URL(appUrl).host.toLowerCase();
   const currentHost = requestHost(req);
   if (currentHost && currentHost !== expectedHost) {
@@ -206,7 +203,6 @@ async function handleAddList(
     list_title: body.title?.trim() || listId,
     column_map: {},
     is_default: (count ?? 0) === 0,
-    // domyślnie lista jest dwukierunkowa; odznaczenie wyłącza tylko pobieranie
     sync_enabled: body.sync_enabled ?? true,
   });
 
@@ -302,8 +298,6 @@ async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextA
     return res.status(400).json({ error: "Brak identyfikatora zadania." });
   }
 
-  // task_id to kolejne liczby całkowite, a zapisy idą kluczem service_role –
-  // bez tej kontroli dało się nadpisać lub skasować routing cudzego zadania.
   const { data: ownedTask } = await admin
     .from("tasks")
     .select("id")

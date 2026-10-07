@@ -3,27 +3,12 @@
 import React from "react";
 import { sanitizeHref } from "@/lib/sanitize";
 
-// Matches http(s)/www URLs. Bare "domain.tld" mentions (e.g. "google.pl",
-// not prefixed by a scheme) are linkified separately by BARE_DOMAIN_RE below
-// — previously both lived in one 3-way-alternation regex, which tipped
-// Sonar's regex complexity check (S5843) over its limit. Splitting them
-// into two simpler patterns, applied in two passes, matches the same set of
-// links: URL_RE runs first (so an explicit scheme/www always wins), and
-// BARE_DOMAIN_RE only ever scans the text left over in between.
 const URL_RE = /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+)/gi;
 
-// The domain-label group is deliberately a flat `[a-z0-9-]+` rather than a
-// stricter "starts/ends alphanumeric" pattern: the stricter version nests a
-// bounded quantifier inside a repeated group with full character-class
-// overlap, which is exactly the shape that causes super-linear backtracking
-// (flagged by Sonar S5843/S8786) on adversarial input. This is a loose
-// "does it look like a domain" heuristic, not RFC 1035 validation, so the
-// minor extra leniency (allowing a label to start/end with "-") is fine.
 const BARE_DOMAIN_RE = /(\b(?:[a-z0-9-]+\.)+[a-z]{2,24}(?:\/[^\s<>()]*)?\b)/gi;
 
 const TRAILING_PUNCT = new Set([".", ",", ";", ":", "!", "?", ")", "]"]);
 
-/** Interpunkcja na końcu tokenu (np. „example.com).”) – liniowo, bez regexu. */
 function trailingPunctuation(text: string): string {
   let i = text.length;
   while (i > 0 && TRAILING_PUNCT.has(text[i - 1])) i--;
@@ -74,7 +59,7 @@ function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
   const parts = text.split(URL_RE);
 
   return parts.flatMap((part, i): React.ReactNode[] => {
-    // split() with a capturing group returns matches at odd indices.
+
     if (i % 2 !== 1 || !part) {
       return linkifyBareDomains(part, `${keyPrefix}-t-${i}`);
     }
@@ -84,7 +69,6 @@ function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
 
 const BOLD_RE = /\*\*(.+?)\*\*/g;
 
-/** Renders one note line's inline formatting (`**bold**` + auto-links) as safe React nodes — never raw HTML. */
 export function renderNoteLineContent(text: string, keyPrefix: string): React.ReactNode {
   if (!text) return null;
   const clipped = text.length > MAX_RENDER_LENGTH ? `${text.slice(0, MAX_RENDER_LENGTH)}…` : text;
@@ -106,8 +90,6 @@ export interface ParsedNoteLine {
   content: string;
 }
 
-// Atomic whitespace match (`(?=(\s+))\1` instead of a plain `\s+`) so it
-// can't backtrack into `(.*)$` — see lib/noteEditing.ts for the same fix.
 const BULLET_LINE_RE = /^-(?=(\s+))\1(.*)$/;
 const NUMBER_LINE_RE = /^\d+\.(?=(\s+))\1(.*)$/;
 
@@ -126,12 +108,6 @@ export interface NoteBlock {
   lines: string[];
 }
 
-/**
- * Groups a note's raw lines into renderable blocks: consecutive bullet (or
- * numbered) lines merge into one list, everything else stays its own plain
- * line — matching how Apple Notes treats lines as free text unless the user
- * explicitly turned list formatting on for them.
- */
 export function groupNoteLines(items: string[]): NoteBlock[] {
   const blocks: NoteBlock[] = [];
   for (const raw of items) {

@@ -57,11 +57,6 @@ function getLetterType(category: LetterCategory, kind: LetterFileKind): string {
 }
 
 function storagePath(userId: string, letterId: string, category: LetterCategory, kind: LetterFileKind): string {
-  // Must be `${userId}/...` (a real path segment), not a dot-separated
-  // prefix: the "letters" bucket's storage.objects RLS policies check
-  // (storage.foldername(name))[1] = auth.uid(), which only matches a
-  // folder segment before a "/" — a flat "userId.letterId..." filename
-  // has no folder at all, so every upload was silently rejected by RLS.
   return `${userId}/${letterId}.${getLetterType(category, kind)}.pdf`;
 }
 
@@ -74,11 +69,6 @@ export function useLetters() {
     table: "letters",
     order: { column: "issue_date", ascending: false },
     insertPosition: "start",
-    // uploadLetterFile below uses crud.patch()'s return value to decide
-    // whether to roll back the just-uploaded file. Without this flag,
-    // patch() returns `undefined` on BOTH success and failure (see
-    // useCrudResource.ts), so that check always looked like a failure and
-    // deleted every file right after it was successfully uploaded.
     applyServerRowOnEdit: true,
     prepareInsert: (payload, userId) => ({
       user_id: userId,
@@ -168,9 +158,6 @@ export function useLetters() {
         .upload(path, file, { upsert: true, contentType: "application/pdf" });
 
       if (uploadError) {
-        // Storage errors (missing bucket, RLS policy rejection, etc.) were
-        // previously swallowed into one generic message with no way to tell
-        // them apart — log the real cause for debugging.
         console.error("[useLetters] upload do bucketu 'letters' nie powiodło się:", uploadError.message);
         toast.error("Błąd przesyłania pliku.");
         return;

@@ -2,8 +2,6 @@
 
 import "@testing-library/jest-dom/vitest";
 
-// Aplikacja zakłada strefę polską (godziny z biletów, czas PKP PLK), więc testy
-// muszą działać w tej samej strefie niezależnie od maszyny, na której biegną.
 process.env.TZ = "Europe/Warsaw";
 
 if (typeof window !== "undefined" && !window.matchMedia) {

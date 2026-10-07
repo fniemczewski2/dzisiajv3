@@ -17,9 +17,6 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-// Musi być identyczne z redirect_uri w lib/server/oauthCallback.ts. Wcześniej
-// przy braku NEXT_PUBLIC_APP_URL budowaliśmy je z nagłówka Host (kontroluje go
-// klient), a callback i tak używał NEXT_PUBLIC_APP_URL || localhost.
 function getRedirectUri(): string {
   const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
   return `${baseUrl}/api/google-calendar/callback`;
@@ -50,9 +47,6 @@ async function getValidGoogleToken(auth: AuthContext, accountId?: string): Promi
       .eq("id", accountId)
       .eq("user_id", auth.user.id)
       .maybeSingle<Pick<ConnectedCalendarRow, "account_email">>();
-
-    // Nieznane konto = brak tokenu. Wcześniej po cichu braliśmy pierwsze
-    // podłączone konto Google, więc import/eksport trafiał nie tam, gdzie trzeba.
     if (!calInfo) return null;
     targetEmail = calInfo.account_email;
   }
@@ -162,10 +156,10 @@ async function fetchAllGoogleEvents(url: URL, accessToken: string): Promise<{ it
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } }); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } }); // NOSONAR 
     if (!r.ok) return { items: allItems, failedStatus: r.status };
 
-    const data: GoogleEventsListResponse = await r.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const data: GoogleEventsListResponse = await r.json(); // NOSONAR 
     allItems.push(...(data.items || []));
     pageToken = data.nextPageToken;
   } while (pageToken);
@@ -202,8 +196,6 @@ function buildImportRows(
       place: ev.location || "",
       repeat: "none",
       google_event_id: ev.id,
-      // Bez shared_with_id: upsert aktualizuje istniejące wydarzenia i zdjąłby
-      // udostępnienie ustawione w aplikacji. Nowe wiersze dostają NULL domyślnie.
     });
   }
   return { rows, skipped };
@@ -213,10 +205,7 @@ async function upsertEventBatches(sb: ReturnType<typeof getServiceSupabase>, row
   let imported = 0;
   let skipped = 0;
   const BATCH_SIZE = 500;
-  // Paczki są niezależne – zapisujemy po kilka naraz.
   await mapPool(chunk(rows, BATCH_SIZE), 3, async (batch) => {
-    // Aktualizujemy istniejące (zmiany po stronie Google), jak cron w
-    // /api/calendar/sync-calendars.
     const { error } = await sb.from("events").upsert(batch, {
       onConflict: "calendar_id,google_event_id",
     });
@@ -340,9 +329,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   }
 
   const sb = getServiceSupabase(auth.token);
-
-  // Kalendarz wybrany w aplikacji (wiersz connected_calendars): z niego konto
-  // i id kalendarza Google, a po wysłaniu wydarzenie zostaje do niego przypięte.
   const target = connectedCalendarId
     ? await resolveExportTarget(sb, auth.user.id, "google", connectedCalendarId)
     : null;
@@ -374,8 +360,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
     const r = await fetch(endpoint, { method, headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) return false;
     const created = await r.json();
-    // calendar_id + google_event_id: cron synchronizacji rozpozna to wydarzenie
-    // (upsert po tej parze) zamiast dodać jego duplikat po imporcie z Google.
     await sb
       .from("events")
       .update(target ? { google_event_id: created.id, calendar_id: target.rowId } : { google_event_id: created.id })
@@ -385,7 +369,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
 
   const EXPORT_CONCURRENCY = 5;
   let exported = 0, skipped = 0;
-  // Pula zamiast paczek: kolejne wydarzenie startuje, gdy zwolni się miejsce.
   const results = await mapPool(events, EXPORT_CONCURRENCY, (ev) => exportOne(ev).catch(() => false));
   results.forEach((ok) => (ok ? exported++ : skipped++));
   return res.json({ exported, skipped });

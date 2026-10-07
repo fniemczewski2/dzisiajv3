@@ -236,8 +236,6 @@ export default function ReportsPage() {
 
   const handleGenerate = async (report: Report) => {
     try {
-      // Dynamiczny import pdfmake może się nie udać (offline / nieaktualny chunk po
-      // deployu) – bez obsługi kliknięcie po prostu nic nie robiło.
       await generateReportPDF(report);
     } catch (err) {
       console.error("[reports] Generowanie PDF nie powiodło się:", err);

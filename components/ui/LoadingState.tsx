@@ -16,14 +16,14 @@ const SIZE_CLASSES = {
 
 export default function LoadingState({ fullScreen = false, size = "md", label = "Ładowanie" }: Readonly<LoadingStateProps>) {
   const content = (
-    <span role="status" aria-live="polite" className="inline-flex flex-col items-center gap-3">
+    <output aria-live="polite" className="inline-flex flex-col items-center gap-3">
       <Loader2 aria-hidden="true" className={`animate-spin text-primary ${SIZE_CLASSES[size]}`} />
       {fullScreen ? (
         <span className="text-sm font-medium text-text-muted">{label}…</span>
       ) : (
         <span className="sr-only">{label}</span>
       )}
-    </span>
+    </output>
   );
 
   if (fullScreen) {

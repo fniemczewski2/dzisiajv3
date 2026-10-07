@@ -29,9 +29,6 @@ describe("FileSlot preview (regression: noopener/noreferrer nulling window.open)
 
     await userEvent.click(screen.getByRole("button", { name: /podgląd/i }));
 
-    // The regression: passing "noopener"/"noreferrer" makes window.open()
-    // return null, so there is nothing to navigate once the signed URL
-    // resolves. Assert the call has no third (features) argument doing that.
     expect(openSpy).toHaveBeenCalledWith("", "_blank");
     expect(fakeWindow.location.href).toBe(
       "https://example.supabase.co/storage/v1/object/sign/letters/foo.pdf?token=abc"

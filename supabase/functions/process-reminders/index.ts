@@ -76,9 +76,7 @@ Deno.serve(async (req) => {
     const failed: string[] = [];
 
     await mapPool((data ?? []) as RecurringTask[], 5, async (task) => {
-      // Each task is isolated in its own try/catch so a thrown network/DB
-      // error on one row (not just a returned `error` field) doesn't abort
-      // processing of the remaining recurring tasks in this run.
+
       try {
         const outcome = await rollRecurringTask(supabase, task);
         if (outcome === "rolled") rolled.push(task.title);

@@ -1,5 +1,4 @@
 // components/ui/buttons/addSpecificButton.tsx
-// Split out of the former CommonButtons.tsx.
 
 import React from "react";
 import { Plus, type LucideIcon } from "lucide-react";

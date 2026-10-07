@@ -28,8 +28,6 @@ const DATA: ResultsData = {
 
 let current: ResultsData = DATA;
 
-// Funkcje muszą być stabilne między renderami (jak useCallback w prawdziwym hooku),
-// inaczej efekt pobierania odpala się po każdej zmianie stanu i odmontowuje widok.
 const stable = vi.hoisted(() => ({
   getPollResults: vi.fn(),
   finalizePoll: vi.fn(),

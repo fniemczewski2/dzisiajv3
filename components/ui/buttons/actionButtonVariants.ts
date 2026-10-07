@@ -1,7 +1,4 @@
 // components/ui/buttons/actionButtonVariants.ts
-// Shared cva variant + sizing helpers behind every small icon+label action
-// button (Delete/Edit/Pin/Archive/...) in components/ui/buttons/iconButtons.tsx,
-// and reused directly by components/dashboard/PlanItem.tsx.
 
 import { cva } from "class-variance-authority";
 

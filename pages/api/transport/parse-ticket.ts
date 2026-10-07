@@ -65,10 +65,6 @@ function expandStationWord(word: string, cityWord: string = ''): string {
   return forms.m;
 }
 
-// The general (non-2-word, non-4-word) case: walks the word list, merging a
-// word into the current station name when it's a known suffix (or a
-// continuation of a known multi-word city name), otherwise starting a new
-// station entry.
 function buildStationsList(words: string[]): string[] {
   const stationsList: string[] = [];
   let current = expandStationWord(words[0]) || '';
@@ -129,13 +125,8 @@ class PdfReadError extends Error {
 async function extractPdfText(dataBuffer: Buffer): Promise<string> {
   let parser: { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } | undefined;
   try {
-    // Kolejność jest istotna: pdfjs sięga po DOMMatrix już przy ładowaniu
-    // modułu, więc globalne obiekty muszą istnieć PRZED importem pdf-parse.
     await ensurePdfCanvasGlobals();
 
-    // Import w środku funkcji, a nie na górze pliku: dzięki temu błąd ładowania
-    // wpada tutaj i wraca jako JSON. Import na poziomie modułu wywracał całą
-    // funkcję, a klient dostawał stronę błędu HTML.
     const { PDFParse } = await import('pdf-parse');
     parser = new PDFParse({ data: dataBuffer });
     const result = await parser.getText();

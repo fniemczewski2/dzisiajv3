@@ -5,10 +5,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Modal from "@/components/ui/Modal";
 
-// jsdom (the test environment) doesn't implement HTMLDialogElement's
-// showModal/close/open — polyfill just enough of the real behavior so the
-// component's actual open/close logic gets exercised for real, instead of
-// being a no-op behind the `typeof dialog.showModal !== "function"` guard.
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
     this.setAttribute("open", "");

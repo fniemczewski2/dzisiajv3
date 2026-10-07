@@ -37,19 +37,6 @@ export function FileSlot({
 
   const handleView = async () => {
     if (!path) return;
-    // Open the tab synchronously, inside the click handler, before the
-    // `await` below — browsers drop the "user activation" that permits
-    // window.open() once an async gap (the signed-URL request) has passed,
-    // so opening it after the await was silently blocked as a popup with no
-    // error surfaced anywhere. Navigate the already-open tab once the URL
-    // is ready instead.
-    //
-    // Must NOT pass "noopener"/"noreferrer" here: both make window.open()
-    // return null instead of a window reference (that's the whole point of
-    // those flags), which would make it impossible to navigate the tab
-    // below — the previous version of this fix opened a tab that could
-    // never be pointed anywhere. Null out `.opener` manually afterwards for
-    // the same isolation, now that we still hold a usable reference.
     const preview = window.open("", "_blank");
     if (preview) preview.opener = null;
     setBusy(true);
@@ -166,8 +153,6 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           const open = openId === l.id;
           const isEditing = editingId === l.id;
           const editPrefix = `edit-letter-${l.id}`;
-          // Only build the template text for the currently expanded letter —
-          // no need to generate it for every collapsed row on each render.
           const letterBody = open ? generateLetterBody(l) : "";
 
           if (isEditing && edited) {

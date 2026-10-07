@@ -94,7 +94,6 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         details = await fetchMediaDetails(result.mediaType, result.tmdbId, newSignal());
       } catch (err) {
         if (isAbortError(err)) return;
-        // Szczegóły są opcjonalne – wypełniamy tym, co dało wyszukiwanie.
         toast.info("Nie udało się pobrać szczegółów – uzupełniono podstawowe dane.");
       }
       const data = buildMovieData(result, details);
@@ -134,7 +133,6 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       description: form.description.trim() || null,
       media_type: form.mediaType,
       ...meta,
-      // Dane serialowe nie mają sensu, jeśli użytkownik przełączył typ na film.
       seasons_count: isTv ? meta.seasons_count : null,
       episodes_count: isTv ? meta.episodes_count : null,
       series_status: isTv ? meta.series_status : null,
@@ -146,14 +144,6 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       setOptions([]);
       setTmdbError(null);
     }
-  };
-
-  const onTitleChange = (value: string) => {
-    update("title", value);
-    setOptions([]);
-    setTmdbError(null);
-    // Nowy tytuł = nowa pozycja; stare metadane TMDB przestają pasować.
-    if (meta.tmdb_id) setMeta(EMPTY_META);
   };
 
   const selectedPoster = posterUrl(meta.poster_path, "w92");
@@ -170,7 +160,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               required
               maxLength={300}
               value={form.title}
-              onChange={(e) => onTitleChange(e.target.value)}
+              onChange={(e) => update("title", e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !meta.tmdb_id) { e.preventDefault(); void runSearch(); }
               }}

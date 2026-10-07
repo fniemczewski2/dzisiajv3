@@ -1,5 +1,4 @@
 // components/ui/buttons/secondaryFullButton.tsx
-// Split out of the former CommonButtons.tsx.
 
 import React from "react";
 import { cva } from "class-variance-authority";
@@ -28,12 +27,6 @@ interface SecondaryFullButtonProps {
   children: React.ReactNode;
   className?: string;
 }
-
-// Shared full-width "secondary" button (Wyloguj się / Usuń konto / Połącz ze
-// Slackiem / Odłącz lokalizację, ...) — previously each caller hand-copied
-// the same ~20-class string, so a style tweak needed to be repeated in 4+
-// files. `className` is merged with `cn()` (clsx + tailwind-merge) so a
-// caller-supplied override (e.g. `mt-4`) actually takes effect.
 export const SecondaryFullButton = ({
   onClick,
   disabled = false,

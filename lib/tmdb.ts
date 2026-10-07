@@ -1,8 +1,4 @@
 // lib/tmdb.ts
-//
-// Integracja z The Movie Database (https://www.themoviedb.org) – darmowe API
-// dla filmów i seriali. Klucz trzymamy po stronie serwera (pages/api/tmdb.ts),
-// przeglądarka rozmawia wyłącznie z naszym proxy.
 
 import type {
   MediaSearchResult,
@@ -17,7 +13,6 @@ import type {
 export const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 const POSTER_PATH_RE = /^\/[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)$/;
 
-/** Gatunki TMDB – część identyfikatorów jest wspólna, część tylko dla filmów albo seriali. */
 const GENRES: Record<number, string> = {
   28: "Akcja", 12: "Przygodowy", 16: "Animacja", 35: "Komedia",
   80: "Kryminalny", 99: "Dokumentalny", 18: "Dramat", 10751: "Familijny",
@@ -132,7 +127,6 @@ async function tmdbFetch<T>(path: string, params: Record<string, string> = {}, s
 export async function searchMedia(query: string, filter: MediaType | "all" = "all", signal?: AbortSignal) {
   const path = filter === "all" ? "/search/multi" : `/search/${filter}`;
   const data = await tmdbFetch<TmdbSearchResponse>(path, { query: query.trim() }, signal);
-  // /search/movie i /search/tv nie zwracają media_type – uzupełniamy go.
   if (filter !== "all") {
     data.results = (data.results ?? []).map((r) => ({ ...r, media_type: filter }));
   }

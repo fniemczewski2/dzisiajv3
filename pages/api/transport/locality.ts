@@ -1,10 +1,4 @@
 // pages/api/transport/locality.ts
-//
-// Miejscowość dla współrzędnych przystanku – potrzebna tylko wtedy, gdy nazwa
-// przystanku się powtarza (np. ta sama nazwa w Poznaniu i Luboniu).
-// Źródło: Photon (komoot) – darmowy reverse geocoding na danych OpenStreetMap,
-// bez klucza API. Wyniki cache'ujemy w pamięci, bo przystanki się nie przesuwają.
-
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/server/rateLimit";
@@ -12,8 +6,6 @@ import { checkRateLimit } from "@/lib/server/rateLimit";
 const PHOTON_URL = "https://photon.komoot.io/reverse";
 const CACHE_MAX = 5000;
 const cache = new Map<string, string | null>();
-
-// Z grubsza Polska – nie robimy z endpointu ogólnego proxy do geokodowania.
 const BOUNDS = { minLat: 49, maxLat: 55, minLon: 14, maxLon: 24.2 };
 
 interface PhotonFeature {
@@ -51,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const lon = parseCoord(req.query.lon, BOUNDS.minLon, BOUNDS.maxLon);
   if (lat === null || lon === null) return res.status(400).json({ error: "Nieprawidłowe współrzędne." });
 
-  // ~100 m dokładności wystarczy do ustalenia miejscowości i poprawia trafienia w cache.
   const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
   if (cache.has(key)) {
     res.setHeader("Cache-Control", "private, max-age=86400");

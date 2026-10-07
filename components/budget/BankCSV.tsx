@@ -61,9 +61,6 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
     }
   };
 
-  // Looks up a category that already exists under a different case/whitespace
-  // than what we tried to create — the only reason addCategory would fail
-  // with a duplicate-key error here.
   const findExistingCategory = async (name: string): Promise<BudgetCategory | null> => {
     const { data } = await supabase
       .from("budget_categories")
@@ -99,7 +96,7 @@ export default function BankCsvImporter({ year }: { readonly year: number }) {
       const targetName = missingCat.toLowerCase().trim();
       if (updatedCategories.some(c => c.name.toLowerCase().trim() === targetName)) continue;
 
-      const resolved = await resolveMissingCategory(missingCat); // NOSONAR – pytania o brakujące kategorie wyświetlamy użytkownikowi po kolei
+      const resolved = await resolveMissingCategory(missingCat);  
       if (resolved) updatedCategories.push(resolved);
     }
     return updatedCategories;

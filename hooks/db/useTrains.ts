@@ -225,7 +225,6 @@ export function useTrainsForDate(dateStr: string) {
       setTrains((data || []).map(mapDbRowToTrain).sort(sortByDepartureAsc));
     } catch (err) {
       if (isAbortError(err)) return;
-      // Plan dnia działa dalej bez biletów – nie zasypujemy użytkownika toastami.
       setTrains([]);
     }
   }, [userId, supabase, dateStr, getSignal]);
@@ -238,7 +237,6 @@ export function useTrainsForDate(dateStr: string) {
 }
 
 export interface TrainStatusOptions {
-  /** Co ile ms odświeżać status (0 = tylko raz). Odświeżanie pauzuje w ukrytej karcie. */
   refreshMs?: number;
   enabled?: boolean;
 }
@@ -285,8 +283,6 @@ export function useTrainStatus(train: {
           signal: controller.signal,
         });
         if (response.status === 429) {
-          // Karta sprawdza dokładnie ten tekst – wcześniej ustawiane było '429',
-          // więc komunikat o limicie nigdy się nie pokazywał.
           setData((prev) => ({ ...prev, status: 'Zbyt wiele zapytań', loading: false }));
           return;
         }
@@ -315,8 +311,6 @@ export function useTrainStatus(train: {
         });
       } catch (err) {
         if (isAbortError(err)) return;
-        // Zostawiamy ostatnie znane opóźnienie/peron – przy odświeżaniu chwilowy błąd sieci
-        // nie powinien ich kasować.
         setData((prev) => ({ ...prev, status: prev.status && prev.status !== 'Błąd połączenia' ? prev.status : 'Błąd połączenia', loading: false }));
       }
     };

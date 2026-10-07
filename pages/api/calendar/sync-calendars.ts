@@ -30,18 +30,6 @@ interface ImportedEventRow {
   google_event_id: string;
 }
 
-/**
- * Batch upsert zamiast N+1. Wymaga indeksu unikalnego
- * events_calendar_google_event_uidx (calendar_id, google_event_id) –
- * zob. supabase/migrations/20261005000000_events_google_event_unique.sql.
- *
- * Bez `ignoreDuplicates`: istniejące wydarzenia są aktualizowane, więc zmiana
- * tytułu/godziny w Google lub Outlooku trafia do aplikacji. Wcześniej
- * "ON CONFLICT DO NOTHING" zamrażało wydarzenie w stanie z pierwszego importu.
- * Lokalne edycje zaimportowanego wydarzenia są przy synchronizacji nadpisywane
- * – kalendarz zewnętrzny jest źródłem prawdy. Wyjątek: shared_with_id nie
- * jest w wierszach, więc udostępnienie ustawione w aplikacji zostaje.
- */
 async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
   if (rows.length === 0) return 0;
 
@@ -50,8 +38,6 @@ async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
     .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
 
   if (error) {
-    // Rzucamy, żeby synchronizacja kalendarza nie została uznana za pełną –
-    // inaczej usuwanie nieaktualnych wydarzeń skasowałoby niezapisane wiersze.
     throw new Error(`events upsert: ${error.message}`);
   }
   return rows.length;
@@ -60,16 +46,11 @@ async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
 const PAGE_SIZE = 1000;
 const DELETE_CHUNK = 200;
 
-/**
- * Usuwa wydarzenia tego kalendarza z okna synchronizacji, których nie było
- * w odpowiedzi Google/Outlooka (usunięte lub odwołane u źródła).
- * Wywoływane tylko po pełnym, udanym pobraniu wszystkich stron.
- */
 async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeMin: Date, timeMax: Date): Promise<number> {
   const staleIds: string[] = [];
 
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const { data, error } = await supabaseService // NOSONAR
       .from('events')
       .select('id, google_event_id')
       .eq('calendar_id', calendarId)
@@ -97,11 +78,9 @@ async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeM
 }
 
 async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
-  // PostgREST domyślnie ucina odpowiedź do 1000 wierszy – bez stronicowania
-  // konta powyżej tego progu po cichu przestawały się synchronizować.
   const all: ConnectedCalendarRow[] = [];
   for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const { data, error } = await supabaseService // NOSONAR 
       .from('connected_calendars')
       .select('*')
       .order('id')
@@ -120,9 +99,6 @@ async function getAccessToken(
   tokenCache: TokenCache,
   mainAccountsCache: MainAccountsCache
 ): Promise<string | null> {
-  // Dopasowanie MUSI obejmować user_id: dwóch użytkowników aplikacji może
-  // podłączyć to samo konto Google/Outlook i wtedy kalendarz jednego
-  // synchronizował się tokenem drugiego (także po odwołaniu dostępu).
   const mainAcc = accounts.find(a =>
     a.user_id === acc.user_id &&
     a.account_email === acc.account_email &&
@@ -146,16 +122,10 @@ async function getAccessToken(
   if (accessToken) {
     tokenCache[cacheKey] = accessToken;
     mainAccountsCache[cacheKey] = mainAcc;
-    // Clear a previously recorded sync error now that the refresh succeeded,
-    // so a transient failure doesn't keep showing a stale warning forever.
     if (mainAcc.sync_error) {
       await supabaseService.from('connected_calendars').update({ sync_error: null }).eq('id', mainAcc.id);
     }
   } else {
-    // Token refresh failed (e.g. the user revoked access in Google/Microsoft
-    // account settings) — previously this was silently swallowed and the
-    // account was skipped forever with no signal to the user. Persist the
-    // failure so the UI (ConnectedCalendars.tsx) can surface a re-auth prompt.
     await supabaseService
       .from('connected_calendars')
       .update({ sync_error: 'token_refresh_failed' })
@@ -214,20 +184,18 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const googleRes = await fetchWithTimeout(fetchUrl.toString(), { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
-      headers: { Authorization: `Bearer ${accessToken}` },
+    const googleRes = await fetchWithTimeout(fetchUrl.toString(), { // NOSONAR 
     });
 
     if (!googleRes.ok) {
-      // Niepełna lista – nie wolno na jej podstawie usuwać wydarzeń.
       throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
-    const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR 
     pageToken = data.nextPageToken;
 
     const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    imported += await upsertImportedEvents(rows); // NOSONAR 
   } while (pageToken);
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
@@ -240,14 +208,13 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
   let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
   while (fetchUrl) {
-    const msRes: Response = await fetchWithTimeout(fetchUrl, { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
-      headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
+    const msRes: Response = await fetchWithTimeout(fetchUrl, { // NOSONAR 
     });
 
     if (!msRes.ok) {
       throw new Error(`Outlook fetch failed for calendar ${acc.id}: ${msRes.status}`);
     }
-    const data: OutlookEventsResponse = await msRes.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const data: OutlookEventsResponse = await msRes.json(); // NOSONAR 
 
     const rows: ImportedEventRow[] = [];
     for (const ev of data.value || []) {
@@ -266,7 +233,7 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
       });
     }
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    imported += await upsertImportedEvents(rows); // NOSONAR
     fetchUrl = data['@odata.nextLink'];
   }
 
@@ -285,10 +252,6 @@ async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainA
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
-
-  // Reuse the shared cron-auth helper instead of re-implementing the same
-  // timing-safe comparison locally — keeps this endpoint in sync with any
-  // future fix to the shared implementation.
   if (!verifyCronRequest(req)) {
     return res.status(401).json({ error: "Brak autoryzacji." });
   }
@@ -321,10 +284,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let totalImported = 0;
     let totalRemoved = 0;
     const failedAccounts: string[] = [];
-
-    // Pula: kolejne konto startuje, gdy tylko zwolni się miejsce (wcześniej
-    // paczki po 5 czekały na najwolniejsze konto w paczce). Błąd jednego konta
-    // nie przerywa pozostałych.
     await mapPool(targets, CONCURRENCY_LIMIT, async (acc) => {
       try {
         const result = await processAccount(acc);

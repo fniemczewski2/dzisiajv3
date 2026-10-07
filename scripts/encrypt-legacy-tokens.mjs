@@ -1,16 +1,4 @@
 // scripts/encrypt-legacy-tokens.mjs
-//
-// Jednorazowe szyfrowanie tokenów OAuth zapisanych jeszcze jawnym tekstem
-// (sprzed wprowadzenia lib/server/tokenCrypto.ts). decryptToken() przepuszcza
-// takie wartości bez zmian; po uruchomieniu tego skryptu ustaw
-// REJECT_PLAINTEXT_TOKENS=1, żeby fallback przestał działać.
-//
-// Użycie (domyślnie tylko podgląd, bez zapisu):
-//   NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SECRET_KEY=... \
-//   CALENDAR_TOKEN_ENCRYPTION_KEY=... node scripts/encrypt-legacy-tokens.mjs
-//   ... node scripts/encrypt-legacy-tokens.mjs --apply
-//
-// Format musi być identyczny z lib/server/tokenCrypto.ts: v1:iv:authTag:ciphertext.
 
 import { createCipheriv, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
@@ -50,33 +38,45 @@ const isPlaintext = (value) => typeof value === "string" && value !== "" && !val
 
 const admin = createClient(requireEnv("NEXT_PUBLIC_SUPABASE_URL"), requireEnv("SUPABASE_SECRET_KEY"));
 
+/**
+ * Szyfruje jawne tokeny na jednej stronie wyników. Wiersze są niezależne,
+ * więc zapisy idą równolegle (strona ma najwyżej PAGE wierszy).
+ * Zwraca liczbę wierszy, które miały jawny token.
+ */
+async function encryptPage(table, pk, columns, rows) {
+  const pending = [];
+  for (const row of rows) {
+    const update = {};
+    for (const column of columns) {
+      if (isPlaintext(row[column])) update[column] = encrypt(row[column]);
+    }
+    if (Object.keys(update).length > 0) pending.push({ id: row[pk], update });
+  }
+  if (APPLY) {
+    await Promise.all(
+      pending.map(async ({ id, update }) => {
+        const { error } = await admin.from(table).update(update).eq(pk, id);
+        if (error) console.error(`[${table}] ${id}: ${error.message}`);
+      })
+    );
+  }
+  return pending.length;
+}
+
 let total = 0;
 for (const { table, key: pk, columns } of TARGETS) {
   let found = 0;
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await admin
-      .from(table)
+    const { data, error } = await admin // NOSONAR 
       .select([pk, ...columns].join(", "))
       .order(pk)
       .range(from, from + PAGE - 1);
     if (error) {
-      // Tabela może nie istnieć (np. google_calendar_tokens po migracji danych).
       console.warn(`[${table}] pominięto: ${error.message}`);
       break;
     }
 
-    for (const row of data ?? []) {
-      const update = {};
-      for (const column of columns) {
-        if (isPlaintext(row[column])) update[column] = encrypt(row[column]);
-      }
-      if (Object.keys(update).length === 0) continue;
-      found++;
-      if (APPLY) {
-        const { error: updateError } = await admin.from(table).update(update).eq(pk, row[pk]);
-        if (updateError) console.error(`[${table}] ${row[pk]}: ${updateError.message}`);
-      }
-    }
+    found += await encryptPage(table, pk, columns, data ?? []); // NOSONAR 
     if (!data || data.length < PAGE) break;
   }
   console.log(`[${table}] wierszy z jawnym tokenem: ${found}${APPLY ? " (zaszyfrowano)" : ""}`);

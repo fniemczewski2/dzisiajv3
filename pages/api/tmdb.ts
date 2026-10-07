@@ -1,15 +1,10 @@
 // pages/api/tmdb.ts
-//
-// Proxy do TMDB – ukrywa klucz API i pozwala wyłącznie na ścieżki potrzebne
-// zakładce "Filmy i seriale".
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
-// Pełne dopasowanie całej ścieżki (nie prefiksu) – wcześniej "/movie/../account"
-// przechodziło sprawdzenie startsWith, a `new URL` normalizowało to do /3/account.
 const ALLOWED_PATHS: readonly RegExp[] = [
   /^\/search\/(movie|tv|multi)$/,
   /^\/(movie|tv)\/\d{1,10}$/,
@@ -34,7 +29,6 @@ export function buildTmdbUrl(path: string, query: Record<string, unknown>, apiKe
     const validate = ALLOWED_PARAMS[key];
     if (validate?.(value)) url.searchParams.set(key, value);
   }
-  // Ustawiane na końcu, żeby klient nie mógł ich nadpisać.
   url.searchParams.set("api_key", apiKey);
   url.searchParams.set("language", "pl-PL");
   url.searchParams.set("include_adult", "false");
@@ -76,8 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(status).json({ error: status === 404 ? "Nie znaleziono w TMDB." : "Wystąpił błąd API TMDB" });
     }
     const data = await tmdbRes.json();
-    // Odpowiedź zależy tylko od zapytania, ale endpoint wymaga logowania –
-    // nie pozwalamy na cache w CDN współdzielonym między użytkownikami.
     res.setHeader("Cache-Control", "private, max-age=600");
     return res.status(200).json(data);
   } catch {

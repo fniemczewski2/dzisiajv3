@@ -48,12 +48,9 @@ function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
 }
 
 function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; onRemove: (id: string) => void }>) {
-  return (
-    <div
-      role={item.variant === "error" ? "alert" : "status"}
-      aria-live={item.variant === "error" ? "assertive" : "polite"}
-      className={`flex items-start gap-3 w-full pl-3.5 pr-2.5 py-3 rounded-xl border border-line border-l-4 bg-card text-text shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`}
-    >
+  const className = `flex items-start gap-3 w-full pl-3.5 pr-2.5 py-3 rounded-xl border border-line border-l-4 bg-card text-text shadow-xl text-sm font-medium animate-in slide-in-from-bottom-4 fade-in duration-300 ${VARIANT_STYLES[item.variant]}`;
+  const content = (
+    <>
       <ToastIcon variant={item.variant} />
       <span className="flex-1 leading-snug">{item.message}</span>
       {item.action && (
@@ -73,7 +70,19 @@ function NotificationEl({ item, onRemove }: Readonly<{ item: NotificationToast; 
       >
         <X aria-hidden="true" className="w-4 h-4" />
       </button>
-    </div>
+    </>
+  );
+  if (item.variant === "error") {
+    return (
+      <div role="alert" aria-live="assertive" className={className}>
+        {content}
+      </div>
+    );
+  }
+  return (
+    <output aria-live="polite" className={className}>
+      {content}
+    </output>
   );
 }
 
@@ -98,11 +107,6 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
       aria-labelledby={`confirm-msg-${item.id}`}
       onClose={() => answer(false)}
       onCancel={() => answer(false)}
-      // Tailwind preflight zeruje marginesy (`* { margin: 0 }`), przez co <dialog>
-      // otwarty przez showModal() traci domyślne `margin: auto` i ląduje w lewym
-      // górnym rogu. `fixed inset-0 m-auto h-fit` przywraca wyśrodkowanie w pionie
-      // i poziomie. `open:flex` zamiast `flex`, żeby nie nadpisywać ukrywania
-      // zamkniętego dialogu (`dialog:not([open]) { display: none }`).
       className="fixed inset-0 m-auto h-fit hidden open:flex flex-col gap-3 w-[calc(100%-2rem)] max-w-sm px-4 py-4 rounded-2xl border shadow-2xl text-sm font-medium bg-card border-line backdrop:bg-navy/50 backdrop:backdrop-blur-sm open:animate-in open:fade-in open:zoom-in-95 open:duration-200"
     >
       <div className="flex items-start gap-3">
@@ -110,8 +114,6 @@ function ConfirmEl({ item, onRemove }: Readonly<{ item: ConfirmToast; onRemove: 
         <span id={`confirm-msg-${item.id}`} className="flex-1 leading-snug text-text text-[15px]">{item.message}</span>
       </div>
       <div className="flex gap-2 justify-end">
-        {/* Bez autoFocus: showModal() sam ustawia fokus na pierwszym
-            interaktywnym elemencie dialogu, czyli na tym (bezpiecznym) przycisku. */}
         <button
           onClick={() => answer(false)}
           type='button'

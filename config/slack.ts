@@ -37,13 +37,6 @@ export const SLACK_FIELD_LABELS: Record<SlackMappableTaskField, string> = {
 
 export const SLACK_TASK_CATEGORY = "slack";
 
-/**
- * Adresy filtrujące import. Przyjmujemy je w jednym polu tekstowym, rozdzielone
- * przecinkiem, średnikiem, spacją lub nową linią.
- */
-// Deliberately loose, non-regex check (a `[^@]+@[^@]+\.[^@]+` pattern here
-// flags as a backtracking/ReDoS risk since the domain-and-TLD segments both
-// allow ".") - odsiewamy literówki bez małpy, resztę zweryfikuje Slack.
 function isPlausibleEmail(value: string): boolean {
   const at = value.indexOf("@");
   if (at <= 0 || at !== value.lastIndexOf("@")) return false;

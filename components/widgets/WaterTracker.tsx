@@ -11,14 +11,7 @@ interface WaterTrackerProps {
 export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
   const { habits, fetching, updateWater } = useDailyHabits(date);
 
-  // Stan lokalny żyje TYLKO podczas przeciągania suwaka. Wcześniej trzymał
-  // wartość na stałe i nie był czyszczony przy zmianie daty, więc widget
-  // pokazywał ilość wody z poprzednio oglądanego dnia.
   const [draft, setDraft] = useState<number | null>(null);
-
-  // Reset przy zmianie dnia liczony w trakcie renderu (zalecany sposób na
-  // "state zależny od propsa"), a nie w useEffect - dzięki temu nie ma renderu,
-  // w którym widać jeszcze wartość z poprzedniej daty.
   const [renderedDate, setRenderedDate] = useState(date);
   if (date !== renderedDate) {
     setRenderedDate(date);
@@ -39,8 +32,6 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
     const finalWater = Number.parseFloat(e.currentTarget.value);
     setDraft(null);
 
-    // Hook aktualizuje `habits` optymistycznie, więc po wyczyszczeniu draftu
-    // widget od razu pokazuje nową wartość - bez mrugnięcia na starą.
     if (finalWater !== savedWater) {
       void updateWater(Number(finalWater.toFixed(1)));
     }

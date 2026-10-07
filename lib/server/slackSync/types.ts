@@ -1,6 +1,4 @@
 // lib/server/slackSync/types.ts
-// Shared types for the Slack task-list sync (split out of the former
-// 717-line pages/api/slack/sync.ts).
 
 import type { SlackMappableTaskField } from "@/config/slack";
 

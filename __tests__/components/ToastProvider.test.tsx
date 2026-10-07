@@ -30,10 +30,8 @@ describe("ToastProvider confirm", () => {
 
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveAttribute("open");
-    // wyśrodkowanie mimo preflightu Tailwinda
     expect(dialog.className).toMatch(/\bm-auto\b/);
     expect(dialog.className).toMatch(/\binset-0\b/);
-    // nie siedzi w kontenerze powiadomień przyklejonym do dołu ekranu
     const stack = screen.getByRole("region", { name: "Powiadomienia" });
     expect(stack).not.toContainElement(dialog);
     expect(stack).toContainElement(screen.getByText("Zapisano"));

@@ -1,9 +1,4 @@
 // __tests__/hooks/useShoppingListsLeave.test.ts
-//
-// „Usuń” na liście zakupów: właściciel kasuje listę, a odbiorca udostępnionej
-// listy tylko się z niej wypisuje (RPC leave_shared_shopping_list) – lista
-// zostaje u właściciela. Wcześniej odbiorca dostawał błąd, bo widok próbował
-// zwykłego UPDATE, który blokowało RLS.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
@@ -39,7 +34,6 @@ const supabase = {
   rpc: (fn: string, args: unknown) => { rpcCalls.push({ fn, args }); return Promise.resolve(rpcResult); },
 };
 
-// Stabilne referencje – hooki zwracają te same obiekty przy każdym renderze, jak w aplikacji.
 const auth = { user: { id: "me" }, supabase };
 const toastValue = { toast };
 const retry = (fn: () => unknown) => fn();

@@ -9,10 +9,10 @@ import {
   posterUrl,
   translateSeriesStatus,
 } from "@/lib/tmdb";
-import type { MediaSearchResult } from "@/types/movies";
+import type { MediaSearchResult, TmdbSearchResponse } from "@/types/movies";
 
 describe("normalizeSearchResults", () => {
-  const data = {
+  const data: TmdbSearchResponse = {
     results: [
       { id: 1, media_type: "movie", title: "Incepcja", release_date: "2010-07-16", vote_average: 8.37, poster_path: "/a.jpg", genre_ids: [28] },
       { id: 2, media_type: "tv", name: "Wiedźmin", first_air_date: "2019-12-20", vote_average: 8.0, poster_path: "/b.jpg" },

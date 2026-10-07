@@ -170,9 +170,6 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     }
   };
 
-  // Stabilized with useCallback so DailyPlan/PlanItem (both React.memo) can
-  // actually skip re-rendering — passing a fresh function reference on every
-  // DayView render was silently defeating that memoization.
   const handleRemoveFromSchedule = useCallback(async (id: string, type?: string) => {
     if (type === "schema" || id.startsWith("schema-")) {
       await hideSchema(id);

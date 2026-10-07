@@ -1,7 +1,4 @@
 // components/ui/buttons/iconButtons.tsx
-// Split out of the former CommonButtons.tsx: the family of small icon+label
-// action buttons (Delete/Edit/Confirm/Pin/Archive/...) that all share the
-// `actionButton` cva variant from ./actionButtonVariants.
 
 import React from "react";
 import {

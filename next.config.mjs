@@ -10,12 +10,6 @@ function getSupabaseHostname() {
 
 const supabaseHostname = getSupabaseHostname();
 
-// Content-Security-Policy. Wdrażamy najpierw w trybie Report-Only: przeglądarka
-// tylko raportuje naruszenia w konsoli, nic nie blokuje. Po sprawdzeniu, że
-// konsola jest czysta na wszystkich stronach, ustaw CSP_ENFORCE=1, żeby nagłówek
-// został wysłany jako `Content-Security-Policy`.
-// 'unsafe-inline' w script-src jest potrzebne dla Pages Routera (skrypt
-// __NEXT_DATA__, JSON-LD w SEO) – docelowo warto przejść na nonce w _document.
 const supabaseOrigins = supabaseHostname
   ? [`https://${supabaseHostname}`, `wss://${supabaseHostname}`]
   : [];
@@ -81,7 +75,6 @@ const nextConfig = {
         : []),
     ],
   },
-  // Next.js oczekuje obietnicy; nic tu nie czekamy, więc bez `async`.
   headers() {
     return Promise.resolve([
       {
@@ -109,7 +102,6 @@ const nextConfig = {
           },
           {
             key: 'Cross-Origin-Opener-Policy',
-            // same-origin-allow-popups: logowanie przez popup (window.opener) nadal działa.
             value: 'same-origin-allow-popups',
           },
           {

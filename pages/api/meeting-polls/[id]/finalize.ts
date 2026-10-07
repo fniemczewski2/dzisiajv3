@@ -69,8 +69,6 @@ async function loadFinalizeContext(req: NextApiRequest, res: NextApiResponse): P
     return null;
   }
 
-  // Every field here (date/time/title/place) previously went straight from
-  // the request body into an `events` insert with no format/length checks.
   const validatedSlots = rawSlots.map(validateFinalizeSlot);
   if (validatedSlots.includes(null)) {
     res.status(400).json({ error: "Nieprawidłowy format jednego z terminów." });
@@ -194,9 +192,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ctx = await loadFinalizeContext(req, res);
   if (!ctx) return;
 
-  // Atomowe "zajęcie" finalizacji. Wcześniej każde ponowne wywołanie (podwójny
-  // klik, retry) znów wstawiało wydarzenia do kalendarzy uczestników kluczem
-  // service_role.
   const { data: claimed, error: claimError } = await ctx.supabase
     .from("meeting_polls")
     .update({ finalized_at: new Date().toISOString() })
@@ -216,7 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const results: FinalizeResultSlot[] = [];
   let failure: string | null = null;
   for (const slot of ctx.slots) {
-    const outcome = await finalizeOneSlot(ctx, slot, created); // NOSONAR – terminy po kolei: przy pierwszym błędzie przerywamy i wycofujemy całość
+    const outcome = await finalizeOneSlot(ctx, slot, created); // NOSONAR
     if ("error" in outcome) {
       failure = outcome.error;
       break;
@@ -225,7 +220,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (failure !== null) {
-    // Wycofujemy częściowy wynik, żeby ponowna próba nie zdublowała wydarzeń.
     if (created.length > 0) {
       await supabaseAdmin.from("events").delete().in("id", created);
     }

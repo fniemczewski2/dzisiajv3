@@ -116,8 +116,6 @@ export default function BillListGrouped({ year, onBillsChange }: Readonly<BillLi
 
         setActiveMonths(generatedMonths);
       } finally {
-        // Bez finally odrzucenie (np. "Unauthorized") zostawiało groupsLoading=true
-        // i komponent na stałe renderował null.
         setGroupsLoading(false);
       }
     };

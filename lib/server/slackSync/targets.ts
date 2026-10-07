@@ -1,6 +1,4 @@
 // lib/server/slackSync/targets.ts
-// Loads the set of Slack lists (sync targets) and app tasks a sync run needs
-// (split out of the former 717-line pages/api/slack/sync.ts).
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { decryptToken } from "@/lib/server/tokenCrypto";

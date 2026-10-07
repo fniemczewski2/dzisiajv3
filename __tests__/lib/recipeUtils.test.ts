@@ -76,7 +76,6 @@ describe("sortRecipes", () => {
     expect(sortRecipes(list, "alphabetical").map((r) => r.id)).toEqual(["2", "3", "1"]);
   });
   it("sorts newest first", () => {
-    // 2026-03 (2), 2026-02 (3), 2026-01 (1)
     expect(sortRecipes(list, "created_desc").map((r) => r.id)).toEqual(["2", "3", "1"]);
   });
   it("does not mutate the input", () => {

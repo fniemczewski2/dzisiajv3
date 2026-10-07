@@ -31,7 +31,6 @@ describe("useSlackListOptions", () => {
           is_default: true,
           column_map: { title: "Col001" },
         },
-        // bez zmapowanej kolumny tytułu lista jest bezużyteczna
         { list_id: "F_B", list_title: "Szkice", is_default: false, column_map: {} },
       ],
     });

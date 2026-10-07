@@ -1,7 +1,4 @@
 // lib/trainStatusDetails.ts
-//
-// Szczegóły stacji wyjazdu i przyjazdu dla odpowiedzi /api/transport/train-status.
-// Czyste funkcje, żeby dało się je testować bez PKP PLK.
 
 import type { OperationStation, RouteStation, TrainStatusResponse } from "@/types/pkpplk";
 
@@ -45,7 +42,6 @@ export function buildStationDetails({
     departureDelay: opFrom?.departureDelayMinutes ?? opFrom?.arrivalDelayMinutes ?? 0,
     actualDeparture: opFrom?.actualDeparture || "",
     departed,
-    // Na stacji końcowej bywa tylko peron przyjazdu, na pośredniej – oba.
     arrivalPlatform:
       opTo?.arrivalPlatform ||
       plannedTo?.arrivalPlatform ||

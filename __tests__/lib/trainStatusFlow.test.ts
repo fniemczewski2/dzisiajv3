@@ -9,7 +9,6 @@ const at = (hm: string) => {
   return new Date(2026, 8, 29, h, m);
 };
 
-// Rozkład z filtrem stations=<wyjazd> bez fullRoutes: w trasie tylko stacja wyjazdu.
 const scheduleFrom: RouteStation = { stationId: "POZ", departurePlatform: "4", departureTime: "14:10:00" };
 
 const opFrom = (over: Partial<OperationStation> = {}): OperationStation => ({

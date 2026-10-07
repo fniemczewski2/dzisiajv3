@@ -170,10 +170,10 @@ export default function Header() {
 
         <div className="flex flex-1 justify-end items-center">
           {weatherLoading ? (
-            <div role="status" aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
+            <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
               <span className="block h-7 w-20 rounded-md bg-(--header-hover) animate-pulse" />
               <span className="block h-3 w-14 rounded bg-(--header-hover) animate-pulse" />
-            </div>
+            </output>
           ) : (
             <WeatherDetails
               currentTemp={currentTemp}

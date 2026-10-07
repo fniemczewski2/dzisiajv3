@@ -30,9 +30,6 @@ export default function LoveButton() {
         }
       );
       const body = (await response.json().catch(() => ({}))) as { success?: boolean; message?: string; error?: string };
-
-      // Funkcja odmawia m.in. gdy odbiorca nie ma nas na swojej liście
-      // zaufanych – wcześniej przycisk i tak pokazywał "wysłano".
       if (!response.ok || !body.success) {
         toast.error(body.message ?? body.error ?? "Nie udało się wysłać serduszka.");
         return;

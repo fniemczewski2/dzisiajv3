@@ -13,12 +13,9 @@ function applySelectionState(textarea: HTMLTextAreaElement, state: TextSelection
   textarea.value = state.value;
   textarea.focus();
   textarea.setSelectionRange(state.start, state.end);
-  // The textarea is uncontrolled (ref-only), so React never sees this
-  // mutation — dispatch a native input event for any listener relying on it.
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-/** Minimal iPhone-Notes-style formatting toolbar: bold, bullet list, numbered list. */
 export default function NoteFormatToolbar({ textareaRef, disabled }: Readonly<NoteFormatToolbarProps>) {
   const runOnTextarea = (transform: (state: TextSelectionState) => TextSelectionState) => () => {
     const textarea = textareaRef.current;

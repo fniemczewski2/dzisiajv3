@@ -120,8 +120,6 @@ export function usePlanByHour({
     trains.forEach((train) => {
       const key = planHourKey(train);
       if (!key) return;
-      // Plan zaczyna się o 6:00 – poranny pociąg dostaje własną godzinę,
-      // zamiast zniknąć z planu.
       if (!map[key]) map[key] = [];
       map[key].push({
         id: train.id,
@@ -129,7 +127,6 @@ export function usePlanByHour({
         type: "train",
         train,
       });
-      // W obrębie godziny pociągi po kolei wg minuty odjazdu, przed resztą pozycji.
       map[key].sort((a, b) => {
         if (a.type === "train" && b.type === "train") {
           return (a.train?.departureTime ?? "").localeCompare(b.train?.departureTime ?? "");
@@ -149,7 +146,6 @@ export function usePlanByHour({
 
         if (hourNum < currentHour) {
           const shouldKeepPastHour = map[timeKey].some(item => {
-            // Pociąg zostaje w planie – może być opóźniony albo w trasie.
             if (item.type === "task" || item.type === "schema" || item.type === "worklog" || item.type === "train") return true;
 
             if (item.type === "event" && item.data?.end_time) {

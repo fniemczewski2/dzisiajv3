@@ -80,8 +80,6 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
     setSharedEmail("");
   };
 
-  // Właściciel usuwa listę, odbiorca się z niej wypisuje – rozróżnia to
-  // useShoppingLists.deleteShoppingList.
   const handleDelete = async (list: ShoppingList) => {
     await deleteShoppingList(list.id!);
   };

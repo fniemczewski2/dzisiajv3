@@ -186,8 +186,6 @@ export default function MeetingPollList({ refreshToken, onCreate }: Readonly<Mee
     () => polls.map((p) => p.id).sort((a, b) => a.localeCompare(b)).join(","),
     [polls]
   );
-
-  // Liczby odpowiedzi i dni to dodatek: gdy zapytanie się nie powiedzie, karty po prostu ich nie pokażą.
   useEffect(() => {
     if (!idsKey) return;
     const ids = idsKey.split(",");
@@ -223,7 +221,6 @@ export default function MeetingPollList({ refreshToken, onCreate }: Readonly<Mee
   const { openPolls, closedPolls } = useMemo(() => {
     const sorted = [...polls].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return {
-      // Ankieta po terminie jest zamknięta, nawet jeśli w bazie wisi jeszcze "open".
       openPolls: sorted.filter((p) => effectivePollStatus(p) === "open"),
       closedPolls: sorted.filter((p) => effectivePollStatus(p) !== "open"),
     };

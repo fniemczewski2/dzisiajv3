@@ -14,9 +14,6 @@ interface SearchHit {
   sublabel: string;
 }
 
-// `String(value)` on a non-primitive (e.g. a jsonb column) silently produces
-// "[object Object]" — since the row shape here is genuinely dynamic per
-// search source, stringify defensively instead of trusting it's scalar.
 function stringifyCell(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (typeof value === "string") return value;
@@ -73,9 +70,6 @@ export default function GlobalSearch() {
             .select(source.select)
             .ilike(source.searchColumn, pattern)
             .limit(GLOBAL_SEARCH_LIMIT);
-          // `source.table`/`source.select` vary per search source (config/globalSearch.ts),
-          // so Supabase can't infer a concrete row shape here — read defensively via
-          // bracket access below instead of trusting a specific column set.
           return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
             source,
             id: stringifyCell(row.id),

@@ -44,7 +44,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
       {expanded && (
           <form onSubmit={handleSubmit} className="form-card" aria-busy={loading}>
             {missingFromTicket && (
-              <div role="status" className="flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-700/60 dark:bg-blue-900/40 dark:text-blue-100">
+              <output className="flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-700/60 dark:bg-blue-900/40 dark:text-blue-100">
                 <ScanLine aria-hidden="true" className="h-5 w-5 shrink-0" />
                 <div className="space-y-0.5">
                   <p className="font-semibold">Dane odczytane automatycznie z biletu</p>
@@ -54,7 +54,7 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
                       : 'Sprawdź, czy wszystkie pola się zgadzają, zanim zapiszesz pociąg.'}
                   </p>
                 </div>
-              </div>
+              </output>
             )}
 
             <div className="grid grid-cols-2 gap-4">

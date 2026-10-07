@@ -154,8 +154,6 @@ async function upsertResponseRecord(
       .maybeSingle();
     if (existingError || !existing) return { error: "Nieprawidłowy token edycji odpowiedzi.", status: 403 };
 
-    // user_id nadpisujemy tylko, gdy edytuje zalogowana osoba – edycja z
-    // innego (niezalogowanego) urządzenia nie odpina odpowiedzi od konta.
     const update: Record<string, unknown> = { respondent_name: respondentName, respondent_email: respondentEmail };
     if (sessionUserId) update.user_id = sessionUserId;
 
@@ -165,7 +163,6 @@ async function upsertResponseRecord(
       .eq("id", existing.id);
     if (updateError) return { error: "Błąd zapisu odpowiedzi.", status: 500 };
 
-    // Dostępności NIE są tu kasowane – zob. replaceAvailabilities().
     return { responseId: existing.id, responseEditToken: editToken };
   }
 
@@ -239,8 +236,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
   if ("error" in upsertResult) return res.status(upsertResult.status).json({ error: upsertResult.error });
   const { responseId, responseEditToken } = upsertResult;
 
-  // Deduplikacja: powtórzony termin w żądaniu łamał unikalny klucz
-  // (response_id, date, start_time) i odrzucał całą odpowiedź.
   const uniqueSlots = new Map(slots.map((s) => [slotKey(s.date, s.start_time), s]));
   const rows: AvailabilityRow[] = [...uniqueSlots.values()].map((s) => ({
     response_id: responseId,

@@ -242,8 +242,6 @@ export function useSettings() {
     async (stop: FavoriteStop): Promise<boolean> => {
       if (!userId) throw new Error("Unauthorized");
       const stops = settingsRef.current.favorite_stops;
-      // Porównanie po miejscu, nie po nazwie – "Dworcowa" w Poznaniu i w Luboniu
-      // to dwa różne ulubione.
       if (stops.some((s) => isSameStopPlace(s, stop))) {
         toast.info("Ten przystanek jest już w ulubionych.");
         return true;

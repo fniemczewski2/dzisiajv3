@@ -1,8 +1,5 @@
 // __tests__/hooks/useTasksAccept.test.ts
-//
-// Regresja: Supabase zwraca tasks.id jako liczbę (kolumna integer), a
-// acceptTask wołał na nim id.startsWith(...) -> TypeError przed zapisem,
-// połykany w TaskItem. Przycisk "Akceptuj" nic nie robił.
+
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
@@ -26,8 +23,6 @@ function updateBuilder(payload: unknown) {
   updates.push(entry);
   const b: Record<string, unknown> = {};
   b.eq = (col: string, val: unknown) => { entry.filters.push([col, val]); return b; };
-  // .select() zwraca dalej builder (jak w Supabase), żeby .select(...).single()
-  // działało – wcześniej rzucało TypeError, a test przechodził przypadkiem.
   const selected = { single: () => Promise.resolve(updateResult), then: (res: (v: unknown) => void) => res(updateResult) };
   b.select = () => selected;
   b.then = (res: (v: unknown) => void) => res(updateResult);
@@ -38,7 +33,6 @@ const supabase = {
   from: () => ({ select: () => selectBuilder(), update: (p: unknown) => updateBuilder(p) }),
 };
 
-// Stabilne referencje – hooki zwracają te same obiekty przy każdym renderze, jak w aplikacji.
 const auth = { user: { id: "me" }, supabase };
 const settingsValue = { settings: { show_completed: true, sort_order: "priority" } };
 const toastValue = { toast };
@@ -97,7 +91,7 @@ describe("useTasks.acceptTask", () => {
 
     expect(toast.success).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
-    expect(result.current.tasks[0].status).toBe("waiting_for_acceptance"); // rollback
+    expect(result.current.tasks[0].status).toBe("waiting_for_acceptance"); 
     expect(result.current.loading).toBe(false);
   });
 });
@@ -113,7 +107,6 @@ describe("useTasks id handling", () => {
     act(() => { pending = Promise.resolve(result.current.setDoneTask("42")); });
     await waitFor(() => expect(result.current.tasks[0]?.status).toBe("done"));
     await act(async () => { await pending; });
-    // Zapis się udał – status zostaje „done”, bez wycofania.
     expect(result.current.tasks[0]?.status).toBe("done");
     expect(toast.success).toHaveBeenCalledWith("Wykonano zadanie");
     expect(toast.error).not.toHaveBeenCalled();

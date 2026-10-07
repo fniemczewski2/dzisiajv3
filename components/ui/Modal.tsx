@@ -42,8 +42,6 @@ export default function Modal({ open, onClose, labelledBy, label, className, chi
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    // Fires on Escape (native cancel -> close) and on our own dialog.close()
-    // call above — keeps `open` state in sync either way.
     const handleClose = () => onClose();
     dialog.addEventListener("close", handleClose);
     return () => dialog.removeEventListener("close", handleClose);
@@ -52,12 +50,6 @@ export default function Modal({ open, onClose, labelledBy, label, className, chi
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    // Attached imperatively (not as a JSX onClick) so this is treated as
-    // native <dialog> backdrop-dismiss behavior rather than a click handler
-    // on a semantically non-interactive JSX element (S6847/S6848). The
-    // content div doesn't need its own listener: `e.target` is the
-    // original click target regardless of where in the tree this fires,
-    // so it only matches the dialog itself when the backdrop was clicked.
     const handleBackdropClick = (e: MouseEvent) => {
       if (e.target === dialog) onClose();
     };

@@ -1,13 +1,4 @@
 // supabase/functions/_shared/stopGrouping.ts
-//
-// Czysta logika (bez API Deno), współdzielona przez edge function
-// `transport-departures` i frontend (hooks/db/useTransport.ts).
-//
-// Problem, który rozwiązuje: w sieci PEKA/ZTM Poznań przystanki w różnych
-// miejscowościach potrafią mieć identyczną nazwę (np. Poznań i Luboń).
-// Grupowanie po samej nazwie łączyło je w jeden "przystanek". Teraz grupa
-// (StopCluster) to słupki o tej samej nazwie, w tej samej sieci, leżące
-// blisko siebie – odległe słupki o tej samej nazwie są osobnymi grupami.
 
 export type TransportNetwork = "poznan" | "szczecin";
 
@@ -20,7 +11,6 @@ export interface StopPost {
 }
 
 export interface StopCluster {
-  /** Stabilny w obrębie jednej odpowiedzi identyfikator grupy. */
   key: string;
   name: string;
   network: TransportNetwork;
@@ -30,20 +20,15 @@ export interface StopCluster {
   lon: number;
 }
 
-/** Ulubiony przystanek zapisany w settings.favorite_stops. */
 export interface FavoriteStop {
   name: string;
   zone_id: string;
-  /** Środek grupy – rozróżnia przystanki o tej samej nazwie. Brak w starych wpisach. */
   lat?: number;
   lon?: number;
-  /** Kody słupków w chwili dodania (informacyjnie / diagnostyka). */
   stop_codes?: string[];
-  /** Miejscowość, jeśli nazwa jest niejednoznaczna (np. "Luboń"). */
   locality?: string;
 }
 
-/** Słupki tego samego przystanku leżą zwykle w promieniu ~200–300 m (duże węzły do ~500 m). */
 export const CLUSTER_RADIUS_M = 600;
 
 const SZCZECIN_ZONE = "S";
@@ -76,16 +61,10 @@ function mostCommon(values: string[]): string {
   return best;
 }
 
-/**
- * Dzieli słupki na grupy: ta sama sieć + ta sama nazwa (bez wielkości liter)
- * + łańcuch słupków, w którym każdy leży w promieniu `radiusM` od innego
- * (single-linkage). Słupki bez kodu są pomijane – nie da się dla nich pobrać odjazdów.
- */
 function isUsablePost(p: StopPost): boolean {
   return Boolean(p.stop_code && p.stop_name) && Number.isFinite(p.stop_lat) && Number.isFinite(p.stop_lon);
 }
 
-/** Słupki pogrupowane po sieci i znormalizowanej nazwie. */
 function groupByNetworkAndName(posts: readonly StopPost[]): Map<string, StopPost[]> {
   const byName = new Map<string, StopPost[]>();
   for (const p of posts) {
@@ -98,7 +77,6 @@ function groupByNetworkAndName(posts: readonly StopPost[]): Map<string, StopPost
   return byName;
 }
 
-/** Oznacza numerem `cluster` wszystkie słupki osiągalne od `seed` krokami ≤ radiusM. */
 function floodFill(unique: readonly StopPost[], assigned: number[], seed: number, cluster: number, radiusM: number): void {
   assigned[seed] = cluster;
   const queue = [seed];
@@ -114,7 +92,6 @@ function floodFill(unique: readonly StopPost[], assigned: number[], seed: number
   }
 }
 
-/** Dzieli słupki o tej samej nazwie na skupiska położone blisko siebie. */
 function splitByDistance(unique: readonly StopPost[], radiusM: number): StopPost[][] {
   const assigned = new Array<number>(unique.length).fill(-1);
   let count = 0;
@@ -143,14 +120,12 @@ function toCluster(members: readonly StopPost[]): StopCluster {
 export function clusterStops(posts: readonly StopPost[], radiusM = CLUSTER_RADIUS_M): StopCluster[] {
   const clusters: StopCluster[] = [];
   for (const group of groupByNetworkAndName(posts).values()) {
-    // Deduplikacja po kodzie (to samo zapytanie może zwrócić słupek dwa razy).
     const unique = Array.from(new Map(group.map((p) => [p.stop_code as string, p])).values());
     for (const members of splitByDistance(unique, radiusM)) clusters.push(toCluster(members));
   }
   return clusters;
 }
 
-/** Nazwy, które w tym zbiorze występują w więcej niż jednej grupie (np. Poznań i Luboń). */
 export function ambiguousNames(clusters: readonly StopCluster[]): Set<string> {
   const counts = new Map<string, number>();
   for (const c of clusters) {
@@ -166,11 +141,6 @@ export function isAmbiguous(cluster: StopCluster, ambiguous: Set<string>): boole
   return ambiguous.has(`${cluster.network}|${normalizeStopName(cluster.name)}`);
 }
 
-/**
- * Wybiera grupę odpowiadającą ulubionemu. Z zapisanym położeniem – najbliższą
- * temu punktowi. Stary wpis (tylko nazwa) – jedyną, a przy wielu: najbliższą
- * użytkownikowi, a bez GPS największą (najwięcej słupków).
- */
 export function pickClusterForFavorite(
   fav: FavoriteStop,
   candidates: readonly StopCluster[],
@@ -195,17 +165,13 @@ export function hasPosition(fav: FavoriteStop): fav is FavoriteStop & { lat: num
   return typeof fav.lat === "number" && typeof fav.lon === "number" && Number.isFinite(fav.lat) && Number.isFinite(fav.lon);
 }
 
-/** Czy dwa wpisy wskazują to samo miejsce (ta sama nazwa i sieć, położenie w promieniu grupy). */
 export function isSameStopPlace(a: FavoriteStop, b: FavoriteStop): boolean {
   if (normalizeStopName(a.name) !== normalizeStopName(b.name)) return false;
   if (a.zone_id !== "AUTO" && b.zone_id !== "AUTO" && networkOf(a.zone_id) !== networkOf(b.zone_id)) return false;
   if (hasPosition(a) && hasPosition(b)) return distanceM(a.lat, a.lon, b.lat, b.lon) <= CLUSTER_RADIUS_M;
-  // Bez położenia po którejś stronie nie da się rozróżnić – traktujemy jak to samo tylko,
-  // gdy oba są stare (wtedy zachowanie jak dotychczas).
   return !hasPosition(a) && !hasPosition(b);
 }
 
-/** Klucz ulubionego – do Reacta i usuwania (zamiast samej nazwy). */
 export function favoriteKey(fav: FavoriteStop): string {
   const base = `${networkOf(fav.zone_id)}:${normalizeStopName(fav.name)}`;
   return hasPosition(fav) ? `${base}@${fav.lat.toFixed(4)},${fav.lon.toFixed(4)}` : base;

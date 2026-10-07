@@ -25,8 +25,6 @@ export default function PublicVCard({ profile, error }: Readonly<PublicVCardProp
         description={`Wizytówka: ${[profile.full_name, profile.organization].filter(Boolean).join(", ")}. Dane kontaktowe do zapisania w telefonie.`}
         canonical={`https://dzisiaj.fun/v/${profile.public_slug}`}
         ogType="profile"
-        // Dane osobowe: wizytówka jest do udostępniania linkiem lub kodem QR,
-        // nie do wyszukiwarek.
         noindex={true}
       />
       

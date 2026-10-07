@@ -57,15 +57,12 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   }, []);
 
   const relevant = isStatusRelevant(train, now);
-  // Do faktycznego odjazdu (z opóźnieniem) czas, peron i opóźnienie dotyczą
-  // stacji wyjazdu, potem stacji przyjazdu.
   const { delay, platform, status, loading, hide, stop } = useTrainPlanStatus(train, {
     enabled: relevant,
     refreshMs: relevant ? STATUS_REFRESH_MS : 0,
   });
 
   const isArrival = stop.phase === "arrival";
-  // Po odjeździe nie wracamy do godziny odjazdu: gdy brak danych o przyjeździe, pokazujemy „—”.
   const planned = isArrival ? stop.planned : stop.planned ?? plannedDeparture(train);
   const statusLower = status.toLowerCase();
   const cancelled = statusLower.includes("odwołany");

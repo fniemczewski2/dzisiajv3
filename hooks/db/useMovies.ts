@@ -7,7 +7,6 @@ import { buildMovieData, fetchMediaDetails } from "@/lib/tmdb";
 import { useCrudResource } from "./useCrudResource";
 
 import { omit } from "@/lib/objectUtils";
-// Tabela `movies` trzyma zarówno filmy, jak i seriale – komunikaty są neutralne.
 const MESSAGES = {
   fetchError: "Błąd pobierania filmów i seriali.",
   added: "Dodano do listy",
@@ -24,7 +23,6 @@ export function useMovies() {
   const crud = useCrudResource<Movie, MovieInsert>({
     table: "movies",
     insertPosition: "start",
-    // Bez znaczników czasu nowa pozycja lądowała na końcu przy sortowaniu po dacie.
     buildOptimistic: (payload, tempId, userId) => {
       const now = new Date().toISOString();
       return { ...payload, id: tempId, user_id: userId, created_at: now, updated_at: now };

@@ -16,7 +16,7 @@ describe("isAllowedPath (TMDB proxy allowlist)", () => {
     "/account/settings",
     "/../admin",
     "",
-    "/movie/../account/1",       // wcześniej przechodziło (prefiks "/movie/")
+    "/movie/../account/1",      
     "/tv/1399/../../account",
     "/movie/abc",
     "/movie/1/credits",

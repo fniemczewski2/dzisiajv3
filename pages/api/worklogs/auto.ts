@@ -1,10 +1,4 @@
 // pages/api/worklogs/auto.ts
-//
-// Webhook dla Siri Shortcuts. Użytkownika identyfikuje WYŁĄCZNIE jego własny
-// token (Ustawienia → Skróty Siri). Wcześniej endpoint przyjmował `userId`
-// z treści żądania i jeden globalny sekret, więc każdy posiadacz sekretu mógł
-// zapisywać czas pracy na dowolnym koncie.
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getAppDateTime } from '@/lib/dateUtils';
@@ -35,7 +29,6 @@ async function resolveUserId(token: string): Promise<string | null> {
     .maybeSingle<{ user_id: string }>();
   if (error || !data) return null;
 
-  // Informacyjnie dla użytkownika ("ostatnio użyty"); błąd nie blokuje akcji.
   await supabaseAdmin
     .from('shortcut_tokens')
     .update({ last_used_at: new Date().toISOString() })

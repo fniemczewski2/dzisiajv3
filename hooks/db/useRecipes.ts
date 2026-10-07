@@ -43,7 +43,6 @@ export function useRecipes() {
         description: clean.description,
       };
     },
-    // Bez created_at optymistyczny wpis przy sortowaniu "Data dodania" lądował na końcu listy.
     buildOptimistic: (r, tempId, uId) => ({
       ...normalizeRecipe(r),
       id: tempId,
@@ -54,9 +53,6 @@ export function useRecipes() {
     messages: MESSAGES,
   });
 
-  // Słownik z tabeli `products` (historyczny). Aplikacja nigdy do niego nie
-  // zapisywała, więc podpowiedzi i filtr bazujące tylko na nim były puste –
-  // teraz łączymy go ze składnikami faktycznie użytymi w przepisach.
   const [productDictionary, setProductDictionary] = useState<string[]>([]);
 
   const recipes = useMemo(

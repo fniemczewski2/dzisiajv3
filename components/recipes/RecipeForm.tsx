@@ -86,7 +86,6 @@ export default function RecipeForm({
   };
 
   const onProdChange = (value: string) => {
-    // Wklejenie "mąka, jajka, mleko" dodaje od razu trzy składniki.
     if (value.includes(",")) {
       const parts = value.split(",");
       const last = parts.pop() ?? "";
@@ -98,9 +97,6 @@ export default function RecipeForm({
   };
 
   const removeProduct = (p: string) => setPicked((prev) => prev.filter((x) => x !== p));
-
-  // Składnik wpisany, ale niezatwierdzony Enterem, też się liczy – wcześniej
-  // przepadał po kliknięciu "Zapisz".
   const pendingProducts = prodInput.trim() ? [...picked, prodInput] : picked;
   const canSave = isRecipeValid({ name, products: pendingProducts });
 

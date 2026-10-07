@@ -55,7 +55,6 @@ export default function TransportPage() {
     }
   }, [transportError, toast]);
 
-  // Dopasowanie po kluczu wpisu (nazwa + położenie), nie po samej nazwie.
   const favoriteKeys = new Set(favoriteStops.map(favoriteKey));
   const visibleFavorites = favoritesGroups.filter((group) => favoriteKeys.has(group.key));
 

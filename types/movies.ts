@@ -57,7 +57,7 @@ export interface TmdbWatchProviders {
 /** Wynik /search/multi – filmy mają `title`, seriale `name`. */
 export interface TmdbMultiResult {
   id: number;
-  media_type: "movie" | "tv" | "person" | string;
+  media_type: "movie" | "tv" | "person";
   title?: string;
   name?: string;
   original_title?: string;
@@ -83,14 +83,11 @@ export interface TmdbDetailsResponse {
   release_date?: string;
   first_air_date?: string;
   genres?: TmdbGenre[];
-  // tylko seriale
   number_of_seasons?: number;
   number_of_episodes?: number;
   status?: string;
   "watch/providers"?: TmdbWatchProviders;
 }
-
-/* ---------- Znormalizowane wyniki dla UI ---------- */
 
 export interface MediaSearchResult {
   tmdbId: number;

@@ -1,7 +1,4 @@
 // components/ui/buttons/formButtons.tsx
-// Split out of the former CommonButtons.tsx: generic form action buttons
-// (Dodaj / Zapisz / Anuluj / Zamknij / Następny) and the FormButtons wrapper
-// that combines Save+Close or AddAnother+Close depending on context.
 
 import React from "react";
 import { PlusCircleIcon, X, Save, Loader2 } from "lucide-react";

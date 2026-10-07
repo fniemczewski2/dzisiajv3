@@ -1,7 +1,4 @@
 // __tests__/components/EventFormTimes.test.tsx
-//
-// Ułatwione dodawanie wydarzeń: domyślnie 1 h, „Do” podąża za „Od”,
-// szybkie opcje 30 min / 1 h / 2 h.
 
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
@@ -18,7 +15,6 @@ vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { succes
 
 import EventForm from "@/components/calendar/EventForm";
 
-// Dzień inny niż dziś → domyślny start 9:00 (deterministyczny test).
 const DAY = new Date(2030, 4, 15);
 
 function setup() {
@@ -66,7 +62,6 @@ describe("EventForm – godziny wydarzenia", () => {
 
     fireEvent.click(chip("2 h"));
     expect(end().value).toBe("2030-05-15T11:00");
-    // Wybrana długość zostaje przy zmianie początku.
     fireEvent.change(start(), { target: { value: "2030-05-15T13:00" } });
     expect(end().value).toBe("2030-05-15T15:00");
   });

@@ -25,8 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 
-  // Nonce jest jednorazowy: kasujemy go na każdej ścieżce, także przy błędzie
-  // (wcześniej tylko po sukcesie, więc nieudana próba zostawiała ważny nonce).
   const cookieNonce = req.cookies[SLACK_STATE_COOKIE];
   clearStateCookie(res, SLACK_STATE_COOKIE, appUrl.startsWith("https://"));
 

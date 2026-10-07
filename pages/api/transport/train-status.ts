@@ -151,10 +151,6 @@ function computeDelayMinutes(
   return opStationFrom?.departureDelayMinutes ?? opStationFrom?.arrivalDelayMinutes ?? 0;
 }
 
-// The "is there live operations data for this train" branch of the status
-// computation — pulled out of handler, which was deeply nested (schedules
-// lookup -> operations lookup -> cancelled/arrived/departed checks) all in
-// one function body.
 interface StationQuery {
   fromStationId: string;
   toStationId: string | null;

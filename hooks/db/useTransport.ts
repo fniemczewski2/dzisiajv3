@@ -168,7 +168,6 @@ export function useTransport(autoRefresh = false) {
         setFavoritesGroups(groups);
         lastFetchTime.current[cacheKey] = now;
 
-        // Stare wpisy (sama nazwa) uzupełniamy położeniem dopasowanej grupy.
         const upgrades = new Map<string, FavoriteStop>();
         for (const g of groups) if (g.resolved) upgrades.set(g.key, g.resolved);
         if (upgrades.size > 0) void upgradeFavoriteStops(upgrades);
@@ -222,8 +221,6 @@ export function useTransport(autoRefresh = false) {
           return;
         }
 
-        // Grupujemy słupki przestrzennie – dwie "Dworcowe" (Poznań i Luboń) to
-        // dwie osobne pozycje, a nie jedna, jak przy deduplikacji po nazwie.
         const clusters = clusterStops(data as StopPost[])
           .sort((a, b) => a.name.localeCompare(b.name, "pl") || a.lat - b.lat)
           .slice(0, Math.max(TRANSPORT_SUGGESTIONS_LIMIT, TRANSPORT_API_LIMIT / 3));
@@ -236,9 +233,6 @@ export function useTransport(autoRefresh = false) {
           })
         );
         if (cancelled) return;
-
-        // Gdy geokoder zwrócił tę samą miejscowość dla obu (albo nic) – dopisujemy numer,
-        // żeby pozycje na liście zawsze dało się rozróżnić.
         const seen = new Map<string, number>();
         const resultsArray: LocalSearchResult[] = withLocality.map(({ cluster, locality }) => {
           let displayString = describeCluster(cluster, locality);
@@ -288,7 +282,6 @@ export function useTransport(autoRefresh = false) {
     [addFavoriteStop, localities]
   );
 
-  // Dla przystanków o powtarzających się nazwach dociągamy miejscowość do nagłówka karty.
   useEffect(() => {
     const favByKey = new Map(favoriteStops.map((f) => [favoriteKey(f), f]));
     const missing = [...nearbyGroups, ...favoritesGroups].filter(

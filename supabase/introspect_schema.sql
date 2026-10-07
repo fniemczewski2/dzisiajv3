@@ -10,11 +10,42 @@
 -- Wynik to jedna komórka JSON – skopiuj ją w całości (przycisk "Copy").
 -- Zapytanie wyłącznie CZYTA katalog systemowy, niczego nie zmienia.
 -- Nie zawiera danych użytkowników, ale kod funkcji i polityk traktuj jako poufny.
+--
+-- Słowniki (schematy, role, uprawnienia, polecenia polityk, poziomy ważności)
+-- są zdefiniowane raz na początku; reszta zapytania tylko się do nich odwołuje.
 
 with
 -- Schematy aplikacji. Dopisz własne, jeśli używasz innych niż public.
-app_schemas as (
-  select unnest(array['public']) as nspname
+app_schemas (nspname) as (
+  values ('public'::name)
+),
+
+-- Role, którymi łączy się klient (PostgREST) i serwer.
+api_roles (rolname) as (
+  values ('anon'::name), ('authenticated'), ('service_role')
+),
+
+-- Uprawnienia do tabel; `writes` = zmieniające dane.
+table_privileges_list (priv, writes) as (
+  values ('SELECT', false), ('INSERT', true), ('UPDATE', true), ('DELETE', true), ('TRUNCATE', true)
+),
+
+-- Kody pg_policy.polcmd → nazwa polecenia.
+policy_commands (code, command) as (
+  values ('r', 'SELECT'), ('a', 'INSERT'), ('w', 'UPDATE'), ('d', 'DELETE'), ('*', 'ALL')
+),
+
+-- Poziomy ważności znalezisk (rank = kolejność w wyniku).
+severities (rank, severity) as (
+  values (1, 'CRITICAL'), (2, 'HIGH'), (3, 'MEDIUM'), (4, 'LOW'), (5, 'INFO')
+),
+
+read_privilege as (
+  select priv from table_privileges_list where not writes
+),
+
+anon_role as (
+  select oid from pg_roles where rolname = 'anon'
 ),
 
 app_tables as (
@@ -30,17 +61,49 @@ app_tables as (
     and not exists (select 1 from pg_depend d where d.objid = c.oid and d.deptype = 'e')
 ),
 
-table_privileges as (
+-- Uprawnienia ról API do każdej tabeli: {"anon": ["SELECT", …], …}
+table_grants as (
   select t.oid,
          jsonb_object_agg(r.rolname, coalesce(
            (select jsonb_agg(p.priv order by p.priv)
-            from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) as p(priv)
-            where has_table_privilege(r.oid, t.oid, p.priv)),
+            from table_privileges_list p
+            where has_table_privilege(r.rolname, t.oid, p.priv)),
            '[]'::jsonb)) as grants
   from app_tables t
-  cross join pg_roles r
-  where r.rolname in ('anon', 'authenticated', 'service_role')
+  cross join api_roles r
+  where exists (select 1 from pg_roles pr where pr.rolname = r.rolname)
   group by t.oid
+),
+
+-- Wszystkie polityki (tabele aplikacji i Storage) opisane jednym sposobem.
+all_policies as (
+  select pol.polrelid,
+         pol.polname,
+         pol.polpermissive,
+         pol.polcmd,
+         pc.command,
+         case when pol.polroles = '{0}' then array['public']::name[]
+              else array(select rolname from pg_roles where oid = any(pol.polroles) order by 1) end as roles,
+         -- polityka obejmuje niezalogowanych: rola PUBLIC albo jawnie anon
+         (pol.polroles = '{0}' or (select oid from anon_role) = any(pol.polroles)) as applies_to_anon,
+         pg_get_expr(pol.polqual, pol.polrelid) as using_expr,
+         pg_get_expr(pol.polwithcheck, pol.polrelid) as check_expr
+  from pg_policy pol
+  join policy_commands pc on pc.code = pol.polcmd::text
+),
+
+policies_json as (
+  select polrelid,
+         jsonb_agg(jsonb_build_object(
+           'name', polname,
+           'command', command,
+           'permissive', polpermissive,
+           'roles', roles,
+           'using', using_expr,
+           'with_check', check_expr
+         ) order by polcmd, polname) as j
+  from all_policies
+  group by polrelid
 ),
 
 tables_json as (
@@ -52,7 +115,7 @@ tables_json as (
     'comment', t.comment,
     'rls_enabled', t.rls_enabled,
     'rls_forced', t.rls_forced,
-    'role_grants', tp.grants,
+    'role_grants', tg.grants,
 
     'columns', (
       select coalesce(jsonb_agg(jsonb_build_object(
@@ -75,7 +138,7 @@ tables_json as (
                   when 'p' then 'PRIMARY KEY' when 'f' then 'FOREIGN KEY'
                   when 'u' then 'UNIQUE' when 'c' then 'CHECK'
                   when 'x' then 'EXCLUDE' else con.contype::text end,
-        'definition', pg_get_constraintdef(con.oid)
+        'constraint_def', pg_get_constraintdef(con.oid)
       ) order by con.contype, con.conname), '[]'::jsonb)
       from pg_constraint con
       where con.conrelid = t.oid
@@ -86,7 +149,7 @@ tables_json as (
         'name', ic.relname,
         'unique', i.indisunique,
         'primary', i.indisprimary,
-        'definition', pg_get_indexdef(i.indexrelid)
+        'index_def', pg_get_indexdef(i.indexrelid)
       ) order by ic.relname), '[]'::jsonb)
       from pg_index i
       join pg_class ic on ic.oid = i.indexrelid
@@ -95,50 +158,31 @@ tables_json as (
 
     'triggers', (
       select coalesce(jsonb_agg(jsonb_build_object(
-        'name', tg.tgname,
-        'enabled', tg.tgenabled <> 'D',
-        'definition', pg_get_triggerdef(tg.oid)
-      ) order by tg.tgname), '[]'::jsonb)
-      from pg_trigger tg
-      where tg.tgrelid = t.oid and not tg.tgisinternal
+        'name', trg.tgname,
+        'enabled', trg.tgenabled <> 'D',
+        'trigger_def', pg_get_triggerdef(trg.oid)
+      ) order by trg.tgname), '[]'::jsonb)
+      from pg_trigger trg
+      where trg.tgrelid = t.oid and not trg.tgisinternal
     ),
 
-    'policies', (
-      select coalesce(jsonb_agg(jsonb_build_object(
-        'name', pol.polname,
-        'command', case pol.polcmd
-                     when 'r' then 'SELECT' when 'a' then 'INSERT'
-                     when 'w' then 'UPDATE' when 'd' then 'DELETE'
-                     else 'ALL' end,
-        'permissive', pol.polpermissive,
-        'roles', case when pol.polroles = '{0}' then array['public']
-                      else array(select rolname from pg_roles where oid = any(pol.polroles) order by 1) end,
-        'using', pg_get_expr(pol.polqual, pol.polrelid),
-        'with_check', pg_get_expr(pol.polwithcheck, pol.polrelid)
-      ) order by pol.polcmd, pol.polname), '[]'::jsonb)
-      from pg_policy pol
-      where pol.polrelid = t.oid
-    )
+    'policies', coalesce(pj.j, '[]'::jsonb)
   ) order by t.schema, t.name), '[]'::jsonb) as j
   from app_tables t
-  left join table_privileges tp on tp.oid = t.oid
+  left join table_grants tg on tg.oid = t.oid
+  left join policies_json pj on pj.polrelid = t.oid
 ),
 
-views_json as (
-  select coalesce(jsonb_agg(jsonb_build_object(
-    'view', n.nspname || '.' || c.relname,
-    'materialized', c.relkind = 'm',
-    'owner', pg_get_userbyid(c.relowner),
-    -- Bez security_invoker=true widok działa z uprawnieniami WŁAŚCICIELA
-    -- i omija RLS tabel źródłowych.
-    'security_invoker', coalesce(
-      (select option_value::boolean
-       from pg_options_to_table(c.reloptions)
-       where option_name = 'security_invoker'), false),
-    'anon_can_select', has_table_privilege('anon', c.oid, 'SELECT'),
-    'authenticated_can_select', has_table_privilege('authenticated', c.oid, 'SELECT'),
-    'definition', pg_get_viewdef(c.oid, true)
-  ) order by n.nspname, c.relname), '[]'::jsonb) as j
+app_views as (
+  select c.oid, n.nspname as schema, c.relname as name, c.relkind, c.relowner,
+         -- Bez security_invoker=true widok działa z uprawnieniami WŁAŚCICIELA
+         -- i omija RLS tabel źródłowych.
+         coalesce((select option_value::boolean
+                   from pg_options_to_table(c.reloptions)
+                   where option_name = 'security_invoker'), false) as security_invoker,
+         array(select r.rolname from api_roles r, read_privilege rp
+               where has_table_privilege(r.rolname, c.oid, rp.priv)
+               order by r.rolname) as select_roles
   from pg_class c
   join pg_namespace n on n.oid = c.relnamespace
   where n.nspname in (select nspname from app_schemas)
@@ -146,9 +190,26 @@ views_json as (
     and not exists (select 1 from pg_depend d where d.objid = c.oid and d.deptype = 'e')
 ),
 
+views_json as (
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'view', v.schema || '.' || v.name,
+    'materialized', v.relkind = 'm',
+    'owner', pg_get_userbyid(v.relowner),
+    'security_invoker', v.security_invoker,
+    'select_roles', v.select_roles,
+    'view_def', pg_get_viewdef(v.oid, true)
+  ) order by v.schema, v.name), '[]'::jsonb) as j
+  from app_views v
+),
+
 app_functions as (
   select p.oid, n.nspname as schema, p.proname as name, p.prokind,
-         p.prosecdef as security_definer, p.proconfig, p.provolatile, p.prolang
+         p.prosecdef as security_definer, p.proconfig, p.provolatile, p.prolang,
+         n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' as signature,
+         pg_get_function_result(p.oid) as result_type,
+         array(select r.rolname from api_roles r
+               where has_function_privilege(r.rolname, p.oid, 'EXECUTE')
+               order by r.rolname) as execute_roles
   from pg_proc p
   join pg_namespace n on n.oid = p.pronamespace
   where n.nspname in (select nspname from app_schemas)
@@ -157,21 +218,20 @@ app_functions as (
 
 functions_json as (
   select coalesce(jsonb_agg(jsonb_build_object(
-    'function', f.schema || '.' || f.name || '(' || pg_get_function_identity_arguments(f.oid) || ')',
+    'function', f.signature,
     'kind', case f.prokind when 'p' then 'procedure' when 'a' then 'aggregate'
                            when 'w' then 'window' else 'function' end,
-    'returns', pg_get_function_result(f.oid),
+    'returns', f.result_type,
     'language', l.lanname,
     'security_definer', f.security_definer,
     'volatility', case f.provolatile when 'i' then 'immutable' when 's' then 'stable' else 'volatile' end,
     'config', f.proconfig,
-    'anon_can_execute', has_function_privilege('anon', f.oid, 'EXECUTE'),
-    'authenticated_can_execute', has_function_privilege('authenticated', f.oid, 'EXECUTE'),
+    'execute_roles', f.execute_roles,
     'used_by_triggers', (
-      select coalesce(jsonb_agg(tg.tgrelid::regclass::text || '.' || tg.tgname), '[]'::jsonb)
-      from pg_trigger tg where tg.tgfoid = f.oid and not tg.tgisinternal
+      select coalesce(jsonb_agg(trg.tgrelid::regclass::text || '.' || trg.tgname), '[]'::jsonb)
+      from pg_trigger trg where trg.tgfoid = f.oid and not trg.tgisinternal
     ),
-    'definition', pg_get_functiondef(f.oid)
+    'function_def', pg_get_functiondef(f.oid)
   ) order by f.schema, f.name), '[]'::jsonb) as j
   from app_functions f
   join pg_language l on l.oid = f.prolang
@@ -231,19 +291,16 @@ storage_json as (
     ),
     'policies', (
       select coalesce(jsonb_agg(jsonb_build_object(
-        'table', pol.polrelid::regclass::text,
-        'name', pol.polname,
-        'command', case pol.polcmd
-                     when 'r' then 'SELECT' when 'a' then 'INSERT'
-                     when 'w' then 'UPDATE' when 'd' then 'DELETE' else 'ALL' end,
-        'permissive', pol.polpermissive,
-        'roles', case when pol.polroles = '{0}' then array['public']
-                      else array(select rolname from pg_roles where oid = any(pol.polroles) order by 1) end,
-        'using', pg_get_expr(pol.polqual, pol.polrelid),
-        'with_check', pg_get_expr(pol.polwithcheck, pol.polrelid)
-      ) order by pol.polrelid::regclass::text, pol.polname), '[]'::jsonb)
-      from pg_policy pol
-      join pg_class c on c.oid = pol.polrelid
+        'table', ap.polrelid::regclass::text,
+        'name', ap.polname,
+        'command', ap.command,
+        'permissive', ap.polpermissive,
+        'roles', ap.roles,
+        'using', ap.using_expr,
+        'with_check', ap.check_expr
+      ) order by ap.polrelid::regclass::text, ap.polname), '[]'::jsonb)
+      from all_policies ap
+      join pg_class c on c.oid = ap.polrelid
       join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'storage'
     )
@@ -253,13 +310,13 @@ storage_json as (
 -- Triggery dopięte przez aplikację do auth.users (np. tworzenie profilu).
 auth_triggers_json as (
   select coalesce(jsonb_agg(jsonb_build_object(
-    'name', tg.tgname,
-    'enabled', tg.tgenabled <> 'D',
-    'definition', pg_get_triggerdef(tg.oid),
-    'function', tg.tgfoid::regprocedure::text
-  ) order by tg.tgname), '[]'::jsonb) as j
-  from pg_trigger tg
-  where tg.tgrelid = 'auth.users'::regclass and not tg.tgisinternal
+    'name', trg.tgname,
+    'enabled', trg.tgenabled <> 'D',
+    'trigger_def', pg_get_triggerdef(trg.oid),
+    'handler', trg.tgfoid::regprocedure::text
+  ) order by trg.tgname), '[]'::jsonb) as j
+  from pg_trigger trg
+  where trg.tgrelid = 'auth.users'::regclass and not trg.tgisinternal
 ),
 
 realtime_json as (
@@ -269,22 +326,23 @@ realtime_json as (
 ),
 
 -- Automatyczne wykrywanie typowych problemów bezpieczeństwa.
+-- `rank` odwołuje się do słownika `severities`.
 findings as (
   -- 1. Tabela bez RLS: z kluczem anon/authenticated widać i zmieniasz wszystko,
   --    na co pozwalają GRANT-y.
-  select 'CRITICAL' as severity, 'rls_disabled' as check_name,
+  select 1 as rank, 'rls_disabled' as check_name,
          t.schema || '.' || t.name as object,
          'RLS wyłączone; anon może: ' || coalesce((
            select string_agg(p.priv, ', ')
-           from unnest(array['SELECT','INSERT','UPDATE','DELETE']) as p(priv)
-           where has_table_privilege('anon', t.oid, p.priv)), 'nic') as detail
+           from table_privileges_list p
+           where p.priv <> 'TRUNCATE' and has_table_privilege('anon', t.oid, p.priv)), 'nic') as detail
   from app_tables t
   where not t.rls_enabled
 
   union all
   -- 2. RLS włączone, zero polityk: klient nic nie widzi (zwykle celowe dla
   --    tabel obsługiwanych tylko przez service_role – sprawdź, czy tu też).
-  select 'INFO', 'rls_without_policies', t.schema || '.' || t.name,
+  select 5, 'rls_without_policies', t.schema || '.' || t.name,
          'RLS bez polityk – dostęp wyłącznie przez service_role'
   from app_tables t
   where t.rls_enabled
@@ -292,32 +350,30 @@ findings as (
 
   union all
   -- 3. Polityka przepuszczająca wszystko (USING true) dla anon/public.
-  select case when pol.polcmd = 'r' then 'HIGH' else 'CRITICAL' end,
-         'policy_allows_all', t.schema || '.' || t.name || ' / ' || pol.polname,
-         'USING (true) dla ról: ' || case when pol.polroles = '{0}' then 'public'
-           else (select string_agg(rolname, ', ') from pg_roles where oid = any(pol.polroles)) end
-  from pg_policy pol
-  join app_tables t on t.oid = pol.polrelid
-  where pol.polpermissive
-    and coalesce(pg_get_expr(pol.polqual, pol.polrelid), 'true') = 'true'
-    and pol.polcmd <> 'a'
-    and (pol.polroles = '{0}'
-         or (select oid from pg_roles where rolname = 'anon') = any(pol.polroles))
+  --    Odczyt to HIGH, zapis/usuwanie – CRITICAL.
+  select case when ap.polcmd = 'r' then 2 else 1 end,
+         'policy_allows_all', t.schema || '.' || t.name || ' / ' || ap.polname,
+         'USING (true) dla ról: ' || array_to_string(ap.roles, ', ')
+  from all_policies ap
+  join app_tables t on t.oid = ap.polrelid
+  where ap.polpermissive
+    and coalesce(ap.using_expr, 'true') = 'true'
+    and ap.polcmd <> 'a'
+    and ap.applies_to_anon
 
   union all
   -- 4. INSERT/UPDATE z WITH CHECK (true) – pozwala zapisać dowolny user_id.
-  select 'HIGH', 'policy_check_true', t.schema || '.' || t.name || ' / ' || pol.polname,
-         'WITH CHECK (true) przy ' || case pol.polcmd when 'a' then 'INSERT' when 'w' then 'UPDATE' else 'ALL' end
-  from pg_policy pol
-  join app_tables t on t.oid = pol.polrelid
-  where pol.polcmd in ('a', 'w', '*')
-    and pg_get_expr(pol.polwithcheck, pol.polrelid) = 'true'
+  select 2, 'policy_check_true', t.schema || '.' || t.name || ' / ' || ap.polname,
+         'WITH CHECK (true) przy ' || ap.command
+  from all_policies ap
+  join app_tables t on t.oid = ap.polrelid
+  where ap.polcmd in ('a', 'w', '*')
+    and ap.check_expr = 'true'
 
   union all
   -- 5. SECURITY DEFINER bez ustalonego search_path – podatne na podmianę
   --    obiektów przez użytkownika z prawem tworzenia w schemacie.
-  select 'HIGH', 'definer_without_search_path',
-         f.schema || '.' || f.name || '(' || pg_get_function_identity_arguments(f.oid) || ')',
+  select 2, 'definer_without_search_path', f.signature,
          'SECURITY DEFINER bez SET search_path'
   from app_functions f
   where f.security_definer
@@ -326,35 +382,27 @@ findings as (
   union all
   -- 6. SECURITY DEFINER wywoływalna przez anon – działa z uprawnieniami
   --    właściciela (zwykle omija RLS) dla niezalogowanych.
-  select 'HIGH', 'definer_callable_by_anon',
-         f.schema || '.' || f.name || '(' || pg_get_function_identity_arguments(f.oid) || ')',
+  --    Funkcji triggerów (także event_trigger) nie da się wywołać bezpośrednio.
+  select 2, 'definer_callable_by_anon', f.signature,
          'anon ma EXECUTE na funkcji SECURITY DEFINER'
   from app_functions f
   where f.security_definer
-    and has_function_privilege('anon', f.oid, 'EXECUTE')
-    -- funkcji triggerów (także event_trigger) nie da się wywołać bezpośrednio
-    and pg_get_function_result(f.oid) not in ('trigger', 'event_trigger')
+    and 'anon' = any(f.execute_roles)
+    and f.result_type not in ('trigger', 'event_trigger')
 
   union all
   -- 7. Widok bez security_invoker – omija RLS tabel źródłowych.
-  select 'HIGH', 'view_bypasses_rls', n.nspname || '.' || c.relname,
-         'widok bez security_invoker=true, dostępny dla: ' ||
-         concat_ws(', ',
-           case when has_table_privilege('anon', c.oid, 'SELECT') then 'anon' end,
-           case when has_table_privilege('authenticated', c.oid, 'SELECT') then 'authenticated' end)
-  from pg_class c
-  join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname in (select nspname from app_schemas)
-    and c.relkind = 'v'
-    and not coalesce((select option_value::boolean from pg_options_to_table(c.reloptions)
-                      where option_name = 'security_invoker'), false)
-    and (has_table_privilege('anon', c.oid, 'SELECT') or has_table_privilege('authenticated', c.oid, 'SELECT'))
-    and not exists (select 1 from pg_depend d where d.objid = c.oid and d.deptype = 'e')
+  select 2, 'view_bypasses_rls', v.schema || '.' || v.name,
+         'widok bez security_invoker=true, dostępny dla: ' || array_to_string(v.select_roles, ', ')
+  from app_views v
+  where v.relkind = 'v'
+    and not v.security_invoker
+    and v.select_roles && array['anon', 'authenticated']::name[]
 
   union all
   -- 8. Tabela z kolumną user_id bez klucza obcego do auth.users – wiersze
   --    zostają po usunięciu konta (brak ON DELETE CASCADE).
-  select 'MEDIUM', 'user_id_without_fk', t.schema || '.' || t.name,
+  select 3, 'user_id_without_fk', t.schema || '.' || t.name,
          'kolumna user_id bez FK do auth.users'
   from app_tables t
   where exists (select 1 from pg_attribute a
@@ -365,7 +413,7 @@ findings as (
 
   union all
   -- 9. Klucz obcy bez indeksu – wolne JOIN-y i kaskadowe DELETE.
-  select 'LOW', 'fk_without_index', t.schema || '.' || t.name || ' / ' || con.conname,
+  select 4, 'fk_without_index', t.schema || '.' || t.name || ' / ' || con.conname,
          pg_get_constraintdef(con.oid)
   from pg_constraint con
   join app_tables t on t.oid = con.conrelid
@@ -378,7 +426,7 @@ findings as (
 
   union all
   -- 10. Publiczny bucket bez limitu typu lub rozmiaru plików.
-  select 'MEDIUM', 'public_bucket_unrestricted', 'storage.buckets / ' || b.id,
+  select 3, 'public_bucket_unrestricted', 'storage.buckets / ' || b.id,
          concat_ws(', ',
            case when b.allowed_mime_types is null then 'brak allowed_mime_types' end,
            case when b.file_size_limit is null then 'brak file_size_limit' end)
@@ -386,12 +434,17 @@ findings as (
   where b.public and (b.allowed_mime_types is null or b.file_size_limit is null)
 ),
 
+ranked_findings as (
+  select s.rank, s.severity, f.check_name, f.object, f.detail
+  from findings f
+  join severities s on s.rank = f.rank
+),
+
 findings_json as (
   select coalesce(jsonb_agg(jsonb_build_object(
     'severity', severity, 'check', check_name, 'object', object, 'detail', detail
-  ) order by case severity when 'CRITICAL' then 1 when 'HIGH' then 2 when 'MEDIUM' then 3
-                           when 'LOW' then 4 else 5 end, check_name, object), '[]'::jsonb) as j
-  from findings
+  ) order by rank, check_name, object), '[]'::jsonb) as j
+  from ranked_findings
 )
 
 select jsonb_pretty(jsonb_build_object(
@@ -401,11 +454,11 @@ select jsonb_pretty(jsonb_build_object(
   'summary', jsonb_build_object(
     'tables', (select count(*) from app_tables),
     'tables_without_rls', (select count(*) from app_tables where not rls_enabled),
-    'policies', (select count(*) from pg_policy pol join app_tables t on t.oid = pol.polrelid),
+    'policy_count', (select count(*) from all_policies ap join app_tables t on t.oid = ap.polrelid),
     'functions', (select count(*) from app_functions where prokind <> 'a'),
     'security_definer_functions', (select count(*) from app_functions where security_definer),
     'findings_by_severity', (select coalesce(jsonb_object_agg(severity, n), '{}'::jsonb)
-                             from (select severity, count(*) n from findings group by severity) s)
+                             from (select severity, count(*) n from ranked_findings group by severity) s)
   ),
   'security_findings', (select j from findings_json),
   'tables', (select j from tables_json),

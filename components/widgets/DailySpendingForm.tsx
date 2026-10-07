@@ -20,8 +20,6 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fokus dopiero po kliknięciu "edytuj" (akcja użytkownika) – zamiast
-  // atrybutu autoFocus, który przenosi fokus przy samym zamontowaniu.
   useEffect(() => {
     if (isEditing) inputRef.current?.focus();
   }, [isEditing]);

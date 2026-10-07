@@ -81,9 +81,6 @@ export function useMeetingPolls() {
         toast.error("Błąd zapisu dni ankiety.");
         return undefined;
       }
-
-      // Zadanie przypominające o wyborze terminu. Nieudany zapis nie może
-      // wywrócić tworzenia ankiety - ankieta już istnieje i działa.
       const { error: taskError } = await supabase.from("tasks").insert({
         user_id: userId,
         title: MEETING_POLL_TASK_TITLE,

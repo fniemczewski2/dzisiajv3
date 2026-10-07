@@ -10,10 +10,6 @@ import { ConnectedAccount, ExternalCalendar } from '@/types/events';
 
 type Provider = 'google' | 'outlook';
 
-// The Google and Outlook branches of fetchAccountsAndCalendars were
-// near-identical (find primary account -> call list-calendars -> map the
-// response), just swapping provider-specific strings — this is that shared
-// logic, called once per provider instead of duplicated inline.
 async function fetchProviderCalendars(
   provider: Provider,
   fetchedAccounts: ConnectedAccount[],

@@ -1,16 +1,4 @@
 // supabase/functions/send-love/index.ts
-//
-// Wysyła "serduszko" do pierwszej osoby z listy zaufanych (settings.users).
-//
-// Zabezpieczenia (wcześniej brakowało wszystkich trzech):
-//   * wzajemność – odbiorca musi mieć nadawcę na SWOJEJ liście zaufanych;
-//     sama lista nadawcy jest w pełni przez niego edytowalna, więc bez tego
-//     dało się wysyłać powiadomienia push do dowolnego konta;
-//   * limit – najwyżej LOVE_LIMIT serduszek na LOVE_WINDOW_MINUTES;
-//   * brak enumeracji – odpowiedź nie zdradza, czy e-mail ma konto, i nie
-//     zwraca UUID odbiorcy.
-// Wyszukanie użytkownika idzie przez RPC find_user_id_by_email (indeksowane
-// zapytanie) zamiast stronicowania auth.admin.listUsers po 20 tys. kont.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
@@ -23,8 +11,6 @@ const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 const LOVE_LIMIT = 5;
 const LOVE_WINDOW_MINUTES = 10;
 
-// Ta sama odpowiedź dla "brak konta" i "brak wzajemności" – inaczej funkcja
-// znów stałaby się wyrocznią "czy ten e-mail ma konto".
 const NOT_DELIVERABLE = {
   success: false,
   message: "Nie można wysłać serduszka. Upewnij się, że ta osoba też ma Cię na liście zaufanych.",
@@ -50,7 +36,6 @@ async function readTrustedEmails(admin: Client, userId: string): Promise<string[
   return normalizeEmails(data?.users);
 }
 
-/** Limit liczony z istniejących powiadomień – działa niezależnie od liczby instancji funkcji. */
 async function isRateLimited(admin: Client, userId: string): Promise<boolean> {
   const windowStart = new Date(Date.now() - LOVE_WINDOW_MINUTES * 60_000).toISOString();
   const { count, error } = await admin
@@ -65,7 +50,6 @@ async function isRateLimited(admin: Client, userId: string): Promise<boolean> {
 
 type RecipientResult = { ok: true; userId: string } | { ok: false; body: Record<string, unknown> };
 
-/** Pierwsza osoba z listy zaufanych nadawcy – tylko jeśli ona też ufa nadawcy (wzajemność). */
 async function resolveRecipient(admin: Client, asSender: Client, senderId: string, senderEmail: string): Promise<RecipientResult> {
   const recipientEmail = (await readTrustedEmails(admin, senderId))[0];
   if (!recipientEmail) return { ok: false, body: { success: false, message: "Brak odbiorców" } };
@@ -105,8 +89,6 @@ Deno.serve(async (req) => {
       return respond({ success: false, message: "Za dużo serduszek naraz – spróbuj za kilka minut." }, 429);
     }
 
-    // RPC z JWT nadawcy: find_user_id_by_email jest nadane rolom
-    // `authenticated`, nie `anon`/`public`.
     const asSender = createClient(supabaseUrl, anonKey, {
       auth: { persistSession: false },
       global: { headers: { Authorization: `Bearer ${jwt}` } },

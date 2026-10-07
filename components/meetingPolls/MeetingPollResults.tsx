@@ -484,9 +484,6 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     if (slot.calendarChoice === "local") return;
     const option = calendarOptions.find((c) => c.id === slot.calendarChoice);
     if (!option) return;
-
-    // Helper sprawdza odpowiedź serwera i przekazuje wybrany kalendarz, więc
-    // wydarzenie trafia na właściwe konto i zostaje do niego przypięte.
     const ok = await exportEventToCalendar(option, result.organizerEventId, accessToken);
     if (!ok) {
       toast.error(`Nie udało się dodać terminu ${slot.date} do kalendarza ${calendarLabel(slot.calendarChoice)}.`);
@@ -570,9 +567,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
         />
       ) : (
         <>
-          <p className="sr-only" role="status">
+          <output className="sr-only">
             {focused ? `Pokazano dostępność: ${focused.respondent_name}` : "Pokazano dostępność wszystkich uczestników"}
-          </p>
+          </output>
 
           {focused ? (
             <PersonSummary

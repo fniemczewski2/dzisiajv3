@@ -16,9 +16,6 @@ export default function LoveCat() {
 
   useEffect(() => {
     if (!user) return;
-
-    // Track pending timeouts so they can be cancelled on unmount instead of
-    // firing setState against an unmounted component.
     const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>();
     const scheduleTimeout = (fn: () => void, delay: number) => {
       const id = setTimeout(() => {

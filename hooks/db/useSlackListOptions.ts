@@ -47,7 +47,6 @@ export function useSlackListOptions(enabled: boolean) {
         );
       } catch (err) {
         if (!mountedRef.current) return;
-        // pozwalamy spróbować ponownie po przełączeniu kategorii
         requestedRef.current = false;
         setLists([]);
         setError(err instanceof Error ? err.message : "Nie udało się wczytać list Slack.");

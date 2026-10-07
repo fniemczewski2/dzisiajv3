@@ -210,8 +210,6 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
               <div className="space-y-2 pt-3 border-t dark:border-neutral-800">
                 <h3 className="text-xs text-neutral-500 dark:text-neutral-400 font-semibold mb-2">Linki społecznościowe</h3>
                 {profile.social_links.map((social) => {
-                  // Strona /v/[slug] jest publiczna, a URL pochodzi od właściciela
-                  // profilu – dopuszczamy tylko http(s)/mailto/tel.
                   const safeUrl = social.url ? sanitizeHref(social.url) : null;
                   if (!safeUrl) return null;
                   const displayUser = getUsernameFromUrl(social.url, social.platform);

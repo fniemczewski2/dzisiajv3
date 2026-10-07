@@ -5,7 +5,7 @@ const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const PAGES_CACHE = `pages-${CACHE_VERSION}`;
 const ASSETS_CACHE = `assets-${CACHE_VERSION}`;
 const DATA_CACHE = `data-${CACHE_VERSION}`;
-const KNOWN_CACHES = [STATIC_CACHE, PAGES_CACHE, ASSETS_CACHE, DATA_CACHE];
+const KNOWN_CACHES = new Set([STATIC_CACHE, PAGES_CACHE, ASSETS_CACHE, DATA_CACHE]);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -16,7 +16,7 @@ self.addEventListener('activate', (event) => {
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
-        keys.filter((key) => !KNOWN_CACHES.includes(key)).map((key) => caches.delete(key))
+        keys.filter((key) => !KNOWN_CACHES.has(key)).map((key) => caches.delete(key))
       );
       await self.clients.claim();
     })()
@@ -39,10 +39,6 @@ async function cacheFirst(request, cacheName) {
   const hit = await cache.match(request);
   if (hit) return hit;
   try {
-    // Unlike networkFirst/staleWhileRevalidate, this had no fallback for a
-    // failed fetch — offline + cache-miss (e.g. right after a deploy changes
-    // a static asset's hash) surfaced as an unhandled rejection instead of a
-    // clean offline response.
     const response = await fetch(request);
     if (response.ok) cache.put(request, response.clone());
     return response;
@@ -172,8 +168,6 @@ self.addEventListener('push', (event) => {
       try {
         await self.registration.showNotification(data.title, options);
       } catch (err) {
-        // A malformed field in `data` (e.g. non-string title) would
-        // otherwise reject inside event.waitUntil with no fallback.
         console.error('[sw] showNotification failed:', err);
       }
     })()
@@ -202,10 +196,6 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   if (event.action === 'close') return;
-
-  // The push payload's `url` (see the `push` handler above) is attacker-
-  // influenced data, not a trusted value — resolve it against this SW's own
-  // origin and refuse to navigate/open anything cross-origin.
   const rawUrl = event.notification.data?.url || '/';
   let targetUrl;
   try {

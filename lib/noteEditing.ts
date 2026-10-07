@@ -1,10 +1,5 @@
 // lib/noteEditing.ts
 
-/**
- * Pure text/selection helpers behind the note-editor formatting toolbar.
- * Kept free of DOM/React so the cursor math is unit-testable on its own —
- * components wire these onto an (uncontrolled) <textarea> ref.
- */
 export interface TextSelectionState {
   value: string;
   start: number;
@@ -13,7 +8,6 @@ export interface TextSelectionState {
 
 const BOLD_PLACEHOLDER = "pogrubienie";
 
-/** Wraps the selection in `**bold**`, or unwraps it if already bold. */
 export function applyBold(state: TextSelectionState): TextSelectionState {
   const { value, start, end } = state;
   const before = value.slice(0, start);
@@ -48,12 +42,6 @@ function lineBounds(value: string, start: number, end: number): { lineStart: num
   return { lineStart, lineEnd };
 }
 
-/**
- * Toggles a bullet/numbered-list marker on every line touched by the
- * selection. Re-numbers sequentially from 1 when turning a block of lines
- * into a numbered list; toggles the whole block off if every touched line
- * already has that marker.
- */
 export function toggleListPrefix(
   state: TextSelectionState,
   kind: "bullet" | "number"
@@ -79,12 +67,6 @@ export function toggleListPrefix(
   return { value: before + newBlock + after, start: before.length, end: before.length + newBlock.length };
 }
 
-/**
- * Pressing Enter at the end of a list line continues the list (next bullet,
- * or next number) instead of just breaking to a bare new line; pressing
- * Enter on an *empty* list line exits list mode. Returns null when Enter
- * needs no special handling (let the browser insert a plain newline).
- */
 export function continueListOnEnter(state: TextSelectionState): TextSelectionState | null {
   const { value, start, end } = state;
   if (start !== end) return null;
@@ -95,11 +77,6 @@ export function continueListOnEnter(state: TextSelectionState): TextSelectionSta
   if (start !== lineEnd) return null;
 
   const currentLine = value.slice(lineStart, lineEnd);
-
-  // The lookahead+backreference (`(?=(\s+))\1`) matches the same thing as a
-  // plain `\s+` but atomically — it can't give back part of the whitespace
-  // to backtrack into `(.*)$`, which is what made the plain version flagged
-  // for super-linear backtracking (S8786).
   const bulletMatch = /^-(?=(\s+))\1(.*)$/.exec(currentLine);
   if (bulletMatch) {
     if (bulletMatch[2].trim() === "") {
@@ -127,11 +104,6 @@ export function continueListOnEnter(state: TextSelectionState): TextSelectionSta
   return null;
 }
 
-/**
- * DOM glue shared by NoteForm/NoteEditForm's onKeyDown: applies
- * continueListOnEnter directly to an (uncontrolled) textarea and reports
- * whether it handled the keypress, so the caller knows to preventDefault().
- */
 export function handleListContinuation(textarea: HTMLTextAreaElement): boolean {
   const next = continueListOnEnter({
     value: textarea.value,

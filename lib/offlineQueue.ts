@@ -45,9 +45,6 @@ export function isOffline(): boolean {
 
 export async function enqueueInsert(table: string, payload: Record<string, unknown>): Promise<void> {
   const entry: QueuedInsert = {
-    // crypto.randomUUID() instead of Math.random() — not a security concern
-    // here (just a local IndexedDB key), but it's free collision-safety and
-    // avoids Sonar's generic "review this PRNG usage" hotspot (S2245).
     id: `${table}-${Date.now()}-${crypto.randomUUID()}`,
     table,
     payload,
@@ -76,13 +73,12 @@ export async function flushQueue(supabase: SupabaseClient): Promise<{ sent: numb
   let failed = 0;
 
   for (const entry of entries) {
-    const { error } = await supabase.from(entry.table).insert(entry.payload); // NOSONAR – kolejka offline – zapisy muszą zachować kolejność dodania (FIFO)
+    const { error } = await supabase.from(entry.table).insert(entry.payload); // NOSONAR
     if (error) {
       failed += 1;
       continue;
     }
-    await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR – kolejka offline – zapisy muszą zachować kolejność dodania (FIFO)
-    sent += 1;
+    await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
   }
   return { sent, failed };
 }

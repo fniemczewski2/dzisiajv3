@@ -1,7 +1,4 @@
 // __tests__/components/EventFormCalendar.test.tsx
-//
-// Pole „Dodaj do”: wydarzenie powstaje w aplikacji i trafia do wybranego
-// kalendarza Google/Outlook. Wcześniej wybór był ignorowany.
 
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";

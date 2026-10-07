@@ -54,7 +54,6 @@ export default function EventForm({
   const [allDay, setAllDay] = useState(true);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  // Wybrana szybka długość (30 min / 1 h / 2 h). null = koniec ustawiony ręcznie.
   const [durationMin, setDurationMin] = useState<number | null>(DEFAULT_EVENT_DURATION_MIN);
   const [place, setPlace] = useState("");
   const [share, setShare] = useState("null");
@@ -78,9 +77,6 @@ export default function EventForm({
     void fetchCalendars();
   }, [userId, supabase]);
 
-  // Zależności po znaczniku czasu, a nie po obiekcie Date: domyślna wartość
-  // `currentDate = getAppDateTime()` tworzy nowy obiekt przy każdym renderze
-  // i kasowałaby wpisane przez użytkownika godziny.
   const refTime = (selectedDate ?? currentDate)?.getTime() ?? null;
 
   useEffect(() => {
@@ -103,12 +99,10 @@ export default function EventForm({
   const handleStartChange = (value: string) => {
     setStart(value);
     if (allDay) {
-      // Koniec nie może być przed początkiem.
       if (end && value > end) setEnd(value);
       return;
     }
-    // Zmiana początku przesuwa koniec: o wybraną szybką długość, a gdy koniec
-    // był ustawiony ręcznie – o domyślną godzinę.
+
     setEnd(addMinutesToLocal(value, durationMin ?? DEFAULT_EVENT_DURATION_MIN));
     if (durationMin === null) setDurationMin(DEFAULT_EVENT_DURATION_MIN);
   };
@@ -116,13 +110,9 @@ export default function EventForm({
   const handleEndChange = (value: string) => {
     setEnd(value);
     if (allDay) return;
-    // Ręczna zmiana końca: podświetlamy szybką opcję tylko, gdy długość się zgadza.
     const minutes = durationBetween(start, value);
     setDurationMin(QUICK_EVENT_DURATIONS.some((d) => d.minutes === minutes) ? minutes : null);
   };
-
-  // Cykliczne wydarzenie zostaje w aplikacji: do Google/Outlooka trafiłoby jako
-  // pojedyncze, a synchronizacja zdjęłaby potem powtarzanie także w aplikacji.
   const isRecurring = repeat !== "none";
   const handleRepeatChange = (value: Event["repeat"]) => {
     setRepeat(value);
@@ -155,8 +145,6 @@ export default function EventForm({
           user_id: userId || "",
         });
 
-    // „Dodaj do”: wydarzenie powstaje w aplikacji, a potem jest wysyłane do
-    // wybranego kalendarza Google/Outlook i do niego przypinane.
     const target = calendars.find((c) => c.id === selectedCalendar);
     if (created?.id && target) {
       const { data: { session } } = await supabase.auth.getSession();

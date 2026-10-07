@@ -139,10 +139,6 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
-      // Without a caller-supplied buildOptimistic there's no way to know
-      // statically that `payload` plus id/user_id actually satisfies T (T may
-      // have server-computed fields payload doesn't carry) — this cast is the
-      // documented escape hatch for that one fallback path.
       const optimistic = cfg.buildOptimistic
         ? cfg.buildOptimistic(payload, tempId, userId)
         : ({ ...payload, id: tempId, user_id: userId } as unknown as T);

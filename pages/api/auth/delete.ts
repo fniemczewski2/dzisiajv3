@@ -27,16 +27,12 @@ async function deleteUserRows(
   const report: Record<string, number | string> = {};
 
   for (const table of USER_DATA_TABLES) {
-    // select("user_id"), nie "id": settings, daily_habits, shortcut_tokens czy
-    // slack_task_targets nie mają kolumny id, a PostgREST odrzucał wtedy całe
-    // żądanie – wiersze zostawały, a klucze obce blokowały usunięcie konta.
-    const { data, error } = await admin // NOSONAR – kolejność tabel ma znaczenie – podrzędne przed nadrzędnymi (klucze obce)
+    const { data, error } = await admin // NOSONAR 
       .from(table)
       .delete()
       .eq("user_id", userId)
       .select("user_id");
     if (error) {
-      // Szczegóły tylko w logach – raport trafia do przeglądarki.
       console.error(`[account/delete] ${table}:`, error.message);
       report[table] = "error";
     } else {
@@ -44,8 +40,6 @@ async function deleteUserRows(
     }
   }
 
-  // Zadania zlecone temu użytkownikowi przez innych zostają u zleceniodawcy,
-  // ale bez wskazania na usuwane konto.
   const { error: unassignError } = await admin.from("tasks").update({ for_user_id: null }).eq("for_user_id", userId);
   if (unassignError) console.error("[account/delete] tasks.for_user_id:", unassignError.message);
   await mapPool(["events", "shopping_lists"] as const, 4, async (table) => {
@@ -58,16 +52,14 @@ async function deleteUserRows(
 
 const STORAGE_PAGE = 1000;
 
-/** Wszystkie ścieżki plików pod prefiksem – rekurencyjnie i ze stronicowaniem. */
 async function listAllPaths(admin: SupabaseClient, bucket: string, prefix: string): Promise<string[]> {
   const paths: string[] = [];
   for (let offset = 0; ; offset += STORAGE_PAGE) {
-    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: STORAGE_PAGE, offset }); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: STORAGE_PAGE, offset }); // NOSONAR 
     if (error || !data?.length) break;
 
-    await mapPool(data, 4, async (entry) => { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    await mapPool(data, 4, async (entry) => { // NOSONAR 
       const fullPath = `${prefix}/${entry.name}`;
-      // Foldery w Storage nie mają id (to tylko prefiksy).
       if (!entry.id) paths.push(...(await listAllPaths(admin, bucket, fullPath)));
       else paths.push(fullPath);
     });

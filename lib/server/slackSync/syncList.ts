@@ -1,6 +1,4 @@
 // lib/server/slackSync/syncList.ts
-// Per-list sync orchestration: reconciles one Slack list against the tasks
-// targeting it (split out of the former 717-line pages/api/slack/sync.ts).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -62,10 +60,6 @@ interface SyncTaskContext {
   counters: SyncCounters;
 }
 
-// Reconciles a single task against its (possibly absent) Slack item. Pulled
-// out to a top-level function — as a closure inside syncList, its branching
-// counted directly against that function's cognitive complexity.
-/** Zadanie bez powiązania z tą listą: tworzymy element w Slacku, jeśli powinno tu trafić. */
 async function pushUnlinkedTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
   const { admin, target, columns, linkedAnywhere, targetListByTask, counters } = ctx;
   if (linkedAnywhere.has(task.id)) return;
@@ -77,7 +71,6 @@ async function pushUnlinkedTask(ctx: SyncTaskContext, task: TaskRow): Promise<vo
 
 type SyncDirection = ReturnType<typeof resolveDirection>;
 
-/** Gdy pobieranie ze Slacka jest wyłączone, zmiana po stronie Slacka nie wygrywa. */
 function effectiveDirection(direction: SyncDirection, pullEnabled: boolean, appChanged: boolean): SyncDirection | "none" {
   if (pullEnabled || direction !== "pull") return direction;
   return appChanged ? "push" : "none";
@@ -179,7 +172,7 @@ export async function buildAssigneeFilter(
 
   const ids = new Set<string>();
   for (const email of target.assigneeEmails) {
-    const id = await lookup(target.token, email); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
+    const id = await lookup(target.token, email); // NOSONAR
     if (id) ids.add(id);
   }
   if (ids.size === 0) return () => false;
@@ -230,7 +223,7 @@ export async function syncList(
     admin, target, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters,
   };
   for (const task of tasks) {
-    await processTaskSync(taskCtx, task); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
+    await processTaskSync(taskCtx, task); // NOSONAR 
   }
 
   const { data: pendingRows } = await admin
@@ -247,7 +240,7 @@ export async function syncList(
   const accepts = await buildAssigneeFilter(target, columns);
   for (const item of items) {
     if (!accepts(item)) continue;
-    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
+    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters); // NOSONAR 
   }
 
   return counters;

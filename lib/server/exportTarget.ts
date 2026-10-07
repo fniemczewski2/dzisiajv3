@@ -1,18 +1,9 @@
 // lib/server/exportTarget.ts
-//
-// Docelowy kalendarz przy wysyłaniu wydarzeń z aplikacji do Google/Outlooka.
-//
-// Klient podaje id wiersza connected_calendars (ten sam, który wybiera w polu
-// „Dodaj do”). Z niego bierzemy identyfikator kalendarza u dostawcy oraz konto
-// – wcześniej endpoint brał pierwsze podłączone konto danego dostawcy, więc
-// przy dwóch kontach Google wydarzenie mogło trafić nie tam.
-
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface ExportTarget {
-  /** connected_calendars.id – zapisywany w events.calendar_id. */
+
   rowId: string;
-  /** Identyfikator kalendarza u dostawcy (kolumna google_calendar_id). */
   calendarId: string;
   accountEmail: string;
 }

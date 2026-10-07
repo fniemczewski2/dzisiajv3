@@ -1,6 +1,4 @@
 // components/ui/buttons/toggles.tsx
-// Split out of the former CommonButtons.tsx: standalone icon buttons and
-// toggle controls (not part of the actionButton family).
 
 import React from "react";
 import type { LucideIcon } from "lucide-react";

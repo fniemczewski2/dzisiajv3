@@ -12,7 +12,6 @@ import {
   type StopPost,
 } from "@/supabase/functions/_shared/stopGrouping";
 
-// Dwa przystanki "Dworcowa": w Poznaniu (2 słupki) i w Luboniu (2 słupki), ~7 km od siebie.
 const POZNAN = { lat: 52.4020, lon: 16.9110 };
 const LUBON = { lat: 52.3470, lon: 16.8770 };
 const post = (code: string, name: string, base: { lat: number; lon: number }, dLat = 0, zone = "A"): StopPost => ({
@@ -21,9 +20,9 @@ const post = (code: string, name: string, base: { lat: number; lon: number }, dL
 
 const posts: StopPost[] = [
   post("DWOR01", "Dworcowa", POZNAN),
-  post("DWOR02", "Dworcowa", POZNAN, 0.0008),          // ~90 m dalej – ten sam przystanek
+  post("DWOR02", "Dworcowa", POZNAN, 0.0008),         
   post("LDWO01", "Dworcowa", LUBON, 0, "B"),
-  post("LDWO02", "dworcowa ", LUBON, 0.0006, "B"),     // inna wielkość liter / spacja
+  post("LDWO02", "dworcowa ", LUBON, 0.0006, "B"),     
   post("DWK01", "Dworzec Zachodni", POZNAN, 0.003),
   { stop_code: null, stop_name: "Dworcowa", stop_lat: POZNAN.lat, stop_lon: POZNAN.lon, zone_id: "A" },
 ];
@@ -67,7 +66,7 @@ describe("favorites", () => {
 
   it("a favorite added in Luboń resolves only to Luboń (the reported bug)", () => {
     const fav = favoriteFromCluster(lubon, "Luboń");
-    const picked = pickClusterForFavorite(fav, clusters, POZNAN); // nawet gdy użytkownik stoi w Poznaniu
+    const picked = pickClusterForFavorite(fav, clusters, POZNAN); 
     expect(picked?.stop_codes).toEqual(["LDWO01", "LDWO02"]);
   });
 

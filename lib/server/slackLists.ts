@@ -43,18 +43,18 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 
 async function requestSlack<T>(send: () => Promise<Response>): Promise<T & SlackEnvelope> {
   for (let attempt = 0; ; attempt += 1) {
-    const response = await send(); // NOSONAR – ponawianie po limicie Slacka (nagłówek Retry-After)
+    const response = await send(); // NOSONAR
 
     if (response.status === 429) {
       const retryAfter = Number(response.headers.get("Retry-After") ?? "30") || 30;
       if (attempt < SLACK_RATE_LIMIT_RETRIES) {
-        await sleep(Math.min(retryAfter * 1000, SLACK_RATE_LIMIT_MAX_WAIT_MS)); // NOSONAR – ponawianie po limicie Slacka (nagłówek Retry-After)
+        await sleep(Math.min(retryAfter * 1000, SLACK_RATE_LIMIT_MAX_WAIT_MS)); // NOSONAR
         continue;
       }
       throw slackError("Przekroczono limit zapytań do Slacka.", "ratelimited", retryAfter);
     }
 
-    const body = (await response.json()) as T & SlackEnvelope; // NOSONAR – ponawianie po limicie Slacka (nagłówek Retry-After)
+    const body = (await response.json()) as T & SlackEnvelope; // NOSONAR
     if (!body.ok) throw slackError(translateSlackError(body.error), body.error);
     return body;
   }
@@ -326,7 +326,7 @@ async function fetchAllItems(token: string, listId: string): Promise<SlackItem[]
   let cursor: string | undefined;
 
   do {
-    const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+    const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, { // NOSONAR
       list_id: listId,
       limit: SLACK_ITEMS_PAGE_SIZE,
       ...(cursor ? { cursor } : {}),

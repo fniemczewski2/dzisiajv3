@@ -17,7 +17,7 @@ export default function NoResultsState({ fullScreen = false, text, isSearch = fa
     hint ?? (isSearch ? "Zmień frazę lub wyczyść filtry, aby zobaczyć więcej." : undefined);
 
   const content = (
-    <div role="status" className="flex flex-col items-center gap-3 text-center px-6 py-8 rounded-2xl border border-dashed border-line-strong bg-surface/60">
+    <output className="flex flex-col items-center gap-3 text-center px-6 py-8 rounded-2xl border border-dashed border-line-strong bg-surface/60">
       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-text-muted shadow-sm">
         <Icon aria-hidden="true" className="h-5 w-5" />
       </span>
@@ -28,7 +28,7 @@ export default function NoResultsState({ fullScreen = false, text, isSearch = fa
         {description && <p className="text-sm text-text-muted max-w-sm">{description}</p>}
       </div>
       {action}
-    </div>
+    </output>
   );
 
   if (fullScreen) {

@@ -1,6 +1,4 @@
 // lib/server/slackSync/taskMapping.ts
-// Task <-> Slack-item field mapping and push/pull direction resolution
-// (split out of the former 717-line pages/api/slack/sync.ts).
 
 import {
   buildFieldValue,
@@ -65,10 +63,6 @@ function indexFieldsByColumn(fields: SlackItemField[] | undefined): Map<string, 
   return byColumn;
 }
 
-// Returns the value to write for this field, or undefined to skip it
-// entirely (no matching cell, or the cell's value doesn't survive
-// normalization e.g. an unrecognized status).
-/** Wpisuje do łatki wartość pola ze Slacka; puste lub nierozpoznane pomija. */
 function applyPatchValue(
   patch: Record<string, unknown>,
   field: SlackMappableTaskField,

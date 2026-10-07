@@ -22,7 +22,6 @@ const DURATION_LABELS: Record<MeetingPollSlotDuration, string> = {
 const QUICK_WORKING_DAYS = 5;
 
 function mergeDates(current: string[], added: string[]): string[] {
-  // Daty w formacie YYYY-MM-DD – porównanie tekstowe daje kolejność chronologiczną.
   return [...new Set([...current, ...added])].sort((a, b) => a.localeCompare(b));
 }
 
@@ -215,10 +214,10 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
       </fieldset>
 
       {canSave && (
-        <p className="rounded-lg bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
+        <output className="block rounded-lg bg-surface px-3 py-2 text-sm text-text-secondary">
           Uczestnicy zobaczą {dates.length} {pluralPl(dates.length, "dzień", "dni", "dni")} × {slotsPerDay}{" "}
           {pluralPl(slotsPerDay, "slot", "sloty", "slotów")} dziennie.
-        </p>
+        </output>
       )}
 
       <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} disabled={!canSave} />

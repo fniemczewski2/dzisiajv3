@@ -206,7 +206,6 @@ async function fetchBollardsForCluster(cluster: StopCluster, zoneOf: Map<string,
   return results.filter((b): b is Bollard => b !== null);
 }
 
-/** Wszystkie słupki o dokładnie tych nazwach (bez wielkości liter, bez dopasowań częściowych). */
 async function fetchPostsByNames(supabase: Db, names: string[]): Promise<StopPost[]> {
   const unique = Array.from(new Set(names.map((n) => n.trim()).filter(Boolean)));
   if (unique.length === 0) return [];
@@ -215,8 +214,6 @@ async function fetchPostsByNames(supabase: Db, names: string[]): Promise<StopPos
       supabase
         .from("stops")
         .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
-        // ilike bez % = równość bez wielkości liter; wcześniej `%nazwa%`
-        // łapało też "Rondo Kaponiera" dla "Rondo" i przystanki z innych miejscowości.
         .ilike("stop_name", escapeIlike(name))
     )
   );
@@ -295,8 +292,6 @@ async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Prom
   if (inBox.length === 0) {
     return new Response(JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }), { headers: jsonHeaders });
   }
-
-  // Najbliższe grupy wg najbliższego słupka.
   const nearest = clusterStops(inBox)
     .map((c) => ({
       c,
@@ -306,9 +301,6 @@ async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Prom
     .sort((a, b) => a.d - b.d)
     .slice(0, MAX_NEARBY_GROUPS);
 
-  // Dociągamy pełne grupy (słupki mogą wystawać poza prostokąt) i sprawdzamy,
-  // czy nazwa nie powtarza się gdzie indziej – ale bierzemy tylko słupki
-  // z grupy, która faktycznie jest obok użytkownika.
   const allPosts = await fetchPostsByNames(supabase, nearest.map((n) => n.c.name));
   const zoneOf = new Map(allPosts.map((p) => [p.stop_code as string, p.zone_id]));
   const fullClusters = clusterStops(allPosts);

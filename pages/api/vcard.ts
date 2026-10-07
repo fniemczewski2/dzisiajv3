@@ -75,11 +75,13 @@ function buildVCardLines(profile: VCardProfile): string[] {
     lines.push(`ORG:${escVCardValue(profile.organization)}`);
   }
 
-  lines.push(...buildPhoneLines(profile.phones));
-  lines.push(...buildEmailLines(profile.emails));
-  lines.push(...buildSocialLinkLines(profile.social_links));
-
-  lines.push('END:VCARD', '');
+  lines.push(
+    ...buildPhoneLines(profile.phones),
+    ...buildEmailLines(profile.emails),
+    ...buildSocialLinkLines(profile.social_links),
+    'END:VCARD',
+    '',
+  );
   return lines;
 }
 

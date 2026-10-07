@@ -63,7 +63,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  // Względne przekierowanie – nie budujemy URL-a z nagłówka Host, który
-  // kontroluje klient (host header injection / open redirect).
   return res.redirect('/start?error=auth_failed');
 }

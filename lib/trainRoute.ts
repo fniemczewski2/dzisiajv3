@@ -1,13 +1,6 @@
 // lib/trainRoute.ts
-//
-// Dopasowanie stacji z biletu do stacji na trasie konkretnego pociągu.
-// Szukanie w całym słowniku PLK potrafi trafić w inną stację o podobnej nazwie
-// (np. pierwszą „Kraków …” zamiast „Kraków Główny”), dlatego stację docelową
-// wybieramy wyłącznie spośród stacji leżących na trasie za stacją wyjazdu.
 
-// \b nie działa z polskimi literami, więc granice słów wyznaczają spacje
-// (nazwa jest otoczona spacjami przed podmianą).
-const abbr = (short: string) => new RegExp(`(?<=\\s)${short}\\.?(?=\\s)`, "g");
+const abbr = (short: string) => new RegExp(String.raw`(?<=\s)${short}\.?(?=\s)`, "g");
 
 const ABBREVIATIONS: [RegExp, string][] = [
   [abbr("gł"), "główny"],

@@ -1,13 +1,10 @@
 // lib/trainPlan.ts
-//
-// Obliczenia czasu dla biletów w planie dnia. Czyste funkcje – bez Reacta i sieci.
 
 export interface TrainTimeInput {
   date: string;          // "YYYY-MM-DD"
   departureTime: string; // "HH:MM" (albo "HH:MM:SS")
 }
 
-/** Planowy odjazd jako Date w czasie lokalnym urządzenia (aplikacja działa w strefie PL). */
 export function plannedDeparture(t: TrainTimeInput): Date | null {
   const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t.date);
   const h = /^(\d{1,2}):(\d{2})/.exec(t.departureTime ?? "");
@@ -20,7 +17,6 @@ export function formatHm(date: Date): string {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-/** Klucz godziny planu ("HH:00") dla planowego odjazdu. */
 export function planHourKey(t: TrainTimeInput): string | null {
   const m = /^(\d{1,2}):/.exec(t.departureTime ?? "");
   if (!m) return null;
@@ -28,25 +24,19 @@ export function planHourKey(t: TrainTimeInput): string | null {
   return h >= 0 && h <= 23 ? `${String(h).padStart(2, "0")}:00` : null;
 }
 
-/** Rzeczywisty odjazd = planowy + opóźnienie. */
 export function expectedDeparture(t: TrainTimeInput, delayMinutes: number): Date | null {
   const planned = plannedDeparture(t);
   if (!planned) return null;
   return new Date(planned.getTime() + Math.max(0, delayMinutes) * 60_000);
 }
 
-/**
- * Czy warto odpytywać PKP o status na żywo: od 3 h przed odjazdem do 12 h po
- * nim (pociąg może być w trasie). Poza tym oknem dane i tak są statyczne.
- */
 export function isStatusRelevant(t: TrainTimeInput, now: Date = new Date()): boolean {
   const planned = plannedDeparture(t);
   if (!planned) return false;
   const diff = planned.getTime() - now.getTime();
-  return diff <= 3 * 3600_000 && diff >= -12 * 3600_000;
+  return diff <= 3 * 3_600_000 && diff >= -12 * 3_600_000;
 }
 
-/** "za 25 min", "za 2 h 5 min", "odjechał" – względem oczekiwanego odjazdu. */
 export function relativeDeparture(expected: Date, now: Date = new Date()): string {
   const minutes = Math.round((expected.getTime() - now.getTime()) / 60_000);
   if (minutes < 0) return "odjechał";
@@ -56,8 +46,6 @@ export function relativeDeparture(expected: Date, now: Date = new Date()): strin
   const m = minutes % 60;
   return m ? `za ${h} h ${m} min` : `za ${h} h`;
 }
-
-/** Pusty/placeholder z API ("-", "...") traktujemy jak brak danych. */
 export function cleanValue(v: string | null | undefined): string | null {
   const t = (v ?? "").trim();
   return !t || t === "-" || t === "..." ? null : t;
@@ -75,7 +63,6 @@ const WARSAW_PARTS = new Intl.DateTimeFormat("en-GB", {
   second: "2-digit",
 });
 
-/** Przesunięcie strefy Europe/Warsaw względem UTC w danym momencie (ms), z uwzględnieniem czasu letniego. */
 function warsawOffsetMs(instant: number): number {
   const parts = WARSAW_PARTS.formatToParts(new Date(instant));
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
@@ -86,11 +73,6 @@ function warsawOffsetMs(instant: number): number {
 const HAS_OFFSET = /(?:[zZ]|[+-]\d{2}:?\d{2})$/;
 const LOCAL_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?$/;
 
-/**
- * Czas z API PKP PLK jako prawdziwy moment. Znacznik z przesunięciem (Z, +02:00)
- * czytamy dosłownie, a bez przesunięcia traktujemy jako czas ścienny w Polsce –
- * niezależnie od strefy serwera czy telefonu.
- */
 export function parsePlkTime(value: string | null | undefined): Date | null {
   const v = (value ?? "").trim();
   if (!v) return null;
@@ -116,29 +98,23 @@ export interface TrainLiveDetails {
   departurePlatform?: string;
   departureDelay?: number;
   actualDeparture?: string;
-  /** Serwer ustalił, że pociąg opuścił już stację wyjazdu. */
   departed?: boolean;
   arrivalPlatform?: string;
   arrivalDelay?: number;
-  /** Planowy przyjazd „HH:MM” z rozkładu (gdy rozkład zawiera całą trasę). */
   plannedArrival?: string;
-  /** Przewidywany przyjazd (ISO) z danych na żywo. */
   actualArrival?: string;
   arrivalStation?: string;
 }
 
 export interface TrainStop {
   phase: TrainStopPhase;
-  /** Nazwa stacji, której dotyczą czas i peron. */
   station: string;
   planned: Date | null;
-  /** Czas z opóźnieniem (równy planowemu, gdy pociąg jest punktualny). */
   expected: Date | null;
   delay: number;
   platform: string | null;
 }
 
-/** Planowy przyjazd; kurs przez północ przesuwa przyjazd na następny dzień. */
 export function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefined): Date | null {
   const departure = plannedDeparture(t);
   if (!departure || !arrivalTime) return null;
@@ -148,16 +124,10 @@ export function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefine
   return arrival;
 }
 
-/** Faktyczny odjazd ze stacji wyjazdu: z danych na żywo, a bez nich planowy + opóźnienie. */
 export function actualDepartureTime(t: TrainTimeInput, live: TrainLiveDetails): Date | null {
   return parsePlkTime(live.actualDeparture) ?? expectedDeparture(t, live.departureDelay ?? 0);
 }
 
-/**
- * Planowy i przewidywany przyjazd. Rozkład bywa niepełny (tylko stacja wyjazdu),
- * więc gdy brakuje planowej godziny, wyliczamy ją z przewidywanego przyjazdu
- * odejmując opóźnienie.
- */
 export function arrivalTimes(
   t: TrainTimeInput,
   live: TrainLiveDetails
@@ -170,12 +140,6 @@ export function arrivalTimes(
   return { planned, expected };
 }
 
-/**
- * Stacja, której dane pokazujemy w planie dnia: do faktycznego odjazdu
- * (z opóźnieniem) – stacja wyjazdu, potem – stacja przyjazdu.
- * Po odjeździe zawsze pokazujemy przyjazd; gdy brakuje godziny, zostaje pusta
- * (widok pokaże „—”), a nie godzina odjazdu opisana jako przyjazd.
- */
 export function currentTrainStop(
   t: TrainTimeInput & { from?: string; to?: string },
   live: TrainLiveDetails,
@@ -209,7 +173,6 @@ export function currentTrainStop(
   };
 }
 
-/** Tekst względny dla bieżącej stacji: „za 25 min” przed odjazdem, „przyjazd za 40 min” w trasie. */
 export function relativeStopTime(stop: Pick<TrainStop, "phase" | "expected">, now: Date = new Date()): string | null {
   if (!stop.expected) return null;
   if (stop.phase === "departure") return relativeDeparture(stop.expected, now);

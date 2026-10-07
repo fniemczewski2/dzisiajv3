@@ -26,8 +26,6 @@ async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenRe
   return await r.json();
 }
 
-// Shared by handleListCalendars and handleExport — both need a live access
-// token and both had this exact same inline refresh-and-persist block.
 async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: ConnectedCalendarRow): Promise<string> {
   let accessToken = decryptToken(mainAcc.access_token);
   const storedRefreshToken = decryptToken(mainAcc.refresh_token);
@@ -119,7 +117,6 @@ function buildOutlookEventRows(
       place: ev.location?.displayName || '',
       repeat: 'none',
       google_event_id: ev.id,
-      // Bez shared_with_id – zob. komentarz w google-calendar/index.ts.
     });
   }
   return rows;
@@ -134,8 +131,6 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
       return res.status(400).json({ error: 'Brak wymaganych parametrów' });
     }
 
-    // accountId trafia do events.calendar_id – musi być kalendarzem tego
-    // użytkownika (RLS na insert sprawdza tylko user_id).
     const { data: ownedCalendar } = await supabase
       .from('connected_calendars')
       .select('id')
@@ -164,17 +159,16 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
     let imported = 0;
 
     while (fetchUrl) {
-      const msRes: Response = await fetch(fetchUrl, { // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+      const msRes: Response = await fetch(fetchUrl, { // NOSONAR
         headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
       });
           
       if (!msRes.ok) break;
-      const data: OutlookEventsResponse = await msRes.json(); // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+      const data: OutlookEventsResponse = await msRes.json(); // NOSONAR
       const rows = buildOutlookEventRows(data.value, user.id, accountId);
 
-      // Jeden upsert na stronę zamiast osobnego SELECT-a na każde wydarzenie.
       if (rows.length > 0) {
-        const { error: upsertError } = await supabase // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+        const { error: upsertError } = await supabase // NOSONAR 
           .from('events')
           .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
         if (upsertError) {
@@ -254,7 +248,6 @@ async function exportEventsToOutlook(
 
     if (r.ok) {
       const created = await r.json();
-      // Przypinamy do kalendarza, żeby cron nie dodał duplikatu (zob. google-calendar).
       await supabase
         .from('events')
         .update(target ? { google_event_id: created.id, calendar_id: target.rowId } : { google_event_id: created.id })
@@ -280,9 +273,6 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
     if (connectedCalendarId && !target) return res.status(404).json({ error: 'Nie znaleziono kalendarza.' });
     if (target) calendarId = target.calendarId;
     if (!calendarId) return res.status(400).json({ error: 'Brak identyfikatora kalendarza.' });
-
-    // Konto Microsoft, do którego należy wybrany kalendarz. Wcześniej
-    // maybeSingle() bez filtra po koncie zwracało błąd przy dwóch kontach.
     let mainQuery = supabase
       .from('connected_calendars')
       .select('*')

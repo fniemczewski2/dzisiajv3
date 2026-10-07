@@ -47,7 +47,7 @@ export function useDataExport() {
 
       for (let page = 0; ; page++) {
         const from = page * EXPORT_PAGE_SIZE;
-        const { data, error } = await withRetry(() => // NOSONAR – stronicowanie – kolejna strona wymaga wyniku poprzedniej
+        const { data, error } = await withRetry(() => 
           supabase
             .from(table)
             .select(columns ?? "*")
@@ -56,10 +56,6 @@ export function useDataExport() {
 
         if (error) throw error;
 
-        // `table` is a dynamic string spanning every exportable table, so
-        // Supabase can't infer a precise row type here — ExportRow is a
-        // deliberately opaque `Record<string, unknown>` bag for the export
-        // file, not a shape we validate at runtime.
         const batch = (data ?? []) as unknown as ExportRow[];
         rows.push(...batch);
         if (batch.length < EXPORT_PAGE_SIZE) break;
@@ -82,9 +78,6 @@ export function useDataExport() {
     try {
       const data: Record<string, ExportRow[]> = {};
       const skipped: { table: string; error: string }[] = [];
-
-      // Tabele są niezależne – pobieramy po kilka naraz. Wyniki składamy
-      // w kolejności EXPORT_TABLES, żeby plik zawsze miał ten sam układ.
       let done = 0;
       type Fetched =
         | { entry: (typeof EXPORT_TABLES)[number]; rows: ExportRow[] }

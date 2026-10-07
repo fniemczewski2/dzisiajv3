@@ -1,6 +1,4 @@
 // lib/calendarExport.ts
-//
-// Wysłanie wydarzenia z aplikacji do podłączonego kalendarza Google/Outlook.
 
 export interface CalendarTarget {
   /** connected_calendars.id */
@@ -15,11 +13,6 @@ export function calendarTargetLabel(target: CalendarTarget): string {
   return `${provider}: ${target.calendar_name || target.google_calendar_id}`;
 }
 
-/**
- * Zwraca true tylko, gdy wydarzenie faktycznie trafiło do kalendarza.
- * Wcześniej wywołania sprawdzały jedynie błąd sieci – odpowiedź 4xx/5xx albo
- * „wyeksportowano 0” przechodziła po cichu.
- */
 export async function exportEventToCalendar(
   target: CalendarTarget,
   eventId: string,

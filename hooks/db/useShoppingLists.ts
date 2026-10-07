@@ -136,22 +136,12 @@ export function useShoppingLists() {
     [userId, supabase, lists, fetchShoppingLists, toast, withRetry]
   );
 
-  /**
-   * „Usuń” działa zależnie od roli:
-   *  - właściciel kasuje listę (także u osoby, której ją udostępnił);
-   *  - odbiorca tylko się wypisuje – lista znika u niego, a właściciel
-   *    zachowuje ją jako nieudostępnioną.
-   * Wypisanie idzie przez RPC leave_shared_shopping_list: zwykły UPDATE
-   * z JWT odbiorcy jest blokowany przez RLS, bo po zmianie przestałby on
-   * widzieć wiersz. Polityka DELETE pozwala usuwać wyłącznie właścicielowi.
-   */
   const deleteOwnList = useCallback(
     async (id: string) => {
       const { data, error } = await withRetry(() =>
         supabase.from("shopping_lists").delete().eq("id", id).eq("user_id", userId).select("id")
       );
       if (error) throw error;
-      // RLS nie zwraca błędu, tylko 0 usuniętych wierszy.
       if (!data || data.length === 0) throw new Error("NO_ROWS_DELETED");
     },
     [supabase, userId, withRetry]
@@ -163,7 +153,6 @@ export function useShoppingLists() {
         supabase.rpc("leave_shared_shopping_list", { p_list_id: id })
       );
       if (error) throw error;
-      // false = nie byłeś już odbiorcą tej listy (np. właściciel zdjął udostępnienie).
       if (data !== true) throw new Error("NOT_A_RECIPIENT");
     },
     [supabase, withRetry]

@@ -14,9 +14,6 @@ const RecipesList = dynamic(() => import("@/components/recipes/RecipesList"), { 
 
 export default function RecipesPage() {
   const [showForm, setShowForm] = useState(false);
-  // Jedna instancja hooka dla całej strony – wcześniej strona, formularz i lista
-  // miały każda własny stan, więc dane pobierały się trzykrotnie, a nowy przepis
-  // pojawiał się na liście dopiero po ponownym pobraniu.
   const { recipes, products, loading, fetching, addRecipe, editRecipe, deleteRecipe } = useRecipes();
 
   useQuickAction({ onActionAdd: () => setShowForm(true) });

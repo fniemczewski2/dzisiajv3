@@ -1,8 +1,4 @@
 // components/settings/ShortcutTokenSection.tsx
-//
-// Token Siri Shortcuts dla automatycznego czasu pracy (/api/worklogs/auto).
-// Jawna wartość tokenu jest pokazywana tylko raz, zaraz po wygenerowaniu –
-// w bazie trzymamy wyłącznie jego skrót.
 
 import React, { useCallback, useEffect, useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";

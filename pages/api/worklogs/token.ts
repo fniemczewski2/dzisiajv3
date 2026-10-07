@@ -1,8 +1,4 @@
 // pages/api/worklogs/token.ts
-//
-// Zarządzanie tokenem Siri Shortcuts zalogowanego użytkownika.
-//   POST   → generuje nowy token (unieważnia poprzedni) i zwraca go JEDEN raz
-//   DELETE → unieważnia token
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";

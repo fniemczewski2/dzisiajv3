@@ -1,5 +1,4 @@
 // components/ui/buttons/copyButtonSmall.tsx
-// Split out of the former CommonButtons.tsx.
 
 import React, { useState } from "react";
 import { Check, Copy } from "lucide-react";

@@ -1,13 +1,4 @@
 // pages/api/slack/sync.ts
-//
-// Thin API-route wrapper: request auth/scoping and the per-user orchestration
-// loop live here; the actual sync logic (task<->item mapping, push, pull,
-// per-list reconciliation, target/task loading) lives under
-// lib/server/slackSync/* — this file used to be 717 lines holding all of it.
-//
-// `belongsOnList`/`resolveDirection`/`taskUpdatedAt`/`itemUpdatedAt` are
-// re-exported so __tests__/lib/server/slackLists.test.ts (which imports them
-// from this route path) keeps working unchanged.
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -34,9 +25,6 @@ function groupTargetsByUser(targets: SyncTarget[]): Map<string, SyncTarget[]> {
 }
 
 function resolveSyncErrorMessage(err: unknown): string {
-  // Kody Slacka tłumaczymy na komunikat dla użytkownika. Błędy bazy/sieci
-  // trafiają do logów serwera, a klient dostaje ogólny komunikat – surowe
-  // komunikaty PostgREST zdradzały strukturę bazy.
   const code = (err as { slackError?: string }).slackError;
   if (code) return translateSlackError(code);
   return "Błąd synchronizacji (szczegóły w logach serwera).";
@@ -91,7 +79,7 @@ async function syncUserTargets(
 
   const results: SyncResult[] = [];
   for (const target of userTargets) {
-    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask)); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
+    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask)); // NOSONAR
   }
   return results;
 }
@@ -119,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: SyncResult[] = [];
     for (const [userId, userTargets] of byUser) {
       if (scopedUserId && userId !== scopedUserId) continue;
-      results.push(...(await syncUserTargets(admin, userId, userTargets))); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
+      results.push(...(await syncUserTargets(admin, userId, userTargets))); // NOSONAR
     }
 
     const failed = results.filter((r) => "error" in r).length;

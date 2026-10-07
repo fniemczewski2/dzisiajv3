@@ -54,8 +54,6 @@ let warnedAboutPlaintext = false;
 export function decryptToken(stored: string | null | undefined): string {
   if (!stored) return "";
   if (!stored.startsWith(`${VERSION_PREFIX}:`)) {
-    // Tokeny sprzed wprowadzenia szyfrowania. Zaszyfruj je skryptem
-    // scripts/encrypt-legacy-tokens.mjs, potem ustaw REJECT_PLAINTEXT_TOKENS=1.
     if (process.env.REJECT_PLAINTEXT_TOKENS === "1") {
       throw new Error("Odrzucono niezaszyfrowany token (REJECT_PLAINTEXT_TOKENS=1).");
     }

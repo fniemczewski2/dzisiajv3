@@ -1,8 +1,4 @@
 // lib/server/rateLimit.ts
-//
-// Prosty limiter w pamięci procesu. UWAGA: na Vercelu każda instancja funkcji
-// ma własną pamięć, więc limit jest "per instancja" – do twardej ochrony
-// użyj współdzielonego store'u (np. Upstash Redis / tabela w Supabase).
 
 type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
@@ -10,14 +6,12 @@ const buckets = new Map<string, Bucket>();
 const MAX_BUCKETS = 10_000;
 let lastSweep = 0;
 
-/** Usuwa wygasłe kubełki, żeby mapa nie rosła bez końca (wyciek pamięci). */
 function sweep(now: number) {
   if (now - lastSweep < 60_000 && buckets.size < MAX_BUCKETS) return;
   lastSweep = now;
   for (const [key, bucket] of buckets) {
     if (now > bucket.resetAt) buckets.delete(key);
   }
-  // Awaryjnie: gdy nadal za dużo (atak wieloma kluczami), usuń najstarsze.
   if (buckets.size > MAX_BUCKETS) {
     const overflow = buckets.size - MAX_BUCKETS;
     let i = 0;
@@ -55,7 +49,7 @@ export function clientIp(req: { headers: Record<string, string | string[] | unde
   };
   const fwd = req.headers["x-forwarded-for"];
   const fwdValue = Array.isArray(fwd) ? fwd.join(",") : fwd;
-  const lastForwarded = fwdValue?.split(",").map((s) => s.trim()).filter(Boolean).pop();
+  const lastForwarded = fwdValue?.split(",").map((s) => s.trim()).findLast(Boolean);
 
   return first("x-vercel-forwarded-for") ?? first("x-real-ip") ?? lastForwarded ?? "unknown";
 }

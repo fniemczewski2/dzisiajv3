@@ -1,6 +1,4 @@
 // lib/server/slackSync/push.ts
-// App -> Slack direction of the sync (split out of the former 717-line
-// pages/api/slack/sync.ts).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -54,7 +52,7 @@ async function updateFieldsIndividually(
 ): Promise<void> {
   for (const field of fields) {
     try {
-      await updateItem(target.token, target.listId, itemId, [field]); // NOSONAR – sekwencyjnie ze względu na limity zapytań API Slacka
+      await updateItem(target.token, target.listId, itemId, [field]); // NOSONAR 
     } catch (err) {
       if (!isFieldRejection(err)) throw err;
       console.warn(
