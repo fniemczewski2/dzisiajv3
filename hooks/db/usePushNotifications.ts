@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'
+import { subscriptionMatchesVapidKey } from '@/lib/pushKeys'
 import { useToast } from '@/providers/ToastProvider'
 import { useRetry } from '@/hooks/useRetry'
 import { getErrorMessage } from '@/lib/errorUtils'
@@ -67,6 +68,40 @@ export function usePushNotifications(userId: string | undefined) {
     if (error) throw error;
   }, [userId, supabase, withRetry]);
 
+  const deleteStoredSubscription = useCallback(async (endpoint: string | undefined) => {
+    if (!userId || !endpoint) return;
+    const { data: allSubs } = await withRetry(() =>
+      supabase.from('push_subscriptions').select('*').eq('user_id', userId)
+    );
+    const toDelete = (allSubs as PushSubscriptionRow[])?.find((sub) => {
+      const subData = typeof sub.subscription === 'string' ? JSON.parse(sub.subscription) : sub.subscription;
+      return subData?.endpoint === endpoint;
+    });
+    if (toDelete) {
+      const { error } = await withRetry(() =>
+        supabase.from('push_subscriptions').delete().eq('id', toDelete.id)
+      );
+      if (error) throw error;
+    }
+  }, [userId, supabase, withRetry]);
+
+  /**
+   * Bieżąca subskrypcja przeglądarki – albo null, jeśli jej nie ma lub powstała
+   * z innym kluczem VAPID (wtedy ją anulujemy i usuwamy z bazy, żeby dało się
+   * utworzyć nową, działającą).
+   */
+  const getUsableSubscription = useCallback(async (registration: ServiceWorkerRegistration) => {
+    const subscription = await registration.pushManager.getSubscription();
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!subscription || !vapidKey || subscriptionMatchesVapidKey(subscription, vapidKey)) return subscription;
+
+    console.warn('[SW] Subskrypcja push z innym kluczem VAPID – tworzę nową');
+    const endpoint = subscription.toJSON().endpoint;
+    await subscription.unsubscribe();
+    await deleteStoredSubscription(endpoint);
+    return null;
+  }, [deleteStoredSubscription]);
+
   const createSubscription = useCallback(async () => {
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidKey) throw new Error("Błąd: Brak klucza VAPID w zmiennych środowiskowych.");
@@ -86,7 +121,7 @@ export function usePushNotifications(userId: string | undefined) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
         await registration.update();
-        let subscription = await registration.pushManager.getSubscription();
+        let subscription = await getUsableSubscription(registration);
 
         const permissionGranted = 'Notification' in globalThis && Notification.permission === 'granted';
         if (!subscription && permissionGranted && readOptIn() === true) {
@@ -110,7 +145,7 @@ export function usePushNotifications(userId: string | undefined) {
     if (userId) {
       void initSW();
     }
-  }, [userId, createSubscription, saveSubscription]);
+  }, [userId, createSubscription, saveSubscription, getUsableSubscription]);
 
   useEffect(() => {
     if (!userId || !('serviceWorker' in navigator)) return;
@@ -135,7 +170,7 @@ export function usePushNotifications(userId: string | undefined) {
       }
 
       const registration = await navigator.serviceWorker.ready;
-      const subscription = (await registration.pushManager.getSubscription()) ?? (await createSubscription());
+      const subscription = (await getUsableSubscription(registration)) ?? (await createSubscription());
       await saveSubscription(subscription);
 
       writeOptIn(true);
@@ -146,7 +181,7 @@ export function usePushNotifications(userId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [userId, toast, createSubscription, saveSubscription]);
+  }, [userId, toast, createSubscription, saveSubscription, getUsableSubscription]);
 
   const unsubscribeFromPush = useCallback(async () => {
     if (!userId) {
@@ -161,25 +196,7 @@ export function usePushNotifications(userId: string | undefined) {
       if (subscription) {
         const endpoint = subscription.toJSON().endpoint
         await subscription.unsubscribe()
-
-        const { data: allSubs } = await withRetry(() =>
-          supabase.from('push_subscriptions').select('*').eq('user_id', userId)
-        );
-
-        const toDelete = (allSubs as PushSubscriptionRow[])?.find((sub) => {
-          const subData =
-            typeof sub.subscription === 'string'
-              ? JSON.parse(sub.subscription)
-              : sub.subscription
-          return subData.endpoint === endpoint
-        })
-
-        if (toDelete) {
-          const { error } = await withRetry(() =>
-            supabase.from('push_subscriptions').delete().eq('id', toDelete.id)
-          );
-          if (error) throw error
-        }
+        await deleteStoredSubscription(endpoint)
       }
 
       writeOptIn(false)
@@ -190,7 +207,7 @@ export function usePushNotifications(userId: string | undefined) {
     } finally {
       setLoading(false)
     }
-  }, [userId, supabase, toast, withRetry])
+  }, [userId, toast, deleteStoredSubscription])
 
   return { isSubscribed, loading, subscribeToPush, unsubscribeFromPush }
 }

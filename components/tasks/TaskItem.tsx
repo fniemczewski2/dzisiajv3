@@ -10,15 +10,16 @@ import TimeContextBadge from "./TimeContextBadge";
 import UniversalTimer from "../ui/Timer";
 import {
   EditButton, DeleteButton, RescheduleButton, TimerButton, FormButtons,
-  ConfirmButton,
+  ConfirmButton, UndoButton,
 } from "../ui/CommonButtons";
 import { useAuth } from "@/providers/AuthProvider";
-import { TASK_CATEGORIES } from "@/config/tasks";
+import { taskCategoryOptions } from "@/lib/taskCategories";
+import { useTaskCategories } from "@/hooks/useTaskCategories";
 
 interface Props {
   task: Task;
   acceptTask: (id: string) => Promise<void> | void;
-  setDoneTask: (id: string) => Promise<void> | void;
+  setDoneTask: (id: string, done?: boolean) => Promise<void> | void;
   editTask: (task: Task & { shared_with_email?: string }) => Promise<void> | void;
   deleteTask: (id: string) => Promise<void> | void;
   onTasksChange: () => void;
@@ -54,6 +55,7 @@ function TaskEditForm({
   titleRef: React.RefObject<HTMLInputElement | null>;
   loading: boolean;
 }>) {
+  const userCategories = useTaskCategories();
   const editPrefix = `edit-task-${task.id}`;
 
   return (
@@ -87,7 +89,7 @@ function TaskEditForm({
               onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} 
               className="input-field py-1.5 h-9.5"
             >
-              {TASK_CATEGORIES.map((cat) => (
+              {taskCategoryOptions(userCategories, task.category).map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
@@ -156,13 +158,14 @@ function TaskViewActions({
   handleEdit: () => void;
   handleDelete: () => void;
   handleAccept: () => void;
-  handleComplete: () => void;
+  handleComplete: (done?: boolean) => void;
   handleReschedule: (days: number) => void;
   setIsTimerActive: (val: boolean) => void;
 }>) {
   if (isDone) {
     return (
       <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+        <UndoButton onClick={() => handleComplete(false)} />
         <EditButton onClick={handleEdit} />
         <DeleteButton onClick={handleDelete} />
       </div>
@@ -246,7 +249,7 @@ function TaskView({
   handleEdit: () => void;
   handleDelete: () => void;
   handleAccept: () => void;
-  handleComplete: () => void;
+  handleComplete: (done?: boolean) => void;
   handleReschedule: (days: number) => void;
 }>) {
   return (
@@ -347,9 +350,9 @@ function useTaskActions(props: Props) {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (done = true) => {
     try {
-      await setDoneTask(task.id);
+      await setDoneTask(task.id, done);
       onTasksChange();
     } catch {
       return;

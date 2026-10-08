@@ -2,6 +2,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
+import { eventReminderType, plDayBoundsUTC, weekdayIndexPL } from '../_shared/notificationTime.ts'
 import { getErrorMessage } from '../_shared/errors.ts';
 import { mapPool } from "../_shared/asyncPool.ts";
 
@@ -147,7 +148,9 @@ async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
     if (await wasAlreadySentToday(user.user_id, 'morning_brief')) return;
 
     const { count: tasksCount } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).eq('due_date', today).neq('status', 'done')
-    const { count: eventsCount } = await supabase.from('events').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).like('start_time', `${today}%`)
+    // start_time to timestamptz – LIKE kończył się błędem bazy, więc wydarzeń nigdy nie liczono.
+    const day = plDayBoundsUTC(today);
+    const { count: eventsCount } = await supabase.from('events').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).gte('start_time', day.start).lt('start_time', day.end)
 
     if ((tasksCount && tasksCount > 0) || (eventsCount && eventsCount > 0)) {
       const msgParts = [];
@@ -292,10 +295,9 @@ async function notifyEventParticipants(
   ctx: NotifCtx,
   ev: EventRow,
   allowedIds: Set<string>,
-  windows: { nowStr: string; in5MinsStr: string; in1DayStr: string; in7DaysStr: string }
+  nowMs: number
 ): Promise<void> {
   const { supabase, sendPushAndLog } = ctx;
-  const evTime = ev.start_time;
   const participants = new Set<string>()
 
   if (ev.user_id && allowedIds.has(ev.user_id)) participants.add(ev.user_id)
@@ -304,20 +306,17 @@ async function notifyEventParticipants(
   const { data: existing } = await supabase.from('notifications')
     .select('data').eq('type', 'upcoming_event').contains('data', { event_id: ev.id })
 
-  const sentReminders = new Set((existing || []).map(n => n.data?.reminder_type).filter(Boolean))
+  const sentReminders = new Set<string>(
+    (existing || []).map((n: { data?: { reminder_type?: string } }) => n.data?.reminder_type).filter((t): t is string => Boolean(t))
+  )
 
-  const { nowStr, in5MinsStr, in1DayStr, in7DaysStr } = windows;
 
   await mapPool(participants, 5, async (userId) => {
-    let title = '', message = '', rType = ''
-
-    if (evTime <= in5MinsStr && evTime > nowStr && !sentReminders.has('5min')) {
-      title = `Zaraz: ${ev.title}`; message = `Zaczynamy za 5 minut.`; rType = '5min'
-    } else if (evTime <= in1DayStr && evTime > in5MinsStr && !sentReminders.has('1day')) {
-      title = `Jutro: ${ev.title}`; message = `Przypomnienie o jutrzejszym wydarzeniu.`; rType = '1day'
-    } else if (evTime <= in7DaysStr && evTime > in1DayStr && !sentReminders.has('7days')) {
-      title = `Za tydzień: ${ev.title}`; message = `Masz wydarzenie za tydzień.`; rType = '7days'
-    }
+    const rType = eventReminderType(ev.start_time, nowMs, sentReminders)
+    let title = '', message = ''
+    if (rType === '5min') { title = `Zaraz: ${ev.title}`; message = `Zaczynamy za 5 minut.` }
+    else if (rType === '1day') { title = `Jutro: ${ev.title}`; message = `Przypomnienie o jutrzejszym wydarzeniu.` }
+    else if (rType === '7days') { title = `Za tydzień: ${ev.title}`; message = `Masz wydarzenie za tydzień.` }
 
     if (rType) await sendPushAndLog(userId, title, message, '/calendar', { event_id: ev.id, reminder_type: rType })
   });
@@ -329,21 +328,15 @@ async function processUpcomingEventType(ctx: NotifCtx): Promise<void> {
   const allowedIds = new Set((optInUsers || []).map(u => u.user_id))
   if (allowedIds.size === 0) return;
 
-  const formatQueryStr = (offsetMs: number) => {
-     const d = getPLTimeStrings(new Date(realNow.getTime() + offsetMs));
-     return `${d.dateStr} ${d.timeStr}`;
-  };
-
-  const nowStr = formatQueryStr(0);
-  const in5MinsStr = formatQueryStr(5 * 60000);
-  const in1DayStr = formatQueryStr(24 * 60 * 60 * 1000);
-  const in7DaysStr = formatQueryStr(7 * 24 * 60 * 60 * 1000);
-
+  // Kolumna timestamptz – zakres podajemy jako ISO UTC (wcześniej czas polski
+  // bez strefy był traktowany jak UTC, więc okno było przesunięte o 1–2 h).
+  const nowMs = realNow.getTime();
   const { data: events } = await supabase.from('events').select('*')
-    .gte('start_time', nowStr).lte('start_time', in7DaysStr)
+    .gte('start_time', new Date(nowMs).toISOString())
+    .lte('start_time', new Date(nowMs + 7 * 24 * 60 * 60 * 1000).toISOString())
 
   await mapPool(events || [], 5, async (ev) => {
-    await notifyEventParticipants(ctx, ev, allowedIds, { nowStr, in5MinsStr, in1DayStr, in7DaysStr });
+    await notifyEventParticipants(ctx, ev, allowedIds, nowMs);
   });
 }
 
@@ -464,8 +457,7 @@ async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
 
   const currentTime = `${plNow.hour}:${plNow.timeStr.split(':')[1]}`;
   const currentMinutes = timeToMinutes(currentTime);
-  const currentDayObj = new Date(realNow.getTime() + (currentHour * 3600000));
-  const currentDayIndex = (currentDayObj.getDay() + 6) % 7;
+  const currentDayIndex = weekdayIndexPL(plNow.dateStr);
 
   await mapPool(daySchemas || [], 5, async (schema) => {
     await processOneDaySchema(ctx, schema, currentDayIndex, currentMinutes, currentTime);
@@ -675,9 +667,11 @@ async function notifyContactReminder(
   const { error: taskError } = await ctx.supabase.from('tasks').insert({
     user_id: person.user_id,
     title: `Kontakt: ${person.first_name} ${person.last_name}`,
-    description: `Ostatnio: ${person.last_contact_date}`,
+    description: person.last_contact_date
+      ? `Ostatnio: ${new Date(person.last_contact_date).toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw' })}`
+      : '',
     due_date: ctx.plNow.dateStr,
-    category: 'personal',
+    category: 'osobiste',
     priority: 3,
     status: 'pending'
   });

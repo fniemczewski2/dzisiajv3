@@ -12,7 +12,7 @@ interface DayTasksProps {
   fetchingTasks: boolean;
   tasks: Task[];
   acceptTask: (id: string) => void;
-  setDoneTask: (id: string) => void;
+  setDoneTask: (id: string, done?: boolean) => void;
   deleteTask: (id: string) => void;
   fetchTasks: () => void; 
   editTask: (task: Task) => void;

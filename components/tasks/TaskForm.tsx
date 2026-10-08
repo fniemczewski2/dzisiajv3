@@ -1,13 +1,15 @@
 // components/tasks/TaskForm.tsx
 
-import React, { useRef, useState, SyntheticEvent } from "react";
+import React, { useEffect, useRef, useState, SyntheticEvent } from "react";
 import { Task } from "@/types/tasks";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
-import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, RECURRING_TASK_CATEGORY, DEFAULT_REPEAT_DAYS } from "@/config/tasks";
+import { DEFAULT_TASK_CATEGORY, RECURRING_TASK_CATEGORY, DEFAULT_REPEAT_DAYS } from "@/config/tasks";
+import { defaultTaskCategory, taskCategoryOptions } from "@/lib/taskCategories";
+import { useTaskCategories } from "@/hooks/useTaskCategories";
 import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { useSlackListOptions, setSlackTaskTarget } from "@/hooks/db/useSlackListOptions";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
@@ -36,7 +38,16 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dueDateRef     = useRef<HTMLInputElement>(null);
   const [priority, setPriority] = useState(3);
+  const userCategories = useTaskCategories();
+  const categoryOptions = taskCategoryOptions(userCategories);
+  const defaultCategory = defaultTaskCategory(userCategories);
+  const optionsKey = categoryOptions.join("|");
   const [category, setCategory] = useState<string>(DEFAULT_TASK_CATEGORY);
+  // Po wczytaniu kategorii użytkownika: jeśli wybrana nie istnieje na jego
+  // liście (np. usunął „inne”), przełącz na jego domyślną.
+  useEffect(() => {
+    setCategory((prev) => (optionsKey.split("|").includes(prev) ? prev : defaultCategory));
+  }, [defaultCategory, optionsKey]);
   const [slackListId, setSlackListId] = useState("");
 
   const isSlackCategory = category === SLACK_TASK_CATEGORY;
@@ -55,7 +66,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
 
     const taskData: Partial<Task> & { shared_with_email?: string } = {
       title: titleRef.current?.value || "",
-      category: category || DEFAULT_TASK_CATEGORY,
+      category: category || defaultCategory,
       priority,
       description: descriptionRef.current?.value || "",
       due_date: dueDateRef.current?.value || todayIso,
@@ -135,7 +146,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            {TASK_CATEGORIES.map((cat) => (
+            {categoryOptions.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>

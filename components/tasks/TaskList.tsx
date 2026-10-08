@@ -8,7 +8,7 @@ import NoResultsState from "../ui/NoResultsState";
 interface TaskListProps {
   tasks: Task[];
   acceptTask: (id: string) => void;
-  setDoneTask: (id: string) => void;
+  setDoneTask: (id: string, done?: boolean) => void;
   editTask: (task: Task) => void;
   deleteTask: (id: string) => void;
   onTasksChange: () => void;

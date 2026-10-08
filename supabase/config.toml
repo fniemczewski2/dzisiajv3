@@ -33,8 +33,6 @@ verify_jwt = false
 [functions.process-reminders]
 verify_jwt = false
 
-[functions.backup-database]
-verify_jwt = false
 
 [functions.log-error]
 verify_jwt = true

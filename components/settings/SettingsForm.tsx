@@ -8,6 +8,10 @@ import { useRouter } from "next/router";
 import { MoodOption } from "@/types/moods";
 import { Settings } from "@/types/settings";
 
+import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
+import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
   { id: "m2", label: "Dobrze", color: "#3b82f6" },    
@@ -38,6 +42,9 @@ export default function SettingsForm({
   const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
   const router = useRouter();
   const [localSettings, setLocalSettings] = useState<Settings>(initialSettings);
+  const [categoryRenames, setCategoryRenames] = useState<Array<[string, string]>>([]);
+  const { user, supabase } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     setLocalSettings(initialSettings);
@@ -48,8 +55,15 @@ export default function SettingsForm({
   };
 
   const handleFormSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault(); 
+    e.preventDefault();
     onSave(localSettings);
+    if (user && categoryRenames.length > 0) {
+      const renames = categoryRenames;
+      setCategoryRenames([]);
+      void applyTaskCategoryRenames(supabase, user.id, renames).then(({ failed }) => {
+        if (failed > 0) toast.error("Nie udało się przenieść części zadań do kategorii o nowej nazwie.");
+      });
+    }
   };
 
   const renderSwitch = (id: BooleanSettingsKey, label: string) => {
@@ -205,6 +219,12 @@ export default function SettingsForm({
         </div>
       )}
       
+      <TaskCategoriesEditor
+        value={localSettings.task_categories}
+        onChange={(next) => updateLocalField("task_categories", next)}
+        onRenamesChange={setCategoryRenames}
+      />
+
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
         <h4 className="text-xs font-bold text-text-muted mb-3">SORTOWANIE</h4>
         

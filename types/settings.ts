@@ -39,6 +39,8 @@ export interface Settings {
   habit_duolingo: boolean;
 
   mood_options?: MoodOption[];
+  /** Własne kategorie zadań; null = kategorie domyślne. */
+  task_categories?: string[] | null;
   main_view: string;
 
   sort_people: string;

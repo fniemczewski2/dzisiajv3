@@ -368,33 +368,38 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     [supabase, userId, toast, withRetry]
   );
 
+  /**
+   * Oznacza zadanie jako wykonane (`done = true`) albo cofa to oznaczenie.
+   * Datę wykonania (done_at) ustawia i czyści trigger w bazie.
+   */
   const setDoneTask = useCallback(
-    async (id: string) => {
+    async (id: string, done = true) => {
       if (!userId) {
         throw new Error("Unauthorized");
       }
+      const status = done ? "done" : "pending";
       setLoading(true);
       rollbackRef.current = rawTasksRef.current;
-      setRawTasks((prev) => prev.map((t) => (sameId(t.id, id) ? { ...t, status: "done" } : t)));
+      setRawTasks((prev) => prev.map((t) => (sameId(t.id, id) ? { ...t, status } : t)));
 
       try {
         const { data, error } = await withRetry(() =>
           supabase
             .from("tasks")
-            .update({ status: "done" })
+            .update({ status })
             .eq("id", id)
             .select("category")
             .single()
         );
         if (error) throw error;
-        toast.success("Wykonano zadanie");
+        toast.success(done ? "Wykonano zadanie" : "Przywrócono zadanie do wykonania");
 
         if ((data as { category?: string } | null)?.category === SLACK_TASK_CATEGORY) {
           triggerSlackSync();
         }
       } catch {
         setRawTasks(rollbackRef.current);
-        toast.error("Błąd wykonania zadania.");
+        toast.error(done ? "Błąd wykonania zadania." : "Nie udało się przywrócić zadania.");
       } finally {
         setLoading(false);
       }

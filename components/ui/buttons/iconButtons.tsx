@@ -2,6 +2,7 @@
 
 import React from "react";
 import {
+  RotateCcw,
   Trash2,
   Edit2,
   ChevronsRight,
@@ -246,5 +247,19 @@ export const CopyButton = ({ onClick}: { onClick: () => void }) => (
     <span className={ACTION_LABEL_CLASS}>
       Kopiuj
     </span>
+  </button>
+);
+
+/** Cofa oznaczenie „wykonane”. Etykieta widoczna: „Przywróć”. */
+export const UndoButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
+    aria-label="Oznacz jako niewykonane"
+    title="Oznacz jako niewykonane"
+  >
+    <RotateCcw className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Przywróć</span>}
   </button>
 );

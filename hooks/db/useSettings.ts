@@ -12,6 +12,7 @@ import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { favoriteKey, isSameStopPlace, type FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
 
+import { omit } from "@/lib/objectUtils";
 const safeParseArray = <T = unknown>(data: unknown): T[] => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -79,6 +80,7 @@ const DEFAULT_SETTINGS: Settings = {
   habit_plants: true,
   habit_duolingo: true,
   mood_options: DEFAULT_MOODS,
+  task_categories: null,
   main_view: "calendar",
   sort_people: "alphabetical",
   hide_priority_5: false,
@@ -90,6 +92,19 @@ export function useSettings() {
   const userId = user?.id;
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+
+  // Zapis odporny na brak kolumny task_categories (kod zmieniony przed migracją
+  // bazy): bez tego nie dałoby się zapisać żadnego ustawienia.
+  const upsertSettings = useCallback(
+    async (row: Record<string, unknown>) => {
+      const result = await supabase.from("settings").upsert(row, { onConflict: "user_id" });
+      if (result.error?.code === "PGRST204" && result.error.message.includes("task_categories")) {
+        return supabase.from("settings").upsert(omit(row, ["task_categories"]), { onConflict: "user_id" });
+      }
+      return result;
+    },
+    [supabase]
+  );
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
@@ -154,6 +169,7 @@ export function useSettings() {
             habit_plants: data.habit_plants ?? true,
             habit_duolingo: data.habit_duolingo ?? true,
             mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
+            task_categories: Array.isArray(data.task_categories) ? data.task_categories : null,
             main_view: data.main_view ?? "calendar",
             sort_people: data.sort_people ?? "alphabetical",
             hide_priority_5: data.hide_priority_5 ?? false,
@@ -181,7 +197,7 @@ export function useSettings() {
     setLoading(true);
     try {
       const { error } = await withRetry(() =>
-        supabase.from("settings").upsert({ user_id: userId, ...settingsRef.current }, { onConflict: "user_id" })
+        upsertSettings({ user_id: userId, ...settingsRef.current })
       );
       if (error) throw error;
       toast.success("Zapisano ustawienia");
@@ -208,7 +224,7 @@ export function useSettings() {
 
       try {
         const { error } = await withRetry(() =>
-          supabase.from("settings").upsert({ user_id: userId, ...updated }, { onConflict: "user_id" })
+          upsertSettings({ user_id: userId, ...updated })
         );
         if (error) throw error;
         toast.success("Zaktualizowano ustawienia");

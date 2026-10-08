@@ -7,6 +7,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import NotificationPreferences from "./NotificationPreferencesForm";
 
+import { describePushTestResult, describePushHttpError } from "@/lib/pushTestResult";
 interface NavigatorWithStandalone extends Navigator {
   standalone?: boolean;
 }
@@ -171,28 +172,37 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Brak aktywnej sesji");
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: "Dzisiaj.Fun | Test",
-          message: "To jest powiadomienie testowe z aplikacji Dzisiaj!",
-          url: "/",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Błąd wysyłki: ${response.status} - ${errorText}`);
+      let response: Response;
+      try {
+        response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: "Dzisiaj.Fun | Test",
+            message: "To jest powiadomienie testowe z aplikacji Dzisiaj!",
+            url: "/",
+          }),
+        });
+      } catch {
+        // Błąd sieci lub CORS – zwykle niewdrożona funkcja albo brak połączenia.
+        toast.error("Brak połączenia z funkcją send-push. Sprawdź internet i czy funkcja jest wdrożona w Supabase.");
+        return;
       }
 
-      const data = await response.json();
-      toast.success(`Powiadomienie wysłano (${data.sent || 0} / ${data.total || 0})`);
-    } catch {
-      toast.error("Nie udało się wysłać powiadomienia testowego.");
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
+        toast.error(describePushHttpError(response.status, body));
+        return;
+      }
+
+      const outcome = describePushTestResult(await response.json());
+      if (outcome.ok) toast.success(outcome.message);
+      else toast.error(outcome.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Nie udało się wysłać powiadomienia testowego.");
     }
   };
   let buttonContent;

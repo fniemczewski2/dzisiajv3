@@ -112,3 +112,33 @@ describe("useTasks id handling", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 });
+
+describe("useTasks – cofnięcie wykonania", () => {
+  it("setDoneTask(id, false) przywraca zadanie do wykonania", async () => {
+    updates.length = 0;
+    updateResult = { data: { ...task, status: "pending" }, error: null };
+    const { result } = renderHook(() => useTasks());
+    await act(async () => { await result.current.fetchTasks(); });
+    await waitFor(() => expect(result.current.tasks).toHaveLength(1));
+
+    await act(async () => { await result.current.setDoneTask("42", false); });
+
+    expect(updates.at(-1)?.payload).toEqual({ status: "pending" });
+    expect(updates.at(-1)?.filters).toContainEqual(["id", "42"]);
+    expect(result.current.tasks[0]?.status).toBe("pending");
+    expect(toast.success).toHaveBeenCalledWith("Przywrócono zadanie do wykonania");
+  });
+
+  it("nieudane przywrócenie wraca do poprzedniego stanu i pokazuje błąd", async () => {
+    updateResult = { data: null, error: { message: "x" } };
+    const { result } = renderHook(() => useTasks());
+    await act(async () => { await result.current.fetchTasks(); });
+    await waitFor(() => expect(result.current.tasks).toHaveLength(1));
+    const before = result.current.tasks[0]?.status;
+
+    await act(async () => { await result.current.setDoneTask("42", false); });
+
+    expect(result.current.tasks[0]?.status).toBe(before);
+    expect(toast.error).toHaveBeenCalledWith("Nie udało się przywrócić zadania.");
+  });
+});
