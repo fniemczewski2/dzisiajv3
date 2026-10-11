@@ -1,4 +1,4 @@
-﻿// hooks/db/useConnectedCalendars.ts
+// hooks/db/useConnectedCalendars.ts
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
@@ -10,7 +10,7 @@ import { ConnectedAccount, ExternalCalendar } from '@/types/events';
 
 type Provider = 'google' | 'outlook';
 
-async function fetchProviderCalendars(
+export async function fetchProviderCalendars(
   provider: Provider,
   fetchedAccounts: ConnectedAccount[],
   accessToken: string,
@@ -39,16 +39,25 @@ async function fetchProviderCalendars(
     const data = await res.json();
     if (!data.calendars) return [];
 
+    // Serwer przypisuje każdy kalendarz do konta, z którego go pobrał
+    // (primaryAccountId). Wcześniej nadpisywaliśmy to pierwszym kontem danego
+    // dostawcy, więc przy dwóch kontach Google wszystkie kalendarze trafiały
+    // pod pierwsze, a włączenie kalendarza drugiego konta zapisywało go
+    // z adresem pierwszego (i import szedł złym tokenem).
     return data.calendars.map((cal: ExternalCalendar) => {
+      const owner = fetchedAccounts.find((acc) => acc.id === cal.primaryAccountId) ?? primaryAccount;
       const dbMatch = fetchedAccounts.find(
-        (acc) => acc.account_email === primaryAccount.account_email && acc.google_calendar_id === cal.id
+        (acc) =>
+          acc.provider === provider &&
+          acc.account_email === owner.account_email &&
+          acc.google_calendar_id === cal.id
       );
       return {
         id: cal.id,
         summary: cal.summary,
         primary: cal.primary,
         accountId: dbMatch ? dbMatch.id : undefined,
-        primaryAccountId: primaryAccount.id,
+        primaryAccountId: owner.id,
       };
     });
   } catch (err) {
