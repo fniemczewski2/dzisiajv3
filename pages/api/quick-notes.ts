@@ -1,13 +1,4 @@
 // pages/api/quick-notes.ts
-//
-// Dodawanie szybkich notatek ze Skrótów iPhone'a (np. „Podyktuj tekst” →
-// „Pobierz zawartość URL”). Ten sam token co dla czasu pracy:
-//
-//   POST /api/quick-notes
-//   Authorization: Bearer dzs_…
-//   { "text": "kupić bilety\n- zadzwonić do fundacji" }
-//
-// Każda linia to osobny punkt (znaczniki list są zdejmowane).
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
