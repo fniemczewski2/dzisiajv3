@@ -21,12 +21,17 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
 import Seo from "@/components/ui/SEO";
 import CategoryFilter from "@/components/tasks/CategoryFilter";
+import RecurringPreviewList from "@/components/tasks/RecurringPreviewList";
+import { useRecurringTaskPreviews } from "@/hooks/db/useRecurringTaskPreviews";
 import { useTaskCategories, useCategoryColors } from "@/hooks/useTaskCategories";
 import { taskCategoryOptions } from "@/lib/taskCategories";
 
 const TaskForm = dynamic(() => import("@/components/tasks/TaskForm"), {
   ssr: false, 
 });
+
+/** Ile dni naprzód pokazujemy podgląd powtórzeń w widoku „Wszystkie”. */
+const PREVIEW_DAYS = 14;
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -79,6 +84,14 @@ export default function TasksPage() {
     }
   }, [dateFilter]);
 
+  // Podgląd powtórzeń: dla wybranego dnia ten dzień, dla „Wszystkie” – 14 dni naprzód.
+  const previewRange = useMemo(() => {
+    if (filterDate) return { from: filterDate, to: filterDate };
+    const now = getAppDateTime();
+    return { from: format(now, "yyyy-MM-dd"), to: format(addDays(now, PREVIEW_DAYS), "yyyy-MM-dd") };
+  }, [filterDate]);
+  const allPreviews = useRecurringTaskPreviews(previewRange.from, previewRange.to, tasks);
+
   const filteredTasks = useMemo(() => {
     const allowedStatuses = new Set(["pending", "waiting_for_acceptance"]);
     let result: typeof tasks;
@@ -105,6 +118,15 @@ export default function TasksPage() {
     }
     return result;
   }, [tasks, filterDate, searchQuery, categoryFilter]);
+
+  // Te same filtry co dla zadań: kategoria i wyszukiwanie.
+  const visiblePreviews = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return allPreviews.filter((p) => {
+      if (categoryFilter && p.task.category !== categoryFilter) return false;
+      return !query || p.task.title.toLowerCase().includes(query) || (p.task.description ?? "").toLowerCase().includes(query);
+    });
+  }, [allPreviews, categoryFilter, searchQuery]);
 
   // Kategorie użytkownika + systemowe + te, które mają istniejące zadania
   // (np. usunięte z listy w ustawieniach), żeby dało się je odfiltrować.
@@ -200,6 +222,11 @@ export default function TasksPage() {
                 loading={loading}
               />
             )}
+            <RecurringPreviewList
+              previews={visiblePreviews}
+              groupByDate={!filterDate}
+              title={filterDate ? "Powtórzenia (podgląd)" : `Powtórzenia w ciągu ${PREVIEW_DAYS} dni (podgląd)`}
+            />
         </div>
     </>
   );

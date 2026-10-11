@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
-import { AlertTriangle, Calendar } from "lucide-react";
+import { AlertTriangle, Calendar, Repeat } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { MoodEntry, MoodOption } from "@/types/moods";
@@ -18,6 +18,8 @@ interface Props {
   holiday?: string;
   eventTotal?: number;
   hasConflict?: boolean;
+  /** Tytuły zadań cyklicznych, które wypadną tego dnia (podgląd). */
+  repeatTitles?: readonly string[];
 }
 
 const dayLabelFmt = new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long" });
@@ -42,7 +44,8 @@ function areEqual(prev: Props, next: Props): boolean {
     prev.moodOptions === next.moodOptions &&
     prev.holiday === next.holiday &&
     prev.eventTotal === next.eventTotal &&
-    prev.hasConflict === next.hasConflict
+    prev.hasConflict === next.hasConflict &&
+    (prev.repeatTitles ?? []).join("|") === (next.repeatTitles ?? []).join("|")
   );
 }
 
@@ -57,7 +60,9 @@ const CalendarCell = memo(function CalendarCell({
   holiday,
   eventTotal = 0,
   hasConflict = false,
+  repeatTitles = [],
 }: Readonly<Props>) {
+  const repeatCount = repeatTitles.length;
   const today = parseISO(getAppDate());
   const isOutside = date.getMonth() !== currentMonth;
   const isToday = isSameDay(date, today);
@@ -84,6 +89,7 @@ const CalendarCell = memo(function CalendarCell({
         holiday ? `święto: ${holiday}` : null,
         eventsLabel(eventTotal),
         hasConflict ? "uwaga: nakładające się terminy" : null,
+        repeatCount > 0 ? `powtórzenia zadań: ${repeatTitles.join(", ")}` : null,
         moodOption ? `nastrój: ${moodOption.label}` : null,
       ].filter(Boolean).join(", ")}
       aria-current={isToday ? "date" : undefined}
@@ -113,6 +119,16 @@ const CalendarCell = memo(function CalendarCell({
         )}
 
         <div className="flex items-center gap-1 z-10">
+          {repeatCount > 0 && (
+            <span
+              aria-hidden="true"
+              title={`Powtórzenia zadań: ${repeatTitles.join(", ")}`}
+              className="flex h-5 min-w-5 items-center justify-center gap-0.5 rounded-full border border-dashed border-line-strong px-1 text-xs font-semibold text-text-secondary"
+            >
+              <Repeat className="h-3 w-3" />
+              {repeatCount > 1 && <span className="tabular-nums">{repeatCount}</span>}
+            </span>
+          )}
           {hasConflict && (
             <span
               aria-hidden="true"

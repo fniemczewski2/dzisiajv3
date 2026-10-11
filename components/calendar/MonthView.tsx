@@ -14,6 +14,8 @@ import { parseEventDate } from "@/lib/dateUtils";
 import { getEventsForDay } from "@/lib/eventUtils";
 import { overlappingEventIds } from "@/lib/eventConflicts";
 import { useCategoryColors } from "@/hooks/useTaskCategories";
+import { useRecurringTaskPreviews } from "@/hooks/db/useRecurringTaskPreviews";
+import { groupPreviewsByDate } from "@/lib/taskOccurrences";
 import { DEFAULT_EVENT_COLOR } from "@/lib/categoryColors";
 
 interface MonthViewProps {
@@ -145,6 +147,12 @@ const MonthView = memo(function MonthView({
     return weeks.map((week) => processWeekLayout(week, events));
   }, [weeks, events]);
 
+  // Przyszłe wystąpienia zadań cyklicznych w widocznych tygodniach (podgląd).
+  const visibleFrom = weeks.length > 0 ? format(weeks[0][0], "yyyy-MM-dd") : "";
+  const visibleTo = weeks.length > 0 ? format(weeks.at(-1)!.at(-1)!, "yyyy-MM-dd") : "";
+  const taskPreviews = useRecurringTaskPreviews(visibleFrom, visibleTo);
+  const previewsByDay = useMemo(() => groupPreviewsByDate(taskPreviews), [taskPreviews]);
+
   // Liczba wydarzeń i kolizje w każdym dniu – do etykiety komórki i znacznika ostrzeżenia.
   const dayInfo = useMemo(() => {
     const info: Record<string, { count: number; conflict: boolean }> = {};
@@ -206,6 +214,7 @@ const MonthView = memo(function MonthView({
                   holiday={holidaysMap[dateStr]}
                   eventTotal={dayInfo[dateStr]?.count ?? 0}
                   hasConflict={dayInfo[dateStr]?.conflict ?? false}
+                  repeatTitles={previewsByDay.get(dateStr)?.map((p) => p.task.title)}
                 />
               );
             })}

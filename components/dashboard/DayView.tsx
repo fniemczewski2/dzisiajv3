@@ -28,6 +28,8 @@ import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { AddButton, CancelButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
 import QuickNotes from "./QuickNotes";
+import RecurringPreviewList from "../tasks/RecurringPreviewList";
+import { useRecurringTaskPreviews } from "@/hooks/db/useRecurringTaskPreviews";
 import DaySchemaSwitcher from "./DaySchemaSwitcher";
 import { useDaySchemaChoice } from "@/hooks/db/useDaySchemaChoice";
 import { resolveActiveSchema } from "@/lib/daySchemas";
@@ -124,6 +126,9 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   );
 
   useDragAutoscroll(Boolean(draggedTask || draggedEventTitle || draggedSchemaTitle));
+
+  // Przyszłe wystąpienia zadań cyklicznych na ten dzień (podgląd).
+  const repeatPreviews = useRecurringTaskPreviews(dateStr, dateStr, tasks);
 
   const activeTasks = useMemo(() => tasks.filter((t) => t.status != "done"), [tasks]);
   const scheduledTasks = useMemo(() => activeTasks.filter((t) => t.scheduled_time), [activeTasks]);
@@ -359,6 +364,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                   userId={userId}
                   userOptions={userOptions} 
                 />
+                <RecurringPreviewList previews={repeatPreviews} />
               </section>
 
               <section>
