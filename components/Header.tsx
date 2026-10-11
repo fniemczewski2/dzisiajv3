@@ -144,14 +144,14 @@ export default function Header() {
   return (
     <header className="w-full max-w-[1600px] text-(--header-fg) border-b border-line px-1 pt-2 pb-4 sm:px-2 sm:pt-3 sm:pb-5">
       <div className="w-full flex justify-between items-center gap-3">
-        <div className="flex flex-1 items-center min-w-0">
+        <div className="flex items-center min-w-0">
           <button
             onClick={() => router.push("/calendar?reset=true")}
             className="flex flex-col items-start cursor-pointer px-2.5 py-1.5 -m-1.5 min-w-0 rounded-xl hover:bg-(--header-hover) transition-colors"
             aria-label={`${currentDate}. Otwórz kalendarz`}
             type="button"
           >
-            <div className="text-[2.75rem] sm:text-6xl font-bold leading-none tracking-tight mb-2 tabular-nums" suppressHydrationWarning>
+            <div className="text-[2.5rem] sm:text-6xl font-bold leading-none tracking-tight mb-2 tabular-nums" suppressHydrationWarning>
               {currentTime}
             </div>
             <span className="text-base sm:text-lg font-medium text-(--header-muted) truncate mb-0.5 first-letter:uppercase">
@@ -164,10 +164,10 @@ export default function Header() {
         <div>
           {streak !== null && streak > 0 && (
             <p
-              className="inline-flex items-center text-sm md:font-xl font-semibold tabular-nums text-orange-600 dark:text-orange-400"
+              className="inline-flex items-center md:text-xl font-semibold tabular-nums text-orange-600 dark:text-orange-400"
               title="Kolejne dni korzystania z aplikacji"
             >
-              <Flame className="h-4 w-4" aria-hidden="true" />
+              <Flame className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />
               <span className="sr-only">Seria: </span>
               {streak}
               <span className="sr-only">dni korzystania z rzędu</span>
@@ -175,7 +175,7 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex flex-1 justify-end items-center">
+        <div className="flex justify-end items-center">
           {weatherLoading ? (
             <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
               <span className="block h-7 w-20 rounded-lg bg-(--header-hover) animate-pulse" />

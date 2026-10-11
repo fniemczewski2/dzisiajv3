@@ -129,11 +129,10 @@ export default function QuickNotes({
       <p aria-live="polite" className="sr-only">{announcement}</p>
 
       {!fetching && notes.length > 0 && (
-        <ul className="mt-4 divide-y divide-line">
+        <ul className="mt-4 divide-y divide-line list-none">
           {notes.map((note) => (
             <li key={note.id} className="py-2">
               <div className="flex items-start gap-3">
-                <span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text" />
                 <p className="min-w-0 flex-1 py-1.5 text-base leading-snug text-text wrap-break-word">{note.content}</p>
                 <div className="flex shrink-0 items-center gap-1">
                   <button

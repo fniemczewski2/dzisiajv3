@@ -4,7 +4,7 @@
 // i pozwala wybrać inny tylko na ten dzień (albo dzień bez schematu).
 
 import React, { useId } from "react";
-import { Logs } from "lucide-react";
+import { ListTodo, Logs } from "lucide-react";
 import type { Schema } from "@/types/schemas";
 import type { SchemaChoice } from "@/lib/daySchemas";
 import { defaultSchemaFor, schemasForWeekday } from "@/lib/daySchemas";
@@ -30,9 +30,11 @@ export default function DaySchemaSwitcher({ schemas, weekday, choice, onChange, 
   else if (typeof choice === "string" && schemas.some((s) => s.id === choice)) value = choice;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Logs className="h-5 w-5 text-text-secondary" aria-hidden="true" />
-      <label htmlFor={id} className="text-sm font-medium text-text-secondary">Schemat dnia:</label>
+    <div className="flex flex-wrap justify-between items-center gap-2">
+      <h2 className="text-lg font-bold text-text flex items-center gap-2">
+        <Logs className="text-primary w-5 h-5" />Schemat
+      </h2>
+      <label htmlFor={id} className="sr-only">Wybierz schemat dnia:</label>
       <select
         id={id}
         value={value}

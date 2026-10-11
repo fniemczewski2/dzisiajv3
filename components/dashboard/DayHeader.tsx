@@ -45,7 +45,7 @@ export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraf
           </button>
         
           <div className="flex flex-col items-center flex-1">
-            <h1 className="page-title text-xl sm:text-2xl text-center first-letter:uppercase" aria-live="polite">
+            <h1 className="page-title text-lg sm:text-2xl text-center first-letter:uppercase" aria-live="polite">
               {format(date, "eeee, d\u00A0MMM", { locale: pl })}
             </h1>
             {holiday && <span className="text-red-700 dark:text-red-300 text-xs font-medium mt-1">{holiday}</span>}
