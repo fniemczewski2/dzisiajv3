@@ -1,6 +1,7 @@
-﻿// pages/api/google-calendar/index.ts
+// pages/api/google-calendar/index.ts
 
 import type { NextApiRequest, NextApiResponse } from "next";
+import { GOOGLE_CALENDAR_SCOPES } from "@/lib/server/googleScopes";
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
@@ -88,16 +89,7 @@ function handleAuthUrl(res: NextApiResponse) {
   const nonce = randomBytes(24).toString("base64url");
   res.setHeader("Set-Cookie", `gcal_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
 
-  const scopes = [
-    "https://www.googleapis.com/auth/calendar.readonly",
-    "https://www.googleapis.com/auth/calendar.calendarlist",
-    "https://www.googleapis.com/auth/calendar.calendars.readonly",
-    "https://www.googleapis.com/auth/calendar.events",
-    "https://www.googleapis.com/auth/calendar.events.owned",
-    "https://www.googleapis.com/auth/calendar.events.owned.readonly",
-    "https://www.googleapis.com/auth/calendar.events.readonly",
-    "https://www.googleapis.com/auth/userinfo.email" 
-  ].join(" ");
+  const scopes = GOOGLE_CALENDAR_SCOPES.join(" ");
 
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
