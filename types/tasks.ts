@@ -1,4 +1,6 @@
-﻿// types/tasks.ts
+// types/tasks.ts
+
+import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
 
 export interface Task {
   id: string;
@@ -18,4 +20,5 @@ export interface Task {
   is_recurring?: boolean;
   repeat_days?: number | null;
   recurring_until?: string | null;
+  recurrence?: RecurrenceRule | null;
 }

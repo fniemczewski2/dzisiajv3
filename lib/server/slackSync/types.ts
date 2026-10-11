@@ -36,6 +36,8 @@ export interface SyncTarget {
   pullEnabled: boolean;
   /** Pobieraj tylko pozycje przypisane do tych adresów; pusta lista = wszystkie. */
   assigneeEmails: string[];
+  /** Kategoria zadań tworzonych z pozycji tej listy. */
+  importCategory: string;
 }
 
 export interface SyncCounters {

@@ -8,6 +8,7 @@ import MoodWidget from './MoodTracker';
 import { getAppDate } from '@/lib/dateUtils';
 import { Settings } from '@/types/settings';
 import LoadingState from '../ui/LoadingState';
+import { isPathEnabled } from '@/config/modules';
 
 interface DashboardWidgetsProps {
   settings: Settings;
@@ -24,7 +25,7 @@ export const DashboardWidgets = React.memo(({ settings, loading, date }: Readonl
       {settings?.show_habits && <TaskIcons date={date}/>}
       {settings?.show_water_tracker && <WaterTracker date={date}/>}
       {settings?.show_mood_tracker && <MoodWidget date={date || today}/>}
-      <DailySpendingForm date={date} />
+      {isPathEnabled('/bills', settings.disabled_modules) && <DailySpendingForm date={date} />}
     </div>
   );
 });

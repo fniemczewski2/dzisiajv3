@@ -6,6 +6,7 @@ import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { Schema, ScheduleItem } from "@/types/schemas";
 import { getAppDateTime } from "@/lib/dateUtils";
 import DaySchemaForm from "@/components/daySchema/DaySchemaForm";
+import { defaultSchemaFor } from "@/lib/daySchemas";
 import { AddButton, EditButton, DeleteButton } from "@/components/ui/CommonButtons";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonDaySchema } from "@/components/ui/Skeleton";
@@ -20,7 +21,7 @@ export default function DaySchemaPage() {
   const currentTime = format(now, "HH:mm");
   const currentDay = (now.getDay() + 6) % 7;
 
-  const activeSchema = schemas?.find((schema) => schema.days.includes(currentDay)) || null;
+  const activeSchema = defaultSchemaFor(schemas ?? [], currentDay);
 
   const sortedEntries: ScheduleItem[] = useMemo(() => {
     if (!activeSchema?.entries) return [];
@@ -79,7 +80,12 @@ export default function DaySchemaPage() {
               key={schema.id}
               className="flex justify-between items-center card p-3 rounded-card border border-gray-200 dark:border-gray-800 shadow-sm"
             >
-              <span className="font-bold text-text ml-1">{schema.name}</span>
+              <span className="ml-1 flex flex-wrap items-center gap-2">
+                <span className="font-bold text-text">{schema.name}</span>
+                {schema.is_default && (
+                  <span className="rounded-full border border-line px-2 py-0.5 text-sm text-text-secondary">domyślny</span>
+                )}
+              </span>
               <div className="flex gap-1.5 shrink-0">
                 <EditButton onClick={() => openEdit(schema)} />
                 <DeleteButton onClick={() => deleteSchema(schema.id || "")} />

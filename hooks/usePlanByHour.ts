@@ -38,6 +38,11 @@ interface UsePlanByHourArgs {
   /** Bilety na ten dzień (useTrainsForDate). */
   trains?: TrackedTrain[];
   currentDayOfWeek: number;
+  /**
+   * Schemat wybrany na ten dzień (useDaySchemaChoice). undefined = dawne
+   * zachowanie: pierwszy schemat obejmujący dzień tygodnia; null = bez schematu.
+   */
+  activeSchema?: Schema | null;
   isToday: boolean;
   overrides: DailyOverride[];
 }
@@ -55,6 +60,7 @@ export function usePlanByHour({
   scheduledTasks,
   trains = [],
   currentDayOfWeek,
+  activeSchema,
   isToday,
   overrides,
 }: UsePlanByHourArgs): Record<string, PlanItemData[]> {
@@ -62,7 +68,9 @@ export function usePlanByHour({
     const map: Record<string, PlanItemData[]> = {};
     HOURS.forEach((h) => { map[`${String(h).padStart(2, "0")}:00`] = []; });
 
-    const todaySchema = schemas.find((s) => s.days?.includes(currentDayOfWeek));
+    const todaySchema = activeSchema === undefined
+      ? schemas.find((s) => s.days?.includes(currentDayOfWeek))
+      : activeSchema;
     if (todaySchema?.entries) {
       todaySchema.entries.forEach((entry, idx) => {
         const schemaId = `schema-${idx}`;
@@ -168,5 +176,5 @@ export function usePlanByHour({
     }
 
     return map;
-  }, [schemas, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides]);
+  }, [schemas, activeSchema, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides]);
 }

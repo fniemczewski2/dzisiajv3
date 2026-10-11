@@ -4,11 +4,13 @@
 // settings.task_categories). Kategorie systemowe mają przypisane działanie
 // i są zawsze dostępne, ale nie da się ich usunąć ani zmienić ich nazwy.
 
-import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, RECURRING_TASK_CATEGORY, MEETING_POLL_TASK_CATEGORY } from "@/config/tasks";
-import { SLACK_TASK_CATEGORY } from "@/config/slack";
+import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, MEETING_POLL_TASK_CATEGORY } from "@/config/tasks";
 
-/** Kategorie z logiką w aplikacji: powtarzanie, synchronizacja ze Slackiem, ankiety terminów. */
-export const SYSTEM_TASK_CATEGORIES: readonly string[] = [RECURRING_TASK_CATEGORY, SLACK_TASK_CATEGORY, MEETING_POLL_TASK_CATEGORY];
+/**
+ * Kategorie z logiką w aplikacji – zostały tylko ankiety terminów. Powtarzanie
+ * i Slack są od 1.40 osobnymi ustawieniami zadania, a nie kategoriami.
+ */
+export const SYSTEM_TASK_CATEGORIES: readonly string[] = [MEETING_POLL_TASK_CATEGORY];
 
 /** Domyślna lista użytkownika = dotychczasowe kategorie bez systemowych. */
 export const DEFAULT_USER_TASK_CATEGORIES: readonly string[] = TASK_CATEGORIES.filter(

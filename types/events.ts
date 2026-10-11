@@ -1,4 +1,6 @@
-﻿// types/events.ts
+// types/events.ts
+
+import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
 
 export interface Event {
   id: string;
@@ -11,7 +13,11 @@ export interface Event {
   shared_with_id?: string | null;
   shared_with_email?: string;
   display_share_info?: string | null;
-  repeat: "none" | "weekly" | "monthly" | "yearly";
+  repeat: "none" | "daily" | "weekly" | "monthly" | "yearly";
+  /** Rozszerzona reguła powtarzania; gdy pusta – liczy się `repeat`. */
+  recurrence?: RecurrenceRule | null;
+  /** Opcjonalna kategoria (ta sama lista co w zadaniach) – nadaje kolor w kalendarzu. */
+  category?: string | null;
 }
 
 export interface ConnectedAccount {

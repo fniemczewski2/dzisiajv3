@@ -1,66 +1,48 @@
-﻿// lib/eventUtils.ts
+// lib/eventUtils.ts
 
+import { addDays, differenceInCalendarDays, format } from "date-fns";
 import {
-  addDays,
-  addMonths,
-  addYears,
-  differenceInCalendarDays,
-} from "date-fns";
+  normalizeRule,
+  occurrencesBetween,
+  ruleFromLegacyRepeat,
+  type RecurrenceRule,
+} from "@/supabase/functions/_shared/recurrence";
 import { Event } from "@/types/events";
 import { getAppDate, parseEventDate, dateToTimestamp } from "./dateUtils";
 
-const getNextDate = (currentDate: Date, repeat: string): Date => {
-  switch (repeat) {
-    case "weekly":
-      return addDays(currentDate, 7);
-    case "monthly":
-      return addMonths(currentDate, 1);
-    case "yearly":
-      return addYears(currentDate, 1);
-    default:
-      return addDays(currentDate, 1);
-  }
-};
+/** Reguła wydarzenia: nowe pole `recurrence`, a przy starszych wpisach – `repeat`. */
+export function eventRule(event: Pick<Event, "repeat" | "recurrence">): RecurrenceRule | null {
+  return normalizeRule(event.recurrence) ?? ruleFromLegacyRepeat(event.repeat);
+}
 
-const getFirstInstanceInRange = (start: Date, rangeStart: Date, repeat: string): Date => {
-  let currentStart = new Date(start);
-  while (currentStart < rangeStart) {
-    currentStart = getNextDate(currentStart, repeat);
-  }
-  return currentStart;
-};
+const dayKey = (d: Date) => format(d, "yyyy-MM-dd");
 
 const generateRepeatingInstances = (
   event: Event,
+  rule: RecurrenceRule,
   originalStart: Date,
   originalEnd: Date,
   rangeStart: Date,
   rangeEnd: Date
 ): Event[] => {
-  const instances: Event[] = [];
-  const repeat = event.repeat || "none";
-  
-  let currentStart = getFirstInstanceInRange(originalStart, rangeStart, repeat);
   const durationInDays = differenceInCalendarDays(originalEnd, originalStart);
+  // Od dnia, w którym zaczęłoby się wystąpienie trwające jeszcze na początku zakresu.
+  const from = dayKey(addDays(rangeStart, -durationInDays));
+  const days = occurrencesBetween(dayKey(originalStart), rule, from, dayKey(rangeEnd));
 
-  while (currentStart <= rangeEnd) {
-    const instanceStart = new Date(currentStart);
+  return days.map((day) => {
+    const [y, m, d] = day.split("-").map(Number);
+    const instanceStart = new Date(y, m - 1, d, originalStart.getHours(), originalStart.getMinutes(), originalStart.getSeconds());
+    // Koniec liczony od godziny zakończenia oryginału (cotygodniowe 10:00–11:00 zostaje 10:00–11:00).
     const instanceEnd = addDays(instanceStart, durationInDays);
-
-    const dateString = instanceStart.toISOString().split("T")[0];
-    const instanceId = `${event.id}_${dateString}`;
-
-    instances.push({
+    instanceEnd.setHours(originalEnd.getHours(), originalEnd.getMinutes(), originalEnd.getSeconds(), 0);
+    return {
       ...event,
-      id: instanceId,
+      id: `${event.id}_${day}`,
       start_time: dateToTimestamp(instanceStart),
       end_time: dateToTimestamp(instanceEnd),
-    });
-
-    currentStart = getNextDate(currentStart, repeat);
-  }
-
-  return instances;
+    };
+  });
 };
 
 export function expandRepeatingEvents(
@@ -76,15 +58,16 @@ export function expandRepeatingEvents(
   for (const event of events) {
     const originalStart = parseEventDate(event.start_time);
     const originalEnd = parseEventDate(event.end_time);
-    const repeat = event.repeat || "none";
+    const rule = eventRule(event);
 
-    if (repeat === "none") {
+    if (!rule) {
       if (originalEnd >= rangeStart && originalStart <= rangeEnd) {
         result.push(event);
       }
     } else {
       const repeatingInstances = generateRepeatingInstances(
         event,
+        rule,
         originalStart,
         originalEnd,
         rangeStart,

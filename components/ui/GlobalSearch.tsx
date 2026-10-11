@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { Search, Loader2, X } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import Modal from "./Modal";
+import { useEnabledModules } from "@/hooks/useEnabledModules";
 import { GLOBAL_SEARCH_SOURCES, GLOBAL_SEARCH_LIMIT, GLOBAL_SEARCH_MIN_CHARS, type GlobalSearchSource } from "@/config/globalSearch";
 
 interface SearchHit {
@@ -30,6 +31,12 @@ export default function GlobalSearch() {
   const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Wyłączone moduły nie pojawiają się w wynikach (ref – bez przebudowy wyszukiwania).
+  const { isEnabled } = useEnabledModules();
+  const isEnabledRef = useRef(isEnabled);
+  useEffect(() => {
+    isEnabledRef.current = isEnabled;
+  }, [isEnabled]);
 
   const close = useCallback(() => {
     setOpen(false);
@@ -64,7 +71,7 @@ export default function GlobalSearch() {
       const pattern = `%${escaped}%`;
 
       const results = await Promise.all(
-        GLOBAL_SEARCH_SOURCES.map(async (source) => {
+        GLOBAL_SEARCH_SOURCES.filter((source) => isEnabledRef.current(source.href)).map(async (source) => {
           const { data } = await supabase
             .from(source.table)
             .select(source.select)
@@ -126,7 +133,7 @@ export default function GlobalSearch() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Szukaj zadań, notatek, wydarzeń, pism, osób…"
                 aria-label="Szukaj w aplikacji"
-                className="flex-1 min-w-0 bg-transparent text-sm text-text outline-none placeholder:text-text-muted"
+                className="flex-1 min-w-0 bg-transparent text-base text-text outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-primary rounded"
               />
               {searching && <Loader2 className="w-4 h-4 animate-spin text-text-muted shrink-0" aria-hidden="true" />}
               <button type="button" onClick={close} aria-label="Zamknij" className="text-text-muted hover:text-text">

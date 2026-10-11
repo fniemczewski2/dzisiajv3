@@ -1,8 +1,9 @@
-﻿// hooks/db/useDailyHabits.ts
+// hooks/db/useDailyHabits.ts
 
 import { useState, useEffect, useCallback } from "react";
 import { getAppDate } from "@/lib/dateUtils";
-import { DailyHabitsRow, HabitKey } from "@/types/habits";
+import { DailyHabitsRow } from "@/types/habits";
+import { isHabitDone, isLegacyHabitId } from "@/lib/habits";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
@@ -69,35 +70,40 @@ export function useDailyHabits(date?: string) {
     }
   }, [userId, targetDate, supabase, toast, withRetry, getSignal]);
 
+  /** Odhacza/odznacza nawyk o danym id (własny albo jeden z dawnych). */
   const toggleHabit = useCallback(
-    async (key: HabitKey) => {
+    async (id: string) => {
       if (!habits) return;
       if (!userId) {
-  
         throw new Error("Unauthorized");
       }
       setLoading(true);
-      const prevValue = habits[key] as boolean;
-      const newValue = !prevValue;
+      const prevRow = habits;
+      const newValue = !isHabitDone(habits, id);
+      const nextDone = { ...(habits.habits_done ?? {}), [id]: newValue };
+      const legacyPatch = isLegacyHabitId(id) ? { [id]: newValue } : {};
+      setHabits((h) => (h ? { ...h, ...legacyPatch, habits_done: nextDone } : h));
 
-      setHabits((h) => (h ? { ...h, [key]: newValue } : h));
-
+      const base = {
+        date: targetDate,
+        user_id: userId,
+        ...legacyPatch,
+        water_amount: habits.water_amount ?? 0,
+        daily_spending: habits.daily_spending ?? 0,
+      };
       try {
-        const { error } = await withRetry(() =>
-          supabase.from("daily_habits").upsert(
-            {
-              date: targetDate,
-              user_id: userId,
-              [key]: newValue,
-              water_amount: habits.water_amount ?? 0,
-              daily_spending: habits.daily_spending ?? 0,
-            },
-            { onConflict: "date,user_id" }
-          )
+        let { error } = await withRetry(() =>
+          supabase.from("daily_habits").upsert({ ...base, habits_done: nextDone }, { onConflict: "date,user_id" })
         );
+        // Baza sprzed migracji 1.40 (brak habits_done): dawne nawyki zapisujemy w kolumnach.
+        if (error?.code === "PGRST204" && isLegacyHabitId(id)) {
+          ({ error } = await withRetry(() =>
+            supabase.from("daily_habits").upsert(base, { onConflict: "date,user_id" })
+          ));
+        }
         if (error) throw error;
       } catch {
-        setHabits((h) => (h ? { ...h, [key]: prevValue } : h));
+        setHabits(prevRow);
         toast.error("Błąd zapisu nawyku.");
       } finally {
         setLoading(false);

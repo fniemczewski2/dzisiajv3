@@ -35,7 +35,17 @@ export const SLACK_FIELD_LABELS: Record<SlackMappableTaskField, string> = {
   status: "Status",
 };
 
-export const SLACK_TASK_CATEGORY = "slack";
+/**
+ * Dawna kategoria systemowa zadań ze Slacka. Od 1.40 o synchronizacji decyduje
+ * powiązanie zadania z listą (slack_task_links / slack_task_targets), a zadania
+ * z listy dostają kategorię wybraną przy liście. Stała zostaje tylko po to,
+ * żeby zadania sprzed migracji nadal się synchronizowały.
+ */
+export const LEGACY_SLACK_TASK_CATEGORY = "slack";
+
+/** Kategoria zadań z listy, gdy przy liście nic nie wybrano. */
+export const DEFAULT_SLACK_IMPORT_CATEGORY = "praca";
+export const MAX_IMPORT_CATEGORY_LENGTH = 30;
 
 function isPlausibleEmail(value: string): boolean {
   const at = value.indexOf("@");

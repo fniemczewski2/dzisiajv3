@@ -45,6 +45,7 @@ Harmonogram **nie jest zapisany w repozytorium** (brak `vercel.json`, brak `pg_c
 | Zamykanie ankiet | `GET /api/meeting-polls/close-expired` | co godzinę |
 | Synchronizacja Slacka | `GET /api/slack/sync` | co 5–15 min |
 | Powiadomienia | Edge `process-notifications` z `x-cron-secret` | co minutę |
+| Przypomnienia o zadaniach | Edge `process-notifications?type=task_reminder` z `x-cron-secret` | co minutę |
 | Zadania cykliczne | Edge `process-reminders` | raz na dobę |
 
 **Sprawdzenie ręczne:**

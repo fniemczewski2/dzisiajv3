@@ -8,18 +8,30 @@ import { useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useAuth } from "@/providers/AuthProvider";
 import { DEFAULT_USER_TASK_CATEGORIES, resolveUserTaskCategories } from "@/lib/taskCategories";
+import { normalizeCategoryColors } from "@/lib/categoryColors";
 
-type Stored = string[] | null;
+type Stored = { categories: string[] | null; colors: Record<string, string> };
 let cache: { userId: string; promise: Promise<Stored> } | null = null;
+
+const EMPTY: Stored = { categories: null, colors: {} };
+
+async function fetchStored(supabase: SupabaseClient, userId: string): Promise<Stored> {
+  const full = await supabase.from("settings").select("task_categories, category_colors").eq("user_id", userId).maybeSingle();
+  if (!full.error) {
+    return {
+      categories: Array.isArray(full.data?.task_categories) ? (full.data.task_categories as string[]) : null,
+      colors: normalizeCategoryColors(full.data?.category_colors),
+    };
+  }
+  // Baza bez kolumny category_colors (kod wdrożony przed migracją) – same kategorie.
+  const basic = await supabase.from("settings").select("task_categories").eq("user_id", userId).maybeSingle();
+  if (basic.error) return EMPTY;
+  return { categories: Array.isArray(basic.data?.task_categories) ? (basic.data.task_categories as string[]) : null, colors: {} };
+}
 
 function load(supabase: SupabaseClient, userId: string): Promise<Stored> {
   if (cache?.userId !== userId) {
-    cache = {
-      userId,
-      promise: Promise.resolve(
-        supabase.from("settings").select("task_categories").eq("user_id", userId).maybeSingle()
-      ).then(({ data, error }) => (error ? null : ((data?.task_categories as Stored) ?? null))),
-    };
+    cache = { userId, promise: fetchStored(supabase, userId) };
   }
   return cache.promise;
 }
@@ -29,24 +41,29 @@ export function resetTaskCategoriesCache(): void {
   cache = null;
 }
 
-export function useTaskCategories(): string[] {
+function useStoredCategories(): Stored {
   const { user, supabase } = useAuth();
   const userId = user?.id;
-  const [categories, setCategories] = useState<string[]>(() => [...DEFAULT_USER_TASK_CATEGORIES]);
+  const [stored, setStored] = useState<Stored>(EMPTY);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !supabase) return;
     let cancelled = false;
-    void load(supabase, userId).then((stored) => {
-      if (!cancelled) setCategories(resolveUserTaskCategories(stored));
+    void load(supabase, userId).then((value) => {
+      if (!cancelled) setStored(value);
     });
 
     const onSettingsUpdated = (event: Event) => {
-      const detail = (event as CustomEvent<{ task_categories?: Stored }>).detail;
-      if (!detail || !("task_categories" in detail)) return;
-      const stored = detail.task_categories ?? null;
-      cache = { userId, promise: Promise.resolve(stored) };
-      setCategories(resolveUserTaskCategories(stored));
+      const detail = (event as CustomEvent<{ task_categories?: string[] | null; category_colors?: unknown }>).detail;
+      if (!detail || !("task_categories" in detail || "category_colors" in detail)) return;
+      setStored((prev) => {
+        const next: Stored = {
+          categories: "task_categories" in detail ? detail.task_categories ?? null : prev.categories,
+          colors: "category_colors" in detail ? normalizeCategoryColors(detail.category_colors) : prev.colors,
+        };
+        cache = { userId, promise: Promise.resolve(next) };
+        return next;
+      });
     };
     globalThis.addEventListener("settingsUpdated", onSettingsUpdated);
     return () => {
@@ -55,11 +72,22 @@ export function useTaskCategories(): string[] {
     };
   }, [supabase, userId]);
 
-  return categories;
+  return stored;
+}
+
+export function useTaskCategories(): string[] {
+  const { categories } = useStoredCategories();
+  // Przed wczytaniem i przy braku ustawienia – kategorie domyślne.
+  return categories ? resolveUserTaskCategories(categories) : [...DEFAULT_USER_TASK_CATEGORIES];
+}
+
+/** Kolory kategorii (nazwa → kolor z palety). Pusta mapa = brak kolorów. */
+export function useCategoryColors(): Record<string, string> {
+  return useStoredCategories().colors;
 }
 
 /**
- * Po zmianie nazwy kategorii w Ustawieniach przenosi zadania użytkownika ze
+ * Po zmianie nazwy kategorii w Ustawieniach przenosi zadania (i wydarzenia) użytkownika ze
  * starej nazwy na nową – inaczej zostałyby w kategorii, której nie ma już na liście.
  */
 export async function applyTaskCategoryRenames(
@@ -67,10 +95,12 @@ export async function applyTaskCategoryRenames(
   userId: string,
   renames: ReadonlyArray<readonly [from: string, to: string]>
 ): Promise<{ failed: number }> {
+  // Wydarzenia też mają kategorię – przenosimy je razem z zadaniami, żeby nie straciły koloru.
   const results = await Promise.all(
-    renames.map(([from, to]) =>
-      supabase.from("tasks").update({ category: to }).eq("user_id", userId).eq("category", from)
-    )
+    renames.flatMap(([from, to]) => [
+      supabase.from("tasks").update({ category: to }).eq("user_id", userId).eq("category", from),
+      supabase.from("events").update({ category: to }).eq("user_id", userId).eq("category", from),
+    ])
   );
   return { failed: results.filter((r) => r.error).length };
 }

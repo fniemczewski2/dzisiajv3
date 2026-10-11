@@ -14,7 +14,14 @@ import {
 } from "../ui/CommonButtons";
 import { useAuth } from "@/providers/AuthProvider";
 import { taskCategoryOptions } from "@/lib/taskCategories";
-import { useTaskCategories } from "@/hooks/useTaskCategories";
+import { useTaskCategories, useCategoryColors } from "@/hooks/useTaskCategories";
+import TaskRemindersEditor from "./TaskRemindersEditor";
+import RecurrenceEditor from "../ui/RecurrenceEditor";
+import { taskRecurrenceFields, taskRule } from "@/lib/taskRecurrence";
+import { describeRule } from "@/supabase/functions/_shared/recurrence";
+import { Repeat } from "lucide-react";
+import { fetchPendingReminders, replacePendingReminders, validateReminders } from "@/lib/taskReminders";
+import { useToast } from "@/providers/ToastProvider";
 
 interface Props {
   task: Task;
@@ -40,7 +47,10 @@ function TaskEditForm({
   increasePriority,
   decreasePriority,
   titleRef,
-  loading
+  loading,
+  reminders,
+  setReminders,
+  remindersLoaded,
 }: Readonly<{
   task: Task;
   editedTask: Task;
@@ -54,6 +64,9 @@ function TaskEditForm({
   decreasePriority: () => void;
   titleRef: React.RefObject<HTMLInputElement | null>;
   loading: boolean;
+  reminders: string[];
+  setReminders: (next: string[]) => void;
+  remindersLoaded: boolean;
 }>) {
   const userCategories = useTaskCategories();
   const editPrefix = `edit-task-${task.id}`;
@@ -76,9 +89,9 @@ function TaskEditForm({
           <div>
             <div className="form-label">Priorytet:</div>
             <div className="flex items-stretch gap-1.5 mt-1">
-              <button type="button" onClick={decreasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"><Minus size={18} /></button>
-              <div className="flex-1 flex items-center justify-center text-lg card rounded-xl text-text shadow-inner">{editedTask.priority}</div>
-              <button type="button" onClick={increasePriority} className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"><Plus size={18} /></button>
+              <button type="button" onClick={decreasePriority} aria-label="Zmniejsz priorytet" className="flex h-11 w-11 items-center justify-center bg-surface border border-line-strong rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shrink-0"><Minus size={18} aria-hidden="true" /></button>
+              <output aria-live="polite" aria-label={`Priorytet ${editedTask.priority}`} className="flex-1 flex items-center justify-center text-lg card rounded-lg text-text">{editedTask.priority}</output>
+              <button type="button" onClick={increasePriority} aria-label="Zwiększ priorytet" className="flex h-11 w-11 items-center justify-center bg-surface border border-line-strong rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shrink-0"><Plus size={18} aria-hidden="true" /></button>
             </div>
           </div>
           <div>
@@ -87,7 +100,7 @@ function TaskEditForm({
               id={`${editPrefix}-category`} 
               value={editedTask.category} 
               onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} 
-              className="input-field py-1.5 h-9.5"
+              className="input-field"
             >
               {taskCategoryOptions(userCategories, task.category).map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -103,7 +116,7 @@ function TaskEditForm({
               type="date" 
               value={editedTask.due_date} 
               onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })} 
-              className="input-field w-full min-w-0 px-1 text-xs h-9.5" 
+              className="input-field w-full min-w-0 px-2" 
             />
           </div>
           {userOptions.length > 0 && (
@@ -113,7 +126,7 @@ function TaskEditForm({
                 id={`${editPrefix}-share`} 
                 value={sharedEmail} 
                 onChange={(e) => setSharedEmail(e.target.value)} 
-                className="input-field py-1.5 h-9.5"
+                className="input-field"
               >
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email: string) => (
@@ -123,6 +136,19 @@ function TaskEditForm({
             </div>
           )}
         </div>
+        <RecurrenceEditor
+          idPrefix={`${editPrefix}-recurrence`}
+          value={taskRule(editedTask)}
+          onChange={(rule) => setEditedTask({ ...editedTask, ...taskRecurrenceFields(rule) })}
+          startDay={editedTask.due_date}
+          allowCount={false}
+          disabled={loading}
+        />
+        {remindersLoaded ? (
+          <TaskRemindersEditor value={reminders} onChange={setReminders} dueDate={editedTask.due_date} disabled={loading} />
+        ) : (
+          <p className="text-sm text-text-secondary">Wczytuję przypomnienia…</p>
+        )}
         <div>
           <label htmlFor={`${editPrefix}-desc`} className="form-label">Opis:</label>
           <textarea 
@@ -252,6 +278,7 @@ function TaskView({
   handleComplete: (done?: boolean) => void;
   handleReschedule: (days: number) => void;
 }>) {
+  const categoryColors = useCategoryColors();
   return (
     <div className="card min-w-0 p-4 w-full rounded-card transition-all flex flex-col text-left">
       <div className="space-y-3 flex-1">
@@ -276,11 +303,21 @@ function TaskView({
         <div className="flex flex-wrap gap-2 items-center">
           <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
           {task.category && (
-            <span className="px-2 py-1 md:px-3 md:py-1.5 bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary rounded-lg text-xs md:text-sm font-bold">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-line text-text-secondary rounded-full text-sm font-medium">
+              {categoryColors[task.category] && (
+                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: categoryColors[task.category] }} />
+              )}
               {task.category}
             </span>
           )}
         </div>
+
+        {taskRule(task) && (
+          <p className="flex items-center gap-2 text-sm text-text-secondary">
+            <Repeat className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {describeRule(taskRule(task), task.due_date)}
+          </p>
+        )}
 
         <TaskDetails task={task} />
 
@@ -305,8 +342,11 @@ function TaskView({
 function useTaskActions(props: Props) {
   const { task, acceptTask, setDoneTask, editTask, deleteTask, onTasksChange, userId } = props;
   const { supabase } = useAuth();
+  const { toast } = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [reminders, setReminders] = useState<string[]>([]);
+  const [remindersLoaded, setRemindersLoaded] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
   const [sharedEmail, setSharedEmail] = useState("");
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -323,6 +363,11 @@ function useTaskActions(props: Props) {
   const handleEdit = async () => {
     setIsEditing(true);
     setEditedTask(task);
+    setRemindersLoaded(false);
+    void fetchPendingReminders(supabase, task.id).then((list) => {
+      setReminders(list);
+      setRemindersLoaded(true);
+    });
     if (task.for_user_id && task.for_user_id !== userId) {
       const { data, error } = await supabase.rpc("get_email_by_user_id", {
         target_uuid: task.for_user_id,
@@ -340,8 +385,17 @@ function useTaskActions(props: Props) {
   };
 
   const handleSaveEdit = async () => {
+    const reminderError = remindersLoaded ? validateReminders(reminders) : null;
+    if (reminderError) {
+      toast.error(reminderError);
+      return;
+    }
     try {
       await editTask({ ...editedTask, shared_with_email: sharedEmail });
+      if (remindersLoaded) {
+        const { error } = await replacePendingReminders(supabase, userId, task.id, reminders);
+        if (error) toast.error(error);
+      }
       onTasksChange();
       setIsEditing(false);
       setSharedEmail("");
@@ -395,6 +449,7 @@ function useTaskActions(props: Props) {
 
   return {
     isEditing, editedTask, setEditedTask, sharedEmail, setSharedEmail,
+    reminders, setReminders, remindersLoaded,
     isTimerActive, setIsTimerActive,
     handleDelete, handleEdit, handleCancelEdit, handleSaveEdit,
     handleComplete, handleReschedule, handleAccept, stopTimerAndSave,
@@ -475,6 +530,9 @@ const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
         decreasePriority={actions.decreasePriority}
         titleRef={titleRef}
         loading={loading}
+        reminders={actions.reminders}
+        setReminders={actions.setReminders}
+        remindersLoaded={actions.remindersLoaded}
       />
     );
   }

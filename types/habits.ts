@@ -1,4 +1,4 @@
-﻿// types/habits.ts
+// types/habits.ts
 
 
 export type HabitKey =
@@ -10,6 +10,14 @@ export type HabitKey =
   | "housework"
   | "plants"
   | "duolingo";
+
+/** Nawyk zdefiniowany przez użytkownika (max 8). `id` dawnych nawyków = ich HabitKey. */
+export interface HabitDef {
+  id: string;
+  label: string;
+  /** Nazwa ikony z HABIT_ICON_NAMES. */
+  icon: string;
+}
 
 export interface DailyHabitsRow {
   date: string;
@@ -24,6 +32,8 @@ export interface DailyHabitsRow {
   duolingo: boolean | null;
   water_amount: number | null;
   daily_spending: number | null;
+  /** Odhaczone nawyki: id nawyku → true (od 1.40). */
+  habits_done?: Record<string, boolean> | null;
 }
 
 export interface WaterRow {

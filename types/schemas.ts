@@ -1,4 +1,4 @@
-﻿// types/schemas.ts
+// types/schemas.ts
 
 import type { TrackedTrain } from "./transport";
 export interface ScheduleItem {
@@ -14,6 +14,8 @@ export interface Schema {
   name: string;
   days: number[];
   entries: ScheduleItem[];
+  /** Domyślny schemat dla swoich dni tygodnia (gdy kilka schematów obejmuje ten sam dzień). */
+  is_default?: boolean;
   created_at?: string;
 }
 
@@ -23,7 +25,7 @@ export interface PlanItemData {
   id: string;
   title: string;
   type: PlanItemType;
-  data?: { category?: string; start_time?: string; end_time?: string | null; priority?: number; due_date?: string };
+  data?: { category?: string | null; start_time?: string; end_time?: string | null; priority?: number; due_date?: string };
   /** Tylko dla type === "train" – bilet z user_trains. */
   train?: TrackedTrain;
 }

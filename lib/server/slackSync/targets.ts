@@ -2,7 +2,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { decryptToken } from "@/lib/server/tokenCrypto";
-import { SLACK_TASK_CATEGORY } from "@/config/slack";
+import { DEFAULT_SLACK_IMPORT_CATEGORY, LEGACY_SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { ColumnMap, SyncTarget, TaskRow } from "./types";
 
 export function adminClient(): SupabaseClient {
@@ -18,12 +18,12 @@ interface SlackListRow {
   is_default: boolean;
   sync_enabled: boolean | null;
   assignee_emails: string[] | null;
+  import_category?: string | null;
 }
 
 export async function loadTargets(admin: SupabaseClient, userId?: string): Promise<SyncTarget[]> {
-  let listQuery = admin
-    .from("slack_lists")
-    .select("user_id, connection_id, list_id, list_title, column_map, is_default, sync_enabled, assignee_emails");
+  // „*”: kolumna import_category dochodzi migracją 1.40 – bez niej sync nadal działa.
+  let listQuery = admin.from("slack_lists").select("*");
   if (userId) listQuery = listQuery.eq("user_id", userId);
 
   const { data: listData, error: listError } = await listQuery;
@@ -75,6 +75,7 @@ export async function loadTargets(admin: SupabaseClient, userId?: string): Promi
         isDefault: row.is_default,
         pullEnabled: row.sync_enabled !== false,
         assigneeEmails: (row.assignee_emails ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean),
+        importCategory: row.import_category?.trim() || DEFAULT_SLACK_IMPORT_CATEGORY,
       },
     ];
   });
@@ -82,12 +83,33 @@ export async function loadTargets(admin: SupabaseClient, userId?: string): Promi
 
 const TASK_COLUMNS = "id, title, description, due_date, category, priority, status, user_id";
 
+/**
+ * Zadania objęte synchronizacją: powiązane z pozycją na liście, z wybraną
+ * listą docelową, a także (zgodność wstecz) z dawną kategorią „slack”.
+ */
+async function syncedTaskIds(admin: SupabaseClient, userId: string): Promise<number[]> {
+  const [links, targets] = await Promise.all([
+    admin.from("slack_task_links").select("task_id").eq("user_id", userId),
+    admin.from("slack_task_targets").select("task_id").eq("user_id", userId),
+  ]);
+  if (links.error) throw new Error(`slack_task_links: ${links.error.message}`);
+  const ids = new Set<number>();
+  for (const row of [...(links.data ?? []), ...(targets.data ?? [])]) ids.add(Number((row as { task_id: number }).task_id));
+  return [...ids].filter(Number.isSafeInteger);
+}
+
+function syncedFilter(ids: number[]): string {
+  const legacy = `category.eq.${LEGACY_SLACK_TASK_CATEGORY}`;
+  return ids.length > 0 ? `id.in.(${ids.join(",")}),${legacy}` : legacy;
+}
+
 export async function loadTasks(admin: SupabaseClient, userId: string): Promise<TaskRow[]> {
+  const filter = syncedFilter(await syncedTaskIds(admin, userId));
   const withTimestamp = await admin
     .from("tasks")
     .select(`${TASK_COLUMNS}, updated_at`)
     .eq("user_id", userId)
-    .eq("category", SLACK_TASK_CATEGORY);
+    .or(filter);
 
   if (!withTimestamp.error) return (withTimestamp.data ?? []) as TaskRow[];
   if (withTimestamp.error.code !== "42703") {
@@ -102,7 +124,7 @@ export async function loadTasks(admin: SupabaseClient, userId: string): Promise<
     .from("tasks")
     .select(TASK_COLUMNS)
     .eq("user_id", userId)
-    .eq("category", SLACK_TASK_CATEGORY);
+    .or(filter);
   if (fallback.error) throw new Error(`tasks: ${fallback.error.message}`);
   return (fallback.data ?? []) as TaskRow[];
 }

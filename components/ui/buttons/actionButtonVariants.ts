@@ -15,7 +15,7 @@ export const actionButton = cva(
       },
       size: {
         default: "flex-1",
-        small: "w-min h-min min-h-9 min-w-9 my-auto",
+        small: "w-min h-min min-h-11 min-w-11 my-auto",
       },
     },
     defaultVariants: { color: "blue", size: "default" },

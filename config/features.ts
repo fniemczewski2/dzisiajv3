@@ -19,6 +19,8 @@ import {
   IdCard,
   LayoutDashboard,
   ListTodo,
+  NotebookPen,
+  Newspaper,
   Logs,
   MessageSquareShare,
   ScrollText,
@@ -82,6 +84,9 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: ListTodo,
         path: "/tasks",
         guideId: "tasks_list",
+        status: "zmienione",
+        note: "Rozbudowane powtarzanie (dni tygodnia, „ostatni piątek”), przypomnienia push i lista Slack zamiast kategorii.",
+        since: "1.40.0",
       },
       {
         title: "Plan dnia",
@@ -89,6 +94,18 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Logs,
         path: "/tasks/daySchema",
         guideId: "day_schema",
+        status: "zmienione",
+        note: "Kilka schematów na ten sam dzień: jeden domyślny, inny wybierzesz na planie dnia.",
+        since: "1.40.0",
+      },
+      {
+        title: "Szybkie notatki",
+        description: "Punkty na górze planu dnia, dodawane w aplikacji albo Skrótem z iPhone'a. Każdy punkt zamienisz jednym dotknięciem w zadanie lub wydarzenie.",
+        icon: NotebookPen,
+        path: "/",
+        guideId: "dashboard",
+        status: "nowe",
+        since: "1.39.0",
       },
       {
         title: "Pomodoro",
@@ -118,6 +135,9 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Calendar,
         path: "/calendar",
         guideId: "calendar",
+        status: "zmienione",
+        note: "Rozbudowane powtarzanie, import zjazdów z harmonogramu uczelni i przypomnienie o biletach przed podróżą.",
+        since: "1.40.0",
       },
       {
         title: "Terminy zespołowe",
@@ -272,10 +292,13 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Nawyki i nastrój",
-        description: "Codzienne nawyki, tracker wody i nastroju prosto z kokpitu, bez przechodzenia między ekranami.",
+        description: "Do 8 własnych nawyków z nazwą i ikoną, tracker wody i nastroju prosto z kokpitu.",
         icon: HeartPulse,
         path: "/",
         guideId: "habits",
+        status: "zmienione",
+        note: "Własne nawyki zamiast stałej ósemki.",
+        since: "1.40.0",
       },
       {
         title: "Postępy",
@@ -290,6 +313,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Dumbbell,
         path: "/training",
         guideId: "training",
+      },
+      {
+        title: "Wiadomości",
+        description: "Czytnik RSS: wybierasz źródła (Poznań, NGO i granty, kolej, klimat, prawa człowieka, technologia) i dodajesz własne kanały.",
+        icon: Newspaper,
+        path: "/news",
+        status: "nowe",
+        since: "1.41.0",
       },
       {
         title: "Pisma",

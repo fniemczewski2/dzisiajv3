@@ -10,7 +10,7 @@ import {
   type SlackColumn,
   type SlackItem,
 } from "@/lib/server/slackLists";
-import { SLACK_TASK_CATEGORY } from "@/config/slack";
+import { LEGACY_SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { LinkRow, SyncCounters, SyncTarget, TaskRow } from "./types";
 import { fingerprint, itemChangedSince, itemUpdatedAt, resolveDirection, taskUpdatedAt } from "./taskMapping";
 import { pushTask } from "./push";
@@ -38,8 +38,10 @@ export function belongsOnList(
   chosenListId: string | undefined,
   target: Pick<SyncTarget, "listId" | "isDefault">
 ): boolean {
-  if (task.category !== SLACK_TASK_CATEGORY) return false;
-  return chosenListId ? chosenListId === target.listId : target.isDefault;
+  // Nowe zadania trafiają do Slacka tylko na wyraźne życzenie (wybrana lista).
+  if (chosenListId) return chosenListId === target.listId;
+  // Zgodność wstecz: zadania z dawną kategorią „slack” idą na listę domyślną.
+  return task.category === LEGACY_SLACK_TASK_CATEGORY && target.isDefault;
 }
 
 function recordSyncFailure(counters: SyncCounters, err: unknown, what: string): void {
@@ -84,8 +86,7 @@ async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
     await pushUnlinkedTask(ctx, task);
     return;
   }
-  if (task.category !== SLACK_TASK_CATEGORY) return;
-
+  // Powiązane zadanie synchronizujemy niezależnie od kategorii (może ją dowolnie zmienić).
   const item = itemById.get(link.item_id);
 
   if (!item) {

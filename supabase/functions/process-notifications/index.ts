@@ -43,6 +43,7 @@ interface HabitSettingsRow {
   habit_housework?: boolean;
   habit_plants?: boolean;
   habit_duolingo?: boolean;
+  custom_habits?: Array<{ id: string; label: string }> | null;
 }
 
 interface DailyHabitRow {
@@ -55,9 +56,12 @@ interface DailyHabitRow {
   plants?: boolean;
   duolingo?: boolean;
   water_amount?: number;
+  habits_done?: Record<string, boolean> | null;
 }
 
 interface DaySchemaRow {
+  id?: string;
+  is_default?: boolean | null;
   user_id: string;
   entries: unknown;
   days: unknown;
@@ -378,9 +382,22 @@ const HABIT_CHECKS: { setting: keyof HabitSettingsRow; habitField: keyof DailyHa
 ];
 
 function buildIncompleteHabitsList(s: HabitSettingsRow, habit: DailyHabitRow | null): string[] {
+  const done = (habit?.habits_done ?? {}) as Record<string, boolean>;
+  // Od 1.40: własne nawyki użytkownika (settings.custom_habits).
+  if (Array.isArray(s.custom_habits)) {
+    return s.custom_habits
+      .filter((h) => h && typeof h.id === 'string' && typeof h.label === 'string')
+      .filter((h) => {
+        if (typeof done[h.id] === 'boolean') return !done[h.id];
+        const legacy = HABIT_CHECKS.find((c) => c.habitField === h.id);
+        return !(legacy && habit?.[legacy.habitField]);
+      })
+      .map((h) => h.label);
+  }
   const incomplete: string[] = [];
   for (const check of HABIT_CHECKS) {
-    if (s[check.setting] && !habit?.[check.habitField]) incomplete.push(check.label);
+    const isDone = typeof done[check.habitField] === 'boolean' ? done[check.habitField] : habit?.[check.habitField];
+    if (s[check.setting] !== false && !isDone) incomplete.push(check.label);
   }
   return incomplete;
 }
@@ -397,7 +414,7 @@ async function processDailyHabitsType(ctx: NotifCtx): Promise<void> {
     if (incomplete.length > 0) {
       const actStr = pluralize(incomplete.length, 'aktywność', 'aktywności', 'aktywności');
       const msg = `Masz ${incomplete.length} ${actStr} do zrobienia: ${incomplete.slice(0, 3).join(', ')}${incomplete.length > 3 ? '...' : ''}`
-      await sendPushAndLog(s.user_id, 'Nawyki', msg, '/habits', { incomplete })
+      await sendPushAndLog(s.user_id, 'Nawyki', msg, '/', { incomplete })
     }
   });
 }
@@ -449,17 +466,55 @@ async function processOneDaySchema(
   });
 }
 
+function schemaDays(schema: DaySchemaRow): number[] {
+  try {
+    const raw: unknown[] = typeof schema.days === 'string' ? JSON.parse(schema.days) : ((schema.days as unknown[]) || []);
+    return raw.map(Number);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Jeden obowiązujący schemat na użytkownika (od 1.40 kilka schematów może
+ * obejmować ten sam dzień): ręczny wybór na dziś → domyślny → pierwszy.
+ */
+function activeSchemasForToday(
+  schemas: DaySchemaRow[],
+  choices: Array<{ user_id: string; schema_id: string | null }>,
+  dayIndex: number
+): DaySchemaRow[] {
+  const byUser = new Map<string, DaySchemaRow[]>();
+  for (const s of schemas) byUser.set(s.user_id, [...(byUser.get(s.user_id) ?? []), s]);
+  const choiceByUser = new Map(choices.map((c) => [c.user_id, c.schema_id]));
+
+  const result: DaySchemaRow[] = [];
+  for (const [userId, list] of byUser) {
+    if (choiceByUser.has(userId)) {
+      const chosenId = choiceByUser.get(userId);
+      if (chosenId === null) continue; // „bez schematu” na dziś
+      const chosen = list.find((s) => String(s.id) === String(chosenId));
+      if (chosen) { result.push({ ...chosen, days: [dayIndex] }); continue; }
+    }
+    const candidates = list.filter((s) => schemaDays(s).includes(dayIndex));
+    const active = candidates.find((s) => s.is_default) ?? candidates[0];
+    if (active) result.push(active);
+  }
+  return result;
+}
+
 async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
-  const { supabase, realNow, currentHour, plNow } = ctx;
-  const { data: daySchemas } = await supabase
-    .from('day_schemas')
-    .select('user_id, entries, days, name');
+  const { supabase, plNow, today } = ctx;
+  // „*”: kolumna is_default dochodzi migracją 1.40.
+  const { data: daySchemas } = await supabase.from('day_schemas').select('*');
+  const { data: choices } = await supabase.from('day_schema_choices').select('user_id, schema_id').eq('date', today);
 
   const currentTime = `${plNow.hour}:${plNow.timeStr.split(':')[1]}`;
   const currentMinutes = timeToMinutes(currentTime);
   const currentDayIndex = weekdayIndexPL(plNow.dateStr);
 
-  await mapPool(daySchemas || [], 5, async (schema) => {
+  const active = activeSchemasForToday((daySchemas || []) as DaySchemaRow[], choices || [], currentDayIndex);
+  await mapPool(active, 5, async (schema) => {
     await processOneDaySchema(ctx, schema, currentDayIndex, currentMinutes, currentTime);
   });
 }
@@ -726,6 +781,61 @@ async function processPeopleType(ctx: NotifCtx): Promise<void> {
   });
 }
 
+interface TaskReminderRow {
+  id: string;
+  task_id: string | number;
+  user_id: string;
+  remind_at: string;
+}
+
+/** Przypomnienie spóźnione o więcej niż tyle (np. po awarii crona) oznaczamy, ale nie wysyłamy. */
+const TASK_REMINDER_MAX_DELAY_MS = 6 * 3600000;
+
+function describeDue(dueDate: string | null, today: string): string {
+  if (!dueDate) return 'Zadanie czeka na Ciebie.';
+  if (dueDate < today) return `Termin minął ${dueDate.split('-').reverse().join('.')}.`;
+  if (dueDate === today) return 'Termin: dziś.';
+  return `Termin: ${dueDate.split('-').reverse().join('.')}.`;
+}
+
+// Przypomnienia ustawione ręcznie przy zadaniu (do 5 na zadanie). Uruchamiane
+// co minutę: ?type=task_reminder. Wiersze „rezerwujemy” jednym UPDATE ... WHERE
+// sent_at IS NULL, więc dwa równoległe wywołania nie wyślą tego samego dwa razy.
+async function processTaskReminderType(ctx: NotifCtx): Promise<void> {
+  const { supabase, realNow, today, sendPushAndLog } = ctx;
+  const nowIso = realNow.toISOString();
+
+  const { data: claimed, error } = await supabase.from('task_reminders')
+    .update({ sent_at: nowIso })
+    .is('sent_at', null)
+    .lte('remind_at', nowIso)
+    .select('id, task_id, user_id, remind_at');
+  if (error) throw error;
+
+  const due = ((claimed ?? []) as TaskReminderRow[])
+    .filter((r) => realNow.getTime() - new Date(r.remind_at).getTime() <= TASK_REMINDER_MAX_DELAY_MS);
+  if (due.length === 0) return;
+
+  const taskIds = [...new Set(due.map((r) => r.task_id))];
+  const { data: tasks } = await supabase.from('tasks')
+    .select('id, title, status, due_date')
+    .in('id', taskIds);
+  const byId = new Map(((tasks ?? []) as Array<{ id: string | number; title: string; status: string; due_date: string | null }>)
+    .map((t) => [String(t.id), t]));
+
+  await mapPool(due, 5, async (r) => {
+    const task = byId.get(String(r.task_id));
+    if (!task || task.status === 'done') return; // zrobione albo usunięte – nie przeszkadzamy
+    await sendPushAndLog(
+      r.user_id,
+      `Przypomnienie: ${task.title.substring(0, 80)}`,
+      describeDue(task.due_date, today),
+      '/tasks',
+      { task_id: String(r.task_id), reminder_id: r.id },
+    );
+  });
+}
+
 const NOTIFICATION_HANDLERS: Record<string, (ctx: NotifCtx) => Promise<void>> = {
   morning_brief: processMorningBriefType,
   upcoming_task: processUpcomingTaskType,
@@ -737,6 +847,7 @@ const NOTIFICATION_HANDLERS: Record<string, (ctx: NotifCtx) => Promise<void>> = 
   letters_deadline: processLettersDeadlineType,
   poll_closing: processPollClosingType,
   people: processPeopleType,
+  task_reminder: processTaskReminderType,
 };
 
 Deno.serve(async (req) => {

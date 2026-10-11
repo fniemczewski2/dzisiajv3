@@ -274,7 +274,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
                 readOnly
                 aria-label="Publiczny link do wizytówki"
                 value={publicLink}
-                className="flex-1 bg-transparent text-sm outline-none text-neutral-700 dark:text-neutral-300 truncate"
+                className="flex-1 bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary rounded text-neutral-700 dark:text-neutral-300 truncate"
               />
               <CopyButtonSmall text={publicLink} label="link publiczny" />
             </div>

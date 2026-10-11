@@ -22,14 +22,7 @@ export const DailyPlan = React.memo(({
   const visibleHours = Object.keys(planByHour).sort((a, b) => a.localeCompare(b));
 
   return (
-    <section className="lg:col-span-2 card rounded-xl p-4">
-      <h2 className="text-xl font-bold text-text mb-6 flex items-center gap-3 pb-3 px-2 border-b border-gray-100 dark:border-gray-700">
-        <div className="rounded-xl">
-          <Calendar className="text-primary w-5 h-5" />
-        </div>
-        Plan Dnia
-      </h2>
-
+    <section className="lg:col-span-2">
       <div className="relative">
         <div className="space-y-1 relative z-10">
           {visibleHours.map((timeKey) => {

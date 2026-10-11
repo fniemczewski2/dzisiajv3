@@ -11,8 +11,9 @@
 @source "../lib";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
-  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Jeden krój (Atkinson Hyperlegible Next) – hierarchię robi rozmiar i grubość, nie drugi font. */
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --font-display: var(--font-sans);
 
   --color-primary: var(--theme-primary);
   --color-primary-strong: var(--theme-primary-strong);
@@ -280,12 +281,15 @@
   --color-teal-900: var(--color-green-900);
   --color-teal-950: var(--color-green-950);
 
-  --radius-card: 1.125rem;
+  --radius-card: 0.875rem;
 
-  --shadow-xs: 0 1px 1px 0 var(--shadow-ink);
-  --shadow-sm: 0 1px 2px 0 var(--shadow-ink), 0 1px 3px -1px var(--shadow-ink);
-  --shadow: 0 2px 6px -1px var(--shadow-ink), 0 1px 2px -1px var(--shadow-ink);
-  --shadow-md: 0 6px 14px -4px var(--shadow-ink), 0 2px 4px -2px var(--shadow-ink);
+  /* Styl płaski: powierzchnie oddziela linia, nie cień. Cienie zostają tylko
+     dla warstw nad treścią (menu, okna, podpowiedzi) – shadow-lg i wyżej. */
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-inner: 0 0 #0000;
   --shadow-lg: 0 14px 28px -8px var(--shadow-ink-strong), 0 4px 8px -4px var(--shadow-ink);
   --shadow-xl: 0 22px 40px -12px var(--shadow-ink-strong), 0 8px 12px -6px var(--shadow-ink);
   --shadow-2xl: 0 30px 60px -18px var(--shadow-ink-strong);
@@ -334,11 +338,11 @@
   :root {
     color-scheme: light;
 
-    --theme-background: #F4F6F9;
+    --theme-background: #F7F8FA;
     --theme-card: #FFFFFF;
-    --theme-surface: #EDF1F6;
-    --theme-surface-hover: #E2E8F0;
-    --theme-text: #0B1A2B;
+    --theme-surface: #F0F3F6;
+    --theme-surface-hover: #E4E9EF;
+    --theme-text: #101A26;
     --theme-text-secondary: #34475C;
     --theme-text-muted: #53637A;
     --theme-primary: #1D5FB0;
@@ -346,16 +350,22 @@
     --theme-fill: #0A2947;
     --theme-fill-hover: #163F6B;
     --theme-accent: #0C6E61;
-    --theme-line: #DCE3EC;
-    --theme-line-strong: #C3CEDB;
+    --theme-line: #E4E8EE;
+    --theme-line-strong: #CBD3DD;
     --theme-input-border: #7C8BA0;
 
-    --header-bg: #0A2947;
-    --header-fg: #FFFFFF;
-    --header-muted: #A9BCD3;
-    --header-accent: #84B1EA;
-    --header-warn: #F6C9A0;
-    --header-hover: rgb(255 255 255 / 0.08);
+    /* Nagłówek bez osobnego tła – czas i data to typografia na tle strony. */
+    --header-bg: transparent;
+    --header-fg: var(--theme-text);
+    --header-muted: var(--theme-text-secondary);
+    --header-accent: var(--theme-primary);
+    --header-warn: #8A4510;
+    --header-hover: var(--theme-surface);
+
+    --event-default: #0A2947;
+    --warning-bg: #FFF4E0;
+    --warning-fg: #6B410F;
+    --warning-line: #D98A14;
 
     --skeleton-base: #E7ECF2;
     --skeleton-shine: #F5F8FB;
@@ -401,12 +411,17 @@
     --theme-line-strong: #2A3A4F;
     --theme-input-border: #5E6F84;
 
-    --header-bg: #0A2947;
-    --header-fg: #FFFFFF;
-    --header-muted: #A9BCD3;
-    --header-accent: #84B1EA;
+    --header-bg: transparent;
+    --header-fg: var(--theme-text);
+    --header-muted: var(--theme-text-secondary);
+    --header-accent: var(--theme-primary);
     --header-warn: #F6C9A0;
-    --header-hover: rgb(255 255 255 / 0.07);
+    --header-hover: var(--theme-surface);
+
+    --event-default: #2C68B3;
+    --warning-bg: #33240C;
+    --warning-fg: #FCD88E;
+    --warning-line: #B26C0C;
 
     --skeleton-base: #121D2B;
     --skeleton-shine: #1C2A3D;
@@ -442,7 +457,8 @@
     font-family: var(--font-sans);
     background-color: var(--theme-background);
     color: var(--theme-text);
-    font-feature-settings: "cv11", "ss01";
+    font-size: 1rem;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply transition-colors duration-300;
@@ -453,9 +469,18 @@
     color: var(--theme-text);
   }
 
+  /* Wyraźny fokus klawiatury (WCAG 2.4.7): 3 px, z odstępem, w obu motywach. */
   :focus-visible {
-    outline: 2px solid var(--theme-primary);
+    outline: 3px solid var(--theme-primary);
     outline-offset: 2px;
+  }
+
+  /* iOS powiększa stronę po dotknięciu pola z czcionką < 16 px – na ekranach
+     dotykowych pola formularzy zawsze mają co najmniej 16 px. */
+  @media (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
+      font-size: max(1rem, 16px) !important;
+    }
   }
 
   input[type="time"]::-webkit-calendar-picker-indicator,
@@ -500,19 +525,19 @@
 
 @layer components {
   .input-field {
-    @apply w-full min-h-10 px-3 py-2 text-base rounded-lg bg-card border border-input text-text transition-all focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed aria-invalid:border-red-500 aria-invalid:ring-red-500/40;
+    @apply w-full min-h-11 px-3 py-2 text-base rounded-lg bg-card border border-input text-text transition-all focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed aria-invalid:border-red-500 aria-invalid:ring-red-500/40;
   }
 
   .form-card {
-    @apply bg-card border border-line p-4 md:p-6 rounded-card shadow-sm transition-colors flex flex-col gap-3 md:gap-4 max-w-lg animate-fade-in;
+    @apply bg-card border border-line p-4 md:p-6 rounded-card transition-colors flex flex-col gap-3 md:gap-4 max-w-lg animate-fade-in;
   }
 
   .form-label {
-    @apply block text-xs md:text-sm font-medium text-text-secondary mb-1 md:mb-1.5;
+    @apply block text-sm font-medium text-text-secondary mb-1.5;
   }
 
   .widget {
-    @apply mb-2 sm:mb-4 bg-card border border-line overflow-hidden rounded-card shadow-sm transition-colors;
+    @apply mb-2 sm:mb-4 bg-card border border-line overflow-hidden rounded-card transition-colors;
   }
 
   select.input-field {
@@ -527,13 +552,12 @@
   .card {
     /* Karta to powierzchnia, nie przycisk: bez reakcji na hover (sugerowała
        klikalność) i bez animacji wejścia przy każdym renderze listy. */
-    @apply bg-card border max-w-md md:max-w-3xl border-line shadow-sm transition-colors;
+    @apply bg-card border max-w-md md:max-w-3xl border-line transition-colors;
   }
 
   .page-title {
-    @apply font-display text-2xl sm:text-[1.75rem] font-bold leading-tight text-text;
-    letter-spacing: -0.015em;
-    font-variation-settings: "opsz" 48;
+    @apply font-sans text-[1.625rem] sm:text-[2rem] font-bold leading-tight text-text;
+    letter-spacing: -0.01em;
   }
 
   .skeleton {

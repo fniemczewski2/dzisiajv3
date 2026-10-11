@@ -1,8 +1,8 @@
-﻿// components/calendar/CalendarCell.tsx
+// components/calendar/CalendarCell.tsx
 
 import clsx from "clsx";
 import { isSameDay, parseISO } from "date-fns";
-import { Calendar } from "lucide-react";
+import { AlertTriangle, Calendar } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { MoodEntry, MoodOption } from "@/types/moods";
@@ -16,6 +16,19 @@ interface Props {
   dayMood?: MoodEntry | null;
   moodOptions: MoodOption[];
   holiday?: string;
+  eventTotal?: number;
+  hasConflict?: boolean;
+}
+
+const dayLabelFmt = new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long" });
+
+function eventsLabel(n: number): string {
+  if (n === 0) return "brak wydarzeń";
+  if (n === 1) return "1 wydarzenie";
+  const lastTwo = n % 100;
+  const last = n % 10;
+  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return `${n} wydarzenia`;
+  return `${n} wydarzeń`;
 }
 
 function areEqual(prev: Props, next: Props): boolean {
@@ -27,7 +40,9 @@ function areEqual(prev: Props, next: Props): boolean {
     prev.onClick === next.onClick &&
     prev.dayMood?.mood_id === next.dayMood?.mood_id &&
     prev.moodOptions === next.moodOptions &&
-    prev.holiday === next.holiday
+    prev.holiday === next.holiday &&
+    prev.eventTotal === next.eventTotal &&
+    prev.hasConflict === next.hasConflict
   );
 }
 
@@ -40,6 +55,8 @@ const CalendarCell = memo(function CalendarCell({
   dayMood,
   moodOptions,
   holiday,
+  eventTotal = 0,
+  hasConflict = false,
 }: Readonly<Props>) {
   const today = parseISO(getAppDate());
   const isOutside = date.getMonth() !== currentMonth;
@@ -57,11 +74,19 @@ const CalendarCell = memo(function CalendarCell({
         "flex flex-col relative text-left justify-between p-1 sm:p-2 sm:min-h-26.5 min-h-21.5 rounded-xl cursor-pointer overflow-hidden border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isOutside
           ? "bg-transparent border-transparent text-text-muted opacity-50 hover:bg-surface"
-          : "card shadow-sm hover:shadow-md",
+          : "card hover:border-line-strong",
         isToday && "ring-1 ring-primary"
       )}
       onClick={onClick}
-      aria-label={`Wybierz datę ${date.toLocaleDateString()}`}
+      aria-label={[
+        dayLabelFmt.format(date),
+        isToday ? "dziś" : null,
+        holiday ? `święto: ${holiday}` : null,
+        eventsLabel(eventTotal),
+        hasConflict ? "uwaga: nakładające się terminy" : null,
+        moodOption ? `nastrój: ${moodOption.label}` : null,
+      ].filter(Boolean).join(", ")}
+      aria-current={isToday ? "date" : undefined}
     >
       <div className="flex flex-nowrap justify-between items-center w-full">
         <div
@@ -80,22 +105,33 @@ const CalendarCell = memo(function CalendarCell({
 
         {moodOption && isMobile && (
           <div
-            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full absolute top-1 right-1 shadow-sm"
+            aria-hidden="true"
+            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full absolute top-1 right-1"
             style={{ backgroundColor: moodOption.color }}
             title={moodOption.label}
           />
         )}
 
         <div className="flex items-center gap-1 z-10">
+          {hasConflict && (
+            <span
+              aria-hidden="true"
+              title="Nakładające się terminy"
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-(--warning-bg) text-(--warning-fg)"
+            >
+              <AlertTriangle className="h-3 w-3" />
+            </span>
+          )}
           {(eCount != 0 && !isMobile) && (
             <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-lg text-xs font-bold text-text-secondary">
-              <Calendar size={12} />
+              <Calendar size={12} aria-hidden="true" />
               +{eCount}
             </div>
           )}
           {!isMobile && (
             <div
-              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shadow-sm"
+              aria-hidden="true"
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full"
               style={{ backgroundColor: moodOption?.color }}
               title={moodOption?.label}
             />

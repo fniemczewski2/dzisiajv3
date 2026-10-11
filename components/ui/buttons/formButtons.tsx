@@ -15,11 +15,11 @@ export const AddButton = ({ onClick, loading, disabled, small = false }: Readonl
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} hover:bg-secondary-hover bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+    className={`${small ? "min-h-11 min-w-11 my-auto p-2" : "min-h-11 px-4 py-2"} hover:bg-secondary-hover bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
     aria-label="dodaj"
   >
     {!small && "Dodaj"}
-    <PlusCircleIcon className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
+    <PlusCircleIcon className={`${small ? "w-4 h-4" : "w-5 h-5"}`} aria-hidden="true" />
   </button>
 );
 
@@ -28,11 +28,11 @@ export const AddAnotherButton = ({ onClick, loading, disabled, small = false }: 
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+    className={`${small ? "min-h-11 min-w-11 my-auto p-2" : "min-h-11 px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-line-strong`}
     aria-label="dodaj kolejny"
   >
     Następny
-    <PlusCircleIcon className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
+    <PlusCircleIcon className={`${small ? "w-4 h-4" : "w-5 h-5"}`} aria-hidden="true" />
   </button>
 );
 
@@ -41,11 +41,11 @@ export const CloseButton = ({ onClick, loading, disabled, small = false }: Reado
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 shadow`}
+    className={`${small ? "min-h-11 min-w-11 my-auto p-2" : "min-h-11 px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-line-strong`}
     aria-label="zamknij"
   >
     {!small && "Zamknij"}
-    <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
+    <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} aria-hidden="true" />
   </button>
 );
 
@@ -54,11 +54,11 @@ export const SaveButton = ({ onClick, loading, disabled, small = false }: Readon
     type="submit"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`dzisiaj-save-btn ${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 hover:bg-secondary-hover bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent shadow`}
+    className={`dzisiaj-save-btn ${small ? "min-h-11 min-w-11 my-auto p-2" : "min-h-11 px-4 py-2"} w-full md:flex-1 hover:bg-secondary-hover bg-secondary text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent`}
     aria-label="zapisz"
   >
     {!small && "Zapisz"}
-    {loading ? <Loader2 className={`${small ? "w-4 h-4" : "w-5 h-5"} animate-spin`} /> : <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />}
+    {loading ? <Loader2 className={`${small ? "w-4 h-4" : "w-5 h-5"} animate-spin`} /> : <Save className={`${small ? "w-4 h-4" : "w-5 h-5"}`} aria-hidden="true" />}
   </button>
 );
 
@@ -67,11 +67,11 @@ export const CancelButton = ({ onClick, loading, disabled, small = false }: Read
     type="button"
     onClick={onClick}
     disabled={loading || disabled}
-    className={`${small ? "w-min h-min my-auto p-1.5 sm:p-2" : "px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
+    className={`${small ? "min-h-11 min-w-11 my-auto p-2" : "min-h-11 px-4 py-2"} w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-line-strong`}
     aria-label="anuluj"
   >
     {!small && "Anuluj"}
-    <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} />
+    <X className={`${small ? "w-4 h-4" : "w-5 h-5"}`} aria-hidden="true" />
   </button>
 );
 

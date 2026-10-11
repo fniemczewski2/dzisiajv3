@@ -162,13 +162,14 @@ export default function SlackListsSection() {
                     columns={slack.columnsByList[list.id]}
                     busy={slack.busy}
                     onLoadColumns={() => void slack.loadColumns(list.id)}
-                    onSave={(columnMap, isDefault, syncEnabled, assigneeEmails) =>
+                    onSave={(columnMap, isDefault, syncEnabled, assigneeEmails, importCategory) =>
                       void slack.saveList(
                         list.id,
                         columnMap,
                         isDefault,
                         syncEnabled,
-                        assigneeEmails
+                        assigneeEmails,
+                        importCategory
                       )
                     }
                   />

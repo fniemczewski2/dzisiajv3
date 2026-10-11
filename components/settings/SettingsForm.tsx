@@ -9,6 +9,9 @@ import { MoodOption } from "@/types/moods";
 import { Settings } from "@/types/settings";
 
 import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
+import HabitsEditor from "@/components/settings/HabitsEditor";
+import ModulesEditor from "@/components/settings/ModulesEditor";
+import { resolveHabits } from "@/lib/habits";
 import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -122,19 +125,10 @@ export default function SettingsForm({
         </div>
 
         {localSettings.show_habits && (
-          <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-            <h4 className="text-xs font-bold text-text-muted mb-3">Aktywne nawyki</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
-              {renderSwitch("habit_pills", "Leki")}
-              {renderSwitch("habit_bath", "Higiena")}
-              {renderSwitch("habit_workout", "Trening")}
-              {renderSwitch("habit_friends", "Relacje")}
-              {renderSwitch("habit_work", "Praca / Rozwój")}
-              {renderSwitch("habit_housework", "Dom / Porządki")}
-              {renderSwitch("habit_plants", "Higiena cyfrowa")}
-              {renderSwitch("habit_duolingo", "Języki obce")}
-            </div>
-          </div>
+          <HabitsEditor
+            value={resolveHabits(localSettings)}
+            onChange={(next) => updateLocalField("custom_habits", next)}
+          />
         )}
       </div>
 
@@ -219,14 +213,21 @@ export default function SettingsForm({
         </div>
       )}
       
+      <ModulesEditor
+        disabled={localSettings.disabled_modules ?? []}
+        onChange={(next) => updateLocalField("disabled_modules", next.length > 0 ? next : null)}
+      />
+
       <TaskCategoriesEditor
         value={localSettings.task_categories}
         onChange={(next) => updateLocalField("task_categories", next)}
         onRenamesChange={setCategoryRenames}
+        colors={localSettings.category_colors}
+        onColorsChange={(next) => updateLocalField("category_colors", next)}
       />
 
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-        <h4 className="text-xs font-bold text-text-muted mb-3">SORTOWANIE</h4>
+        <h4 className="text-sm font-semibold text-text mb-3">Sortowanie</h4>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

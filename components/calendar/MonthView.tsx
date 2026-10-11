@@ -1,4 +1,4 @@
-﻿// components/calendar/MonthView.tsx
+// components/calendar/MonthView.tsx
 
 import React, { useMemo, memo } from "react";
 import { Event, PlacedEvent } from "@/types/events";
@@ -11,6 +11,10 @@ import CalendarCell from "./CalendarCell";
 import { useResponsive } from "@/hooks/useResponsive";
 import { getPolishHolidays } from "@/lib/holidays";
 import { parseEventDate } from "@/lib/dateUtils";
+import { getEventsForDay } from "@/lib/eventUtils";
+import { overlappingEventIds } from "@/lib/eventConflicts";
+import { useCategoryColors } from "@/hooks/useTaskCategories";
+import { DEFAULT_EVENT_COLOR } from "@/lib/categoryColors";
 
 interface MonthViewProps {
   events: Event[];
@@ -106,6 +110,7 @@ const MonthView = memo(function MonthView({
   moodOptions,
 }: Readonly<MonthViewProps>) {
   const isMobile = useResponsive();
+  const categoryColors = useCategoryColors();
 
   const { calendarStart, calendarEnd } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -138,6 +143,19 @@ const MonthView = memo(function MonthView({
 
   const weekData = useMemo(() => {
     return weeks.map((week) => processWeekLayout(week, events));
+  }, [weeks, events]);
+
+  // Liczba wydarzeń i kolizje w każdym dniu – do etykiety komórki i znacznika ostrzeżenia.
+  const dayInfo = useMemo(() => {
+    const info: Record<string, { count: number; conflict: boolean }> = {};
+    weeks.flat().forEach((day) => {
+      const dayEvents = getEventsForDay(events, day);
+      info[format(day, "yyyy-MM-dd")] = {
+        count: dayEvents.length,
+        conflict: overlappingEventIds(dayEvents).size > 0,
+      };
+    });
+    return info;
   }, [weeks, events]);
 
   const moodMap = useMemo(() => {
@@ -186,18 +204,26 @@ const MonthView = memo(function MonthView({
                   dayMood={moodMap[dateStr]}
                   moodOptions={moodOptions}
                   holiday={holidaysMap[dateStr]}
+                  eventTotal={dayInfo[dateStr]?.count ?? 0}
+                  hasConflict={dayInfo[dateStr]?.conflict ?? false}
                 />
               );
             })}
           </div>
 
-          <div className="absolute top-8 sm:top-9.5 left-0 right-0 h-13.5 sm:h-15 grid grid-cols-7 grid-rows-3 gap-0.5 sm:gap-2 pointer-events-none">
+          {/* Paski są tylko wizualne: treść dnia ogłasza etykieta przycisku komórki. */}
+          <div aria-hidden="true" className="absolute top-8 sm:top-9.5 left-0 right-0 h-13.5 sm:h-15 grid grid-cols-7 grid-rows-3 gap-0.5 sm:gap-2 pointer-events-none">
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={`${event.id}-${start.toISOString()}`}
-                className="bg-secondary opacity-90 text-white text-xs rounded-lg truncate h-4 sm:h-4.5 px-1 flex items-center shadow-sm"
-                style={{ gridColumnStart: col + 1, gridColumnEnd: `span ${span}`, gridRowStart: row + 1 }}
-                title={event.title}
+                className="text-white text-xs font-medium rounded-md truncate h-4 sm:h-4.5 px-1.5 flex items-center dark:ring-1 dark:ring-white/15"
+                style={{
+                  gridColumnStart: col + 1,
+                  gridColumnEnd: `span ${span}`,
+                  gridRowStart: row + 1,
+                  backgroundColor: (event.category && categoryColors[event.category]) || DEFAULT_EVENT_COLOR,
+                }}
+                title={event.category ? `${event.title} (${event.category})` : event.title}
               >
                 {event.title}
               </div>

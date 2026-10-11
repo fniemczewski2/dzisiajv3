@@ -1,4 +1,4 @@
-﻿// hooks/db/useDaySchemas.ts
+// hooks/db/useDaySchemas.ts
 
 import { useCallback } from "react";
 import { Schema, ScheduleItem } from "@/types/schemas";
@@ -34,9 +34,16 @@ export function useDaySchemas() {
       name: payload.name,
       days: payload.days,
       entries: payload.entries,
+      // Klucz tylko, gdy ustawiony – zapis działa też przed migracją 1.40.
+      ...(payload.is_default ? { is_default: true } : {}),
     }),
     buildOptimistic: (payload, tempId) => ({ ...payload, id: tempId }) as SchemaRow,
-    prepareUpdate: (updates) => ({ name: updates.name, days: updates.days, entries: updates.entries }),
+    prepareUpdate: (updates) => ({
+      name: updates.name,
+      days: updates.days,
+      entries: updates.entries,
+      ...(updates.is_default === undefined ? {} : { is_default: updates.is_default }),
+    }),
     messages: MESSAGES,
   });
 

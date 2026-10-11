@@ -1,6 +1,6 @@
 {
   "name": "dzisiaj.fun",
-  "version": "1.38.4",
+  "version": "1.39.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -24,6 +24,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "fast-xml-parser": "^5.11.1",
     "formidable": "^3.5.4",
     "ical.js": "^2.2.1",
     "lucide-react": "^1.28.0",

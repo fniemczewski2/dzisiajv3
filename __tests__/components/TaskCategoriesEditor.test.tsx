@@ -27,7 +27,7 @@ describe("TaskCategoriesEditor", () => {
     fireEvent.change(input, { target: { value: "PRACA" } });
     fireEvent.click(screen.getByRole("button", { name: /Dodaj/ }));
     expect(screen.getByText("Kategoria „PRACA” już istnieje.")).toBeTruthy();
-    fireEvent.change(input, { target: { value: "slack" } });
+    fireEvent.change(input, { target: { value: "terminy" } });
     fireEvent.click(screen.getByRole("button", { name: /Dodaj/ }));
     expect(screen.getByText(/kategoria systemowa/)).toBeTruthy();
     expect(onChange).not.toHaveBeenCalled();
@@ -63,6 +63,6 @@ describe("TaskCategoriesEditor", () => {
   it("pokazuje kategorie systemowe jako stałe", () => {
     setup();
     expect(screen.getByText("Kategorie systemowe – zawsze dostępne")).toBeTruthy();
-    expect(screen.getByText("slack")).toBeTruthy();
+    expect(screen.getByText("terminy")).toBeTruthy();
   });
 });

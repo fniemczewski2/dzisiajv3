@@ -5,6 +5,7 @@ import Header from "../Header";
 import Navbar from "../Navbar";
 import Link from "next/link";
 import LoveCat from "../settings/LoveCat";
+import ModuleGate from "./ModuleGate";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePushNotifications } from "@/hooks/db/usePushNotifications";
 
@@ -28,7 +29,7 @@ export default function Layout({ children }: { readonly children: ReactNode }) {
       <Header />
       <LoveCat />
       <main id="main-content" tabIndex={-1} className="flex-auto py-4 sm:py-6 pb-0 sm:pb-0 mb-24 md:mb-28 max-w-[1600px] w-full focus:outline-none">
-        {children}
+        {user ? <ModuleGate>{children}</ModuleGate> : children}
         <footer className="border-t border-gray-200 dark:border-gray-800 mt-10 py-4 px-4 text-center">
             <p className="text-sm text-text-muted">
               © {new Date().getFullYear()} Dzisiaj.Fun

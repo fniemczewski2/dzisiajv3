@@ -235,15 +235,15 @@ describe("belongsOnList", () => {
     expect(belongsOnList({ category: "slack" }, "F_OTHER", defaultList)).toBe(false);
   });
 
-  it("nie wysyła zadań spoza kategorii slack, nawet z przypisaną listą", () => {
-    expect(belongsOnList({ category: "zakupy" }, undefined, defaultList)).toBe(false);
-    expect(belongsOnList({ category: "zakupy" }, "F_OTHER", otherList)).toBe(false);
-    expect(belongsOnList({ category: null }, undefined, defaultList)).toBe(false);
+  // 1.40: kategoria „slack” nie istnieje – o wysyłce decyduje wybrana lista.
+  it("zadanie z wybraną listą trafia na nią niezależnie od kategorii", () => {
+    expect(belongsOnList({ category: "zakupy" }, "F_OTHER", otherList)).toBe(true);
+    expect(belongsOnList({ category: "praca" }, "F_OTHER", defaultList)).toBe(false);
   });
 
-  it("kategoria jest warunkiem koniecznym niezależnie od pozostałych", () => {
-    expect(belongsOnList({ category: "slack" }, "F_OTHER", otherList)).toBe(true);
-    expect(belongsOnList({ category: "praca" }, "F_OTHER", otherList)).toBe(false);
+  it("bez wybranej listy zwykłe zadania nie trafiają do Slacka", () => {
+    expect(belongsOnList({ category: "zakupy" }, undefined, defaultList)).toBe(false);
+    expect(belongsOnList({ category: null }, undefined, defaultList)).toBe(false);
   });
 });
 

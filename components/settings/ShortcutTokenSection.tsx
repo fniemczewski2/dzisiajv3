@@ -80,16 +80,32 @@ export default function ShortcutTokenSection() {
   return (
     <section className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
       <div className="flex items-center gap-3 text-text mb-4">
-        <KeyRound className="w-5 h-5 text-primary shrink-0" />
-        <h3 className="text-lg font-bold">Skróty Siri (czas pracy)</h3>
+        <KeyRound className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
+        <h3 className="text-lg font-bold">Skróty Siri</h3>
       </div>
 
-      <p className="text-sm text-text-secondary mb-4">
-        Skrót wysyła <code className="font-mono">POST /api/worklogs/auto</code> z nagłówkiem{" "}
-        <code className="font-mono">Authorization: Bearer &lt;token&gt;</code> i treścią{" "}
-        <code className="font-mono">{`{"action":"start"}`}</code> lub{" "}
-        <code className="font-mono">{`{"action":"end"}`}</code>.
+      <p className="text-sm text-text-secondary mb-3">
+        Jeden token obsługuje oba skróty. W aplikacji Skróty użyj akcji „Pobierz zawartość URL”
+        z metodą POST, nagłówkiem <code className="font-mono">Authorization: Bearer &lt;token&gt;</code> i treścią JSON:
       </p>
+      <dl className="mb-4 space-y-3 text-sm">
+        <div>
+          <dt className="font-semibold text-text">Szybka notatka</dt>
+          <dd className="text-text-secondary">
+            <code className="font-mono break-all">POST /api/quick-notes</code> z treścią{" "}
+            <code className="font-mono">{`{"text":"…"}`}</code>. Wstaw tam wynik akcji „Podyktuj tekst”
+            albo „Poproś o dane wejściowe”. Każda linia to osobny punkt na górze planu dnia.
+          </dd>
+        </div>
+        <div>
+          <dt className="font-semibold text-text">Czas pracy</dt>
+          <dd className="text-text-secondary">
+            <code className="font-mono break-all">POST /api/worklogs/auto</code> z treścią{" "}
+            <code className="font-mono">{`{"action":"start"}`}</code> lub{" "}
+            <code className="font-mono">{`{"action":"end"}`}</code>.
+          </dd>
+        </div>
+      </dl>
 
       {status && !freshToken && (
         <p className="text-xs text-text-secondary mb-4">
@@ -113,7 +129,7 @@ export default function ShortcutTokenSection() {
       <div className="flex flex-col sm:flex-row gap-2">
         <button type="button" onClick={() => void generate()} disabled={busy} aria-busy={busy} className={BUTTON_CLASS}>
           {busy && <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />}
-          {status ? "Wygeneruj nowy token" : "Wygeneruj token"}
+          Wygeneruj token
         </button>
         {status && (
           <button type="button" onClick={() => void revoke()} disabled={busy} className={BUTTON_CLASS}>

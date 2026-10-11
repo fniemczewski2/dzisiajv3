@@ -24,6 +24,7 @@ export default function DaySchemaForm({
   const [schemaName, setSchemaName] = useState("");
   const [days, setDays] = useState<number[]>([]);
   const [entries, setEntries] = useState<ScheduleItem[]>([]);
+  const [isDefault, setIsDefault] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function DaySchemaForm({
       setSchemaName(initialSchema.name);
       setDays(initialSchema.days);
       setEntries(initialSchema.entries);
+      setIsDefault(Boolean(initialSchema.is_default));
     }
   }, [initialSchema]);
 
@@ -38,7 +40,7 @@ export default function DaySchemaForm({
     e.preventDefault();
 
     setLoading(true);
-    const payload = { name: schemaName.trim(), days, entries };
+    const payload = { name: schemaName.trim(), days, entries, is_default: isDefault };
 
     if (isEdit && initialSchema?.id) {
       await updateSchema(initialSchema.id, payload);
@@ -75,11 +77,11 @@ export default function DaySchemaForm({
       </div>
 
       <div>
-        <label htmlFor="weekdays" className="form-label">Dni tygodnia:</label>
-        <div id="weekdays" className="flex flex-wrap gap-2">
+        <div id="weekdays-label" className="form-label">Dni tygodnia:</div>
+        <div role="group" aria-labelledby="weekdays-label" className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
-            <button key={label} type="button" onClick={() => toggleDay(i)}
-              className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+            <button key={label} type="button" onClick={() => toggleDay(i)} aria-pressed={days.includes(i)}
+              className={`min-h-11 min-w-11 px-3 rounded-lg border text-sm font-medium transition-colors ${
                 days.includes(i)
                   ? "bg-secondary border-primary text-white"
                   : "bg-surface border-gray-200 dark:border-gray-700 text-text-secondary hover:bg-surface-hover"
@@ -87,6 +89,23 @@ export default function DaySchemaForm({
               {label}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3">
+        <input
+          id="schema-default"
+          type="checkbox"
+          checked={isDefault}
+          onChange={(e) => setIsDefault(e.target.checked)}
+          className="mt-0.5 h-5 w-5 shrink-0"
+          aria-describedby="schema-default-hint"
+        />
+        <div>
+          <label htmlFor="schema-default" className="cursor-pointer font-medium text-text">Domyślny w wybrane dni</label>
+          <p id="schema-default-hint" className="text-sm text-text-secondary">
+            Gdy kilka schematów obejmuje ten sam dzień, ten wybierze się sam. Na planie dnia zmienisz go na inny.
+          </p>
         </div>
       </div>
 

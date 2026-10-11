@@ -5,7 +5,8 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => ({ user: { id: "me" }, supabase: {} }) }));
-vi.mock("@/hooks/useTaskCategories", () => ({ useTaskCategories: () => ["praca", "inne"] }));
+vi.mock("@/hooks/useTaskCategories", () => ({ useTaskCategories: () => ["praca", "inne"], useCategoryColors: () => ({}) }));
+vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { success: vi.fn(), error: vi.fn() } }) }));
 
 import TaskItem from "@/components/tasks/TaskItem";
 import type { Task } from "@/types/tasks";

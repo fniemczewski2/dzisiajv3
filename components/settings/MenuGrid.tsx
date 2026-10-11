@@ -1,12 +1,14 @@
-﻿// components/settings/MenuGrid.tsx
+// components/settings/MenuGrid.tsx
 
 import React from "react";
 import { useRouter } from "next/router";
 import { NAVIGATION_CATEGORIES, QUICK_ACTIONS } from "@/config/navigation";
 import { AddSpecificButton } from "../ui/CommonButtons";
+import { useEnabledModules } from "@/hooks/useEnabledModules";
 
 export default function MenuGrid() {
   const router = useRouter();
+  const { isEnabled } = useEnabledModules();
 
   return (
     <div className="space-y-4 mb-4">
@@ -15,7 +17,7 @@ export default function MenuGrid() {
           DODAJ
         </h3>
         <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-          {QUICK_ACTIONS.map((action) => {
+          {QUICK_ACTIONS.filter((a) => isEnabled(a.path)).map((action) => {
             return (
               <AddSpecificButton
                 path={action.path}
@@ -29,7 +31,7 @@ export default function MenuGrid() {
           })}
         </div>
       </div>
-      {NAVIGATION_CATEGORIES.map((category) => {
+      {NAVIGATION_CATEGORIES.map((c) => ({ ...c, items: c.items.filter((i) => isEnabled(i.path)) })).filter((c) => c.items.length > 0).map((category) => {
         return (
           <div 
             key={category.name}

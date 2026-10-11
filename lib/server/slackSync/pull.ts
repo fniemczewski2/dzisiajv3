@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { deleteItem, isMissingItemError, type SlackColumn, type SlackItem } from "@/lib/server/slackLists";
-import { SLACK_TASK_CATEGORY, DEFAULT_TASK_STATUS } from "@/config/slack";
+import { DEFAULT_TASK_STATUS } from "@/config/slack";
 import type { SyncTarget, TaskRow } from "./types";
 import { fingerprint, itemToTaskPatch } from "./taskMapping";
 import { touchLink } from "./push";
@@ -41,7 +41,7 @@ export async function createTaskFromItem(
   const row = {
     ...patch,
     user_id: target.userId,
-    category: SLACK_TASK_CATEGORY,
+    category: target.importCategory,
     status: patch.status ?? DEFAULT_TASK_STATUS,
   };
 

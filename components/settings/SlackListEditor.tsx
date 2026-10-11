@@ -6,8 +6,11 @@ import {
   SLACK_MAPPABLE_TASK_FIELDS,
   SLACK_FIELD_LABELS,
   formatAssigneeEmails,
+  DEFAULT_SLACK_IMPORT_CATEGORY,
   type SlackMappableTaskField,
 } from "@/config/slack";
+import { useTaskCategories } from "@/hooks/useTaskCategories";
+import { taskCategoryOptions } from "@/lib/taskCategories";
 import type { SlackColumnOption, SlackListConfig } from "@/hooks/db/useSlackTasks";
 
 type ColumnMap = Partial<Record<SlackMappableTaskField, string>>;
@@ -21,7 +24,8 @@ interface SlackListEditorProps {
     columnMap: ColumnMap,
     isDefault: boolean,
     syncEnabled: boolean,
-    assigneeEmails: string
+    assigneeEmails: string,
+    importCategory: string
   ) => void;
 }
 
@@ -33,6 +37,9 @@ export default function SlackListEditor({
   onSave,
 }: Readonly<SlackListEditorProps>) {
   const [expanded, setExpanded] = useState(false);
+  const userCategories = useTaskCategories();
+  const [importCategory, setImportCategory] = useState(list.import_category || DEFAULT_SLACK_IMPORT_CATEGORY);
+  const categoryChoices = taskCategoryOptions(userCategories, importCategory);
   const [draftMap, setDraftMap] = useState<ColumnMap>(list.column_map ?? {});
   const [isDefault, setIsDefault] = useState(list.is_default);
   const [syncEnabled, setSyncEnabled] = useState(list.sync_enabled);
@@ -149,8 +156,24 @@ export default function SlackListEditor({
                 </div>
               )}
 
+              <div>
+                <label htmlFor={`slack-category-${list.id}`} className="block text-sm text-text-secondary">
+                  Kategoria zadań pobranych z tej listy:
+                </label>
+                <select
+                  id={`slack-category-${list.id}`}
+                  value={importCategory}
+                  onChange={(e) => setImportCategory(e.target.value)}
+                  className="input-field mt-1"
+                >
+                  {categoryChoices.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
               <SaveButton
-                onClick={() => onSave(draftMap, isDefault, syncEnabled, assigneeEmails)}
+                onClick={() => onSave(draftMap, isDefault, syncEnabled, assigneeEmails, importCategory)}
                 loading={busy}
                 disabled={busy || !draftMap.title}
               />

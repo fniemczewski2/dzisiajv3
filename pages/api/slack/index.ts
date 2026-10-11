@@ -13,6 +13,7 @@ import {
   SLACK_USER_SCOPES,
   SLACK_MAPPABLE_TASK_FIELDS,
   parseAssigneeEmails,
+  MAX_IMPORT_CATEGORY_LENGTH,
 } from "@/config/slack";
 
 interface ConnectionRow {
@@ -150,7 +151,7 @@ async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiR
   const { data: lists, error } = await admin
     .from("slack_lists")
     .select(
-      "id, connection_id, list_id, list_title, column_map, is_default, sync_enabled, assignee_emails"
+      "*" // import_category (1.40) może jeszcze nie istnieć
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
@@ -256,6 +257,7 @@ async function handleSaveList(
     is_default?: boolean;
     sync_enabled?: boolean;
     assignee_emails?: unknown;
+    import_category?: unknown;
   };
   if (!body?.list_row_id) return res.status(400).json({ error: "Brak identyfikatora listy." });
 
@@ -284,6 +286,9 @@ async function handleSaveList(
       is_default: Boolean(body.is_default),
       sync_enabled: body.sync_enabled ?? true,
       assignee_emails: parseAssigneeEmails(toAssigneeEmailsCsv(body.assignee_emails)),
+      ...(typeof body.import_category === "string" && body.import_category.trim()
+        ? { import_category: body.import_category.replaceAll(/\s+/g, " ").trim().slice(0, MAX_IMPORT_CATEGORY_LENGTH) }
+        : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", body.list_row_id);

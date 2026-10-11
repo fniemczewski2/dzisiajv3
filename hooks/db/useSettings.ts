@@ -13,6 +13,10 @@ import { isAbortError } from "@/lib/abortUtils";
 import { favoriteKey, isSameStopPlace, type FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
 
 import { omit } from "@/lib/objectUtils";
+import { normalizeCategoryColors } from "@/lib/categoryColors";
+import { normalizeDisabledModules } from "@/config/modules";
+import { normalizeHabits } from "@/lib/habits";
+import { normalizeCustomFeeds } from "@/config/rssSources";
 const safeParseArray = <T = unknown>(data: unknown): T[] => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -49,6 +53,9 @@ export const normalizeFavoriteStops = (data: unknown): FavoriteStop[] => {
     .filter((item) => item.name !== "");
 };
 
+/** Kolumny dodane migracjami – zapis ustawień działa także bez nich. */
+const OPTIONAL_SETTINGS_COLUMNS = ["task_categories", "category_colors", "disabled_modules", "custom_habits", "rss_sources", "rss_custom"] as const;
+
 const DEFAULT_SETTINGS: Settings = {
   sort_order: "priority",
   show_completed: true,
@@ -81,6 +88,11 @@ const DEFAULT_SETTINGS: Settings = {
   habit_duolingo: true,
   mood_options: DEFAULT_MOODS,
   task_categories: null,
+  category_colors: null,
+  disabled_modules: null,
+  custom_habits: null,
+  rss_sources: null,
+  rss_custom: null,
   main_view: "calendar",
   sort_people: "alphabetical",
   hide_priority_5: false,
@@ -93,13 +105,19 @@ export function useSettings() {
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
-  // Zapis odporny na brak kolumny task_categories (kod zmieniony przed migracją
-  // bazy): bez tego nie dałoby się zapisać żadnego ustawienia.
+  // Zapis odporny na brak nowszych kolumn (kod wdrożony przed migracją bazy):
+  // bez tego nie dałoby się zapisać żadnego ustawienia. Brakującą kolumnę
+  // pomijamy i próbujemy ponownie.
   const upsertSettings = useCallback(
     async (row: Record<string, unknown>) => {
-      const result = await supabase.from("settings").upsert(row, { onConflict: "user_id" });
-      if (result.error?.code === "PGRST204" && result.error.message.includes("task_categories")) {
-        return supabase.from("settings").upsert(omit(row, ["task_categories"]), { onConflict: "user_id" });
+      let current = row;
+      let result = await supabase.from("settings").upsert(current, { onConflict: "user_id" });
+      for (let attempt = 0; attempt < OPTIONAL_SETTINGS_COLUMNS.length; attempt++) {
+        const message = result.error?.code === "PGRST204" ? result.error.message : "";
+        const missing = OPTIONAL_SETTINGS_COLUMNS.find((c) => message.includes(`'${c}'`) && c in current);
+        if (!missing) break;
+        current = omit(current, [missing]);
+        result = await supabase.from("settings").upsert(current, { onConflict: "user_id" });
       }
       return result;
     },
@@ -170,6 +188,11 @@ export function useSettings() {
             habit_duolingo: data.habit_duolingo ?? true,
             mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
             task_categories: Array.isArray(data.task_categories) ? data.task_categories : null,
+            category_colors: data.category_colors ? normalizeCategoryColors(data.category_colors) : null,
+            disabled_modules: Array.isArray(data.disabled_modules) ? normalizeDisabledModules(data.disabled_modules) : null,
+            custom_habits: Array.isArray(data.custom_habits) ? normalizeHabits(data.custom_habits) : null,
+            rss_sources: Array.isArray(data.rss_sources) ? data.rss_sources.filter((x: unknown): x is string => typeof x === "string") : null,
+            rss_custom: Array.isArray(data.rss_custom) ? normalizeCustomFeeds(data.rss_custom) : null,
             main_view: data.main_view ?? "calendar",
             sort_people: data.sort_people ?? "alphabetical",
             hide_priority_5: data.hide_priority_5 ?? false,

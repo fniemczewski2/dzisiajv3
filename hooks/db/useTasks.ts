@@ -1,4 +1,4 @@
-﻿// hooks/db/useTasks.ts
+// hooks/db/useTasks.ts
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Task } from "@/types/tasks";
@@ -12,7 +12,6 @@ import { isAbortError } from "@/lib/abortUtils";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { readCache, writeCache } from "@/lib/offlineCache";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
-import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { UNDO_WINDOW_MS } from "@/config/limits";
 import { enqueueInsert, isOffline } from "@/lib/offlineQueue";
 
@@ -196,7 +195,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
 
         setRawTasks((prev) => prev.map((t) => (t.id === tempId ? (data as Task) : t)));
         toast.success("Dodano zadanie");
-        if (taskData.category !== SLACK_TASK_CATEGORY) triggerSlackSync();
+        triggerSlackSync();
         return data as Task;
       } catch {
         if (isOffline()) {
@@ -394,9 +393,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         if (error) throw error;
         toast.success(done ? "Wykonano zadanie" : "Przywrócono zadanie do wykonania");
 
-        if ((data as { category?: string } | null)?.category === SLACK_TASK_CATEGORY) {
-          triggerSlackSync();
-        }
+        // Sync sam sprawdza, czy zadanie jest powiązane z listą Slack.
+        triggerSlackSync();
       } catch {
         setRawTasks(rollbackRef.current);
         toast.error(done ? "Błąd wykonania zadania." : "Nie udało się przywrócić zadania.");

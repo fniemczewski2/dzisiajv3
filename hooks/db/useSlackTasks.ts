@@ -25,6 +25,8 @@ export interface SlackListConfig {
   is_default: boolean;
   sync_enabled: boolean;
   assignee_emails: string[] | null;
+  /** Kategoria zadań z tej listy (od 1.40). */
+  import_category?: string | null;
 }
 
 interface StatusResponse {
@@ -172,7 +174,8 @@ export function useSlackTasks() {
       columnMap: SlackListConfig["column_map"],
       isDefault: boolean,
       syncEnabled: boolean,
-      assigneeEmails: string
+      assigneeEmails: string,
+      importCategory: string
     ) =>
       runAction(
         async () => {
@@ -184,6 +187,7 @@ export function useSlackTasks() {
               is_default: isDefault,
               sync_enabled: syncEnabled,
               assignee_emails: assigneeEmails,
+              import_category: importCategory,
             }),
           });
           await refresh();

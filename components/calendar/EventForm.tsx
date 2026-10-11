@@ -1,6 +1,6 @@
-﻿// components/calendar/EventForm.tsx
+// components/calendar/EventForm.tsx
 
-import React, { useState, SyntheticEvent, useEffect } from "react";
+import React, { useState, SyntheticEvent, useEffect, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
@@ -18,6 +18,12 @@ import {
   defaultTimedStart,
   durationBetween,
 } from "@/lib/eventTimes";
+import { parseLocalInput, useEventConflicts } from "@/hooks/useEventConflicts";
+import ConflictNotice from "./ConflictNotice";
+import EventCategorySelect from "./EventCategorySelect";
+import RecurrenceEditor from "../ui/RecurrenceEditor";
+import { legacyRepeatFor, type RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import { createTicketReminderTask, isTravelCategory, TICKET_REMINDER_DAYS_BEFORE } from "@/lib/travelTickets";
 
 
 interface EventsFormProps {
@@ -29,6 +35,8 @@ interface EventsFormProps {
   loading: boolean;
   addMany?: boolean;
   addAnother?: (type: "task" | "event") => void;
+  /** Tytuł wstawiony z góry (np. z szybkiej notatki). */
+  initialTitle?: string;
 }
 
 export default function EventForm({
@@ -39,7 +47,8 @@ export default function EventForm({
   selectedDate,
   loading,
   addMany = false,
-  addAnother
+  addAnother,
+  initialTitle = "",
 }: Readonly<EventsFormProps>) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -49,7 +58,10 @@ export default function EventForm({
   const userOptions = settings?.users ?? [];
   const supabase = createClient();
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(initialTitle);
+  const [category, setCategory] = useState<string | null>(null);
+  const [conflictAcknowledged, setConflictAcknowledged] = useState(false);
+  const conflictRef = useRef<HTMLDivElement>(null);
   const [description, setDescription] = useState("");
   const [allDay, setAllDay] = useState(true);
   const [start, setStart] = useState("");
@@ -57,7 +69,8 @@ export default function EventForm({
   const [durationMin, setDurationMin] = useState<number | null>(DEFAULT_EVENT_DURATION_MIN);
   const [place, setPlace] = useState("");
   const [share, setShare] = useState("null");
-  const [repeat, setRepeat] = useState<Event["repeat"]>("none");
+  const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
+  const [ticketReminder, setTicketReminder] = useState(true);
 
   const [calendars, setCalendars] = useState<CalendarTarget[]>([]);
   const [selectedCalendar, setSelectedCalendar] = useState("local");
@@ -96,6 +109,15 @@ export default function EventForm({
     }
   }, [refTime, allDay]);
 
+  const startDate = useMemo(() => parseLocalInput(start), [start]);
+  const endDate = useMemo(() => parseLocalInput(end, allDay), [end, allDay]);
+  const { report: conflicts, hasOverlaps } = useEventConflicts(startDate, endDate, { allDay });
+
+  // Nowy termin = nowa decyzja: potwierdzenie „zapisz mimo to” przestaje obowiązywać.
+  useEffect(() => {
+    setConflictAcknowledged(false);
+  }, [start, end, allDay]);
+
   const handleStartChange = (value: string) => {
     setStart(value);
     if (allDay) {
@@ -113,10 +135,11 @@ export default function EventForm({
     const minutes = durationBetween(start, value);
     setDurationMin(QUICK_EVENT_DURATIONS.some((d) => d.minutes === minutes) ? minutes : null);
   };
-  const isRecurring = repeat !== "none";
-  const handleRepeatChange = (value: Event["repeat"]) => {
-    setRepeat(value);
-    if (value !== "none") setSelectedCalendar("local");
+  const isRecurring = recurrence !== null;
+  const showTicketOption = isTravelCategory(category) && !isRecurring;
+  const handleRecurrenceChange = (value: RecurrenceRule | null) => {
+    setRecurrence(value);
+    if (value) setSelectedCalendar("local");
   };
 
   const applyDuration = (minutes: number) => {
@@ -126,12 +149,20 @@ export default function EventForm({
 
   const resetForm = () => {
     setTitle(""); setDescription(""); setStart(""); setEnd(""); setDurationMin(DEFAULT_EVENT_DURATION_MIN);
-    setPlace(""); setShare("null"); setRepeat("none"); 
-    setSelectedCalendar("local"); 
+    setPlace(""); setShare("null"); setRecurrence(null); setTicketReminder(true); 
+    setSelectedCalendar("local"); setCategory(null); setConflictAcknowledged(false);
   };
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Pierwsze „Zapisz” przy kolizji tylko pokazuje ostrzeżenie; drugie zapisuje.
+    if (hasOverlaps && !conflictAcknowledged) {
+      setConflictAcknowledged(true);
+      conflictRef.current?.focus();
+      conflictRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      return;
+    }
 
     const created = await addEvent({
           id: "",
@@ -141,8 +172,12 @@ export default function EventForm({
           end_time:   allDay ? localDateTimeToISO(end   + "T23:59") : localDateTimeToISO(end),
           place: place.trim(),
           shared_with_email: share === "null" ? "" : share,
-          repeat,
+          repeat: legacyRepeatFor(recurrence),
+          // Klucz tylko przy powtarzaniu – zapis zwykłych wydarzeń działa też przed migracją bazy.
+          ...(recurrence ? { recurrence } : {}),
           user_id: userId || "",
+          // Klucz tylko, gdy wybrano kategorię – zapis działa też przed migracją bazy.
+          ...(category ? { category } : {}),
         });
 
     const target = calendars.find((c) => c.id === selectedCalendar);
@@ -154,6 +189,19 @@ export default function EventForm({
       } else {
         toast.error(`Wydarzenie zapisano w aplikacji, ale nie udało się dodać go do kalendarza ${calendarTargetLabel(target)}.`);
       }
+    }
+
+    // Zapis się nie udał (komunikat pokazał już hook) – formularz zostaje otwarty z danymi.
+    if (!created) return;
+
+    if (showTicketOption && ticketReminder && userId && category) {
+      const { error, dueDate } = await createTicketReminderTask(supabase, userId, {
+        title: title.trim(),
+        startDay: start.slice(0, 10),
+        category,
+      });
+      if (error) toast.error(error);
+      else if (dueDate) toast.success(`Dodano zadanie „Kup bilety” na ${dueDate.split("-").reverse().join(".")}`);
     }
 
     resetForm();
@@ -174,9 +222,9 @@ export default function EventForm({
       <div className="flex items-center">
         <input id="allDay" type="checkbox" checked={allDay}
           onChange={(e) => setAllDay(e.target.checked)}
-          className="h-4 w-4 text-primary bg-transparent border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary"
+          className="h-5 w-5 shrink-0"
           disabled={loading} />
-        <label htmlFor="allDay" className="ml-2 text-sm font-medium text-text">
+        <label htmlFor="allDay" className="flex min-h-11 items-center pl-3 text-base font-medium text-text cursor-pointer">
           Wydarzenie całodniowe
         </label>
       </div>
@@ -185,28 +233,30 @@ export default function EventForm({
           <label htmlFor="start" className="form-label">Początek:</label>
           <input id="start" type={allDay ? "date" : "datetime-local"} value={start}
             onChange={(e) => handleStartChange(e.target.value)}
-            className="input-field text-xs w-full min-w-0 px-1" required disabled={loading} />
+            className="input-field w-full min-w-0 px-2" required disabled={loading} />
         </div>
         <div>
           <label htmlFor="end" className="form-label">Koniec:</label>
           <input id="end" type={allDay ? "date" : "datetime-local"} value={end}
             onChange={(e) => handleEndChange(e.target.value)}
             min={start || undefined}
-            className="input-field text-xs w-full min-w-0 px-1" required disabled={loading} />
+            className="input-field w-full min-w-0 px-2" required disabled={loading} />
         </div>
       </div>
+
+      <ConflictNotice ref={conflictRef} report={conflicts} acknowledged={conflictAcknowledged} />
 
       {!allDay && (
         <fieldset className="flex flex-wrap items-center gap-2" disabled={loading}>
           <legend className="sr-only">Czas trwania</legend>
-          <span className="text-xs font-medium text-text-secondary" aria-hidden="true">Czas trwania:</span>
+          <span className="text-sm font-medium text-text-secondary" aria-hidden="true">Czas trwania:</span>
           {QUICK_EVENT_DURATIONS.map(({ minutes, label }) => (
             <button
               key={minutes}
               type="button"
               onClick={() => applyDuration(minutes)}
               aria-pressed={durationMin === minutes}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-line bg-surface text-text-secondary hover:bg-surface-hover transition-colors aria-pressed:bg-secondary aria-pressed:text-white aria-pressed:border-transparent disabled:opacity-60"
+              className="min-h-11 px-4 rounded-full text-sm font-semibold border border-line bg-surface text-text-secondary hover:bg-surface-hover transition-colors aria-pressed:bg-secondary aria-pressed:text-white aria-pressed:border-transparent disabled:opacity-60"
             >
               {label}
             </button>
@@ -242,28 +292,47 @@ export default function EventForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 md:gap-4">
-        <div>
-          <label htmlFor="share" className="form-label">Udostępnij:</label>
-          <select id="share" value={share}
-            onChange={(e) => setShare(e.target.value)}
-            className="input-field" disabled={loading}>
-            <option value="null">Nie udostępniaj</option>
-            {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="repeat" className="form-label">Powtarzaj:</label>
-          <select id="repeat" value={repeat}
-            onChange={(e) => handleRepeatChange(e.target.value as Event["repeat"])}
-            className="input-field" disabled={loading}>
-            <option value="none">Nie</option>
-            <option value="weekly">Co tydzień</option>
-            <option value="monthly">Co miesiąc</option>
-            <option value="yearly">Co rok</option>
-          </select>
-        </div>
+      <div>
+        <label htmlFor="share" className="form-label">Udostępnij:</label>
+        <select id="share" value={share}
+          onChange={(e) => setShare(e.target.value)}
+          className="input-field" disabled={loading}>
+          <option value="null">Nie udostępniaj</option>
+          {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
+        </select>
       </div>
+
+      <RecurrenceEditor
+        idPrefix="event-recurrence"
+        value={recurrence}
+        onChange={handleRecurrenceChange}
+        startDay={start.slice(0, 10)}
+        disabled={loading}
+      />
+
+      <EventCategorySelect id="event-category" value={category} onChange={setCategory} disabled={loading} />
+
+      {showTicketOption && (
+        <div className="flex items-start gap-3 rounded-lg border border-line p-3">
+          <input
+            id="ticket-reminder"
+            type="checkbox"
+            checked={ticketReminder}
+            onChange={(e) => setTicketReminder(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0"
+            aria-describedby="ticket-reminder-hint"
+          />
+          <div>
+            <label htmlFor="ticket-reminder" className="font-medium text-text cursor-pointer">
+              Przypomnij o zakupie biletów {TICKET_REMINDER_DAYS_BEFORE} dni wcześniej
+            </label>
+            <p id="ticket-reminder-hint" className="text-sm text-text-secondary">
+              Doda zadanie „Kup bilety” z powiadomieniem o 9:00.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div>
         <label htmlFor="desc" className="form-label">Opis:</label>
         <textarea id="desc" value={description}

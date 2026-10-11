@@ -15,15 +15,18 @@ import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import Seo from "@/components/ui/SEO";
 import { useRouter } from "next/router";
+import { GraduationCap } from "lucide-react";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), { ssr: false });
 const DayView = dynamic(() => import("../components/dashboard/DayView"), { ssr: false });
+const StudyDatesImport = dynamic(() => import("../components/calendar/StudyDatesImport"), { ssr: false });
 
 export default function CalendarPage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const rangeStart = format(startOfMonth(currentDate), "yyyy-MM-dd");
   const rangeEnd = format(endOfMonth(currentDate), "yyyy-MM-dd");
@@ -66,8 +69,26 @@ export default function CalendarPage() {
         <>
           <div className="flex justify-between items-center mb-6 gap-2">
             <h1 className="page-title">Kalendarz</h1>
-            {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}
+            <div className="flex items-center gap-2">
+              {!showImport && (
+                <button
+                  type="button"
+                  onClick={() => setShowImport(true)}
+                  className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-3 text-sm font-medium text-text-secondary hover:text-text"
+                >
+                  <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                  Importuj zjazdy
+                </button>
+              )}
+              {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}
+            </div>
           </div>
+
+          {showImport && (
+            <div className="mb-6">
+              <StudyDatesImport onImported={handleAfterAdd} onClose={() => setShowImport(false)} />
+            </div>
+          )}
 
           {showForm && (
             <div className="mb-6 animate-in fade-in slide-in-from-top-4">

@@ -1,4 +1,4 @@
-﻿// config/navigation.ts
+// config/navigation.ts
 
 import {
   ListTodo,
@@ -26,6 +26,7 @@ import {
   Clock,
   Gavel,
   CalendarClock,
+  Newspaper,
 } from "lucide-react";
 
 export interface NavigationButton {
@@ -42,61 +43,60 @@ export interface NavigationCategory {
   items: NavigationButton[];
   color?: string; 
 }
-
 export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
-    name: "Zadania",
+    name: "Produktywność",
     items: [
-      {path: "/", title: "Dzisiaj", icon: LayoutDashboard, label: "Dzisiaj" },
       { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia" },
       { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania" },
       { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro" },
+      { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy" },
     ],
   },
   {
-    name: "Spotkania",
+    name: "Spotkania i Kontakty",
     items: [
       { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz" },
       { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy" },
-      { path: "/notes/reports", title: "Protokół", icon: ScrollText, label: "Protokół" },
       { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
+      { path: "/profiles", title: "Wizytówki", icon: IdCard, label: "Wizytówki" },
     ]
   },
   {
-    name: "Notatki",
+    name: "Dokumenty i Teksty",
     items: [
       { path: "/notes", title: "Notatki", icon: Edit2, label: "Notatki" },
-      { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
-      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },   
-      { path: "/notes/movies", title: "Filmy i seriale", icon: Clapperboard, label: "Filmy" },
-    
+      { path: "/notes/reports", title: "Protokół", icon: ScrollText, label: "Protokół" },
+      { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma" },
+      { path: "/news", title: "Wiadomości", icon: Newspaper, label: "Wiadomości" },
     ],
   },
   {
-    name: "Finanse",
+    name: "Finanse i Pomiary",
     items: [
       { path: "/bills", title: "Finanse", icon: Coins, label: "Finanse" },
       { path: "/bills/budget", title: "Budżet", icon: ChartColumnBig, label: "Budżet" },
       { path: "/bills/calculator", title: "Kalkulator", icon: Calculator, label: "Kalkulator" },
-      { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy" },
+      { path: "/streaks", title: "Postępy", icon: Target, label: "Postępy" },
     ],
   },
-  { name: "Wyjścia i wyjazdy",
+  { 
+    name: "Wyjazdy i Transport",
     items: [
-      { path: "/packing", title: "Pakowanie", icon: Backpack, label: "Pakowanie" },
+      { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
       { path: "/transport", title: "Komunikacja miejska", icon: BusFront, label: "Komunikacja" },
       { path: "/trains", title: "Pociągi", icon: TrainFront, label: "Pociągi" },
-      { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
+      { path: "/packing", title: "Pakowanie", icon: Backpack, label: "Pakowanie" },
     ],
   },
   {
-    name: "Osobiste",
+    name: "Życie Codzienne",
     items: [
-      { path: "/profiles", title: "Wizytówki", icon: IdCard, label: "Wizytówki" },
+      { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
+      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },   
+      { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
       { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
-      { path: "/streaks", title: "Postępy", icon: Target, label: "Postępy" },
-      { path: "/notes/letters", title: "Pisma", icon: Gavel, label: "Pisma" },
-    ]
+    ],
   }
 ];
 

@@ -84,7 +84,7 @@ export default function NoteForm({ onChange, onCancel }: Readonly<NoteFormProps>
             <button key={color} type="button" onClick={() => setBgColor(color)}
               aria-label={`Wybierz kolor ${color}`} disabled={loading}
               className={clsx(
-                "w-8 h-8 rounded-full border-2 transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm",
+                "w-11 h-11 rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm",
                 bgColor === color
                   ? "border-primary ring-1 ring-primary dark:ring-offset-card"
                   : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",

@@ -26,7 +26,7 @@ describe("kategorie zadań", () => {
   it("opcje: własne + systemowe + bieżąca kategoria spoza listy", () => {
     expect(taskCategoryOptions(["Dom"])).toEqual(["Dom", ...SYSTEM_TASK_CATEGORIES]);
     expect(taskCategoryOptions(["Dom"], "trening")).toEqual(["Dom", ...SYSTEM_TASK_CATEGORIES, "trening"]);
-    expect(taskCategoryOptions(["Dom"], "slack")).toEqual(["Dom", ...SYSTEM_TASK_CATEGORIES]);
+    expect(taskCategoryOptions(["Dom"], "terminy")).toEqual(["Dom", ...SYSTEM_TASK_CATEGORIES]);
   });
 
   it("domyślna kategoria nowego zadania", () => {
@@ -38,7 +38,8 @@ describe("kategorie zadań", () => {
     expect(validateTaskCategoryName("  ", [])).toMatch(/pusta/);
     expect(validateTaskCategoryName("x".repeat(31), [])).toMatch(/30 znaków/);
     expect(validateTaskCategoryName("PRACA", ["praca"])).toMatch(/już istnieje/);
-    expect(validateTaskCategoryName("Slack", [])).toMatch(/systemowa/);
+    expect(validateTaskCategoryName("Terminy", [])).toMatch(/systemowa/);
+    expect(validateTaskCategoryName("Slack", [])).toBeNull(); // od 1.40 zwykła nazwa
     expect(validateTaskCategoryName("Ogród", ["praca"])).toBeNull();
   });
 });

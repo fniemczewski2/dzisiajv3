@@ -20,6 +20,9 @@ import { useQuickAction } from "@/hooks/useQuickAction";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "@/hooks/db/useSettings";
 import Seo from "@/components/ui/SEO";
+import CategoryFilter from "@/components/tasks/CategoryFilter";
+import { useTaskCategories, useCategoryColors } from "@/hooks/useTaskCategories";
+import { taskCategoryOptions } from "@/lib/taskCategories";
 
 const TaskForm = dynamic(() => import("@/components/tasks/TaskForm"), {
   ssr: false, 
@@ -39,6 +42,10 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const [searchQuery, setSearchQuery] = useState("");
+  /** null = wszystkie kategorie. */
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const userCategories = useTaskCategories();
+  const categoryColors = useCategoryColors();
   
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { user } = useAuth();
@@ -84,6 +91,10 @@ export default function TasksPage() {
       result = tasks.filter((t) => t.due_date === filterDate);
     }
 
+    if (categoryFilter) {
+      result = result.filter((t) => t.category === categoryFilter);
+    }
+
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       result = result.filter(
@@ -93,7 +104,18 @@ export default function TasksPage() {
       );
     }
     return result;
-  }, [tasks, filterDate, searchQuery]);
+  }, [tasks, filterDate, searchQuery, categoryFilter]);
+
+  // Kategorie użytkownika + systemowe + te, które mają istniejące zadania
+  // (np. usunięte z listy w ustawieniach), żeby dało się je odfiltrować.
+  const filterCategories = useMemo(() => {
+    const base = taskCategoryOptions(userCategories);
+    const extra = [...new Set(tasks.map((t) => t.category).filter((c): c is string => Boolean(c) && !base.includes(c)))];
+    const counts = new Map<string, number>();
+    for (const t of tasks) if (t.category) counts.set(t.category, (counts.get(t.category) ?? 0) + 1);
+    // Puste kategorie systemowe tylko zaśmiecają pasek filtra.
+    return [...base, ...extra].filter((c) => counts.has(c) || userCategories.includes(c) || c === categoryFilter);
+  }, [userCategories, tasks, categoryFilter]);
 
   useQuickAction({
     onActionAdd: () => setShowForm(true),
@@ -111,14 +133,14 @@ export default function TasksPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="page-title flex items-center gap-3">
             <span>Zadania</span>
-            <span className="text-sm font-bold bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/70 px-2.5 py-1 rounded-lg">
-              {todayDone}/{todayTotal}
+            <span className="text-sm font-semibold text-text-secondary tabular-nums">
+              <span className="sr-only">Dziś zrobione: </span>{todayDone}/{todayTotal}
             </span>
           </h1>
           {!showForm && <AddButton onClick={openNew} />}
         </div>
         
-        <div className="flex items-center justify-between mb-6 card p-2 rounded-xl shadow-sm gap-2 max-w-md">
+        <div role="group" aria-label="Filtruj po dniu" className="flex items-center justify-between mb-4 card p-1.5 rounded-xl gap-1 max-w-md">
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (
@@ -126,19 +148,26 @@ export default function TasksPage() {
                   key={opt.value}
                   onClick={() => setDateFilter(opt.value)}
                   type='button'
-                  title={opt.title}
-                  className={`p-1 sm:px-3 sm:py-2 rounded-lg transition-all flex flex-1 flex-col items-center justify-center gap-1 ${
+                  aria-pressed={dateFilter === opt.value}
+                  className={`min-h-12 px-1 sm:px-3 py-1.5 rounded-lg transition-colors flex flex-1 flex-col items-center justify-center gap-1 ${
                     dateFilter === opt.value
-                      ? "bg-surface-hover text-text shadow-md scale-105"
-                      : "bg-transparent text-text-muted hover:text-text hover:bg-surface"
+                      ? "bg-text text-card"
+                      : "bg-transparent text-text-secondary hover:text-text hover:bg-surface"
                   }`}
                 >
-                  <Icon className="w-5 h-5 sm:w-4 sm:h-4" />
+                  <Icon className="w-5 h-5 sm:w-4 sm:h-4" aria-hidden="true" />
                   <span className="text-xs font-semibold">{opt.title}</span>
                 </button>
               );
             })}
         </div>
+
+        <CategoryFilter
+          categories={filterCategories}
+          colors={categoryColors}
+          value={categoryFilter}
+          onChange={setCategoryFilter}
+        />
 
         {showForm && (
           <div className="mb-6 animate-in fade-in slide-in-from-top-4">

@@ -1,11 +1,13 @@
 // components/settings/TaskCategoriesEditor.tsx
 //
-// Edycja własnych kategorii zadań. Zmiany trafiają do formularza ustawień
-// i zapisują się razem z nim (przycisk „Zapisz”).
+// Edycja własnych kategorii (zadań i wydarzeń) wraz z kolorami. Zmiany trafiają
+// do formularza ustawień i zapisują się razem z nim (przycisk „Zapisz”).
+// Kolor jest przypięty do wiersza, więc zmiana nazwy go nie gubi.
 
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Lock, PlusCircle, RotateCcw } from "lucide-react";
 import { DeleteButton } from "@/components/ui/CommonButtons";
+import CategoryColorPicker from "./CategoryColorPicker";
 import {
   DEFAULT_USER_TASK_CATEGORIES,
   MAX_TASK_CATEGORIES,
@@ -21,11 +23,10 @@ interface Row {
   /** Nazwa zapisana w bazie (null = kategoria dodana w tej edycji). */
   original: string | null;
   name: string;
+  color: string | null;
 }
 
 const SYSTEM_HINTS: Record<string, string> = {
-  cykliczne: "powtarzanie zadań",
-  slack: "synchronizacja ze Slackiem",
   terminy: "ankiety terminów",
 };
 
@@ -36,19 +37,24 @@ interface Props {
   onChange: (next: string[] | null) => void;
   /** Zmiany nazw istniejących kategorii [stara, nowa] – do przeniesienia zadań. */
   onRenamesChange: (renames: Array<[string, string]>) => void;
+  /** Zapisane kolory (nazwa → kolor). */
+  colors?: Record<string, string> | null;
+  /** Kolory do zapisu; null = brak kolorów. */
+  onColorsChange?: (next: Record<string, string> | null) => void;
 }
 
 let nextId = 1;
-const toRows = (names: readonly string[]): Row[] => names.map((name) => ({ id: nextId++, original: name, name }));
+const toRows = (names: readonly string[], colors?: Record<string, string> | null): Row[] =>
+  names.map((name) => ({ id: nextId++, original: name, name, color: colors?.[name] ?? null }));
 
 function rowError(rows: readonly Row[], index: number): string | null {
   const others = rows.filter((_, i) => i !== index).map((r) => normalizeTaskCategoryName(r.name));
   return validateTaskCategoryName(rows[index].name, others);
 }
 
-export default function TaskCategoriesEditor({ value, onChange, onRenamesChange }: Readonly<Props>) {
+export default function TaskCategoriesEditor({ value, onChange, onRenamesChange, colors, onColorsChange }: Readonly<Props>) {
   const baseId = useId();
-  const [rows, setRows] = useState<Row[]>(() => toRows(resolveUserTaskCategories(value)));
+  const [rows, setRows] = useState<Row[]>(() => toRows(resolveUserTaskCategories(value), colors));
   const [draft, setDraft] = useState("");
   const [draftError, setDraftError] = useState<string | null>(null);
   const lastEmitted = useRef<string | null>(null);
@@ -56,8 +62,18 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange 
   // Wartość z zewnątrz (np. wczytane ustawienia) – tylko jeśli to nie nasza własna zmiana.
   useEffect(() => {
     const key = JSON.stringify(value ?? null);
-    if (key !== lastEmitted.current) setRows(toRows(resolveUserTaskCategories(value)));
+    if (key !== lastEmitted.current) setRows(toRows(resolveUserTaskCategories(value), colors));
+    // Kolory czytamy tylko przy wczytaniu listy z zewnątrz; dalej są w wierszach.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  // Ustawienia wczytały się później niż komponent – dociągnij kolory do wierszy bez koloru.
+  const colorsKey = JSON.stringify(colors ?? null);
+  useEffect(() => {
+    if (!colors) return;
+    setRows((prev) => prev.map((r) => (r.color === null && r.original && colors[r.original] ? { ...r, color: colors[r.original] } : r)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colorsKey]);
 
   const emit = (next: Row[]) => {
     setRows(next);
@@ -69,6 +85,11 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange 
     const stored = isDefault ? null : names;
     lastEmitted.current = JSON.stringify(stored);
     onChange(stored);
+    const colorMap: Record<string, string> = {};
+    next.forEach((r) => {
+      if (r.color) colorMap[normalizeTaskCategoryName(r.name)] = r.color;
+    });
+    onColorsChange?.(Object.keys(colorMap).length > 0 ? colorMap : null);
     onRenamesChange(
       next
         .filter((r) => r.original !== null && r.original !== normalizeTaskCategoryName(r.name))
@@ -82,7 +103,7 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange 
       setDraftError(error);
       return;
     }
-    emit([...rows, { id: nextId++, original: null, name: normalizeTaskCategoryName(draft) }]);
+    emit([...rows, { id: nextId++, original: null, name: normalizeTaskCategoryName(draft), color: null }]);
     setDraft("");
     setDraftError(null);
   };
@@ -92,13 +113,14 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange 
   return (
     <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
       <div className="flex items-center justify-between gap-2 mb-1">
-        <h4 className="text-xs font-bold text-text-muted">Kategorie zadań</h4>
+        <h4 className="text-sm font-semibold text-text">Kategorie i kolory</h4>
         <span className="text-xs text-text-muted">
           {rows.length}/{MAX_TASK_CATEGORIES}
         </span>
       </div>
       <p className="text-xs text-text-secondary mb-3">
-        Zmiana nazwy przenosi też istniejące zadania. Zadania z usuniętej kategorii ją zachowują.
+        Kategorie są wspólne dla zadań i wydarzeń. Kolor oznacza wydarzenia w widoku miesiąca.
+        Zmiana nazwy przenosi istniejące zadania i wydarzenia; z usuniętej kategorii zachowują ją.
       </p>
 
       <ul className="space-y-2">
@@ -117,6 +139,11 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange 
                   aria-describedby={error ? errorId : undefined}
                   onChange={(e) => emit(rows.map((r) => (r.id === row.id ? { ...r, name: e.target.value } : r)))}
                   className="input-field flex-1"
+                />
+                <CategoryColorPicker
+                  categoryName={row.name || `nr ${index + 1}`}
+                  value={row.color}
+                  onChange={(color) => emit(rows.map((r) => (r.id === row.id ? { ...r, color } : r)))}
                 />
                 <DeleteButton
                   small
@@ -194,7 +221,7 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange 
         onClick={() => {
           setDraft("");
           setDraftError(null);
-          emit(toRows(DEFAULT_USER_TASK_CATEGORIES));
+          emit(toRows(DEFAULT_USER_TASK_CATEGORIES, null));
         }}
         className="mt-3 flex items-center gap-2 text-xs font-semibold text-text-secondary hover:text-text transition-colors p-2"
       >

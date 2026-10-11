@@ -7,13 +7,17 @@ import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { Minus, Plus } from "lucide-react";
-import { DEFAULT_TASK_CATEGORY, RECURRING_TASK_CATEGORY, DEFAULT_REPEAT_DAYS } from "@/config/tasks";
+import { DEFAULT_TASK_CATEGORY } from "@/config/tasks";
+import RecurrenceEditor from "../ui/RecurrenceEditor";
+import { taskRecurrenceFields } from "@/lib/taskRecurrence";
+import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
 import { defaultTaskCategory, taskCategoryOptions } from "@/lib/taskCategories";
 import { useTaskCategories } from "@/hooks/useTaskCategories";
-import { SLACK_TASK_CATEGORY } from "@/config/slack";
 import { useSlackListOptions, setSlackTaskTarget } from "@/hooks/db/useSlackListOptions";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
 import { useToast } from "@/providers/ToastProvider";
+import TaskRemindersEditor from "./TaskRemindersEditor";
+import { replacePendingReminders, validateReminders } from "@/lib/taskReminders";
 
 interface TaskFormProps {
   addTask: (task: Partial<Task> & { shared_with_email?: string }) => Promise<Task | undefined>;
@@ -23,10 +27,11 @@ interface TaskFormProps {
   loading: boolean;
   addMany?: boolean;
   addAnother?: (type: "task" | "event") => void;
+  initialTitle?: string;
 }
 
-export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate, addMany = false, addAnother }: Readonly<TaskFormProps>) {
-  const { user } = useAuth();
+export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate, addMany = false, addAnother, initialTitle = "" }: Readonly<TaskFormProps>) {
+  const { user, supabase } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
   const { toast } = useToast();
@@ -49,18 +54,22 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
     setCategory((prev) => (optionsKey.split("|").includes(prev) ? prev : defaultCategory));
   }, [defaultCategory, optionsKey]);
   const [slackListId, setSlackListId] = useState("");
+  const [reminders, setReminders] = useState<string[]>([]);
+  const [dueDate, setDueDate] = useState(selectedDate || todayIso);
 
-  const isSlackCategory = category === SLACK_TASK_CATEGORY;
-  const isRecurringCategory = category === RECURRING_TASK_CATEGORY;
-  const [repeatDays, setRepeatDays] = useState(DEFAULT_REPEAT_DAYS);
-  const [recurringUntil, setRecurringUntil] = useState("");
-  const { lists: slackLists, loading: slackListsLoading, error: slackListsError, defaultListId } =
-    useSlackListOptions(isSlackCategory);
+  const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
+  // Listy Slack wczytujemy zawsze; bez połączenia po prostu nie ma czego pokazać.
+  const { lists: slackLists } = useSlackListOptions(true);
 
   const userOptions = settings?.users ?? [];
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
+    const reminderError = validateReminders(reminders);
+    if (reminderError) {
+      toast.error(reminderError);
+      return;
+    }
     const selectedValue = forUserRef.current?.value || userId;
     const isEmail = selectedValue?.includes("@");
 
@@ -80,18 +89,18 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       taskData.status = "pending";
     }
 
-    if (isRecurringCategory) {
-      taskData.is_recurring = true;
-      taskData.repeat_days = repeatDays;
-      taskData.recurring_until = recurringUntil || null;
-    }
+    if (recurrence) Object.assign(taskData, taskRecurrenceFields(recurrence));
 
     const created = await addTask(taskData);
 
-    const chosenList = slackListId || defaultListId;
-    if (created && isSlackCategory) {
+    if (created && userId && reminders.length > 0) {
+      const { error } = await replacePendingReminders(supabase, userId, created.id, reminders);
+      if (error) toast.error(`Zadanie zapisane, ale: ${error}`);
+    }
+
+    if (created && slackListId) {
       try {
-        if (chosenList) await setSlackTaskTarget(Number(created.id), chosenList);
+        await setSlackTaskTarget(Number(created.id), slackListId);
         triggerSlackSync();
       } catch (err) {
         toast.error(
@@ -114,7 +123,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
     >
       <div>
         <label htmlFor="title" className="form-label">Tytuł zadania:</label>
-        <input id="title" ref={titleRef} type="text"
+        <input id="title" ref={titleRef} type="text" defaultValue={initialTitle}
           className="input-field font-medium" placeholder="Zadanie" required />
       </div>
 
@@ -151,63 +160,6 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
             ))}
           </select>
 
-          {isRecurringCategory && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <div>
-                <label htmlFor="repeat-days" className="form-label">Co ile dni:</label>
-                <input
-                  id="repeat-days"
-                  type="number"
-                  min={1}
-                  max={365}
-                  value={repeatDays}
-                  onChange={(e) => setRepeatDays(Math.max(1, Number(e.target.value) || 1))}
-                  className="input-field w-full"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="recurring-until" className="form-label">Powtarzaj do:</label>
-                <input
-                  id="recurring-until"
-                  type="date"
-                  value={recurringUntil}
-                  onChange={(e) => setRecurringUntil(e.target.value)}
-                  className="input-field w-full"
-                />
-              </div>
-            </div>
-          )}
-
-          {isSlackCategory && (
-            <div className="mt-2">
-              <label htmlFor="slack-list" className="form-label">Lista Slack:</label>
-              {slackListsLoading && <p className="text-xs text-text-muted">Wczytuję listy…</p>}
-              {!slackListsLoading && slackListsError && (
-                <p className="text-xs text-red-600 dark:text-red-400">{slackListsError}</p>
-              )}
-              {!slackListsLoading && !slackListsError && slackLists.length === 0 && (
-                <p className="text-xs text-text-muted">
-                  Brak gotowych list. Podłącz listę i zmapuj w niej kolumnę tytułu w Ustawieniach.
-                </p>
-              )}
-              {slackLists.length > 0 && (
-                <select
-                  id="slack-list"
-                  className="input-field h-min sm:h-12"
-                  value={slackListId || defaultListId}
-                  onChange={(e) => setSlackListId(e.target.value)}
-                >
-                  {slackLists.map((list) => (
-                    <option key={list.list_id} value={list.list_id}>
-                      {list.list_title ?? list.list_id}
-                      {list.is_default ? " (domyślna)" : ""}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -215,7 +167,8 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
         <div>
           <label htmlFor="due" className="form-label">Data wykonania:</label>
           <input id="due" ref={dueDateRef} defaultValue={selectedDate || todayIso} type="date"
-            className="input-field text-xs w-full min-w-0 px-1" required />
+            onChange={(e) => setDueDate(e.target.value)}
+            className="input-field w-full min-w-0 px-2" required />
         </div>
         <div>
           <label htmlFor="for" className="form-label">Zadanie dla:</label>
@@ -225,6 +178,37 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
           </select>
         </div>
       </div>
+
+      <RecurrenceEditor
+        idPrefix="task-recurrence"
+        value={recurrence}
+        onChange={setRecurrence}
+        startDay={dueDate}
+        allowCount={false}
+        disabled={loading}
+      />
+
+      {slackLists.length > 0 && (
+        <div>
+          <label htmlFor="slack-list" className="form-label">Wyślij do listy Slack:</label>
+          <select
+            id="slack-list"
+            className="input-field"
+            value={slackListId}
+            onChange={(e) => setSlackListId(e.target.value)}
+          >
+            <option value="">Nie wysyłaj</option>
+            {slackLists.map((list) => (
+              <option key={list.list_id} value={list.list_id}>
+                {list.list_title ?? list.list_id}
+                {list.is_default ? " (domyślna)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <TaskRemindersEditor value={reminders} onChange={setReminders} dueDate={dueDate} disabled={loading} />
 
       <div>
         <label htmlFor="desc" className="form-label">Opis:</label>

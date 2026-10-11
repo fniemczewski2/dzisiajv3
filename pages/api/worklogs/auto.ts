@@ -2,40 +2,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getAppDateTime } from '@/lib/dateUtils';
-import { hashShortcutToken, looksLikeShortcutToken } from '@/lib/server/shortcutTokens';
+import { looksLikeShortcutToken } from '@/lib/server/shortcutTokens';
+import { extractShortcutToken, resolveShortcutUser } from '@/lib/server/shortcutAuth';
 import { checkRateLimit, clientIp } from '@/lib/server/rateLimit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
 );
-
-function extractToken(req: NextApiRequest): string | null {
-  const authorization = req.headers.authorization;
-  if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
-    return authorization.slice('Bearer '.length).trim();
-  }
-  const headerToken = req.headers['x-api-secret'];
-  if (typeof headerToken === 'string') return headerToken.trim();
-  const bodyToken = (req.body as { token?: unknown } | undefined)?.token;
-  return typeof bodyToken === 'string' ? bodyToken.trim() : null;
-}
-
-async function resolveUserId(token: string): Promise<string | null> {
-  const { data, error } = await supabaseAdmin
-    .from('shortcut_tokens')
-    .select('user_id')
-    .eq('token_hash', hashShortcutToken(token))
-    .maybeSingle<{ user_id: string }>();
-  if (error || !data) return null;
-
-  await supabaseAdmin
-    .from('shortcut_tokens')
-    .update({ last_used_at: new Date().toISOString() })
-    .eq('user_id', data.user_id);
-
-  return data.user_id;
-}
 
 interface ActionResult {
   status: number;
@@ -99,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(429).json({ error: 'Zbyt wiele żądań. Spróbuj ponownie za chwilę.' });
   }
 
-  const token = extractToken(req);
+  const token = extractShortcutToken(req);
   if (!looksLikeShortcutToken(token)) {
     return res.status(401).json({ error: 'Brak autoryzacji.' });
   }
@@ -110,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const userId = await resolveUserId(token);
+    const userId = await resolveShortcutUser(supabaseAdmin, token);
     if (!userId) return res.status(401).json({ error: 'Brak autoryzacji.' });
 
     const now = getAppDateTime();

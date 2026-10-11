@@ -1,7 +1,9 @@
-﻿// types/settings.ts
+// types/settings.ts
 
 import type { FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
 import { MoodOption } from "./moods";
+import type { HabitDef } from "./habits";
+import type { CustomFeed } from "@/config/rssSources";
 
 export interface Settings {
   sort_order: string;
@@ -41,6 +43,16 @@ export interface Settings {
   mood_options?: MoodOption[];
   /** Własne kategorie zadań; null = kategorie domyślne. */
   task_categories?: string[] | null;
+  /** Kolory kategorii: nazwa kategorii → kolor z palety (CATEGORY_PALETTE). */
+  category_colors?: Record<string, string> | null;
+  /** Wyłączone moduły (ścieżki z config/modules.ts). */
+  disabled_modules?: string[] | null;
+  /** Własne nawyki (max 8). null = domyślne nawyki z przełączników habit_*. */
+  custom_habits?: HabitDef[] | null;
+  /** Wybrane źródła wiadomości (id z config/rssSources + własne „c_…”). null = domyślne. */
+  rss_sources?: string[] | null;
+  /** Własne kanały RSS (max 15). */
+  rss_custom?: CustomFeed[] | null;
   main_view: string;
 
   sort_people: string;

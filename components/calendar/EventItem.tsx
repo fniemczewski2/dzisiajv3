@@ -1,10 +1,19 @@
-﻿// components/calendar/EventItem.tsx
+// components/calendar/EventItem.tsx
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Clock, MapPin, User, Globe } from "lucide-react";
 import { Event } from "@/types/events";
 import { useAuth } from "@/providers/AuthProvider";
-import { formatTime, localDateTimeToISO } from "@/lib/dateUtils";
+import { formatTime, localDateTimeToISO, parseEventDate } from "@/lib/dateUtils";
+import { useEventConflicts } from "@/hooks/useEventConflicts";
+import { useCategoryColors } from "@/hooks/useTaskCategories";
+import { isAllDayEvent } from "@/lib/eventConflicts";
+import ConflictNotice from "./ConflictNotice";
+import EventCategorySelect from "./EventCategorySelect";
+import RecurrenceEditor from "../ui/RecurrenceEditor";
+import { eventRule } from "@/lib/eventUtils";
+import { describeRule, legacyRepeatFor } from "@/supabase/functions/_shared/recurrence";
+import { Repeat } from "lucide-react";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons, DownloadButton } from "../ui/CommonButtons";
 
@@ -30,6 +39,24 @@ export default function EventItem({
   const [editedEvent, setEditedEvent] = useState<Event | null>(null);
   const [sharedEmail, setSharedEmail] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
+  const conflictRef = useRef<HTMLDivElement>(null);
+  const [conflictAcknowledged, setConflictAcknowledged] = useState(false);
+  const categoryColors = useCategoryColors();
+
+  const editStart = useMemo(() => (editedEvent ? parseEventDate(editedEvent.start_time) : null), [editedEvent]);
+  const editEnd = useMemo(() => (editedEvent ? parseEventDate(editedEvent.end_time) : null), [editedEvent]);
+  const editAllDay = editedEvent ? isAllDayEvent(editedEvent) : false;
+  const { report: conflicts, hasOverlaps } = useEventConflicts(editStart, editEnd, {
+    ignoreId: event.id,
+    allDay: editAllDay,
+    enabled: isEditing,
+  });
+
+  const startKey = editedEvent?.start_time;
+  const endKey = editedEvent?.end_time;
+  useEffect(() => {
+    setConflictAcknowledged(false);
+  }, [startKey, endKey]);
 
   useEffect(() => {
     if (isEditing && titleRef.current) titleRef.current.focus();
@@ -50,6 +77,11 @@ export default function EventItem({
 
   const handleSaveEdit = async () => {
     if (!editedEvent) return;
+    if (hasOverlaps && !conflictAcknowledged) {
+      setConflictAcknowledged(true);
+      conflictRef.current?.focus();
+      return;
+    }
     await onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
     setIsEditing(false);
     setEditedEvent(null);
@@ -78,13 +110,13 @@ export default function EventItem({
   const fixedPlace = event?.place?.startsWith("https://") ? 
   ( 
     <div className="flex items-center text-sm font-medium text-text-secondary truncate underline">
-      <Globe className="w-4 h-4 mr-2 text-primary" />
-      <a href={event.place} rel="noreferrer" target="_blank">Link</a>
+      <Globe className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
+      <a href={event.place} rel="noreferrer" target="_blank">Link do spotkania<span className="sr-only"> (otwiera się w nowej karcie)</span></a>
     </div>
 
   ) : (
     <div className="flex items-center text-sm font-medium text-text-secondary truncate">
-      <MapPin className="w-4 h-4 mr-2 text-primary" />
+      <MapPin className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
       {event.place}
     </div>
   )
@@ -93,7 +125,7 @@ export default function EventItem({
     const editPrefix = `edit-event-${event.id}`;
     
     return (
-      <div className="p-4 w-full max-w-md bg-card border border-primary dark:border-primary rounded-card shadow-lg space-y-4">
+      <div className="p-4 w-full max-w-md bg-card border border-primary rounded-card space-y-4">
         <div>
           <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł wydarzenia:</label>
           <input 
@@ -123,7 +155,7 @@ export default function EventItem({
               type="datetime-local" 
               value={editedEvent.start_time.slice(0, 16)} 
               onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })} 
-              className="input-field text-xs w-full min-w-0 px-1" 
+              className="input-field w-full min-w-0 px-2" 
             />
           </div>
           <div className="min-w-0 max-w-full">
@@ -133,10 +165,11 @@ export default function EventItem({
               type="datetime-local" 
               value={editedEvent.end_time.slice(0, 16)} 
               onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })} 
-              className="input-field text-xs w-full min-w-0 px-1" 
+              className="input-field w-full min-w-0 px-2" 
             />
           </div>
         </div>
+        <ConflictNotice ref={conflictRef} report={conflicts} acknowledged={conflictAcknowledged} />
         <div>
           <label htmlFor={`${editPrefix}-place`} className="form-label">Miejsce:</label>
           <input 
@@ -148,6 +181,17 @@ export default function EventItem({
             placeholder="Gdzie się odbędzie?" 
           />
         </div>
+        <RecurrenceEditor
+          idPrefix={`${editPrefix}-recurrence`}
+          value={eventRule(editedEvent)}
+          startDay={editedEvent.start_time.slice(0, 10)}
+          onChange={(rule) => setEditedEvent({ ...editedEvent, recurrence: rule, repeat: legacyRepeatFor(rule) })}
+        />
+        <EventCategorySelect
+          id={`${editPrefix}-category`}
+          value={editedEvent.category}
+          onChange={(category) => setEditedEvent({ ...editedEvent, category })}
+        />
         <div className="grid grid-cols-2 gap-3">
           {userOptions.length > 0 && (
             <div>
@@ -156,7 +200,7 @@ export default function EventItem({
                 id={`${editPrefix}-share`}
                 value={sharedEmail} 
                 onChange={(e) => setSharedEmail(e.target.value)} 
-                className="input-field py-1.5 text-sm"
+                className="input-field"
               >
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email) => (
@@ -165,20 +209,7 @@ export default function EventItem({
               </select>
             </div>
           )}
-          <div>
-            <label htmlFor={`${editPrefix}-repeat`} className="form-label">Powtarzaj:</label>
-            <select 
-              id={`${editPrefix}-repeat`}
-              value={editedEvent.repeat || "none"} 
-              onChange={(e) => setEditedEvent({ ...editedEvent, repeat: e.target.value as Event["repeat"] })} 
-              className="input-field py-1.5 text-sm"
-            >
-              <option value="none">Brak (jednorazowe)</option>
-              <option value="weekly">Co tydzień</option>
-              <option value="monthly">Co miesiąc</option>
-              <option value="yearly">Co rok</option>
-            </select>
-          </div>
+
         </div>
         <FormButtons onClickClose={handleCancelEdit} onClickSave={handleSaveEdit} loading={loading} />
       </div>
@@ -189,16 +220,32 @@ export default function EventItem({
     <div className="p-4 w-full max-w-md card rounded-card transition-all flex flex-col">
       <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
         <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
+        {event.category && (
+          <span className="ml-3 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-sm text-text-secondary">
+            <span
+              aria-hidden="true"
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: categoryColors[event.category] ?? "var(--event-default)" }}
+            />
+            {event.category}
+          </span>
+        )}
       </div>
       <div className="space-y-2.5 mb-4">
         <div className="flex items-center text-sm font-medium text-text-secondary">
-          <Clock className="w-4 h-4 mr-2 text-primary" />
+          <Clock className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
           {renderedTime}
         </div>
+        {eventRule(event) && (
+          <div className="flex items-center text-sm font-medium text-text-secondary">
+            <Repeat className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
+            {describeRule(eventRule(event), event.start_time.slice(0, 10))}
+          </div>
+        )}
         {event.place && fixedPlace}
         {event.display_share_info && (
           <div className="flex items-center text-sm font-medium text-text-secondary truncate">
-            <User className="w-4 h-4 mr-2 text-primary" />
+            <User className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
             <span className="truncate">{event.display_share_info}</span>
           </div>
         )}

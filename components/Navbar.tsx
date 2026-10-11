@@ -18,6 +18,7 @@ import { useSettings } from "../hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { NAVIGATION_CATEGORIES } from "@/config/navigation";
 import GlobalSearch from "./ui/GlobalSearch";
+import { useEnabledModules } from "@/hooks/useEnabledModules";
 
 interface NavLinkProps {
   href: string;
@@ -97,6 +98,7 @@ export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isEnabled } = useEnabledModules();
 
   useEffect(() => {
     const handleRouteChange = () => setIsMenuOpen(false);
@@ -120,11 +122,11 @@ export default function Navbar() {
           type="button"
           aria-label="Zamknij menu"
           onClick={() => setIsMenuOpen(false)}
-          className="fixed inset-0 z-40 bg-navy/40 backdrop-blur-[2px] animate-fade-in cursor-default"
+          className="fixed inset-0 z-40 bg-navy/40 animate-fade-in cursor-default"
         />
       )}
 
-      <nav aria-label="Nawigacja główna" className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-lg bg-card/90 border border-line backdrop-blur-xl backdrop-saturate-150 p-1.5 shadow-2xl rounded-card z-50 transition-colors">
+      <nav aria-label="Nawigacja główna" className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-lg bg-card border border-line-strong p-1.5 shadow-lg rounded-card z-50 transition-colors">
         <div
           id="navbar-menu-panel"
           aria-hidden={!isMenuOpen}
@@ -137,9 +139,10 @@ export default function Navbar() {
         >
           <div className="overflow-hidden">
             <div className="max-h-[80vh] overflow-y-auto overscroll-contain space-y-2 pr-0.5">
-              {NAVIGATION_CATEGORIES.map((category) => (
-                <section key={category.name} aria-label={category.name} className="bg-surface rounded-xl p-2">
-                  <div className="grid grid-cols-4 gap-1.5">
+              {NAVIGATION_CATEGORIES.map((category) => ({ ...category, items: category.items.filter((i) => isEnabled(i.path)) }))
+                .filter((category) => category.items.length > 0)
+                .map((category) => (
+                  <div className="flex gap-1.5 border-b border-line pb-1.5" key={category.name}>
                     {category.items.map((item) => (
                       <MenuItemLink
                         key={item.path}
@@ -153,15 +156,14 @@ export default function Navbar() {
                       />
                     ))}
                   </div>
-                </section>
               ))}
-              <div className="w-full flex items-center gap-2">
+              <div className="w-full flex items-center gap-2 border-b border-line pb-1.5">
               <Link
                 href="/settings"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-xl bg-surface hover:bg-surface-hover text-text-secondary hover:text-text transition-colors active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 flex-1 min-h-11 rounded-xl hover:bg-surface-hover text-text-secondary hover:text-text transition-colors"
               >
-                <SettingsIcon className="w-4 h-4" />
+                <SettingsIcon className="w-4 h-4" aria-hidden="true" />
                 <span className="text-xs font-semibold">
                   Ustawienia
                 </span>
@@ -181,10 +183,10 @@ export default function Navbar() {
             aria-expanded={isMenuOpen}
             aria-controls="navbar-menu-panel"
             aria-label={isMenuOpen ? "Zamknij menu" : "Otwórz menu"}
-            className={`flex flex-col items-center justify-center flex-1 min-h-12 py-1.5 rounded-xl transition-colors duration-200 active:scale-95 ${
+            className={`flex flex-col items-center justify-center flex-1 min-h-12 py-1.5 rounded-xl transition-colors duration-200 ${
               isMenuOpen
-                ? "text-primary bg-primary/10"
-                : "text-text-muted hover:text-text hover:bg-surface"
+                ? "bg-text text-card"
+                : "text-text-secondary hover:text-text hover:bg-surface"
             }`}
           >
             {isMenuOpen ? (
@@ -231,21 +233,21 @@ function MenuItemLink({
       title={title}
       onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
-      className={`relative min-h-14 p-1.5 rounded-lg border transition-colors active:scale-95 flex flex-col items-center justify-center gap-1 group ${
+      className={`flex-1 relative min-h-14 p-1.5 rounded-lg border transition-colors flex flex-col items-center justify-center gap-1 group ${
         isActive
-          ? "border-primary/50 bg-primary/10"
-          : "border-line hover:border-line-strong bg-card hover:bg-surface-hover"
+          ? "border-text bg-text"
+          : "border-transparent hover:border-line-strong bg-card hover:bg-surface-hover"
       }`}
     >
       <Icon
         aria-hidden="true"
-        className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-          isActive ? "text-primary" : "text-text-muted group-hover:text-text"
+        className={`w-5 h-5 ${
+          isActive ? "text-card" : "text-text-secondary group-hover:text-text"
         }`}
       />
       <span
         className={`text-xs text-center leading-tight font-semibold ${
-          isActive ? "text-primary" : "text-text-secondary group-hover:text-text"
+          isActive ? "text-card" : "text-text-secondary group-hover:text-text"
         }`}
       >
         {label}
@@ -259,7 +261,13 @@ function MenuItemLink({
   );
 }
 
-function NavLink({ href, Icon, label, currentPath }: Readonly<NavLinkProps>) {
+function NavLink(props: Readonly<NavLinkProps>) {
+  const { isEnabled } = useEnabledModules();
+  if (!isEnabled(props.href)) return null;
+  return <NavLinkInner {...props} />;
+}
+
+function NavLinkInner({ href, Icon, label, currentPath }: Readonly<NavLinkProps>) {
   const isActive =
     currentPath === href || (href !== "/" && currentPath.startsWith(href));
 
@@ -267,10 +275,10 @@ function NavLink({ href, Icon, label, currentPath }: Readonly<NavLinkProps>) {
     <Link
       href={href}
       aria-current={isActive ? "page" : undefined}
-      className={`relative flex flex-col items-center justify-center flex-1 min-h-12 py-1.5 rounded-xl transition-colors duration-200 active:scale-95 ${
+      className={`relative flex flex-col items-center justify-center flex-1 min-h-12 py-1.5 rounded-xl transition-colors duration-200 ${
         isActive
-          ? "text-primary bg-primary/10"
-          : "text-text-muted hover:text-text hover:bg-surface"
+          ? "bg-text text-card"
+          : "text-text-secondary hover:text-text hover:bg-surface"
       }`}
     >
       <Icon

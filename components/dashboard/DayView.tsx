@@ -1,4 +1,4 @@
-﻿// components/dashboard/DayView.tsx
+// components/dashboard/DayView.tsx
 
 import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
@@ -27,6 +27,10 @@ import { DayStreaks } from "./DayStreaks";
 import { DraggingTaskItem, DraggingEventItem } from "./DraggingItem";
 import { AddButton, CancelButton } from "../ui/CommonButtons";
 import DayHeader from "./DayHeader";
+import QuickNotes from "./QuickNotes";
+import DaySchemaSwitcher from "./DaySchemaSwitcher";
+import { useDaySchemaChoice } from "@/hooks/db/useDaySchemaChoice";
+import { resolveActiveSchema } from "@/lib/daySchemas";
 import { useWorkLogs } from "@/hooks/db/useWorkLogs";
 import { useTrainsForDate } from "@/hooks/db/useTrains";
 
@@ -102,7 +106,13 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     }
   }, [fetchingTasks, fetchingEvents, dateStr]);
   
-  const { overrides, hideSchema, moveSchema } = useDailyOverrides(dateStr);
+  const { overrides, hideSchema, moveSchema, fetchOverrides } = useDailyOverrides(dateStr);
+  const { choice: schemaChoice, setChoice: setSchemaChoice, available: schemaChoiceAvailable, saving: savingSchemaChoice } =
+    useDaySchemaChoice(dateStr, () => void fetchOverrides());
+  const activeSchema = useMemo(
+    () => resolveActiveSchema(schemas, currentDayOfWeek, schemaChoice),
+    [schemas, currentDayOfWeek, schemaChoice]
+  );
 
   const { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd } = useDashboardDnd({
     tasks, events, userId, date, editTask, editEvent
@@ -120,7 +130,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
 
   const planByHour = usePlanByHour({
-    schemas, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides,
+    schemas, activeSchema, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides,
   });
 
   const streaksWithMilestones = useMemo(() => {
@@ -288,8 +298,27 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
             </div>
           )}
 
+          <QuickNotes
+            date={date}
+            dateStr={dateStr}
+            addTask={addTask}
+            addEvent={addEvent}
+            onTaskCreated={() => void fetchTasks()}
+            onEventCreated={() => void fetchEvents()}
+            loadingEvents={loadingEvents}
+          />
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-3">
+              {schemaChoiceAvailable && (
+                <DaySchemaSwitcher
+                  schemas={schemas}
+                  weekday={currentDayOfWeek}
+                  choice={schemaChoice}
+                  onChange={(v) => void setSchemaChoice(v)}
+                  disabled={savingSchemaChoice}
+                />
+              )}
               <DailyPlan
                 planByHour={planByHour}
                 handleMarkAsDone={handleMarkAsDone}

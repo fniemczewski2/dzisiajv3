@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {type AppProps } from "next/app";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Atkinson_Hyperlegible_Next } from "next/font/google";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import "../styles/globals.css";
@@ -11,17 +11,13 @@ import { ThemeProvider } from "next-themes";
 import CookieBanner from "@/components/CookieBanner";
 import Layout from "@/components/ui/Layout";
 
-const inter = Inter({
+// Jeden krój na całą aplikację: Atkinson Hyperlegible Next (Braille Institute)
+// projektowano pod czytelność – rozróżnialne I/l/1, O/0, otwarte litery.
+// Przy ADHD i na małym ekranie liczy się szybkie „złapanie” słowa wzrokiem.
+const atkinson = Atkinson_Hyperlegible_Next({
   subsets: ["latin", "latin-ext"],
   display: "swap",
-  variable: "--font-inter",
-});
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-  axes: ["opsz", "wdth"],
-  variable: "--font-bricolage",
+  variable: "--font-atkinson",
 });
 
 export default function MyApp({ Component, pageProps}: Readonly<AppProps>) {
@@ -42,8 +38,7 @@ export default function MyApp({ Component, pageProps}: Readonly<AppProps>) {
           <ToastProvider>
             <style jsx global>{`
               :root {
-                --font-inter: ${inter.style.fontFamily};
-                --font-bricolage: ${bricolage.style.fontFamily};
+                --font-atkinson: ${atkinson.style.fontFamily};
               }
             `}</style>
             <div className="contents">
