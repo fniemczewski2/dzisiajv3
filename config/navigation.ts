@@ -18,7 +18,6 @@ import {
   Target,
   Clapperboard,
   Calculator,
-  LayoutDashboard,
   BusFront,
   TrainFront,
   User,

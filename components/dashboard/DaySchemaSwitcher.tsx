@@ -4,7 +4,7 @@
 // i pozwala wybrać inny tylko na ten dzień (albo dzień bez schematu).
 
 import React, { useId } from "react";
-import { ListTodo, Logs } from "lucide-react";
+import { Logs } from "lucide-react";
 import type { Schema } from "@/types/schemas";
 import type { SchemaChoice } from "@/lib/daySchemas";
 import { defaultSchemaFor, schemasForWeekday } from "@/lib/daySchemas";

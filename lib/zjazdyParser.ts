@@ -49,25 +49,34 @@ interface Pattern {
   build: (m: RegExpExecArray, yearFor: (month: number, explicit?: string) => number) => [string, string] | null;
 }
 
-const D = "(\\d{1,2})";
-const M = "(\\d{1,2})";
-const Y = "(\\d{4})";
-const DASH = "\\s*[-–—]\\s*";
-const DOT = "\\s*[./]\\s*";
+const D = String.raw`(\d{1,2})`;
+const M = String.raw`(\d{1,2})`;
+const Y = String.raw`(\d{4})`;
+const DASH = String.raw`\s*[-–—]\s*`;
+const DOT = String.raw`\s*[./]\s*`;
+const JOIN = String.raw`\s*(?:[-–—]|i|,|oraz)\s*`;
+const B = String.raw`\b`;
+const SPACE = String.raw`\s+`;
+
+/** Rok pierwszego dnia zakresu „31.10–02.11”: jawny, albo rok wcześniej przy przełomie roku. */
+function startYear(explicit: string | undefined, startMonth: number, endMonth: number, endYear: number): number {
+  if (explicit) return Number(explicit);
+  return startMonth > endMonth ? endYear - 1 : endYear;
+}
 
 const PATTERNS: Pattern[] = [
   // 31.10(.2025) – 02.11.2025
   {
-    re: new RegExp(`\\b${D}${DOT}${M}(?:${DOT}${Y})?${DASH}${D}${DOT}${M}${DOT}?${Y}?`, "g"),
+    re: new RegExp(`${B}${D}${DOT}${M}(?:${DOT}${Y})?${DASH}${D}${DOT}${M}${DOT}?${Y}?`, "g"),
     build: (m, yearFor) => {
       const y2 = yearFor(Number(m[5]), m[6]);
-      const y1 = m[3] ? Number(m[3]) : Number(m[2]) > Number(m[5]) ? y2 - 1 : y2;
+      const y1 = startYear(m[3], Number(m[2]), Number(m[5]), y2);
       return [iso(y1, Number(m[2]), Number(m[1])), iso(y2, Number(m[5]), Number(m[4]))];
     },
   },
   // 11-12.10(.2025), 11 i 12.10.2025, 11, 12.10.2025
   {
-    re: new RegExp(`\\b${D}\\s*(?:[-–—]|i|,|oraz)\\s*${D}${DOT}${M}(?:${DOT}${Y})?`, "gi"),
+    re: new RegExp(`${B}${D}${JOIN}${D}${DOT}${M}(?:${DOT}${Y})?`, "gi"),
     build: (m, yearFor) => {
       const y = yearFor(Number(m[3]), m[4]);
       return [iso(y, Number(m[3]), Number(m[1])), iso(y, Number(m[3]), Number(m[2]))];
@@ -75,7 +84,7 @@ const PATTERNS: Pattern[] = [
   },
   // 11-12 października 2025, 11 i 12 X 2025
   {
-    re: new RegExp(`\\b${D}\\s*(?:[-–—]|i|,|oraz)\\s*${D}\\s+${MONTH_WORD}\\b(?:\\s+${Y})?`, "gi"),
+    re: new RegExp(`${B}${D}${JOIN}${D}${SPACE}${MONTH_WORD}${B}(?:${SPACE}${Y})?`, "gi"),
     build: (m, yearFor) => {
       const month = MONTHS[m[3].toLowerCase()];
       const y = yearFor(month, m[4]);
@@ -84,7 +93,7 @@ const PATTERNS: Pattern[] = [
   },
   // 11.10.2025 / 11.10
   {
-    re: new RegExp(`\\b${D}${DOT}${M}(?:${DOT}${Y})?\\b`, "g"),
+    re: new RegExp(`${B}${D}${DOT}${M}(?:${DOT}${Y})?${B}`, "g"),
     build: (m, yearFor) => {
       const y = yearFor(Number(m[2]), m[3]);
       const day = iso(y, Number(m[2]), Number(m[1]));
@@ -93,7 +102,7 @@ const PATTERNS: Pattern[] = [
   },
   // 11 października 2025
   {
-    re: new RegExp(`\\b${D}\\s+${MONTH_WORD}\\b(?:\\s+${Y})?`, "gi"),
+    re: new RegExp(`${B}${D}${SPACE}${MONTH_WORD}${B}(?:${SPACE}${Y})?`, "gi"),
     build: (m, yearFor) => {
       const month = MONTHS[m[2].toLowerCase()];
       const y = yearFor(month, m[3]);
@@ -103,51 +112,70 @@ const PATTERNS: Pattern[] = [
   },
 ];
 
+interface YearMark {
+  at: number;
+  year: number;
+  academic: boolean;
+}
+
+/**
+ * Lata podane w tekście – do uzupełniania dat bez roku. „2026/2027” to rok
+ * akademicki (paź–gru → 2026, sty–wrz → 2027), pojedynczy rok bierzemy wprost.
+ */
+function findYearMarks(text: string): YearMark[] {
+  const marks: YearMark[] = [];
+  for (const ym of text.matchAll(/\b(20\d{2})\s*\/\s*(20\d{2})\b|\b(20\d{2})\b/g)) {
+    const academic = Boolean(ym[1]);
+    marks.push({ at: ym.index ?? 0, year: Number(academic ? ym[1] : ym[3]), academic });
+  }
+  return marks;
+}
+
+function yearFromMark(mark: YearMark, month: number): number {
+  if (!mark.academic) return mark.year;
+  return month >= 8 ? mark.year : mark.year + 1;
+}
+
+/** Poprawny zakres dni (prawdziwe daty, koniec nie przed początkiem, nie za długi). */
+function isValidRange(start: string, end: string): boolean {
+  const [ys, ms, ds] = start.split("-").map(Number);
+  const [ye, me, de] = end.split("-").map(Number);
+  if (!valid(ys, ms, ds) || !valid(ye, me, de)) return false;
+  const span = spanDays(start, end);
+  return span >= 0 && span <= MAX_SPAN_DAYS;
+}
+
 export function parseStudyDates(text: string, now: Date = new Date()): StudyDateRange[] {
   const consumed: Array<[number, number]> = [];
-  const found: Array<StudyDateRange & { index: number }> = [];
+  const found: StudyDateRange[] = [];
   const overlaps = (a: number, b: number) => consumed.some(([x, y]) => a < y && x < b);
-
-  // Lata podane w tekście – do uzupełniania dat bez roku. „2026/2027” to rok
-  // akademicki (paź–gru → 2026, sty–wrz → 2027), pojedynczy rok bierzemy wprost.
-  const yearsAt: Array<{ at: number; year: number; academic: boolean }> = [];
-  for (const ym of text.matchAll(/\b(20\d{2})\s*\/\s*(20\d{2})\b|\b(20\d{2})\b/g)) {
-    if (ym[1]) yearsAt.push({ at: ym.index ?? 0, year: Number(ym[1]), academic: true });
-    else yearsAt.push({ at: ym.index ?? 0, year: Number(ym[3]), academic: false });
-  }
+  const marks = findYearMarks(text);
 
   for (const pattern of PATTERNS) {
-    pattern.re.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = pattern.re.exec(text)) !== null) {
-      const from = m.index;
+    for (const m of text.matchAll(pattern.re)) {
+      const from = m.index ?? 0;
       const to = from + m[0].length;
       if (overlaps(from, to)) continue;
+
       const yearFor = (month: number, explicit?: string) => {
         if (explicit) return Number(explicit);
-        const prior = yearsAt.filter((y) => y.at < from).at(-1);
-        if (!prior) return academicYear(month, now);
-        return prior.academic ? (month >= 8 ? prior.year : prior.year + 1) : prior.year;
+        const prior = marks.findLast((y) => y.at < from);
+        return prior ? yearFromMark(prior, month) : academicYear(month, now);
       };
-      const result = pattern.build(m, yearFor);
+      const result = pattern.build(m as RegExpExecArray, yearFor);
       if (!result) continue;
-      const [start, end] = result;
-      const [ys, ms, ds] = start.split("-").map(Number);
-      const [ye, me, de] = end.split("-").map(Number);
+
       // Odrzucony zapis też „zajmuje” tekst – inaczej zbyt długi zakres
       // rozpadłby się na pojedyncze dni dopasowane przez kolejne wzorce.
       consumed.push([from, to]);
-      if (!valid(ys, ms, ds) || !valid(ye, me, de)) continue;
-      const span = spanDays(start, end);
-      if (span < 0 || span > MAX_SPAN_DAYS) continue;
-      found.push({ start, end, raw: m[0].trim(), index: from });
+      if (isValidRange(result[0], result[1])) found.push({ start: result[0], end: result[1], raw: m[0].trim() });
     }
   }
 
   const unique = new Map<string, StudyDateRange>();
-  for (const f of found.sort((a, b) => a.start.localeCompare(b.start))) {
+  for (const f of found.toSorted((a, b) => a.start.localeCompare(b.start))) {
     const key = `${f.start}|${f.end}`;
-    if (!unique.has(key)) unique.set(key, { start: f.start, end: f.end, raw: f.raw });
+    if (!unique.has(key)) unique.set(key, f);
   }
   return [...unique.values()];
 }

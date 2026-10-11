@@ -46,11 +46,24 @@ const UNIT_LABEL: Record<RecurrenceFreq, string> = {
 
 type EndMode = "never" | "until" | "count";
 
+function endModeOf(rule: RecurrenceRule | null): EndMode {
+  if (rule?.until) return "until";
+  if (rule?.count) return "count";
+  return "never";
+}
+
+/** Zaznaczone dni tygodnia; bez wyboru – dzień startu. */
+function selectedWeekdays(rule: RecurrenceRule, startWeekday: number | null): number[] {
+  if (rule.byWeekday?.length) return rule.byWeekday;
+  return startWeekday === null ? [] : [startWeekday];
+}
+
 export default function RecurrenceEditor({ value, onChange, startDay, allowCount = true, disabled, idPrefix }: Readonly<Props>) {
   const autoId = useId();
   const id = idPrefix ?? autoId;
   const pos = startDay ? weekdayPosition(startDay) : null;
-  const endMode: EndMode = value?.until ? "until" : value?.count ? "count" : "never";
+  const endMode = endModeOf(value);
+  const startWeekday = pos ? pos.weekday : null;
 
   const setFreq = (freq: RecurrenceFreq | "none") => {
     if (freq === "none") return onChange(null);
@@ -64,8 +77,8 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
 
   const toggleWeekday = (d: number) => {
     if (!value) return;
-    const current = value.byWeekday?.length ? value.byWeekday : pos ? [pos.weekday] : [];
-    const next = current.includes(d) ? current.filter((x) => x !== d) : [...current, d].sort();
+    const current = selectedWeekdays(value, startWeekday);
+    const next = current.includes(d) ? current.filter((x) => x !== d) : [...current, d].sort((a, b) => a - b);
     if (next.length > 0) patch({ byWeekday: next }); // co najmniej jeden dzień
   };
 
@@ -112,10 +125,11 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
       </div>
 
       {value?.freq === "weekly" && (
-        <div role="group" aria-label="Dni tygodnia">
+        <fieldset>
+          <legend className="sr-only">Dni tygodnia</legend>
           <div className="flex flex-wrap gap-1.5">
             {WEEKDAYS.map((d, i) => {
-              const active = (value.byWeekday?.length ? value.byWeekday : pos ? [pos.weekday] : []).includes(i);
+              const active = selectedWeekdays(value, startWeekday).includes(i);
               return (
                 <button
                   key={d.short}
@@ -139,7 +153,7 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
           >
             Ustaw dni robocze
           </button>
-        </div>
+        </fieldset>
       )}
 
       {value?.freq === "monthly" && pos && (
@@ -147,7 +161,12 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
           <legend className="form-label">W który dzień:</legend>
           <label className="flex min-h-11 items-center gap-3">
             <input type="radio" name={`${id}-monthly`} className="h-5 w-5" checked={value.monthlyBy !== "nth_weekday"} onChange={() => patch({ monthlyBy: "monthday", nth: undefined })} />
-            <span>{Number(startDay.slice(8, 10))}. dnia miesiąca</span>
+            <span>
+              {Number(startDay.slice(8, 10))}. dnia miesiąca
+              {Number(startDay.slice(8, 10)) > 28 && (
+                <span className="block text-sm text-text-secondary">w krótszych miesiącach – ostatniego dnia</span>
+              )}
+            </span>
           </label>
           {pos.nth <= 4 && (
             <label className="flex min-h-11 items-center gap-3">

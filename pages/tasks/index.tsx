@@ -140,7 +140,8 @@ export default function TasksPage() {
           {!showForm && <AddButton onClick={openNew} />}
         </div>
         
-        <div role="group" aria-label="Filtruj po dniu" className="flex items-center justify-between mb-4 card p-1.5 rounded-xl gap-1 max-w-md">
+        <fieldset className="flex items-center justify-between mb-4 card p-1.5 rounded-xl gap-1 max-w-md">
+            <legend className="sr-only">Filtruj po dniu</legend>
             {FILTER_OPTIONS.map((opt) => {
               const Icon = opt.icon;
               return (
@@ -160,7 +161,7 @@ export default function TasksPage() {
                 </button>
               );
             })}
-        </div>
+        </fieldset>
 
         <CategoryFilter
           categories={filterCategories}

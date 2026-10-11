@@ -6,6 +6,7 @@ import {
   nextOccurrenceAfter,
   normalizeRule,
   occurrencesBetween,
+  withMonthDay,
   type RecurrenceRule,
 } from "@/supabase/functions/_shared/recurrence";
 
@@ -43,10 +44,36 @@ describe("reguły powtarzania", () => {
     expect(between("2026-10-13", rule, "2026-10-01", "2026-12-31")).toEqual(["2026-10-13", "2026-11-10", "2026-12-08"]);
   });
 
-  it("31. dnia pomija krótsze miesiące", () => {
+  it("31. dnia: w krótszych miesiącach ostatni dzień miesiąca", () => {
     expect(between("2026-01-31", { freq: "monthly", interval: 1 }, "2026-01-01", "2026-05-31")).toEqual([
-      "2026-01-31", "2026-03-31", "2026-05-31",
+      "2026-01-31", "2026-02-28", "2026-03-31", "2026-04-30", "2026-05-31",
     ]);
+    expect(between("2027-12-30", { freq: "monthly", interval: 2 }, "2027-12-01", "2028-04-30")).toEqual([
+      "2027-12-30", "2028-02-29", "2028-04-30",
+    ]);
+  });
+
+  it("zadanie przesuwane z 31.: po lutym wraca na 31., nie zostaje na 28.", () => {
+    const rule = withMonthDay({ freq: "monthly", interval: 1 }, "2026-01-31")!;
+    expect(rule.monthDay).toBe(31);
+    const feb = nextOccurrenceAfter("2026-01-31", rule, "2026-01-31");
+    expect(feb).toBe("2026-02-28");
+    // kolejny obrót liczony od nowego terminu
+    expect(nextOccurrenceAfter(feb!, rule, feb!)).toBe("2026-03-31");
+    expect(nextOccurrenceAfter("2026-03-31", rule, "2026-03-31")).toBe("2026-04-30");
+  });
+
+  it("29 lutego co rok: w latach nieprzestępnych 28 lutego", () => {
+    expect(between("2028-02-29", { freq: "yearly", interval: 1 }, "2028-01-01", "2030-12-31")).toEqual([
+      "2028-02-29", "2029-02-28", "2030-02-28",
+    ]);
+  });
+
+  it("opis reguły 31. dnia mówi o krótszych miesiącach", () => {
+    expect(describeRule({ freq: "monthly", interval: 1, monthlyBy: "monthday" }, "2026-01-31")).toBe(
+      "Co miesiąc, 31. dnia (w krótszych miesiącach – ostatniego dnia)"
+    );
+    expect(describeRule({ freq: "monthly", interval: 1, monthlyBy: "monthday" }, "2026-01-15")).toBe("Co miesiąc, 15. dnia");
   });
 
   it("do dnia i liczba powtórzeń", () => {

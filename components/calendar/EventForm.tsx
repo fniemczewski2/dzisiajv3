@@ -153,56 +153,63 @@ export default function EventForm({
     setSelectedCalendar("local"); setCategory(null); setConflictAcknowledged(false);
   };
 
+  /** Pierwsze „Zapisz” przy kolizji tylko pokazuje ostrzeżenie; drugie zapisuje. */
+  const stopForConflict = (): boolean => {
+    if (!hasOverlaps || conflictAcknowledged) return false;
+    setConflictAcknowledged(true);
+    conflictRef.current?.focus();
+    conflictRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return true;
+  };
+
+  const buildEvent = (): Event & { shared_with_email?: string } => ({
+    id: "",
+    title: title.trim(),
+    description: description.trim(),
+    start_time: localDateTimeToISO(allDay ? `${start}T00:00` : start),
+    end_time: localDateTimeToISO(allDay ? `${end}T23:59` : end),
+    place: place.trim(),
+    shared_with_email: share === "null" ? "" : share,
+    repeat: legacyRepeatFor(recurrence),
+    // Klucze tylko, gdy ustawione – zapis zwykłych wydarzeń działa też przed migracją bazy.
+    ...(recurrence ? { recurrence } : {}),
+    ...(category ? { category } : {}),
+    user_id: userId || "",
+  });
+
+  const exportToExternalCalendar = async (eventId: string) => {
+    const target = calendars.find((c) => c.id === selectedCalendar);
+    if (!target) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    const ok = session ? await exportEventToCalendar(target, eventId, session.access_token) : false;
+    if (ok) {
+      toast.success(`Dodano też do kalendarza ${calendarTargetLabel(target)}`);
+    } else {
+      toast.error(`Wydarzenie zapisano w aplikacji, ale nie udało się dodać go do kalendarza ${calendarTargetLabel(target)}.`);
+    }
+  };
+
+  const addTicketReminder = async () => {
+    if (!showTicketOption || !ticketReminder || !userId || !category) return;
+    const { error, dueDate } = await createTicketReminderTask(supabase, userId, {
+      title: title.trim(),
+      startDay: start.slice(0, 10),
+      category,
+    });
+    if (error) toast.error(error);
+    else if (dueDate) toast.success(`Dodano zadanie „Kup bilety” na ${dueDate.split("-").reverse().join(".")}`);
+  };
+
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (stopForConflict()) return;
 
-    // Pierwsze „Zapisz” przy kolizji tylko pokazuje ostrzeżenie; drugie zapisuje.
-    if (hasOverlaps && !conflictAcknowledged) {
-      setConflictAcknowledged(true);
-      conflictRef.current?.focus();
-      conflictRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      return;
-    }
-
-    const created = await addEvent({
-          id: "",
-          title: title.trim(),
-          description: description.trim(),
-          start_time: allDay ? localDateTimeToISO(start + "T00:00") : localDateTimeToISO(start),
-          end_time:   allDay ? localDateTimeToISO(end   + "T23:59") : localDateTimeToISO(end),
-          place: place.trim(),
-          shared_with_email: share === "null" ? "" : share,
-          repeat: legacyRepeatFor(recurrence),
-          // Klucz tylko przy powtarzaniu – zapis zwykłych wydarzeń działa też przed migracją bazy.
-          ...(recurrence ? { recurrence } : {}),
-          user_id: userId || "",
-          // Klucz tylko, gdy wybrano kategorię – zapis działa też przed migracją bazy.
-          ...(category ? { category } : {}),
-        });
-
-    const target = calendars.find((c) => c.id === selectedCalendar);
-    if (created?.id && target) {
-      const { data: { session } } = await supabase.auth.getSession();
-      const ok = session ? await exportEventToCalendar(target, created.id, session.access_token) : false;
-      if (ok) {
-        toast.success(`Dodano też do kalendarza ${calendarTargetLabel(target)}`);
-      } else {
-        toast.error(`Wydarzenie zapisano w aplikacji, ale nie udało się dodać go do kalendarza ${calendarTargetLabel(target)}.`);
-      }
-    }
-
+    const created = await addEvent(buildEvent());
     // Zapis się nie udał (komunikat pokazał już hook) – formularz zostaje otwarty z danymi.
     if (!created) return;
 
-    if (showTicketOption && ticketReminder && userId && category) {
-      const { error, dueDate } = await createTicketReminderTask(supabase, userId, {
-        title: title.trim(),
-        startDay: start.slice(0, 10),
-        category,
-      });
-      if (error) toast.error(error);
-      else if (dueDate) toast.success(`Dodano zadanie „Kup bilety” na ${dueDate.split("-").reverse().join(".")}`);
-    }
+    if (created.id) await exportToExternalCalendar(created.id);
+    await addTicketReminder();
 
     resetForm();
     onEventsChange();

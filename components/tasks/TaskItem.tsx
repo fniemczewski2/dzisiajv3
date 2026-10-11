@@ -3,7 +3,7 @@
 import { getPriorityColors } from "@/config/priority";
 import React, { useState, useRef, useEffect, memo } from "react";
 import { format, parseISO, addDays } from "date-fns";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Repeat } from "lucide-react";
 import { Task } from "@/types/tasks";
 import { getAppDate } from "@/lib/dateUtils";
 import TimeContextBadge from "./TimeContextBadge";
@@ -19,7 +19,6 @@ import TaskRemindersEditor from "./TaskRemindersEditor";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { taskRecurrenceFields, taskRule } from "@/lib/taskRecurrence";
 import { describeRule } from "@/supabase/functions/_shared/recurrence";
-import { Repeat } from "lucide-react";
 import { fetchPendingReminders, replacePendingReminders, validateReminders } from "@/lib/taskReminders";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -391,7 +390,9 @@ function useTaskActions(props: Props) {
       return;
     }
     try {
-      await editTask({ ...editedTask, shared_with_email: sharedEmail });
+      // Dzień miesiąca reguły liczony od terminu z chwili zapisu (termin mógł się zmienić po wyborze reguły).
+      const recurrenceFix = editedTask.is_recurring ? taskRecurrenceFields(taskRule(editedTask), editedTask.due_date) : {};
+      await editTask({ ...editedTask, ...recurrenceFix, shared_with_email: sharedEmail });
       if (remindersLoaded) {
         const { error } = await replacePendingReminders(supabase, userId, task.id, reminders);
         if (error) toast.error(error);

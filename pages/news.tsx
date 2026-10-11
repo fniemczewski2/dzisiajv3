@@ -122,7 +122,9 @@ export default function NewsPage() {
       {error && <p role="alert" className="mb-4 text-red-700 dark:text-red-300">{error}</p>}
 
       {groups.length > 1 && (
-        <div role="group" aria-label="Filtruj po temacie" className="-mx-3 mb-4 sm:mx-0">
+        <fieldset className="-mx-3 mb-4 sm:mx-0">
+<legend className="sr-only">Filtruj po temacie</legend>
+
           <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:px-0">
             {[null, ...groups].map((g) => (
               <li key={g ?? "all"} className="shrink-0">
@@ -139,7 +141,7 @@ export default function NewsPage() {
               </li>
             ))}
           </ul>
-        </div>
+        </fieldset>
       )}
 
       <div className="mb-4 max-w-xl">

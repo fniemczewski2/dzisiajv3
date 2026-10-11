@@ -6,7 +6,6 @@ import {
   MAX_CUSTOM_FEEDS,
   RSS_GROUPS,
   RSS_SOURCES,
-  defaultEnabledSources,
   type CustomFeed,
 } from "@/config/rssSources";
 import { checkCustomFeed } from "@/hooks/useNews";
@@ -148,9 +147,9 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
                 {checking ? "Sprawdzam…" : "Sprawdź i dodaj"}
               </button>
               {checkMsg && (
-                <p role="status" className={`text-sm ${checkMsg.ok ? "text-green-800 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}>
+                <output className={`block text-sm ${checkMsg.ok ? "text-green-800 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}>
                   {checkMsg.message}
-                </p>
+                </output>
               )}
             </div>
           )}

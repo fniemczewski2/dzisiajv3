@@ -83,14 +83,17 @@ export default function StudyDatesImport({ onImported, onClose }: Readonly<Props
 
       let ticketErrors = 0;
       if (tickets && category) {
-        for (const r of selected) {
-          const { error: tErr } = await createTicketReminderTask(supabase, user.id, {
-            title: `${title.trim()} ${fmt(r.start)}`,
-            startDay: r.start,
-            category,
-          });
-          if (tErr) ticketErrors++;
-        }
+        // Zjazdów jest kilka–kilkanaście na semestr – zadania tworzymy równolegle.
+        const results = await Promise.all(
+          selected.map((r) =>
+            createTicketReminderTask(supabase, user.id, {
+              title: `${title.trim()} ${fmt(r.start)}`,
+              startDay: r.start,
+              category,
+            })
+          )
+        );
+        ticketErrors = results.filter((r) => r.error).length;
       }
       toast.success(`Dodano zjazdy: ${selected.length}.`);
       if (ticketErrors > 0) toast.error(`Nie udało się dodać części przypomnień o biletach (${ticketErrors}).`);

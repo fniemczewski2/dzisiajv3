@@ -10,13 +10,12 @@ import {
   CloudDrizzle,
   CloudFog,
   CloudSun,
+  Flame,
 } from "lucide-react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
 import { useWeather } from "../hooks/useWeather";
 import { useAppStreak } from "../hooks/useAppStreak";
-import { Flame } from "lucide-react";
 
 interface WeatherdetailsProps {
   currentTemp: number | null;

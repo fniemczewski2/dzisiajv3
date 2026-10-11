@@ -42,5 +42,6 @@ export async function checkCustomFeed(url: string): Promise<{ ok: boolean; messa
   });
   const body = (await res.json().catch(() => ({}))) as { error?: string; count?: number; sample?: string | null };
   if (!res.ok) return { ok: false, message: body.error ?? "Nie udało się sprawdzić kanału." };
-  return { ok: true, message: `Działa – ${body.count ?? 0} wpisów${body.sample ? `, np. „${body.sample}”` : ""}.` };
+  const example = body.sample ? `, np. „${body.sample}”` : "";
+  return { ok: true, message: `Działa – ${body.count ?? 0} wpisów${example}.` };
 }

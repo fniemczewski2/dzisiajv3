@@ -2,7 +2,7 @@
 
 import React, { useId, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Calendar, ListTodo, NotebookPen, Plus, X } from "lucide-react";
+import { Calendar, ListTodo, NotebookPen, X } from "lucide-react";
 import { useQuickNotes } from "@/hooks/db/useQuickNotes";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";

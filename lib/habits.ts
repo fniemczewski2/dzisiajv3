@@ -87,5 +87,7 @@ export function isHabitDone(row: DailyHabitsRow | null | undefined, id: string):
 }
 
 export function newHabitId(): string {
-  return `h_${Math.random().toString(36).slice(2, 10)}`;
+  // Id nawyku nie musi być nieprzewidywalny, ale randomUUID jest dostępny wszędzie
+  // (przeglądarka, Node 19+) i nie budzi wątpliwości co do jakości losowania.
+  return `h_${crypto.randomUUID().replaceAll("-", "").slice(0, 12)}`;
 }

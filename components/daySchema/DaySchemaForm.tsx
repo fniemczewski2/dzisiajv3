@@ -1,4 +1,4 @@
-﻿// components/daySchema/DaySchemaForm.tsx
+// components/daySchema/DaySchemaForm.tsx
 
 import React, { useState, useEffect, SyntheticEvent } from "react";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
@@ -76,9 +76,9 @@ export default function DaySchemaForm({
           className="input-field" required />
       </div>
 
-      <div>
-        <div id="weekdays-label" className="form-label">Dni tygodnia:</div>
-        <div role="group" aria-labelledby="weekdays-label" className="flex flex-wrap gap-2">
+      <fieldset>
+        <legend className="form-label">Dni tygodnia:</legend>
+        <div className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
             <button key={label} type="button" onClick={() => toggleDay(i)} aria-pressed={days.includes(i)}
               className={`min-h-11 min-w-11 px-3 rounded-lg border text-sm font-medium transition-colors ${
@@ -90,7 +90,7 @@ export default function DaySchemaForm({
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       <div className="flex items-start gap-3">
         <input

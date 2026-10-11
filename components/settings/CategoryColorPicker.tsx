@@ -42,8 +42,21 @@ export default function CategoryColorPicker({ categoryName, value, onChange }: R
       const target = e.target as Node;
       if (!panelRef.current?.contains(target) && !triggerRef.current?.contains(target)) setOpen(false);
     };
+    // Escape zamyka panel i oddaje fokus przyciskowi (nasłuch na dokumencie,
+    // bo fieldset nie jest elementem interaktywnym).
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
     document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   return (
@@ -68,12 +81,6 @@ export default function CategoryColorPicker({ categoryName, value, onChange }: R
         <fieldset
           id={groupId}
           ref={panelRef}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              close();
-            }
-          }}
           className="absolute right-0 z-30 mt-2 w-[min(18rem,calc(100vw-3rem))] rounded-xl border border-line-strong bg-card p-3 shadow-lg"
         >
           <legend className="sr-only">Kolor kategorii {categoryName}</legend>

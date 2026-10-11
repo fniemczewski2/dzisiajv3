@@ -12,6 +12,13 @@ export interface RecurrenceRule {
   monthlyBy?: "monthday" | "nth_weekday";
   /** Tylko monthly + nth_weekday: 1–4 albo -1 (ostatni). Domyślnie wynika z daty startu. */
   nth?: number;
+  /**
+   * Monthly (dzień miesiąca) i yearly: zamierzony dzień miesiąca 1–31.
+   * Potrzebny przy zadaniach, których termin się przesuwa: po 28 lutego
+   * reguła „31. dnia” nadal wraca do 31 marca, a nie zostaje przy 28.
+   * Brak = dzień z daty startu.
+   */
+  monthDay?: number;
   /** Ostatni możliwy dzień (yyyy-MM-dd, włącznie). */
   until?: string | null;
   /** Liczba wszystkich wystąpień licząc od startu. */
@@ -69,26 +76,54 @@ export function weekdayPosition(day: string): { nth: number; isLast: boolean; we
   };
 }
 
-export function normalizeRule(raw: unknown): RecurrenceRule | null {
-  if (!raw || typeof raw !== "object") return null;
-  const r = raw as Partial<RecurrenceRule>;
-  if (!r.freq || !["daily", "weekly", "monthly", "yearly"].includes(r.freq)) return null;
-  const interval = Math.min(MAX_INTERVAL, Math.max(1, Math.floor(Number(r.interval) || 1)));
-  const rule: RecurrenceRule = { freq: r.freq, interval };
-  if (r.freq === "weekly" && Array.isArray(r.byWeekday)) {
-    const days = [...new Set(r.byWeekday.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort();
-    if (days.length > 0) rule.byWeekday = days;
-  }
-  if (r.freq === "monthly") {
-    rule.monthlyBy = r.monthlyBy === "nth_weekday" ? "nth_weekday" : "monthday";
-    if (rule.monthlyBy === "nth_weekday" && (r.nth === -1 || (Number(r.nth) >= 1 && Number(r.nth) <= 4))) {
-      rule.nth = Number(r.nth);
-    }
-  }
+const FREQS: readonly RecurrenceFreq[] = ["daily", "weekly", "monthly", "yearly"];
+
+function clampInterval(value: unknown): number {
+  return Math.min(MAX_INTERVAL, Math.max(1, Math.floor(Number(value) || 1)));
+}
+
+function normalizeWeekdays(value: unknown): number[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const days = [...new Set(value.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))]
+    .sort((a, b) => a - b);
+  return days.length > 0 ? days : undefined;
+}
+
+function isValidNth(value: unknown): boolean {
+  const n = Number(value);
+  return n === -1 || (n >= 1 && n <= 4);
+}
+
+function isValidMonthDay(value: unknown): boolean {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 31;
+}
+
+function applyMonthly(rule: RecurrenceRule, r: Partial<RecurrenceRule>): void {
+  rule.monthlyBy = r.monthlyBy === "nth_weekday" ? "nth_weekday" : "monthday";
+  if (rule.monthlyBy === "nth_weekday" && r.nth !== undefined && isValidNth(r.nth)) rule.nth = Number(r.nth);
+  if (rule.monthlyBy === "monthday" && isValidMonthDay(r.monthDay)) rule.monthDay = Number(r.monthDay);
+}
+
+function applyEnd(rule: RecurrenceRule, r: Partial<RecurrenceRule>): void {
   if (typeof r.until === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.until)) rule.until = r.until;
   if (r.count !== null && r.count !== undefined && Number(r.count) >= 1) {
     rule.count = Math.min(MAX_COUNT, Math.floor(Number(r.count)));
   }
+}
+
+export function normalizeRule(raw: unknown): RecurrenceRule | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Partial<RecurrenceRule>;
+  if (!r.freq || !FREQS.includes(r.freq)) return null;
+  const rule: RecurrenceRule = { freq: r.freq, interval: clampInterval(r.interval) };
+  if (r.freq === "weekly") {
+    const days = normalizeWeekdays(r.byWeekday);
+    if (days) rule.byWeekday = days;
+  }
+  if (r.freq === "monthly") applyMonthly(rule, r);
+  if (r.freq === "yearly" && isValidMonthDay(r.monthDay)) rule.monthDay = Number(r.monthDay);
+  applyEnd(rule, r);
   return rule;
 }
 
@@ -101,9 +136,68 @@ export function ruleFromLegacyRepeat(repeat: string | null | undefined): Recurre
   return null;
 }
 
+/**
+ * Utrwala w regule zamierzony dzień miesiąca z daty kotwicy (termin zadania).
+ * Bez tego przesuwany termin zadania „31.” po lutym zostałby na 28.
+ */
+export function withMonthDay(rule: RecurrenceRule | null, anchorDay: string | null | undefined): RecurrenceRule | null {
+  if (!rule || !anchorDay) return rule;
+  const usesMonthDay = rule.freq === "yearly" || (rule.freq === "monthly" && rule.monthlyBy !== "nth_weekday");
+  if (!usesMonthDay) return rule;
+  return { ...rule, monthDay: Number(anchorDay.slice(8, 10)) };
+}
+
 /** Wartość zgodna ze starym polem `repeat` (dla eksportu i starszego kodu). */
 export function legacyRepeatFor(rule: RecurrenceRule | null): "none" | "daily" | "weekly" | "monthly" | "yearly" {
   return rule ? rule.freq : "none";
+}
+
+/** Dzień `day` w danym miesiącu, a gdy miesiąc jest krótszy – jego ostatni dzień. */
+function clampedDay(year: number, month0: number, day: number): number {
+  return Date.UTC(year, month0, Math.min(day, daysInMonth(year, month0)));
+}
+
+/** N-ty dzień tygodnia z reguły albo wynikający z daty startu (5. = ostatni). */
+function effectiveNth(rule: RecurrenceRule, start: string): { nth: number; weekday: number } {
+  const pos = weekdayPosition(start);
+  const fallback = pos.nth > 4 ? -1 : pos.nth;
+  return { nth: rule.nth ?? fallback, weekday: pos.weekday };
+}
+
+/** Dni (ms, UTC) wystąpień w kroku `step` reguły – przed filtrem zakresu i limitu. */
+function candidatesForStep(start: string, rule: RecurrenceRule, step: number): number[] {
+  const startMs = parseDay(start);
+  const d0 = new Date(startMs);
+  const y0 = d0.getUTCFullYear();
+  const m0 = d0.getUTCMonth();
+  const day0 = d0.getUTCDate();
+
+  switch (rule.freq) {
+    case "daily":
+      return [startMs + step * rule.interval * DAY_MS];
+    case "weekly": {
+      const weekStart = startMs - weekdayOf(startMs) * DAY_MS + step * rule.interval * 7 * DAY_MS;
+      const days = rule.byWeekday?.length ? rule.byWeekday : [weekdayOf(startMs)];
+      return days.map((wd) => weekStart + wd * DAY_MS);
+    }
+    case "monthly": {
+      const totalMonth = m0 + step * rule.interval;
+      const year = y0 + Math.floor(totalMonth / 12);
+      const month0 = ((totalMonth % 12) + 12) % 12;
+      if (rule.monthlyBy === "nth_weekday") {
+        const { nth, weekday } = effectiveNth(rule, start);
+        const ms = nthWeekdayOfMonth(year, month0, weekday, nth);
+        return ms === null ? [] : [ms];
+      }
+      // 29–31. dnia: w krótszym miesiącu wystąpienie przypada na jego ostatni dzień.
+      return [clampedDay(year, month0, rule.monthDay ?? day0)];
+    }
+    case "yearly": {
+      const year = y0 + step * rule.interval;
+      // 29 lutego w latach nieprzestępnych → 28 lutego.
+      return [clampedDay(year, m0, rule.monthDay ?? day0)];
+    }
+  }
 }
 
 /**
@@ -118,57 +212,18 @@ export function* iterateOccurrences(start: string, rule: RecurrenceRule, rangeEn
   if (startMs > endMs) return;
 
   let emitted = 0;
-  const emit = function* (ms: number): Generator<string> {
-    if (ms < startMs || ms > endMs || emitted >= maxCount) return;
-    emitted++;
-    yield formatDay(ms);
-  };
-
-  const d0 = new Date(startMs);
-  const y0 = d0.getUTCFullYear();
-  const m0 = d0.getUTCMonth();
-  const day0 = d0.getUTCDate();
-
   for (let step = 0; step < MAX_STEPS && emitted < maxCount; step++) {
-    let candidates: number[] = [];
-    switch (rule.freq) {
-      case "daily":
-        candidates = [startMs + step * rule.interval * DAY_MS];
-        break;
-      case "weekly": {
-        const weekStart = startMs - weekdayOf(startMs) * DAY_MS + step * rule.interval * 7 * DAY_MS;
-        const days = rule.byWeekday?.length ? rule.byWeekday : [weekdayOf(startMs)];
-        candidates = days.map((wd) => weekStart + wd * DAY_MS);
-        break;
-      }
-      case "monthly": {
-        const totalMonth = m0 + step * rule.interval;
-        const year = y0 + Math.floor(totalMonth / 12);
-        const month0 = ((totalMonth % 12) + 12) % 12;
-        if (rule.monthlyBy === "nth_weekday") {
-          const pos = weekdayPosition(start);
-          const nth = rule.nth ?? (pos.nth > 4 ? -1 : pos.nth);
-          const ms = nthWeekdayOfMonth(year, month0, pos.weekday, nth);
-          if (ms !== null) candidates = [ms];
-        } else if (day0 <= daysInMonth(year, month0)) {
-          // 31. dnia – miesiące bez 31. pomijamy (jak w Kalendarzu Google).
-          candidates = [Date.UTC(year, month0, day0)];
-        }
-        break;
-      }
-      case "yearly": {
-        const year = y0 + step * rule.interval;
-        if (day0 <= daysInMonth(year, m0)) candidates = [Date.UTC(year, m0, day0)];
-        break;
-      }
-    }
-
+    const candidates = candidatesForStep(start, rule, step);
     if (step === 0 && !candidates.includes(startMs)) candidates.unshift(startMs);
     candidates.sort((a, b) => a - b);
 
     // Jeśli najwcześniejszy kandydat tego kroku jest już za końcem – koniec.
     if (candidates.length > 0 && candidates[0] > endMs) return;
-    for (const ms of candidates) yield* emit(ms);
+    for (const ms of candidates) {
+      if (ms < startMs || ms > endMs || emitted >= maxCount) continue;
+      emitted++;
+      yield formatDay(ms);
+    }
   }
 }
 
@@ -205,42 +260,54 @@ function unit(n: number, one: string, few: string, many: string): string {
   return last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? few : many;
 }
 
+function weeklyText(rule: RecurrenceRule, base: string, start?: string): string {
+  let days: number[] = [];
+  if (rule.byWeekday?.length) days = rule.byWeekday;
+  else if (start) days = [weekdayOf(parseDay(start))];
+  if (days.length === 0) return base;
+  const isWorkdays = days.length === 5 && days.every((d, i) => d === i);
+  const list = isWorkdays ? "w dni robocze" : days.map((d) => WEEKDAY_SHORT[d]).join(", ");
+  return `${base}: ${list}`;
+}
+
+function monthlyText(rule: RecurrenceRule, base: string, start?: string): string {
+  if (!start) return base;
+  if (rule.monthlyBy === "nth_weekday") {
+    const { nth, weekday } = effectiveNth(rule, start);
+    return `${base}, w ${NTH_LABEL[String(nth)]} ${WEEKDAY_ACC[weekday]}`;
+  }
+  const day = rule.monthDay ?? Number(start.slice(8, 10));
+  const note = day > 28 ? " (w krótszych miesiącach – ostatniego dnia)" : "";
+  return `${base}, ${day}. dnia${note}`;
+}
+
+function endText(rule: RecurrenceRule): string {
+  if (rule.until) return `, do ${rule.until.split("-").reverse().join(".")}`;
+  if (rule.count) return `, ${rule.count} ${unit(rule.count, "raz", "razy", "razy")}`;
+  return "";
+}
+
 /** Opis po polsku, np. „Co 2 tygodnie: pn, śr, do 20.12.2026”. */
 export function describeRule(rule: RecurrenceRule | null, start?: string): string {
   if (!rule) return "Nie powtarza się";
   const n = rule.interval;
+  const every = (one: string, unitOne: string, few: string, many: string) =>
+    n === 1 ? one : `Co ${n} ${unit(n, unitOne, few, many)}`;
+
   let text: string;
   switch (rule.freq) {
     case "daily":
-      text = n === 1 ? "Codziennie" : `Co ${n} ${unit(n, "dzień", "dni", "dni")}`;
+      text = every("Codziennie", "dzień", "dni", "dni");
       break;
-    case "weekly": {
-      const days = rule.byWeekday?.length
-        ? rule.byWeekday
-        : start ? [weekdayOf(parseDay(start))] : [];
-      const base = n === 1 ? "Co tydzień" : `Co ${n} ${unit(n, "tydzień", "tygodnie", "tygodni")}`;
-      const isWorkdays = days.length === 5 && days.every((d, i) => d === i);
-      text = days.length ? `${base}: ${isWorkdays ? "w dni robocze" : days.map((d) => WEEKDAY_SHORT[d]).join(", ")}` : base;
+    case "weekly":
+      text = weeklyText(rule, every("Co tydzień", "tydzień", "tygodnie", "tygodni"), start);
       break;
-    }
-    case "monthly": {
-      const base = n === 1 ? "Co miesiąc" : `Co ${n} ${unit(n, "miesiąc", "miesiące", "miesięcy")}`;
-      if (start && rule.monthlyBy === "nth_weekday") {
-        const pos = weekdayPosition(start);
-        const nth = rule.nth ?? (pos.nth > 4 ? -1 : pos.nth);
-        text = `${base}, w ${NTH_LABEL[String(nth)]} ${WEEKDAY_ACC[pos.weekday]}`;
-      } else if (start) {
-        text = `${base}, ${Number(start.slice(8, 10))}. dnia`;
-      } else {
-        text = base;
-      }
+    case "monthly":
+      text = monthlyText(rule, every("Co miesiąc", "miesiąc", "miesiące", "miesięcy"), start);
       break;
-    }
     case "yearly":
-      text = n === 1 ? "Co roku" : `Co ${n} ${unit(n, "rok", "lata", "lat")}`;
+      text = every("Co roku", "rok", "lata", "lat");
       break;
   }
-  if (rule.until) text += `, do ${rule.until.split("-").reverse().join(".")}`;
-  else if (rule.count) text += `, ${rule.count} ${unit(rule.count, "raz", "razy", "razy")}`;
-  return text;
+  return text + endText(rule);
 }

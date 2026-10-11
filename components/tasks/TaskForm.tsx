@@ -89,7 +89,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       taskData.status = "pending";
     }
 
-    if (recurrence) Object.assign(taskData, taskRecurrenceFields(recurrence));
+    if (recurrence) Object.assign(taskData, taskRecurrenceFields(recurrence, taskData.due_date));
 
     const created = await addTask(taskData);
 

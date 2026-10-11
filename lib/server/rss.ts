@@ -43,9 +43,29 @@ const parser = new XMLParser({
 
 const ENTITY: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
 
+/**
+ * Usuwa bloki <script>/<style> razem z treścią. Wyszukiwanie przez indexOf
+ * zamiast wyrażenia z leniwym `[\s\S]*?` – liniowo, bez ryzyka katastrofalnego
+ * nawracania na złośliwie spreparowanym kanale.
+ */
+function removeBlocks(html: string, tag: string): string {
+  const lower = html.toLowerCase();
+  const open = `<${tag}`;
+  const close = `</${tag}>`;
+  let out = "";
+  let pos = 0;
+  for (;;) {
+    const start = lower.indexOf(open, pos);
+    if (start === -1) return out + html.slice(pos);
+    const end = lower.indexOf(close, start);
+    out += `${html.slice(pos, start)} `;
+    if (end === -1) return out; // niedomknięty blok – reszta to jego treść
+    pos = end + close.length;
+  }
+}
+
 export function stripHtml(html: string): string {
-  return html
-    .replaceAll(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
+  return removeBlocks(removeBlocks(html, "script"), "style")
     .replaceAll(/<[^>]+>/g, " ")
     .replaceAll(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (m, code: string) => {
       if (code.startsWith("#x")) return String.fromCodePoint(Number.parseInt(code.slice(2), 16));

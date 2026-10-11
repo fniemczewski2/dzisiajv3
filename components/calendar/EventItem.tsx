@@ -1,7 +1,7 @@
 // components/calendar/EventItem.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Clock, MapPin, User, Globe } from "lucide-react";
+import { Clock, MapPin, User, Globe, Repeat } from "lucide-react";
 import { Event } from "@/types/events";
 import { useAuth } from "@/providers/AuthProvider";
 import { formatTime, localDateTimeToISO, parseEventDate } from "@/lib/dateUtils";
@@ -13,7 +13,6 @@ import EventCategorySelect from "./EventCategorySelect";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { eventRule } from "@/lib/eventUtils";
 import { describeRule, legacyRepeatFor } from "@/supabase/functions/_shared/recurrence";
-import { Repeat } from "lucide-react";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons, DownloadButton } from "../ui/CommonButtons";
 

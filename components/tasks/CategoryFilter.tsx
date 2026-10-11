@@ -36,11 +36,13 @@ export default function CategoryFilter({ categories, colors, value, onChange }: 
   };
 
   return (
-    <div role="group" aria-label="Filtruj po kategorii" className="-mx-3 mb-6 sm:mx-0">
+    <fieldset className="-mx-3 mb-6 sm:mx-0">
+<legend className="sr-only">Filtruj po kategorii</legend>
+
       <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 scrollbar-thin">
         {chip("wszystkie", null)}
         {categories.map((c) => chip(c, c))}
       </ul>
-    </div>
+    </fieldset>
   );
 }

@@ -382,13 +382,11 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       setRawTasks((prev) => prev.map((t) => (sameId(t.id, id) ? { ...t, status } : t)));
 
       try {
-        const { data, error } = await withRetry(() =>
+        const { error } = await withRetry(() =>
           supabase
             .from("tasks")
             .update({ status })
             .eq("id", id)
-            .select("category")
-            .single()
         );
         if (error) throw error;
         toast.success(done ? "Wykonano zadanie" : "Przywrócono zadanie do wykonania");

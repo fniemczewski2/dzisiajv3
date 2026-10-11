@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { verifyCronSecret, jsonHeaders, corsHeaders, unauthorized } from "../_shared/auth.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
-import { nextOccurrenceAfter, normalizeRule, type RecurrenceRule } from "../_shared/recurrence.ts";
+import { nextOccurrenceAfter, normalizeRule, withMonthDay, type RecurrenceRule } from "../_shared/recurrence.ts";
 
 interface RecurringTask {
   id: number;
@@ -23,10 +23,14 @@ function resolveBaseDate(doneDate: string | null, dueDate: string | null): strin
   return doneDate ?? dueDate;
 }
 
-/** Reguła zadania: `recurrence`, a dla starszych zadań – co `repeat_days` dni. */
+/**
+ * Reguła zadania: `recurrence`, a dla starszych zadań – co `repeat_days` dni.
+ * Reguła „dzień miesiąca” bez zapisanego dnia dostaje go z obecnego terminu,
+ * zanim termin się przesunie (inaczej „31.” po lutym zostałoby „28.”).
+ */
 function taskRule(task: RecurringTask): RecurrenceRule | null {
   const rule = normalizeRule(task.recurrence);
-  if (rule) return rule;
+  if (rule) return rule.monthDay ? rule : withMonthDay(rule, task.due_date);
   if (task.repeat_days && task.repeat_days > 0) {
     return { freq: "daily", interval: task.repeat_days, until: task.recurring_until };
   }
@@ -62,9 +66,12 @@ async function rollRecurringTask(
     return stopError ? "failed" : "finished";
   }
 
+  // Reguła z utrwalonym dniem miesiąca (dla zadań sprzed tej zmiany).
+  const rule = normalizeRule(task.recurrence);
+  const fixedRule = rule && !rule.monthDay ? taskRule(task) : null;
   const { error: rollError } = await supabase
     .from("tasks")
-    .update({ status: "pending", due_date: nextDue })
+    .update({ status: "pending", due_date: nextDue, ...(fixedRule?.monthDay ? { recurrence: fixedRule } : {}) })
     .eq("id", task.id);
   return rollError ? "failed" : "rolled";
 }

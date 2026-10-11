@@ -5,14 +5,25 @@
 // miejsca w kodzie i eksport danych nadal coś rozumiały.
 
 import type { Task } from "@/types/tasks";
-import { normalizeRule, type RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import { normalizeRule, withMonthDay, type RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
 
-export function taskRecurrenceFields(rule: RecurrenceRule | null): Partial<Task> {
+/** Odpowiednik reguły w starym polu „co N dni” – tylko tam, gdzie da się go wyrazić. */
+function legacyRepeatDays(rule: RecurrenceRule): number | null {
+  if (rule.freq === "daily") return rule.interval;
+  if (rule.freq === "weekly" && !rule.byWeekday?.length) return rule.interval * 7;
+  return null;
+}
+
+/**
+ * Pola zadania dla reguły. `dueDate` – termin zadania: z niego bierzemy dzień
+ * miesiąca, żeby zadanie „31.” po krótszym miesiącu wracało na 31.
+ */
+export function taskRecurrenceFields(rule: RecurrenceRule | null, dueDate?: string | null): Partial<Task> {
   if (!rule) return { is_recurring: false, recurrence: null, repeat_days: null, recurring_until: null };
   return {
     is_recurring: true,
-    recurrence: rule,
-    repeat_days: rule.freq === "daily" ? rule.interval : rule.freq === "weekly" && !rule.byWeekday?.length ? rule.interval * 7 : null,
+    recurrence: withMonthDay(rule, dueDate),
+    repeat_days: legacyRepeatDays(rule),
     recurring_until: rule.until ?? null,
   };
 }

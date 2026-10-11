@@ -1,7 +1,6 @@
-﻿// components/dashboard/DailyPlan.tsx
+// components/dashboard/DailyPlan.tsx
 
 import React from "react";
-import { Calendar } from "lucide-react";
 import { DroppableHourSlot } from "./DroppableHourSlot";
 import { DraggablePlanItem } from "./DraggablePlanItem";
 import { PlanItem } from "./PlanItem";

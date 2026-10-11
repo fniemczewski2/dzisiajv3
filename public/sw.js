@@ -40,7 +40,8 @@ async function cacheFirst(request, cacheName) {
   if (hit) return hit;
   try {
     const response = await fetch(request);
-    if (response.ok) cache.put(request, response.clone());
+    // Zapis do cache nie blokuje odpowiedzi; błąd (np. brak miejsca) pomijamy.
+    if (response.ok) cache.put(request, response.clone()).catch(() => undefined);
     return response;
   } catch {
     return Response.error();
@@ -51,7 +52,8 @@ async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
     const response = await fetch(request);
-    if (response.ok) cache.put(request, response.clone());
+    // Zapis do cache nie blokuje odpowiedzi; błąd (np. brak miejsca) pomijamy.
+    if (response.ok) cache.put(request, response.clone()).catch(() => undefined);
     return response;
   } catch {
     const hit = await cache.match(request);
@@ -67,7 +69,8 @@ async function staleWhileRevalidate(request, cacheName) {
   const hit = await cache.match(request);
   const refresh = fetch(request)
     .then((response) => {
-      if (response.ok) cache.put(request, response.clone());
+      // Zapis do cache nie blokuje odpowiedzi; błąd (np. brak miejsca) pomijamy.
+    if (response.ok) cache.put(request, response.clone()).catch(() => undefined);
       return response;
     })
     .catch(() => undefined);

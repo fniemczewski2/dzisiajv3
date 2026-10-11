@@ -24,8 +24,8 @@ export const RSS_SOURCES: readonly RssSource[] = [
   { id: "ztm-poznan", name: "ZTM Poznań", url: "https://www.ztm.poznan.pl/rss", group: "Poznań i region", lang: "pl", defaultEnabled: on },
   { id: "zdm-poznan", name: "ZDM Poznań", url: "https://zdm.poznan.pl/pl/rss", group: "Poznań i region", lang: "pl", defaultEnabled: on },
   { id: "poznan-um", name: "Miasto Poznań - środowisko", url: "https://www.poznan.pl/mim/feeds/rss.xml?name=wos", group: "Poznań i region", lang: "pl", defaultEnabled: on },
-  { id: "poznan-um", name: "Miasto Poznań - ngo", url: "https://www.poznan.pl/mim/feeds/rss.xml?name=wos", group: "Poznań i region", lang: "pl", defaultEnabled: on },
-  { id: "poznan-um", name: "Miasto Poznań - wydarzenia", url: "https://www.poznan.pl/mim/feeds/rss.xml?name=events", group: "Poznań i region", lang: "pl", defaultEnabled: on },
+  { id: "poznan-ngo", name: "Miasto Poznań - ngo", url: "https://www.poznan.pl/mim/feeds/rss.xml?name=wos", group: "Poznań i region", lang: "pl", defaultEnabled: on },
+  { id: "poznan-wydarzenia", name: "Miasto Poznań - wydarzenia", url: "https://www.poznan.pl/mim/feeds/rss.xml?name=events", group: "Poznań i region", lang: "pl", defaultEnabled: on },
   { id: "uw-poznan", name: "Wielkopolski Urząd Wojewódzki", url: "https://poznan.uw.gov.pl/rss.xml", group: "Poznań i region", lang: "pl", defaultEnabled: on },
 
   // NGO i granty

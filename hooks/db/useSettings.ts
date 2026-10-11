@@ -99,6 +99,32 @@ const DEFAULT_SETTINGS: Settings = {
   sort_bills: "month",
 };
 
+const arrayOrNull = <T,>(value: unknown, normalize: (v: unknown[]) => T[]): T[] | null =>
+  Array.isArray(value) ? normalize(value) : null;
+
+/**
+ * Wiersz z bazy → ustawienia: brakujące i puste wartości biorą domyślne,
+ * pola złożone przechodzą przez normalizację.
+ */
+export function settingsFromRow(data: Record<string, unknown>): Settings {
+  const merged: Record<string, unknown> = { ...DEFAULT_SETTINGS };
+  for (const key of Object.keys(DEFAULT_SETTINGS)) {
+    if (data[key] !== null && data[key] !== undefined) merged[key] = data[key];
+  }
+  return {
+    ...(merged as unknown as Settings),
+    users: safeParseArray(data.users),
+    favorite_stops: normalizeFavoriteStops(data.favorite_stops),
+    mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
+    task_categories: arrayOrNull(data.task_categories, (v) => v as string[]),
+    category_colors: data.category_colors ? normalizeCategoryColors(data.category_colors) : null,
+    disabled_modules: arrayOrNull(data.disabled_modules, normalizeDisabledModules),
+    custom_habits: arrayOrNull(data.custom_habits, normalizeHabits),
+    rss_sources: arrayOrNull(data.rss_sources, (v) => v.filter((x): x is string => typeof x === "string")),
+    rss_custom: arrayOrNull(data.rss_custom, normalizeCustomFeeds),
+  };
+}
+
 export function useSettings() {
   const { user, loadingUser, supabase } = useAuth();
   const userId = user?.id;
@@ -110,16 +136,16 @@ export function useSettings() {
   // pomijamy i próbujemy ponownie.
   const upsertSettings = useCallback(
     async (row: Record<string, unknown>) => {
-      let current = row;
-      let result = await supabase.from("settings").upsert(current, { onConflict: "user_id" });
-      for (let attempt = 0; attempt < OPTIONAL_SETTINGS_COLUMNS.length; attempt++) {
+      // Kolejne próby są z natury sekwencyjne (każda zależy od błędu poprzedniej),
+      // dlatego rekurencja z limitem zamiast pętli z await.
+      const attempt = async (current: Record<string, unknown>, remaining: number) => {
+        const result = await supabase.from("settings").upsert(current, { onConflict: "user_id" });
         const message = result.error?.code === "PGRST204" ? result.error.message : "";
         const missing = OPTIONAL_SETTINGS_COLUMNS.find((c) => message.includes(`'${c}'`) && c in current);
-        if (!missing) break;
-        current = omit(current, [missing]);
-        result = await supabase.from("settings").upsert(current, { onConflict: "user_id" });
-      }
-      return result;
+        if (!missing || remaining === 0) return result;
+        return attempt(omit(current, [missing]), remaining - 1);
+      };
+      return attempt(row, OPTIONAL_SETTINGS_COLUMNS.length);
     },
     [supabase]
   );
@@ -156,48 +182,7 @@ export function useSettings() {
         if (error) throw error;
 
         if (data) {
-          setSettings({
-            sort_order: data.sort_order ?? "priority",
-            show_completed: data.show_completed ?? true,
-            show_habits: data.show_habits ?? true,
-            show_water_tracker: data.show_water_tracker ?? true,
-            show_budget_items: data.show_budget_items ?? true,
-            show_mood_tracker: data.show_mood_tracker ?? true,
-            show_notifications: data.show_notifications ?? true,
-            users: safeParseArray(data.users),
-            favorite_stops: normalizeFavoriteStops(data.favorite_stops),
-            notif_morning_brief: data.notif_morning_brief ?? true,
-            notif_tasks: data.notif_tasks ?? true,
-            notif_events: data.notif_events ?? true,
-            notif_water: data.notif_water ?? true,
-            notif_habits: data.notif_habits ?? true,
-            notif_evening: data.notif_evening ?? true,
-            notif_birthdays: data.notif_birthdays ?? true,
-            notif_contact: data.notif_contact ?? true,
-            sort_notes: data.sort_notes ?? "updated_desc",
-            sort_shopping: data.sort_shopping ?? "updated_desc",
-            sort_movies: data.sort_movies ?? "updated_desc",
-            sort_recipes: data.sort_recipes ?? "category",
-            habit_pills: data.habit_pills ?? true,
-            habit_bath: data.habit_bath ?? true,
-            habit_workout: data.habit_workout ?? true,
-            habit_friends: data.habit_friends ?? true,
-            habit_work: data.habit_work ?? true,
-            habit_housework: data.habit_housework ?? true,
-            habit_plants: data.habit_plants ?? true,
-            habit_duolingo: data.habit_duolingo ?? true,
-            mood_options: data.mood_options ? safeParseArray(data.mood_options) : DEFAULT_MOODS,
-            task_categories: Array.isArray(data.task_categories) ? data.task_categories : null,
-            category_colors: data.category_colors ? normalizeCategoryColors(data.category_colors) : null,
-            disabled_modules: Array.isArray(data.disabled_modules) ? normalizeDisabledModules(data.disabled_modules) : null,
-            custom_habits: Array.isArray(data.custom_habits) ? normalizeHabits(data.custom_habits) : null,
-            rss_sources: Array.isArray(data.rss_sources) ? data.rss_sources.filter((x: unknown): x is string => typeof x === "string") : null,
-            rss_custom: Array.isArray(data.rss_custom) ? normalizeCustomFeeds(data.rss_custom) : null,
-            main_view: data.main_view ?? "calendar",
-            sort_people: data.sort_people ?? "alphabetical",
-            hide_priority_5: data.hide_priority_5 ?? false,
-            sort_bills: data.sort_bills ?? "month",
-          });
+          setSettings(settingsFromRow(data));
         }
       } catch (err) {
         if (isAbortError(err)) return;

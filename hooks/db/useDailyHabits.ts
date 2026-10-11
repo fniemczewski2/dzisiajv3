@@ -80,7 +80,7 @@ export function useDailyHabits(date?: string) {
       setLoading(true);
       const prevRow = habits;
       const newValue = !isHabitDone(habits, id);
-      const nextDone = { ...(habits.habits_done ?? {}), [id]: newValue };
+      const nextDone = { ...habits.habits_done, [id]: newValue };
       const legacyPatch = isLegacyHabitId(id) ? { [id]: newValue } : {};
       setHabits((h) => (h ? { ...h, ...legacyPatch, habits_done: nextDone } : h));
 

@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Najnowsze na górze; wpisy bez daty na końcu. Ten sam link z kilku źródeł – raz.
   const seen = new Set<string>();
   const sorted = items
-    .sort((a, b) => (b.published ?? "").localeCompare(a.published ?? ""))
+    .toSorted((a, b) => (b.published ?? "").localeCompare(a.published ?? ""))
     .filter((i) => (seen.has(i.link) ? false : (seen.add(i.link), true)))
     .slice(0, MAX_ITEMS);
 

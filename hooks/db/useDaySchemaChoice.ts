@@ -9,20 +9,27 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import type { SchemaChoice } from "@/lib/daySchemas";
 
-export type SchemaChoiceInput = "default" | "none" | string;
+/** „default” = schemat domyślny, „none” = bez schematu, inna wartość = id schematu. */
+export type SchemaChoiceInput = string;
+
+function toChoice(input: SchemaChoiceInput): SchemaChoice {
+  if (input === "default") return undefined;
+  if (input === "none") return null;
+  return input;
+}
 
 export function useDaySchemaChoice(dateStr: string, onOverridesCleared?: () => void) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
-  const [choice, setChoiceState] = useState<SchemaChoice>(undefined);
+  const [choice, setChoice] = useState<SchemaChoice>(undefined);
   const [available, setAvailable] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!userId || !supabase) return;
     let cancelled = false;
-    setChoiceState(undefined);
+    setChoice(undefined);
     void (async () => {
       const { data, error } = await supabase
         .from("day_schema_choices")
@@ -37,19 +44,19 @@ export function useDaySchemaChoice(dateStr: string, onOverridesCleared?: () => v
         return;
       }
       setAvailable(true);
-      setChoiceState(data ? ((data as { schema_id: string | null }).schema_id ?? null) : undefined);
+      setChoice(data ? ((data as { schema_id: string | null }).schema_id ?? null) : undefined);
     })();
     return () => {
       cancelled = true;
     };
   }, [supabase, userId, dateStr]);
 
-  const setChoice = useCallback(
+  const chooseSchema = useCallback(
     async (input: SchemaChoiceInput) => {
       if (!userId) return;
       const previous = choice;
-      const next: SchemaChoice = input === "default" ? undefined : input === "none" ? null : input;
-      setChoiceState(next);
+      const next = toChoice(input);
+      setChoice(next);
       setSaving(true);
       try {
         const { error } =
@@ -62,7 +69,7 @@ export function useDaySchemaChoice(dateStr: string, onOverridesCleared?: () => v
         await supabase.from("daily_overrides").delete().eq("user_id", userId).eq("date", dateStr);
         onOverridesCleared?.();
       } catch {
-        setChoiceState(previous);
+        setChoice(previous);
         toast.error("Nie udało się zmienić schematu dnia.");
       } finally {
         setSaving(false);
@@ -71,5 +78,5 @@ export function useDaySchemaChoice(dateStr: string, onOverridesCleared?: () => v
     [supabase, userId, dateStr, choice, toast, onOverridesCleared]
   );
 
-  return { choice, setChoice, available, saving };
+  return { choice, setChoice: chooseSchema, available, saving };
 }

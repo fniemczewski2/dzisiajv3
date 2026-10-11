@@ -76,8 +76,8 @@ export default function CalendarPage() {
                   onClick={() => setShowImport(true)}
                   className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-3 text-sm font-medium text-text-secondary hover:text-text"
                 >
+                  Zjazdy
                   <GraduationCap className="h-4 w-4" aria-hidden="true" />
-                  Importuj zjazdy
                 </button>
               )}
               {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}

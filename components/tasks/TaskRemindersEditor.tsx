@@ -29,7 +29,7 @@ export default function TaskRemindersEditor({ value, onChange, dueDate, disabled
 
   const add = (v: string) => {
     if (atLimit || value.includes(v)) return;
-    onChange([...value, v].sort());
+    onChange([...value, v].sort((a, b) => a.localeCompare(b)));
   };
 
   return (
