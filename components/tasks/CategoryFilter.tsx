@@ -36,7 +36,7 @@ export default function CategoryFilter({ categories, colors, value, onChange }: 
   };
 
   return (
-    <fieldset className="-mx-3 mb-6 sm:mx-0">
+    <fieldset className="min-w-0 -mx-3 mb-6 sm:mx-0">
 <legend className="sr-only">Filtruj po kategorii</legend>
 
       <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 scrollbar-thin">

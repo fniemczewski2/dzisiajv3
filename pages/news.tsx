@@ -122,7 +122,7 @@ export default function NewsPage() {
       {error && <p role="alert" className="mb-4 text-red-700 dark:text-red-300">{error}</p>}
 
       {groups.length > 1 && (
-        <fieldset className="-mx-3 mb-4 sm:mx-0">
+        <fieldset className="min-w-0 -mx-3 mb-4 sm:mx-0">
 <legend className="sr-only">Filtruj po temacie</legend>
 
           <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:px-0">

@@ -335,6 +335,13 @@
 }
 
 @layer base {
+  /* Przeglądarki dają <fieldset> min-inline-size: min-content – rozpycha się
+     do szerokości zawartości, więc przewijane poziomo paski (filtry kategorii,
+     tematów) przestawały się przewijać i wychodziły poza ekran. */
+  fieldset {
+    min-inline-size: 0;
+  }
+
   :root {
     color-scheme: light;
 
