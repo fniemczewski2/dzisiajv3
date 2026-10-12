@@ -47,18 +47,89 @@ export function plDayBoundsUTC(dateStr: string): { start: string; end: string } 
 
 export type EventReminder = "5min" | "1day" | "7days";
 
+const HOUR_MS = 60 * MINUTE_MS;
 /**
- * Który przypomnienie wysłać dla wydarzenia (start jako ISO z bazy).
- * Porównujemy chwile w czasie, nie napisy: wcześniej tekst z bazy
- * ("…T10:00:00+00:00") porównywany z "… 14:00:00" dawał „Za tydzień” dla
- * wydarzenia jutro, a przypomnienie 5 minut przed praktycznie nie działało.
+ * Ile czasu po właściwej chwili przypomnienie jest jeszcze aktualne.
+ * Cron chodzi co minutę; zapas pokrywa pojedyncze opóźnienia. Po tym czasie
+ * przypomnienie przepada – lepiej żadne niż spóźnione i mylące.
  */
-export function eventReminderType(startIso: string, nowMs: number, alreadySent: ReadonlySet<string>): EventReminder | null {
-  const start = Date.parse(startIso);
-  if (Number.isNaN(start) || start <= nowMs) return null;
-  const until = start - nowMs;
-  if (until <= 5 * MINUTE_MS) return alreadySent.has("5min") ? null : "5min";
-  if (until <= DAY_MS) return alreadySent.has("1day") ? null : "1day";
-  if (until <= 7 * DAY_MS) return alreadySent.has("7days") ? null : "7days";
+export const REMINDER_TOLERANCE_MS = 15 * MINUTE_MS;
+
+/**
+ * Wydarzenia są zapisane jako czas ścienny w Polsce z dopiskiem „+00”
+ * (np. „2026-10-12T15:00:00+00” = 15:00 w Warszawie). Zwraca prawdziwą
+ * chwilę (ms UTC). Wcześniej traktowaliśmy ten zapis jak UTC, więc wszystkie
+ * przypomnienia przychodziły o 1 h (zima) lub 2 h (lato) za późno.
+ */
+export function warsawWallClockToInstant(stored: string): number {
+  const wall = Date.parse(`${stored.replace(" ", "T").slice(0, 19)}Z`);
+  if (Number.isNaN(wall)) return Number.NaN;
+  const guess = wall - warsawOffsetAt(wall);
+  return wall - warsawOffsetAt(guess);
+}
+
+/** Obecna chwila zapisana jak w bazie (czas ścienny w Polsce z „+00”) – do zapytań. */
+export function warsawWallClockNow(nowMs: number): string {
+  return new Date(nowMs + warsawOffsetAt(nowMs)).toISOString().slice(0, 19) + "+00:00";
+}
+
+/** Wydarzenie całodniowe: 00:00–23:59 czasu ściennego. */
+export function isAllDayStored(start: string, end: string | null | undefined): boolean {
+  const s = start.replace(" ", "T").slice(11, 16);
+  const e = (end ?? "").replace(" ", "T").slice(11, 16);
+  return s === "00:00" && e === "23:59";
+}
+
+/**
+ * Granice dnia „RRRR-MM-DD” w zapisie, w jakim są wydarzenia (czas ścienny
+ * w Polsce z „+00”). Do events.start_time używaj tego, nie plDayBoundsUTC.
+ */
+export function wallClockDayBounds(dateStr: string): { start: string; end: string } {
+  const next = new Date(Date.parse(`${dateStr}T00:00:00Z`) + DAY_MS).toISOString().slice(0, 10);
+  return { start: `${dateStr}T00:00:00+00:00`, end: `${next}T00:00:00+00:00` };
+}
+
+type Window = [EventReminder, number];
+
+/**
+ * Momenty przypomnień (ile przed startem). Każde przypomnienie ma wąskie okno:
+ * wysyłamy je tylko, gdy do startu zostało ok. tyle, ile trzeba – a nie
+ * „wszystko poniżej progu”. Dzięki temu wydarzenie dodane na dziś nie dostaje
+ * „Jutro: …”, a dodane na za 3 dni – „Za tydzień: …”.
+ * Wydarzenia całodniowe zaczynają się o północy, więc ich przypomnienia
+ * przychodzą o 18:00 dzień (i tydzień) wcześniej, a „Zaraz” nie ma sensu.
+ */
+const TIMED_WINDOWS: readonly Window[] = [
+  ["5min", 5 * MINUTE_MS],
+  ["1day", DAY_MS],
+  ["7days", 7 * DAY_MS],
+];
+const ALL_DAY_WINDOWS: readonly Window[] = [
+  ["1day", 6 * HOUR_MS],
+  ["7days", 7 * DAY_MS - 18 * HOUR_MS],
+];
+
+/**
+ * Które przypomnienie wysłać teraz (albo null). `start`/`end` – wartości
+ * z bazy (czas ścienny w Polsce). „5min” obejmuje całe ostatnie 5 minut
+ * (także wydarzenie dodane chwilę przed startem); pozostałe tylko okno
+ * [moment, moment + tolerancja].
+ */
+export function eventReminderType(
+  start: string,
+  nowMs: number,
+  alreadySent: ReadonlySet<string>,
+  end?: string | null
+): EventReminder | null {
+  const startMs = warsawWallClockToInstant(start);
+  if (Number.isNaN(startMs) || startMs <= nowMs) return null;
+  const until = startMs - nowMs;
+  const windows = isAllDayStored(start, end) ? ALL_DAY_WINDOWS : TIMED_WINDOWS;
+
+  for (const [type, lead] of windows) {
+    if (alreadySent.has(type)) continue;
+    const lower = type === "5min" ? 0 : lead - REMINDER_TOLERANCE_MS;
+    if (until > lower && until <= lead) return type;
+  }
   return null;
 }

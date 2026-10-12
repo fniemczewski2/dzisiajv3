@@ -2,7 +2,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
-import { eventReminderType, plDayBoundsUTC, weekdayIndexPL } from '../_shared/notificationTime.ts'
+import { eventReminderType, REMINDER_TOLERANCE_MS, wallClockDayBounds, warsawWallClockNow, weekdayIndexPL } from '../_shared/notificationTime.ts'
 import { getErrorMessage } from '../_shared/errors.ts';
 import { mapPool } from "../_shared/asyncPool.ts";
 
@@ -31,6 +31,7 @@ interface EventRow {
   shared_with_id: string | null;
   title: string;
   start_time: string;
+  end_time?: string | null;
 }
 
 interface HabitSettingsRow {
@@ -152,8 +153,8 @@ async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
     if (await wasAlreadySentToday(user.user_id, 'morning_brief')) return;
 
     const { count: tasksCount } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).eq('due_date', today).neq('status', 'done')
-    // start_time to timestamptz – LIKE kończył się błędem bazy, więc wydarzeń nigdy nie liczono.
-    const day = plDayBoundsUTC(today);
+    // start_time to czas ścienny w Polsce zapisany z „+00” – granice dnia w tym samym zapisie.
+    const day = wallClockDayBounds(today);
     const { count: eventsCount } = await supabase.from('events').select('*', { count: 'exact', head: true }).eq('user_id', user.user_id).gte('start_time', day.start).lt('start_time', day.end)
 
     if ((tasksCount && tasksCount > 0) || (eventsCount && eventsCount > 0)) {
@@ -316,7 +317,7 @@ async function notifyEventParticipants(
 
 
   await mapPool(participants, 5, async (userId) => {
-    const rType = eventReminderType(ev.start_time, nowMs, sentReminders)
+    const rType = eventReminderType(ev.start_time, nowMs, sentReminders, ev.end_time)
     let title = '', message = ''
     if (rType === '5min') { title = `Zaraz: ${ev.title}`; message = `Zaczynamy za 5 minut.` }
     else if (rType === '1day') { title = `Jutro: ${ev.title}`; message = `Przypomnienie o jutrzejszym wydarzeniu.` }
@@ -332,12 +333,12 @@ async function processUpcomingEventType(ctx: NotifCtx): Promise<void> {
   const allowedIds = new Set((optInUsers || []).map(u => u.user_id))
   if (allowedIds.size === 0) return;
 
-  // Kolumna timestamptz – zakres podajemy jako ISO UTC (wcześniej czas polski
-  // bez strefy był traktowany jak UTC, więc okno było przesunięte o 1–2 h).
+  // start_time to czas ścienny w Polsce zapisany z „+00” – zakres zapytania
+  // liczymy w tym samym układzie, a chwilę startu przelicza eventReminderType.
   const nowMs = realNow.getTime();
   const { data: events } = await supabase.from('events').select('*')
-    .gte('start_time', new Date(nowMs).toISOString())
-    .lte('start_time', new Date(nowMs + 7 * 24 * 60 * 60 * 1000).toISOString())
+    .gte('start_time', warsawWallClockNow(nowMs))
+    .lte('start_time', warsawWallClockNow(nowMs + 8 * 24 * 60 * 60 * 1000))
 
   await mapPool(events || [], 5, async (ev) => {
     await notifyEventParticipants(ctx, ev, allowedIds, nowMs);
@@ -788,8 +789,9 @@ interface TaskReminderRow {
   remind_at: string;
 }
 
-/** Przypomnienie spóźnione o więcej niż tyle (np. po awarii crona) oznaczamy, ale nie wysyłamy. */
-const TASK_REMINDER_MAX_DELAY_MS = 6 * 3600000;
+// Spóźnione przypomnienie (np. po przerwie crona) oznaczamy jako wysłane, ale nie
+// wysyłamy – ta sama tolerancja co dla wydarzeń.
+const TASK_REMINDER_MAX_DELAY_MS = REMINDER_TOLERANCE_MS;
 
 function describeDue(dueDate: string | null, today: string): string {
   if (!dueDate) return 'Zadanie czeka na Ciebie.';

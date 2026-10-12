@@ -43,7 +43,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
     });
   };
 
-  const { cellHandlers, handleTouchMove } = useDragSelectGrid({
+  const { cellHandlers, handlePointerMove } = useDragSelectGrid({
     onBegin: (_group, key) => {
       const mode: "select" | "deselect" = selected.has(key) ? "deselect" : "select";
       dragModeRef.current = mode;
@@ -122,8 +122,11 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
       </div>
 
       <div>
+        <p className="mb-2 text-sm text-text-secondary">
+          Zaznacz pasujące terminy, przeciągając po komórkach. Siatkę przewiniesz, przesuwając nagłówek z datami lub kolumnę godzin.
+        </p>
         <div className="card rounded-card shadow-sm p-4 overflow-x-auto">
-          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onTouchMove={handleTouchMove}>
+          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onPointerMove={handlePointerMove}>
             <thead>
               <tr>
                 <th scope="col" className="sticky left-0 bg-card text-xs text-text-muted font-normal p-1 text-left" />
@@ -148,8 +151,8 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
                           isSelected ? "bg-primary" : "bg-surface hover:bg-surface-hover"
                         }`}
                       >
-                        {/* Przycisk daje dostęp z klawiatury i czytnika ekranu. Mysz i dotyk
-                            obsługuje przeciąganie na komórce (useDragSelectGrid), więc tu
+                        {/* Przycisk daje dostęp z klawiatury i czytnika ekranu. Mysz, dotyk
+                            i rysik obsługuje przeciąganie (useDragSelectGrid), więc tu
                             reagujemy tylko na kliknięcie z klawiatury (detail === 0). */}
                         <button
                           type="button"

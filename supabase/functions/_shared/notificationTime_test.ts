@@ -4,19 +4,24 @@ function eq(a: unknown, b: unknown) { if (JSON.stringify(a) !== JSON.stringify(b
 const NOW = Date.parse("2026-10-08T12:00:00Z"); // 14:00 w Polsce
 const none = new Set<string>();
 
-Deno.test("wydarzenie jutro → „1day”, nie „7days” (dawny błąd porównania napisów)", () => {
-  eq(eventReminderType("2026-10-09T10:00:00+00:00", NOW, none), "1day");
+// Wydarzenia w bazie: czas ścienny w Polsce z „+00” (14:00 PL = „…T14:00:00+00”).
+Deno.test("przypomnienie „Jutro” tylko ok. 24 h przed startem", () => {
+  eq(eventReminderType("2026-10-09T14:00:00+00", NOW, none), "1day");
+  eq(eventReminderType("2026-10-09T14:10:00+00", NOW, none), null); // jeszcze za wcześnie
 });
-Deno.test("za 4 minuty → „5min”", () => {
-  eq(eventReminderType("2026-10-08T12:04:00+00:00", NOW, none), "5min");
+Deno.test("wydarzenie dodane na dziś nie dostaje „Jutro”", () => {
+  eq(eventReminderType("2026-10-08T18:00:00+00", NOW, none), null);
 });
-Deno.test("za 3 dni → „7days”; za 8 dni i w przeszłości → brak", () => {
-  eq(eventReminderType("2026-10-11T12:00:00+00:00", NOW, none), "7days");
-  eq(eventReminderType("2026-10-16T13:00:00+00:00", NOW, none), null);
-  eq(eventReminderType("2026-10-08T11:00:00+00:00", NOW, none), null);
+Deno.test("za 4 minuty → „5min” (czas ścienny, nie UTC)", () => {
+  eq(eventReminderType("2026-10-08T14:04:00+00", NOW, none), "5min");
+  eq(eventReminderType("2026-10-08T12:04:00+00", NOW, none), null); // to już było 2 h temu
+});
+Deno.test("„Za tydzień” tylko ok. 7 dni przed; za 3 dni → brak", () => {
+  eq(eventReminderType("2026-10-15T14:00:00+00", NOW, none), "7days");
+  eq(eventReminderType("2026-10-11T14:00:00+00", NOW, none), null);
 });
 Deno.test("już wysłane przypomnienie nie jest powtarzane", () => {
-  eq(eventReminderType("2026-10-09T10:00:00+00:00", NOW, new Set(["1day"])), null);
+  eq(eventReminderType("2026-10-09T14:00:00+00", NOW, new Set(["1day"])), null);
 });
 Deno.test("granice dnia: czas letni (UTC+2) i zimowy (UTC+1)", () => {
   eq(plDayBoundsUTC("2026-07-15"), { start: "2026-07-14T22:00:00.000Z", end: "2026-07-15T22:00:00.000Z" });
