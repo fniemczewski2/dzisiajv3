@@ -31,7 +31,6 @@ export interface DailyHabitsRow {
   plants: boolean | null;
   duolingo: boolean | null;
   water_amount: number | null;
-  daily_spending: number | null;
   /** Odhaczone nawyki: id nawyku → true (od 1.40). */
   habits_done?: Record<string, boolean> | null;
 }
@@ -41,7 +40,3 @@ export interface WaterRow {
   amount: number;
 }
 
-export interface MoneyRow {
-  date: string;
-  daily_spending: number;
-}

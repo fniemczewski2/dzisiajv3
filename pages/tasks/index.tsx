@@ -30,7 +30,6 @@ const TaskForm = dynamic(() => import("@/components/tasks/TaskForm"), {
   ssr: false, 
 });
 
-/** Ile dni naprzód pokazujemy podgląd powtórzeń w widoku „Wszystkie”. */
 const PREVIEW_DAYS = 14;
 
 const FILTER_OPTIONS = [
@@ -47,7 +46,6 @@ export default function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const [searchQuery, setSearchQuery] = useState("");
-  /** null = wszystkie kategorie. */
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const userCategories = useTaskCategories();
   const categoryColors = useCategoryColors();
@@ -84,7 +82,6 @@ export default function TasksPage() {
     }
   }, [dateFilter]);
 
-  // Podgląd powtórzeń: dla wybranego dnia ten dzień, dla „Wszystkie” – 14 dni naprzód.
   const previewRange = useMemo(() => {
     if (filterDate) return { from: filterDate, to: filterDate };
     const now = getAppDateTime();
@@ -119,7 +116,6 @@ export default function TasksPage() {
     return result;
   }, [tasks, filterDate, searchQuery, categoryFilter]);
 
-  // Te same filtry co dla zadań: kategoria i wyszukiwanie.
   const visiblePreviews = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return allPreviews.filter((p) => {
@@ -128,8 +124,6 @@ export default function TasksPage() {
     });
   }, [allPreviews, categoryFilter, searchQuery]);
 
-  // Kategorie użytkownika + systemowe + te, które mają istniejące zadania
-  // (np. usunięte z listy w ustawieniach), żeby dało się je odfiltrować.
   const filterCategories = useMemo(() => {
     const base = taskCategoryOptions(userCategories);
     const extra = [...new Set(tasks.map((t) => t.category).filter((c): c is string => Boolean(c) && !base.includes(c)))];

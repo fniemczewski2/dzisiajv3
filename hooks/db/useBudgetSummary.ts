@@ -1,4 +1,4 @@
-﻿// hooks/db/useBudgetSummary.ts
+// hooks/db/useBudgetSummary.ts
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -9,6 +9,9 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
+import { billOccurrences } from "@/lib/finance";
+import { getAppDate } from "@/lib/dateUtils";
+import type { RecurringBill } from "@/types/finance";
 
 interface SpendBucket {
   ySpent: number;
@@ -68,7 +71,30 @@ function buildSummaryItems(
   });
 }
 
-export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[]) {
+/**
+ * Zaplanowane wydatki: terminy rachunków stałych od dziś do końca roku,
+ * z pominięciem miesięcy, w których rachunek ma już powiązaną płatność.
+ */
+export function plannedBillRows(
+  bills: readonly RecurringBill[],
+  txs: ReadonlyArray<{ date: string; recurring_bill_id: string | null }>,
+  yearStart: string,
+  yearEnd: string,
+  today: string = getAppDate()
+): RawBillRow[] {
+  const paidMonths = new Set(txs.filter((t) => t.recurring_bill_id).map((t) => `${t.recurring_bill_id}|${t.date.slice(0, 7)}`));
+  const from = today > yearStart ? today : yearStart;
+  const rows: RawBillRow[] = [];
+  for (const bill of bills) {
+    for (const date of billOccurrences(bill, from, yearEnd)) {
+      if (paidMonths.has(`${bill.id}|${date.slice(0, 7)}`)) continue;
+      rows.push({ amount: Number(bill.amount), date, category_id: bill.category_id, is_income: false, done: false });
+    }
+  }
+  return rows;
+}
+
+export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[], recurringBills: readonly RecurringBill[] = []) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [summary, setSummary] = useState<SummaryItem[]>([]);
@@ -103,11 +129,13 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
       const monthStart = format(startOfMonth(targetDateForMonth), "yyyy-MM-dd");
       const monthEnd = format(endOfMonth(targetDateForMonth), "yyyy-MM-dd");
 
+      // Od 1.40: wydane = transakcje; zaplanowane = przyszłe terminy rachunków
+      // stałych (bez tych, które w danym miesiącu już mają powiązaną płatność).
       const { data, error } = await withRetry(
         () =>
           supabase
-            .from("bills")
-            .select("amount, date, category_id, is_income, done")
+            .from("transactions")
+            .select("amount, date, category_id, is_income, recurring_bill_id")
             .eq("user_id", userId)
             .gte("date", yearStart)
             .lte("date", yearEnd)
@@ -117,12 +145,13 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
 
       if (error) throw error;
 
-      const bills = (data ?? []) as RawBillRow[];
-      const income = bills.filter((b) => b.is_income).reduce((sum, b) => sum + b.amount, 0);
+      const txs = ((data ?? []) as Array<RawBillRow & { recurring_bill_id: string | null }>).map((t) => ({ ...t, amount: Number(t.amount) }));
+      const income = txs.filter((b) => b.is_income).reduce((sum, b) => sum + b.amount, 0);
       setTotalIncome(income);
 
-      const expenses = bills.filter((b) => !b.is_income);
-      const spendMap = buildSpendMap(expenses, monthStart, monthEnd);
+      const spent: RawBillRow[] = txs.filter((t) => !t.is_income).map((t) => ({ ...t, done: true }));
+      const planned = plannedBillRows(recurringBills, txs, yearStart, yearEnd);
+      const spendMap = buildSpendMap([...spent, ...planned], monthStart, monthEnd);
 
       setSummary(buildSummaryItems(categories, spendMap, monthIndex, year));
       setUncategorised(spendMap["__none__"] ?? EMPTY_BUCKET);
@@ -132,7 +161,7 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
     } finally {
       if (!signal.aborted) setLoading(false);
     }
-  }, [supabase, userId, year, monthIndex, categories, toast, withRetry, getSignal]);
+  }, [supabase, userId, year, monthIndex, categories, recurringBills, toast, withRetry, getSignal]);
 
   useEffect(() => { void compute(); }, [compute]);
 

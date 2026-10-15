@@ -4,6 +4,7 @@ import type { FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
 import { MoodOption } from "./moods";
 import type { HabitDef } from "./habits";
 import type { CustomFeed } from "@/config/rssSources";
+import type { ReportTemplateSet } from "./reports";
 
 export interface Settings {
   sort_order: string;
@@ -53,6 +54,12 @@ export interface Settings {
   rss_sources?: string[] | null;
   /** Własne kanały RSS (max 15). */
   rss_custom?: CustomFeed[] | null;
+  /** Szablony PDF protokołów (do 5; czcionki, logo). */
+  report_template?: ReportTemplateSet | null;
+  /** Nazwy kategorii budżetu, z których liczą się „Wydatki dnia”. */
+  daily_spending_categories?: string[] | null;
+  /** Push w dniu terminu płatności rachunku stałego. */
+  notif_bills?: boolean;
   main_view: string;
 
   sort_people: string;

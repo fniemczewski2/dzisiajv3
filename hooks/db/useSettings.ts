@@ -17,6 +17,7 @@ import { normalizeCategoryColors } from "@/lib/categoryColors";
 import { normalizeDisabledModules } from "@/config/modules";
 import { normalizeHabits } from "@/lib/habits";
 import { normalizeCustomFeeds } from "@/config/rssSources";
+import { normalizeTemplateSet } from "@/lib/reportTemplate";
 const safeParseArray = <T = unknown>(data: unknown): T[] => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -54,7 +55,7 @@ export const normalizeFavoriteStops = (data: unknown): FavoriteStop[] => {
 };
 
 /** Kolumny dodane migracjami – zapis ustawień działa także bez nich. */
-const OPTIONAL_SETTINGS_COLUMNS = ["task_categories", "category_colors", "disabled_modules", "custom_habits", "rss_sources", "rss_custom"] as const;
+const OPTIONAL_SETTINGS_COLUMNS = ["task_categories", "category_colors", "disabled_modules", "custom_habits", "rss_sources", "rss_custom", "report_template", "daily_spending_categories", "notif_bills"] as const;
 
 const DEFAULT_SETTINGS: Settings = {
   sort_order: "priority",
@@ -93,6 +94,9 @@ const DEFAULT_SETTINGS: Settings = {
   custom_habits: null,
   rss_sources: null,
   rss_custom: null,
+  report_template: null,
+  daily_spending_categories: null,
+  notif_bills: false,
   main_view: "calendar",
   sort_people: "alphabetical",
   hide_priority_5: false,
@@ -122,6 +126,8 @@ export function settingsFromRow(data: Record<string, unknown>): Settings {
     custom_habits: arrayOrNull(data.custom_habits, normalizeHabits),
     rss_sources: arrayOrNull(data.rss_sources, (v) => v.filter((x): x is string => typeof x === "string")),
     rss_custom: arrayOrNull(data.rss_custom, normalizeCustomFeeds),
+    report_template: data.report_template ? normalizeTemplateSet(data.report_template) : null,
+    daily_spending_categories: arrayOrNull(data.daily_spending_categories, (v) => v.filter((x): x is string => typeof x === "string")),
   };
 }
 

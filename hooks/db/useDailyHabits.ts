@@ -22,7 +22,6 @@ const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
   plants: false,
   duolingo: false,
   water_amount: 0,
-  daily_spending: 0,
 });
 
 export function useDailyHabits(date?: string) {
@@ -58,7 +57,7 @@ export function useDailyHabits(date?: string) {
 
       setHabits(
         data
-          ? { ...data, water_amount: data.water_amount ?? 0, daily_spending: data.daily_spending ?? 0 }
+          ? { ...data, water_amount: data.water_amount ?? 0 }
           : getDefaultHabits(targetDate, userId)
       );
     } catch (err) {
@@ -89,7 +88,6 @@ export function useDailyHabits(date?: string) {
         user_id: userId,
         ...legacyPatch,
         water_amount: habits.water_amount ?? 0,
-        daily_spending: habits.daily_spending ?? 0,
       };
       try {
         let { error } = await withRetry(() =>
@@ -132,8 +130,7 @@ export function useDailyHabits(date?: string) {
               date: targetDate,
               user_id: userId,
               water_amount: validAmount,
-              daily_spending: habits.daily_spending ?? 0,
-            },
+                  },
             { onConflict: "date,user_id" }
           )
         );
@@ -148,45 +145,9 @@ export function useDailyHabits(date?: string) {
     [habits, userId, targetDate, supabase, toast, withRetry]
   );
 
-  const updateSpending = useCallback(
-    async (amount: number) => {
-      if (!habits) return;
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const validAmount = Number.isNaN(amount) ? 0 : amount;
-      const prevAmount = habits.daily_spending;
-
-      setHabits((h) => (h ? { ...h, daily_spending: validAmount } : h));
-
-      try {
-        const { error } = await withRetry(() =>
-          supabase.from("daily_habits").upsert(
-            {
-              date: targetDate,
-              user_id: userId,
-              daily_spending: validAmount,
-              water_amount: habits.water_amount ?? 0,
-            },
-            { onConflict: "date,user_id" }
-          )
-        );
-        if (error) throw error;
-      } catch {
-        setHabits((h) => (h ? { ...h, daily_spending: prevAmount } : h));
-        toast.error("Błąd zapisu wydatków dnia.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [habits, userId, targetDate, supabase, toast, withRetry]
-  );
-
   useEffect(() => {
     void fetchHabits();
   }, [fetchHabits]);
 
-  return { habits, fetching, loading, fetchHabits, toggleHabit, updateWater, updateSpending };
+  return { habits, fetching, loading, fetchHabits, toggleHabit, updateWater };
 }

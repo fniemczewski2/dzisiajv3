@@ -5,7 +5,7 @@ import { Plus, User } from "lucide-react";
 import { ShoppingList } from "@/types/shopping";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { EditButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
+import { EditButton, DeleteButton, FormButtons, SaveButton } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 
 interface ShoppingListViewProps {
@@ -194,10 +194,8 @@ function AddElementForm({ onAdd }: Readonly<{ onAdd: (text: string) => void }>) 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
       <input type="text" aria-label="Nowy produkt" placeholder="Nowy produkt…" value={text}
-        onChange={(e) => setText(e.target.value)} className="input-field py-2 flex-1 min-w-0" />
-      <button className="flex items-center justify-center px-4 hover:bg-secondary-hover text-white font-bold rounded-xl bg-secondary transition-colors shrink-0" type="submit" title="Dodaj produkt" aria-label="Dodaj produkt">
-        <Plus className="w-5 h-5" />
-      </button>
+        onChange={(e) => setText(e.target.value)} className="input-field py-2 min-w-0" />
+      <SaveButton small aria-label="Dodaj produkt"/>
     </form>
   );
 }

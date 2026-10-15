@@ -55,9 +55,9 @@ export default function TrainingPage() {
         canonical="https://dzisiaj.fun/training"
         keywords="trening, interwały, stoper, hiit, tabata, fitness"
       />
-        <div className="max-w-2xl mx-auto space-y-6">
-          <h1 className="page-title mb-6">Trening</h1>
-
+        <div className="space-y-6">
+          <h1 className="page-title mb-6 w-full">Trening</h1>
+          <div className="mx-auto max-w-sm">
           <UniversalTimer
             secondsLeft={secondsLeft}
             running={running}
@@ -160,6 +160,7 @@ export default function TrainingPage() {
               </div>
             </div>
           )}
+        </div>
         </div>
     </>
   );

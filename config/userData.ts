@@ -34,11 +34,13 @@ export const USER_DATA_TABLES = [
   "people",
   "vcard_profiles",
   "bills",
-  "budgets",
+  "transactions",
+  "recurring_bills",
+  "finance_profiles",
   "budget_categories",
   "settings",
 ] as const;
 
-export const USER_STORAGE_BUCKETS = ["letters", "avatars"] as const;
+export const USER_STORAGE_BUCKETS = ["letters", "avatars", "report-templates"] as const;
 
 export const ACCOUNT_DELETE_CONFIRMATION = "USUŃ KONTO";

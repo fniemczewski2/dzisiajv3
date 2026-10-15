@@ -9,6 +9,7 @@ import LoadingState from '../ui/LoadingState';
 import { useResponsive } from '@/hooks/useResponsive';
 import { StationBoardItem, StationBoardResponse } from '@/types/pkpplk';
 import { TrainInput } from '@/types/transport';
+import SearchBar from '../ui/SearchBar';
 
 const renderStatusInfo = (status: string, statusClasses: string) => {
     return (
@@ -66,8 +67,6 @@ const formatClock = (timestamp: number) =>
   new Date(timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
 
 interface StationBoardWidgetProps {
-  /** Dodanie pociągu przez stronę – lista „Twoje pociągi” odświeża się od razu.
-   *  Bez tej funkcji widżet zapisuje przez własną instancję useTrains. */
   onTrainAdded?: ReturnType<typeof useTrains>["addTrain"];
 }
 
@@ -271,21 +270,24 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
       
         <h2 className="text-lg font-semibold mb-3">Twoje stacje</h2>
         
-        <form onSubmit={handleAddStation} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Poznań Główny"
-              aria-label="Nazwa stacji"
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              className="input-field pl-9 py-2 w-full text-sm"
-              disabled={selectedStations.length >= 3}
-            />
-          </div>
-          <AddButton onClick={() => handleAddStation()} 
-            disabled={selectedStations.length >= 3 || !searchInput.trim()} small/>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddStation();
+          }}
+          className="flex gap-2"
+        >
+          <SearchBar
+            className="flex-1"
+            placeholder="Poznań Główny"
+            value={searchInput}
+            onChange={setSearchInput}
+          />
+          <AddButton
+            onClick={handleAddStation}
+            disabled={selectedStations.length >= 3 || !searchInput.trim()}
+            small
+          />
         </form>
 
       <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">

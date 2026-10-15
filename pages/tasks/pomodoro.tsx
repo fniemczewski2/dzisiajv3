@@ -1,6 +1,7 @@
 // pages/tasks/pomodoro.tsx
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import UniversalTimer, { TimerPhase, TimerControls } from "@/components/ui/Timer";
 import { ListTodo, Settings, X } from "lucide-react";
@@ -128,14 +129,6 @@ const controls: TimerControls = {
         keywords="pomodoro, technika pomodoro, skupienie, focus, timer, praca głęboka"
       />
         <div className="flex justify-start gap-3 items-center mb-4 relative">
-          <button
-            onClick={handleBack}
-            type='button'
-            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
-            aria-label="Wróć"
-          >
-            <ListTodo className="w-4 h-4" />
-          </button>
           <h1 className="page-title">Pomodoro</h1>
         </div>
 

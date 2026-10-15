@@ -216,17 +216,18 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     summary: "Wydatki, budżet i czas pracy",
     features: [
       {
-        title: "Rachunki",
-        description: "Wydatki i wpływy z kategoriami oraz import wyciągów CSV z mBanku i PKO BP z automatycznymi kategoriami.",
+        title: "Finanse",
+        description: "Rachunki stałe z terminami (zadanie „Zapłać” w dniu płatności) i miesięczne podsumowanie wydatków z importem wyciągów CSV.",
         icon: Coins,
         path: "/bills",
         guideId: "bills",
         status: "zmienione",
-        note: "Przed importem CSV widzisz, do jakich kategorii trafią operacje.",
+        note: "Automatyczne łączenie płatności z rachunkami, prognoza na kolejny miesiąc i do 5 profili finansowych.",
+        since: "1.40.0",
       },
       {
         title: "Budżet roczny",
-        description: "Plan i wykonanie w każdym miesiącu oraz przeliczenie wydatków na godziny pracy.",
+        description: "Limity kategorii, wykonanie z transakcji i zaplanowane rachunki w każdym miesiącu.",
         icon: ChartColumnBig,
         path: "/bills/budget",
         guideId: "budget",

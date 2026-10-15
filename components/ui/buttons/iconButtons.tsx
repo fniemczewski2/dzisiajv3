@@ -13,12 +13,12 @@ import {
   Pin,
   Eye,
   Download,
+  Upload,
   Star,
   Bell,
   BellOff,
   Copy,
-  ChartNoAxesCombined,
-} from "lucide-react";
+  ChartNoAxesCombined, ListPlus } from "lucide-react";
 import { actionButton, actionIcon, ACTION_LABEL_CLASS } from "./actionButtonVariants";
 
 export const ConfirmButton = ({ onClick, small = false, label = "OK" }: { onClick: () => void; small?: boolean; label: string }) => (
@@ -42,7 +42,6 @@ export const DeleteButton = ({
   onClick: () => void;
   small?: boolean;
   disabled?: boolean;
-  /** Dla czytników ekranu, gdy „Usuń” robi coś innego niż kasowanie (np. wypisanie z listy). */
   ariaLabel?: string;
 }) => (
   <button
@@ -73,26 +72,36 @@ export const NotifyButton = ({ onClick, small = false, disabled = false }: { onC
   </button>
 );
 
-export const EditButton = ({ onClick, small = false, disabled = false }: { onClick: () => void; small?: boolean; disabled?: boolean }) => (
+export const EditButton = ({
+  onClick,
+  small = false,
+  disabled = false,
+  ariaLabel = "edytuj",
+}: {
+  onClick: () => void;
+  small?: boolean;
+  disabled?: boolean;
+  ariaLabel?: string;
+}) => (
   <button
     onClick={onClick}
     type="button"
     disabled={disabled}
     className={actionButton({ color: "blue", size: small ? "small" : "default" })}
-    aria-label="edytuj"
+    aria-label={ariaLabel}
   >
     <Edit2 className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Edytuj</span>}
   </button>
 );
 
-export const FavButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
+export const FavButton = ({ onClick, small = false, label = "dodaj do ulubionych" }: { onClick: () => void; small?: boolean; label?: string }) => (
   <button
     onClick={onClick}
     type="button"
     className={actionButton({ color: "blue", size: small ? "small" : "default" })}
-    aria-label="dodaj do ulubionych"
-    title="Dodaj do ulubionych"
+    aria-label={label}
+    title={label}
   >
     <Star className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Dodaj</span>}
@@ -209,16 +218,16 @@ export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export const PdfButton = ({ onClick }: { onClick: () => void }) => (
+export const ToTasksButton = ({ onClick, pending, expanded }: { onClick: () => void; pending: number; expanded: boolean }) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "purple" })}
-    aria-label="Generuj PDF"
-    title="Generuj PDF"
+    aria-expanded={expanded}
+    className={actionButton({ color: expanded ? "active" : "yellow" })}
+    title={pending > 0 ? `Dodaj zadania z protokołu do Zadań (${pending})` : "Zadania z protokołu są już w Zadaniach"}
   >
-    <Download className={actionIcon()} />
-    <span className={ACTION_LABEL_CLASS}>PDF</span>
+    <ListPlus className={actionIcon()} aria-hidden="true" />
+    <span className={ACTION_LABEL_CLASS}>{`Zadania`}</span>
   </button>
 );
 
@@ -235,6 +244,20 @@ export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void, f
   </button>
 );
 
+export const UploadButton = ({ onClick, fileFormat, small }: { onClick: () => void, fileFormat: string, small?: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className={actionButton({ color: "purple", size: small ? "small" : "default" })}
+    aria-label={`Prześlij plik ${fileFormat}`}
+    title={`Prześlij plik ${fileFormat}`}
+  >
+    <Upload className={actionIcon()} />
+    {!small && <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>}
+  </button>
+);
+
+
 export const CopyButton = ({ onClick}: { onClick: () => void }) => (
   <button
     onClick={onClick}
@@ -250,7 +273,6 @@ export const CopyButton = ({ onClick}: { onClick: () => void }) => (
   </button>
 );
 
-/** Cofa oznaczenie „wykonane”. Etykieta widoczna: „Przywróć”. */
 export const UndoButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
   <button
     onClick={onClick}

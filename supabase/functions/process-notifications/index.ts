@@ -2,6 +2,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { verifyCronSecret, corsHeaders, jsonHeaders, unauthorized } from '../_shared/auth.ts'
+import { isBillDueOn } from '../_shared/bills.ts'
 import { eventReminderType, REMINDER_TOLERANCE_MS, wallClockDayBounds, warsawWallClockNow, weekdayIndexPL } from '../_shared/notificationTime.ts'
 import { getErrorMessage } from '../_shared/errors.ts';
 import { mapPool } from "../_shared/asyncPool.ts";
@@ -24,6 +25,14 @@ interface TaskNotifRow {
   user_id: string;
   data: Record<string, unknown> | null;
 }
+
+
+/**
+ * Wersja wdrożonej funkcji – widoczna w odpowiedzi, żeby dało się sprawdzić,
+ * czy na serwerze działa aktualny kod (np. poprawka stref czasowych z 1.39.9).
+ * Podbijaj przy każdej zmianie tej funkcji.
+ */
+const FUNCTION_VERSION = '1.40.0';
 
 interface EventRow {
   id: string;
@@ -838,6 +847,46 @@ async function processTaskReminderType(ctx: NotifCtx): Promise<void> {
   });
 }
 
+/** Od tej godziny (czas polski) wysyłamy push o dzisiejszych płatnościach. */
+const BILL_PUSH_HOUR = 8;
+
+/**
+ * Push w dniu terminu płatności (?type=bill_due, np. co godzinę). Jeden push
+ * dziennie na osobę z listą rachunków; tylko dla osób z notif_bills
+ * i tylko rachunki bez płatności powiązanej w tym miesiącu.
+ */
+async function processBillDueType(ctx: NotifCtx): Promise<void> {
+  const { supabase, today, plNow, wasAlreadySentToday, sendPushAndLog } = ctx;
+  if (Number(plNow.hour) < BILL_PUSH_HOUR) return;
+
+  const { data: users } = await supabase.from('settings').select('user_id').eq('notif_bills', true).not('user_id', 'is', null);
+  const userIds = (users ?? []).map((u: { user_id: string }) => u.user_id);
+  if (userIds.length === 0) return;
+
+  const { data: bills } = await supabase.from('recurring_bills').select('*').eq('active', true).in('user_id', userIds);
+  const due = ((bills ?? []) as Array<{ id: string; user_id: string; name: string; amount: number; start_date: string; recurrence: unknown; active: boolean }>)
+    .filter((b) => isBillDueOn(b, today));
+  if (due.length === 0) return;
+
+  const { data: paid } = await supabase.from('transactions').select('recurring_bill_id')
+    .in('recurring_bill_id', due.map((b) => b.id))
+    .gte('date', `${today.slice(0, 7)}-01`).lte('date', today);
+  const paidIds = new Set((paid ?? []).map((p: { recurring_bill_id: string }) => p.recurring_bill_id));
+
+  const byUser = new Map<string, typeof due>();
+  for (const b of due) if (!paidIds.has(b.id)) byUser.set(b.user_id, [...(byUser.get(b.user_id) ?? []), b]);
+
+  await mapPool([...byUser.entries()], 5, async ([userId, list]) => {
+    if (await wasAlreadySentToday(userId, 'bill_due')) return;
+    const total = list.reduce((s, b) => s + Number(b.amount), 0);
+    const title = list.length === 1 ? `Dziś płatność: ${list[0].name}` : `Dziś płatności: ${list.length}`;
+    const message = list.length === 1
+      ? `${Number(list[0].amount).toFixed(2)} zł`
+      : `${list.map((b) => b.name).join(', ')} – razem ${total.toFixed(2)} zł`;
+    await sendPushAndLog(userId, title, message.slice(0, 180), '/bills', { bills: list.map((b) => b.id) });
+  });
+}
+
 const NOTIFICATION_HANDLERS: Record<string, (ctx: NotifCtx) => Promise<void>> = {
   morning_brief: processMorningBriefType,
   upcoming_task: processUpcomingTaskType,
@@ -850,6 +899,7 @@ const NOTIFICATION_HANDLERS: Record<string, (ctx: NotifCtx) => Promise<void>> = 
   poll_closing: processPollClosingType,
   people: processPeopleType,
   task_reminder: processTaskReminderType,
+  bill_due: processBillDueType,
 };
 
 Deno.serve(async (req) => {
@@ -932,7 +982,7 @@ Deno.serve(async (req) => {
       await selectedHandler(ctx);
     }
 
-    return new Response(JSON.stringify({ success: true, type, sentCount: processedCount }), { headers: jsonHeaders })
+    return new Response(JSON.stringify({ success: true, type, sentCount: processedCount, version: FUNCTION_VERSION }), { headers: jsonHeaders })
 
   } catch (error: unknown) {
     const message = getErrorMessage(error);

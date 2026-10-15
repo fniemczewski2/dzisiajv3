@@ -91,7 +91,7 @@ export default function StartPage() {
           </section>
 
           {changed.length > 0 && (
-            <section aria-labelledby="whats-new-heading" className="mb-12 rounded-(--radius-card) border border-line bg-card p-5 sm:p-7 shadow-sm">
+            <section aria-labelledby="whats-new-heading" className="mb-12 rounded-card border border-line bg-card p-5 sm:p-7 shadow-sm">
               <h2 id="whats-new-heading" className="font-display text-2xl font-bold text-text mb-1">Co nowego</h2>
               <p className="text-sm text-text-muted mb-5">Moduły dodane i zmienione w ostatnich wersjach.</p>
               <ul className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
@@ -126,7 +126,7 @@ export default function StartPage() {
                 <section
                   key={group.category}
                   aria-labelledby={`cat-${group.category}`}
-                  className="flex flex-col rounded-(--radius-card) border border-line bg-card shadow-sm overflow-hidden"
+                  className="flex flex-col rounded-card border border-line bg-card shadow-sm overflow-hidden"
                 >
                   <header className="px-5 pt-5 pb-3 border-b border-line">
                     <h3 id={`cat-${group.category}`} className="font-display text-xl font-bold text-text">{group.category}</h3>

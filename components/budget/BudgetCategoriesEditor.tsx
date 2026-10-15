@@ -167,7 +167,7 @@ export default function BudgetCategoriesEditor({
   const {
     categories, loading, maxReached,
     addCategory, updateCategory, deleteCategory,
-    reorderCategories
+    reorderCategories, importFromYear
   } = useBudgetCategories(year);
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -218,6 +218,15 @@ export default function BudgetCategoriesEditor({
             </span>
           )}
         </h3>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void importFromYear(year - 1).then((n) => n > 0 && onCategoriesChange?.())}
+            className="inline-flex min-h-11 items-center rounded-lg border border-line-strong px-3 text-sm font-medium text-text-secondary hover:text-text disabled:opacity-50"
+          >
+            Importuj z {year - 1}
+          </button>
         {!maxReached && (
             <AddButton
               onClick={() => {
@@ -226,6 +235,7 @@ export default function BudgetCategoriesEditor({
               }}
             />
         )}
+        </div>
       </div>
 
       {categories.length > 0 && (

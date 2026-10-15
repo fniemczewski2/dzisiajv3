@@ -150,21 +150,6 @@ export default function StudyDatesImport({ onImported, onClose }: Readonly<Props
 
       <EventCategorySelect id={`${id}-category`} value={category} onChange={setCategory} />
 
-      <div className="flex items-start gap-3">
-        <input
-          id={`${id}-tickets`}
-          type="checkbox"
-          checked={tickets && Boolean(category)}
-          disabled={!category}
-          onChange={(e) => setTickets(e.target.checked)}
-          className="mt-0.5 h-5 w-5 shrink-0"
-        />
-        <label htmlFor={`${id}-tickets`} className="cursor-pointer text-text">
-          Przypomnij o biletach {TICKET_REMINDER_DAYS_BEFORE} dni przed każdym zjazdem
-          {!category && <span className="block text-sm text-text-secondary">Wybierz kategorię, żeby włączyć.</span>}
-        </label>
-      </div>
-
       <div aria-live="polite">
         {text.trim() && ranges.length === 0 && (
           <p className="text-sm text-text-secondary">Nie znalazłem dat w tym tekście. Spróbuj skopiować samą tabelę z terminami.</p>

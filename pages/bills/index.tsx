@@ -1,105 +1,133 @@
 // pages/bills/index.tsx
+//
+// Finanse: rachunki stałe (tabela 1) i miesięczne wydatki/wpływy (tabela 2),
+// z wyborem profilu i miesiąca.
 
-import React, { useState } from "react";
-import dynamic from "next/dynamic";
-import { Calculator, ChartColumnBig } from "lucide-react";
-import { useBills } from "@/hooks/db/useBills";
-import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
-import { useRouter } from "next/router";
-import { getYear } from "date-fns";
-import DailySpendingForm from "@/components/widgets/DailySpendingForm";
-import { AddButton } from "@/components/ui/CommonButtons";
-import { useQuickAction } from "@/hooks/useQuickAction";
-import type { Bill } from "@/types/bills";
-import BillListGrouped from "@/components/bills/BillListGrouped";
-import { SkeletonList } from "@/components/ui/Skeleton";
+import React, { useCallback, useMemo, useState } from "react";
+import Link from "next/link";
+import { addMonths, format, parseISO } from "date-fns";
+import { pl } from "date-fns/locale";
+import { Calculator, ChartColumnBig, ChevronLeft, ChevronRight } from "lucide-react";
 import Seo from "@/components/ui/SEO";
+import { SkeletonList } from "@/components/ui/Skeleton";
+import DailySpendingForm from "@/components/widgets/DailySpendingForm";
+import ProfileSwitcher from "@/components/finance/ProfileSwitcher";
+import RecurringBillsSection from "@/components/finance/RecurringBillsSection";
+import TransactionsSection from "@/components/finance/TransactionsSection";
+import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
+import { useCategoryNameMap, useFinanceProfiles, useRecurringBills, useTransactions } from "@/hooks/db/useFinance";
+import { useQuickAction } from "@/hooks/useQuickAction";
+import { getAppDate } from "@/lib/dateUtils";
+import { monthRange, nextMonthKey } from "@/lib/finance";
+import type { NewTransaction } from "@/types/finance";
 
-const BillForm = dynamic(() => import("@/components/bills/BillForm"), {
-  ssr: false,
-});
-const BankCsvImporter = dynamic(() => import("@/components/budget/BankCSV"), {
-  ssr: false, 
-});
+const monthLabel = (key: string) => format(parseISO(`${key}-01`), "LLLL yyyy", { locale: pl });
 
-const currentYear = getYear(new Date());
+export default function FinancePage() {
+  const [monthKey, setMonthKey] = useState(getAppDate().slice(0, 7));
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const year = Number(monthKey.slice(0, 4));
+  const { from, to } = monthRange(monthKey);
 
-export default function BillsPage() {
-  const router = useRouter();
+  const { categories, loading: catsLoading } = useBudgetCategories(year);
+  const { categories: previousYearCategories } = useBudgetCategories(year - 1);
+  const categoryNames = useCategoryNameMap(categories, previousYearCategories);
+  const { profiles } = useFinanceProfiles();
+  const { bills, loading: billsLoading, saveBill, removeBill } = useRecurringBills();
+  const tx = useTransactions({ from, to });
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingBill, setEditingBill] = useState<Bill | null>(null);
+  const [quickAdd, setQuickAdd] = useState(0);
+  useQuickAction({ onActionAdd: () => setQuickAdd((n) => n + 1) });
 
-  const { categories, loading: catsLoading } = useBudgetCategories(currentYear);
-  const { fetching, fetchBills } = useBills({
-    includeRecurringChildren: true,
-  });
+  // Filtr profilu: „Wszystkie” pokazuje wszystko, profil – tylko swoje pozycje.
+  const inProfile = useCallback(<T extends { profile_id: string | null }>(x: T) => !profileId || x.profile_id === profileId, [profileId]);
+  const visibleBills = useMemo(() => bills.filter(inProfile), [bills, inProfile]);
+  const visibleTx = useMemo(() => tx.transactions.filter(inProfile), [tx.transactions, inProfile]);
 
-  useQuickAction({ onActionAdd: () => setShowForm(true) });
+  const addWithSuggestions = async (t: NewTransaction) => {
+    const history = await tx.loadHistory();
+    return tx.addTransaction(tx.withSuggestions(t, bills, history, categories, categoryNames));
+  };
 
-  const isLoading = fetching || catsLoading;
+  const shiftMonth = (delta: number) => setMonthKey((k) => format(addMonths(parseISO(`${k}-01`), delta), "yyyy-MM"));
+  const loading = catsLoading || billsLoading || tx.loading;
 
   return (
     <>
       <Seo
-        title="Rachunki"
-        description="Stałe opłaty, wydatki i przychody z terminami płatności, pogrupowane według miesięcy lub kategorii."
+        title="Finanse"
+        description="Rachunki stałe z terminami i przypomnieniami oraz miesięczne podsumowanie wydatków i wpływów."
         canonical="https://dzisiaj.fun/bills"
-        keywords="rachunki, płatności, opłaty stałe, finanse osobiste, przypomnienia finansowe"
+        keywords="rachunki, wydatki, budżet domowy, finanse osobiste"
       />
-        <div className="flex justify-between items-center mb-6 gap-2">
-          <div className="flex flex-row items-center gap-2 sm:gap-4">
-            <h1 className="page-title">Finanse</h1>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <button
-                onClick={() => router.push("/bills/budget")}
-                type='button'
-                title="Budżet"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
-              >
-                <ChartColumnBig className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-              <button
-                onClick={() => router.push("/bills/calculator")}
-                type='button'
-                title="Kalkulator Podziału"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
-              >
-                <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
-          </div>
-          <AddButton onClick={() => setShowForm(true)}/>
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h1 className="page-title">Finanse</h1>
         </div>
+      </div>
+      <div className="flex items-center card rounded-card p-1 shadow-sm w-fit mx-auto mb-4">
+        <button
+          onClick={() => shiftMonth(-1)}
+          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
+          type='button'
+          title="Poprzedni miesiąc"
+          aria-label="Poprzedni miesiąc"
+        >
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
 
-        {showForm && (
-          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-            <BillForm
-              categories={categories}
-              onChange={() => { void fetchBills(); setShowForm(false); }}
-              onCancel={() => setShowForm(false)}
-            />
-          </div>
-        )}
+        <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
+          {monthLabel(monthKey)}
+        </h2>
 
-        {editingBill && (
-          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-            <BillForm
-              categories={categories}
-              initial={editingBill}
-              onChange={() => { void fetchBills(); setEditingBill(null); }}
-              onCancel={() => setEditingBill(null)}
-            />
-          </div>
-        )}
+        <button
+          onClick={() => shiftMonth(1)}
+          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
+          type='button'
+          title="Następny miesiąc"
+          aria-label="Następny miesiąc"
+        >
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+      </div>
 
-        <DailySpendingForm />
-        <BankCsvImporter year={currentYear} />
+      <ProfileSwitcher profiles={profiles} value={profileId} onChange={setProfileId} />
 
-        {isLoading
-          ? <SkeletonList count={6} variant="row" />
-          : <BillListGrouped year={currentYear} />
-        }
+      {loading ? (
+        <SkeletonList count={6} variant="row" />
+      ) : (
+        <div className="space-y-6">
+          <RecurringBillsSection
+            bills={visibleBills}
+            monthKey={monthKey}
+            monthLabel={monthLabel(monthKey)}
+            nextMonthLabel={monthLabel(nextMonthKey(monthKey))}
+            transactions={visibleTx}
+            categories={categories}
+            profiles={profiles}
+            profileId={profileId}
+            onSave={saveBill}
+            onRemove={(id) => void removeBill(id)}
+          />
+          <TransactionsSection
+            addSignal={quickAdd}
+            monthLabel={monthLabel(monthKey)}
+            monthFrom={from}
+            transactions={visibleTx}
+            categories={categories}
+            categoryNames={categoryNames}
+            bills={bills}
+            profiles={profiles}
+            profileId={profileId}
+            onAdd={addWithSuggestions}
+            onUpdate={(id, patch) => void tx.updateTransaction(id, patch)}
+            onLink={(id, billId) => void tx.linkToBill(id, billId)}
+            onRemove={(id) => void tx.removeTransaction(id)}
+            csv={{ loadHistory: tx.loadHistory, withSuggestions: tx.withSuggestions, importTransactions: tx.importTransactions }}
+          />
+        </div>
+      )}
     </>
   );
 }

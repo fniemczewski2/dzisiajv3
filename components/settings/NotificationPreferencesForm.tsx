@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
-import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon, Users, Gift } from "lucide-react";
+import { Sun, Clock, Calendar, Droplet, CheckSquare, Moon, Users, Gift, Coins } from "lucide-react";
 
 export default function NotificationPreferences() {
   const { settings, updateSettings } = useSettings();
@@ -25,6 +25,7 @@ export default function NotificationPreferences() {
     { key: "notif_evening",       label: "Wieczorny audyt",           description: "Podsumowanie dnia o 21:00",                          icon: Moon},
     { key: "notif_birthdays",     label: "Urodziny i imieniny",       description: "W dniu oraz 1 i 7 dni wcześniej",                    icon: Gift},
     { key: "notif_contact",       label: "Przypomnienia o kontakcie", description: "Zgodnie z ustawionym priorytetem",                   icon: Users},
+    { key: "notif_bills",         label: "Płatności rachunków",       description: "W dniu oraz 1 i 7 dni wcześniej",                    icon: Coins},
   ];
 
   return (

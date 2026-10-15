@@ -11,10 +11,12 @@ import { Settings } from "@/types/settings";
 import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
 import HabitsEditor from "@/components/settings/HabitsEditor";
 import ModulesEditor from "@/components/settings/ModulesEditor";
+import FinanceSettings from "@/components/settings/FinanceSettings";
 import { resolveHabits } from "@/lib/habits";
 import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import ReportTemplatePanel from "../reports/ReportTemplatePanel";
 const DEFAULT_MOODS: MoodOption[] = [
   { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
   { id: "m2", label: "Dobrze", color: "#3b82f6" },    
@@ -212,7 +214,7 @@ export default function SettingsForm({
           )}
         </div>
       )}
-      
+
       <ModulesEditor
         disabled={localSettings.disabled_modules ?? []}
         onChange={(next) => updateLocalField("disabled_modules", next.length > 0 ? next : null)}
@@ -225,6 +227,13 @@ export default function SettingsForm({
         colors={localSettings.category_colors}
         onColorsChange={(next) => updateLocalField("category_colors", next)}
       />
+
+      <FinanceSettings
+        dailyCategories={localSettings.daily_spending_categories ?? []}
+        onDailyCategoriesChange={(next) => updateLocalField("daily_spending_categories", next)}
+      />
+
+      <ReportTemplatePanel />
 
       <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
         <h4 className="text-sm font-semibold text-text mb-3">Sortowanie</h4>
@@ -393,7 +402,7 @@ export default function SettingsForm({
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-between relative">
             <button
               type="button"
-              className="hover:bg-surface-hover gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 flex w-full md:flex-1 items-center justify-center pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-text-secondary font-medium rounded-lg shadow-sm"
+              className="gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 flex w-full md:flex-1 items-center justify-center pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-text-secondary font-medium rounded-lg shadow-sm"
               onClick={() => router.push("/guide")}
             >
               Instrukcja 

@@ -1,6 +1,6 @@
 // pages/bills/budget.tsx
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { getAppDateTime } from "@/lib/dateUtils";
@@ -8,12 +8,9 @@ import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { useBudgetSummary } from "@/hooks/db/useBudgetSummary";
 import BudgetCategoriesEditor from "@/components/budget/BudgetCategoriesEditor";
 import BudgetOverview from "@/components/budget/BudgetOverview";
-import BudgetStatsTable from "@/components/budget/StatsTable";
-import SummaryTable from "@/components/budget/SummaryTable";
+import YearTable from "@/components/budget/YearTable";
+import { useRecurringBills } from "@/hooks/db/useFinance";
 import { SkeletonBudgetTable } from "@/components/ui/Skeleton";
-import { useBudgetData } from "@/hooks/db/useBudget";
-import BudgetControls from "@/components/budget/BudgetControls";
-import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 
 const MONTH_NAMES = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
@@ -26,12 +23,9 @@ export default function BudgetPage() {
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(currentMonth);
   
-  const [saving, setSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
   
-  const { data, loading, loadedMonths, updateRate, saveRates } = useBudgetData(year, [1, 12]);
+  const { bills: recurringBills } = useRecurringBills();
 
   const {
     categories,
@@ -45,7 +39,7 @@ export default function BudgetPage() {
     totalIncome,
     loading: summaryLoading,
     refresh: refreshSummary,
-  } = useBudgetSummary(year, month, categories);
+  } = useBudgetSummary(year, month, categories, recurringBills);
 
   const handleBack = () => {
     const parts = router.pathname.split("/").filter(Boolean);
@@ -75,28 +69,7 @@ export default function BudgetPage() {
     }
   };
 
-  const rows = useMemo(() => Array.from({ length: 12 }, (_, i) => {
-    const m = i + 1;
-    const monthData = data[m];
-    const sum = monthData?.sum ?? 0;
-    const rate = monthData?.rate ?? 0;
-    return { month: m, monthName: MONTH_NAMES[i], sum, rate, hours: rate > 0 ? Math.round(sum / rate) : 0 };
-  }), [data]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await saveRates();
-      toast.success("Zmieniono pomyślnie.");
-      setIsEditing(false);
-    } catch {
-      toast.error("Wystąpił błąd podczas zapisywania.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const isLoading = loading || summaryLoading || catsLoading;
+  const isLoading = summaryLoading || catsLoading;
  
   return (
     <>
@@ -171,17 +144,9 @@ export default function BudgetPage() {
         )}
 
         {!isLoading && (
-        <div className="flex flex-wrap gap-2 sm:gap-6 w-full justify-center">
-            <BudgetControls
-              isEditing={isEditing}
-              saving={saving}
-              onSave={handleSave}
-              onCancel={() => setIsEditing(false)}
-              onEdit={() => setIsEditing(true)}
-            />
-            <BudgetStatsTable rows={rows} isEditing={isEditing} onRateChange={updateRate} />
-            <SummaryTable data={data} monthNames={MONTH_NAMES} loadedMonths={loadedMonths} />
-        </div>
+          <div className="flex w-full justify-center">
+            <YearTable year={year} />
+          </div>
         )}
     </>
   );

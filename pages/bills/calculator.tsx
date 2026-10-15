@@ -1,6 +1,7 @@
 // pages/bills/calculator.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEuroRate } from "@/hooks/useEuroRate";
@@ -183,16 +184,7 @@ export default function BillCalculator() {
       <div className="max-w-4xl mx-auto space-y-6">
         
         <div className="flex justify-between gap-3 items-center mb-6">
-          <button
-            onClick={handleBack}
-            type='button'
-            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
-            aria-label="Wróć"
-          >
-            <Coins className="w-4 h-4" />
-          </button>
-
-          <h1 className="page-title mx-auto text-center first-letter:uppercase">
+          <h1 className="page-title">
             Kalkulator Podziału
           </h1>
         </div>

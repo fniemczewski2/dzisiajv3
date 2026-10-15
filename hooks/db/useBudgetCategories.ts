@@ -1,4 +1,4 @@
-﻿// hooks/db/useBudgetCategories.ts
+// hooks/db/useBudgetCategories.ts
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -228,7 +228,56 @@ export function useBudgetCategories(year: number) {
     [supabase, userId, year, toast, withRetry]
   );
 
+  /**
+   * Kopiuje kategorie (nazwy, limity, kolejność) z innego roku. Kategorie
+   * o tej samej nazwie, które już są w bieżącym roku, zostają bez zmian.
+   */
+  const importFromYear = useCallback(
+    async (sourceYear: number): Promise<number> => {
+      if (!userId) return 0;
+      setLoading(true);
+      try {
+        const { data: source, error: readError } = await supabase
+          .from("budget_categories")
+          .select("name, monthly_amounts, is_monthly, sort_order")
+          .eq("user_id", userId)
+          .eq("year", sourceYear)
+          .order("sort_order", { ascending: true });
+        if (readError) throw readError;
+        if (!source || source.length === 0) {
+          toast.error(`Brak kategorii w roku ${sourceYear}.`);
+          return 0;
+        }
+        const offset = categories.length;
+        const rows = (source as Array<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">>).map((c, i) => ({
+          user_id: userId,
+          year,
+          name: c.name,
+          monthly_amounts: c.monthly_amounts,
+          is_monthly: c.is_monthly,
+          sort_order: offset + i,
+        }));
+        const { data, error } = await supabase
+          .from("budget_categories")
+          .upsert(rows, { onConflict: "user_id,year,name", ignoreDuplicates: true })
+          .select();
+        if (error) throw error;
+        await fetchCategories();
+        const added = data?.length ?? 0;
+        toast.success(added ? `Zaimportowano kategorie: ${added}.` : "Wszystkie kategorie już są w tym roku.");
+        return added;
+      } catch {
+        toast.error("Nie udało się zaimportować kategorii.");
+        return 0;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [supabase, userId, year, categories.length, toast, fetchCategories]
+  );
+
   return {
+    importFromYear,
     categories,
     fetching,
     loading,

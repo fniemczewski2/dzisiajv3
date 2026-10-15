@@ -7,7 +7,7 @@ import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
 import { User, SupabaseClient } from '@supabase/supabase-js';
 import { ConnectedCalendarRow } from '@/types/connectedCalendars';
 import { OutlookTokenResponse, OutlookEventsResponse, OutlookCalendarsResponse } from '@/types/outlookCalendar';
-import { warsawNaiveToRFC3339 } from '@/lib/server/calendarTime';
+import { outlookToSupabaseTime, warsawNaiveToRFC3339 } from '@/lib/server/calendarTime';
 import { mapPool } from "@/lib/asyncPool";
 
 import { resolveExportTarget, canAttachToTarget, type ExportTarget } from '@/lib/server/exportTarget';
@@ -104,8 +104,12 @@ function buildOutlookEventRows(
   for (const ev of events || []) {
     if (ev.isCancelled) continue;
 
-    const startTime = new Date(ev.start.dateTime + 'Z').toISOString().slice(0, 19);
-    const endTime = new Date(ev.end.dateTime + 'Z').toISOString().slice(0, 19);
+    // Graph zwraca czas w UTC (nagłówek Prefer: outlook.timezone="UTC"), a wydarzenia
+    // trzymamy jako czas ścienny w Polsce. Wcześniej zapisywaliśmy UTC wprost, więc
+    // wydarzenia z pierwszego importu Outlooka były o 1–2 h za wcześnie (synchronizacja
+    // w sync-calendars przeliczała już poprawnie).
+    const startTime = outlookToSupabaseTime(ev.start.dateTime);
+    const endTime = outlookToSupabaseTime(ev.end.dateTime);
 
     rows.push({
       user_id: userId,

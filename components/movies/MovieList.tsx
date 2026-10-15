@@ -115,7 +115,7 @@ export default function MovieWatchlist({
   return (
     <>
       <div className="flex justify-between items-center mb-6 mt-2">
-        <h2 className="text-2xl font-bold text-text">Filmy i seriale</h2>
+        <h1 className="page-title">Filmy i seriale</h1>
         {!showAddForm && <AddButton onClick={() => setShowAddForm(true)} />}
       </div>
 

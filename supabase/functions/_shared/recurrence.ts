@@ -281,13 +281,6 @@ function monthlyText(rule: RecurrenceRule, base: string, start?: string): string
   return `${base}, ${day}. dnia${note}`;
 }
 
-function endText(rule: RecurrenceRule): string {
-  if (rule.until) return `, do ${rule.until.split("-").reverse().join(".")}`;
-  if (rule.count) return `, ${rule.count} ${unit(rule.count, "raz", "razy", "razy")}`;
-  return "";
-}
-
-/** Opis po polsku, np. „Co 2 tygodnie: pn, śr, do 20.12.2026”. */
 export function describeRule(rule: RecurrenceRule | null, start?: string): string {
   if (!rule) return "Nie powtarza się";
   const n = rule.interval;
@@ -297,17 +290,17 @@ export function describeRule(rule: RecurrenceRule | null, start?: string): strin
   let text: string;
   switch (rule.freq) {
     case "daily":
-      text = every("Codziennie", "dzień", "dni", "dni");
+      text = every("codziennie", "dzień", "dni", "dni");
       break;
     case "weekly":
-      text = weeklyText(rule, every("Co tydzień", "tydzień", "tygodnie", "tygodni"), start);
+      text = weeklyText(rule, every("co tydzień", "tydzień", "tygodnie", "tygodni"), start);
       break;
     case "monthly":
-      text = monthlyText(rule, every("Co miesiąc", "miesiąc", "miesiące", "miesięcy"), start);
+      text = monthlyText(rule, every("co miesiąc", "miesiąc", "miesiące", "miesięcy"), start);
       break;
     case "yearly":
-      text = every("Co roku", "rok", "lata", "lat");
+      text = every("co roku", "rok", "lata", "lat");
       break;
   }
-  return text + endText(rule);
+  return text;
 }
