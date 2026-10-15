@@ -18,6 +18,7 @@ import {
   type CustomFeed,
   type RssGroup,
 } from "@/config/rssSources";
+import { RefreshButton } from "@/components/ui/CommonButtons";
 
 const PAGE = 30;
 const OWN_GROUP = "Własne kanały";
@@ -80,23 +81,18 @@ export default function NewsPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title">Wiadomości</h1>
         <div className="flex gap-2">
-          <button
-            type="button"
+          <RefreshButton
             onClick={() => void reload()}
-            disabled={loading}
-            className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-3 text-sm font-medium text-text-secondary hover:text-text disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
-            Odśwież
-          </button>
+            small
+          />
           <button
             type="button"
             onClick={() => setShowSources((v) => !v)}
             aria-expanded={showSources}
             className="flex min-h-11 items-center gap-2 rounded-lg bg-secondary px-3 text-sm font-semibold text-white hover:bg-secondary-hover"
           >
+            Źródła
             <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-            Źródła ({enabled.length})
           </button>
         </div>
       </div>

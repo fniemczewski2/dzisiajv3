@@ -1,4 +1,4 @@
-﻿// hooks/db/useEvents.ts
+// hooks/db/useEvents.ts
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
@@ -134,8 +134,8 @@ export function useEvents(
   }, [supabase, userId, rangeStart, rangeEnd, toast, withRetry, getSignal]);
 
   useEffect(() => {
-    void fetchEvents();
-  }, [fetchEvents]);
+    if (userId) void fetchEvents();
+  }, [fetchEvents, userId]);
 
   useEffect(() => {
     const handleRefresh = () => fetchEvents();

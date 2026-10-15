@@ -133,8 +133,8 @@ export function useConnectedCalendars(expanded: boolean) {
   );
 
   useEffect(() => {
-    void fetchAccountsAndCalendars(!expanded);
-  }, [expanded, fetchAccountsAndCalendars]);
+    if (user) void fetchAccountsAndCalendars(!expanded);
+  }, [expanded, fetchAccountsAndCalendars, user]);
 
   const handleToggleCalendar = useCallback(
     async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {

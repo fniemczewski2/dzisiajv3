@@ -51,7 +51,11 @@ export function useBudgetCategories(year: number) {
     }
   }, [supabase, userId, year, toast, withRetry, getSignal]);
 
-  useEffect(() => { void fetchCategories(); }, [fetchCategories]);
+  // Bez zalogowanego użytkownika nic nie pobieramy (np. podczas wczytywania sesji
+  // albo po wylogowaniu) – fetch rzuca „Unauthorized”, co kończyło się błędem strony.
+  useEffect(() => {
+    if (userId) void fetchCategories();
+  }, [fetchCategories, userId]);
 
   const addCategory = useCallback(
     async (payload: { name: string; monthly_amounts: number[]; is_monthly: boolean }): Promise<BudgetCategory | undefined> => {

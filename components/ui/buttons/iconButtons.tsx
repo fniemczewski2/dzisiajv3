@@ -18,7 +18,8 @@ import {
   Bell,
   BellOff,
   Copy,
-  ChartNoAxesCombined, ListPlus } from "lucide-react";
+  ChartNoAxesCombined, ListPlus, 
+  RefreshCw} from "lucide-react";
 import { actionButton, actionIcon, ACTION_LABEL_CLASS } from "./actionButtonVariants";
 
 export const ConfirmButton = ({ onClick, small = false, label = "OK" }: { onClick: () => void; small?: boolean; label: string }) => (
@@ -244,13 +245,13 @@ export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void, f
   </button>
 );
 
-export const UploadButton = ({ onClick, fileFormat, small }: { onClick: () => void, fileFormat: string, small?: boolean }) => (
+export const UploadButton = ({ onClick, fileFormat, small }: { onClick: () => void, fileFormat?: string, small?: boolean }) => (
   <button
     onClick={onClick}
     type="button"
     className={actionButton({ color: "purple", size: small ? "small" : "default" })}
-    aria-label={`Prześlij plik ${fileFormat}`}
-    title={`Prześlij plik ${fileFormat}`}
+    aria-label={fileFormat ? `Prześlij plik ${fileFormat}` : "importuj"}
+    title={fileFormat ? `Prześlij plik ${fileFormat}` : "importuj"}
   >
     <Upload className={actionIcon()} />
     {!small && <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>}
@@ -282,6 +283,19 @@ export const UndoButton = ({ onClick, small = false }: { onClick: () => void; sm
     title="Oznacz jako niewykonane"
   >
     <RotateCcw className={actionIcon(small)} />
+    {!small && <span className={ACTION_LABEL_CLASS}>Przywróć</span>}
+  </button>
+);
+
+export const RefreshButton = ({ onClick, small = false }: { onClick: () => void; small?: boolean }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
+    aria-label="Odśwież"
+    title="Odśwież"
+  >
+    <RefreshCw className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Przywróć</span>}
   </button>
 );

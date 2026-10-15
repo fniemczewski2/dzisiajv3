@@ -137,17 +137,27 @@ function yearFromMark(mark: YearMark, month: number): number {
 }
 
 /** Poprawny zakres dni (prawdziwe daty, koniec nie przed początkiem, nie za długi). */
-function isValidRange(start: string, end: string): boolean {
+function isValidRange(start: string, end: string, maxSpan = MAX_SPAN_DAYS): boolean {
   const [ys, ms, ds] = start.split("-").map(Number);
   const [ye, me, de] = end.split("-").map(Number);
   if (!valid(ys, ms, ds) || !valid(ye, me, de)) return false;
   const span = spanDays(start, end);
-  return span >= 0 && span <= MAX_SPAN_DAYS;
+  return span >= 0 && span <= maxSpan;
 }
 
-export function parseStudyDates(text: string, now: Date = new Date()): StudyDateRange[] {
+export interface DateMatch extends StudyDateRange {
+  /** Pozycja dopasowania w tekście. */
+  index: number;
+  length: number;
+}
+
+/**
+ * Wszystkie daty i zakresy dat w tekście, z pozycją (bez usuwania powtórzeń).
+ * `maxSpanDays` – najdłuższy dopuszczalny zakres (zjazdy: 4 dni, ogólnie: miesiąc).
+ */
+export function findDateMatches(text: string, now: Date = new Date(), maxSpanDays = MAX_SPAN_DAYS): DateMatch[] {
   const consumed: Array<[number, number]> = [];
-  const found: StudyDateRange[] = [];
+  const found: DateMatch[] = [];
   const overlaps = (a: number, b: number) => consumed.some(([x, y]) => a < y && x < b);
   const marks = findYearMarks(text);
 
@@ -168,14 +178,20 @@ export function parseStudyDates(text: string, now: Date = new Date()): StudyDate
       // Odrzucony zapis też „zajmuje” tekst – inaczej zbyt długi zakres
       // rozpadłby się na pojedyncze dni dopasowane przez kolejne wzorce.
       consumed.push([from, to]);
-      if (isValidRange(result[0], result[1])) found.push({ start: result[0], end: result[1], raw: m[0].trim() });
+      if (isValidRange(result[0], result[1], maxSpanDays)) {
+        found.push({ start: result[0], end: result[1], raw: m[0].trim(), index: from, length: m[0].length });
+      }
     }
   }
+  return found.toSorted((a, b) => a.index - b.index);
+}
 
+export function parseStudyDates(text: string, now: Date = new Date()): StudyDateRange[] {
+  const found = findDateMatches(text, now);
   const unique = new Map<string, StudyDateRange>();
   for (const f of found.toSorted((a, b) => a.start.localeCompare(b.start))) {
     const key = `${f.start}|${f.end}`;
-    if (!unique.has(key)) unique.set(key, f);
+    if (!unique.has(key)) unique.set(key, { start: f.start, end: f.end, raw: f.raw });
   }
   return [...unique.values()];
 }

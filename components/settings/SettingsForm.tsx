@@ -1,13 +1,17 @@
 // components/settings/SettingsForm.tsx
+//
+// Ustawienia podzielone na sekcje tematyczne. Każda sekcja ma własną kopię
+// roboczą i własny przycisk „Zapisz” – zapisuje tylko swoje pola.
+// Sekcje, które zapisują się od razu (powiadomienia, szablony, profile
+// finansowe, Slack…), są na stronie Ustawień poniżej tych formularzy.
 
-import React, { useState, useEffect } from "react";
-import { PlusCircle, Settings as SettingsIcon, RotateCcw, Info, Pen } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowDownUp, CheckSquare, Coins, LayoutGrid, Pen, PlusCircle, Smile, Users } from "lucide-react";
 import ThemeToggle from "./ThemeButton";
-import { DeleteButton, SaveButton, ToggleSwitch } from "../ui/CommonButtons"; 
-import { useRouter } from "next/router";
+import { DeleteButton, ToggleSwitch } from "../ui/CommonButtons";
 import { MoodOption } from "@/types/moods";
 import { Settings } from "@/types/settings";
-
+import SettingsSection, { type SetField } from "./SettingsSection";
 import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
 import HabitsEditor from "@/components/settings/HabitsEditor";
 import ModulesEditor from "@/components/settings/ModulesEditor";
@@ -16,401 +20,302 @@ import { resolveHabits } from "@/lib/habits";
 import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import ReportTemplatePanel from "../reports/ReportTemplatePanel";
-const DEFAULT_MOODS: MoodOption[] = [
-  { id: "m1", label: "Wspaniale", color: "#22c55e" }, 
-  { id: "m2", label: "Dobrze", color: "#3b82f6" },    
-  { id: "m3", label: "Neutralnie", color: "#eab308" },
-  { id: "m4", label: "Źle", color: "#f97316" },       
-  { id: "m5", label: "Okropnie", color: "#ef4444" },  
-];
 
-type BooleanSettingsKey = Extract<
-  { [K in keyof Settings]: Settings[K] extends boolean ? K : never }[keyof Settings],
-  keyof Settings
->;
+const DEFAULT_MOODS: MoodOption[] = [
+  { id: "m1", label: "Wspaniale", color: "#22c55e" },
+  { id: "m2", label: "Dobrze", color: "#3b82f6" },
+  { id: "m3", label: "Neutralnie", color: "#eab308" },
+  { id: "m4", label: "Źle", color: "#f97316" },
+  { id: "m5", label: "Okropnie", color: "#ef4444" },
+];
+const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
+
+/** Spis sekcji – do nawigacji na górze strony. */
+export const SETTINGS_SECTIONS = [
+  { id: "ogolne", title: "Ogólne" },
+  { id: "zadania", title: "Zadania" },
+  { id: "nawyki", title: "Nawyki i plan dnia" },
+  { id: "finanse", title: "Finanse" },
+  { id: "sortowanie", title: "Sortowanie" },
+  { id: "udostepnianie", title: "Udostępnianie" },
+] as const;
 
 interface SettingsFormProps {
   settings: Settings;
-  loading: boolean;
-  onSave: (updatedSettings: Settings) => void;
-  onRestoreDefaults: () => void;
+  defaults: Settings;
+  /** Zapis wybranych pól; true = zapisano. */
+  onSavePartial: (patch: Partial<Settings>) => Promise<boolean>;
 }
 
-export default function SettingsForm({
-  settings: initialSettings, 
-  loading, 
-  onSave,
-  onRestoreDefaults
-}: Readonly<SettingsFormProps>) {
-  
-  const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
-  const router = useRouter();
-  const [localSettings, setLocalSettings] = useState<Settings>(initialSettings);
-  const [categoryRenames, setCategoryRenames] = useState<Array<[string, string]>>([]);
-  const { user, supabase } = useAuth();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    setLocalSettings(initialSettings);
-  }, [initialSettings]);
-
-  const updateLocalField = <K extends keyof Settings>(field: K, value: Settings[K]) => {
-    setLocalSettings((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleFormSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onSave(localSettings);
-    if (user && categoryRenames.length > 0) {
-      const renames = categoryRenames;
-      setCategoryRenames([]);
-      void applyTaskCategoryRenames(supabase, user.id, renames).then(({ failed }) => {
-        if (failed > 0) toast.error("Nie udało się przenieść części zadań do kategorii o nowej nazwie.");
-      });
-    }
-  };
-
-  const renderSwitch = (id: BooleanSettingsKey, label: string) => {
-    const isChecked = localSettings[id] !== false;
-
-    return (
-      <div key={id} className="flex items-center justify-between py-2">
-        <label htmlFor={id} className="text-sm font-medium text-text cursor-pointer select-none">
-          {label}
-        </label>
-        <ToggleSwitch id={id} checked={isChecked} onChange={(value) => updateLocalField(id, value)} />
-      </div>
-    );
-  };
-
-  const moodEnabled = localSettings?.show_mood_tracker ?? false;
-  const moodOptions = localSettings?.mood_options ?? DEFAULT_MOODS;
-
+function Switch({ id, label, checked, onChange }: Readonly<{ id: string; label: string; checked: boolean; onChange: (v: boolean) => void }>) {
   return (
-    <form onSubmit={handleFormSubmit} className="form-card mb-6">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
-        <h3 className="text-xl font-semibold flex items-center text-text">
-          <SettingsIcon className="w-5 h-5 mr-2 text-text-muted" />
-          Ustawienia aplikacji
-        </h3>
-        <ThemeToggle />
-      </div>
+    <div className="flex min-h-11 items-center justify-between gap-3">
+      <label htmlFor={id} className="cursor-pointer select-none text-sm font-medium text-text">{label}</label>
+      <ToggleSwitch id={id} checked={checked} onChange={onChange} />
+    </div>
+  );
+}
 
-      <div className="mt-0">
+function SortSelect({
+  id, label, value, options, onChange,
+}: Readonly<{ id: string; label: string; value: string; options: Array<[string, string]>; onChange: (v: string) => void }>) {
+  return (
+    <div>
+      <label htmlFor={id} className="form-label">{label}</label>
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="input-field">
+        {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+      </select>
+    </div>
+  );
+}
 
-         <div>
-            <label htmlFor="main_view" className="form-label text-xs">Widok główny:</label>
-            <select
-              id="main_view"
-              value={localSettings.main_view || "calendar"}
-              onChange={(e) => updateLocalField("main_view", e.target.value)}
-              className="input-field"
-            >
-              <option value="calendar">Kalendarz</option>
-              <option value="tasks">Zadania</option>
-              <option value="day_view">Plan dnia</option>
-            </select>
+function MoodsEditor({ value, onChange }: Readonly<{ value: MoodOption[]; onChange: (next: MoodOption[]) => void }>) {
+  const patch = (index: number, change: Partial<MoodOption>) =>
+    onChange(value.map((m, i) => (i === index ? { ...m, ...change } : m)));
+  return (
+    <fieldset className="min-w-0 rounded-xl border border-line p-4">
+      <legend className="px-1 text-sm font-semibold text-text">Nastroje</legend>
+      {value.map((opt, index) => (
+        <div key={opt.id} className="mb-3 flex flex-col items-center gap-2 sm:flex-row">
+          <div className="flex w-full justify-between gap-2 sm:flex-1">
+            <input
+              type="text"
+              aria-label={`Nazwa nastroju ${index + 1}`}
+              value={opt.label}
+              onChange={(e) => patch(index, { label: e.target.value })}
+              className="input-field flex-1"
+              placeholder="Nazwa nastroju..."
+            />
+            <DeleteButton small ariaLabel={`Usuń nastrój ${opt.label}`} onClick={() => onChange(value.filter((m) => m.id !== opt.id))} />
           </div>
-        {renderSwitch("show_completed", "Pokaż wykonane zadania")}
-        {renderSwitch("show_water_tracker", "Pokaż tracker wody")}
-        {renderSwitch("show_notifications", "Pokaż zadania cykliczne")}
-        {renderSwitch("show_budget_items", "Pokaż planowane wydatki")}
-        {renderSwitch("show_habits", "Pokaż sekcję nawyków")}
-        {renderSwitch("hide_priority_5", "Ukryj priorytet 5 (Ludzie)")}
-
-        <div className="flex items-center justify-between py-2">
-          <label htmlFor="show_mood_tracker" className="text-sm font-medium text-text cursor-pointer select-none">
-            Pokaż śledzenie nastroju
-          </label>
-          <ToggleSwitch id="show_mood_tracker" checked={moodEnabled} onChange={(value) => updateLocalField("show_mood_tracker", value)} />
-        </div>
-
-        {localSettings.show_habits && (
-          <HabitsEditor
-            value={resolveHabits(localSettings)}
-            onChange={(next) => updateLocalField("custom_habits", next)}
-          />
-        )}
-      </div>
-
-      {moodEnabled && (
-        <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl"> 
-          <h4 className="text-xs font-bold text-text-muted mb-3">Nastroje</h4>
-          {moodOptions.map((opt: MoodOption, index: number) => (
-            <div key={opt.id} className="flex flex-col sm:flex-row items-center gap-2 pb-2 mb-4">
-              <div className="flex justify-between gap-2 md:mr-2 w-full sm:flex-1">
-                <input
-                  type="text"
-                  aria-label={`Nazwa nastroju ${index + 1}`}
-                  value={opt.label}
-                  onChange={(e) => {
-                    const newOpts = [...moodOptions];
-                    newOpts[index].label = e.target.value;
-                    updateLocalField("mood_options", newOpts);
-                  }}
-                  className="input-field flex-1 bg-card"
-                  placeholder="Nazwa nastroju..."
+          <div className="flex shrink-0 items-center gap-1">
+            {PRESET_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => patch(index, { color })}
+                aria-label={`Kolor nastroju ${opt.label}: ${color}`}
+                aria-pressed={opt.color === color}
+                className="flex h-11 w-9 items-center justify-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`h-6 w-6 rounded-full ${opt.color === color ? "ring-2 ring-text ring-offset-2 ring-offset-card" : ""}`}
+                  style={{ backgroundColor: color }}
                 />
-
-                <DeleteButton
-                  onClick={() => {
-                    const newOpts = moodOptions.filter((m: MoodOption) => m.id !== opt.id);
-                    updateLocalField("mood_options", newOpts);
-                  }}
-                  small
-                  />
-              </div>
-              
-              <div className="flex items-center gap-2 shrink-0 mt-2 sm:mt-0">
-                {PRESET_COLORS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => {
-                      const newOpts = [...moodOptions];
-                      newOpts[index].color = color;
-                      updateLocalField("mood_options", newOpts);
-                    }}
-                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform ${opt.color === color ? 'scale-125 ring-2 ring-primary' : 'hover:scale-110'}`}
-                    style={{ backgroundColor: color }}
-                    title={`Ustaw kolor: ${color}`}
-                  />
-                ))}
-                
-                <div 
-                  className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 ml-2 shadow-sm ring-1 ring-black/10 dark:ring-white/10"
-                  style={{ backgroundColor: opt.color }}
-                  title="Wybierz własny kolor"
-                >
-                  <input
-                    type="color"
-                    aria-label={`Kolor nastroju: ${opt.label}`}
-                    value={opt.color}
-                    onChange={(e) => {
-                      const newOpts = [...moodOptions];
-                      newOpts[index].color = e.target.value;
-                      updateLocalField("mood_options", newOpts);
-                    }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                  />
-                  <Pen className="w-3.5 h-3.5 absolute top-2 left-2 pointer-events-none text-white drop-shadow-md"/>
-                </div>
-              </div>
-            </div>
-          ))}
-          
-          {moodOptions.length < 10 && (
-            <button
-              type="button"
-              onClick={() => {
-                const newOpts = [...moodOptions, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }];
-                updateLocalField("mood_options", newOpts);
-              }}
-              className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-strong transition-colors mt-2 p-2"
-            >
-              <PlusCircle className="w-4 h-4" /> Dodaj nastrój
-            </button>
-          )}
-        </div>
-      )}
-
-      <ModulesEditor
-        disabled={localSettings.disabled_modules ?? []}
-        onChange={(next) => updateLocalField("disabled_modules", next.length > 0 ? next : null)}
-      />
-
-      <TaskCategoriesEditor
-        value={localSettings.task_categories}
-        onChange={(next) => updateLocalField("task_categories", next)}
-        onRenamesChange={setCategoryRenames}
-        colors={localSettings.category_colors}
-        onColorsChange={(next) => updateLocalField("category_colors", next)}
-      />
-
-      <FinanceSettings
-        dailyCategories={localSettings.daily_spending_categories ?? []}
-        onDailyCategoriesChange={(next) => updateLocalField("daily_spending_categories", next)}
-      />
-
-      <ReportTemplatePanel />
-
-      <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-        <h4 className="text-sm font-semibold text-text mb-3">Sortowanie</h4>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="sort_order" className="form-label text-xs">Zadania:</label>
-            <select
-              id="sort_order"
-              value={localSettings.sort_order || "priority"}
-              onChange={(e) => updateLocalField("sort_order", e.target.value)}
-              className="input-field"
-            >
-              <option value="priority">Priorytet</option>
-              <option value="due_date">Data wykonania</option>
-              <option value="alphabetical">Alfabetycznie</option>
-              <option value="due_date_alphabetical">Data i alfabetycznie</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sort_notes" className="form-label text-xs">Notatki:</label>
-            <select
-              id="sort_notes"
-              value={localSettings.sort_notes || "updated_desc"}
-              onChange={(e) => updateLocalField("sort_notes", e.target.value)}
-              className="input-field"
-            >
-              <option value="updated_desc">Data aktualizacji</option>
-              <option value="alphabetical">Alfabetycznie</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sort_shopping" className="form-label text-xs">Listy zakupów:</label>
-            <select
-              id="sort_shopping"
-              value={localSettings.sort_shopping || "updated_desc"}
-              onChange={(e) => updateLocalField("sort_shopping", e.target.value)}
-              className="input-field"
-            >
-              <option value="updated_desc">Data aktualizacji</option>
-              <option value="alphabetical">AlfabetycznieZ</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sort_movies" className="form-label text-xs">Filmy i seriale:</label>
-            <select
-              id="sort_movies"
-              value={localSettings.sort_movies || "updated_desc"}
-              onChange={(e) => updateLocalField("sort_movies", e.target.value)}
-              className="input-field"
-            >
-              <option value="updated_desc">Data aktualizacji</option>
-              <option value="alphabetical">Alfabetycznie</option>
-              <option value="rating">Wg oceny</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sort_recipes" className="form-label text-xs">Przepisy:</label>
-            <select
-              id="sort_recipes"
-              value={localSettings.sort_recipes || "category"}
-              onChange={(e) => updateLocalField("sort_recipes", e.target.value)}
-              className="input-field"
-            >
-              <option value="category">Kategorie</option>
-              <option value="alphabetical">Alfabetycznie</option>
-              <option value="created_desc">Data dodania</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sort_people" className="form-label text-xs">Ludzie:</label>
-            <select
-              id="sort_people"
-              value={localSettings.sort_people || "alphabetical"}
-              onChange={(e) => updateLocalField("sort_people", e.target.value)}
-              className="input-field"
-            >
-              <option value="alphabetical">Alfabetycznie</option>
-              <option value="priority">Priorytet</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="sort_bills" className="form-label text-xs">Rachunki:</label>
-            <select
-              id="sort_bills"
-              value={localSettings.sort_bills || "month"}
-              onChange={(e) => updateLocalField("sort_bills", e.target.value)}
-              className="input-field"
-            >
-              <option value="month">Wg miesięcy</option>
-              <option value="category">Wg kategorii</option>
-            </select>
+              </button>
+            ))}
+            <span className="relative ml-1 h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-line-strong" style={{ backgroundColor: opt.color }}>
+              <input
+                type="color"
+                aria-label={`Własny kolor nastroju ${opt.label}`}
+                value={opt.color}
+                onChange={(e) => patch(index, { color: e.target.value })}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+              <Pen className="pointer-events-none absolute left-2 top-2 h-3.5 w-3.5 text-white drop-shadow" aria-hidden="true" />
+            </span>
           </div>
         </div>
-      </div>
-
-      <div className="mt-2">
-        <div className="form-label mb-2" id="trusted-users-group">
-          Zaufani użytkownicy (Udostępnianie):
-        </div>
-        
-        <fieldset
-          className="space-y-2 max-w-md border-none p-0 m-0 min-w-0" 
-          aria-labelledby="trusted-users-group"
-        >
-          {localSettings?.users.map((u: string, idx: number) => {
-            const inputId = `trusted-user-${u}`;
-            return (
-              <div key={inputId} className="flex items-center gap-2">
-                <label htmlFor={inputId} className="sr-only">
-                  Adres email zaufanego użytkownika {idx + 1}
-                </label>
-                
-                <input
-                  id={inputId}
-                  type="email"
-                  value={u}
-                  placeholder="Email użytkownika"
-                  onChange={(e) => {
-                    const newUsers = [...localSettings.users];
-                    newUsers[idx] = e.target.value;
-                    updateLocalField("users", newUsers);
-                  }}
-                  className="input-field"
-                />
-                
-                <DeleteButton 
-                  onClick={() => {
-                    const newUsers = localSettings.users.filter((_, i) => i !== idx);
-                    updateLocalField("users", newUsers);
-                  }}
-                  small
-                />
-              </div>
-            );
-          })}
-          
-          {(!localSettings.users || localSettings.users.length < 10) && (
-            <button
-              type="button"
-              onClick={() => updateLocalField("users", [...(localSettings.users || []), ""])}
-              className="text-sm font-medium text-primary hover:text-primary-strong flex items-center mt-3"
-            >
-              <PlusCircle className="w-4 h-4 mr-1.5" /> Dodaj użytkownika
-            </button>
-          )}
-        </fieldset>
-      </div>
-
-      <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">  
+      ))}
+      {value.length < 10 && (
         <button
           type="button"
-          onClick={onRestoreDefaults}
-          disabled={loading}
-          className="flex items-center text-sm font-medium text-text-muted hover:underline transition-colors px-2 py-1 disabled:opacity-50"
+          onClick={() => onChange([...value, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }])}
+          className="flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
         >
-          Przywróć domyślne
-          <RotateCcw className="w-4 h-4 ml-2" />
+          <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj nastrój
         </button>
+      )}
+    </fieldset>
+  );
+}
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-between relative">
-            <button
-              type="button"
-              className="gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800 flex w-full md:flex-1 items-center justify-center pl-4 pr-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-text-secondary font-medium rounded-lg shadow-sm"
-              onClick={() => router.push("/guide")}
-            >
-              Instrukcja 
-              <Info className="w-4 h-4"/>
-            </button>
-            <SaveButton loading={loading} />
-        </div>
-      </div>
-    </form>
+export default function SettingsForm({ settings, defaults, onSavePartial }: Readonly<SettingsFormProps>) {
+  const { user, supabase } = useAuth();
+  const { toast } = useToast();
+  const [categoryRenames, setCategoryRenames] = useState<Array<[string, string]>>([]);
+  const common = { settings, defaults, onSave: (patch: Partial<Settings>) => onSavePartial(patch) };
+  const on = (v: boolean | undefined) => v !== false;
+
+  const applyRenames = () => {
+    if (!user || categoryRenames.length === 0) return;
+    const renames = categoryRenames;
+    setCategoryRenames([]);
+    void applyTaskCategoryRenames(supabase, user.id, renames).then(({ failed }) => {
+      if (failed > 0) toast.error("Nie udało się przenieść części zadań do kategorii o nowej nazwie.");
+    });
+  };
+
+  return (
+    <>
+      <SettingsSection
+        {...common}
+        id="ogolne"
+        title="Ogólne"
+        description="Ekran startowy, motyw i moduły widoczne w menu."
+        icon={<LayoutGrid className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
+        keys={["main_view", "disabled_modules"] as const}
+      >
+        {(d, set: SetField<"main_view" | "disabled_modules">) => (
+          <>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="min-w-48 flex-1">
+                <label htmlFor="main_view" className="form-label">Widok główny:</label>
+                <select id="main_view" value={d.main_view || "calendar"} onChange={(e) => set("main_view", e.target.value)} className="input-field">
+                  <option value="calendar">Kalendarz</option>
+                  <option value="tasks">Zadania</option>
+                  <option value="day_view">Plan dnia</option>
+                </select>
+              </div>
+              <div className="flex min-h-11 items-center gap-2 text-sm text-text-secondary">
+                Motyw: <ThemeToggle />
+              </div>
+            </div>
+            <ModulesEditor disabled={d.disabled_modules ?? []} onChange={(next) => set("disabled_modules", next.length > 0 ? next : null)} />
+          </>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        {...common}
+        id="zadania"
+        title="Zadania"
+        description="Co widać na liście zadań oraz kategorie z kolorami."
+        icon={<CheckSquare className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
+        keys={["show_completed", "show_notifications", "hide_priority_5", "task_categories", "category_colors"] as const}
+        afterSave={applyRenames}
+      >
+        {(d, set) => (
+          <>
+            <div>
+              <Switch id="show_completed" label="Pokaż wykonane zadania" checked={on(d.show_completed)} onChange={(v) => set("show_completed", v)} />
+              <Switch id="show_notifications" label="Pokaż zadania cykliczne" checked={on(d.show_notifications)} onChange={(v) => set("show_notifications", v)} />
+              <Switch id="hide_priority_5" label="Ukryj priorytet 5 (Ludzie)" checked={on(d.hide_priority_5)} onChange={(v) => set("hide_priority_5", v)} />
+            </div>
+            <TaskCategoriesEditor
+              value={d.task_categories}
+              onChange={(next) => set("task_categories", next)}
+              onRenamesChange={setCategoryRenames}
+              colors={d.category_colors}
+              onColorsChange={(next) => set("category_colors", next)}
+            />
+          </>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        {...common}
+        id="nawyki"
+        title="Nawyki i plan dnia"
+        description="Nawyki, woda i nastrój na planie dnia."
+        icon={<Smile className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
+        keys={["show_habits", "custom_habits", "show_water_tracker", "show_mood_tracker", "mood_options"] as const}
+      >
+        {(d, set) => (
+          <>
+            <div>
+              <Switch id="show_habits" label="Pokaż sekcję nawyków" checked={on(d.show_habits)} onChange={(v) => set("show_habits", v)} />
+              <Switch id="show_water_tracker" label="Pokaż tracker wody" checked={on(d.show_water_tracker)} onChange={(v) => set("show_water_tracker", v)} />
+              <Switch id="show_mood_tracker" label="Pokaż śledzenie nastroju" checked={Boolean(d.show_mood_tracker)} onChange={(v) => set("show_mood_tracker", v)} />
+            </div>
+            {d.show_habits !== false && (
+              <HabitsEditor value={resolveHabits({ ...settings, ...d })} onChange={(next) => set("custom_habits", next)} />
+            )}
+            {d.show_mood_tracker && (
+              <MoodsEditor value={d.mood_options ?? DEFAULT_MOODS} onChange={(next) => set("mood_options", next)} />
+            )}
+          </>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        {...common}
+        id="finanse"
+        title="Finanse"
+        description="Profile finansowe zapisują się od razu; pozostałe pola – przyciskiem „Zapisz”."
+        icon={<Coins className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
+        keys={["show_budget_items", "daily_spending_categories"] as const}
+      >
+        {(d, set) => (
+          <>
+            <Switch id="show_budget_items" label="Pokaż planowane wydatki" checked={on(d.show_budget_items)} onChange={(v) => set("show_budget_items", v)} />
+            <FinanceSettings
+              dailyCategories={d.daily_spending_categories ?? []}
+              onDailyCategoriesChange={(next) => set("daily_spending_categories", next)}
+            />
+          </>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        {...common}
+        id="sortowanie"
+        title="Sortowanie"
+        description="Domyślna kolejność na listach."
+        icon={<ArrowDownUp className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
+        keys={["sort_order", "sort_notes", "sort_shopping", "sort_movies", "sort_recipes", "sort_people", "sort_bills"] as const}
+      >
+        {(d, set) => (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <SortSelect id="sort_order" label="Zadania:" value={d.sort_order || "priority"} onChange={(v) => set("sort_order", v)}
+              options={[["priority", "Priorytet"], ["due_date", "Data wykonania"], ["alphabetical", "Alfabetycznie"], ["due_date_alphabetical", "Data i alfabetycznie"]]} />
+            <SortSelect id="sort_notes" label="Notatki:" value={d.sort_notes || "updated_desc"} onChange={(v) => set("sort_notes", v)}
+              options={[["updated_desc", "Data aktualizacji"], ["alphabetical", "Alfabetycznie"]]} />
+            <SortSelect id="sort_shopping" label="Listy zakupów:" value={d.sort_shopping || "updated_desc"} onChange={(v) => set("sort_shopping", v)}
+              options={[["updated_desc", "Data aktualizacji"], ["alphabetical", "Alfabetycznie"]]} />
+            <SortSelect id="sort_movies" label="Filmy i seriale:" value={d.sort_movies || "updated_desc"} onChange={(v) => set("sort_movies", v)}
+              options={[["updated_desc", "Data aktualizacji"], ["alphabetical", "Alfabetycznie"], ["rating", "Wg oceny"]]} />
+            <SortSelect id="sort_recipes" label="Przepisy:" value={d.sort_recipes || "category"} onChange={(v) => set("sort_recipes", v)}
+              options={[["category", "Kategorie"], ["alphabetical", "Alfabetycznie"], ["created_desc", "Data dodania"]]} />
+            <SortSelect id="sort_people" label="Ludzie:" value={d.sort_people || "alphabetical"} onChange={(v) => set("sort_people", v)}
+              options={[["alphabetical", "Alfabetycznie"], ["priority", "Priorytet"]]} />
+            <SortSelect id="sort_bills" label="Rachunki:" value={d.sort_bills || "month"} onChange={(v) => set("sort_bills", v)}
+              options={[["month", "Wg miesięcy"], ["category", "Wg kategorii"]]} />
+          </div>
+        )}
+      </SettingsSection>
+
+      <SettingsSection
+        {...common}
+        id="udostepnianie"
+        title="Udostępnianie"
+        description="Zaufane osoby, którym możesz udostępniać zadania i wydarzenia (do 10)."
+        icon={<Users className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
+        keys={["users"] as const}
+      >
+        {(d, set) => {
+          const users = d.users ?? [];
+          return (
+            <fieldset className="min-w-0 max-w-md space-y-2">
+              <legend className="sr-only">Zaufani użytkownicy</legend>
+              {users.map((u, idx) => (
+                <div key={`user-${idx}`} className="flex items-center gap-2">
+                  <label htmlFor={`trusted-user-${idx}`} className="sr-only">Adres e-mail zaufanej osoby {idx + 1}</label>
+                  <input
+                    id={`trusted-user-${idx}`}
+                    type="email"
+                    value={u}
+                    placeholder="E-mail"
+                    onChange={(e) => set("users", users.map((x, i) => (i === idx ? e.target.value : x)))}
+                    className="input-field"
+                  />
+                  <DeleteButton small ariaLabel={`Usuń ${u || `osobę ${idx + 1}`}`} onClick={() => set("users", users.filter((_, i) => i !== idx))} />
+                </div>
+              ))}
+              {users.length < 10 && (
+                <button
+                  type="button"
+                  onClick={() => set("users", [...users, ""])}
+                  className="flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                >
+                  <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj osobę
+                </button>
+              )}
+            </fieldset>
+          );
+        }}
+      </SettingsSection>
+    </>
   );
 }

@@ -11,6 +11,7 @@ import { processCsvText, readFileAsText } from "@/lib/csvUtils";
 import { useToast } from "@/providers/ToastProvider";
 import type { BudgetCategory } from "@/types/bills";
 import type { NewTransaction, RecurringBill, Transaction } from "@/types/finance";
+import { UploadButton } from "../ui/CommonButtons";
 
 interface Props {
   categories: readonly BudgetCategory[];
@@ -92,15 +93,11 @@ export default function CsvImport({ categories, categoryNames, bills, profileId,
           if (f) void onFile(f);
         }}
       />
-      <button
-        type="button"
+      <UploadButton
         onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-3 text-sm font-medium text-text hover:bg-surface disabled:opacity-50"
-      >
-        <Upload className="h-4 w-4" aria-hidden="true" />
-        {busy ? "Importuję…" : "Import z banku (CSV)"}
-      </button>
+        fileFormat=".csv"
+        small
+      />
       {result && <output className="text-sm text-text-secondary">{result}</output>}
     </div>
   );

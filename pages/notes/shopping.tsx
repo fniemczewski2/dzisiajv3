@@ -10,7 +10,7 @@ import Seo from "@/components/ui/SEO";
 
 export default function ShoppingPage() {
 
-  const { lists, loading, fetching, addShoppingList, editShoppingList, deleteShoppingList } = useShoppingLists();
+  const { lists, loading, fetching, addShoppingList, editShoppingList, updateElements, deleteShoppingList } = useShoppingLists();
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
@@ -43,7 +43,7 @@ export default function ShoppingPage() {
           </div>
         )}
         
-        {fetching ? (
+        {fetching && lists.length === 0 ? (
           <div className="flex flex-col gap-4">
             {Array.from({ length: 3 }).map((_, i) => <SkeletonShoppingList key={i} />)}
           </div>
@@ -51,6 +51,7 @@ export default function ShoppingPage() {
           <ShoppingListView
             lists={lists}
             editShoppingList={editShoppingList}
+            updateElements={updateElements}
             deleteShoppingList={deleteShoppingList}
             loading={loading}
           />

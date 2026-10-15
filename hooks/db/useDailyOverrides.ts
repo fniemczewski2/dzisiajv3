@@ -1,4 +1,4 @@
-﻿// hooks/db/useDailyOverrides.ts
+// hooks/db/useDailyOverrides.ts
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
@@ -48,8 +48,8 @@ export function useDailyOverrides(dateStr: string) {
   }, [supabase, userId, dateStr, toast, withRetry, getSignal]);
 
   useEffect(() => {
-    void fetchOverrides();
-  }, [fetchOverrides]);
+    if (userId) void fetchOverrides();
+  }, [fetchOverrides, userId]);
 
   const hideSchema = useCallback(
     async (schemaId: string) => {

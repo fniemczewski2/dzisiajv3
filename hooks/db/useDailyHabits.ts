@@ -146,8 +146,8 @@ export function useDailyHabits(date?: string) {
   );
 
   useEffect(() => {
-    void fetchHabits();
-  }, [fetchHabits]);
+    if (userId) void fetchHabits();
+  }, [fetchHabits, userId]);
 
   return { habits, fetching, loading, fetchHabits, toggleHabit, updateWater };
 }

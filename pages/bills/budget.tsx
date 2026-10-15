@@ -12,8 +12,8 @@ import YearTable from "@/components/budget/YearTable";
 import { useRecurringBills } from "@/hooks/db/useFinance";
 import { SkeletonBudgetTable } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
-
-const MONTH_NAMES = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
 
 export default function BudgetPage() {
   const appDate = getAppDateTime();
@@ -22,8 +22,8 @@ export default function BudgetPage() {
 
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(currentMonth);
-  
-  const router = useRouter();
+
+  const displayDate = new Date(year, month);
   
   const { bills: recurringBills } = useRecurringBills();
 
@@ -40,11 +40,6 @@ export default function BudgetPage() {
     loading: summaryLoading,
     refresh: refreshSummary,
   } = useBudgetSummary(year, month, categories, recurringBills);
-
-  const handleBack = () => {
-    const parts = router.pathname.split("/").filter(Boolean);
-    void router.push(parts.length > 1 ? `/${parts.slice(0, -1).join("/")}` : "/");
-  };
 
   const handleCategoriesChange = () => {
     void fetchCategories();
@@ -80,46 +75,38 @@ export default function BudgetPage() {
         keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
       />
         <div className="flex justify-between gap-3 items-center mb-6">
-          <button
-            onClick={handleBack}
-            type='button'
-            className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
-            aria-label="Wróć"
-          >
-            <Coins className="w-4 h-4" />
-          </button>
-
           <div className="flex items-center gap-2">
             <h1 className="page-title mx-auto text-center first-letter:uppercase sr-only sm:not-sr-only">
               Budżet
             </h1>
-            <div className="card flex items-center justify-between gap-2 p-2 rounded-xl">
+
+          <div className="flex items-center card rounded-card p-1 shadow-sm">
             <button
               onClick={handlePrevMonth}
+              className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
               type='button'
-              className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
+              title="Poprzedni miesiąc"
               aria-label="Poprzedni miesiąc"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
-            
-            <h2 className="text-sm sm:text-lg font-bold text-text mx-2 tabular-nums capitalize w-28 sm:w-36 text-center">
-              {MONTH_NAMES[month].toUpperCase()} {year}
+
+            <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
+              {format(displayDate, "LLLL yyyy", { locale: pl })}
             </h2>
-            
+
             <button
               onClick={handleNextMonth}
+              className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
               type='button'
-              className="p-2 bg-transparent rounded-lg hover:bg-surface transition-colors"
+              title="Następny miesiąc"
               aria-label="Następny miesiąc"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
-            </div>
           </div>
-
-          <div className="w-10" />
         </div>
+      </div>
 
         {isLoading ? (
           <div className="max-w-2xl mx-auto w-full">

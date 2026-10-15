@@ -136,7 +136,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         path: "/calendar",
         guideId: "calendar",
         status: "zmienione",
-        note: "Rozbudowane powtarzanie, import zjazdów z harmonogramu uczelni i przypomnienie o biletach przed podróżą.",
+        note: "Rozbudowane powtarzanie, dodawanie wielu wydarzeń z wklejonej listy i przypomnienie o biletach przed podróżą.",
         since: "1.40.0",
       },
       {

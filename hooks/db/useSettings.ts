@@ -167,6 +167,20 @@ export function useSettings() {
 
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
+  // Kilka komponentów używa własnej instancji tego hooka (strona Ustawień,
+  // powiadomienia, szablony…). Bez synchronizacji zapis w jednej instancji
+  // wysyłał jej nieaktualną kopię pozostałych pól i cofał zmiany z innej.
+  useEffect(() => {
+    const onUpdated = (e: Event) => {
+      const detail = (e as CustomEvent<Settings>).detail;
+      if (!detail || typeof detail !== "object") return;
+      settingsRef.current = { ...settingsRef.current, ...detail };
+      setSettings(settingsRef.current);
+    };
+    globalThis.addEventListener("settingsUpdated", onUpdated);
+    return () => globalThis.removeEventListener("settingsUpdated", onUpdated);
+  }, []);
+
   useEffect(() => {
     if (loadingUser) return;
     let cancelled = false;
@@ -237,9 +251,12 @@ export function useSettings() {
       globalThis.dispatchEvent(new CustomEvent("settingsUpdated", { detail: updated }));
 
       try {
-        const { error } = await withRetry(() =>
-          upsertSettings({ user_id: userId, ...updated })
-        );
+        // Zapisujemy tylko zmienione pola – inne sekcje (i inne karty) nie zostaną
+        // nadpisane. Gdy wiersza jeszcze nie ma (wymagane kolumny), pełny zapis.
+        let { error } = await withRetry(() => upsertSettings({ user_id: userId, ...partialSettings }));
+        if (error?.code === "23502") {
+          ({ error } = await withRetry(() => upsertSettings({ user_id: userId, ...updated })));
+        }
         if (error) throw error;
         toast.success("Zaktualizowano ustawienia");
         return { error: null };

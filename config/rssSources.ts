@@ -47,7 +47,7 @@ export const RSS_SOURCES: readonly RssSource[] = [
   { id: "hrw", name: "Human Rights Watch", url: "https://www.hrw.org/rss/news", group: "Prawa człowieka", lang: "en", defaultEnabled: on },
 
   // Wiadomości z Polski – ogólnoinformacyjne
-  { id: "pap", name: "PAP – Polska Agencja Prasowa", url: "https://www.pap.pl/rss.xml", group: "Wiadomości z Polski", lang: "pl", defaultEnabled: off },
+  { id: "pap", name: "PAP – Polska Agencja Prasowa", url: "https://pap-mediaroom.pl/rss.xml", group: "Wiadomości z Polski", lang: "pl", defaultEnabled: off },
   { id: "tvn24", name: "TVN24 – najnowsze", url: "https://tvn24.pl/najnowsze.xml", group: "Wiadomości z Polski", lang: "pl", defaultEnabled: off },
   { id: "polsat-news", name: "Polsat News", url: "https://www.polsatnews.pl/rss/wszystkie.xml", group: "Wiadomości z Polski", lang: "pl", defaultEnabled: off },
   { id: "rp", name: "Rzeczpospolita", url: "https://www.rp.pl/rss_main", group: "Wiadomości z Polski", lang: "pl", defaultEnabled: off },

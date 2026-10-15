@@ -62,11 +62,27 @@ describe("useSettings – task_categories", () => {
     missingColumn = true;
     const { result } = renderHook(() => useSettings());
     await waitFor(() => expect(result.current.settings.task_categories).toEqual(["Dom"]));
-    await act(async () => { await result.current.updateSettings({ show_completed: false }); });
+    // Zapis kategorii na bazie bez kolumny: kolumna pominięta, reszta zapisana.
+    await act(async () => { await result.current.updateSettings({ task_categories: ["Dom", "Ogród"], show_completed: false }); });
     expect(upserts).toHaveLength(2);
     expect("task_categories" in upserts[1]).toBe(false);
     expect(upserts[1].show_completed).toBe(false);
     expect(toast.error).not.toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalled();
+  });
+
+  it("zapisuje tylko zmienione pola (inne sekcje i karty nie są nadpisywane)", async () => {
+    const { result } = renderHook(() => useSettings());
+    await waitFor(() => expect(result.current.settings.task_categories).toEqual(["Dom"]));
+    await act(async () => { await result.current.updateSettings({ sort_order: "alphabetical" }); });
+    expect(upserts.at(-1)).toEqual({ user_id: "me", sort_order: "alphabetical" });
+  });
+
+  it("instancje hooka widzą nawzajem swoje zapisy", async () => {
+    const a = renderHook(() => useSettings());
+    const b = renderHook(() => useSettings());
+    await waitFor(() => expect(b.result.current.settings.task_categories).toEqual(["Dom"]));
+    await act(async () => { await a.result.current.updateSettings({ sort_order: "alphabetical" }); });
+    expect(b.result.current.settings.sort_order).toBe("alphabetical");
   });
 });

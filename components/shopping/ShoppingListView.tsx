@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, User } from "lucide-react";
-import { ShoppingList } from "@/types/shopping";
+import { ShoppingElement, ShoppingList } from "@/types/shopping";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { EditButton, DeleteButton, FormButtons, SaveButton } from "../ui/CommonButtons";
@@ -11,11 +11,13 @@ import NoResultsState from "../ui/NoResultsState";
 interface ShoppingListViewProps {
   lists: ShoppingList[];
   editShoppingList: (id: string, updates: Partial<ShoppingList> & { shared_with_email?: string }) => Promise<void>;
+  /** Zmiana pozycji – od razu na ekranie, zapis w tle. */
+  updateElements: (id: string, change: (elements: ShoppingElement[]) => ShoppingElement[]) => void;
   deleteShoppingList: (id: string) => Promise<void>;
   loading: boolean;
 }
 
-export default function ShoppingListView({ lists, editShoppingList, deleteShoppingList, loading }: Readonly<ShoppingListViewProps>) {
+export default function ShoppingListView({ lists, editShoppingList, updateElements, deleteShoppingList, loading }: Readonly<ShoppingListViewProps>) {
   const { settings } = useSettings();
   const { user, supabase } = useAuth();
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
@@ -85,19 +87,16 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
   };
 
   const toggleElement = (list: ShoppingList, elId: string) => {
-    const updated = list.elements.map((el) => el.id === elId ? { ...el, completed: !el.completed } : el);
-    if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);
+    if (list.id) updateElements(list.id, (els) => els.map((el) => (el.id === elId ? { ...el, completed: !el.completed } : el)));
   };
 
   const addElement = (list: ShoppingList, text: string) => {
-    if (!text.trim()) return;
-    const updated = [...list.elements, { id: crypto.randomUUID(), text: text.trim(), completed: false }];
-    if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);
+    if (!text.trim() || !list.id) return;
+    updateElements(list.id, (els) => [...els, { id: crypto.randomUUID(), text: text.trim(), completed: false }]);
   };
 
   const removeElement = (list: ShoppingList, elId: string) => {
-    const updated = list.elements.filter((el) => el.id !== elId);
-    if (list.id) editShoppingList(list.id, { elements: updated }).catch(console.error);
+    if (list.id) updateElements(list.id, (els) => els.filter((el) => el.id !== elId));
   };
 
   return (
@@ -169,7 +168,7 @@ export default function ShoppingListView({ lists, editShoppingList, deleteShoppi
                       className="h-5 w-5 shrink-0 rounded-lg text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors" />
                     <span className="flex-1 font-medium truncate">{el.text}</span>
                   </div>
-                  <DeleteButton onClick={() => removeElement(list, el.id)} small />
+                  <DeleteButton onClick={() => removeElement(list, el.id)} small ariaLabel={`Usuń ${el.text}`} />
                 </li>
               ))}
               {list.elements.length === 0 && <div className="mt-4"><NoResultsState text="produktów na liście" /></div>}

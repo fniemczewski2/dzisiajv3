@@ -1,7 +1,7 @@
-﻿// hooks/db/useShoppingLists.ts
+// hooks/db/useShoppingLists.ts
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { ShoppingList } from "@/types/shopping";
+import { ShoppingElement, ShoppingList } from "@/types/shopping";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
@@ -28,17 +28,27 @@ export function useShoppingLists() {
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
+  const listsRef = useRef<ShoppingList[]>([]);
+  listsRef.current = lists;
+  /** Ostatni stan pozycji potwierdzony przez bazę – do cofnięcia po błędzie. */
+  const confirmedElementsRef = useRef<Record<string, ShoppingElement[]>>({});
+  /** Kolejka zapisów pozycji per lista – szybkie kliknięcia zapisują się po kolei. */
+  const writeQueueRef = useRef<Record<string, Promise<void>>>({});
   const { toast } = useToast();
   const withRetry = useRetry();
   const { getSignal } = useAbortController();
 
-  const fetchShoppingLists = useCallback(async () => {
+  /**
+   * `background` – odświeżenie bez szkieletu wczytywania (np. po zmianie
+   * udostępnienia). Szkielet pokazujemy tylko przy pierwszym wczytaniu.
+   */
+  const fetchShoppingLists = useCallback(async (options: { background?: boolean } = {}) => {
     if (!userId) {
 
       throw new Error("Unauthorized");
     }
     const signal = getSignal();
-    setFetching(true);
+    if (!options.background) setFetching(true);
     try {
       const { data, error } = await withRetry(
         () =>
@@ -55,7 +65,10 @@ export function useShoppingLists() {
 
       const fetchedLists = (data || []) as ShoppingList[];
       const listsWithDisplayInfo = await resolveSharedEmails(fetchedLists, userId, supabase, userEmailsRef);
-      if (!signal.aborted) setLists(listsWithDisplayInfo);
+      if (!signal.aborted) {
+        confirmedElementsRef.current = Object.fromEntries(listsWithDisplayInfo.map((l) => [l.id ?? "", l.elements]));
+        setLists(listsWithDisplayInfo);
+      }
     } catch (err) {
       if (isAbortError(err)) return;
       toast.error("Błąd pobierania list zakupów.");
@@ -89,7 +102,7 @@ export function useShoppingLists() {
         );
         if (error) throw error;
 
-        await fetchShoppingLists();
+        await fetchShoppingLists({ background: true });
         toast.success("Dodano listę zakupów");
         return true;
       } catch {
@@ -124,7 +137,9 @@ export function useShoppingLists() {
         );
         if (error) throw error;
 
-        await fetchShoppingLists();
+        // Nowa nazwa jest już na ekranie; odświeżamy w tle tylko przy zmianie
+        // udostępnienia (opis „udostępnione dla…” liczy się po stronie bazy).
+        if (sharedWithEmail !== undefined) void fetchShoppingLists({ background: true });
         toast.success("Zaktualizowano listę zakupów");
       } catch {
         setLists(previous);
@@ -134,6 +149,41 @@ export function useShoppingLists() {
       }
     },
     [userId, supabase, lists, fetchShoppingLists, toast, withRetry]
+  );
+
+  /**
+   * Zmiana pozycji listy (odhaczenie, dodanie, usunięcie). Ekran zmienia się
+   * od razu, zapis idzie w tle – bez przeładowania list, szkieletu,
+   * blokowania przycisków i komunikatu przy każdym kliknięciu. Zmiany liczymy
+   * od najnowszego stanu, a zapisy jednej listy idą po kolei, więc szybkie
+   * klikanie nie gubi zmian. Przy błędzie wracamy do stanu z bazy.
+   */
+  const updateElements = useCallback(
+    (id: string, change: (elements: ShoppingElement[]) => ShoppingElement[]) => {
+      const current = listsRef.current.find((l) => l.id === id);
+      if (!current) return;
+      const next = change(current.elements);
+      listsRef.current = listsRef.current.map((l) => (l.id === id ? { ...l, elements: next } : l));
+      setLists(listsRef.current);
+
+      const write = async () => {
+        const { error } = await supabase.from("shopping_lists").update({ elements: next }).eq("id", id);
+        if (error) throw error;
+        confirmedElementsRef.current[id] = next;
+      };
+      const queued = (writeQueueRef.current[id] ?? Promise.resolve())
+        .then(write)
+        .catch(() => {
+          const confirmed = confirmedElementsRef.current[id];
+          if (confirmed) {
+            listsRef.current = listsRef.current.map((l) => (l.id === id ? { ...l, elements: confirmed } : l));
+            setLists(listsRef.current);
+          }
+          toast.error("Nie udało się zapisać zmiany na liście.");
+        });
+      writeQueueRef.current[id] = queued;
+    },
+    [supabase, toast]
   );
 
   const deleteOwnList = useCallback(
@@ -196,8 +246,8 @@ export function useShoppingLists() {
   );
 
   useEffect(() => {
-    void fetchShoppingLists();
-  }, [fetchShoppingLists]);
+    if (userId) void fetchShoppingLists();
+  }, [fetchShoppingLists, userId]);
 
   return {
     lists,
@@ -207,6 +257,7 @@ export function useShoppingLists() {
     fetchShoppingLists,
     addShoppingList,
     editShoppingList,
+    updateElements,
     deleteShoppingList,
   };
 }

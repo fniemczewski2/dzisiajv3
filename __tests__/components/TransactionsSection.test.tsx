@@ -32,14 +32,53 @@ describe("TransactionsSection", () => {
         csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
       />
     );
-    expect(screen.getByText(/Sugestia automatyczna: Apple Music/)).toBeTruthy();
+    expect(screen.getByText(/Sugestia: to płatność/)).toBeTruthy();
+    expect(screen.getAllByText("Apple Music").length).toBeGreaterThan(0);
     expect(screen.getByRole("status").textContent).toMatch(/do sprawdzenia: 1/);
-    fireEvent.click(screen.getByRole("button", { name: /Zatwierdź powiązanie Apple z Apple Music/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Zatwierdź: Apple to Apple Music" }));
     expect(onLink).toHaveBeenLastCalledWith("t1", "b1");
-    fireEvent.click(screen.getByRole("button", { name: /Odrzuć sugestię dla Apple/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Odrzuć sugestię dla Apple" }));
     expect(onLink).toHaveBeenLastCalledWith("t1", null);
-    // podsumowanie: wydatki i „w tym rachunki stałe”
+    // podsumowanie i karta transakcji
     expect(screen.getAllByText(/19,90/).length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "Wydatki i wpływy" })).toBeTruthy();
+  });
+
+  it("Edytuj: zmiana nazwy, kwoty i ręczne połączenie z płatnością", () => {
+    const onUpdate = vi.fn();
+    const onLink = vi.fn();
+    render(
+      <TransactionsSection
+        monthLabel="luty 2026" monthFrom="2026-02-01" transactions={[{ ...tx, link_status: null, recurring_bill_id: null }]} categories={cats}
+        categoryNames={new Map([["c1", "Subskrypcje"]])} bills={[bill]} profiles={[]} profileId={null}
+        onAdd={vi.fn()} onUpdate={onUpdate} onLink={onLink} onRemove={vi.fn()}
+        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+      />
+    );
+    expect(screen.queryByLabelText("Nazwa:")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Edytuj: Apple" }));
+    fireEvent.change(screen.getByLabelText("Nazwa:"), { target: { value: "Apple Music" } });
+    fireEvent.change(screen.getByLabelText("Kwota (zł):"), { target: { value: "19,99" } });
+    fireEvent.change(screen.getByLabelText("Połącz z płatnością cykliczną:"), { target: { value: "b1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Zapisz" }));
+    expect(onUpdate).toHaveBeenCalledWith("t1", expect.objectContaining({ description: "Apple Music", amount: 19.99, category_id: "c1" }));
+    expect(onLink).toHaveBeenCalledWith("t1", "b1");
+    expect(screen.queryByLabelText("Nazwa:")).toBeNull(); // edycja zamknięta
+  });
+
+  it("błędna kwota blokuje zapis", () => {
+    render(
+      <TransactionsSection
+        monthLabel="luty 2026" monthFrom="2026-02-01" transactions={[tx]} categories={cats}
+        categoryNames={new Map([["c1", "Subskrypcje"]])} bills={[bill]} profiles={[]} profileId={null}
+        onAdd={vi.fn()} onUpdate={vi.fn()} onLink={vi.fn()} onRemove={vi.fn()}
+        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Edytuj: Apple" }));
+    fireEvent.change(screen.getByLabelText("Kwota (zł):"), { target: { value: "abc" } });
+    expect((screen.getByRole("button", { name: "Zapisz" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/Wpisz kwotę/)).toBeTruthy();
   });
 });
 

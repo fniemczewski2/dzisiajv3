@@ -1,4 +1,4 @@
-﻿// hooks/db/useMoods.ts
+// hooks/db/useMoods.ts
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -43,7 +43,9 @@ export function useMoods(startDate?: string, endDate?: string) {
     }
   }, [supabase, userId, startDate, endDate, toast, withRetry, getSignal]);
 
-  useEffect(() => { void fetchMoods(); }, [fetchMoods]);
+  useEffect(() => {
+    if (userId) void fetchMoods();
+  }, [fetchMoods, userId]);
 
   const logMood = useCallback(
     async (date: string, moodId: string | null) => {

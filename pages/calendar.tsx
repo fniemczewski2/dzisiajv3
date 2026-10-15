@@ -15,11 +15,11 @@ import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import Seo from "@/components/ui/SEO";
 import { useRouter } from "next/router";
-import { GraduationCap } from "lucide-react";
+import { UploadButton } from "@/components/ui/CommonButtons";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), { ssr: false });
 const DayView = dynamic(() => import("../components/dashboard/DayView"), { ssr: false });
-const StudyDatesImport = dynamic(() => import("../components/calendar/StudyDatesImport"), { ssr: false });
+const EventsBulkImport = dynamic(() => import("../components/calendar/EventsBulkImport"), { ssr: false });
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -71,14 +71,10 @@ export default function CalendarPage() {
             <h1 className="page-title">Kalendarz</h1>
             <div className="flex items-center gap-2">
               {!showImport && (
-                <button
-                  type="button"
+                <UploadButton
+                  small
                   onClick={() => setShowImport(true)}
-                  className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-3 text-sm font-medium text-text-secondary hover:text-text"
-                >
-                  Zjazdy
-                  <GraduationCap className="h-4 w-4" aria-hidden="true" />
-                </button>
+                />
               )}
               {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}
             </div>
@@ -86,7 +82,7 @@ export default function CalendarPage() {
 
           {showImport && (
             <div className="mb-6">
-              <StudyDatesImport onImported={handleAfterAdd} onClose={() => setShowImport(false)} />
+              <EventsBulkImport onImported={handleAfterAdd} onClose={() => setShowImport(false)} />
             </div>
           )}
 
