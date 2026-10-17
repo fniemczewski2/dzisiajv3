@@ -62,6 +62,8 @@ interface BoardState {
 }
 
 const EMPTY_BOARD: BoardState = { items: [], loading: false, error: '' };
+const MAX_STATIONS = 3;
+const CLIENT_TIMEOUT_MS = 25_000;
 
 const formatClock = (timestamp: number) =>
   new Date(timestamp).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -92,7 +94,10 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
       }));
 
     try {
-      const res = await fetch(`/api/transport/station-board?stationName=${encodeURIComponent(stationName)}`);
+      // Limit czasu – zawieszone API PKP nie może trzymać „ładowania” w nieskończoność.
+      const res = await fetch(`/api/transport/station-board?stationName=${encodeURIComponent(stationName)}`, {
+        signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
+      });
       if (res.status === 429) {
         fail('Zbyt wiele zapytań. Odśwież za minutę.');
         return;
@@ -108,8 +113,12 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
         ...prev,
         [stationName]: { items: data.items || [], loading: false, error: '', updatedAt: Date.now() }
       }));
-    } catch {
-      fail('Brak połączenia z serwerem. Sprawdź internet i odśwież.');
+    } catch (err) {
+      fail(
+        err instanceof DOMException && err.name === 'TimeoutError'
+          ? 'PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę.'
+          : 'Brak połączenia z serwerem. Sprawdź internet i odśwież.'
+      );
     }
   }, []);
 
@@ -133,12 +142,17 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
     localStorage.setItem('tracked_station_boards', JSON.stringify(selectedStations));
   }, [selectedStations]);
 
+  // Dodanie stacji od razu pobiera jej tablicę. Wcześniej pobierała się tylko
+  // przy wczytaniu strony – formularz przeładowywał stronę i to maskowało brak
+  // pobrania; po zablokowaniu przeładowania nowa stacja wisiała na „ładowaniu”.
   const handleAddStation = () => {
     const trimmed = searchInput.trim();
-    if (!trimmed) return;
+    if (!trimmed || selectedStations.length >= MAX_STATIONS) return;
+    setSearchInput('');
+    if (selectedStations.some((s) => s.toLocaleLowerCase('pl') === trimmed.toLocaleLowerCase('pl'))) return;
 
     setSelectedStations(prev => [...prev, trimmed]);
-    setSearchInput('');
+    void fetchBoard(trimmed);
   };
 
   const handleRemoveStation = (stationName: string) => {

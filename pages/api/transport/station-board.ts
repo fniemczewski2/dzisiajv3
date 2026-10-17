@@ -1,4 +1,4 @@
-﻿// pages/api/transport/station-board.ts
+// pages/api/transport/station-board.ts
 
 import { getAppDateTime } from '@/lib/dateUtils';
 import { createServerSupabase } from '@/lib/supabase/server';
@@ -22,6 +22,9 @@ const STATUS_LABELS: Record<string, string> = {
   Q: 'Cz. odwołany',
 };
 
+/** Limit czasu jednego zapytania do API PKP PLK – bez niego zawieszone API trzymało ładowanie. */
+const PKP_TIMEOUT_MS = 10_000;
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<StationBoardResponse | ApiError>
@@ -44,7 +47,7 @@ export default async function handler(
       'Accept': 'application/json',
     };
 
-    const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(stationName)}&pageSize=10`, { headers });
+    const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(stationName)}&pageSize=10`, { headers, signal: AbortSignal.timeout(PKP_TIMEOUT_MS) });
     if(stationsRes.status === 429) { return res.status(429).json({ error: "Spróbuj ponownie później" });}
     if (!stationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
     const stationsData: StationsDictionaryResponse = await stationsRes.json();
@@ -63,13 +66,13 @@ export default async function handler(
     const nowPl = getAppDateTime();
     const date = `${nowPl.getFullYear()}-${String(nowPl.getMonth() + 1).padStart(2, '0')}-${String(nowPl.getDate()).padStart(2, '0')}`;
 
-    const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`, { headers });
+    const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`, { headers, signal: AbortSignal.timeout(PKP_TIMEOUT_MS) });
     if(schedulesRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
     if (!schedulesRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
 
     const schedulesData: SchedulesResponse = await schedulesRes.json();
 
-    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers });
+    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers, signal: AbortSignal.timeout(PKP_TIMEOUT_MS) });
     if(operationsRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
     
     if (!operationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
@@ -147,7 +150,10 @@ export default async function handler(
       items: finalItems
     });
 
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+      return res.status(504).json({ error: 'PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę.' });
+    }
     return res.status(500).json({ error: 'Nie udało się wygenerować tablicy stacji' });
   }
 }

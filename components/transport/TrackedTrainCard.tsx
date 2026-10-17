@@ -1,7 +1,7 @@
-﻿// components/transport/TrackedTrainCard.tsx
+// components/transport/TrackedTrainCard.tsx
 
 import React from 'react';
-import { MapPin, Loader2, AlertTriangle, Clock, TrainFront } from 'lucide-react';
+import { MapPin, Loader2, AlertTriangle, Clock, TrainFront, History } from 'lucide-react';
 import { useTrainStatus } from '@/hooks/db/useTrains';
 import { DeleteButton } from '../ui/CommonButtons';
 
@@ -18,17 +18,33 @@ interface TrackedTrainProps {
     seat: string;
   };
   onDelete: (id: string) => void;
+  /** Odbyta podróż: bez zapytań o status do PKP PLK, z datą przejazdu. */
+  historical?: boolean;
 }
 
-export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
-  const { delay, platform, status, loading, hide } = useTrainStatus(train);
-  if (hide) return null;
+const pastDateFmt = new Intl.DateTimeFormat('pl-PL', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+
+export const TrackedTrainCard = ({ train, onDelete, historical = false }: TrackedTrainProps) => {
+  // Dla odbytych podróży status jest zbędny – nie odpytujemy API (limit zapytań).
+  const { delay, platform, status, loading, hide } = useTrainStatus(train, { enabled: !historical });
+  if (hide && !historical) return null;
   const isRateLimited = status === 'Zbyt wiele zapytań';
+  let platformLabel = 'Brak peronu';
+  if (historical) platformLabel = `Odjazd ${train.date.split('-').reverse().join('.')}`;
+  else if (platform && platform !== '-') platformLabel = `Peron ${platform}`;
   const isCancelled = status?.toLowerCase().includes('odwołany');
   const isDepartedFromStart = status?.toLowerCase().includes('w trasie');
   const isDelayed = delay > 0;
 
   const renderStatusBanner = () => {
+    if (historical) {
+      return (
+        <div className="absolute top-0 left-0 w-full bg-surface text-text-secondary text-xs font-bold text-center py-1.5 flex items-center justify-center gap-1.5">
+          <History className="w-3 h-3" aria-hidden="true" />
+          Odbyta · {pastDateFmt.format(new Date(`${train.date}T12:00:00`))}
+        </div>
+      );
+    }
 
     if (loading) {
       return (
@@ -88,7 +104,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
           </p>
           <div className="inline-flex items-center gap-1 text-xs font-medium bg-surface px-2 py-1 rounded-lg mt-1 border border-gray-100 dark:border-gray-800">
             <MapPin className="w-3 h-3 text-text-muted" /> 
-            {platform && platform !== "-" ? `Peron ${platform}` : 'Brak peronu'}
+            {platformLabel}
           </div>
         </div>
         
@@ -106,7 +122,7 @@ export const TrackedTrainCard = ({ train, onDelete }: TrackedTrainProps) => {
         </div>
         
         <div className="w-min ml-2">
-          <DeleteButton onClick={() => onDelete(train.id)} />
+          <DeleteButton onClick={() => onDelete(train.id)} ariaLabel={`Usuń pociąg ${train.trainNumber}`} />
         </div>
       </div>
       

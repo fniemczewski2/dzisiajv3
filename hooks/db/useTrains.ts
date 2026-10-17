@@ -38,6 +38,33 @@ export function mapDbRowToTrain(row: {
   };
 }
 
+/** Ile dni wstecz pokazujemy odbyte podróże. */
+export const PAST_TRAINS_DAYS = 365;
+/** Okno „bieżących” pociągów (dla nich pytamy PKP PLK o status). */
+const ACTIVE_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+export function departureTimestamp(train: Pick<TrackedTrain, "date" | "departureTime">): number {
+  const [year, month, day] = train.date.split("-").map(Number);
+  const [hours, minutes] = train.departureTime.split(":").map(Number);
+  return new Date(year, month - 1, day, hours || 0, minutes || 0).getTime();
+}
+
+/**
+ * Podział na bieżące (±6 h od teraz – z odpytywaniem statusu, jak dotąd)
+ * i odbyte (odjazd ponad 6 h temu – bez odpytywania API, najnowsze na górze).
+ */
+export function splitTrains(all: readonly TrackedTrain[], nowMs: number): { active: TrackedTrain[]; past: TrackedTrain[] } {
+  const active: TrackedTrain[] = [];
+  const past: TrackedTrain[] = [];
+  for (const t of all) {
+    const ts = departureTimestamp(t);
+    if (ts < nowMs - ACTIVE_WINDOW_MS) past.push(t);
+    else if (ts <= nowMs + ACTIVE_WINDOW_MS) active.push(t);
+  }
+  past.sort((a, b) => departureTimestamp(b) - departureTimestamp(a));
+  return { active, past };
+}
+
 const sortByDepartureAsc = (a: TrackedTrain, b: TrackedTrain): number =>
   a.date !== b.date
     ? a.date.localeCompare(b.date)
@@ -47,6 +74,7 @@ export function useTrains() {
   const { supabase, user } = useAuth();
   const userId = user?.id;
   const [trains, setTrains] = useState<TrackedTrain[]>([]);
+  const [pastTrains, setPastTrains] = useState<TrackedTrain[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetching, setFetching] = useState<boolean>(false);
   const { toast } = useToast();
@@ -63,9 +91,8 @@ export function useTrains() {
     setFetching(true);
     try {
       const now = getAppDateTime();
-      const limitPast = now.getTime() - 6 * 60 * 60 * 1000;
-      const limitFuture = now.getTime() + 6 * 60 * 60 * 1000;
-      const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      const cutoff = new Date(now.getTime() - PAST_TRAINS_DAYS * 24 * 60 * 60 * 1000);
+      const cutoffStr = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
       const { data, error } = await withRetry(
         () =>
@@ -73,7 +100,7 @@ export function useTrains() {
             .from('user_trains')
             .select('*')
             .eq('user_id', userId)
-            .gte('date', todayStr)
+            .gte('date', cutoffStr)
             .order('date', { ascending: true })
             .order('departure_time', { ascending: true })
             .abortSignal(signal),
@@ -82,16 +109,9 @@ export function useTrains() {
 
       if (error) throw error;
 
-      const mappedData = (data || [])
-        .map(mapDbRowToTrain)
-        .filter((train) => {
-          const [year, month, day] = train.date.split('-').map(Number);
-          const [hours, minutes] = train.departureTime.split(':').map(Number);
-          const departureTimestamp = new Date(year, month - 1, day, hours, minutes).getTime();
-          return departureTimestamp >= limitPast && departureTimestamp <= limitFuture;
-        });
-
-      setTrains(mappedData);
+      const { active, past } = splitTrains((data || []).map(mapDbRowToTrain), now.getTime());
+      setTrains(active);
+      setPastTrains(past);
     } catch (err) {
       if (isAbortError(err)) return;
       toast.error("Błąd pobierania pociągów.");
@@ -169,7 +189,9 @@ export function useTrains() {
       if (!ok) return;
       setLoading(true);
       const previous = trains;
+      const previousPast = pastTrains;
       setTrains((prev) => prev.filter((t) => t.id !== id));
+      setPastTrains((prev) => prev.filter((t) => t.id !== id));
 
       try {
         const { error } = await withRetry(() =>
@@ -179,16 +201,18 @@ export function useTrains() {
         toast.success("Usunięto pociąg");
       } catch {
         setTrains(previous);
+        setPastTrains(previousPast);
         toast.error("Błąd usuwania pociągu.");
       } finally {
         setLoading(false);
       }
     },
-    [userId, supabase, trains, toast, withRetry]
+    [userId, supabase, trains, pastTrains, toast, withRetry]
   );
 
   return {
     trains,
+    pastTrains,
     refresh: fetchTrains,
     addTrain,
     deleteTrain,

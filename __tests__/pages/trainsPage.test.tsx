@@ -15,6 +15,7 @@ vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { error:
 vi.mock("@/hooks/db/useTrains", () => ({
   useTrains: () => ({
     trains: [{ id: "t1", trainNumber: "IC 3806" }],
+    pastTrains: [{ id: "t0", trainNumber: "TLK 1234" }],
     addTrain,
     deleteTrain: vi.fn(),
     refresh: () => Promise.resolve(),

@@ -11,10 +11,14 @@ import AddTrainForm from "@/components/transport/AddTrainWidget";
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
 import StationBoardWidget from "@/components/transport/StationBoard";
 
+/** Ile odbytych podróży pokazujemy naraz. */
+const PAST_PAGE = 10;
+
 export default function TrainsPage() {
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
-  const { trains, addTrain, deleteTrain, refresh, fetching } = useTrains();
+  const { trains, pastTrains, addTrain, deleteTrain, refresh, fetching } = useTrains();
+  const [pastLimit, setPastLimit] = useState(PAST_PAGE);
 
   useEffect(() => {
     const fetchTrains = async () => {
@@ -66,6 +70,33 @@ export default function TrainsPage() {
             <div className="space-y-4 min-w-0">{trainsContent}</div>
           </div>
         </section>
+
+        {!fetching && pastTrains.length > 0 && (
+          <section className="min-w-0" aria-labelledby="past-trains-heading">
+            <details>
+              <summary className="flex min-h-11 cursor-pointer items-center text-lg font-semibold">
+                <h2 id="past-trains-heading" className="inline">Odbyte podróże ({pastTrains.length})</h2>
+              </summary>
+              <p className="mb-3 text-sm text-text-secondary">
+                Ostatnie 12 miesięcy, od najnowszych. Dla odbytych podróży nie pobieramy statusu z PKP PLK.
+              </p>
+              <div className="grid md:grid-cols-2 gap-4 items-start min-w-0">
+                {pastTrains.slice(0, pastLimit).map((train) => (
+                  <TrackedTrainCard key={train.id} train={train} onDelete={deleteTrain} historical />
+                ))}
+              </div>
+              {pastTrains.length > pastLimit && (
+                <button
+                  type="button"
+                  onClick={() => setPastLimit((n) => n + PAST_PAGE)}
+                  className="mt-4 min-h-11 w-full rounded-lg border border-line-strong text-sm font-medium text-text hover:bg-surface"
+                >
+                  Pokaż więcej ({pastTrains.length - pastLimit})
+                </button>
+              )}
+            </details>
+          </section>
+        )}
 
         <StationBoardWidget onTrainAdded={addTrain} />
       </div>
