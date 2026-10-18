@@ -6,7 +6,12 @@ import { Search, Loader2, X } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import Modal from "./Modal";
 import { useEnabledModules } from "@/hooks/useEnabledModules";
-import { GLOBAL_SEARCH_SOURCES, GLOBAL_SEARCH_LIMIT, GLOBAL_SEARCH_MIN_CHARS, type GlobalSearchSource } from "@/config/globalSearch";
+import {
+  GLOBAL_SEARCH_SOURCES,
+  GLOBAL_SEARCH_LIMIT,
+  GLOBAL_SEARCH_MIN_CHARS,
+  type GlobalSearchSource,
+} from "@/config/globalSearch";
 
 interface SearchHit {
   source: GlobalSearchSource;
@@ -67,7 +72,10 @@ export default function GlobalSearch() {
         return;
       }
       setSearching(true);
-      const escaped = term.trim().replaceAll("%", String.raw`\%`).replaceAll("_", String.raw`\_`);
+      const escaped = term
+        .trim()
+        .replaceAll("%", String.raw`\%`)
+        .replaceAll("_", String.raw`\_`);
       const pattern = `%${escaped}%`;
 
       const results = await Promise.all(
@@ -117,56 +125,52 @@ export default function GlobalSearch() {
         onClick={() => setOpen(true)}
         aria-label="Szukaj w aplikacji (Ctrl+K)"
         title="Szukaj"
-        className="p-2.5 rounded-xl bg-surface hover:bg-surface-hover text-text-secondary hover:text-text transition-colors active:scale-[0.98]"
+        className="rounded-xl bg-surface p-2.5 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text active:scale-[0.98]"
       >
-        <Search className="w-5 h-5" />
+        <Search className="h-5 w-5" />
       </button>
 
       <Modal open={open} onClose={close} label="Wyszukiwarka globalna" className="mt-[12vh]">
-        <div className="card w-full max-w-lg rounded-card shadow-xl overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-              <Search className="w-4 h-4 text-text-muted shrink-0" aria-hidden="true" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Szukaj zadań, notatek, wydarzeń, pism, osób…"
-                aria-label="Szukaj w aplikacji"
-                className="flex-1 min-w-0 bg-transparent text-base text-text outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-primary rounded"
-              />
-              {searching && <Loader2 className="w-4 h-4 animate-spin text-text-muted shrink-0" aria-hidden="true" />}
-              <button type="button" onClick={close} aria-label="Zamknij" className="text-text-muted hover:text-text">
-                <X aria-hidden="true" className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="max-h-[50vh] overflow-y-auto">
-              {query.trim().length >= GLOBAL_SEARCH_MIN_CHARS && !searching && hits.length === 0 && (
-                <p className="px-4 py-6 text-sm text-text-muted text-center">Brak wyników.</p>
-              )}
-              {grouped.map(([groupLabel, groupHits]) => (
-                <div key={groupLabel} className="py-1">
-                  <p className="px-4 py-1 text-xs font-bold text-text-muted">
-                    {groupLabel}
-                  </p>
-                  {groupHits.map((hit) => (
-                    <button
-                      key={`${hit.source.table}-${hit.id}`}
-                      type="button"
-                      onClick={() => goTo(hit)}
-                      className="w-full text-left px-4 py-2 hover:bg-surface-hover transition-colors"
-                    >
-                      <span className="block text-sm text-text truncate">{hit.label}</span>
-                      {hit.sublabel && (
-                        <span className="block text-xs text-text-muted truncate">{hit.sublabel}</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
+        <div className="card w-full max-w-lg overflow-hidden rounded-card shadow-xl">
+          <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+            <Search className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Szukaj zadań, notatek, wydarzeń, pism, osób…"
+              aria-label="Szukaj w aplikacji"
+              className="min-w-0 flex-1 rounded bg-transparent text-base text-text outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-primary"
+            />
+            {searching && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-text-muted" aria-hidden="true" />}
+            <button type="button" onClick={close} aria-label="Zamknij" className="text-text-muted hover:text-text">
+              <X aria-hidden="true" className="h-4 w-4" />
+            </button>
           </div>
+
+          <div className="max-h-[50vh] overflow-y-auto">
+            {query.trim().length >= GLOBAL_SEARCH_MIN_CHARS && !searching && hits.length === 0 && (
+              <p className="px-4 py-6 text-center text-sm text-text-muted">Brak wyników.</p>
+            )}
+            {grouped.map(([groupLabel, groupHits]) => (
+              <div key={groupLabel} className="py-1">
+                <p className="px-4 py-1 text-xs font-bold text-text-muted">{groupLabel}</p>
+                {groupHits.map((hit) => (
+                  <button
+                    key={`${hit.source.table}-${hit.id}`}
+                    type="button"
+                    onClick={() => goTo(hit)}
+                    className="w-full px-4 py-2 text-left transition-colors hover:bg-surface-hover"
+                  >
+                    <span className="block truncate text-sm text-text">{hit.label}</span>
+                    {hit.sublabel && <span className="block truncate text-xs text-text-muted">{hit.sublabel}</span>}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </Modal>
     </>
   );

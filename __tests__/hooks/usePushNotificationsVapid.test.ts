@@ -10,17 +10,30 @@ import urlBase64ToUint8Array from "@/lib/urlBase64ToUint8Array";
 const CURRENT = "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
 const OLD = "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM";
 
-const db = { rows: [] as { id: string; subscription: { endpoint: string } }[], deleted: [] as string[], inserted: [] as unknown[] };
+const db = {
+  rows: [] as { id: string; subscription: { endpoint: string } }[],
+  deleted: [] as string[],
+  inserted: [] as unknown[],
+};
 function query(table: string) {
   const b: Record<string, unknown> = {};
   b.select = () => b;
   b.eq = (col: string, val: string) => {
-    if (b.__op === "delete" && col === "id") { db.deleted.push(val); return Promise.resolve({ error: null }); }
+    if (b.__op === "delete" && col === "id") {
+      db.deleted.push(val);
+      return Promise.resolve({ error: null });
+    }
     return b;
   };
   b.then = (res: (v: unknown) => void) => res({ data: db.rows, error: null });
-  b.delete = () => { b.__op = "delete"; return b; };
-  b.insert = (row: unknown) => { db.inserted.push(row); return Promise.resolve({ error: null }); };
+  b.delete = () => {
+    b.__op = "delete";
+    return b;
+  };
+  b.insert = (row: unknown) => {
+    db.inserted.push(row);
+    return Promise.resolve({ error: null });
+  };
   b.update = () => ({ eq: () => Promise.resolve({ error: null }) });
   void table;
   return b;
@@ -51,19 +64,30 @@ const subscribe = vi.fn((opts: { applicationServerKey: Uint8Array }) => {
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = CURRENT;
+  // Vitest ustawia tryb "development", w którym service worker jest domyślnie wyłączony.
+  process.env.NEXT_PUBLIC_SW_DEV = "1";
   localStorage.setItem("dzisiaj:push_opt_in", "1");
   db.rows = [{ id: "row-old", subscription: { endpoint: "https://push/old" } }];
-  db.deleted = []; db.inserted = [];
+  db.deleted = [];
+  db.inserted = [];
   stale = subscription(OLD, "https://push/old");
   let current: unknown = stale;
-  stale.unsubscribe.mockImplementation(() => { current = null; return Promise.resolve(true); });
+  stale.unsubscribe.mockImplementation(() => {
+    current = null;
+    return Promise.resolve(true);
+  });
   const registration = {
     update: () => Promise.resolve(),
     pushManager: { getSubscription: () => Promise.resolve(current), subscribe },
   };
   Object.defineProperty(navigator, "serviceWorker", {
     configurable: true,
-    value: { register: () => Promise.resolve(registration), ready: Promise.resolve(registration), addEventListener: vi.fn(), removeEventListener: vi.fn() },
+    value: {
+      register: () => Promise.resolve(registration),
+      ready: Promise.resolve(registration),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    },
   });
   (globalThis as unknown as { PushManager: unknown }).PushManager = function PushManager() {};
   (globalThis as unknown as { Notification: unknown }).Notification = { permission: "granted" };

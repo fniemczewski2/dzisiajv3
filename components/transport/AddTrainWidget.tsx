@@ -1,10 +1,10 @@
 // components/transport/AddTrainWidget.tsx
 
-import React, { useState } from 'react';
-import { ScanLine, Upload } from 'lucide-react';
-import { CancelButton, SaveButton } from '../ui/CommonButtons';
-import { useTicketUpload  } from '@/lib/trainTicketUtils'; 
-import { TicketFormData } from '@/types/transport';
+import React, { useState } from "react";
+import { ScanLine, Upload } from "lucide-react";
+import { CancelButton, SaveButton } from "../ui/CommonButtons";
+import { useTicketUpload } from "@/lib/trainTicketUtils";
+import { TicketFormData } from "@/types/transport";
 
 interface AddTrainWidgetProps {
   onTrainAdded: (train: TicketFormData) => void;
@@ -14,26 +14,26 @@ interface AddTrainWidgetProps {
 
 export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Readonly<AddTrainWidgetProps>) {
   const [formData, setFormData] = useState<TicketFormData>({
-    trainNumber: '',
-    trainName: '',
-    date: '',
-    departureTime: '',
-    from: '',
-    to: '',
-    wagon: '',
-    seat: ''
+    trainNumber: "",
+    trainName: "",
+    date: "",
+    departureTime: "",
+    from: "",
+    to: "",
+    wagon: "",
+    seat: "",
   });
 
   const { handleFileUpload, loading, missingFromTicket, clearTicketReview } = useTicketUpload({
     setFormData,
-    setExpanded
-  }); 
+    setExpanded,
+  });
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     onTrainAdded(formData);
     clearTicketReview();
-    setFormData({ trainNumber: '', trainName: '', date: '', departureTime: '', from: '', to: '', wagon: '', seat: ''});
+    setFormData({ trainNumber: "", trainName: "", date: "", departureTime: "", from: "", to: "", wagon: "", seat: "" });
     setExpanded(false);
   };
 
@@ -42,138 +42,157 @@ export default function AddTrainForm({ onTrainAdded, expanded, setExpanded }: Re
   return (
     <>
       {expanded && (
-          <form onSubmit={handleSubmit} className="form-card" aria-busy={loading}>
-            {missingFromTicket && (
-              <output className="flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-700/60 dark:bg-blue-900/40 dark:text-blue-100">
-                <ScanLine aria-hidden="true" className="h-5 w-5 shrink-0" />
-                <div className="space-y-0.5">
-                  <p className="font-semibold">Dane odczytane automatycznie z biletu</p>
-                  <p className="text-blue-800 dark:text-blue-200">
-                    {missingFromTicket.length > 0
-                      ? `Nie rozpoznano: ${missingFromTicket.join(', ')}. Uzupełnij je i sprawdź pozostałe pola przed zapisem.`
-                      : 'Sprawdź, czy wszystkie pola się zgadzają, zanim zapiszesz pociąg.'}
-                  </p>
-                </div>
-              </output>
-            )}
+        <form onSubmit={handleSubmit} className="form-card" aria-busy={loading}>
+          {missingFromTicket && (
+            <output className="flex gap-3 rounded-xl border border-info-line bg-info-soft p-3 text-sm text-info">
+              <ScanLine aria-hidden="true" className="h-5 w-5 shrink-0" />
+              <div className="space-y-0.5">
+                <p className="font-semibold">Dane odczytane automatycznie z biletu</p>
+                <p className="text-info">
+                  {missingFromTicket.length > 0
+                    ? `Nie rozpoznano: ${missingFromTicket.join(", ")}. Uzupełnij je i sprawdź pozostałe pola przed zapisem.`
+                    : "Sprawdź, czy wszystkie pola się zgadzają, zanim zapiszesz pociąg."}
+                </p>
+              </div>
+            </output>
+          )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="trainNumber" className="form-label">Nr pociągu</label>
-                <input 
-                  id="trainNumber"
-                  type="text" 
-                  value={formData.trainNumber}
-                  onChange={e => setFormData({...formData, trainNumber: e.target.value})}
-                  className="input-field py-1.5 w-full" 
-                  required 
-                  placeholder="2137"
-                />
-              </div>
-              <div>
-                <label htmlFor="trainName" className="form-label">Nazwa pociągu</label>
-                <input 
-                  id="trainName"
-                  type="text" 
-                  value={formData.trainName}
-                  onChange={e => setFormData({...formData, trainName: e.target.value})}
-                  className="input-field py-1.5 w-full" 
-                  required 
-                  placeholder="Przemyślanin"
-                />
-              </div>
-            </div>
-              <div>
-                <label htmlFor="trainDate" className="form-label">Data i czas</label>
-                <div className="flex gap-2">
-                  <input 
-                    id="trainDate"
-                    type="date" 
-                    value={formData.date}
-                    onChange={e => setFormData({...formData, date: e.target.value})}
-                    className="input-field py-1.5 w-full" 
-                    required 
-                  />
-                  <input 
-                    type="time" 
-                    aria-label="Godzina odjazdu"
-                    value={formData.departureTime}
-                    onChange={e => setFormData({...formData, departureTime: e.target.value})}
-                    className="input-field py-1.5 w-24" 
-                    required 
-                  />
-                </div>
-              </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="stationFrom" className="form-label">Stacja początkowa</label>
-                <input 
-                  id="stationFrom"
-                  type="text" 
-                  value={formData.from}
-                  onChange={e => setFormData({...formData, from: e.target.value})}
-                  className="input-field py-1.5 w-full" 
-                  placeholder="np. Poznań Gł."
-                />
-              </div>
-              <div>
-                <label htmlFor="stationTo" className="form-label">Stacja końcowa</label>
-                <input 
-                  id="stationTo"
-                  type="text" 
-                  value={formData.to}
-                  onChange={e => setFormData({...formData, to: e.target.value})}
-                  className="input-field py-1.5 w-full" 
-                  placeholder="np. Warszawa Centr."
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="trainWagon" className="form-label">Wagon</label>
-                <input 
-                  id="trainWagon"
-                  type="text" 
-                  value={formData.wagon}
-                  onChange={e => setFormData({...formData, wagon: e.target.value})}
-                  className="input-field py-1.5 w-full" 
-                  placeholder="13"
-                />
-              </div>
-              <div>
-                <label htmlFor="trainSeat" className="form-label">Miejsce</label>
-                <input 
-                  id="trainSeat"
-                  type="text" 
-                  value={formData.seat}
-                  onChange={e => setFormData({...formData, seat: e.target.value})}
-                  className="input-field py-1.5 w-full" 
-                  placeholder="51"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center justify-end gap-3 mt-2 border-t border-gray-100 dark:border-gray-800">
-              <CancelButton onClick={() => { clearTicketReview(); setExpanded(false); }} />
-              <label 
-                className={`px-4 py-2 w-full md:flex-1 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 dark:border-gray-800`}
-              >
-                .pdf
-                <Upload aria-hidden="true" className="w-4 h-4 text-text-secondary" />
-                <input 
-                  type="file" 
-                  accept="application/pdf"
-                  onChange={handleFileUpload} 
-                  disabled={loading}
-                  className="hidden" 
-                />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="trainNumber" className="form-label">
+                Nr pociągu
               </label>
-            
-              <SaveButton disabled={loading} />
+              <input
+                id="trainNumber"
+                type="text"
+                value={formData.trainNumber}
+                onChange={(e) => setFormData({ ...formData, trainNumber: e.target.value })}
+                className="input-field w-full py-1.5"
+                required
+                placeholder="2137"
+              />
             </div>
-          </form>
+            <div>
+              <label htmlFor="trainName" className="form-label">
+                Nazwa pociągu
+              </label>
+              <input
+                id="trainName"
+                type="text"
+                value={formData.trainName}
+                onChange={(e) => setFormData({ ...formData, trainName: e.target.value })}
+                className="input-field w-full py-1.5"
+                required
+                placeholder="Przemyślanin"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="trainDate" className="form-label">
+              Data i czas
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="trainDate"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="input-field w-full py-1.5"
+                required
+              />
+              <input
+                type="time"
+                aria-label="Godzina odjazdu"
+                value={formData.departureTime}
+                onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
+                className="input-field w-24 py-1.5"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="stationFrom" className="form-label">
+                Stacja początkowa
+              </label>
+              <input
+                id="stationFrom"
+                type="text"
+                value={formData.from}
+                onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+                className="input-field w-full py-1.5"
+                placeholder="np. Poznań Gł."
+              />
+            </div>
+            <div>
+              <label htmlFor="stationTo" className="form-label">
+                Stacja końcowa
+              </label>
+              <input
+                id="stationTo"
+                type="text"
+                value={formData.to}
+                onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+                className="input-field w-full py-1.5"
+                placeholder="np. Warszawa Centr."
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="trainWagon" className="form-label">
+                Wagon
+              </label>
+              <input
+                id="trainWagon"
+                type="text"
+                value={formData.wagon}
+                onChange={(e) => setFormData({ ...formData, wagon: e.target.value })}
+                className="input-field w-full py-1.5"
+                placeholder="13"
+              />
+            </div>
+            <div>
+              <label htmlFor="trainSeat" className="form-label">
+                Miejsce
+              </label>
+              <input
+                id="trainSeat"
+                type="text"
+                value={formData.seat}
+                onChange={(e) => setFormData({ ...formData, seat: e.target.value })}
+                className="input-field w-full py-1.5"
+                placeholder="51"
+              />
+            </div>
+          </div>
+
+          <div className="mt-2 flex flex-col items-center justify-end gap-3 border-t border-line md:flex-row">
+            <CancelButton
+              onClick={() => {
+                clearTicketReview();
+                setExpanded(false);
+              }}
+            />
+            <label
+              className={`flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 md:flex-1`}
+            >
+              .pdf
+              <Upload aria-hidden="true" className="h-4 w-4 text-text-secondary" />
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileUpload}
+                disabled={loading}
+                className="hidden"
+              />
+            </label>
+
+            <SaveButton disabled={loading} />
+          </div>
+        </form>
       )}
     </>
   );

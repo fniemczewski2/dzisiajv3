@@ -21,7 +21,7 @@ export function generateTimeSlots(timeStart: string, timeEnd: string, durationMi
 
 export function addMinutesToTime(time: string, minutes: number): string {
   const [h, m] = normalizeTime(time).split(":").map(Number);
-  const total = ((h * 60 + m + minutes) % 1440 + 1440) % 1440;
+  const total = (((h * 60 + m + minutes) % 1440) + 1440) % 1440;
   const nh = Math.floor(total / 60);
   const nm = total % 60;
   return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
@@ -144,7 +144,12 @@ export function bestRanges(
   }
   if (max === 0) return { count: 0, ranges: [] };
 
-  const ranges = contiguousRanges(dates, times, durationMinutes, (date, time) => (counts[slotKey(date, time)] ?? 0) === max)
+  const ranges = contiguousRanges(
+    dates,
+    times,
+    durationMinutes,
+    (date, time) => (counts[slotKey(date, time)] ?? 0) === max
+  )
     .sort((a, b) => b.slots - a.slots || a.date.localeCompare(b.date) || a.startIndex - b.startIndex)
     .slice(0, limit);
   return { count: max, ranges };

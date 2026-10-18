@@ -1,5 +1,6 @@
 // lib/noteFormatting.tsx
 
+import { NOTE_FORMATTING_MAX_LENGTH } from "@/config/limits";
 import React from "react";
 import { sanitizeHref } from "@/lib/sanitize";
 
@@ -14,7 +15,6 @@ function trailingPunctuation(text: string): string {
   while (i > 0 && TRAILING_PUNCT.has(text[i - 1])) i--;
   return text.slice(i);
 }
-const MAX_RENDER_LENGTH = 5000;
 
 function renderLinkToken(part: string, key: string): React.JSX.Element {
   const trailing = trailingPunctuation(part);
@@ -33,7 +33,7 @@ function renderLinkToken(part: string, key: string): React.JSX.Element {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary hover:text-primary-strong underline font-medium transition-colors break-all"
+        className="font-medium break-all text-primary underline transition-colors hover:text-primary-strong"
       >
         {displayText}
       </a>
@@ -59,7 +59,6 @@ function linkifyPlainText(text: string, keyPrefix: string): React.ReactNode[] {
   const parts = text.split(URL_RE);
 
   return parts.flatMap((part, i): React.ReactNode[] => {
-
     if (i % 2 !== 1 || !part) {
       return linkifyBareDomains(part, `${keyPrefix}-t-${i}`);
     }
@@ -71,7 +70,7 @@ const BOLD_RE = /\*\*(.+?)\*\*/g;
 
 export function renderNoteLineContent(text: string, keyPrefix: string): React.ReactNode {
   if (!text) return null;
-  const clipped = text.length > MAX_RENDER_LENGTH ? `${text.slice(0, MAX_RENDER_LENGTH)}…` : text;
+  const clipped = text.length > NOTE_FORMATTING_MAX_LENGTH ? `${text.slice(0, NOTE_FORMATTING_MAX_LENGTH)}…` : text;
   const parts = clipped.split(BOLD_RE);
 
   return parts.map((part, i) =>

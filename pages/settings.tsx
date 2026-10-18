@@ -4,6 +4,7 @@
 // Nawyki, Finanse, Sortowanie, Udostępnianie) zapisują się osobno; pozostałe
 // (powiadomienia, szablony, integracje, konto) zapisują zmiany od razu.
 
+import { DEFAULT_SETTINGS } from "@/config/defaults";
 import React from "react";
 import { useRouter } from "next/router";
 import { Info, RotateCcw } from "lucide-react";
@@ -35,7 +36,9 @@ const OTHER_SECTIONS = [
 function Group({ id, title, children }: Readonly<{ id: string; title: string; children: React.ReactNode }>) {
   return (
     <section id={id} aria-labelledby={`${id}-h`} className="mb-6 max-w-3xl scroll-mt-20">
-      <h2 id={`${id}-h`} className="mb-3 text-lg font-bold text-text">{title}</h2>
+      <h2 id={`${id}-h`} className="mb-3 text-lg font-bold text-text">
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -45,7 +48,8 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-  const { settings, loading, fetching, locationStatus, updateSettings, requestGeolocation, handleSignOut, DEFAULT_SETTINGS } = useSettings();
+  const { settings, loading, fetching, locationStatus, updateSettings, requestGeolocation, handleSignOut } =
+    useSettings();
 
   const savePartial = async (patch: Partial<Settings>) => {
     const { error } = await updateSettings(patch);
@@ -53,7 +57,9 @@ export default function SettingsPage() {
   };
 
   const handleRestoreDefaults = async () => {
-    const ok = await toast.confirm("Przywrócić domyślne ustawienia we wszystkich sekcjach? Zmiany zostaną od razu zapisane.");
+    const ok = await toast.confirm(
+      "Przywrócić domyślne ustawienia we wszystkich sekcjach? Zmiany zostaną od razu zapisane."
+    );
     if (!ok) return;
     const { error } = await updateSettings(DEFAULT_SETTINGS);
     if (!error) toast.success("Przywrócono domyślne ustawienia!");
@@ -86,7 +92,10 @@ export default function SettingsPage() {
             <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:px-0">
               {[...SETTINGS_SECTIONS, ...OTHER_SECTIONS].map((s) => (
                 <li key={s.id} className="shrink-0">
-                  <a href={`#${s.id}`} className="inline-flex min-h-11 items-center rounded-full border border-line-strong px-4 text-sm font-medium text-text-secondary hover:text-text">
+                  <a
+                    href={`#${s.id}`}
+                    className="inline-flex min-h-11 items-center rounded-full border border-line-strong px-4 text-sm font-medium text-text-secondary hover:text-text"
+                  >
                     {s.title}
                   </a>
                 </li>

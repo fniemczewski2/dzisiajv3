@@ -1,6 +1,12 @@
 // lib/quickNotes.ts
-export const MAX_QUICK_NOTE_LENGTH = 500;
-export const MAX_QUICK_NOTES_PER_SUBMIT = 20;
+
+/**
+ * Komunikat, gdy baza odrzuci notatkę (trigger limitu lub ograniczenie długości,
+ * kod 23514). Ten sam w aplikacji i w odpowiedzi dla Skrótów Siri.
+ */
+export const QUICK_NOTES_LIMIT_MESSAGE =
+  "Osiągnięto limit szybkich notatek albo notatka jest za długa. Usuń starsze notatki lub skróć tekst.";
+import { MAX_QUICK_NOTE_LENGTH, MAX_QUICK_NOTES_PER_SUBMIT } from "@/config/limits";
 
 export interface QuickNote {
   id: string;

@@ -54,7 +54,12 @@ export function useReportTemplates() {
         return null;
       }
       const id = newTemplateId();
-      const template: NamedReportTemplate = { id, name: name.trim().slice(0, MAX_TEMPLATE_NAME) || "Nowy szablon", fonts: {}, logo: null };
+      const template: NamedReportTemplate = {
+        id,
+        name: name.trim().slice(0, MAX_TEMPLATE_NAME) || "Nowy szablon",
+        fonts: {},
+        logo: null,
+      };
       const ok = await save({ templates: [...set.templates, template], default_id: set.default_id ?? id });
       return ok ? id : null;
     },
@@ -62,7 +67,8 @@ export function useReportTemplates() {
   );
 
   const renameTemplate = useCallback(
-    (id: string, name: string) => patchTemplate(id, (t) => ({ ...t, name: name.trim().slice(0, MAX_TEMPLATE_NAME) || t.name })),
+    (id: string, name: string) =>
+      patchTemplate(id, (t) => ({ ...t, name: name.trim().slice(0, MAX_TEMPLATE_NAME) || t.name })),
     [patchTemplate]
   );
 
@@ -72,11 +78,14 @@ export function useReportTemplates() {
     async (id: string) => {
       const template = set.templates.find((t) => t.id === id);
       if (!template) return;
-      const ok = await toast.confirm(`Usunąć szablon „${template.name}”? Protokoły z tym szablonem dostaną szablon domyślny.`);
+      const ok = await toast.confirm(
+        `Usunąć szablon „${template.name}”? Protokoły z tym szablonem dostaną szablon domyślny.`
+      );
       if (!ok) return;
       const templates = set.templates.filter((t) => t.id !== id);
-      const defaultId = set.default_id === id ? templates[0]?.id ?? null : set.default_id;
-      if (await save({ templates, default_id: defaultId })) await removeTemplateAsset(supabase, templateAssetPaths(template));
+      const defaultId = set.default_id === id ? (templates[0]?.id ?? null) : set.default_id;
+      if (await save({ templates, default_id: defaultId }))
+        await removeTemplateAsset(supabase, templateAssetPaths(template));
     },
     [set, save, supabase, toast]
   );
@@ -141,7 +150,8 @@ export function useReportTemplates() {
   );
 
   const setLogoWidth = useCallback(
-    (id: string, width: number) => patchTemplate(id, (t) => (t.logo ? { ...t, logo: { ...t.logo, width: clampLogoWidth(width) } } : t)),
+    (id: string, width: number) =>
+      patchTemplate(id, (t) => (t.logo ? { ...t, logo: { ...t.logo, width: clampLogoWidth(width) } } : t)),
     [patchTemplate]
   );
 

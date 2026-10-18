@@ -71,9 +71,7 @@ describe("generateLetterBody", () => {
   });
 
   it("falls back to a generic opening with no fixed legal basis for 'Inne'", () => {
-    const body = generateLetterBody(
-      makeLetter({ category: "Inne", category_other: "Odwołanie", category_code: "OD" })
-    );
+    const body = generateLetterBody(makeLetter({ category: "Inne", category_other: "Odwołanie", category_code: "OD" }));
     expect(body).not.toContain("Na podstawie");
     expect(body).toContain("Sygn.: 1.08.2026.U");
   });

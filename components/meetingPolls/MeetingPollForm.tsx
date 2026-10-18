@@ -1,5 +1,6 @@
 // components/meetingPolls/MeetingPollForm.tsx
 
+import { MEETING_POLL_QUICK_WORKING_DAYS } from "@/config/defaults";
 import React, { useMemo, useState } from "react";
 import { CalendarPlus, CalendarRange, X } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
@@ -18,8 +19,6 @@ const DURATION_LABELS: Record<MeetingPollSlotDuration, string> = {
   30: "30 minut",
   60: "1 godzina",
 };
-
-const QUICK_WORKING_DAYS = 5;
 
 function mergeDates(current: string[], added: string[]): string[] {
   return [...new Set([...current, ...added])].sort((a, b) => a.localeCompare(b));
@@ -41,7 +40,8 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
     if (dateToAdd) setDates((prev) => mergeDates(prev, [dateToAdd]));
   };
 
-  const addWorkingDays = () => setDates((prev) => mergeDates(prev, nextWorkingDays(today, QUICK_WORKING_DAYS)));
+  const addWorkingDays = () =>
+    setDates((prev) => mergeDates(prev, nextWorkingDays(today, MEETING_POLL_QUICK_WORKING_DAYS)));
 
   const removeDate = (date: string) => setDates((prev) => prev.filter((d) => d !== date));
 
@@ -77,7 +77,9 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
 
       <div className="space-y-3">
         <div>
-          <label htmlFor="mp-title" className="form-label">Nazwa spotkania:</label>
+          <label htmlFor="mp-title" className="form-label">
+            Nazwa spotkania:
+          </label>
           <input
             id="mp-title"
             value={title}
@@ -88,7 +90,9 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
         </div>
 
         <div>
-          <label htmlFor="mp-description" className="form-label">Opis (opcjonalnie):</label>
+          <label htmlFor="mp-description" className="form-label">
+            Opis (opcjonalnie):
+          </label>
           <textarea
             id="mp-description"
             value={description}
@@ -112,14 +116,14 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
               return (
                 <li
                   key={d}
-                  className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 py-1 pl-3 pr-1 text-sm font-semibold tabular-nums text-text"
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 py-1 pr-1 pl-3 text-sm font-semibold text-text tabular-nums"
                 >
                   {weekday} {day}
                   <button
                     type="button"
                     onClick={() => removeDate(d)}
                     aria-label={`Usuń dzień ${weekday} ${day}`}
-                    className="rounded-full p-1 text-text-muted transition-colors hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/40 dark:hover:text-red-300"
+                    className="rounded-full p-1 text-text-muted transition-colors hover:bg-danger-soft hover:text-danger"
                   >
                     <X aria-hidden="true" className="h-3.5 w-3.5" />
                   </button>
@@ -152,7 +156,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
             className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
           >
             <CalendarRange aria-hidden="true" className="h-4 w-4" />
-            Najbliższe {QUICK_WORKING_DAYS} dni robocze
+            Najbliższe {MEETING_POLL_QUICK_WORKING_DAYS} dni robocze
           </button>
         </div>
       </fieldset>
@@ -162,7 +166,9 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="mp-time-start" className="form-label">Od godziny:</label>
+            <label htmlFor="mp-time-start" className="form-label">
+              Od godziny:
+            </label>
             <input
               id="mp-time-start"
               type="time"
@@ -172,7 +178,9 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
             />
           </div>
           <div>
-            <label htmlFor="mp-time-end" className="form-label">Do godziny:</label>
+            <label htmlFor="mp-time-end" className="form-label">
+              Do godziny:
+            </label>
             <input
               id="mp-time-end"
               type="time"
@@ -185,13 +193,15 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
           </div>
         </div>
         {!timesValid && (
-          <p id="mp-time-error" role="alert" className="text-xs text-red-700 dark:text-red-300">
+          <p id="mp-time-error" role="alert" className="text-xs text-danger">
             Godzina końcowa musi być późniejsza niż początkowa.
           </p>
         )}
 
         <div>
-          <span id="mp-duration-label" className="form-label">Długość pojedynczego slotu:</span>
+          <span id="mp-duration-label" className="form-label">
+            Długość pojedynczego slotu:
+          </span>
           <div role="radiogroup" aria-labelledby="mp-duration-label" className="grid grid-cols-3 gap-2">
             {MEETING_POLL_SLOT_DURATIONS.map((d) => (
               <label

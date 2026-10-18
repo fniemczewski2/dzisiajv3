@@ -11,13 +11,25 @@ let selects = 0;
 let failNext = false;
 let release: (() => void) | null = null;
 
-const list = { id: "L1", user_id: "me", name: "Zakupy", shared_with_id: null, elements: [{ id: "a", text: "Mleko", completed: false }, { id: "b", text: "Chleb", completed: false }] };
+const list = {
+  id: "L1",
+  user_id: "me",
+  name: "Zakupy",
+  shared_with_id: null,
+  elements: [
+    { id: "a", text: "Mleko", completed: false },
+    { id: "b", text: "Chleb", completed: false },
+  ],
+};
 
 function selectChain() {
   const c: Record<string, unknown> = {};
   c.or = () => c;
   c.limit = () => c;
-  c.abortSignal = () => { selects++; return Promise.resolve({ data: [list], error: null }); };
+  c.abortSignal = () => {
+    selects++;
+    return Promise.resolve({ data: [list], error: null });
+  };
   return c;
 }
 const supabase = {

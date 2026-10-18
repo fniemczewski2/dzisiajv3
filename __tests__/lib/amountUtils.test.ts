@@ -1,4 +1,4 @@
-﻿// __tests__/lib/amountUtils.test.ts
+// __tests__/lib/amountUtils.test.ts
 
 import { describe, it, expect } from "vitest";
 import { isValidAmountInput, parseAmountInput } from "@/lib/amountUtils";

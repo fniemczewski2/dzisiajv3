@@ -23,12 +23,22 @@ describe("normalizeStationName", () => {
 
 describe("resolveRouteStations", () => {
   it("wybiera stację docelową z biletu, a nie kolejny przystanek", () => {
-    const r = resolveRouteStations(route, nameOf, { id: "POZ", query: "Poznań Gł." }, { id: "WRZ", query: "Warszawa Centralna" });
+    const r = resolveRouteStations(
+      route,
+      nameOf,
+      { id: "POZ", query: "Poznań Gł." },
+      { id: "WRZ", query: "Warszawa Centralna" }
+    );
     expect(r.toStationId).toBe("WCE");
   });
 
   it("przy samej nazwie miasta bierze najlepiej pasującą stację za stacją wyjazdu", () => {
-    const r = resolveRouteStations(route, nameOf, { id: "POZ", query: "Poznań" }, { id: null, query: "Warszawa Wsch." });
+    const r = resolveRouteStations(
+      route,
+      nameOf,
+      { id: "POZ", query: "Poznań" },
+      { id: null, query: "Warszawa Wsch." }
+    );
     expect(r.toStationId).toBe("WWS");
   });
 

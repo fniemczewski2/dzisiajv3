@@ -13,16 +13,16 @@ export interface PaletteColor {
 }
 
 export const CATEGORY_PALETTE: readonly PaletteColor[] = [
-  { value: "#1D5FB0", name: "niebieski" },   // 6.3:1 z bielą
-  { value: "#0F7B6C", name: "zielony" },     // 5.2:1
-  { value: "#5B6B12", name: "oliwkowy" },    // 5.9:1
-  { value: "#8A530C", name: "miodowy" },     // 6.3:1
-  { value: "#A74B07", name: "pomarańczowy" },// 5.8:1
-  { value: "#B83232", name: "czerwony" },    // 5.9:1
-  { value: "#B0316F", name: "różowy" },      // 6.0:1
-  { value: "#644CAA", name: "fioletowy" },   // 6.7:1
-  { value: "#06606E", name: "morski" },      // 7.2:1
-  { value: "#4A5A6D", name: "grafitowy" },   // 7.1:1
+  { value: "#1D5FB0", name: "niebieski" }, // 6.3:1 z bielą
+  { value: "#0F7B6C", name: "zielony" }, // 5.2:1
+  { value: "#5B6B12", name: "oliwkowy" }, // 5.9:1
+  { value: "#8A530C", name: "miodowy" }, // 6.3:1
+  { value: "#A74B07", name: "pomarańczowy" }, // 5.8:1
+  { value: "#B83232", name: "czerwony" }, // 5.9:1
+  { value: "#B0316F", name: "różowy" }, // 6.0:1
+  { value: "#644CAA", name: "fioletowy" }, // 6.7:1
+  { value: "#06606E", name: "morski" }, // 7.2:1
+  { value: "#4A5A6D", name: "grafitowy" }, // 7.1:1
 ];
 
 /** Kolor wydarzenia bez kategorii – neutralny granat aplikacji. */

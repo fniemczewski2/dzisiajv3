@@ -1,5 +1,6 @@
 // components/meetingPolls/PublicPollForm.tsx
 
+import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { Check, CheckCircle2 } from "lucide-react";
 import { usePublicMeetingPoll } from "@/hooks/usePublicMeetingPoll";
@@ -43,7 +44,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
     });
   };
 
-  const { cellHandlers, handlePointerMove } = useDragSelectGrid({
+  const { cellHandlers, gridRef } = useDragSelectGrid({
     onBegin: (_group, key) => {
       const mode: "select" | "deselect" = selected.has(key) ? "deselect" : "select";
       dragModeRef.current = mode;
@@ -68,17 +69,17 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   }
 
   if (notFound || !poll) {
-    return <p className="text-text-muted text-center py-16">Ta ankieta nie istnieje albo została usunięta.</p>;
+    return <p className="py-16 text-center text-text-muted">Ta ankieta nie istnieje albo została usunięta.</p>;
   }
 
   if (poll.status === "closed") {
-    return <p className="text-text-muted text-center py-16">Ta ankieta nie przyjmuje już odpowiedzi.</p>;
+    return <p className="py-16 text-center text-text-muted">Ta ankieta nie przyjmuje już odpowiedzi.</p>;
   }
 
   if (submitted) {
     return (
-      <div className="text-center space-y-3 py-16">
-        <CheckCircle2 className="w-10 h-10 text-primary mx-auto" />
+      <div className="space-y-3 py-16 text-center">
+        <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
         <p className="text-lg font-bold text-text">Dziękujemy!</p>
         <p className="text-sm text-text-secondary">Twoja dostępność została zapisana.</p>
       </div>
@@ -86,59 +87,82 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4 space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 p-4">
       <div>
         <h1 className="page-title">{poll.title}</h1>
-        {poll.description && <p className="text-sm text-text-secondary mt-1">{poll.description}</p>}
+        {poll.description && <p className="mt-1 text-sm text-text-secondary">{poll.description}</p>}
         {hasExistingResponse && (
-          <p className="text-xs text-primary mt-2">
-            Znaleźliśmy Twoją wcześniejszą odpowiedź – możesz ją tu poprawić.
-          </p>
+          <p className="mt-2 text-xs text-primary">Znaleźliśmy Twoją wcześniejszą odpowiedź – możesz ją tu poprawić.</p>
         )}
       </div>
 
-      <div className="form-card grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="form-card grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="pp-name" className="form-label">Imię:</label>
+          <label htmlFor="pp-name" className="form-label">
+            Imię:
+          </label>
           <input
             id="pp-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Twoje imię"
+            autoComplete="name"
+            aria-describedby="pp-privacy"
             className="input-field"
           />
         </div>
         <div>
-          <label htmlFor="pp-email" className="form-label">E-mail (opcjonalnie):</label>
+          <label htmlFor="pp-email" className="form-label">
+            E-mail (opcjonalnie):
+          </label>
           <input
             id="pp-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="twoj@email.pl"
+            autoComplete="email"
+            aria-describedby="pp-privacy"
             className="input-field"
           />
         </div>
+        <p id="pp-privacy" className="text-xs leading-relaxed text-text-secondary sm:col-span-2">
+          Imię, opcjonalny e-mail i zaznaczone terminy otrzyma organizator ankiety, aby ustalić termin spotkania. Dane
+          są przechowywane do usunięcia ankiety; możesz zażądać ich wcześniejszego usunięcia.{" "}
+          <Link href="/privacy#ankiety" className="font-semibold text-primary underline-offset-4 hover:underline">
+            Informacja o przetwarzaniu danych (RODO)
+          </Link>
+        </p>
       </div>
 
       <div>
         <p className="mb-2 text-sm text-text-secondary">
-          Zaznacz pasujące terminy, przeciągając po komórkach. Siatkę przewiniesz, przesuwając nagłówek z datami lub kolumnę godzin.
+          Zaznacz pasujące terminy, przeciągając po komórkach. Siatkę przewiniesz, przesuwając nagłówek z datami lub
+          kolumnę godzin.
         </p>
-        <div className="card rounded-card shadow-sm p-4 overflow-x-auto">
-          <table className="border-collapse select-none" onDragStart={(e) => e.preventDefault()} onPointerMove={handlePointerMove}>
+        <div className="card overflow-x-auto rounded-card p-4 shadow-sm">
+          <table ref={gridRef} className="border-collapse select-none">
             <thead>
               <tr>
-                <th scope="col" className="sticky left-0 bg-card text-xs text-text-muted font-normal p-1 text-left" />
+                <th scope="col" className="sticky left-0 bg-card p-1 text-left text-xs font-normal text-text-muted">
+                  <span className="sr-only">Godzina</span>
+                </th>
                 {poll.dates.map((d) => (
-                  <th scope="col" key={d} className="text-xs text-text-muted font-semibold p-1 min-w-18">{d.split('-')[2] + "." + d.split('-')[1]}</th>
+                  <th scope="col" key={d} className="min-w-18 p-1 text-xs font-semibold text-text-muted">
+                    {d.split("-")[2] + "." + d.split("-")[1]}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {times.map((time) => (
                 <tr key={time}>
-                  <th scope="row" className="sticky left-0 bg-card text-xs text-text-muted font-normal text-left p-1 pr-2 whitespace-nowrap">{time}</th>
+                  <th
+                    scope="row"
+                    className="sticky left-0 bg-card p-1 pr-2 text-left text-xs font-normal whitespace-nowrap text-text-muted"
+                  >
+                    {time}
+                  </th>
                   {poll.dates.map((date) => {
                     const key = slotKey(date, time);
                     const isSelected = selected.has(key);
@@ -147,7 +171,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
                       <td
                         key={date}
                         {...cellHandlers("grid", key)}
-                        className={`w-12 h-8 p-0 text-center cursor-pointer border border-white dark:border-neutral-950 transition-colors ${
+                        className={`h-8 w-12 cursor-pointer border border-card p-0 text-center transition-colors ${
                           isSelected ? "bg-primary" : "bg-surface hover:bg-surface-hover"
                         }`}
                       >
@@ -161,9 +185,11 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
                           onClick={(e) => {
                             if (e.detail === 0) applyMode(key, isSelected ? "deselect" : "select");
                           }}
-                          className="w-full h-full flex items-center justify-center focus-visible:-outline-offset-2"
+                          className="flex h-full w-full items-center justify-center focus-visible:-outline-offset-2"
                         >
-                          {isSelected && <Check className="w-4 h-4 text-white dark:text-background" aria-hidden="true" />}
+                          {isSelected && (
+                            <Check className="h-4 w-4 text-white dark:text-background" aria-hidden="true" />
+                          )}
                         </button>
                       </td>
                     );

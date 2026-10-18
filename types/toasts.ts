@@ -1,4 +1,4 @@
-﻿// types/toasts.ts
+// types/toasts.ts
 
 export type ToastVariant = "success" | "error" | "info" | "loading";
 
@@ -46,8 +46,8 @@ export type BatchLabel = (count: number) => string;
 export interface ToastContextValue {
   readonly toast: {
     readonly success: (message: string, options?: NotificationOptions) => void;
-    readonly error:   (message: string) => void;
-    readonly info:    (message: string, options?: NotificationOptions) => void;
+    readonly error: (message: string) => void;
+    readonly info: (message: string, options?: NotificationOptions) => void;
     readonly loading: (message?: string) => string;
     readonly dismiss: (id: string) => void;
     readonly confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;

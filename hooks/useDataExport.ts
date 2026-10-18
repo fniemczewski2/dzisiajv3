@@ -1,140 +1,50 @@
 // hooks/useDataExport.ts
+//
+// Pobranie kopii wszystkich danych konta (/api/account/export) jako pliku JSON.
 
 import { useCallback, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { useRetry } from "@/hooks/useRetry";
-import { mapPool } from "@/lib/asyncPool";
-import {
-  EXPORT_TABLES,
-  EXPORT_PAGE_SIZE,
-  EXPORT_FILE_PREFIX,
-  type ExportTable,
-} from "@/config/dataExport";
+import { EXPORT_FILE_PREFIX } from "@/config/userData";
 
-type ExportRow = Record<string, unknown>;
-
-interface ExportFile {
-  exported_at: string;
-  user_id: string;
-  email: string | null;
-  format_version: number;
-  note: string;
-  data: Record<string, ExportRow[]>;
-  skipped: { table: string; error: string }[];
+function fileNameFrom(disposition: string | null): string {
+  const match = /filename="([^"]+)"/.exec(disposition ?? "");
+  return match?.[1] ?? `${EXPORT_FILE_PREFIX}_${new Date().toISOString().slice(0, 10)}.json`;
 }
-
-export interface DataExportProgress {
-  done: number;
-  total: number;
-}
-
-const EXPORT_NOTE =
-  "Kopia Twoich danych z aplikacji Dzisiaj.Fun. Plik nie zawiera hasel, tokenow " +
-  "dostepu do kalendarzy ani kluczy powiadomien push.";
 
 export function useDataExport() {
-  const { user, supabase } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const withRetry = useRetry();
-
   const [exporting, setExporting] = useState(false);
-  const [progress, setProgress] = useState<DataExportProgress | null>(null);
-
-  const fetchTable = useCallback(
-    async ({ table, columns }: ExportTable): Promise<ExportRow[]> => {
-      const rows: ExportRow[] = [];
-
-      for (let page = 0; ; page++) {
-        const from = page * EXPORT_PAGE_SIZE;
-        const { data, error } = await withRetry(() => // NOSONAR
-          supabase
-            .from(table)
-            .select(columns ?? "*")
-            .range(from, from + EXPORT_PAGE_SIZE - 1)
-        );
-
-        if (error) throw error;
-
-        const batch = (data ?? []) as unknown as ExportRow[];
-        rows.push(...batch);
-        if (batch.length < EXPORT_PAGE_SIZE) break;
-      }
-
-      return rows;
-    },
-    [supabase, withRetry]
-  );
 
   const exportData = useCallback(async (): Promise<void> => {
     if (!user) {
-      toast.error("Musisz byc zalogowany, aby pobrac swoje dane.");
+      toast.error("Zaloguj się, aby pobrać kopię swoich danych.");
       return;
     }
-
     setExporting(true);
-    setProgress({ done: 0, total: EXPORT_TABLES.length });
-
     try {
-      const data: Record<string, ExportRow[]> = {};
-      const skipped: { table: string; error: string }[] = [];
-      let done = 0;
-      type Fetched =
-        | { entry: (typeof EXPORT_TABLES)[number]; rows: ExportRow[] }
-        | { entry: (typeof EXPORT_TABLES)[number]; error: string };
-      const fetched = await mapPool(EXPORT_TABLES, 4, async (entry): Promise<Fetched> => {
-        try {
-          return { entry, rows: await fetchTable(entry) };
-        } catch (err) {
-          return { entry, error: err instanceof Error ? err.message : "Nieznany błąd" };
-        } finally {
-          done += 1;
-          setProgress({ done, total: EXPORT_TABLES.length });
-        }
-      });
-      for (const result of fetched) {
-        if ("rows" in result) data[result.entry.table] = result.rows;
-        else skipped.push({ table: result.entry.table, error: result.error });
+      const response = await fetch("/api/account/export", { credentials: "same-origin" });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Nie udało się przygotować kopii danych.");
       }
-
-      const payload: ExportFile = {
-        exported_at: new Date().toISOString(),
-        user_id: user.id,
-        email: user.email ?? null,
-        format_version: 1,
-        note: EXPORT_NOTE,
-        data,
-        skipped,
-      };
-
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {
-        type: "application/json;charset=utf-8;",
-      });
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${EXPORT_FILE_PREFIX}_${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = fileNameFrom(response.headers.get("Content-Disposition"));
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-
-      const totalRows = Object.values(data).reduce((acc, rows) => acc + rows.length, 0);
-
-      if (skipped.length > 0) {
-        toast.error(
-          `Pobrano ${totalRows} rekordow, ale ${skipped.length} sekcji sie nie udalo.`
-        );
-      } else {
-        toast.success(`Pobrano kopie danych (${totalRows} rekordow).`);
-      }
-    } catch {
-      toast.error("Nie udalo sie przygotowac kopii danych.");
+      toast.success("Pobrano kopię danych.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Nie udało się przygotować kopii danych.");
     } finally {
       setExporting(false);
-      setProgress(null);
     }
-  }, [user, fetchTable, toast]);
+  }, [user, toast]);
 
-  return { exportData, exporting, progress };
+  return { exportData, exporting };
 }

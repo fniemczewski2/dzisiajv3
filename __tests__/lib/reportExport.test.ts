@@ -11,7 +11,10 @@ import {
 import type { Report } from "@/types/reports";
 
 const report = {
-  id: "1", user_id: "u", topic: "Zarząd Fundacji – październik", date: "2026-10-15",
+  id: "1",
+  user_id: "u",
+  topic: "Zarząd Fundacji – październik",
+  date: "2026-10-15",
   agenda: ["Budżet", "", "Sprawy różne"],
   participants: ["Anna", "Filip", "Jan", ""],
   tasks: [
@@ -20,13 +23,16 @@ const report = {
     { zadanie: "  ", data: "", osoba: "" },
   ],
   notes: "Budżet przyjęty.\nKolejne posiedzenie online.",
-  inserted_at: "", updated_at: "",
+  inserted_at: "",
+  updated_at: "",
 } as Report;
 
 describe("eksport protokołu", () => {
   it("Markdown ma dotychczasową kolejność sekcji i pomija puste wpisy", () => {
     const md = buildReportMarkdown(report);
-    const order = ["# Zarząd Fundacji", "## Agenda", "## Obecni", "## Ustalenia i zadania", "## Notatki"].map((h) => md.indexOf(h));
+    const order = ["# Zarząd Fundacji", "## Agenda", "## Obecni", "## Ustalenia i zadania", "## Notatki"].map((h) =>
+      md.indexOf(h)
+    );
     expect(order.every((pos, i) => pos >= 0 && (i === 0 || pos > order[i - 1]))).toBe(true);
     expect(md).toContain("**Data spotkania:** 15.10.2026");
     expect(md).toContain("1. Budżet\n2. Sprawy różne");
@@ -53,7 +59,7 @@ describe("eksport protokołu", () => {
     const json = JSON.stringify(def.content);
     expect(json).toContain("Sprawozdanie dla NIW");
     expect(json).toContain("31.10.2026");
-    expect(json).not.toContain("\"3\""); // brak trzeciego (pustego) wiersza zadania
+    expect(json).not.toContain('"3"'); // brak trzeciego (pustego) wiersza zadania
     const footer = def.footer(2, 3) as { columns: Array<{ text: string }> };
     expect(footer.columns[1].text).toBe("2 / 3");
     expect(def.info.title).toBe("Protokół – Zarząd Fundacji – październik");

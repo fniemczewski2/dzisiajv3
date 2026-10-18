@@ -1,4 +1,4 @@
-﻿// lib/server/calendarTime.ts
+// lib/server/calendarTime.ts
 
 import type { GoogleEventDateTime } from "@/types/googleCalendar";
 
@@ -32,10 +32,7 @@ function allDayToNaive(date: string, isEndTime: boolean): string {
   return `${year}-${month}-${day}T23:59:59`;
 }
 
-export function toSupabaseTime(
-  dt: GoogleEventDateTime | undefined,
-  isEndTime = false
-): string {
+export function toSupabaseTime(dt: GoogleEventDateTime | undefined, isEndTime = false): string {
   if (dt?.dateTime) {
     const parsed = new Date(dt.dateTime);
     if (!Number.isNaN(parsed.getTime())) return instantToWarsawNaive(parsed);

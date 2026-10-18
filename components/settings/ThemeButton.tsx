@@ -1,27 +1,23 @@
-﻿// components/settings/ThemeButton.tsx
+// components/settings/ThemeButton.tsx
 
+import { useIsClient } from "@/hooks/useIsClient";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react"; 
+import { Moon, Sun } from "lucide-react";
 
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const { theme, setTheme } = useTheme();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   if (!mounted) {
-    return <div className="w-6 h-6" />; 
+    return <div className="h-6 w-6" />;
   }
 
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors"
+      className="rounded-lg bg-surface-hover p-2 text-text transition-colors"
       aria-label="Przełącz tryb ciemny"
-      type='button'
+      type="button"
     >
       {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
     </button>

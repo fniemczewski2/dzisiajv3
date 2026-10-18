@@ -1,4 +1,4 @@
-﻿// pages/index.tsx
+// pages/index.tsx
 
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
@@ -15,11 +15,11 @@ function DayViewSkeleton() {
   return (
     <div className="flex flex-col gap-4">
       <SkeletonRow />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <SkeletonTaskList count={4} />
         </div>
-        <div className="lg:col-span-1 flex flex-col gap-3">
+        <div className="flex flex-col gap-3 lg:col-span-1">
           <SkeletonRow />
           <SkeletonRow />
           <SkeletonRow />
@@ -46,8 +46,8 @@ interface MainViewProps {
 }
 
 function MainView({ view, viewDate, onDateChange }: MainViewProps) {
-  if (view === 'tasks') return <TasksPage />;
-  if (view === 'day_view') return <DayView date={viewDate} onDateChange={onDateChange} />;
+  if (view === "tasks") return <TasksPage />;
+  if (view === "day_view") return <DayView date={viewDate} onDateChange={onDateChange} />;
   return <CalendarPage />;
 }
 
@@ -77,11 +77,7 @@ export default function IndexPage() {
         canonical="https://dzisiaj.fun"
         noindex={true}
       />
-      <MainView
-        view={settings.main_view}
-        viewDate={viewDate}
-        onDateChange={setViewDate}
-      />
+      <MainView view={settings.main_view} viewDate={viewDate} onDateChange={setViewDate} />
     </>
   );
 }

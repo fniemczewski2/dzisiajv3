@@ -10,7 +10,7 @@ import type { TaskOccurrencePreview } from "@/lib/taskOccurrences";
 import { groupPreviewsByDate } from "@/lib/taskOccurrences";
 import { useCategoryColors } from "@/hooks/useTaskCategories";
 import { taskRule } from "@/lib/taskRecurrence";
-import { describeRule } from "@/supabase/functions/_shared/recurrence";
+import { describeRule } from "@/shared/recurrence";
 
 interface Props {
   previews: readonly TaskOccurrencePreview[];
@@ -32,7 +32,7 @@ function PreviewRow({ preview }: Readonly<{ preview: TaskOccurrencePreview }>) {
       <div className="flex items-start gap-3">
         <Repeat className="mt-0.5 h-4 w-4 shrink-0 text-text-secondary" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="font-medium leading-snug text-text-secondary">
+          <p className="leading-snug font-medium text-text-secondary">
             <span className="sr-only">Podgląd powtórzenia: </span>
             {task.title}
           </p>
@@ -55,7 +55,11 @@ function PreviewRow({ preview }: Readonly<{ preview: TaskOccurrencePreview }>) {
   );
 }
 
-export default function RecurringPreviewList({ previews, title = "Powtórzenia (podgląd)", groupByDate = false }: Readonly<Props>) {
+export default function RecurringPreviewList({
+  previews,
+  title = "Powtórzenia (podgląd)",
+  groupByDate = false,
+}: Readonly<Props>) {
   const headingId = useId();
   if (previews.length === 0) return null;
 
@@ -73,14 +77,18 @@ export default function RecurringPreviewList({ previews, title = "Powtórzenia (
                 {dayFmt.format(new Date(`${date}T12:00:00`))}
               </h4>
               <ul className="space-y-2">
-                {items.map((p) => <PreviewRow key={p.key} preview={p} />)}
+                {items.map((p) => (
+                  <PreviewRow key={p.key} preview={p} />
+                ))}
               </ul>
             </div>
           ))}
         </div>
       ) : (
         <ul className="space-y-2">
-          {previews.map((p) => <PreviewRow key={p.key} preview={p} />)}
+          {previews.map((p) => (
+            <PreviewRow key={p.key} preview={p} />
+          ))}
         </ul>
       )}
     </section>

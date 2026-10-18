@@ -13,11 +13,7 @@ interface DaySchemaFormProps {
 
 const dayLabels = ["Pn", "Wt", "Śr", "Cz", "Pt", "Sb", "Nd"];
 
-export default function DaySchemaForm({
-  initialSchema = null,
-  onSchemaSaved,
-  onCancel,
-}: Readonly<DaySchemaFormProps>) {
+export default function DaySchemaForm({ initialSchema = null, onSchemaSaved, onCancel }: Readonly<DaySchemaFormProps>) {
   const { addSchema, updateSchema } = useDaySchemas();
   const isEdit = !!initialSchema?.id;
 
@@ -52,13 +48,9 @@ export default function DaySchemaForm({
     onCancel?.();
   };
   const toggleDay = (day: number) =>
-    setDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
+    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
 
-  const handleEntryChange = <K extends keyof ScheduleItem>(
-    index: number,
-    field: K,
-    value: ScheduleItem[K]
-  ) => {
+  const handleEntryChange = <K extends keyof ScheduleItem>(index: number, field: K, value: ScheduleItem[K]) => {
     const updated = [...entries];
     updated[index] = { ...updated[index], [field]: value };
     setEntries(updated);
@@ -70,22 +62,34 @@ export default function DaySchemaForm({
   return (
     <form onSubmit={handleSubmit} className="form-card max-w-lg">
       <div>
-        <label htmlFor="name" className="form-label">Nazwa schematu:</label>
-        <input id="name" type="text" value={schemaName}
+        <label htmlFor="name" className="form-label">
+          Nazwa schematu:
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={schemaName}
           onChange={(e) => setSchemaName(e.target.value)}
-          className="input-field" required />
+          className="input-field"
+          required
+        />
       </div>
 
       <fieldset>
         <legend className="form-label">Dni tygodnia:</legend>
         <div className="flex flex-wrap gap-2">
           {dayLabels.map((label, i) => (
-            <button key={label} type="button" onClick={() => toggleDay(i)} aria-pressed={days.includes(i)}
-              className={`min-h-11 min-w-11 px-3 rounded-lg border text-sm font-medium transition-colors ${
+            <button
+              key={label}
+              type="button"
+              onClick={() => toggleDay(i)}
+              aria-pressed={days.includes(i)}
+              className={`min-h-11 min-w-11 rounded-lg border px-3 text-sm font-medium transition-colors ${
                 days.includes(i)
-                  ? "bg-secondary border-primary text-white"
-                  : "bg-surface border-gray-200 dark:border-gray-700 text-text-secondary hover:bg-surface-hover"
-              }`}>
+                  ? "border-primary bg-secondary text-white"
+                  : "border-line bg-surface text-text-secondary hover:bg-surface-hover"
+              }`}
+            >
               {label}
             </button>
           ))}
@@ -102,7 +106,9 @@ export default function DaySchemaForm({
           aria-describedby="schema-default-hint"
         />
         <div>
-          <label htmlFor="schema-default" className="cursor-pointer font-medium text-text">Domyślny w wybrane dni</label>
+          <label htmlFor="schema-default" className="cursor-pointer font-medium text-text">
+            Domyślny w wybrane dni
+          </label>
           <p id="schema-default-hint" className="text-sm text-text-secondary">
             Gdy kilka schematów obejmuje ten sam dzień, ten wybierze się sam. Na planie dnia zmienisz go na inny.
           </p>
@@ -113,22 +119,36 @@ export default function DaySchemaForm({
         <div className="form-label">Wpisy:</div>
         <div className="space-y-2">
           {entries.map((entry, i) => (
-           
-            <div key={entry.id} className="flex w-full gap-2 items-center">
-              <label htmlFor={`time-${entry.time}`} className="sr-only">Godzina</label>
-              <input id={`time-${entry.time}`} type="time" value={entry.time}
+            <div key={entry.id} className="flex w-full items-center gap-2">
+              <label htmlFor={`time-${entry.time}`} className="sr-only">
+                Godzina
+              </label>
+              <input
+                id={`time-${entry.time}`}
+                type="time"
+                value={entry.time}
                 onChange={(e) => handleEntryChange(i, "time", e.target.value)}
-                className="input-field w-20" required />
-              
-              <label htmlFor={`label-${entry.label}`} className="sr-only">Etykieta</label>
-              <input id={`label-${entry.label}`} type="text" value={entry.label} placeholder="Etykieta"
+                className="input-field w-20"
+                required
+              />
+
+              <label htmlFor={`label-${entry.label}`} className="sr-only">
+                Etykieta
+              </label>
+              <input
+                id={`label-${entry.label}`}
+                type="text"
+                value={entry.label}
+                placeholder="Etykieta"
                 onChange={(e) => handleEntryChange(i, "label", e.target.value)}
-                className="input-field w-full" required />
-              
-              <NotifyButton 
-                onClick={() => handleEntryChange(i, "notify", !entry.notify)} 
-                small 
-                disabled={!!entry.notify} 
+                className="input-field w-full"
+                required
+              />
+
+              <NotifyButton
+                onClick={() => handleEntryChange(i, "notify", !entry.notify)}
+                small
+                disabled={!!entry.notify}
               />
               <DeleteButton onClick={() => removeEntry(i)} small />
             </div>

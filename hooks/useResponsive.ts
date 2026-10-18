@@ -1,14 +1,14 @@
-﻿// hooks/useResponsive.ts
+// hooks/useResponsive.ts
 
-import { useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 export function useResponsive(breakpoint: number = 768) {
-const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false
   );
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < breakpoint);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
   }, [breakpoint]);
   return isMobile;
 }

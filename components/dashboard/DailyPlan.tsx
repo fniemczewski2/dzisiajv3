@@ -12,43 +12,40 @@ interface DailyPlanProps {
   handleRemoveFromSchedule: (id: string) => void;
 }
 
-export const DailyPlan = React.memo(({
-  planByHour,
-  handleMarkAsDone,
-  handleRemoveFromSchedule,
-}: Readonly<DailyPlanProps>) => {
+export const DailyPlan = React.memo(
+  ({ planByHour, handleMarkAsDone, handleRemoveFromSchedule }: Readonly<DailyPlanProps>) => {
+    const visibleHours = Object.keys(planByHour).sort((a, b) => a.localeCompare(b));
 
-  const visibleHours = Object.keys(planByHour).sort((a, b) => a.localeCompare(b));
+    return (
+      <section className="lg:col-span-2">
+        <div className="relative">
+          <div className="relative z-10 space-y-1">
+            {visibleHours.map((timeKey) => {
+              const items = planByHour[timeKey] || [];
 
-  return (
-    <section className="lg:col-span-2">
-      <div className="relative">
-        <div className="space-y-1 relative z-10">
-          {visibleHours.map((timeKey) => {
-            const items = planByHour[timeKey] || [];
-
-            return (
-              <DroppableHourSlot key={timeKey} time={timeKey}>
-                {items.map((item) => (
-                  <DraggablePlanItem
-                    key={`${item.type}-${item.id}`}
-                    id={`plan-${item.type}-${item.id}`}
-                    type={item.type}
-                  >
-                    <PlanItem
-                      item={item}
-                      onMarkAsDone={handleMarkAsDone}
-                      onRemoveFromSchedule={handleRemoveFromSchedule}
-                    />
-                  </DraggablePlanItem>
-                ))}
-              </DroppableHourSlot>
-            );
-          })}
+              return (
+                <DroppableHourSlot key={timeKey} time={timeKey}>
+                  {items.map((item) => (
+                    <DraggablePlanItem
+                      key={`${item.type}-${item.id}`}
+                      id={`plan-${item.type}-${item.id}`}
+                      type={item.type}
+                    >
+                      <PlanItem
+                        item={item}
+                        onMarkAsDone={handleMarkAsDone}
+                        onRemoveFromSchedule={handleRemoveFromSchedule}
+                      />
+                    </DraggablePlanItem>
+                  ))}
+                </DroppableHourSlot>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-});
+      </section>
+    );
+  }
+);
 
 DailyPlan.displayName = "DailyPlan";

@@ -33,14 +33,14 @@ export interface NavigationButton {
   title: string;
   icon: LucideIcon;
   label: string;
-  badge?: string; 
-  external?: boolean; 
+  badge?: string;
+  external?: boolean;
 }
 
 export interface NavigationCategory {
   name: string;
   items: NavigationButton[];
-  color?: string; 
+  color?: string;
 }
 export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
   {
@@ -59,7 +59,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy" },
       { path: "/people", title: "Ludzie", icon: User, label: "Ludzie" },
       { path: "/profiles", title: "Wizytówki", icon: IdCard, label: "Wizytówki" },
-    ]
+    ],
   },
   {
     name: "Dokumenty i Teksty",
@@ -79,7 +79,7 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
       { path: "/streaks", title: "Postępy", icon: Target, label: "Postępy" },
     ],
   },
-  { 
+  {
     name: "Wyjazdy i Transport",
     items: [
       { path: "/weather", title: "Pogoda", icon: Sun, label: "Pogoda" },
@@ -92,11 +92,11 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     name: "Życie Codzienne",
     items: [
       { path: "/notes/shopping", title: "Zakupy", icon: ShoppingCart, label: "Zakupy" },
-      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },   
+      { path: "/notes/recipes", title: "Przepisy", icon: CookingPot, label: "Przepisy" },
       { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy" },
       { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening" },
     ],
-  }
+  },
 ];
 
 export const QUICK_ACTIONS: NavigationButton[] = [
@@ -107,15 +107,13 @@ export const QUICK_ACTIONS: NavigationButton[] = [
 ];
 
 export const getAllNavigationItems = (): NavigationButton[] => {
-  return NAVIGATION_CATEGORIES.flatMap(category => category.items);
+  return NAVIGATION_CATEGORIES.flatMap((category) => category.items);
 };
 
 export const getNavigationItemByPath = (path: string): NavigationButton | undefined => {
-  return getAllNavigationItems().find(item => item.path === path);
+  return getAllNavigationItems().find((item) => item.path === path);
 };
 
 export const getCategoryByPath = (path: string): NavigationCategory | undefined => {
-  return NAVIGATION_CATEGORIES.find(category => 
-    category.items.some(item => item.path === path)
-  );
+  return NAVIGATION_CATEGORIES.find((category) => category.items.some((item) => item.path === path));
 };

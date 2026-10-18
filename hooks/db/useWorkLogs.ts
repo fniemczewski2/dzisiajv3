@@ -1,37 +1,37 @@
-﻿// hooks/db/useWorkLogs.ts
+// hooks/db/useWorkLogs.ts
 
-import { useCallback } from 'react';
-import { WorkLog, WorkLogInsert } from '@/types/worklogs';
-import { useCrudResource } from './useCrudResource';
-import { getAppDayRangeUtc } from '@/lib/dateUtils';
+import { useCallback } from "react";
+import { WorkLog, WorkLogInsert } from "@/types/worklogs";
+import { useCrudResource } from "./useCrudResource";
+import { getAppDayRangeUtc } from "@/lib/dateUtils";
 
 const MESSAGES = {
-  fetchError: 'Błąd pobierania czasu pracy.',
-  added: 'Dodano czas pracy.',
-  addError: 'Błąd dodawania czasu pracy.',
-  edited: 'Zaktualizowano czas pracy.',
-  editError: 'Błąd aktualizacji czasu pracy.',
-  deleted: 'Usunięto czas pracy.',
-  deleteError: 'Błąd usuwania czasu pracy.',
-  confirmDelete: 'Czy chcesz usunąć czas pracy?',
+  fetchError: "Błąd pobierania czasu pracy.",
+  added: "Dodano czas pracy.",
+  addError: "Błąd dodawania czasu pracy.",
+  edited: "Zaktualizowano czas pracy.",
+  editError: "Błąd aktualizacji czasu pracy.",
+  deleted: "Usunięto czas pracy.",
+  deleteError: "Błąd usuwania czasu pracy.",
+  confirmDelete: "Czy chcesz usunąć czas pracy?",
 };
 
 export function useWorkLogs(dateStr?: string, monthStr?: string) {
-  const crud = useCrudResource<WorkLog, Omit<WorkLogInsert, 'user_id'>>({
-    table: 'work_logs',
-    queryKey: `${dateStr ?? ''}:${monthStr ?? ''}`,
+  const crud = useCrudResource<WorkLog, Omit<WorkLogInsert, "user_id">>({
+    table: "work_logs",
+    queryKey: `${dateStr ?? ""}:${monthStr ?? ""}`,
     buildQuery: (q, userId) => {
-      let query = q.eq('user_id', userId).order('start_time', { ascending: true });
+      let query = q.eq("user_id", userId).order("start_time", { ascending: true });
 
       if (dateStr) {
         const { start, end } = getAppDayRangeUtc(dateStr);
-        query = query.gte('start_time', start).lt('start_time', end);
+        query = query.gte("start_time", start).lt("start_time", end);
       }
       if (monthStr) {
-        const [year, month] = monthStr.split('-');
+        const [year, month] = monthStr.split("-");
         const startDate = new Date(Number.parseInt(year), Number.parseInt(month) - 1, 1);
         const endDate = new Date(Number.parseInt(year), Number.parseInt(month), 0, 23, 59, 59, 999);
-        query = query.gte('start_time', startDate.toISOString()).lte('start_time', endDate.toISOString());
+        query = query.gte("start_time", startDate.toISOString()).lte("start_time", endDate.toISOString());
       }
       return query;
     },

@@ -1,6 +1,6 @@
 // supabase/functions/transport-departures/index.ts
 
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import {
   ambiguousNames,
   clusterStops,
@@ -14,17 +14,7 @@ import {
   type StopCluster,
   type StopPost,
 } from "../_shared/stopGrouping.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-const jsonHeaders = {
-  ...corsHeaders,
-  "Content-Type": "application/json",
-};
+import { jsonHeaders, preflight } from "../_shared/auth.ts";
 
 const PEKA_URL = "https://www.peka.poznan.pl/vm/method.vm";
 const ZDITM_URL = "https://www.zditm.szczecin.pl/api/v1/displays";
@@ -177,13 +167,15 @@ async function fetchZditmBollard(stopCode: string): Promise<Bollard | null> {
         }
 
         if (minutes === null) return [];
-        return [{
-          line: dep.line_number,
-          direction: dep.direction,
-          minutes,
-          time: timeStr || "??:??",
-          is_realtime: isRealtime,
-        }];
+        return [
+          {
+            line: dep.line_number,
+            direction: dep.direction,
+            minutes,
+            time: timeStr || "??:??",
+            is_realtime: isRealtime,
+          },
+        ];
       })
     );
     return departures.length > 0 ? { bollard_code: stopCode, departures } : null;
@@ -202,7 +194,9 @@ const VALID_ZONES = new Set(["AUTO", SZCZECIN_ZONE, ...POZNAN_ZONES]);
 type Db = SupabaseClient;
 
 async function fetchBollardsForCluster(cluster: StopCluster, zoneOf: Map<string, string | null>): Promise<Bollard[]> {
-  const results = await Promise.all(cluster.stop_codes.map((code) => fetchBollard(code, zoneOf.get(code) ?? cluster.zone_id)));
+  const results = await Promise.all(
+    cluster.stop_codes.map((code) => fetchBollard(code, zoneOf.get(code) ?? cluster.zone_id))
+  );
   return results.filter((b): b is Bollard => b !== null);
 }
 
@@ -234,13 +228,14 @@ function toGroup(cluster: StopCluster, bollards: Bollard[], ambiguous: Set<strin
 }
 
 function parseFavorite(raw: string | Partial<FavoriteStop>): FavoriteStop | null {
-  const fav: FavoriteStop = typeof raw === "string"
-    ? { name: raw, zone_id: "AUTO" }
-    : {
-        name: typeof raw?.name === "string" ? raw.name.slice(0, 120) : "",
-        zone_id: typeof raw?.zone_id === "string" ? raw.zone_id : "AUTO",
-        ...(typeof raw?.lat === "number" && typeof raw?.lon === "number" ? { lat: raw.lat, lon: raw.lon } : {}),
-      };
+  const fav: FavoriteStop =
+    typeof raw === "string"
+      ? { name: raw, zone_id: "AUTO" }
+      : {
+          name: typeof raw?.name === "string" ? raw.name.slice(0, 120) : "",
+          zone_id: typeof raw?.zone_id === "string" ? raw.zone_id : "AUTO",
+          ...(typeof raw?.lat === "number" && typeof raw?.lon === "number" ? { lat: raw.lat, lon: raw.lon } : {}),
+        };
   if (!fav.name.trim() || !VALID_ZONES.has(fav.zone_id)) return null;
   return fav;
 }
@@ -250,8 +245,14 @@ async function handleStopNamesRequest(
   stopNames: (string | Partial<FavoriteStop>)[],
   userPos: { lat: number; lon: number } | null
 ): Promise<Response> {
-  const favorites = stopNames.slice(0, MAX_FAVORITES).map(parseFavorite).filter((f): f is FavoriteStop => f !== null);
-  const posts = await fetchPostsByNames(supabase, favorites.map((f) => f.name));
+  const favorites = stopNames
+    .slice(0, MAX_FAVORITES)
+    .map(parseFavorite)
+    .filter((f): f is FavoriteStop => f !== null);
+  const posts = await fetchPostsByNames(
+    supabase,
+    favorites.map((f) => f.name)
+  );
   const zoneOf = new Map(posts.map((p) => [p.stop_code as string, p.zone_id]));
   const clusters = clusterStops(posts);
   const ambiguous = ambiguousNames(clusters);
@@ -268,10 +269,9 @@ async function handleStopNamesRequest(
     })
   );
 
-  return new Response(
-    JSON.stringify({ success: groups.filter((g): g is StopGroup => g !== null) }),
-    { headers: jsonHeaders }
-  );
+  return new Response(JSON.stringify({ success: groups.filter((g): g is StopGroup => g !== null) }), {
+    headers: jsonHeaders,
+  });
 }
 
 async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Promise<Response> {
@@ -290,18 +290,26 @@ async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Prom
     (p) => distanceM(lat, lon, p.stop_lat, p.stop_lon) <= NEARBY_RADIUS_M
   );
   if (inBox.length === 0) {
-    return new Response(JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }), { headers: jsonHeaders });
+    return new Response(JSON.stringify({ success: [], message: "Brak przystanków w pobliżu." }), {
+      headers: jsonHeaders,
+    });
   }
   const nearest = clusterStops(inBox)
     .map((c) => ({
       c,
-      d: Math.min(...inBox.filter((p) => c.stop_codes.includes(p.stop_code as string))
-        .map((p) => distanceM(lat, lon, p.stop_lat, p.stop_lon))),
+      d: Math.min(
+        ...inBox
+          .filter((p) => c.stop_codes.includes(p.stop_code as string))
+          .map((p) => distanceM(lat, lon, p.stop_lat, p.stop_lon))
+      ),
     }))
     .sort((a, b) => a.d - b.d)
     .slice(0, MAX_NEARBY_GROUPS);
 
-  const allPosts = await fetchPostsByNames(supabase, nearest.map((n) => n.c.name));
+  const allPosts = await fetchPostsByNames(
+    supabase,
+    nearest.map((n) => n.c.name)
+  );
   const zoneOf = new Map(allPosts.map((p) => [p.stop_code as string, p.zone_id]));
   const fullClusters = clusterStops(allPosts);
   const ambiguous = ambiguousNames(fullClusters);
@@ -317,20 +325,22 @@ async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Prom
   const finalSuccess = groups.filter((g): g is StopGroup & { distance: number } => g !== null);
 
   return new Response(
-    JSON.stringify(finalSuccess.length > 0 ? { success: finalSuccess } : { success: [], message: "Brak aktywnych kursów w okolicy." }),
+    JSON.stringify(
+      finalSuccess.length > 0 ? { success: finalSuccess } : { success: [], message: "Brak aktywnych kursów w okolicy." }
+    ),
     { headers: jsonHeaders }
   );
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") return preflight();
 
-  const supabaseAuth = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!
-  );
+  const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(jwt);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabaseAuth.auth.getUser(jwt);
   if (authError || !user) {
     return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
       status: 401,
@@ -342,16 +352,12 @@ Deno.serve(async (req) => {
     const { lat, lon, stopNames } = (await req.json()) as RequestBody;
 
     if (!stopNames && (!lat || !lon)) {
-      return new Response(
-        JSON.stringify({ error: "LOCATION_REQUIRED", message: "Brak współrzędnych GPS." }),
-        { headers: jsonHeaders }
-      );
+      return new Response(JSON.stringify({ error: "LOCATION_REQUIRED", message: "Brak współrzędnych GPS." }), {
+        headers: jsonHeaders,
+      });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     if (stopNames && Array.isArray(stopNames)) {
       const userPos = typeof lat === "number" && typeof lon === "number" ? { lat, lon } : null;

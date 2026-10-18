@@ -84,7 +84,6 @@ export async function applyAppDeletions(admin: SupabaseClient, target: SyncTarge
       await deleteItem(target.token, target.listId, tombstone.item_id); // NOSONAR
       removed += 1;
     } catch (err) {
-
       if (!isMissingItemError(err)) throw err;
     }
     await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id); // NOSONAR

@@ -1,30 +1,28 @@
-﻿// components/dashboard/DroppableHourSlot.tsx
+// components/dashboard/DroppableHourSlot.tsx
 
 import React from "react";
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable } from "@dnd-kit/core";
 
-export function DroppableHourSlot({ time, children }: Readonly<{ time: string, children: React.ReactNode }>) {
+export function DroppableHourSlot({ time, children }: Readonly<{ time: string; children: React.ReactNode }>) {
   const { isOver, setNodeRef } = useDroppable({
     id: `slot-${time}`,
-    data: { time }
+    data: { time },
   });
 
   return (
-    <div 
-      ref={setNodeRef} 
-      className={`relative min-h-12 transition-colors duration-200 rounded-lg
-        ${isOver && 'bg-blue-100 dark:bg-blue-900/70 ring-inset ring-2 ring-primary'}
-      `}
+    <div
+      ref={setNodeRef}
+      className={`relative min-h-12 rounded-lg transition-colors duration-200 ${isOver && "bg-info-soft ring-2 ring-primary ring-inset"} `}
     >
-      <div className="absolute left-0 top-3 text-xs font-semibold text-text-muted text-center pointer-events-none select-none">
+      <div className="pointer-events-none absolute top-3 left-0 text-center text-xs font-semibold text-text-muted select-none">
         {time}
       </div>
-      <div className="ml-12 sm:px-2 p-0 min-h-16 flex flex-col justify-center">
-        <div className="relative z-10">
-          {children}
-        </div>
+      <div className="ml-12 flex min-h-16 flex-col justify-center p-0 sm:px-2">
+        <div className="relative z-10">{children}</div>
         {React.Children.count(children) === 0 && (
-          <div className={`h-10 mt-1 border-2 border-dashed border-gray-200 dark:border-gray-700/50 rounded-lg flex items-center justify-center text-xs text-text-muted transition-opacity ${isOver ? 'opacity-0' : 'opacity-100'}`}/>
+          <div
+            className={`mt-1 flex h-10 items-center justify-center rounded-lg border-2 border-dashed border-line text-xs text-text-muted transition-opacity ${isOver ? "opacity-0" : "opacity-100"}`}
+          />
         )}
       </div>
     </div>

@@ -1,18 +1,11 @@
-﻿// components/widgets/MoodTracker.tsx
+// components/widgets/MoodTracker.tsx
 
+import { readableTextColor } from "@/lib/contrast";
+import { DEFAULT_MOODS } from "@/config/defaults";
 import React from "react";
 import { useMoods } from "@/hooks/db/useMoods";
 import { Check, Smile } from "lucide-react";
 import { useSettings } from "@/hooks/db/useSettings";
-
-export const DEFAULT_MOODS = [
-  { id: "m1", label: "Spokojnie", color: "#22c55e" },
-  { id: "m2", label: "Męcząco",   color: "#3b82f6" },
-  { id: "m3", label: "Neutralnie",color: "#eab308" },
-  { id: "m4", label: "Radośnie",  color: "#f97316" },
-  { id: "m5", label: "Nerwowo",   color: "#ef4444" },
-  { id: "m6", label: "Smutno",    color: "#a855f7" },
-];
 
 interface MoodWidgetProps {
   date: string;
@@ -34,9 +27,9 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
 
   return (
     <div className="widget flex items-center justify-between px-4 py-3">
-      <h3 className="flex font-medium items-center text-text">
-        <span className="text-primary mr-3">
-          <Smile className="w-5 h-5 sm:w-6 sm:h-6" />
+      <h3 className="flex items-center font-medium text-text">
+        <span className="mr-3 text-primary">
+          <Smile className="h-5 w-5 sm:h-6 sm:w-6" />
         </span>
         <span>Nastrój</span>
       </h3>
@@ -47,14 +40,17 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
             <button
               key={opt.id}
               onClick={() => handleClick(opt.id)}
-              type='button'
-              className={`group px-2.5 py-1 md:px-3 md:py-1.5 flex items-center flex-1 h-6 rounded-full text-xs font-semibold text-white shadow-sm transition hover:scale-105 active:scale-95
-                ${isSelected ? "opacity-100 scale-110" : "opacity-60 hover:opacity-80"}`}
-              style={{ backgroundColor: opt.color }}
+              type="button"
+              aria-pressed={isSelected}
+              aria-label={`Nastrój: ${opt.label}`}
+              className={`group flex h-11 min-w-11 flex-1 items-center justify-center rounded-full px-2.5 text-xs font-semibold transition md:px-3 ${
+                isSelected ? "ring-2 ring-text ring-offset-2 ring-offset-card" : "hover:ring-2 hover:ring-line-strong"
+              }`}
+              style={{ backgroundColor: opt.color, color: readableTextColor(opt.color) }}
               title={opt.label}
             >
-              {isSelected && <span><Check className="w-3.5 h-3.5 mt-0.5" /></span>}
-              <span className="hidden md:group-hover:block transition">{opt.label}</span>
+              {isSelected && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+              <span className="hidden md:group-hover:block">{opt.label}</span>
             </button>
           );
         })}

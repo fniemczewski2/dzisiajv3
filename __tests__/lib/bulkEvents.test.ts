@@ -9,12 +9,23 @@ const now = new Date(2026, 9, 10);
 describe("parseBulkEvents", () => {
   it("data, godziny i nazwa z jednej linii", () => {
     const [e] = parseBulkEvents("15.10.2026 10:00–12:00 Zarząd fundacji", now);
-    expect(e).toMatchObject({ start: "2026-10-15", end: "2026-10-15", startTime: "10:00", endTime: "12:00", title: "Zarząd fundacji" });
+    expect(e).toMatchObject({
+      start: "2026-10-15",
+      end: "2026-10-15",
+      startTime: "10:00",
+      endTime: "12:00",
+      title: "Zarząd fundacji",
+    });
   });
 
   it("różne kolejności i separatory", () => {
     const list = parseBulkEvents(
-      ["Warsztaty dostępności – 7 listopada 2026, godz. 9:30", "Konferencja NGO | 20-22.11.2026", "Urlop: 1–10.12.2026", "17-18.10"].join("\n"),
+      [
+        "Warsztaty dostępności – 7 listopada 2026, godz. 9:30",
+        "Konferencja NGO | 20-22.11.2026",
+        "Urlop: 1–10.12.2026",
+        "17-18.10",
+      ].join("\n"),
       now
     );
     expect(list.map((e) => [e.title, e.start, e.end, e.startTime])).toEqual([

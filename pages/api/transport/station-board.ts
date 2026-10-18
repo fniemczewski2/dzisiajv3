@@ -1,80 +1,97 @@
 // pages/api/transport/station-board.ts
 
-import { getAppDateTime } from '@/lib/dateUtils';
-import { createServerSupabase } from '@/lib/supabase/server';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { TIMEOUTS_MS } from "@/config/server";
+import { serverEnv } from "@/config/env";
+import { getAppDateTime } from "@/lib/dateUtils";
+import { createServerSupabase } from "@/lib/supabase/server";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type {
   StationsDictionaryResponse,
   SchedulesResponse,
   OperationsResponse,
   StationBoardItem,
   StationBoardResponse,
-} from '@/types/pkpplk';
+} from "@/types/pkpplk";
 
 type ApiError = { error: string };
 
 const STATUS_LABELS: Record<string, string> = {
-  S: 'Nie zaczął',
-  P: 'W trasie',
-  C: 'Zakończył',
-  F: 'Zakończył',
-  X: 'Odwołany',
-  Q: 'Cz. odwołany',
+  S: "Nie zaczął",
+  P: "W trasie",
+  C: "Zakończył",
+  F: "Zakończył",
+  X: "Odwołany",
+  Q: "Cz. odwołany",
 };
 
 /** Limit czasu jednego zapytania do API PKP PLK – bez niego zawieszone API trzymało ładowanie. */
-const PKP_TIMEOUT_MS = 10_000;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<StationBoardResponse | ApiError>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<StationBoardResponse | ApiError>) {
   const { stationName } = req.query;
-  const apiKey = process.env.PLK_API_KEY;
+  const apiKey = serverEnv.plkApiKey;
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) return res.status(401).json({ error: "Brak autoryzacji." });
 
-  if (!stationName || Array.isArray(stationName)) return res.status(400).json({ error: 'Brak nazwy stacji.' });
+  if (!stationName || Array.isArray(stationName)) return res.status(400).json({ error: "Brak nazwy stacji." });
 
-  if (!apiKey) return res.status(500).json({ error: 'Błąd konfiguracji serwera.' });
+  if (!apiKey) return res.status(500).json({ error: "Błąd konfiguracji serwera." });
 
   try {
     const headers = {
-      'X-API-Key': apiKey,
-      'Accept': 'application/json',
+      "X-API-Key": apiKey,
+      Accept: "application/json",
     };
 
-    const stationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(stationName)}&pageSize=10`, { headers, signal: AbortSignal.timeout(PKP_TIMEOUT_MS) });
-    if(stationsRes.status === 429) { return res.status(429).json({ error: "Spróbuj ponownie później" });}
+    const stationsRes = await fetch(
+      `https://pdp-api.plk-sa.pl/api/v1/dictionaries/stations?search=${encodeURIComponent(stationName)}&pageSize=10`,
+      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) }
+    );
+    if (stationsRes.status === 429) {
+      return res.status(429).json({ error: "Spróbuj ponownie później" });
+    }
     if (!stationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
     const stationsData: StationsDictionaryResponse = await stationsRes.json();
-    
-    const normalizedInput = stationName.toLowerCase().replaceAll('gł.', 'główny');
-    const station = stationsData.stations?.find((s) => 
-      s.name.toLowerCase().includes(normalizedInput) || normalizedInput.includes(s.name.toLowerCase())
-    ) || stationsData.stations?.[0];
+
+    const normalizedInput = stationName.toLowerCase().replaceAll("gł.", "główny");
+    const station =
+      stationsData.stations?.find(
+        (s) => s.name.toLowerCase().includes(normalizedInput) || normalizedInput.includes(s.name.toLowerCase())
+      ) || stationsData.stations?.[0];
 
     if (!station) {
-      return res.status(404).json({ error: 'Nie znaleziono stacji o podanej nazwie' });
+      return res.status(404).json({ error: "Nie znaleziono stacji o podanej nazwie" });
     }
     const stationId = station.id;
     const actualStationName = station.name;
 
     const nowPl = getAppDateTime();
-    const date = `${nowPl.getFullYear()}-${String(nowPl.getMonth() + 1).padStart(2, '0')}-${String(nowPl.getDate()).padStart(2, '0')}`;
+    const date = `${nowPl.getFullYear()}-${String(nowPl.getMonth() + 1).padStart(2, "0")}-${String(nowPl.getDate()).padStart(2, "0")}`;
 
-    const schedulesRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`, { headers, signal: AbortSignal.timeout(PKP_TIMEOUT_MS) });
-    if(schedulesRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
+    const schedulesRes = await fetch(
+      `https://pdp-api.plk-sa.pl/api/v1/schedules?stations=${stationId}&dateFrom=${date}&dateTo=${date}`,
+      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) }
+    );
+    if (schedulesRes.status === 429) {
+      return res.status(429).json({ error: "Spróbuj ponownie później" });
+    }
     if (!schedulesRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
 
     const schedulesData: SchedulesResponse = await schedulesRes.json();
 
-    const operationsRes = await fetch(`https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`, { headers, signal: AbortSignal.timeout(PKP_TIMEOUT_MS) });
-    if(operationsRes.status === 429) { return res.status(429).json({ error: 'Spróbuj ponownie później'}); }
-    
+    const operationsRes = await fetch(
+      `https://pdp-api.plk-sa.pl/api/v1/operations?stations=${stationId}&withPlanned=true&fullRoutes=true`,
+      { headers, signal: AbortSignal.timeout(TIMEOUTS_MS.pkp) }
+    );
+    if (operationsRes.status === 429) {
+      return res.status(429).json({ error: "Spróbuj ponownie później" });
+    }
+
     if (!operationsRes.ok) return res.status(500).json({ error: "Wystąpił błąd PKP PLK" });
     const operationsData: OperationsResponse = await operationsRes.json();
     const stationsDict = operationsData.stations || {};
@@ -85,75 +102,83 @@ export default async function handler(
 
     (schedulesData.routes || []).forEach((route) => {
       const plannedStation = route.stations?.find((s) => s.stationId === stationId);
-      if (!plannedStation) return; 
+      if (!plannedStation) return;
 
-      const liveTrain = operationsData.trains?.find((t) => t.scheduleId === route.scheduleId && t.orderId === route.orderId);
+      const liveTrain = operationsData.trains?.find(
+        (t) => t.scheduleId === route.scheduleId && t.orderId === route.orderId
+      );
       const opStation = liveTrain?.stations?.find((s) => s.stationId === stationId);
       const lastStation = liveTrain?.stations?.[liveTrain.stations.length - 1];
-      const destinationName = lastStation ? getStationName(lastStation.stationId) : '-';
-      
-      let status = 'Brak danych';
+      const destinationName = lastStation ? getStationName(lastStation.stationId) : "-";
+
+      let status = "Brak danych";
       if (liveTrain) {
-        status = STATUS_LABELS[liveTrain.trainStatus ?? ''] || 'W trasie';
-        if (opStation?.isCancelled) status = 'Odwołany';
+        status = STATUS_LABELS[liveTrain.trainStatus ?? ""] || "W trasie";
+        if (opStation?.isCancelled) status = "Odwołany";
       }
 
-      const platform = opStation?.departurePlatform || plannedStation.departurePlatform || opStation?.arrivalPlatform || plannedStation.arrivalPlatform || '-';
+      const platform =
+        opStation?.departurePlatform ||
+        plannedStation.departurePlatform ||
+        opStation?.arrivalPlatform ||
+        plannedStation.arrivalPlatform ||
+        "-";
       const delay = opStation ? (opStation.departureDelayMinutes ?? opStation.arrivalDelayMinutes ?? 0) : 0;
 
-      const rawTime = plannedStation.departureTime || plannedStation.arrivalTime || '00:00:00';
+      const rawTime = plannedStation.departureTime || plannedStation.arrivalTime || "00:00:00";
       const plannedTime = rawTime.substring(0, 5);
 
       boardItems.push({
-        trainOperator: route.carrierCode || '',
-        trainNumber: route.nationalNumber || '',
-        trainName: route.name || '',
+        trainOperator: route.carrierCode || "",
+        trainNumber: route.nationalNumber || "",
+        trainName: route.name || "",
         plannedTime,
         rawTime,
         delay,
         platform,
         status,
-        to: destinationName || '-',
+        to: destinationName || "-",
         currentStation: actualStationName,
         date,
-        actualDeparture: opStation?.actualDeparture || null 
+        actualDeparture: opStation?.actualDeparture || null,
       });
     });
 
     boardItems.sort((a, b) => a.rawTime.localeCompare(b.rawTime));
 
     const nowTimestamp = nowPl.getTime();
-    const limitPast = nowTimestamp - (5 * 60 * 1000);
-    const limitFuture = nowTimestamp + (2 * 60 * 60 * 1000);
-    
+    const limitPast = nowTimestamp - 5 * 60 * 1000;
+    const limitFuture = nowTimestamp + 2 * 60 * 60 * 1000;
+
     const endOfToday = new Date(nowPl);
     endOfToday.setHours(23, 59, 59, 999);
     const endOfTodayTimestamp = endOfToday.getTime();
 
-    const finalItems = boardItems.filter(item => {
-      const [h, m] = item.plannedTime.split(':').map(Number);
-      const departureTime = new Date(nowPl);
-      departureTime.setHours(h, m, 0, 0);
-      
-      const scheduledTimeWithDelay = new Date(departureTime.getTime() + (item.delay * 60 * 1000));
-      const departureTimestamp = scheduledTimeWithDelay.getTime();
-      
-      const isPastLimit = departureTimestamp < limitPast;
-      const isTooFarInFuture = departureTimestamp > limitFuture;
-      const isNotToday = departureTimestamp > endOfTodayTimestamp;
+    const finalItems = boardItems
+      .filter((item) => {
+        const [h, m] = item.plannedTime.split(":").map(Number);
+        const departureTime = new Date(nowPl);
+        departureTime.setHours(h, m, 0, 0);
 
-      return !isPastLimit && !isTooFarInFuture && !isNotToday;
-    }).slice(0, 10);
+        const scheduledTimeWithDelay = new Date(departureTime.getTime() + item.delay * 60 * 1000);
+        const departureTimestamp = scheduledTimeWithDelay.getTime();
+
+        const isPastLimit = departureTimestamp < limitPast;
+        const isTooFarInFuture = departureTimestamp > limitFuture;
+        const isNotToday = departureTimestamp > endOfTodayTimestamp;
+
+        return !isPastLimit && !isTooFarInFuture && !isNotToday;
+      })
+      .slice(0, 10);
 
     return res.status(200).json({
       station: actualStationName,
-      items: finalItems
+      items: finalItems,
     });
-
   } catch (err) {
-    if (err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
-      return res.status(504).json({ error: 'PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę.' });
+    if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
+      return res.status(504).json({ error: "PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę." });
     }
-    return res.status(500).json({ error: 'Nie udało się wygenerować tablicy stacji' });
+    return res.status(500).json({ error: "Nie udało się wygenerować tablicy stacji" });
   }
 }

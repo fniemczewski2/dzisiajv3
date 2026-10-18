@@ -1,84 +1,132 @@
+// lib/offlineQueue.ts
+//
+// Zapisy wykonane bez sieci. Każdy wpis pamięta właściciela (id użytkownika):
+// wysyłamy wyłącznie wpisy zalogowanej osoby, w kolejności dodania, po
+// odzyskaniu połączenia (OfflineSync w _app). Przy wylogowaniu kolejka jest
+// czyszczona, więc na wspólnym urządzeniu nie zostają cudze dane.
+
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { OFFLINE_QUEUE_DB, OFFLINE_QUEUE_STORE } from "@/config/limits";
+import { OFFLINE_QUEUE_DB, OFFLINE_QUEUE_DB_VERSION, OFFLINE_QUEUE_STORE } from "@/config/storage";
 
 export interface QueuedInsert {
   id: string;
+  /** Id użytkownika, który dodał wpis. */
+  ownerId: string;
   table: string;
   payload: Record<string, unknown>;
   queued_at: string;
+  /** Liczba nieudanych prób wysłania (błąd bazy, nie brak sieci). */
+  attempts: number;
+}
+
+/** Po tylu odrzuceniach przez bazę wpis jest usuwany i zgłaszany jako utracony. */
+export const MAX_QUEUE_ATTEMPTS = 3;
+
+function isSupported(): boolean {
+  return typeof indexedDB !== "undefined";
 }
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(OFFLINE_QUEUE_DB, 1);
+    const request = indexedDB.open(OFFLINE_QUEUE_DB, OFFLINE_QUEUE_DB_VERSION);
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(OFFLINE_QUEUE_STORE)) {
         request.result.createObjectStore(OFFLINE_QUEUE_STORE, { keyPath: "id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("IndexedDB open failed"));
+    request.onerror = () => reject(request.error ?? new Error("Nie udało się otworzyć IndexedDB."));
   });
 }
 
-function withStore<T>(
-  mode: IDBTransactionMode,
-  run: (store: IDBObjectStore) => IDBRequest<T>
-): Promise<T> {
-  return openDb().then(
-    (db) =>
-      new Promise<T>((resolve, reject) => {
-        const tx = db.transaction(OFFLINE_QUEUE_STORE, mode);
-        const request = run(tx.objectStore(OFFLINE_QUEUE_STORE));
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error ?? new Error("IndexedDB request failed"));
-        tx.oncomplete = () => db.close();
-      })
-  );
+async function withStore<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  const db = await openDb();
+  return new Promise<T>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_QUEUE_STORE, mode);
+    const request = run(tx.objectStore(OFFLINE_QUEUE_STORE));
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error("Operacja IndexedDB nie powiodła się."));
+    tx.oncomplete = () => db.close();
+    tx.onabort = () => db.close();
+  });
 }
 
 export function isOffline(): boolean {
   return typeof navigator !== "undefined" && !navigator.onLine;
 }
 
-export async function enqueueInsert(table: string, payload: Record<string, unknown>): Promise<void> {
+export async function enqueueInsert(ownerId: string, table: string, payload: Record<string, unknown>): Promise<void> {
   const entry: QueuedInsert = {
-
-    id: `${table}-${Date.now()}-${crypto.randomUUID()}`,
+    id: `${Date.now().toString().padStart(15, "0")}-${crypto.randomUUID()}`,
+    ownerId,
     table,
-    payload,
+    payload: { ...payload, user_id: ownerId },
     queued_at: new Date().toISOString(),
+    attempts: 0,
   };
   await withStore("readwrite", (store) => store.add(entry));
 }
 
-export async function pendingCount(): Promise<number> {
+async function allEntries(): Promise<QueuedInsert[]> {
+  if (!isSupported()) return [];
   try {
-    return await withStore("readonly", (store) => store.count());
+    const entries = await withStore("readonly", (store) => store.getAll() as IDBRequest<QueuedInsert[]>);
+    return entries.toSorted((a, b) => a.queued_at.localeCompare(b.queued_at) || a.id.localeCompare(b.id));
   } catch {
-    return 0;
+    return [];
   }
 }
 
-export async function flushQueue(supabase: SupabaseClient): Promise<{ sent: number; failed: number }> {
-  let entries: QueuedInsert[] = [];
-  try {
-    entries = await withStore("readonly", (store) => store.getAll() as IDBRequest<QueuedInsert[]>);
-  } catch {
-    return { sent: 0, failed: 0 };
-  }
+export async function pendingCount(ownerId: string): Promise<number> {
+  return (await allEntries()).filter((entry) => entry.ownerId === ownerId).length;
+}
 
-  let sent = 0;
-  let failed = 0;
+export interface FlushResult {
+  sent: number;
+  /** Wpisy, które zostały w kolejce (np. ponowny brak sieci). */
+  pending: number;
+  /** Wpisy odrzucone przez bazę MAX_QUEUE_ATTEMPTS razy – usunięte. */
+  dropped: number;
+}
 
-  for (const entry of entries) {
+/**
+ * Wysyła zapisy użytkownika `ownerId` po kolei. Brak sieci przerywa wysyłanie
+ * (kolejność musi zostać zachowana); błąd bazy zwiększa licznik prób wpisu.
+ */
+export async function flushQueue(supabase: SupabaseClient, ownerId: string): Promise<FlushResult> {
+  const entries = (await allEntries()).filter((entry) => entry.ownerId === ownerId);
+  const result: FlushResult = { sent: 0, pending: 0, dropped: 0 };
+
+  for (const [index, entry] of entries.entries()) {
+    if (isOffline()) {
+      result.pending = entries.length - index;
+      break;
+    }
+    // Kolejne zapisy celowo jeden po drugim – kolejność dodania ma znaczenie.
     const { error } = await supabase.from(entry.table).insert(entry.payload); // NOSONAR
-    if (error) {
-      failed += 1;
+    if (!error) {
+      await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
+      result.sent += 1;
       continue;
     }
-    await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
-    sent += 1;
+    const attempts = entry.attempts + 1;
+    if (attempts >= MAX_QUEUE_ATTEMPTS) {
+      await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
+      result.dropped += 1;
+    } else {
+      await withStore("readwrite", (store) => store.put({ ...entry, attempts })); // NOSONAR
+      result.pending += 1;
+    }
   }
-  return { sent, failed };
+  return result;
+}
+
+/** Usuwa całą kolejkę (wylogowanie, usunięcie konta). */
+export async function clearQueue(): Promise<void> {
+  if (!isSupported()) return;
+  try {
+    await withStore("readwrite", (store) => store.clear());
+  } catch {
+    // Brak IndexedDB (tryb prywatny) – nie ma czego czyścić.
+  }
 }

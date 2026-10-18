@@ -7,13 +7,28 @@ import type { MeetingPollResults as ResultsData } from "@/types/meetingPolls";
 
 const DATA: ResultsData = {
   poll: {
-    id: "p1", user_id: "u1", title: "Planowanie sprintu", description: "Ustalamy termin", slot_duration_minutes: 30,
-    time_start: "10:00:00", time_end: "12:00:00", share_token: "tok123", status: "open",
-    created_at: "2026-10-01T10:00:00Z", updated_at: "2026-10-01T10:00:00Z", closes_at: "2099-01-01T00:00:00+00:00",
+    id: "p1",
+    user_id: "u1",
+    title: "Planowanie sprintu",
+    description: "Ustalamy termin",
+    slot_duration_minutes: 30,
+    time_start: "10:00:00",
+    time_end: "12:00:00",
+    share_token: "tok123",
+    status: "open",
+    created_at: "2026-10-01T10:00:00Z",
+    updated_at: "2026-10-01T10:00:00Z",
+    closes_at: "2099-01-01T00:00:00+00:00",
   },
   dates: ["2026-10-05", "2026-10-06"],
   responses: [
-    { id: "r1", respondent_name: "Anna Nowak", respondent_email: "anna@firma.pl", user_id: null, created_at: "2026-10-02T08:00:00Z" },
+    {
+      id: "r1",
+      respondent_name: "Anna Nowak",
+      respondent_email: "anna@firma.pl",
+      user_id: null,
+      created_at: "2026-10-02T08:00:00Z",
+    },
     { id: "r2", respondent_name: "Bartek", respondent_email: null, user_id: "u2", created_at: "2026-10-02T09:00:00Z" },
   ],
   availabilities: [
@@ -67,15 +82,16 @@ describe("MeetingPollResults", () => {
     render(<MeetingPollResults pollId="p1" />);
     await screen.findByRole("heading", { level: 1 });
 
-    const switcher = screen.getByRole("group", { name: "Czyja dostępność?" });
-    await user.click(within(switcher).getByRole("button", { name: /Anna Nowak/ }));
+    await user.click(screen.getByRole("button", { name: "Zobacz dostępność: Anna Nowak" }));
 
     const summary = screen.getByRole("region", { name: "Anna Nowak" });
     expect(within(summary).getByText("1 h 30 min")).toBeInTheDocument();
     expect(within(summary).getByText("1 z 2")).toBeInTheDocument();
     expect(within(summary).getByText("10:00–11:30")).toBeInTheDocument();
 
-    expect(screen.getByRole("button", { name: /2026-10-05 10:00: Anna Nowak: dostępność zaznaczona/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /2026-10-05 10:00: Anna Nowak: dostępność zaznaczona/ })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /2026-10-06 10:00: Anna Nowak: brak zaznaczenia/ })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Najlepsze terminy" })).not.toBeInTheDocument();
   });
@@ -85,7 +101,7 @@ describe("MeetingPollResults", () => {
     render(<MeetingPollResults pollId="p1" />);
     await screen.findByRole("heading", { level: 1 });
 
-    await user.click(within(screen.getByRole("group", { name: "Czyja dostępność?" })).getByRole("button", { name: /Bartek/ }));
+    await user.click(screen.getByRole("button", { name: "Zobacz dostępność: Bartek" }));
     const summary = screen.getByRole("region", { name: "Bartek" });
     await user.click(within(summary).getByRole("button", { name: "Pokaż wszystkich" }));
 
@@ -93,17 +109,17 @@ describe("MeetingPollResults", () => {
     expect(screen.getByRole("region", { name: "Najlepsze terminy" })).toBeInTheDocument();
   });
 
-  it("przycisk „Zobacz dostępność” na liście uczestników przełącza tę samą osobę", async () => {
+  it("przycisk „Zobacz dostępność” na liście uczestników wybiera osobę i jest wciśnięty", async () => {
     const user = userEvent.setup();
     render(<MeetingPollResults pollId="p1" />);
     await screen.findByRole("heading", { level: 1 });
 
     const list = screen.getByRole("region", { name: /Uczestnicy/ });
-    const buttons = within(list).getAllByRole("button", { name: "Zobacz dostępność" });
+    const buttons = within(list).getAllByRole("button", { name: /^Zobacz dostępność:/ });
     await user.click(buttons[1]);
 
     expect(screen.getByRole("region", { name: "Bartek" })).toBeInTheDocument();
-    expect(within(list).getByRole("button", { name: "Pokaż wszystkich", pressed: true })).toBeInTheDocument();
+    expect(within(list).getByRole("button", { name: "Zobacz dostępność: Bartek", pressed: true })).toBeInTheDocument();
   });
 
   it("wybór najlepszego terminu otwiera panel z dostępnymi osobami", async () => {

@@ -14,8 +14,23 @@ import type { MediaSearchResult, TmdbSearchResponse } from "@/types/movies";
 describe("normalizeSearchResults", () => {
   const data: TmdbSearchResponse = {
     results: [
-      { id: 1, media_type: "movie", title: "Incepcja", release_date: "2010-07-16", vote_average: 8.37, poster_path: "/a.jpg", genre_ids: [28] },
-      { id: 2, media_type: "tv", name: "Wiedźmin", first_air_date: "2019-12-20", vote_average: 8.0, poster_path: "/b.jpg" },
+      {
+        id: 1,
+        media_type: "movie",
+        title: "Incepcja",
+        release_date: "2010-07-16",
+        vote_average: 8.37,
+        poster_path: "/a.jpg",
+        genre_ids: [28],
+      },
+      {
+        id: 2,
+        media_type: "tv",
+        name: "Wiedźmin",
+        first_air_date: "2019-12-20",
+        vote_average: 8.0,
+        poster_path: "/b.jpg",
+      },
       { id: 3, media_type: "person", name: "Henry Cavill" },
       { id: 4, media_type: "tv", name: "Bez plakatu", poster_path: "https://evil.example/x.jpg" },
     ],
@@ -52,16 +67,25 @@ describe("poster helpers", () => {
 
 describe("extractPolishProviders", () => {
   it("prefers subscription and deduplicates", () => {
-    expect(extractPolishProviders({
-      results: { PL: {
-        flatrate: [{ provider_id: 8, provider_name: "Netflix" }, { provider_id: 8, provider_name: "Netflix" }],
-        rent: [{ provider_id: 2, provider_name: "Apple TV" }],
-      } },
-    })).toEqual(["Netflix"]);
+    expect(
+      extractPolishProviders({
+        results: {
+          PL: {
+            flatrate: [
+              { provider_id: 8, provider_name: "Netflix" },
+              { provider_id: 8, provider_name: "Netflix" },
+            ],
+            rent: [{ provider_id: 2, provider_name: "Apple TV" }],
+          },
+        },
+      })
+    ).toEqual(["Netflix"]);
   });
 
   it("falls back to rent/buy", () => {
-    expect(extractPolishProviders({ results: { PL: { rent: [{ provider_id: 2, provider_name: "Apple TV" }] } } })).toEqual(["Apple TV"]);
+    expect(
+      extractPolishProviders({ results: { PL: { rent: [{ provider_id: 2, provider_name: "Apple TV" }] } } })
+    ).toEqual(["Apple TV"]);
   });
 
   it("handles missing PL data", () => {
@@ -72,19 +96,36 @@ describe("extractPolishProviders", () => {
 
 describe("buildMovieData", () => {
   const tv: MediaSearchResult = {
-    tmdbId: 71912, mediaType: "tv", title: "Wiedźmin", year: 2019, rating: 8, overview: "Geralt…",
-    posterPath: "/w.jpg", genreIds: [10765],
+    tmdbId: 71912,
+    mediaType: "tv",
+    title: "Wiedźmin",
+    year: 2019,
+    rating: 8,
+    overview: "Geralt…",
+    posterPath: "/w.jpg",
+    genreIds: [10765],
   };
 
   it("fills series-specific fields from details", () => {
     const d = buildMovieData(tv, {
-      id: 71912, name: "Wiedźmin", number_of_seasons: 4, number_of_episodes: 32, status: "Returning Series",
-      genres: [{ id: 10765, name: "Sci-Fi & Fantasy" }], vote_average: 7.96,
+      id: 71912,
+      name: "Wiedźmin",
+      number_of_seasons: 4,
+      number_of_episodes: 32,
+      status: "Returning Series",
+      genres: [{ id: 10765, name: "Sci-Fi & Fantasy" }],
+      vote_average: 7.96,
       "watch/providers": { results: { PL: { flatrate: [{ provider_id: 8, provider_name: "Netflix" }] } } },
     });
     expect(d).toMatchObject({
-      media_type: "tv", tmdb_id: 71912, seasons_count: 4, episodes_count: 32,
-      series_status: "Emitowany", platform: "Netflix", genre: "Sci-Fi & Fantasy", rating: 8,
+      media_type: "tv",
+      tmdb_id: 71912,
+      seasons_count: 4,
+      episodes_count: 32,
+      series_status: "Emitowany",
+      platform: "Netflix",
+      genre: "Sci-Fi & Fantasy",
+      rating: 8,
     });
   });
 

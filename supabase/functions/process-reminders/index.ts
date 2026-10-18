@@ -1,7 +1,7 @@
 // supabase/functions/process-reminders/index.ts
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { verifyCronSecret, jsonHeaders, corsHeaders, unauthorized } from "../_shared/auth.ts";
+import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
+import { verifyCronSecret, jsonHeaders, preflight, unauthorized } from "../_shared/auth.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
 import { nextOccurrenceAfter, normalizeRule, withMonthDay, type RecurrenceRule } from "../_shared/recurrence.ts";
@@ -52,18 +52,12 @@ export function nextDueDate(task: RecurringTask): string | null | undefined {
   return nextOccurrenceAfter(task.due_date ?? base, rule, base);
 }
 
-async function rollRecurringTask(
-  supabase: ReturnType<typeof createClient>,
-  task: RecurringTask
-): Promise<RollOutcome> {
+async function rollRecurringTask(supabase: SupabaseClient, task: RecurringTask): Promise<RollOutcome> {
   const nextDue = nextDueDate(task);
   if (nextDue === undefined) return "skipped";
 
   if (nextDue === null) {
-    const { error: stopError } = await supabase
-      .from("tasks")
-      .update({ is_recurring: false })
-      .eq("id", task.id);
+    const { error: stopError } = await supabase.from("tasks").update({ is_recurring: false }).eq("id", task.id);
     return stopError ? "failed" : "finished";
   }
 
@@ -99,7 +93,7 @@ function todayInPoland(): string {
  * (recurring_bill_id, bill_due_date) chroni przed duplikatem przy ponownym
  * uruchomieniu.
  */
-async function createBillTasks(supabase: ReturnType<typeof createClient>, today: string): Promise<number> {
+async function createBillTasks(supabase: SupabaseClient, today: string): Promise<number> {
   const { data: bills, error } = await supabase.from("recurring_bills").select("*").eq("active", true);
   if (error) {
     // Tabela jeszcze nie istnieje (przed migracją 1.40) – nic do zrobienia.
@@ -113,7 +107,10 @@ async function createBillTasks(supabase: ReturnType<typeof createClient>, today:
   const { data: paid } = await supabase
     .from("transactions")
     .select("recurring_bill_id")
-    .in("recurring_bill_id", due.map((b) => b.id))
+    .in(
+      "recurring_bill_id",
+      due.map((b) => b.id)
+    )
     .gte("date", monthStart)
     .lte("date", today);
   const paidIds = new Set((paid ?? []).map((p: { recurring_bill_id: string }) => p.recurring_bill_id));
@@ -141,14 +138,11 @@ async function createBillTasks(supabase: ReturnType<typeof createClient>, today:
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") return preflight();
   if (!verifyCronSecret(req)) return unauthorized();
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data, error } = await supabase
       .from("tasks")
@@ -162,7 +156,6 @@ Deno.serve(async (req) => {
     const failed: string[] = [];
 
     await mapPool((data ?? []) as RecurringTask[], 5, async (task) => {
-
       try {
         const outcome = await rollRecurringTask(supabase, task);
         if (outcome === "rolled") rolled.push(task.title);
@@ -176,10 +169,9 @@ Deno.serve(async (req) => {
 
     const billTasks = await createBillTasks(supabase, todayInPoland());
 
-    return new Response(
-      JSON.stringify({ success: true, rolled, finished, failed, billTasks }),
-      { headers: jsonHeaders }
-    );
+    return new Response(JSON.stringify({ success: true, rolled, finished, failed, billTasks }), {
+      headers: jsonHeaders,
+    });
   } catch (err) {
     console.error("process-reminders:", err);
     return new Response(JSON.stringify({ error: getErrorMessage(err) }), {

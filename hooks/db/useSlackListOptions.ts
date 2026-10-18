@@ -42,9 +42,7 @@ export function useSlackListOptions(enabled: boolean) {
         if (!mountedRef.current) return;
 
         const usable = (body.lists ?? []).filter((l) => l.column_map?.title);
-        setLists(
-          usable.map(({ list_id, list_title, is_default }) => ({ list_id, list_title, is_default }))
-        );
+        setLists(usable.map(({ list_id, list_title, is_default }) => ({ list_id, list_title, is_default })));
       } catch (err) {
         if (!mountedRef.current) return;
         requestedRef.current = false;

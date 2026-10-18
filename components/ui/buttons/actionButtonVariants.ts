@@ -7,18 +7,21 @@ export const actionButton = cva(
   {
     variants: {
       color: {
-        blue: "bg-surface text-text-secondary border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 dark:hover:bg-blue-900/40 dark:hover:text-blue-200 dark:hover:border-blue-500/60",
-        purple: "bg-surface text-text-secondary border-transparent hover:bg-green-50 hover:text-green-800 hover:border-green-300 dark:hover:bg-green-900/40 dark:hover:text-green-200 dark:hover:border-green-500/60",
-        yellow: "bg-surface text-text-secondary border-transparent hover:bg-amber-50 hover:text-amber-800 hover:border-amber-300 dark:hover:bg-amber-900/40 dark:hover:text-amber-200 dark:hover:border-amber-500/60",
-        red: "bg-surface text-text-secondary border-transparent hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-900/40 dark:hover:text-red-200 dark:hover:border-red-500/60",
-        active: "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-200 dark:border-green-700/60 dark:hover:bg-green-900/70",
+        info: "bg-surface text-text-secondary border-transparent hover:bg-info-soft hover:text-info hover:border-info-line",
+        success:
+          "bg-surface text-text-secondary border-transparent hover:bg-success-soft hover:text-success hover:border-success-line",
+        warning:
+          "bg-surface text-text-secondary border-transparent hover:bg-warning-soft hover:text-warning hover:border-warning-line",
+        danger:
+          "bg-surface text-text-secondary border-transparent hover:bg-danger-soft hover:text-danger hover:border-danger-line",
+        active: "bg-success-soft text-success border-success-line hover:bg-success-soft",
       },
       size: {
         default: "flex-1",
         small: "w-min h-min min-h-11 min-w-11 my-auto",
       },
     },
-    defaultVariants: { color: "blue", size: "default" },
+    defaultVariants: { color: "info", size: "default" },
   }
 );
 

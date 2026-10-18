@@ -12,15 +12,29 @@ const at = (hm: string) => {
 const scheduleFrom: RouteStation = { stationId: "POZ", departurePlatform: "4", departureTime: "14:10:00" };
 
 const opFrom = (over: Partial<OperationStation> = {}): OperationStation => ({
-  stationId: "POZ", departurePlatform: "3", departureDelayMinutes: 10, actualDeparture: "2026-09-29T14:20:00", ...over,
+  stationId: "POZ",
+  departurePlatform: "3",
+  departureDelayMinutes: 10,
+  actualDeparture: "2026-09-29T14:20:00",
+  ...over,
 });
 const opTo = (over: Partial<OperationStation> = {}): OperationStation => ({
-  stationId: "WCE", arrivalPlatform: "7", arrivalDelayMinutes: 15, actualArrival: "2026-09-29T17:10:00", ...over,
+  stationId: "WCE",
+  arrivalPlatform: "7",
+  arrivalDelayMinutes: 15,
+  actualArrival: "2026-09-29T17:10:00",
+  ...over,
 });
 
 describe("rozkład bez pełnej trasy (tylko stacja wyjazdu)", () => {
   const live = () =>
-    buildStationDetails({ plannedFrom: scheduleFrom, plannedTo: undefined, opFrom: opFrom(), opTo: opTo(), arrivalStation: "Warszawa Centralna" });
+    buildStationDetails({
+      plannedFrom: scheduleFrom,
+      plannedTo: undefined,
+      opFrom: opFrom(),
+      opTo: opTo(),
+      arrivalStation: "Warszawa Centralna",
+    });
 
   it("przed odjazdem: stacja wyjazdu, peron z danych na żywo, czas z opóźnieniem", () => {
     const stop = currentTrainStop(train, live(), at("14:15"));

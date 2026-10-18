@@ -41,7 +41,8 @@ const TEMPLATES: Record<Exclude<LetterCategory, "Inne">, LetterTemplateMeta> = {
   },
   Przestępstwo: {
     subject: "Zawiadomienie o podejrzeniu popełnienia przestępstwa",
-    legalBasis: "art. 304 § 1 ustawy z dnia 6 czerwca 1997 r. – Kodeks postępowania karnego (t.j. Dz.U. z 2024 r. poz. 37 z późn. zm.)",
+    legalBasis:
+      "art. 304 § 1 ustawy z dnia 6 czerwca 1997 r. – Kodeks postępowania karnego (t.j. Dz.U. z 2024 r. poz. 37 z późn. zm.)",
     opening: "zawiadamiam o podejrzeniu popełnienia przestępstwa:",
   },
 };
@@ -68,7 +69,7 @@ export function generateLetterBody(letter: Letter): string {
   lines.push(letter.recipient, "");
 
   if (meta.legalBasis) {
-    lines.push(`Na podstawie ${meta.legalBasis}, ${meta.opening}` );
+    lines.push(`Na podstawie ${meta.legalBasis}, ${meta.opening}`);
   }
 
   lines.push("");

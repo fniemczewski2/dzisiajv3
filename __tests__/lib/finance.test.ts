@@ -17,14 +17,33 @@ import type { RecurringBill, Transaction } from "@/types/finance";
 import type { BudgetCategory } from "@/types/bills";
 
 const bill = (over: Partial<RecurringBill>): RecurringBill => ({
-  id: "b1", user_id: "u", profile_id: null, name: "Apple Music", amount: 19.99, category_id: "c-sub",
-  start_date: "2026-01-15", recurrence: { freq: "monthly", interval: 1, monthlyBy: "monthday" }, active: true, ...over,
+  id: "b1",
+  user_id: "u",
+  profile_id: null,
+  name: "Apple Music",
+  amount: 19.99,
+  category_id: "c-sub",
+  start_date: "2026-01-15",
+  recurrence: { freq: "monthly", interval: 1, monthlyBy: "monthday" },
+  active: true,
+  ...over,
 });
 const tx = (over: Partial<Transaction>): Transaction => ({
-  id: "t", user_id: "u", profile_id: null, date: "2026-01-15", amount: 19.9, is_income: false, description: "Apple",
-  category_id: null, recurring_bill_id: null, link_status: null, source: "csv", import_key: null, ...over,
+  id: "t",
+  user_id: "u",
+  profile_id: null,
+  date: "2026-01-15",
+  amount: 19.9,
+  is_income: false,
+  description: "Apple",
+  category_id: null,
+  recurring_bill_id: null,
+  link_status: null,
+  source: "csv",
+  import_key: null,
+  ...over,
 });
-const cat = (id: string, name: string) => ({ id, name } as BudgetCategory);
+const cat = (id: string, name: string) => ({ id, name }) as BudgetCategory;
 
 describe("terminy i prognoza", () => {
   it("co miesiąc 31. dnia → ostatni dzień krótszego miesiąca", () => {
@@ -32,11 +51,16 @@ describe("terminy i prognoza", () => {
     expect(billOccurrences(b, "2026-02-01", "2026-04-30")).toEqual(["2026-02-28", "2026-03-31", "2026-04-30"]);
   });
   it("jednorazowy i nieaktywny", () => {
-    expect(billOccurrences(bill({ recurrence: null, start_date: "2026-03-10" }), "2026-03-01", "2026-03-31")).toEqual(["2026-03-10"]);
+    expect(billOccurrences(bill({ recurrence: null, start_date: "2026-03-10" }), "2026-03-01", "2026-03-31")).toEqual([
+      "2026-03-10",
+    ]);
     expect(billOccurrences(bill({ active: false }), "2026-01-01", "2026-12-31")).toEqual([]);
   });
   it("prognoza kolejnego miesiąca sumuje wszystkie terminy", () => {
-    const f = forecastMonth([bill({}), bill({ id: "b2", name: "Czynsz", amount: 1500, start_date: "2026-01-10" })], "2026-02");
+    const f = forecastMonth(
+      [bill({}), bill({ id: "b2", name: "Czynsz", amount: 1500, start_date: "2026-01-10" })],
+      "2026-02"
+    );
     expect(f.total).toBe(1519.99);
     expect(f.items.map((i) => i.bill.id)).toEqual(["b2", "b1"]);
   });
@@ -47,7 +71,12 @@ describe("terminy i prognoza", () => {
 
 describe("status rachunku w miesiącu", () => {
   it("zapłacony, gdy jest powiązana transakcja (także sugestia)", () => {
-    const s = billMonthStatus(bill({}), "2026-02", [tx({ date: "2026-02-14", recurring_bill_id: "b1", link_status: "suggested" })], "2026-02-20");
+    const s = billMonthStatus(
+      bill({}),
+      "2026-02",
+      [tx({ date: "2026-02-14", recurring_bill_id: "b1", link_status: "suggested" })],
+      "2026-02-20"
+    );
     expect(s.status).toBe("paid");
   });
   it("zaległy po terminie, oczekuje przed", () => {
@@ -64,7 +93,10 @@ describe("D1: łączenie z rachunkami", () => {
   });
   it("uczy się z ręcznego połączenia (styczeń → luty)", () => {
     const history = [tx({ id: "jan", date: "2026-01-15", recurring_bill_id: "b1", link_status: "manual" })];
-    expect(suggestBillLink(tx({ date: "2026-02-15" }), [bill({})], history)).toEqual({ billId: "b1", reason: "learned" });
+    expect(suggestBillLink(tx({ date: "2026-02-15" }), [bill({})], history)).toEqual({
+      billId: "b1",
+      reason: "learned",
+    });
   });
   it("bez historii: po nazwie, kwocie i terminie ±7 dni", () => {
     expect(suggestBillLink(tx({ date: "2026-03-17" }), [bill({})], [])).toEqual({ billId: "b1", reason: "name" });
@@ -100,7 +132,11 @@ describe("D2, wydatki dnia, podsumowanie", () => {
 
   it("podsumowanie miesiąca", () => {
     const s = summarizeMonth(
-      [tx({ amount: 19.9, category_id: "c-sub", recurring_bill_id: "b1" }), tx({ amount: 30, category_id: "c-food" }), tx({ amount: 5000, is_income: true })],
+      [
+        tx({ amount: 19.9, category_id: "c-sub", recurring_bill_id: "b1" }),
+        tx({ amount: 30, category_id: "c-food" }),
+        tx({ amount: 5000, is_income: true }),
+      ],
       cats
     );
     expect(s).toMatchObject({ income: 5000, expenses: 49.9, balance: 4950.1, billsPaid: 19.9 });

@@ -34,9 +34,7 @@ export function initialsOf(name: string): string {
 }
 
 function availabilitySummary(slots: number, slotDurationMinutes: number): string {
-  return slots > 0
-    ? `dostępność ${formatDurationMinutes(slots * slotDurationMinutes)}`
-    : "brak zaznaczonych terminów";
+  return slots > 0 ? `dostępność ${formatDurationMinutes(slots * slotDurationMinutes)}` : "brak zaznaczonych terminów";
 }
 
 export default function MeetingPollRespondents({
@@ -104,8 +102,8 @@ export default function MeetingPollRespondents({
                     isSelected ? "border-primary/50 bg-primary/10" : "border-line bg-surface/50"
                   }`}
                 >
-                  <div className="flex min-w-0 items-center justify-between w-full gap-3">
-                    <div className="min-w-0 w-[80%]">
+                  <div className="flex w-full min-w-0 items-center justify-between gap-3">
+                    <div className="w-[80%] min-w-0">
                       <p className="flex items-center gap-1.5 font-semibold text-text">
                         <span className="truncate">{response.respondent_name}</span>
                         {response.user_id && (
@@ -116,33 +114,35 @@ export default function MeetingPollRespondents({
                         )}
                       </p>
                       {response.respondent_email && (
-                        <p className="flex items-center gap-1.5 break-all text-xs text-text-secondary">
+                        <p className="flex items-center gap-1.5 text-xs break-all text-text-secondary">
                           <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                           {response.respondent_email}
                         </p>
                       )}
                       <p className="text-xs text-text-muted">
-                        Odpowiedź: {formatSubmittedAt(response.created_at)} • {availabilitySummary(slots, slotDurationMinutes)}
+                        Odpowiedź: {formatSubmittedAt(response.created_at)} •{" "}
+                        {availabilitySummary(slots, slotDurationMinutes)}
                       </p>
                     </div>
-                  
 
-                  {onSelect && (
-                    <button
-                      type="button"
-                      onClick={() => onSelect(isSelected ? null : response.id)}
-                      aria-pressed={isSelected}
-                      className={actionButton({ color: "blue", size: "default" })}
-                    >
-                      {isSelected ? (
-                        <EyeOff className="h-4 w-4" aria-hidden="true" />
-                      ) : (
-                        <Eye className="h-4 w-4" aria-hidden="true" />
-                      )}
-                      <span className={ACTION_LABEL_CLASS}>{isSelected ? "Ukryj": "Pokaż"}</span>
-                    </button>
-                    
-                  )}
+                    {onSelect && (
+                      <button
+                        type="button"
+                        onClick={() => onSelect(isSelected ? null : response.id)}
+                        aria-pressed={isSelected}
+                        aria-label={`Zobacz dostępność: ${response.respondent_name}`}
+                        className={actionButton({ color: "info", size: "default" })}
+                      >
+                        {isSelected ? (
+                          <EyeOff className="h-4 w-4" aria-hidden="true" />
+                        ) : (
+                          <Eye className="h-4 w-4" aria-hidden="true" />
+                        )}
+                        <span className={ACTION_LABEL_CLASS} aria-hidden="true">
+                          {isSelected ? "Wszyscy" : "Zobacz"}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </li>
               );

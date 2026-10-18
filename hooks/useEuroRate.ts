@@ -1,4 +1,4 @@
-﻿// hooks/useEuroRate.ts
+// hooks/useEuroRate.ts
 
 import { useState, useEffect } from "react";
 import { NbpResponse } from "@/types/bills";
@@ -13,10 +13,9 @@ export function useEuroRate() {
 
     const fetchRate = async () => {
       try {
-        const response = await fetch(
-          "https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json",
-          { signal: controller.signal }
-        );
+        const response = await fetch("https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json", {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error(`NBP API error: ${response.status}`);

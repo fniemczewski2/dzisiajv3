@@ -63,6 +63,7 @@ To najważniejsza część tego dokumentu.
 ## Przepływy danych
 
 ### Synchronizacja kalendarzy
+
 - Podłączenie konta: OAuth (`/api/google-calendar?action=auth-url` → callback). Wiersz
   `connected_calendars` z `google_calendar_id = '@account_connection'` przechowuje tokeny konta;
   pozostałe wiersze to poszczególne kalendarze.
@@ -75,6 +76,7 @@ To najważniejsza część tego dokumentu.
   Wydarzenia cykliczne zostają tylko w aplikacji.
 
 ### Slack Lists
+
 - Dwukierunkowa synchronizacja zadań z kategorią Slack (`lib/server/slackSync/*`).
 - Zapytania do Slacka są **celowo sekwencyjne** (limity API, nagłówek `Retry-After`) – stąd
   komentarze `// NOSONAR` przy `await` w pętlach.
@@ -82,31 +84,54 @@ To najważniejsza część tego dokumentu.
   synchronizacja usuwa element w Slacku.
 
 ### Ankiety terminów (meeting polls)
+
 - Organizator tworzy ankietę; uczestnicy odpowiadają **bez konta** pod `/meet/[token]`.
 - Finalizacja (`/api/meeting-polls/[id]/finalize`) jest jednorazowa (`finalized_at`) i przy błędzie
   wycofuje utworzone wydarzenia.
 
 ### Offline
-- Zapisy wykonane bez sieci trafiają do kolejki w IndexedDB i są wysyłane **w kolejności dodania** po odzyskaniu połączenia.
+
+- Ostatnio pobrane listy są w IndexedDB (`lib/offlineCache.ts`) pod kluczami z id użytkownika.
+- Zadania dodane bez sieci trafiają do kolejki w IndexedDB (`lib/offlineQueue.ts`). Każdy wpis ma
+  właściciela; `components/OfflineSync.tsx` wysyła wpisy zalogowanej osoby **w kolejności dodania**
+  przy starcie aplikacji i po zdarzeniu `online`. Wpis odrzucony 3 razy przez bazę jest usuwany
+  z komunikatem dla użytkownika.
+- Service worker zapisuje wyłącznie zasoby aplikacji, nie odpowiedzi API.
+- Wylogowanie i zalogowanie innej osoby czyszczą IndexedDB, kolejkę, pamięć service workera
+  i klucze localStorage z `config/storage.ts` (`lib/localUserData.ts`).
+
+### Ustawienia
+
+- `providers/SettingsProvider.tsx` pobiera wiersz `settings` raz po zalogowaniu; `useSettings`,
+  `useTaskCategories` i `useEnabledModules` czytają ten sam stan (jedno zapytanie zamiast kilkunastu).
+
+### Konfiguracja
+
+- `config/env.ts` – jedyne miejsce odczytu zmiennych środowiskowych (walidacja przy użyciu).
+- `config/limits.ts`, `timing.ts`, `server.ts`, `defaults.ts`, `storage.ts` – limity, czasy, rate
+  limity i paginacja serwera, wartości domyślne, klucze pamięci przeglądarki.
+- `config/userData.ts` – rejestr tabel z danymi użytkownika dla eksportu i usuwania konta.
+- Kod wspólny z Edge Functions leży w `supabase/functions/_shared/` i jest importowany w aplikacji
+  jako `@/shared/*` (tylko czyste moduły bez API Deno).
 
 ## Ważne decyzje i ich koszty
 
-| Decyzja | Dlaczego | Koszt |
-|---|---|---|
-| Klient pisze do bazy bezpośrednio | Mniej kodu API, działa offline | Cała autoryzacja w RLS – błędna polityka = wyciek |
-| Migracje poza repozytorium (od 1.38.7) | Migracja bazowa nie odpowiadała produkcji | Zmiany schematu nie są wersjonowane; zob. RUNBOOK |
-| Zewnętrzny kalendarz jako źródło prawdy | Brak konfliktów przy synchronizacji | Edycje zaimportowanych wydarzeń w aplikacji znikają |
-| Sekwencyjne zapytania do Slacka | Limity API | Synchronizacja dużych list trwa dłużej |
-| Pula równoległości (`lib/asyncPool.ts`) dla niezależnych operacji | Krótszy czas cronów | Błąd jednej operacji odrzuca całą pulę, jeśli nie jest łapany w środku |
+| Decyzja                                                             | Dlaczego                                  | Koszt                                                                  |
+| ------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
+| Klient pisze do bazy bezpośrednio                                   | Mniej kodu API, działa offline            | Cała autoryzacja w RLS – błędna polityka = wyciek                      |
+| Migracje poza repozytorium (od 1.38.7)                              | Migracja bazowa nie odpowiadała produkcji | Zmiany schematu nie są wersjonowane; zob. RUNBOOK                      |
+| Zewnętrzny kalendarz jako źródło prawdy                             | Brak konfliktów przy synchronizacji       | Edycje zaimportowanych wydarzeń w aplikacji znikają                    |
+| Sekwencyjne zapytania do Slacka                                     | Limity API                                | Synchronizacja dużych list trwa dłużej                                 |
+| Pula równoległości (`@/shared/asyncPool`) dla niezależnych operacji | Krótszy czas cronów                       | Błąd jednej operacji odrzuca całą pulę, jeśli nie jest łapany w środku |
 
 ## Struktura katalogów (najważniejsze)
 
-| Ścieżka | Zawartość |
-|---|---|
-| `pages/` | Strony; `pages/api/` – endpointy (zob. API.md) |
-| `components/` | Komponenty UI pogrupowane według modułów; `components/ui/` – wspólne |
-| `hooks/db/` | Dostęp do danych (Supabase) z optymistycznymi aktualizacjami |
-| `lib/` | Logika bez Reacta; `lib/server/` – tylko po stronie serwera |
-| `supabase/functions/` | Edge Functions; `_shared/` – kod wspólny (kopie helperów z `lib/`) |
-| `supabase/introspect_schema.sql` | Zrzut schematu i audyt bezpieczeństwa bazy |
-| `__tests__/` | Vitest + Testing Library |
+| Ścieżka                          | Zawartość                                                            |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `pages/`                         | Strony; `pages/api/` – endpointy (zob. API.md)                       |
+| `components/`                    | Komponenty UI pogrupowane według modułów; `components/ui/` – wspólne |
+| `hooks/db/`                      | Dostęp do danych (Supabase) z optymistycznymi aktualizacjami         |
+| `lib/`                           | Logika bez Reacta; `lib/server/` – tylko po stronie serwera          |
+| `supabase/functions/`            | Edge Functions; `_shared/` – kod wspólny (kopie helperów z `lib/`)   |
+| `supabase/introspect_schema.sql` | Zrzut schematu i audyt bezpieczeństwa bazy                           |
+| `__tests__/`                     | Vitest + Testing Library                                             |

@@ -1,84 +1,72 @@
 // proxy.ts
+//
+// Strażnik stron: niezalogowanych przekierowuje na /start, zalogowanych
+// z /start – na stronę docelową. Sesję weryfikuje lokalnie `getClaims()`
+// (podpis JWT sprawdzany kluczem publicznym z JWKS projektu, bez zapytania do
+// Supabase Auth przy każdym wejściu). Endpointy /api i pliki statyczne nie
+// przechodzą przez proxy – API samo sprawdza sesję.
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { safeRedirectPath } from "@/lib/redirect";
+
+const PUBLIC_PATHS = new Set(["/start", "/privacy", "/guide"]);
+const PUBLIC_PREFIXES = ["/v/", "/meet/", "/.well-known/"];
+
+function isPublic(path: string): boolean {
+  return PUBLIC_PATHS.has(path) || PUBLIC_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
+function redirectWithCookies(target: URL, source: NextResponse): NextResponse {
+  const redirect = NextResponse.redirect(target);
+  for (const cookie of source.cookies.getAll()) redirect.cookies.set(cookie);
+  return redirect;
+}
 
 export default async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  })
+  let response = NextResponse.next({ request: { headers: request.headers } });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY 
-
-  if (!url || !key) {
-    return response
-  }
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
     cookies: {
       getAll() {
-        return request.cookies.getAll()
+        return request.cookies.getAll();
       },
       setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-        response = NextResponse.next({
-          request,
-        })
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options)
-        )
+        for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
+        response = NextResponse.next({ request });
+        for (const { name, value, options } of cookiesToSet) response.cookies.set(name, value, options);
       },
     },
-  })
+  });
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = Boolean(data?.claims?.sub);
+  const path = request.nextUrl.pathname;
 
-  const path = request.nextUrl.pathname
-
-  const isPublicRoute = 
-    path === '/start' || 
-    path.startsWith('/api') || 
-    path.startsWith('/auth') || 
-    path === '/privacy' ||
-    path.startsWith('/.well-known') ||
-    path.startsWith('/v/') ||
-    path === '/guide' ||
-    path.startsWith('/meet/')
-
-  if (!user && !isPublicRoute) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/start'
-    redirectUrl.searchParams.set('next', path)
-    
-    const redirectResponse = NextResponse.redirect(redirectUrl)
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
-    })
-    
-    return redirectResponse
+  if (!signedIn && !isPublic(path)) {
+    const target = request.nextUrl.clone();
+    target.pathname = "/start";
+    target.search = "";
+    target.searchParams.set("next", `${path}${request.nextUrl.search}`);
+    return redirectWithCookies(target, response);
   }
 
-  if (user && path === '/start') {
-    const redirectUrl = request.nextUrl.clone()
-    
-    const nextPath = request.nextUrl.searchParams.get('next') || '/'
-    redirectUrl.pathname = nextPath.startsWith('/') ? nextPath : `/${nextPath}`
-    redirectUrl.searchParams.delete('next')
-    
-    const redirectResponse = NextResponse.redirect(redirectUrl)
-    
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
-    })
-
-    return redirectResponse
+  if (signedIn && path === "/start") {
+    const target = new URL(safeRedirectPath(request.nextUrl.searchParams.get("next")), request.nextUrl.origin);
+    return redirectWithCookies(target, response);
   }
-  return response
+
+  return response;
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw\\.js|workbox-.*|swe-worker-.*|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Wszystko poza: API, zasobami Next.js, service workerem, manifestem,
+    // plikami w /public (rozszerzenia) i plikami weryfikacyjnymi.
+    "/((?!api/|_next/static|_next/image|sw\\.js|manifest\\.json|robots\\.txt|sitemap\\.xml|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|mp3|txt|html|json|js|css|woff2?)$).*)",
   ],
-}
+};

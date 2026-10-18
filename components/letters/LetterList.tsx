@@ -1,4 +1,4 @@
-﻿// components/letters/LetterList.tsx
+// components/letters/LetterList.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, Upload, Eye } from "lucide-react";
@@ -18,7 +18,7 @@ export function FileSlot({
   letterId,
   category,
   kind,
-}: Readonly<{ label: string; path: string | null; letterId: string; category: LetterCategory, kind: LetterFileKind }>) {
+}: Readonly<{ label: string; path: string | null; letterId: string; category: LetterCategory; kind: LetterFileKind }>) {
   const { uploadLetterFile, getLetterFileUrl } = useLetters();
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,22 +55,22 @@ export function FileSlot({
   return (
     <div className="flex items-center gap-2">
       <input ref={inputRef} type="file" accept="application/pdf" className="hidden" onChange={handleFile} />
-      <span className="text-xs font-bold text-text-muted w-20 shrink-0">{label}:</span>
+      <span className="w-20 shrink-0 text-xs font-bold text-text-muted">{label}:</span>
       {path ? (
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleView}
             disabled={busy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-info-soft hover:text-info disabled:opacity-50"
           >
-            <Eye className="w-3.5 h-3.5" /> Podgląd
+            <Eye className="h-3.5 w-3.5" /> Podgląd
           </button>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="px-2.5 py-1 rounded-lg bg-surface hover:bg-surface-hover text-text-muted hover:text-text text-xs font-semibold transition-colors disabled:opacity-50"
+            className="rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-muted transition-colors hover:bg-surface-hover hover:text-text disabled:opacity-50"
           >
             Zamień
           </button>
@@ -80,9 +80,9 @@ export function FileSlot({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-info-soft hover:text-info disabled:opacity-50"
         >
-          <Upload className="w-3.5 h-3.5" /> Wgraj PDF
+          <Upload className="h-3.5 w-3.5" /> Wgraj PDF
         </button>
       )}
     </div>
@@ -120,7 +120,10 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
     setOpenId(letter.id);
   };
 
-  const handleCancelEdit = () => { setEditingId(null); setEdited(null); };
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEdited(null);
+  };
 
   const handleSaveEdit = async () => {
     if (!edited) return;
@@ -139,7 +142,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
 
   return (
     <div className="space-y-6">
-      <div className="max-w-2xl mx-auto w-full">
+      <div className="mx-auto w-full max-w-2xl">
         <SearchBar
           value={qText}
           onChange={setQText}
@@ -148,7 +151,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
         />
       </div>
 
-      <ul className="space-y-4 max-w-2xl mx-auto w-full">
+      <ul className="mx-auto w-full max-w-2xl space-y-4">
         {filtered.map((l) => {
           const open = openId === l.id;
           const isEditing = editingId === l.id;
@@ -158,14 +161,19 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           if (isEditing && edited) {
             const isTrafficViolation = edited.category === "Wykroczenie drogowe";
             return (
-              <li key={l.id} className="bg-card border border-primary dark:border-primary rounded-card shadow-lg p-5 animate-in fade-in">
+              <li
+                key={l.id}
+                className="animate-in rounded-card border border-primary bg-card p-5 shadow-lg fade-in dark:border-primary"
+              >
                 <div className="space-y-4">
                   <p className="text-xs font-bold text-text-muted">
                     Sygnatura {edited.signature} - kategorii i sygnatury nie można zmienić po utworzeniu.
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label htmlFor={`${editPrefix}-issue`} className="form-label">Data wystawienia:</label>
+                      <label htmlFor={`${editPrefix}-issue`} className="form-label">
+                        Data wystawienia:
+                      </label>
                       <input
                         id={`${editPrefix}-issue`}
                         type="date"
@@ -175,7 +183,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                       />
                     </div>
                     <div>
-                      <label htmlFor={`${editPrefix}-response`} className="form-label">Termin odpowiedzi:</label>
+                      <label htmlFor={`${editPrefix}-response`} className="form-label">
+                        Termin odpowiedzi:
+                      </label>
                       <input
                         id={`${editPrefix}-response`}
                         type="date"
@@ -186,7 +196,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                     </div>
                   </div>
                   <div>
-                    <label htmlFor={`${editPrefix}-recipient`} className="form-label">Adresat:</label>
+                    <label htmlFor={`${editPrefix}-recipient`} className="form-label">
+                      Adresat:
+                    </label>
                     <input
                       id={`${editPrefix}-recipient`}
                       value={edited.recipient}
@@ -195,7 +207,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                     />
                   </div>
                   <div>
-                    <label htmlFor={`${editPrefix}-description`} className="form-label">Opis:</label>
+                    <label htmlFor={`${editPrefix}-description`} className="form-label">
+                      Opis:
+                    </label>
                     <textarea
                       id={`${editPrefix}-description`}
                       value={edited.description}
@@ -206,7 +220,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   </div>
                   {isTrafficViolation && (
                     <div>
-                      <label htmlFor={`${editPrefix}-plate`} className="form-label">Numer rejestracyjny:</label>
+                      <label htmlFor={`${editPrefix}-plate`} className="form-label">
+                        Numer rejestracyjny:
+                      </label>
                       <input
                         id={`${editPrefix}-plate`}
                         value={edited.license_plate_number ?? ""}
@@ -215,9 +231,11 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                       />
                     </div>
                   )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label htmlFor={`${editPrefix}-incident-date`} className="form-label">Data zdarzenia:</label>
+                      <label htmlFor={`${editPrefix}-incident-date`} className="form-label">
+                        Data zdarzenia:
+                      </label>
                       <input
                         id={`${editPrefix}-incident-date`}
                         type="date"
@@ -227,7 +245,9 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                       />
                     </div>
                     <div>
-                      <label htmlFor={`${editPrefix}-incident-place`} className="form-label">Miejsce zdarzenia:</label>
+                      <label htmlFor={`${editPrefix}-incident-place`} className="form-label">
+                        Miejsce zdarzenia:
+                      </label>
                       <input
                         id={`${editPrefix}-incident-place`}
                         value={edited.incident_place ?? ""}
@@ -243,31 +263,34 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           }
 
           return (
-            <li key={l.id} className="card rounded-card shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
-              <div className="flex items-center justify-between p-4 gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
+            <li
+              key={l.id}
+              className="card group overflow-hidden rounded-card shadow-sm transition-all duration-200 hover:border-primary"
+            >
+              <div className="flex items-center justify-between gap-2 p-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono font-bold text-text">{l.signature}</span>
                     <CopyButtonSmall text={l.signature} label="sygnaturę" />
-                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-lg text-xs font-semibold">
+                    <span className="rounded-lg border border-primary bg-info-soft px-2 py-0.5 text-xs font-semibold text-primary">
                       {l.category === "Inne" ? l.category_other : l.category}
                     </span>
                   </div>
-                  <p className="text-sm text-text-secondary mt-1 truncate">{l.recipient}</p>
+                  <p className="mt-1 truncate text-sm text-text-secondary">{l.recipient}</p>
                 </div>
                 <button
-                  type='button'
-                  className="p-2 bg-surface text-text-secondary rounded-lg transition-colors shrink-0"
+                  type="button"
+                  className="shrink-0 rounded-lg bg-surface p-2 text-text-secondary transition-colors"
                   onClick={() => toggleOpen(l.id)}
                   aria-label={open ? "Zwiń" : "Rozwiń"}
                 >
-                  <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                 </button>
               </div>
 
               {open && (
-                <div className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-3">
+                <div className="space-y-4 border-t border-line bg-card px-4 pt-1 pb-4">
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 pt-3 text-sm">
                     <div>
                       <dt className="text-xs font-bold text-text-muted">Wystawiono</dt>
                       <dd className="text-text">{l.issue_date}</dd>
@@ -279,7 +302,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                     {l.license_plate_number && (
                       <div>
                         <dt className="text-xs font-bold text-text-muted">Nr rejestracyjny</dt>
-                        <dd className="text-text font-mono">{l.license_plate_number}</dd>
+                        <dd className="font-mono text-text">{l.license_plate_number}</dd>
                       </div>
                     )}
                     {l.incident_date && (
@@ -297,27 +320,37 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   </dl>
 
                   {l.description && (
-                    <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{l.description}</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">{l.description}</p>
                   )}
 
-                  <div className="bg-surface border border-gray-200 dark:border-gray-800 rounded-xl p-3 space-y-2">
+                  <div className="space-y-2 rounded-xl border border-line bg-surface p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-text-muted">
-                        Treść (przykład)
-                      </span>
+                      <span className="text-xs font-bold text-text-muted">Treść (przykład)</span>
                       <CopyButtonSmall text={letterBody} label="treść pisma" />
                     </div>
-                    <pre className="text-xs text-text-secondary leading-relaxed whitespace-pre-wrap font-sans">
+                    <pre className="font-sans text-xs leading-relaxed whitespace-pre-wrap text-text-secondary">
                       {letterBody}
                     </pre>
                   </div>
 
-                  <div className="space-y-2 py-2 border-y border-gray-100 dark:border-gray-800">
-                    <FileSlot label="Pismo" path={l.letter_file_path} letterId={l.id} category={l.category} kind="letter" />
-                    <FileSlot label="Odpowiedź" path={l.response_file_path} letterId={l.id} category={l.category} kind="response" />
+                  <div className="space-y-2 border-y border-line py-2">
+                    <FileSlot
+                      label="Pismo"
+                      path={l.letter_file_path}
+                      letterId={l.id}
+                      category={l.category}
+                      kind="letter"
+                    />
+                    <FileSlot
+                      label="Odpowiedź"
+                      path={l.response_file_path}
+                      letterId={l.id}
+                      category={l.category}
+                      kind="response"
+                    />
                   </div>
 
-                  <div className="flex justify-end w-full gap-1.5 pt-2">
+                  <div className="flex w-full justify-end gap-1.5 pt-2">
                     <EditButton onClick={() => handleEdit(l)} />
                     <DeleteButton onClick={() => void deleteLetter(l.id)} />
                   </div>
@@ -326,9 +359,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
             </li>
           );
         })}
-        {filtered.length === 0 && (
-          <NoResultsState text="pism" isSearch={qText.trim().length > 0} />
-        )}
+        {filtered.length === 0 && <NoResultsState text="pism" isSearch={qText.trim().length > 0} />}
       </ul>
     </div>
   );

@@ -1,7 +1,6 @@
 // components/reports/ReportForm.tsx
 
-import React, { useId, useState, SyntheticEvent } from "react";
-import { Plus, X } from "lucide-react";
+import React, { useId, useState, SyntheticEvent, useEffect, useRef } from "react";
 import type { NamedReportTemplate, Report } from "@/types/reports";
 import { getAppDate } from "@/lib/dateUtils";
 import { AddButton, DeleteButton, FormButtons } from "../ui/CommonButtons";
@@ -40,18 +39,16 @@ function RowList({
 }>) {
   return (
     <fieldset className="min-w-0">
-      <div className="flex items-center justify-between gap-2 mb-2">
-      <legend className="form-label">{label}</legend>
-      <AddButton
-        small
-        onClick={() => onChange([...rows, { id: rowId(), value: "" }])}
-        disabled={disabled}
-      />
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <legend className="form-label">{label}</legend>
+        <AddButton small onClick={() => onChange([...rows, { id: rowId(), value: "" }])} disabled={disabled} />
       </div>
       <ol className="space-y-2">
         {rows.map((r, i) => (
           <li key={r.id} className="flex items-center gap-2">
-            <span aria-hidden="true" className="w-5 shrink-0 text-right text-sm tabular-nums text-text-secondary">{i + 1}.</span>
+            <span aria-hidden="true" className="w-5 shrink-0 text-right text-sm text-text-secondary tabular-nums">
+              {i + 1}.
+            </span>
             <input
               className="input-field"
               value={r.value}
@@ -75,8 +72,21 @@ function RowList({
   );
 }
 
-export default function ReportForm({ initial, templates, defaultTemplateId, loading, onSubmit, onCancel }: Readonly<ReportFormProps>) {
+export default function ReportForm({
+  initial,
+  templates,
+  defaultTemplateId,
+  loading,
+  onSubmit,
+  onCancel,
+}: Readonly<ReportFormProps>) {
   const id = useId();
+  const topicRef = useRef<HTMLInputElement>(null);
+
+  // Formularz otwiera się na żądanie użytkownika – fokus od razu w pierwszym polu.
+  useEffect(() => {
+    topicRef.current?.focus();
+  }, []);
   const [topic, setTopic] = useState(initial?.topic ?? "");
   const [date, setDate] = useState(initial?.date?.slice(0, 10) ?? getAppDate());
   const [notes, setNotes] = useState(initial?.notes ?? "");
@@ -85,7 +95,13 @@ export default function ReportForm({ initial, templates, defaultTemplateId, load
   const [participants, setParticipants] = useState<Row[]>(() => toRows(initial?.participants));
   const [tasks, setTasks] = useState<TaskRow[]>(() =>
     initial?.tasks?.length
-      ? initial.tasks.map((t) => ({ id: rowId(), zadanie: t.zadanie, data: t.data ?? "", osoba: t.osoba ?? "", app_task_id: t.app_task_id ?? null }))
+      ? initial.tasks.map((t) => ({
+          id: rowId(),
+          zadanie: t.zadanie,
+          data: t.data ?? "",
+          osoba: t.osoba ?? "",
+          app_task_id: t.app_task_id ?? null,
+        }))
       : [{ id: rowId(), zadanie: "", data: "", osoba: "" }]
   );
 
@@ -106,7 +122,12 @@ export default function ReportForm({ initial, templates, defaultTemplateId, load
       participants: participants.map((p) => p.value.trim()).filter(Boolean),
       tasks: tasks
         .filter((t) => t.zadanie.trim())
-        .map((t) => ({ zadanie: t.zadanie.trim(), data: t.data, osoba: t.osoba.trim(), ...(t.app_task_id ? { app_task_id: t.app_task_id } : {}) })),
+        .map((t) => ({
+          zadanie: t.zadanie.trim(),
+          data: t.data,
+          osoba: t.osoba.trim(),
+          ...(t.app_task_id ? { app_task_id: t.app_task_id } : {}),
+        })),
       notes: notes.trim(),
       ...templatePatch(),
     });
@@ -118,17 +139,45 @@ export default function ReportForm({ initial, templates, defaultTemplateId, load
     <form onSubmit={(e) => void handleSubmit(e)} className="form-card flex max-w-3xl flex-col gap-4">
       <div className="grid gap-3 md:grid-cols-[1fr_12rem]">
         <div>
-          <label htmlFor={`${id}-topic`} className="form-label">Temat spotkania:</label>
-          <input id={`${id}-topic`} value={topic} onChange={(e) => setTopic(e.target.value)} className="input-field font-medium" required disabled={loading} placeholder="np. Posiedzenie zarządu" autoFocus />
+          <label htmlFor={`${id}-topic`} className="form-label">
+            Temat spotkania:
+          </label>
+          <input
+            id={`${id}-topic`}
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className="input-field font-medium"
+            required
+            disabled={loading}
+            placeholder="np. Posiedzenie zarządu"
+            ref={topicRef}
+          />
         </div>
         <div>
-          <label htmlFor={`${id}-date`} className="form-label">Data:</label>
-          <input id={`${id}-date`} type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-field" required disabled={loading} />
+          <label htmlFor={`${id}-date`} className="form-label">
+            Data:
+          </label>
+          <input
+            id={`${id}-date`}
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="input-field"
+            required
+            disabled={loading}
+          />
         </div>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <RowList label="Agenda:" rows={agenda} onChange={setAgenda} addLabel="Dodaj punkt" placeholder={(i) => `Punkt ${i + 1}`} disabled={loading} />
+        <RowList
+          label="Agenda:"
+          rows={agenda}
+          onChange={setAgenda}
+          addLabel="Dodaj punkt"
+          placeholder={(i) => `Punkt ${i + 1}`}
+          disabled={loading}
+        />
         <RowList
           label="Osoby na spotkaniu:"
           rows={participants}
@@ -140,19 +189,29 @@ export default function ReportForm({ initial, templates, defaultTemplateId, load
       </div>
 
       <fieldset className="min-w-0">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <legend className="form-label">Zadania:</legend>
-        <AddButton
-          small
-          onClick={() => setTasks((list) => [...list, { id: rowId(), zadanie: "", data: "", osoba: "" }])}
-          disabled={loading}
-        />
-      </div>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <legend className="form-label">Zadania:</legend>
+          <AddButton
+            small
+            onClick={() => setTasks((list) => [...list, { id: rowId(), zadanie: "", data: "", osoba: "" }])}
+            disabled={loading}
+          />
+        </div>
         <ul className="space-y-2">
           {tasks.map((t, i) => (
-            <li key={t.id} className="grid gap-2 rounded-lg border border-line p-3 sm:grid-cols-[1fr_9.5rem_12rem_auto] sm:items-center">
+            <li
+              key={t.id}
+              className="grid gap-2 rounded-lg border border-line p-3 sm:grid-cols-[1fr_9.5rem_12rem_auto] sm:items-center"
+            >
               <div className="flex items-center gap-2">
-                <input className="input-field" value={t.zadanie} onChange={(e) => updateTask(t.id, "zadanie", e.target.value)} placeholder="Treść zadania" aria-label={`Zadanie ${i + 1}`} disabled={loading} />
+                <input
+                  className="input-field"
+                  value={t.zadanie}
+                  onChange={(e) => updateTask(t.id, "zadanie", e.target.value)}
+                  placeholder="Treść zadania"
+                  aria-label={`Zadanie ${i + 1}`}
+                  disabled={loading}
+                />
                 <DeleteButton
                   onClick={() => setTasks((list) => list.filter((x) => x.id !== t.id))}
                   aria-label={`Usuń zadanie ${i + 1}`}
@@ -160,24 +219,60 @@ export default function ReportForm({ initial, templates, defaultTemplateId, load
                   disabled={loading || tasks.length <= 1}
                 />
               </div>
-              <input type="date" className="input-field" value={t.data} onChange={(e) => updateTask(t.id, "data", e.target.value)} aria-label={`Termin zadania ${i + 1}`} disabled={loading} />
-              <input className="input-field" value={t.osoba} onChange={(e) => updateTask(t.id, "osoba", e.target.value)} placeholder="Osoba odpowiedzialna" aria-label={`Osoba odpowiedzialna za zadanie ${i + 1}`} disabled={loading} />
+              <input
+                type="date"
+                className="input-field"
+                value={t.data}
+                onChange={(e) => updateTask(t.id, "data", e.target.value)}
+                aria-label={`Termin zadania ${i + 1}`}
+                disabled={loading}
+              />
+              <input
+                className="input-field"
+                value={t.osoba}
+                onChange={(e) => updateTask(t.id, "osoba", e.target.value)}
+                placeholder="Osoba odpowiedzialna"
+                aria-label={`Osoba odpowiedzialna za zadanie ${i + 1}`}
+                disabled={loading}
+              />
             </li>
           ))}
         </ul>
       </fieldset>
 
       <div>
-        <label htmlFor={`${id}-notes`} className="form-label">Notatki ze spotkania:</label>
-        <textarea id={`${id}-notes`} value={notes} onChange={(e) => setNotes(e.target.value)} className="input-field" rows={5} placeholder="Podsumowanie, ustalenia, wnioski…" disabled={loading} />
+        <label htmlFor={`${id}-notes`} className="form-label">
+          Notatki ze spotkania:
+        </label>
+        <textarea
+          id={`${id}-notes`}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="input-field"
+          rows={5}
+          placeholder="Podsumowanie, ustalenia, wnioski…"
+          disabled={loading}
+        />
       </div>
 
       {templates.length > 0 && (
         <div className="max-w-sm">
-          <label htmlFor={`${id}-tpl`} className="form-label">Szablon PDF:</label>
-          <select id={`${id}-tpl`} value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="input-field" disabled={loading}>
+          <label htmlFor={`${id}-tpl`} className="form-label">
+            Szablon PDF:
+          </label>
+          <select
+            id={`${id}-tpl`}
+            value={templateId}
+            onChange={(e) => setTemplateId(e.target.value)}
+            className="input-field"
+            disabled={loading}
+          >
             <option value="">Domyślny{defaultName ? ` (${defaultName})` : ""}</option>
-            {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {templates.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
           </select>
         </div>
       )}

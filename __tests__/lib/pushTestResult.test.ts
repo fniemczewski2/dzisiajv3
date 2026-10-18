@@ -27,8 +27,9 @@ import { describePushHttpError } from "@/lib/pushTestResult";
 
 describe("describePushHttpError", () => {
   it("podaje status i przyczynę z serwera", () => {
-    expect(describePushHttpError(500, { error: "Serwer nie ma skonfigurowanych kluczy VAPID." }))
-      .toBe("Nie udało się wysłać powiadomienia testowego (błąd 500: Serwer nie ma skonfigurowanych kluczy VAPID.).");
+    expect(describePushHttpError(500, { error: "Serwer nie ma skonfigurowanych kluczy VAPID." })).toBe(
+      "Nie udało się wysłać powiadomienia testowego (błąd 500: Serwer nie ma skonfigurowanych kluczy VAPID.)."
+    );
   });
   it("401 – sesja", () => {
     expect(describePushHttpError(401, null)).toContain("zaloguj się ponownie");

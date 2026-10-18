@@ -9,8 +9,13 @@ import { getAppDate } from "@/lib/dateUtils";
 import TimeContextBadge from "./TimeContextBadge";
 import UniversalTimer from "../ui/Timer";
 import {
-  EditButton, DeleteButton, RescheduleButton, TimerButton, FormButtons,
-  ConfirmButton, UndoButton,
+  EditButton,
+  DeleteButton,
+  RescheduleButton,
+  TimerButton,
+  FormButtons,
+  ConfirmButton,
+  UndoButton,
 } from "../ui/CommonButtons";
 import { useAuth } from "@/providers/AuthProvider";
 import { taskCategoryOptions } from "@/lib/taskCategories";
@@ -18,7 +23,7 @@ import { useTaskCategories, useCategoryColors } from "@/hooks/useTaskCategories"
 import TaskRemindersEditor from "./TaskRemindersEditor";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { taskRecurrenceFields, taskRule } from "@/lib/taskRecurrence";
-import { describeRule } from "@/supabase/functions/_shared/recurrence";
+import { describeRule } from "@/shared/recurrence";
 import { fetchPendingReminders, replacePendingReminders, validateReminders } from "@/lib/taskReminders";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -71,65 +76,97 @@ function TaskEditForm({
   const editPrefix = `edit-task-${task.id}`;
 
   return (
-    <div className="p-4 w-full card rounded-xl">
+    <div className="card w-full rounded-xl p-4">
       <div className="space-y-3">
         <div>
-          <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł zadania:</label>
-          <input 
-            id={`${editPrefix}-title`} 
-            ref={titleRef} 
-            type="text" 
-            value={editedTask.title} 
-            onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })} 
-            className="input-field font-medium" 
+          <label htmlFor={`${editPrefix}-title`} className="form-label">
+            Tytuł zadania:
+          </label>
+          <input
+            id={`${editPrefix}-title`}
+            ref={titleRef}
+            type="text"
+            value={editedTask.title}
+            onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+            className="input-field font-medium"
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <div className="form-label">Priorytet:</div>
-            <div className="flex items-stretch gap-1.5 mt-1">
-              <button type="button" onClick={decreasePriority} aria-label="Zmniejsz priorytet" className="flex h-11 w-11 items-center justify-center bg-surface border border-line-strong rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shrink-0"><Minus size={18} aria-hidden="true" /></button>
-              <output aria-live="polite" aria-label={`Priorytet ${editedTask.priority}`} className="flex-1 flex items-center justify-center text-lg card rounded-lg text-text">{editedTask.priority}</output>
-              <button type="button" onClick={increasePriority} aria-label="Zwiększ priorytet" className="flex h-11 w-11 items-center justify-center bg-surface border border-line-strong rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shrink-0"><Plus size={18} aria-hidden="true" /></button>
+            <div className="mt-1 flex items-stretch gap-1.5">
+              <button
+                type="button"
+                onClick={decreasePriority}
+                aria-label="Zmniejsz priorytet"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-surface text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
+              >
+                <Minus size={18} aria-hidden="true" />
+              </button>
+              <output
+                aria-live="polite"
+                aria-label={`Priorytet ${editedTask.priority}`}
+                className="card flex flex-1 items-center justify-center rounded-lg text-lg text-text"
+              >
+                {editedTask.priority}
+              </output>
+              <button
+                type="button"
+                onClick={increasePriority}
+                aria-label="Zwiększ priorytet"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-surface text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
+              >
+                <Plus size={18} aria-hidden="true" />
+              </button>
             </div>
           </div>
           <div>
-            <label htmlFor={`${editPrefix}-category`} className="form-label">Kategoria:</label>
-            <select 
-              id={`${editPrefix}-category`} 
-              value={editedTask.category} 
-              onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })} 
+            <label htmlFor={`${editPrefix}-category`} className="form-label">
+              Kategoria:
+            </label>
+            <select
+              id={`${editPrefix}-category`}
+              value={editedTask.category}
+              onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })}
               className="input-field"
             >
               {taskCategoryOptions(userCategories, task.category).map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
             </select>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor={`${editPrefix}-date`} className="form-label">Data wykonania:</label>
-            <input 
-              id={`${editPrefix}-date`} 
-              type="date" 
-              value={editedTask.due_date} 
-              onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })} 
-              className="input-field w-full min-w-0 px-2" 
+            <label htmlFor={`${editPrefix}-date`} className="form-label">
+              Data wykonania:
+            </label>
+            <input
+              id={`${editPrefix}-date`}
+              type="date"
+              value={editedTask.due_date}
+              onChange={(e) => setEditedTask({ ...editedTask, due_date: e.target.value })}
+              className="input-field w-full min-w-0 px-2"
             />
           </div>
           {userOptions.length > 0 && (
             <div>
-              <label htmlFor={`${editPrefix}-share`} className="form-label">Udostępnij dla:</label>
-              <select 
-                id={`${editPrefix}-share`} 
-                value={sharedEmail} 
-                onChange={(e) => setSharedEmail(e.target.value)} 
+              <label htmlFor={`${editPrefix}-share`} className="form-label">
+                Udostępnij dla:
+              </label>
+              <select
+                id={`${editPrefix}-share`}
+                value={sharedEmail}
+                onChange={(e) => setSharedEmail(e.target.value)}
                 className="input-field"
               >
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email: string) => (
-                  <option key={email} value={email}>{email}</option>
+                  <option key={email} value={email}>
+                    {email}
+                  </option>
                 ))}
               </select>
             </div>
@@ -144,21 +181,28 @@ function TaskEditForm({
           disabled={loading}
         />
         {remindersLoaded ? (
-          <TaskRemindersEditor value={reminders} onChange={setReminders} dueDate={editedTask.due_date} disabled={loading} />
+          <TaskRemindersEditor
+            value={reminders}
+            onChange={setReminders}
+            dueDate={editedTask.due_date}
+            disabled={loading}
+          />
         ) : (
           <p className="text-sm text-text-secondary">Wczytuję przypomnienia…</p>
         )}
         <div>
-          <label htmlFor={`${editPrefix}-desc`} className="form-label">Opis:</label>
-          <textarea 
-            id={`${editPrefix}-desc`} 
-            value={editedTask.description || ""} 
-            onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })} 
-            className="input-field" 
-            rows={2} 
+          <label htmlFor={`${editPrefix}-desc`} className="form-label">
+            Opis:
+          </label>
+          <textarea
+            id={`${editPrefix}-desc`}
+            value={editedTask.description || ""}
+            onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+            className="input-field"
+            rows={2}
           />
         </div>
-          <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading}/>
+        <FormButtons onClickSave={handleSaveEdit} onClickClose={handleCancelEdit} loading={loading} />
       </div>
     </div>
   );
@@ -189,7 +233,7 @@ function TaskViewActions({
 }>) {
   if (isDone) {
     return (
-      <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="mt-3 flex w-full justify-between gap-1 border-t border-line pt-3 sm:gap-1.5">
         <UndoButton onClick={() => handleComplete(false)} />
         <EditButton onClick={handleEdit} />
         <DeleteButton onClick={handleDelete} />
@@ -199,7 +243,7 @@ function TaskViewActions({
 
   if (task.user_id !== userId && task.status === "waiting_for_acceptance") {
     return (
-      <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="mt-3 flex w-full justify-between gap-1 border-t border-line pt-3 sm:gap-1.5">
         <ConfirmButton onClick={handleAccept} label="Akceptuj" />
         <DeleteButton onClick={handleDelete} />
       </div>
@@ -207,10 +251,8 @@ function TaskViewActions({
   }
 
   return (
-    <div className="flex justify-between w-full gap-1 sm:gap-1.5 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
-      <ConfirmButton
-       onClick={() => handleComplete()} label="Zrobione"
-       />
+    <div className="mt-3 flex w-full justify-between gap-1 border-t border-line pt-3 sm:gap-1.5">
+      <ConfirmButton onClick={() => handleComplete()} label="Zrobione" />
       <RescheduleButton onClick={() => handleReschedule(1)} loading={loading} />
       <TimerButton onClick={() => setIsTimerActive(true)} />
       <EditButton onClick={handleEdit} />
@@ -221,30 +263,23 @@ function TaskViewActions({
 
 const getTitleClasses = (isDone: boolean, isHighPriority: boolean, isOverdue: boolean) => {
   if (isDone) return "text-text-muted line-through";
-  if (isHighPriority || isOverdue) return "text-red-600 dark:text-red-400";
+  if (isHighPriority || isOverdue) return "text-danger ";
   return "text-text";
 };
 
 function TaskDetails({ task }: { readonly task: Task }) {
   const hasDescription = !!task.description;
-  const showShareInfo = !!(
-    task.display_share_info && 
-    ["waiting_for_acceptance", "pending"].includes(task.status)
-  );
+  const showShareInfo = !!(task.display_share_info && ["waiting_for_acceptance", "pending"].includes(task.status));
 
   if (!hasDescription && !showShareInfo) return null;
 
   return (
-    <div className="flex flex-col gap-1.5 mt-2 rounded-lg bg-surface border border-gray-100 dark:border-gray-800 p-3">
+    <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-3">
       {hasDescription && (
-        <span className="text-xs text-text-secondary whitespace-pre-wrap leading-relaxed">
-          {task.description}
-        </span>
+        <span className="text-xs leading-relaxed whitespace-pre-wrap text-text-secondary">{task.description}</span>
       )}
       {showShareInfo && (
-        <span className="text-xs font-medium text-primary truncate mt-1">
-          {task.display_share_info}
-        </span>
+        <span className="mt-1 truncate text-xs font-medium text-primary">{task.display_share_info}</span>
       )}
     </div>
   );
@@ -279,32 +314,37 @@ function TaskView({
 }>) {
   const categoryColors = useCategoryColors();
   return (
-    <div className="card min-w-0 p-4 w-full rounded-card transition-all flex flex-col text-left">
-      <div className="space-y-3 flex-1">
-        
-        <button 
-          type="button" 
-          onClick={() => setIsTimerActive(true)} 
-          className="flex justify-start gap-3 items-start cursor-pointer w-full text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+    <div className="card flex w-full min-w-0 flex-col rounded-card p-4 text-left transition-all">
+      <div className="flex-1 space-y-3">
+        <button
+          type="button"
+          onClick={() => setIsTimerActive(true)}
+          className="flex w-full cursor-pointer items-start justify-start gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
         >
           <span
-            className="w-6 h-6 shrink-0 mt-0.5 text-xs font-bold rounded-lg flex items-center justify-center shadow-sm"
+            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold shadow-sm"
             style={getPriorityColors(task.priority)}
             title={`Priorytet ${task.priority}`}
           >
             {task.priority}
           </span>
-          <h3 className={`text-lg sm:text-xl font-bold wrap-break-word leading-tight ${getTitleClasses(isDone, isHighPriority, isOverdue)}`}>
+          <h3
+            className={`text-lg leading-tight font-bold wrap-break-word sm:text-xl ${getTitleClasses(isDone, isHighPriority, isOverdue)}`}
+          >
             {task.title}
           </h3>
         </button>
 
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap items-center gap-2">
           <TimeContextBadge dueDate={task.due_date} isDone={isDone} />
           {task.category && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-line text-text-secondary rounded-full text-sm font-medium">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-sm font-medium text-text-secondary">
               {categoryColors[task.category] && (
-                <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: categoryColors[task.category] }} />
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: categoryColors[task.category] }}
+                />
               )}
               {task.category}
             </span>
@@ -319,10 +359,9 @@ function TaskView({
         )}
 
         <TaskDetails task={task} />
-
       </div>
 
-      <TaskViewActions 
+      <TaskViewActions
         task={task}
         userId={userId}
         isDone={isDone}
@@ -349,7 +388,7 @@ function useTaskActions(props: Props) {
   const [editedTask, setEditedTask] = useState(task);
   const [sharedEmail, setSharedEmail] = useState("");
   const [isTimerActive, setIsTimerActive] = useState(false);
-  
+
   const handleDelete = async () => {
     try {
       await deleteTask(task.id);
@@ -391,7 +430,9 @@ function useTaskActions(props: Props) {
     }
     try {
       // Dzień miesiąca reguły liczony od terminu z chwili zapisu (termin mógł się zmienić po wyborze reguły).
-      const recurrenceFix = editedTask.is_recurring ? taskRecurrenceFields(taskRule(editedTask), editedTask.due_date) : {};
+      const recurrenceFix = editedTask.is_recurring
+        ? taskRecurrenceFields(taskRule(editedTask), editedTask.due_date)
+        : {};
       await editTask({ ...editedTask, ...recurrenceFix, shared_with_email: sharedEmail });
       if (remindersLoaded) {
         const { error } = await replacePendingReminders(supabase, userId, task.id, reminders);
@@ -436,12 +477,12 @@ function useTaskActions(props: Props) {
   const stopTimerAndSave = async (timerSeconds: number) => {
     setIsTimerActive(false);
     if (timerSeconds >= 60) {
-        const minutes = Math.floor(timerSeconds / 60);
-        const newNote = `Czas: ${minutes} min`;
-        const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
-        const { error } = await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
-        if (error) throw error;
-        onTasksChange();
+      const minutes = Math.floor(timerSeconds / 60);
+      const newNote = `Czas: ${minutes} min`;
+      const updatedDesc = [task.description || "", newNote].filter(Boolean).join("\n");
+      const { error } = await supabase.from("tasks").update({ description: updatedDesc }).eq("id", task.id);
+      if (error) throw error;
+      onTasksChange();
     }
   };
 
@@ -449,19 +490,33 @@ function useTaskActions(props: Props) {
   const decreasePriority = () => setEditedTask((prev) => ({ ...prev, priority: Math.min(5, prev.priority + 1) }));
 
   return {
-    isEditing, editedTask, setEditedTask, sharedEmail, setSharedEmail,
-    reminders, setReminders, remindersLoaded,
-    isTimerActive, setIsTimerActive,
-    handleDelete, handleEdit, handleCancelEdit, handleSaveEdit,
-    handleComplete, handleReschedule, handleAccept, stopTimerAndSave,
-    increasePriority, decreasePriority
+    isEditing,
+    editedTask,
+    setEditedTask,
+    sharedEmail,
+    setSharedEmail,
+    reminders,
+    setReminders,
+    remindersLoaded,
+    isTimerActive,
+    setIsTimerActive,
+    handleDelete,
+    handleEdit,
+    handleCancelEdit,
+    handleSaveEdit,
+    handleComplete,
+    handleReschedule,
+    handleAccept,
+    stopTimerAndSave,
+    increasePriority,
+    decreasePriority,
   };
 }
 
 const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
   const { task, userId, userOptions, loading } = props;
   const isDone = task.status === "done";
-  
+
   const titleRef = useRef<HTMLInputElement>(null);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -486,7 +541,7 @@ const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
 
   if (actions.isTimerActive) {
     return (
-      <div className="w-full h-full animate-in fade-in zoom-in duration-300">
+      <div className="h-full w-full animate-in duration-300 fade-in zoom-in">
         <UniversalTimer
           title={task.title}
           secondsLeft={timerSeconds}
@@ -494,7 +549,10 @@ const TaskItem = memo(function TaskItem(props: Readonly<Props>) {
           paused={timerPaused}
           compact
           controls={{
-            start: () => { setTimerRunning(true); setTimerPaused(false); },
+            start: () => {
+              setTimerRunning(true);
+              setTimerPaused(false);
+            },
             pause: () => setTimerPaused((p) => !p),
             stop: () => {
               setTimerRunning(false);

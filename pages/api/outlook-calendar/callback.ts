@@ -1,5 +1,6 @@
-﻿// pages/api/outlook-calendar/callback.ts
+// pages/api/outlook-calendar/callback.ts
 
+import { serverEnv } from "@/config/env";
 import { NextApiRequest, NextApiResponse } from "next";
 import { handleOAuthCallback } from "@/lib/server/oauthCallback";
 
@@ -10,10 +11,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     profileUrl: "https://graph.microsoft.com/v1.0/me",
     calendarName: "Połączenie Outlook",
-    buildClientCredentials: () => ({
-      client_id: process.env.OUTLOOK_CLIENT_ID!,
-      client_secret: process.env.OUTLOOK_CLIENT_SECRET!,
-    }),
-    extractEmail: (profile) => (profile.mail as string | undefined) || (profile.userPrincipalName as string | undefined),
+    buildClientCredentials: () => {
+      const { clientId, clientSecret } = serverEnv.outlook.require();
+      return { client_id: clientId, client_secret: clientSecret };
+    },
+    extractEmail: (profile) =>
+      (profile.mail as string | undefined) || (profile.userPrincipalName as string | undefined),
   });
 }

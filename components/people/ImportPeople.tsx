@@ -1,8 +1,8 @@
-﻿// components/people/ImportPeople.tsx
+// components/people/ImportPeople.tsx
 
-import React, { useRef } from 'react';
-import { Upload } from 'lucide-react';
-import { PersonInsert } from '@/types/people';
+import React, { useRef } from "react";
+import { Upload } from "lucide-react";
+import { PersonInsert } from "@/types/people";
 
 interface ImportProps {
   onImport: (people: PersonInsert[]) => void;
@@ -10,7 +10,7 @@ interface ImportProps {
 
 const parseCSVRow = (str: string) => {
   const result = [];
-  let cell = '';
+  let cell = "";
   let quote = false;
   for (let i = 0; i < str.length; i++) {
     const char = str[i];
@@ -19,9 +19,9 @@ const parseCSVRow = (str: string) => {
       i++;
     } else if (char === '"') {
       quote = !quote;
-    } else if (char === ',' && !quote) {
+    } else if (char === "," && !quote) {
       result.push(cell.trim());
-      cell = '';
+      cell = "";
     } else {
       cell += char;
     }
@@ -31,50 +31,57 @@ const parseCSVRow = (str: string) => {
 };
 
 const processCSVText = (text: string): PersonInsert[] => {
-  const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
   if (lines.length < 2) return [];
 
   const headers = parseCSVRow(lines[0]);
   const getIndex = (name: string) => headers.indexOf(name);
 
-  const idxFirstName = getIndex('First Name');
-  const idxLastName = getIndex('Last Name');
-  const idxNamePrefix = getIndex('Name Prefix');       
-  const idxOrganization = getIndex('Organization Name'); 
-  const idxNotes = getIndex('Notes');      
-  
-  const phoneIndices = headers.map((h, i) => h.startsWith('Phone') && h.endsWith('Value') ? i : -1).filter(i => i !== -1);
-  const emailIndices = headers.map((h, i) => h.startsWith('E-mail') && h.endsWith('Value') ? i : -1).filter(i => i !== -1);
+  const idxFirstName = getIndex("First Name");
+  const idxLastName = getIndex("Last Name");
+  const idxNamePrefix = getIndex("Name Prefix");
+  const idxOrganization = getIndex("Organization Name");
+  const idxNotes = getIndex("Notes");
 
-  return lines.slice(1).map(line => {
-    const row = parseCSVRow(line);
-    
-    const first_name = idxFirstName !== -1 && row[idxFirstName] ? row[idxFirstName] : '';
-    const last_name = idxLastName !== -1 && row[idxLastName] ? row[idxLastName] : '';
-    const relationship = idxNamePrefix !== -1 && row[idxNamePrefix] ? row[idxNamePrefix] : '';
-    
-    let notes = '';
-    if (idxOrganization !== -1 && row[idxOrganization]) {
-      notes = row[idxOrganization];
-    }
-    if (idxNotes !== -1 && row[idxNotes]) {
-      notes += notes ? ` | ${row[idxNotes]}` : row[idxNotes];
-    }
-    
-    const phones = phoneIndices.map(idx => row[idx]).filter(Boolean);
-    const emails = emailIndices.map(idx => row[idx]).filter(Boolean);
+  const phoneIndices = headers
+    .map((h, i) => (h.startsWith("Phone") && h.endsWith("Value") ? i : -1))
+    .filter((i) => i !== -1);
+  const emailIndices = headers
+    .map((h, i) => (h.startsWith("E-mail") && h.endsWith("Value") ? i : -1))
+    .filter((i) => i !== -1);
 
-    return {
-      first_name,
-      last_name,
-      relationship,
-      notes,
-      phones,
-      emails,
-      priority: 0,
-      birthday: null
-    };
-  }).filter(c => c.first_name); 
+  return lines
+    .slice(1)
+    .map((line) => {
+      const row = parseCSVRow(line);
+
+      const first_name = idxFirstName !== -1 && row[idxFirstName] ? row[idxFirstName] : "";
+      const last_name = idxLastName !== -1 && row[idxLastName] ? row[idxLastName] : "";
+      const relationship = idxNamePrefix !== -1 && row[idxNamePrefix] ? row[idxNamePrefix] : "";
+
+      let notes = "";
+      if (idxOrganization !== -1 && row[idxOrganization]) {
+        notes = row[idxOrganization];
+      }
+      if (idxNotes !== -1 && row[idxNotes]) {
+        notes += notes ? ` | ${row[idxNotes]}` : row[idxNotes];
+      }
+
+      const phones = phoneIndices.map((idx) => row[idx]).filter(Boolean);
+      const emails = emailIndices.map((idx) => row[idx]).filter(Boolean);
+
+      return {
+        first_name,
+        last_name,
+        relationship,
+        notes,
+        phones,
+        emails,
+        priority: 0,
+        birthday: null,
+      };
+    })
+    .filter((c) => c.first_name);
 };
 
 export const ImportPeople = ({ onImport }: ImportProps) => {
@@ -87,34 +94,28 @@ export const ImportPeople = ({ onImport }: ImportProps) => {
     try {
       const text = await file.text();
       const newContacts = processCSVText(text);
-      
+
       if (newContacts.length > 0) {
         onImport(newContacts);
       }
     } catch (error) {
-      console.error("Failed to parse CSV file:", error);
+      console.error("[ImportPeople] Nie udało się odczytać pliku CSV:", error);
     } finally {
       if (fileRef.current) {
-        fileRef.current.value = '';
+        fileRef.current.value = "";
       }
     }
   };
 
   return (
     <div className="flex items-center gap-2">
-      <input 
-        type="file" 
-        accept=".csv" 
-        className="hidden" 
-        ref={fileRef} 
-        onChange={handleFileUpload} 
-      />
-      <button 
-        type='button'
+      <input type="file" accept=".csv" className="hidden" ref={fileRef} onChange={handleFileUpload} />
+      <button
+        type="button"
         onClick={() => fileRef.current?.click()}
-        className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors"
+        className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover"
       >
-         .csv <Upload className="w-5 h-5" />
+        .csv <Upload className="h-5 w-5" />
       </button>
     </div>
   );

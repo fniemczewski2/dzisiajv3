@@ -1,7 +1,7 @@
-﻿// components/dashboard/DayStreaks.tsx
+// components/dashboard/DayStreaks.tsx
 
-import React from 'react';
-import { Streak } from '@/types/streaks';
+import React from "react";
+import { Streak } from "@/types/streaks";
 
 interface DayStreaksProps {
   streaks: (Streak & { milestoneMessage: string })[];
@@ -9,20 +9,21 @@ interface DayStreaksProps {
 }
 
 export const DayStreaks = React.memo(({ streaks, fetchingStreaks }: Readonly<DayStreaksProps>) => {
-
   return (
     <>
-        {!fetchingStreaks && streaks?.map((streak) => (
-          <div key={streak.id} className="p-4 w-full card hover:border-primary transition-all flex items-center justify-between gap-3 rounded-card">
-              <p className="font-bold text-sm sm:text-base text-text leading-tight truncate">
-                {streak.name}
-              </p>
-              <span className="text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-2 py-1 rounded-lg text-xs font-medium tracking-wider h-6">
-                {streak.milestoneMessage}
-              </span>
+      {!fetchingStreaks &&
+        streaks?.map((streak) => (
+          <div
+            key={streak.id}
+            className="card flex w-full items-center justify-between gap-3 rounded-card p-4 transition-all hover:border-primary"
+          >
+            <p className="truncate text-sm leading-tight font-bold text-text sm:text-base">{streak.name}</p>
+            <span className="h-6 rounded-lg border border-warning-line bg-warning-soft px-2 py-1 text-xs font-medium tracking-wider text-accent">
+              {streak.milestoneMessage}
+            </span>
           </div>
         ))}
-      </>
+    </>
   );
 });
-DayStreaks.displayName = 'DayStreaks';
+DayStreaks.displayName = "DayStreaks";

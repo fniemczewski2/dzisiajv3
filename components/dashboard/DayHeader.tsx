@@ -20,56 +20,73 @@ interface DayHeaderProps {
   loadingSettings: boolean;
 }
 
-export default function DayHeader({ date, dateStr, onPrev, onNext, handleAddDraft, settings, loadingSettings }: Readonly<DayHeaderProps>) {
-
+export default function DayHeader({
+  date,
+  dateStr,
+  onPrev,
+  onNext,
+  handleAddDraft,
+  settings,
+  loadingSettings,
+}: Readonly<DayHeaderProps>) {
   const holiday = useMemo(() => {
-      const map = getPolishHolidays(date.getFullYear());
-      return map[dateStr] ?? null;
+    const map = getPolishHolidays(date.getFullYear());
+    return map[dateStr] ?? null;
   }, [dateStr, date]);
 
   const isSmallScreen = useResponsive(721);
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 relative">
-
-        <div className="flex items-center card rounded-card p-1 w-full hover:shadow-sm">
+      <div className="relative flex items-center justify-between gap-2">
+        <div className="card flex w-full items-center rounded-card p-1 hover:shadow-sm">
           <button
             onClick={onPrev}
-            type='button'
-            className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
+            type="button"
+            className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
             title="Poprzedni dzień"
             aria-label="Poprzedni dzień"
-            >
-            <ChevronLeft aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6" />
+          >
+            <ChevronLeft aria-hidden="true" className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
-        
-          <div className="flex flex-col items-center flex-1">
-            <h1 className="page-title text-lg sm:text-2xl text-center first-letter:uppercase" aria-live="polite">
+
+          <div className="flex flex-1 flex-col items-center">
+            <h1 className="page-title text-center text-lg first-letter:uppercase sm:text-2xl" aria-live="polite">
               {format(date, "eeee, d\u00A0MMM", { locale: pl })}
             </h1>
-            {holiday && <span className="text-red-700 dark:text-red-300 text-xs font-medium mt-1">{holiday}</span>}
+            {holiday && <span className="mt-1 text-xs font-medium text-danger">{holiday}</span>}
           </div>
-        
+
           <button
             onClick={onNext}
-            type='button'
-            className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
+            type="button"
+            className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
             title="Następny dzień"
             aria-label="Następny dzień"
           >
-            <ChevronRight aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6" />
+            <ChevronRight aria-hidden="true" className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
-         </div>
-
-
-          <div className="flex items-center gap-2 justify-between max-w-25 md:min-w-50">
-            <AddSpecificButton Icon={ListTodo} title={"Dodaj zadanie"} label={"Zadanie"} action={() => handleAddDraft('task')} small={isSmallScreen}/>
-            <AddSpecificButton Icon={Calendar} title={"Dodaj wydarzenie"} label={"Wydarzenie"} action={() => handleAddDraft('event')} small={isSmallScreen}/>
-          </div>
         </div>
 
-        <DashboardWidgets settings={settings} loading={loadingSettings} date={dateStr}/>
+        <div className="flex max-w-25 items-center justify-between gap-2 md:min-w-50">
+          <AddSpecificButton
+            Icon={ListTodo}
+            title={"Dodaj zadanie"}
+            label={"Zadanie"}
+            action={() => handleAddDraft("task")}
+            small={isSmallScreen}
+          />
+          <AddSpecificButton
+            Icon={Calendar}
+            title={"Dodaj wydarzenie"}
+            label={"Wydarzenie"}
+            action={() => handleAddDraft("event")}
+            small={isSmallScreen}
+          />
+        </div>
+      </div>
+
+      <DashboardWidgets settings={settings} loading={loadingSettings} date={dateStr} />
     </>
   );
 }

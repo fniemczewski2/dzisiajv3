@@ -8,13 +8,12 @@ Procedury operacyjne. Każda sekcja: kiedy jej użyć, co zrobić, jak sprawdzi�
 
 1. Lokalnie, przed wypchnięciem:
    ```bash
-   npx tsc --noEmit && npm test
+   npm run check   # tsc + oxlint + testy
    ```
-   Wersja 1.38.11 trafiła do repozytorium z błędem kompilacji (narzędzie usuwające komentarze
-   skasowało też kod) – ten krok wyłapałby to od razu. Docelowo uruchamiaj go w CI przy każdym pushu.
+   Podbij `version` w `package.json` – numer trafia do Ustawień → Informacje o wersji.
 2. Push na gałąź główną → Vercel buduje i wdraża automatycznie.
 3. **Sprawdzenie:** logowanie, dodanie zadania, otwarcie kalendarza; w Vercel → Logs brak błędów 5xx.
-4. **Wycofanie:** Vercel → Deployments → poprzednie wdrożenie → *Promote to Production*.
+4. **Wycofanie:** Vercel → Deployments → poprzednie wdrożenie → _Promote to Production_.
 
 Jeśli zmiana wymaga zmian w bazie, **najpierw baza, potem kod** (zob. niżej).
 
@@ -37,18 +36,21 @@ dopiero po wdrożeniu kodu, który ich nie używa.
 
 ## Zadania cykliczne (cron)
 
-Harmonogram **nie jest zapisany w repozytorium** (brak `vercel.json`, brak `pg_cron`). Zapisz tutaj, gdzie jest skonfigurowany.
+Harmonogram wywołań HTTP **nie jest zapisany w repozytorium** (brak `vercel.json`). Zapisz tutaj, gdzie jest skonfigurowany.
+W bazie działa `pg_cron` z jednym zadaniem: `purge-old-error-logs` (03:15 UTC, usuwa wpisy `errors`
+starsze niż 30 dni) – skrypt `supabase/sql/2026-10-17_errors_retention.sql`.
 
-| Zadanie | Wywołanie | Sugerowana częstotliwość |
-|---|---|---|
-| Synchronizacja kalendarzy | `GET /api/calendar/sync-calendars` z `Authorization: Bearer <CRON_SECRET>` (lub `x-cron-secret`) | co 15–30 min |
-| Zamykanie ankiet | `GET /api/meeting-polls/close-expired` | co godzinę |
-| Synchronizacja Slacka | `GET /api/slack/sync` | co 5–15 min |
-| Powiadomienia | Edge `process-notifications` z `x-cron-secret` | co minutę |
-| Przypomnienia o zadaniach | Edge `process-notifications?type=task_reminder` z `x-cron-secret` | co minutę |
-| Zadania cykliczne | Edge `process-reminders` | raz na dobę |
+| Zadanie                   | Wywołanie                                                                                        | Sugerowana częstotliwość |
+| ------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------ |
+| Synchronizacja kalendarzy | `GET /api/calendar/sync-calendars` z `Authorization: Bearer <CRON_SECRET>` (lub `x-cron-secret`) | co 15–30 min             |
+| Zamykanie ankiet          | `GET /api/meeting-polls/close-expired`                                                           | co godzinę               |
+| Synchronizacja Slacka     | `GET /api/slack/sync`                                                                            | co 5–15 min              |
+| Powiadomienia             | Edge `process-notifications` z `x-cron-secret`                                                   | co minutę                |
+| Przypomnienia o zadaniach | Edge `process-notifications?type=task_reminder` z `x-cron-secret`                                | co minutę                |
+| Zadania cykliczne         | Edge `process-reminders`                                                                         | raz na dobę              |
 
 **Sprawdzenie ręczne:**
+
 ```bash
 curl -i -H "Authorization: Bearer $CRON_SECRET" https://dzisiaj.fun/api/calendar/sync-calendars
 # 200 {"success":true,"imported":…,"removed":…,"failedAccounts":[]}
@@ -70,13 +72,13 @@ curl -i -H "Authorization: Bearer $CRON_SECRET" https://dzisiaj.fun/api/calendar
 
 ## Rotacja sekretów
 
-| Sekret | Skutek zmiany | Procedura |
-|---|---|---|
-| `CRON_SECRET` | Harmonogram przestaje działać do aktualizacji | Zmień w Vercelu i Supabase (secrets), potem w harmonogramie |
-| `CALENDAR_TOKEN_ENCRYPTION_KEY` | **Zapisane tokeny przestają być czytelne** | Nie zmieniaj bez skryptu re-szyfrującego; inaczej użytkownicy muszą ponownie połączyć konta |
-| Klucze VAPID | Istniejące subskrypcje push przestają działać | Użytkownicy muszą ponownie włączyć powiadomienia |
-| `SUPABASE_SECRET_KEY` | API traci dostęp do bazy do czasu aktualizacji | Wygeneruj nowy w Supabase, podmień w Vercelu, wdroż ponownie |
-| Tokeny Skrótów Siri | – | Użytkownik generuje nowy w Ustawieniach |
+| Sekret                          | Skutek zmiany                                  | Procedura                                                                                   |
+| ------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `CRON_SECRET`                   | Harmonogram przestaje działać do aktualizacji  | Zmień w Vercelu i Supabase (secrets), potem w harmonogramie                                 |
+| `CALENDAR_TOKEN_ENCRYPTION_KEY` | **Zapisane tokeny przestają być czytelne**     | Nie zmieniaj bez skryptu re-szyfrującego; inaczej użytkownicy muszą ponownie połączyć konta |
+| Klucze VAPID                    | Istniejące subskrypcje push przestają działać  | Użytkownicy muszą ponownie włączyć powiadomienia                                            |
+| `SUPABASE_SECRET_KEY`           | API traci dostęp do bazy do czasu aktualizacji | Wygeneruj nowy w Supabase, podmień w Vercelu, wdroż ponownie                                |
+| Tokeny Skrótów Siri             | –                                              | Użytkownik generuje nowy w Ustawieniach                                                     |
 
 ## Jednorazowe: szyfrowanie starych tokenów
 
@@ -85,4 +87,29 @@ NEXT_PUBLIC_SUPABASE_URL=… SUPABASE_SECRET_KEY=… CALENDAR_TOKEN_ENCRYPTION_K
   node scripts/encrypt-legacy-tokens.mjs          # podgląd
 node scripts/encrypt-legacy-tokens.mjs --apply    # zapis
 ```
+
 Następnie ustaw `REJECT_PLAINTEXT_TOKENS=1`, żeby niezaszyfrowane tokeny były odrzucane.
+
+## Konfiguracja usług zewnętrznych
+
+**Upstash Redis (limity zapytań).** Vercel → Marketplace → Upstash Redis → podłącz do projektu
+(dodaje `KV_REST_API_URL` / `KV_REST_API_TOKEN`; kod czyta też `UPSTASH_REDIS_REST_URL` / `_TOKEN`).
+Sprawdzenie: 31 szybkich żądań do `/api/vcard?slug=…` → ostatnie zwraca `429`, także przy żądaniach
+trafiających w różne instancje. Bez Redisa limiter działa w pamięci instancji (fail-open przy awarii Redisa).
+
+**Asymetryczne klucze JWT (Supabase → Settings → JWT Keys).** Włączone = `proxy.ts` weryfikuje sesję
+lokalnie (`getClaims()`), bez zapytania do Auth przy każdej stronie. Bez nich `getClaims()` pyta serwer.
+
+**Edge Functions – sekret `ALLOWED_ORIGIN`.** Produkcja: `https://dzisiaj.fun`; lokalnie
+`http://localhost:3000`. Inny adres = przeglądarka zablokuje wywołania funkcji (CORS).
+
+**pg_cron.** Dashboard → Database → Extensions → `pg_cron`, potem uruchom
+`supabase/sql/2026-10-17_errors_retention.sql`. Sprawdzenie: `select * from cron.job_run_details order by start_time desc limit 5;`.
+
+## Awaria: CSP blokuje zasób
+
+**Objaw:** w konsoli przeglądarki „Refused to load … Content Security Policy”.
+
+1. Tymczasowo: `CSP_REPORT_ONLY=1` w Vercel i ponowne wdrożenie (polityka tylko raportuje).
+2. Dopisz domenę do właściwej dyrektywy w `next.config.mjs` (np. `connect-src` dla nowego API).
+3. Usuń `CSP_REPORT_ONLY` i wdroż ponownie.

@@ -82,11 +82,21 @@ function TransactionEditor({ t, categories, categoryLabel, bills, onSave, onCanc
   return (
     <div className="mb-3 grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <label htmlFor={`${id}-desc`} className="form-label">Nazwa:</label>
-        <input id={`${id}-desc`} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} className="input-field" />
+        <label htmlFor={`${id}-desc`} className="form-label">
+          Nazwa:
+        </label>
+        <input
+          id={`${id}-desc`}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={300}
+          className="input-field"
+        />
       </div>
       <div>
-        <label htmlFor={`${id}-amount`} className="form-label">Kwota (zł):</label>
+        <label htmlFor={`${id}-amount`} className="form-label">
+          Kwota (zł):
+        </label>
         <input
           id={`${id}-amount`}
           inputMode="decimal"
@@ -96,43 +106,78 @@ function TransactionEditor({ t, categories, categoryLabel, bills, onSave, onCanc
           aria-describedby={valid ? undefined : `${id}-amount-err`}
           className="input-field"
         />
-        {!valid && <p id={`${id}-amount-err`} className="mt-1 text-sm text-red-700 dark:text-red-300">Wpisz kwotę, np. 19,90.</p>}
+        {!valid && (
+          <p id={`${id}-amount-err`} className="mt-1 text-sm text-danger">
+            Wpisz kwotę, np. 19,90.
+          </p>
+        )}
       </div>
       <div>
-        <label htmlFor={`${id}-date`} className="form-label">Data:</label>
-        <input id={`${id}-date`} type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-field" />
+        <label htmlFor={`${id}-date`} className="form-label">
+          Data:
+        </label>
+        <input
+          id={`${id}-date`}
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="input-field"
+        />
       </div>
       <div>
-        <label htmlFor={`${id}-cat`} className="form-label">Kategoria:</label>
-        <select id={`${id}-cat`} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input-field">
+        <label htmlFor={`${id}-cat`} className="form-label">
+          Kategoria:
+        </label>
+        <select
+          id={`${id}-cat`}
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          className="input-field"
+        >
           <option value="">Bez kategorii</option>
-          {t.category_id && !categories.some((c) => c.id === t.category_id) && <option value={t.category_id}>{categoryLabel}</option>}
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {t.category_id && !categories.some((c) => c.id === t.category_id) && (
+            <option value={t.category_id}>{categoryLabel}</option>
+          )}
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
         </select>
       </div>
       {!t.is_income && (
         <div>
-          <label htmlFor={`${id}-bill`} className="form-label">Połącz z płatnością cykliczną:</label>
+          <label htmlFor={`${id}-bill`} className="form-label">
+            Połącz z płatnością cykliczną:
+          </label>
           <select id={`${id}-bill`} value={billId} onChange={(e) => setBillId(e.target.value)} className="input-field">
             <option value="">Brak powiązania</option>
-            {bills.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            {bills.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
           </select>
         </div>
       )}
-      <FormButtons
-        onClickClose={onCancel} 
-        onClickSave={submit}
-        disabled={!valid}
-      />
+      <FormButtons onClickClose={onCancel} onClickSave={submit} disabled={!valid} />
     </div>
   );
 }
 
-function TransactionCard({ t, categories, categoryNames, bills, billName, onUpdate, onLink, onRemove }: Readonly<CardProps>) {
-  const id = useId();
+function TransactionCard({
+  t,
+  categories,
+  categoryNames,
+  bills,
+  billName,
+  onUpdate,
+  onLink,
+  onRemove,
+}: Readonly<CardProps>) {
   const [editing, setEditing] = useState(false);
-  const category = t.category_id ? categoryNames.get(t.category_id) ?? "Inna kategoria" : null;
-  const linkedBill = t.recurring_bill_id ? billName.get(t.recurring_bill_id) ?? "Płatność" : null;
+  const category = t.category_id ? (categoryNames.get(t.category_id) ?? "Inna kategoria") : null;
+  const linkedBill = t.recurring_bill_id ? (billName.get(t.recurring_bill_id) ?? "Płatność") : null;
   const suggested = t.link_status === "suggested" && Boolean(t.recurring_bill_id);
   const title = t.description || (t.is_income ? "Wpływ" : "Wydatek");
 
@@ -156,11 +201,13 @@ function TransactionCard({ t, categories, categoryNames, bills, billName, onUpda
         <li className="card rounded-card p-4 sm:p-5">
           <div className="mb-2 flex items-start justify-between gap-3 pb-2">
             <div className="flex min-w-0 flex-col gap-1">
-              <p className="wrap-break-word font-medium text-text">{title}</p>
+              <p className="font-medium wrap-break-word text-text">{title}</p>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs tabular-nums text-text-secondary">{short(t.date)}</span>
+                <span className="text-xs text-text-secondary tabular-nums">{short(t.date)}</span>
                 {category && (
-                  <span className="inline-block rounded-full border px-2 py-0.5 text-center text-xs text-text-secondary">{category}</span>
+                  <span className="inline-block rounded-full border px-2 py-0.5 text-center text-xs text-text-secondary">
+                    {category}
+                  </span>
                 )}
                 {linkedBill && !suggested && (
                   <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
@@ -169,8 +216,9 @@ function TransactionCard({ t, categories, categoryNames, bills, billName, onUpda
                 )}
               </div>
             </div>
-            <span className={`shrink-0 text-xl font-bold tabular-nums ${t.is_income ? "text-green-800 dark:text-green-300" : "text-text"}`}>
-              {t.is_income ? "+" : "−"}{formatPln(t.amount)}
+            <span className={`shrink-0 text-xl font-bold tabular-nums ${t.is_income ? "text-success" : "text-text"}`}>
+              {t.is_income ? "+" : "−"}
+              {formatPln(t.amount)}
             </span>
           </div>
 
@@ -184,7 +232,7 @@ function TransactionCard({ t, categories, categoryNames, bills, billName, onUpda
                 type="button"
                 onClick={() => onLink(t.id, t.recurring_bill_id)}
                 aria-label={`Zatwierdź: ${title} to ${linkedBill}`}
-                className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 font-medium text-green-800 hover:bg-surface dark:text-green-300"
+                className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 font-medium text-success hover:bg-surface"
               >
                 <Check className="h-4 w-4" aria-hidden="true" /> Tak
               </button>
@@ -210,7 +258,22 @@ function TransactionCard({ t, categories, categoryNames, bills, billName, onUpda
 }
 
 export default function TransactionsSection(props: Readonly<Props>) {
-  const { monthLabel, monthFrom, transactions, categories, categoryNames, bills, profiles, profileId, onAdd, onUpdate, onLink, onRemove, csv, addSignal = 0 } = props;
+  const {
+    monthLabel,
+    monthFrom,
+    transactions,
+    categories,
+    categoryNames,
+    bills,
+    profiles,
+    profileId,
+    onAdd,
+    onUpdate,
+    onLink,
+    onRemove,
+    csv,
+    addSignal = 0,
+  } = props;
   const id = useId();
   const [adding, setAdding] = useState(false);
   useEffect(() => {
@@ -224,7 +287,7 @@ export default function TransactionsSection(props: Readonly<Props>) {
     <section aria-labelledby={`${id}-h`}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 id={`${id}-h`} className="flex items-center gap-2 text-lg font-bold text-text">
-          Transakcje
+          Wydatki i wpływy
         </h2>
         <CsvImport {...csv} categories={categories} categoryNames={categoryNames} bills={bills} profileId={profileId} />
         <AddButton onClick={() => setAdding(true)} />
@@ -247,9 +310,9 @@ export default function TransactionsSection(props: Readonly<Props>) {
       <div className="card mb-4 rounded-card p-4 sm:p-5">
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: "Wpływy", value: summary.income, cls: "text-green-800 dark:text-green-300" },
+            { label: "Wpływy", value: summary.income, cls: "text-success " },
             { label: "Wydatki", value: summary.expenses, cls: "text-text" },
-            { label: "Bilans", value: summary.balance, cls: summary.balance < 0 ? "text-red-700 dark:text-red-300" : "text-text" },
+            { label: "Bilans", value: summary.balance, cls: summary.balance < 0 ? "text-danger " : "text-text" },
             { label: "w tym płatności cykliczne", value: summary.billsPaid, cls: "text-text-secondary" },
           ].map((s) => (
             <div key={s.label}>
@@ -271,7 +334,7 @@ export default function TransactionsSection(props: Readonly<Props>) {
                   <li key={row.categoryId ?? "none"} className="text-sm">
                     <div className="flex justify-between gap-3">
                       <span className="text-text">{row.name}</span>
-                      <span className="tabular-nums text-text">
+                      <span className="text-text tabular-nums">
                         {formatPln(row.expenses)} <span className="text-text-secondary">· {share}%</span>
                       </span>
                     </div>
@@ -287,10 +350,10 @@ export default function TransactionsSection(props: Readonly<Props>) {
       </div>
 
       {suggestions > 0 && (
-        <p role="status" className="mb-3 flex items-center gap-2 text-sm text-text-secondary">
+        <output className="mb-3 flex items-center gap-2 text-sm text-text-secondary">
           <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
           Sugestie powiązań do sprawdzenia: {suggestions}.
-        </p>
+        </output>
       )}
 
       {transactions.length === 0 ? (

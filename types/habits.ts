@@ -1,15 +1,6 @@
 // types/habits.ts
 
-
-export type HabitKey =
-  | "pills"
-  | "bath"
-  | "workout"
-  | "friends"
-  | "work"
-  | "housework"
-  | "plants"
-  | "duolingo";
+export type HabitKey = "pills" | "bath" | "workout" | "friends" | "work" | "housework" | "plants" | "duolingo";
 
 /** Nawyk zdefiniowany przez użytkownika (max 8). `id` dawnych nawyków = ich HabitKey. */
 export interface HabitDef {
@@ -39,4 +30,3 @@ export interface WaterRow {
   date: string;
   amount: number;
 }
-

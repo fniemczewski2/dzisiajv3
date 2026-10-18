@@ -14,14 +14,33 @@ export const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 const POSTER_PATH_RE = /^\/[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)$/;
 
 const GENRES: Record<number, string> = {
-  28: "Akcja", 12: "Przygodowy", 16: "Animacja", 35: "Komedia",
-  80: "Kryminalny", 99: "Dokumentalny", 18: "Dramat", 10751: "Familijny",
-  14: "Fantasy", 36: "Historyczny", 27: "Horror", 10402: "Muzyczny",
-  9648: "Tajemnica", 10749: "Romans", 878: "Sci-Fi", 10770: "Film TV",
-  53: "Thriller", 10752: "Wojenny", 37: "Western",
-  10759: "Akcja i przygoda", 10762: "Dla dzieci", 10763: "Wiadomości",
-  10764: "Reality show", 10765: "Sci-Fi i fantasy", 10766: "Telenowela",
-  10767: "Talk show", 10768: "Wojna i polityka",
+  28: "Akcja",
+  12: "Przygodowy",
+  16: "Animacja",
+  35: "Komedia",
+  80: "Kryminalny",
+  99: "Dokumentalny",
+  18: "Dramat",
+  10751: "Familijny",
+  14: "Fantasy",
+  36: "Historyczny",
+  27: "Horror",
+  10402: "Muzyczny",
+  9648: "Tajemnica",
+  10749: "Romans",
+  878: "Sci-Fi",
+  10770: "Film TV",
+  53: "Thriller",
+  10752: "Wojenny",
+  37: "Western",
+  10759: "Akcja i przygoda",
+  10762: "Dla dzieci",
+  10763: "Wiadomości",
+  10764: "Reality show",
+  10765: "Sci-Fi i fantasy",
+  10766: "Telenowela",
+  10767: "Talk show",
+  10768: "Wojna i polityka",
 };
 
 const SERIES_STATUS: Record<string, string> = {
@@ -57,7 +76,10 @@ function roundRating(v: number | undefined): number | null {
 }
 
 /** Zamienia wyniki /search/multi na wspólny kształt; pomija osoby i nieznane typy. */
-export function normalizeSearchResults(data: TmdbSearchResponse, filter: MediaType | "all" = "all"): MediaSearchResult[] {
+export function normalizeSearchResults(
+  data: TmdbSearchResponse,
+  filter: MediaType | "all" = "all"
+): MediaSearchResult[] {
   return (data.results ?? [])
     .filter((r): r is TmdbMultiResult & { media_type: MediaType } => r.media_type === "movie" || r.media_type === "tv")
     .filter((r) => filter === "all" || r.media_type === filter)
@@ -104,8 +126,8 @@ export function buildMovieData(result: MediaSearchResult, details: TmdbDetailsRe
     tmdb_id: result.tmdbId,
     poster_path: poster ?? null,
     release_year: yearOf(isTv ? details?.first_air_date : details?.release_date) ?? result.year,
-    seasons_count: isTv ? details?.number_of_seasons ?? null : null,
-    episodes_count: isTv ? details?.number_of_episodes ?? null : null,
+    seasons_count: isTv ? (details?.number_of_seasons ?? null) : null,
+    episodes_count: isTv ? (details?.number_of_episodes ?? null) : null,
     series_status: isTv ? translateSeriesStatus(details?.status) : null,
   };
 }

@@ -34,9 +34,20 @@ vi.mock("@/components/transport/TrackedTrainCard", () => ({
 }));
 vi.mock("@/hooks/db/useTransport", () => ({
   useTransport: () => ({
-    nearbyGroups: [], favoritesGroups: [], locationError: null, searchQuery: "", setSearchQuery: vi.fn(),
-    suggestions: [], handleSuggestionClick: vi.fn(), favoriteStops: [], addNearbyToFavorites: vi.fn(),
-    removeFavoriteStop: vi.fn(), localityFor: () => null, loadingNearby: false, loadingFavorites: false, transportError: null,
+    nearbyGroups: [],
+    favoritesGroups: [],
+    locationError: null,
+    searchQuery: "",
+    setSearchQuery: vi.fn(),
+    suggestions: [],
+    handleSuggestionClick: vi.fn(),
+    favoriteStops: [],
+    addNearbyToFavorites: vi.fn(),
+    removeFavoriteStop: vi.fn(),
+    localityFor: () => null,
+    loadingNearby: false,
+    loadingFavorites: false,
+    transportError: null,
   }),
 }));
 

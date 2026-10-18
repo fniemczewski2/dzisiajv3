@@ -25,13 +25,7 @@ interface WeatherdetailsProps {
   airQuality: string | null;
 }
 
-function WeatherIcon({
-  code,
-  className = "",
-}: {
-  readonly code: number;
-  readonly className?: string;
-}) {
+function WeatherIcon({ code, className = "" }: { readonly code: number; readonly className?: string }) {
   if (code <= 1) return <Sun className={className} />;
   if (code === 2) return <CloudSun className={className} />;
   if (code <= 3) return <Cloud className={className} />;
@@ -43,43 +37,27 @@ function WeatherIcon({
   return <CloudLightning className={className} />;
 }
 
-function WeatherDetails({
-  currentTemp,
-  dailyMin,
-  dailyMax,
-  weatherCode,
-  airQuality,
-}: 
-  Readonly<WeatherdetailsProps>
-) {
+function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuality }: Readonly<WeatherdetailsProps>) {
   const router = useRouter();
 
-  if (
-    currentTemp != null &&
-    dailyMin != null &&
-    dailyMax != null &&
-    weatherCode != null
-  ) {
+  if (currentTemp != null && dailyMin != null && dailyMax != null && weatherCode != null) {
     return (
       <button
         onClick={() => router.push("/weather")}
         type="button"
-        className="flex flex-col items-end cursor-pointer min-h-11 px-2.5 py-1.5 -m-1.5 rounded-xl hover:bg-(--header-hover) transition-colors"
+        className="-m-1.5 flex min-h-11 cursor-pointer flex-col items-end rounded-xl px-2.5 py-1.5 transition-colors hover:bg-(--header-hover)"
         aria-label={`Pogoda: ${currentTemp}°C, odczuwalnie od ${dailyMin}° do ${dailyMax}°. Otwórz pełną prognozę`}
       >
-        <div className="text-2xl sm:text-3xl font-semibold leading-none mb-1.5 flex items-center gap-1.5 tabular-nums">
-          <WeatherIcon
-            code={weatherCode}
-            className="w-5 h-5 sm:w-6 sm:h-6 text-(--header-accent)"
-          />
+        <div className="mb-1.5 flex items-center gap-1.5 text-2xl leading-none font-semibold tabular-nums sm:text-3xl">
+          <WeatherIcon code={weatherCode} className="h-5 w-5 text-(--header-accent) sm:h-6 sm:w-6" />
           <span>{currentTemp}°</span>
         </div>
-        <span className="whitespace-nowrap text-xs sm:text-sm font-medium text-(--header-muted) tabular-nums">
+        <span className="text-xs font-medium whitespace-nowrap text-(--header-muted) tabular-nums sm:text-sm">
           {dailyMin}° / {dailyMax}°
         </span>
         {airQuality && (
-          <span className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-(--warning-bg) px-2 py-0.5 text-xs font-semibold text-(--warning-fg)">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-(--warning-line)" />
+          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-warning">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-warning-line" />
             {airQuality}
           </span>
         )}
@@ -98,7 +76,7 @@ export default function Header() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
-  
+
   const { forecast, air, loading: weatherLoading } = useWeather();
   const streak = useAppStreak();
 
@@ -106,12 +84,13 @@ export default function Header() {
   const weatherCode = forecast?.current_weather?.weathercode ?? null;
   const dailyMin = forecast?.daily?.apparent_temperature_min?.[0] ?? null;
   const dailyMax = forecast?.daily?.apparent_temperature_max?.[0] ?? null;
-  
+
   let airQuality = null;
   if (air?.hourly && (air.hourly.pm10[0] > 45 || air.hourly.pm2_5[0] > 15)) {
-    airQuality = air.hourly.pm2_5[0] - 15 > air.hourly.pm10[0] - 45
-      ? `${air.hourly.pm2_5[0]} µg/m³ PM2.5`
-      : `${air.hourly.pm10[0]} µg/m³ PM10`;
+    airQuality =
+      air.hourly.pm2_5[0] - 15 > air.hourly.pm10[0] - 45
+        ? `${air.hourly.pm2_5[0]} µg/m³ PM2.5`
+        : `${air.hourly.pm10[0]} µg/m³ PM10`;
   }
 
   useEffect(() => {
@@ -120,7 +99,9 @@ export default function Header() {
 
     setCurrentDate(
       now.toLocaleDateString("pl-PL", {
-        weekday: "long", month: "short", day: "numeric",
+        weekday: "long",
+        month: "short",
+        day: "numeric",
       })
     );
     setCurrentTime(now.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }));
@@ -141,19 +122,22 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="w-full max-w-[1600px] text-(--header-fg) border-b border-line px-1 pt-2 pb-4 sm:px-2 sm:pt-3 sm:pb-5">
-      <div className="w-full flex justify-between items-center gap-3">
-        <div className="flex items-center min-w-0">
+    <header className="w-full max-w-[1600px] border-b border-line px-1 pt-2 pb-4 text-(--header-fg) sm:px-2 sm:pt-3 sm:pb-5">
+      <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center">
           <button
             onClick={() => router.push("/calendar?reset=true")}
-            className="flex flex-col items-start cursor-pointer px-2.5 py-1.5 -m-1.5 min-w-0 rounded-xl hover:bg-(--header-hover) transition-colors"
+            className="-m-1.5 flex min-w-0 cursor-pointer flex-col items-start rounded-xl px-2.5 py-1.5 transition-colors hover:bg-(--header-hover)"
             aria-label={`${currentDate}. Otwórz kalendarz`}
             type="button"
           >
-            <div className="text-[2.5rem] sm:text-6xl font-bold leading-none tracking-tight mb-2 tabular-nums" suppressHydrationWarning>
+            <div
+              className="mb-2 text-[2.5rem] leading-none font-bold tracking-tight tabular-nums sm:text-6xl"
+              suppressHydrationWarning
+            >
               {currentTime}
             </div>
-            <span className="text-base sm:text-lg font-medium text-(--header-muted) truncate mb-0.5 first-letter:uppercase">
+            <span className="mb-0.5 truncate text-base font-medium text-(--header-muted) first-letter:uppercase sm:text-lg">
               {currentDate}
             </span>
             <BirthdayIndicator date={todayDateString} />
@@ -163,7 +147,7 @@ export default function Header() {
         <div>
           {streak !== null && streak > 0 && (
             <p
-              className="inline-flex items-center md:text-xl font-semibold tabular-nums text-orange-600 dark:text-orange-400"
+              className="inline-flex items-center font-semibold text-warning tabular-nums md:text-xl"
               title="Kolejne dni korzystania z aplikacji"
             >
               <Flame className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />
@@ -174,11 +158,11 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex justify-end items-center">
+        <div className="flex items-center justify-end">
           {weatherLoading ? (
             <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
-              <span className="block h-7 w-20 rounded-lg bg-(--header-hover) animate-pulse" />
-              <span className="block h-3 w-14 rounded-lg bg-(--header-hover) animate-pulse" />
+              <span className="block h-7 w-20 animate-pulse rounded-lg bg-(--header-hover)" />
+              <span className="block h-3 w-14 animate-pulse rounded-lg bg-(--header-hover)" />
             </output>
           ) : (
             <WeatherDetails

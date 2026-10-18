@@ -1,11 +1,11 @@
-﻿// lib/budgetUtils.ts
+// lib/budgetUtils.ts
 
 import { BudgetCategory } from "@/types/bills";
 
 export const calculateExpectedYearlyLimit = (
   category: BudgetCategory,
   currentMonthIndex: number,
-  viewingYear: number 
+  viewingYear: number
 ): number => {
   const limits = category.monthly_amounts;
   if (!Array.isArray(limits) || limits.length !== 12) return 0;
@@ -19,14 +19,14 @@ export const calculateExpectedYearlyLimit = (
     return limits.reduce((sum, val) => sum + (val || 0), 0);
   }
   if (viewingYear > currentRealYear) {
-      return limits.reduce((sum, val) => sum + (val || 0), 0);
+    return limits.reduce((sum, val) => sum + (val || 0), 0);
   }
   const passedMonthsCount = currentMonthIndex + 1;
   const remainingMonthsCount = 12 - passedMonthsCount;
 
   let sumPassed = 0;
   for (let i = 0; i < passedMonthsCount; i++) {
-    sumPassed += (limits[i] || 0);
+    sumPassed += limits[i] || 0;
   }
 
   const averagePassed = sumPassed / passedMonthsCount;
@@ -36,14 +36,15 @@ export const calculateExpectedYearlyLimit = (
 };
 
 export const propagateMonthlyLimits = (
-  currentLimits: number[], 
-  targetMonthIndex: number, 
+  currentLimits: number[],
+  targetMonthIndex: number,
   newAmount: number,
   isMonthly: boolean
 ): number[] => {
-  const updatedLimits = Array.isArray(currentLimits) && currentLimits.length === 12 
-    ? [...currentLimits] 
-    : new Array(12).fill(0);
+  const updatedLimits =
+    Array.isArray(currentLimits) && currentLimits.length === 12
+      ? [...currentLimits]
+      : Array.from({ length: 12 }, () => 0);
 
   if (!isMonthly) {
     updatedLimits[0] = newAmount;

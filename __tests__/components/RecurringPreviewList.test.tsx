@@ -10,9 +10,17 @@ import RecurringPreviewList from "@/components/tasks/RecurringPreviewList";
 import type { Task } from "@/types/tasks";
 
 const t = {
-  id: "t1", title: "Podlać kwiaty", description: "", category: "dom", priority: 3,
-  due_date: "2026-10-12", status: "pending", user_id: "u", for_user_id: "u",
-  is_recurring: true, recurrence: { freq: "weekly", interval: 1, byWeekday: [0, 3] },
+  id: "t1",
+  title: "Podlać kwiaty",
+  description: "",
+  category: "dom",
+  priority: 3,
+  due_date: "2026-10-12",
+  status: "pending",
+  user_id: "u",
+  for_user_id: "u",
+  is_recurring: true,
+  recurrence: { freq: "weekly", interval: 1, byWeekday: [0, 3] },
 } as unknown as Task;
 
 describe("RecurringPreviewList", () => {

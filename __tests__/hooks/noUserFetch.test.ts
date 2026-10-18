@@ -21,7 +21,7 @@ import { useShoppingLists } from "@/hooks/db/useShoppingLists";
 describe("bez zalogowanego użytkownika", () => {
   it("nie pobiera danych i nie rzuca błędu", async () => {
     const rejections: unknown[] = [];
-    const onRejection = (e: PromiseRejectionEvent | unknown) => rejections.push(e);
+    const onRejection = (e: unknown) => rejections.push(e);
     process.on("unhandledRejection", onRejection);
     renderHook(() => useBudgetCategories(2026));
     renderHook(() => useShoppingLists());

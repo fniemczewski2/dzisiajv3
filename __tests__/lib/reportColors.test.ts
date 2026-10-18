@@ -1,7 +1,8 @@
 // __tests__/lib/reportColors.test.ts
 
+import { DEFAULT_REPORT_HEADING_COLOR } from "@/config/defaults";
 import { describe, it, expect } from "vitest";
-import { contrastOnWhite, derivePalette, ensureReadable, DEFAULT_HEADING_COLOR, mix } from "@/lib/reportColors";
+import { contrastOnWhite, derivePalette, ensureReadable, mix } from "@/lib/reportColors";
 import { buildReportDocDefinition, SAMPLE_REPORT } from "@/lib/reportExport";
 
 describe("kolory dokumentu z koloru nagłówków", () => {
@@ -23,8 +24,8 @@ describe("kolory dokumentu z koloru nagłówków", () => {
   });
 
   it("bez koloru lub z błędnym – domyślny granat", () => {
-    expect(derivePalette(null).heading).toBe(DEFAULT_HEADING_COLOR);
-    expect(derivePalette("czerwony").heading).toBe(DEFAULT_HEADING_COLOR);
+    expect(derivePalette(null).heading).toBe(DEFAULT_REPORT_HEADING_COLOR);
+    expect(derivePalette("czerwony").heading).toBe(DEFAULT_REPORT_HEADING_COLOR);
     expect(mix("#000000", "#FFFFFF", 0.5)).toBe("#808080");
   });
 

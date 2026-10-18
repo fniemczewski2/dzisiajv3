@@ -10,8 +10,8 @@ const secondaryFullButton = cva(
   {
     variants: {
       variant: {
-        default: "bg-surface hover:bg-surface-hover text-text-secondary border-gray-200 dark:border-gray-800",
-        danger: "bg-surface hover:bg-surface-hover text-red-600 dark:text-red-400 border-gray-200 dark:border-gray-800",
+        default: "bg-surface hover:bg-surface-hover text-text-secondary border-line ",
+        danger: "bg-surface hover:bg-surface-hover text-danger border-line ",
       },
     },
     defaultVariants: { variant: "default" },
@@ -44,6 +44,6 @@ export const SecondaryFullButton = ({
     className={cn(secondaryFullButton({ variant }), className)}
   >
     <span>{children}</span>
-    <Icon className="w-5 h-5" aria-hidden="true" />
+    <Icon className="h-5 w-5" aria-hidden="true" />
   </button>
 );

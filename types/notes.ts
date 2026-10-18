@@ -1,4 +1,4 @@
-﻿// types/notes.ts
+// types/notes.ts
 
 export interface Note {
   id: string;

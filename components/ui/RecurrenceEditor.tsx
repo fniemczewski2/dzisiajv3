@@ -13,7 +13,7 @@ import {
   weekdayPosition,
   type RecurrenceFreq,
   type RecurrenceRule,
-} from "@/supabase/functions/_shared/recurrence";
+} from "@/shared/recurrence";
 
 interface Props {
   value: RecurrenceRule | null;
@@ -58,7 +58,14 @@ function selectedWeekdays(rule: RecurrenceRule, startWeekday: number | null): nu
   return startWeekday === null ? [] : [startWeekday];
 }
 
-export default function RecurrenceEditor({ value, onChange, startDay, allowCount = true, disabled, idPrefix }: Readonly<Props>) {
+export default function RecurrenceEditor({
+  value,
+  onChange,
+  startDay,
+  allowCount = true,
+  disabled,
+  idPrefix,
+}: Readonly<Props>) {
   const autoId = useId();
   const id = idPrefix ?? autoId;
   const pos = startDay ? weekdayPosition(startDay) : null;
@@ -95,8 +102,15 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
       <legend className="sr-only">Powtarzanie</legend>
       <div className="grid grid-cols-[1fr_auto] items-end gap-2">
         <div>
-          <label htmlFor={`${id}-freq`} className="form-label">Powtarzaj:</label>
-          <select id={`${id}-freq`} value={freqValue} onChange={(e) => setFreq(e.target.value as RecurrenceFreq | "none")} className="input-field">
+          <label htmlFor={`${id}-freq`} className="form-label">
+            Powtarzaj:
+          </label>
+          <select
+            id={`${id}-freq`}
+            value={freqValue}
+            onChange={(e) => setFreq(e.target.value as RecurrenceFreq | "none")}
+            className="input-field"
+          >
             <option value="none">Nie powtarzaj</option>
             <option value="daily">Codziennie</option>
             <option value="weekly">Co tydzień</option>
@@ -106,7 +120,9 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
         </div>
         {value && (
           <div>
-            <label htmlFor={`${id}-interval`} className="form-label">Co ile:</label>
+            <label htmlFor={`${id}-interval`} className="form-label">
+              Co ile:
+            </label>
             <div className="flex items-center gap-2">
               <input
                 id={`${id}-interval`}
@@ -160,7 +176,13 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
         <fieldset className="space-y-1">
           <legend className="form-label">W który dzień:</legend>
           <label className="flex min-h-11 items-center gap-3">
-            <input type="radio" name={`${id}-monthly`} className="h-5 w-5" checked={value.monthlyBy !== "nth_weekday"} onChange={() => patch({ monthlyBy: "monthday", nth: undefined })} />
+            <input
+              type="radio"
+              name={`${id}-monthly`}
+              className="h-5 w-5"
+              checked={value.monthlyBy !== "nth_weekday"}
+              onChange={() => patch({ monthlyBy: "monthday", nth: undefined })}
+            />
             <span>
               {Number(startDay.slice(8, 10))}. dnia miesiąca
               {Number(startDay.slice(8, 10)) > 28 && (
@@ -170,13 +192,27 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
           </label>
           {pos.nth <= 4 && (
             <label className="flex min-h-11 items-center gap-3">
-              <input type="radio" name={`${id}-monthly`} className="h-5 w-5" checked={value.monthlyBy === "nth_weekday" && value.nth !== -1} onChange={() => patch({ monthlyBy: "nth_weekday", nth: pos.nth })} />
-              <span>w {pos.nth}. {WEEKDAY_ACC[pos.weekday]} miesiąca</span>
+              <input
+                type="radio"
+                name={`${id}-monthly`}
+                className="h-5 w-5"
+                checked={value.monthlyBy === "nth_weekday" && value.nth !== -1}
+                onChange={() => patch({ monthlyBy: "nth_weekday", nth: pos.nth })}
+              />
+              <span>
+                w {pos.nth}. {WEEKDAY_ACC[pos.weekday]} miesiąca
+              </span>
             </label>
           )}
           {pos.isLast && (
             <label className="flex min-h-11 items-center gap-3">
-              <input type="radio" name={`${id}-monthly`} className="h-5 w-5" checked={value.monthlyBy === "nth_weekday" && value.nth === -1} onChange={() => patch({ monthlyBy: "nth_weekday", nth: -1 })} />
+              <input
+                type="radio"
+                name={`${id}-monthly`}
+                className="h-5 w-5"
+                checked={value.monthlyBy === "nth_weekday" && value.nth === -1}
+                onChange={() => patch({ monthlyBy: "nth_weekday", nth: -1 })}
+              />
               <span>w ostatni {WEEKDAY_ACC[pos.weekday]} miesiąca</span>
             </label>
           )}
@@ -187,31 +223,69 @@ export default function RecurrenceEditor({ value, onChange, startDay, allowCount
         <fieldset className="space-y-1">
           <legend className="form-label">Koniec:</legend>
           <label className="flex min-h-11 items-center gap-3">
-            <input type="radio" name={`${id}-end`} className="h-5 w-5" checked={endMode === "never"} onChange={() => setEnd("never")} />
+            <input
+              type="radio"
+              name={`${id}-end`}
+              className="h-5 w-5"
+              checked={endMode === "never"}
+              onChange={() => setEnd("never")}
+            />
             <span>Bez końca</span>
           </label>
           <div className="flex min-h-11 flex-wrap items-center gap-3">
             <label className="flex items-center gap-3">
-              <input type="radio" name={`${id}-end`} className="h-5 w-5" checked={endMode === "until"} onChange={() => setEnd("until")} />
+              <input
+                type="radio"
+                name={`${id}-end`}
+                className="h-5 w-5"
+                checked={endMode === "until"}
+                onChange={() => setEnd("until")}
+              />
               <span>Do dnia</span>
             </label>
             {endMode === "until" && (
               <>
-                <label htmlFor={`${id}-until`} className="sr-only">Ostatni dzień powtarzania</label>
-                <input id={`${id}-until`} type="date" min={startDay} value={value.until ?? ""} onChange={(e) => patch({ until: e.target.value || null })} className="input-field w-auto" />
+                <label htmlFor={`${id}-until`} className="sr-only">
+                  Ostatni dzień powtarzania
+                </label>
+                <input
+                  id={`${id}-until`}
+                  type="date"
+                  min={startDay}
+                  value={value.until ?? ""}
+                  onChange={(e) => patch({ until: e.target.value || null })}
+                  className="input-field w-auto"
+                />
               </>
             )}
           </div>
           {allowCount && (
             <div className="flex min-h-11 flex-wrap items-center gap-3">
               <label className="flex items-center gap-3">
-                <input type="radio" name={`${id}-end`} className="h-5 w-5" checked={endMode === "count"} onChange={() => setEnd("count")} />
+                <input
+                  type="radio"
+                  name={`${id}-end`}
+                  className="h-5 w-5"
+                  checked={endMode === "count"}
+                  onChange={() => setEnd("count")}
+                />
                 <span>Po liczbie powtórzeń</span>
               </label>
               {endMode === "count" && (
                 <>
-                  <label htmlFor={`${id}-count`} className="sr-only">Liczba powtórzeń</label>
-                  <input id={`${id}-count`} type="number" inputMode="numeric" min={1} max={MAX_COUNT} value={value.count ?? 10} onChange={(e) => patch({ count: Math.min(MAX_COUNT, Math.max(1, Number(e.target.value) || 1)) })} className="input-field w-24 text-center" />
+                  <label htmlFor={`${id}-count`} className="sr-only">
+                    Liczba powtórzeń
+                  </label>
+                  <input
+                    id={`${id}-count`}
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={MAX_COUNT}
+                    value={value.count ?? 10}
+                    onChange={(e) => patch({ count: Math.min(MAX_COUNT, Math.max(1, Number(e.target.value) || 1)) })}
+                    className="input-field w-24 text-center"
+                  />
                 </>
               )}
             </div>

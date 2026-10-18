@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { QuickNote, splitQuickNoteText } from "@/lib/quickNotes";
+import { QuickNote, splitQuickNoteText, QUICK_NOTES_LIMIT_MESSAGE } from "@/lib/quickNotes";
 
 export function useQuickNotes() {
   const { user, supabase } = useAuth();
@@ -65,7 +65,7 @@ export function useQuickNotes() {
 
       if (error) {
         setNotes((prev) => prev.filter((n) => !n.id.startsWith("temp-")));
-        toast.error(error.code === "23514" ? error.message : "Nie udało się dodać notatki.");
+        toast.error(error.code === "23514" ? QUICK_NOTES_LIMIT_MESSAGE : "Nie udało się dodać notatki.");
         return 0;
       }
       const tempIds = new Set(temp.map((t) => t.id));

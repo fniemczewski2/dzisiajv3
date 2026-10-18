@@ -1,4 +1,4 @@
-﻿// types/transport.ts
+// types/transport.ts
 
 export interface Departure {
   line: string;
@@ -19,8 +19,8 @@ export interface Bollard {
   departures: Departure[];
 }
 
-export type { FavoriteStop, StopCluster } from "@/supabase/functions/_shared/stopGrouping";
-import type { FavoriteStop, StopCluster } from "@/supabase/functions/_shared/stopGrouping";
+export type { FavoriteStop, StopCluster } from "@/shared/stopGrouping";
+import type { FavoriteStop, StopCluster } from "@/shared/stopGrouping";
 
 export interface StopGroup {
   /** Ulubione: favoriteKey() wpisu; "w pobliżu": klucz grupy słupków. */
@@ -58,7 +58,7 @@ export interface TrackedTrain {
   seat: string;
 }
 
-export type TrainInput = Omit<TrackedTrain, "id" | "userId" | "createdAt">
+export type TrainInput = Omit<TrackedTrain, "id" | "userId" | "createdAt">;
 
 export interface TicketFormData {
   trainNumber: string;

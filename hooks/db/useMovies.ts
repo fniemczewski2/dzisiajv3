@@ -51,16 +51,25 @@ export function useMovies() {
     async (movie: Movie, options: { silent?: boolean } = {}): Promise<void> => {
       const { id } = movie;
       const updates = omit(movie, ["id", "user_id", "created_at"]);
-      await crud.patch(id, { ...updates, updated_at: new Date().toISOString() }, {
-        silent: options.silent,
-        successMessage: MESSAGES.edited,
-        errorMessage: MESSAGES.editError,
-      });
+      await crud.patch(
+        id,
+        { ...updates, updated_at: new Date().toISOString() },
+        {
+          silent: options.silent,
+          successMessage: MESSAGES.edited,
+          errorMessage: MESSAGES.editError,
+        }
+      );
     },
     [crud]
   );
 
-  const deleteMovie = useCallback(async (id: string): Promise<void> => { await crud.remove(id); }, [crud]);
+  const deleteMovie = useCallback(
+    async (id: string): Promise<void> => {
+      await crud.remove(id);
+    },
+    [crud]
+  );
 
   const toggleWatched = useCallback(
     async (id: string): Promise<void> => {
@@ -108,8 +117,14 @@ export function useMovies() {
         const details = await fetchMediaDetails(mediaType, movie.tmdb_id);
         const fresh = buildMovieData(
           {
-            tmdbId: movie.tmdb_id, mediaType, title: movie.title, year: movie.release_year ?? null,
-            rating: movie.rating, overview: movie.description ?? "", posterPath: movie.poster_path ?? null, genreIds: [],
+            tmdbId: movie.tmdb_id,
+            mediaType,
+            title: movie.title,
+            year: movie.release_year ?? null,
+            rating: movie.rating,
+            overview: movie.description ?? "",
+            posterPath: movie.poster_path ?? null,
+            genreIds: [],
           },
           details
         );
@@ -142,7 +157,9 @@ export function useMovies() {
     [findMovie, updateMovie, toast]
   );
 
-  const refresh = useCallback(async () => { await crud.refetch(); }, [crud]);
+  const refresh = useCallback(async () => {
+    await crud.refetch();
+  }, [crud]);
 
   return {
     movies: crud.items,

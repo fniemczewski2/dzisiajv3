@@ -52,7 +52,13 @@ function rowError(rows: readonly Row[], index: number): string | null {
   return validateTaskCategoryName(rows[index].name, others);
 }
 
-export default function TaskCategoriesEditor({ value, onChange, onRenamesChange, colors, onColorsChange }: Readonly<Props>) {
+export default function TaskCategoriesEditor({
+  value,
+  onChange,
+  onRenamesChange,
+  colors,
+  onColorsChange,
+}: Readonly<Props>) {
   const baseId = useId();
   const [rows, setRows] = useState<Row[]>(() => toRows(resolveUserTaskCategories(value), colors));
   const [draft, setDraft] = useState("");
@@ -71,7 +77,9 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
   const colorsKey = JSON.stringify(colors ?? null);
   useEffect(() => {
     if (!colors) return;
-    setRows((prev) => prev.map((r) => (r.color === null && r.original && colors[r.original] ? { ...r, color: colors[r.original] } : r)));
+    setRows((prev) =>
+      prev.map((r) => (r.color === null && r.original && colors[r.original] ? { ...r, color: colors[r.original] } : r))
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colorsKey]);
 
@@ -81,7 +89,8 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
     if (!valid) return; // błędną listę pokazujemy, ale jej nie zapisujemy
     const names = next.map((r) => normalizeTaskCategoryName(r.name));
     const isDefault =
-      names.length === DEFAULT_USER_TASK_CATEGORIES.length && names.every((n, i) => n === DEFAULT_USER_TASK_CATEGORIES[i]);
+      names.length === DEFAULT_USER_TASK_CATEGORIES.length &&
+      names.every((n, i) => n === DEFAULT_USER_TASK_CATEGORIES[i]);
     const stored = isDefault ? null : names;
     lastEmitted.current = JSON.stringify(stored);
     onChange(stored);
@@ -98,7 +107,10 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
   };
 
   const addCategory = () => {
-    const error = validateTaskCategoryName(draft, rows.map((r) => r.name));
+    const error = validateTaskCategoryName(
+      draft,
+      rows.map((r) => r.name)
+    );
     if (error) {
       setDraftError(error);
       return;
@@ -111,16 +123,16 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
   const atLimit = rows.length >= MAX_TASK_CATEGORIES;
 
   return (
-    <div className="mt-2 p-4 bg-surface border border-gray-100 dark:border-gray-800 rounded-xl">
-      <div className="flex items-center justify-between gap-2 mb-1">
+    <div className="mt-2 rounded-xl border border-line bg-surface p-4">
+      <div className="mb-1 flex items-center justify-between gap-2">
         <h4 className="text-sm font-semibold text-text">Kategorie i kolory</h4>
         <span className="text-xs text-text-muted">
           {rows.length}/{MAX_TASK_CATEGORIES}
         </span>
       </div>
-      <p className="text-xs text-text-secondary mb-3">
-        Kategorie są wspólne dla zadań i wydarzeń. Kolor oznacza wydarzenia w widoku miesiąca.
-        Zmiana nazwy przenosi istniejące zadania i wydarzenia; z usuniętej kategorii zachowują ją.
+      <p className="mb-3 text-xs text-text-secondary">
+        Kategorie są wspólne dla zadań i wydarzeń. Kolor oznacza wydarzenia w widoku miesiąca. Zmiana nazwy przenosi
+        istniejące zadania i wydarzenia; z usuniętej kategorii zachowują ją.
       </p>
 
       <ul className="space-y-2">
@@ -153,7 +165,7 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
                 />
               </div>
               {error && (
-                <p id={errorId} className="mt-1 text-xs text-red-600 dark:text-red-400">
+                <p id={errorId} className="mt-1 text-xs text-danger">
                   {error}
                 </p>
               )}
@@ -185,7 +197,7 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
             className="input-field w-full"
           />
           {draftError && (
-            <p id={`${baseId}-draft-err`} className="mt-1 text-xs text-red-600 dark:text-red-400">
+            <p id={`${baseId}-draft-err`} className="mt-1 text-xs text-danger">
               {draftError}
             </p>
           )}
@@ -194,21 +206,21 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
           type="button"
           onClick={addCategory}
           disabled={atLimit || !draft.trim()}
-          className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-strong transition-colors p-2 disabled:opacity-50"
+          className="flex items-center gap-2 p-2 text-sm font-semibold text-primary transition-colors hover:text-primary-strong disabled:opacity-50"
         >
-          <PlusCircle className="w-4 h-4" aria-hidden="true" /> Dodaj
+          <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj
         </button>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-line">
-        <p className="text-xs font-semibold text-text-secondary mb-2">Kategorie systemowe – zawsze dostępne</p>
+      <div className="mt-4 border-t border-line pt-3">
+        <p className="mb-2 text-xs font-semibold text-text-secondary">Kategorie systemowe – zawsze dostępne</p>
         <ul className="flex flex-wrap gap-2">
           {SYSTEM_TASK_CATEGORIES.map((name) => (
             <li
               key={name}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-line bg-card text-xs text-text-secondary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-xs text-text-secondary"
             >
-              <Lock className="w-3 h-3" aria-hidden="true" />
+              <Lock className="h-3 w-3" aria-hidden="true" />
               <span className="font-medium text-text">{name}</span>
               {SYSTEM_HINTS[name] && <span>– {SYSTEM_HINTS[name]}</span>}
             </li>
@@ -223,9 +235,9 @@ export default function TaskCategoriesEditor({ value, onChange, onRenamesChange,
           setDraftError(null);
           emit(toRows(DEFAULT_USER_TASK_CATEGORIES, null));
         }}
-        className="mt-3 flex items-center gap-2 text-xs font-semibold text-text-secondary hover:text-text transition-colors p-2"
+        className="mt-3 flex items-center gap-2 p-2 text-xs font-semibold text-text-secondary transition-colors hover:text-text"
       >
-        <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" /> Przywróć domyślne
+        <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Przywróć domyślne
       </button>
     </div>
   );

@@ -1,8 +1,7 @@
 // pages/bills/budget.tsx
 
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Coins } from "lucide-react";
-import { useRouter } from "next/router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getAppDateTime } from "@/lib/dateUtils";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { useBudgetSummary } from "@/hooks/db/useBudgetSummary";
@@ -24,14 +23,10 @@ export default function BudgetPage() {
   const [month, setMonth] = useState(currentMonth);
 
   const displayDate = new Date(year, month);
-  
+
   const { bills: recurringBills } = useRecurringBills();
 
-  const {
-    categories,
-    loading: catsLoading,
-    fetchCategories,
-  } = useBudgetCategories(year);
+  const { categories, loading: catsLoading, fetchCategories } = useBudgetCategories(year);
 
   const {
     summary,
@@ -65,7 +60,7 @@ export default function BudgetPage() {
   };
 
   const isLoading = summaryLoading || catsLoading;
- 
+
   return (
     <>
       <Seo
@@ -74,46 +69,44 @@ export default function BudgetPage() {
         canonical="https://dzisiaj.fun/bills/budget"
         keywords="budżet domowy, wydatki, oszczędzanie, statystyki finansowe, portfel"
       />
-        <div className="flex justify-between gap-3 items-center mb-6">
-          <div className="flex items-center gap-2">
-            <h1 className="page-title mx-auto text-center first-letter:uppercase sr-only sm:not-sr-only">
-              Budżet
-            </h1>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h1 className="page-title sr-only mx-auto text-center first-letter:uppercase sm:not-sr-only">Budżet</h1>
 
-          <div className="flex items-center card rounded-card p-1 shadow-sm">
+          <div className="card flex items-center rounded-card p-1 shadow-sm">
             <button
               onClick={handlePrevMonth}
-              className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
-              type='button'
+              className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
+              type="button"
               title="Poprzedni miesiąc"
               aria-label="Poprzedni miesiąc"
             >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
+            <h2 className="mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl">
               {format(displayDate, "LLLL yyyy", { locale: pl })}
             </h2>
 
             <button
               onClick={handleNextMonth}
-              className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
-              type='button'
+              className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
+              type="button"
               title="Następny miesiąc"
               aria-label="Następny miesiąc"
             >
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
         </div>
       </div>
 
-        {isLoading ? (
-          <div className="max-w-2xl mx-auto w-full">
-            <SkeletonBudgetTable rows={6} />
-          </div>
-        ) : (
-        <div className="max-w-2xl mx-auto w-full space-y-6 mb-6">
+      {isLoading ? (
+        <div className="mx-auto w-full max-w-2xl">
+          <SkeletonBudgetTable rows={6} />
+        </div>
+      ) : (
+        <div className="mx-auto mb-6 w-full max-w-2xl space-y-6">
           <BudgetOverview
             summary={summary}
             uncategorised={uncategorised}
@@ -122,19 +115,15 @@ export default function BudgetPage() {
             selectedMonth={month}
           />
 
-          <BudgetCategoriesEditor
-            year={year}
-            selectedMonth={month}
-            onCategoriesChange={handleCategoriesChange}
-          />
+          <BudgetCategoriesEditor year={year} selectedMonth={month} onCategoriesChange={handleCategoriesChange} />
         </div>
-        )}
+      )}
 
-        {!isLoading && (
-          <div className="flex w-full justify-center">
-            <YearTable year={year} />
-          </div>
-        )}
+      {!isLoading && (
+        <div className="flex w-full justify-center">
+          <YearTable year={year} />
+        </div>
+      )}
     </>
   );
 }

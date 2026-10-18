@@ -1,5 +1,6 @@
 // hooks/db/useEvents.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
 import { Person } from "@/types/people";
@@ -75,7 +76,9 @@ export function useVirtualBirthdayEvents(): Event[] {
   }, [fetchVirtualEvents]);
 
   useEffect(() => {
-    const handler = () => fetchVirtualEvents();
+    const handler = () => {
+      void fetchVirtualEvents();
+    };
     globalThis.addEventListener("refreshPeople", handler);
     return () => globalThis.removeEventListener("refreshPeople", handler);
   }, [fetchVirtualEvents]);
@@ -83,11 +86,7 @@ export function useVirtualBirthdayEvents(): Event[] {
   return virtualEvents;
 }
 
-export function useEvents(
-  rangeStart: string,
-  rangeEnd: string,
-  virtualEvents: Event[] = []
-) {
+export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: Event[] = []) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [rawEvents, setRawEvents] = useState<Event[]>([]);
@@ -97,7 +96,6 @@ export function useEvents(
   const { toast } = useToast();
   const withRetry = useRetry();
   const { getSignal } = useAbortController();
-
 
   const events = useMemo(() => {
     if (!rangeStart || !rangeEnd) return rawEvents;
@@ -109,15 +107,18 @@ export function useEvents(
   const fetchEvents = useCallback(async () => {
     if (!rangeStart || !rangeEnd) return;
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
     const signal = getSignal();
     setFetching(true);
     try {
       const { data, error } = await withRetry(
         () =>
-          supabase.from("events").select("*").or(`user_id.eq.${userId},shared_with_id.eq.${userId}`).abortSignal(signal),
+          supabase
+            .from("events")
+            .select("*")
+            .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
+            .abortSignal(signal),
         signal
       );
       if (error) throw error;
@@ -138,7 +139,9 @@ export function useEvents(
   }, [fetchEvents, userId]);
 
   useEffect(() => {
-    const handleRefresh = () => fetchEvents();
+    const handleRefresh = () => {
+      void fetchEvents();
+    };
     globalThis.addEventListener("refreshEvents", handleRefresh);
     return () => globalThis.removeEventListener("refreshEvents", handleRefresh);
   }, [fetchEvents]);
@@ -146,8 +149,7 @@ export function useEvents(
   const addEvent = useCallback(
     async (event: Event & { shared_with_email?: string }) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
@@ -191,8 +193,7 @@ export function useEvents(
         return;
       }
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const previous = rawEvents;
@@ -234,8 +235,7 @@ export function useEvents(
         return;
       }
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const ok = await toast.confirm(`Czy chcesz usunąć wydarzenie?`);
       if (!ok) return;

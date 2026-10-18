@@ -1,6 +1,6 @@
 // config/guideData.tsx
 
-import React from 'react';
+import React from "react";
 import {
   Activity,
   LayoutDashboard,
@@ -32,7 +32,7 @@ import {
   IdCard,
   MessageSquareShare,
   TrainFront,
-} from 'lucide-react';
+} from "lucide-react";
 
 export type GuideSection = {
   id: string;
@@ -43,73 +43,104 @@ export type GuideSection = {
 };
 
 const K = ({ children }: { children: React.ReactNode }) => (
-  <strong className="text-text font-semibold">{children}</strong>
+  <strong className="font-semibold text-text">{children}</strong>
 );
 
 export const guideSections: GuideSection[] = [
-
   {
-    id: 'dashboard',
-    title: 'Kokpit główny (Dzisiaj)',
-    mainIcon: <LayoutDashboard className="w-6 h-6" />,
-    iconColorClass: 'text-primary',
+    id: "dashboard",
+    title: "Kokpit główny (Dzisiaj)",
+    mainIcon: <LayoutDashboard className="h-6 w-6" />,
+    iconColorClass: "text-primary",
     listItems: [
       <>
-        <K>Centrum dowodzenia.</K> Widok główny zbiera w jednym miejscu wszystko, co istotne na dziś: plan dnia, listę zadań, wydarzenia z kalendarza, widgety nawyków, wody i nastroju oraz kamienie milowe z celów.
+        <K>Centrum dowodzenia.</K> Widok główny zbiera w jednym miejscu wszystko, co istotne na dziś: plan dnia, listę
+        zadań, wydarzenia z kalendarza, widgety nawyków, wody i nastroju oraz kamienie milowe z celów.
       </>,
       <>
-        <K>Oś czasu 06:00-23:00.</K> Lewa kolumna to interaktywny harmonogram dnia podzielony na godziny. Wyświetla zadania zaplanowane na konkretną godzinę, wpisy z aktywnego schematu dnia i wydarzenia z kalendarza.
+        <K>Oś czasu 06:00-23:00.</K> Lewa kolumna to interaktywny harmonogram dnia podzielony na godziny. Wyświetla
+        zadania zaplanowane na konkretną godzinę, wpisy z aktywnego schematu dnia i wydarzenia z kalendarza.
       </>,
       <>
-        <K>Przeciągnij i upuść.</K> Zadania z listy po prawej możesz przeciągnąć na dowolną godzinę na osi czasu. Aplikacja zapamięta ten czas. Już umieszczone elementy możesz przesuwać między slotami. 
+        <K>Przeciągnij i upuść.</K> Zadania z listy po prawej możesz przeciągnąć na dowolną godzinę na osi czasu.
+        Aplikacja zapamięta ten czas. Już umieszczone elementy możesz przesuwać między slotami.
       </>,
       <>
-        <K>Widgety na górze strony.</K> Tuż nad główną treścią widoczne są: ikony nawyków, pasek wody, tracker nastroju i pole dziennych wydatków. Możesz je aktualizować bezpośrednio z kokpitu, bez przechodzenia do innej sekcji.
+        <K>Widgety na górze strony.</K> Tuż nad główną treścią widoczne są: ikony nawyków, pasek wody, tracker nastroju
+        i pole dziennych wydatków. Możesz je aktualizować bezpośrednio z kokpitu, bez przechodzenia do innej sekcji.
       </>,
       <>
-        <K>Skróty do modułów.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się ikonka skrótu:<ul><li> <em>trening</em> – Trening,</li><li> <em>zakupy</em> – Listy zakupów,</li><li> <em>spotkanie</em> – Protokoły,</li><li> <em>film</em> – Filmy.</li></ul>
+        <K>Skróty do modułów.</K> Jeśli tytuł zadania lub wydarzenia zawiera słowa kluczowe, przy elemencie pojawia się
+        ikonka skrótu:
+        <ul>
+          <li>
+            {" "}
+            <em>trening</em> – Trening,
+          </li>
+          <li>
+            {" "}
+            <em>zakupy</em> – Listy zakupów,
+          </li>
+          <li>
+            {" "}
+            <em>spotkanie</em> – Protokoły,
+          </li>
+          <li>
+            {" "}
+            <em>film</em> – Filmy.
+          </li>
+        </ul>
       </>,
       <>
-        <K>Licznik ukończenia.</K> W nagłówku sekcji zadań widoczny jest wskaźnik <em>wykonane/wszystkie</em> dla bieżącego dnia, np. 3/7.
+        <K>Licznik ukończenia.</K> W nagłówku sekcji zadań widoczny jest wskaźnik <em>wykonane/wszystkie</em> dla
+        bieżącego dnia, np. 3/7.
       </>,
     ],
   },
 
   {
-    id: 'day_schema',
-    title: 'Schematy dnia',
-    mainIcon: <Logs className="w-6 h-6" />,
-    iconColorClass: 'text-purple-500',
+    id: "day_schema",
+    title: "Schematy dnia",
+    mainIcon: <Logs className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Automatyczne bloki czasowe.</K> Schemat to zestaw wpisów (godzina + etykieta) przypisanych do wybranych dni tygodnia. Gdy nastanie właściwy dzień, wpisy schematu automatycznie pojawiają się na osi czasu kokpitu jako szare bloki.
+        <K>Automatyczne bloki czasowe.</K> Schemat to zestaw wpisów (godzina + etykieta) przypisanych do wybranych dni
+        tygodnia. Gdy nastanie właściwy dzień, wpisy schematu automatycznie pojawiają się na osi czasu kokpitu jako
+        szare bloki.
       </>,
       <>
-        <K>Tworzenie schematu.</K> Wejdź na stronę <em>Plan dnia</em>, kliknij <em>Dodaj</em>, nadaj nazwę, zaznacz dni tygodnia i dodaj wpisy. Każdy wpis to para: godzina i etykieta (np. 08:00 / Praca, 13:00 / Obiad).
+        <K>Tworzenie schematu.</K> Wejdź na stronę <em>Plan dnia</em>, kliknij <em>Dodaj</em>, nadaj nazwę, zaznacz dni
+        tygodnia i dodaj wpisy. Każdy wpis to para: godzina i etykieta (np. 08:00 / Praca, 13:00 / Obiad).
       </>,
       <>
-        <K>Wiele schematów.</K> Możesz mieć wiele schematów przypisanych do różnych dni. Jeśli dany dzień pasuje do kilku schematów, wyświetlony zostanie pierwszy pasujący.
+        <K>Wiele schematów.</K> Możesz mieć wiele schematów przypisanych do różnych dni. Jeśli dany dzień pasuje do
+        kilku schematów, wyświetlony zostanie pierwszy pasujący.
       </>,
       <>
-        <K>Różnica między schematem a zadaniem. </K> Schematy to stałe rutyny – nie mają statusu &quot;wykonane&quot; i wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
+        <K>Różnica między schematem a zadaniem. </K> Schematy to stałe rutyny – nie mają statusu &quot;wykonane&quot; i
+        wracają każdego tygodnia. Zadania to jednorazowe czynności z priorytetem i możliwością odhaczenia.
       </>,
     ],
   },
 
   {
-    id: 'habits',
-    title: 'Codzienne nawyki',
-    mainIcon: <Activity className="w-6 h-6" />,
-    iconColorClass: 'text-indigo-500',
+    id: "habits",
+    title: "Codzienne nawyki",
+    mainIcon: <Activity className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Osiem ikon na kokpicie.</K> Każda reprezentuje jeden nawyk: Leki, Higiena, Trening, Relacje, Praca, Dom, Higiena cyfrowa, Języki obce. Kliknij ikonę, by oznaczyć nawyk jako wykonany.
+        <K>Osiem ikon na kokpicie.</K> Każda reprezentuje jeden nawyk: Leki, Higiena, Trening, Relacje, Praca, Dom,
+        Higiena cyfrowa, Języki obce. Kliknij ikonę, by oznaczyć nawyk jako wykonany.
       </>,
       <>
-        <K>Dane historyczne.</K> Widok szczegółów dnia w kalendarzu pokazuje, które nawyki były odhaczone w wybranym dniu. Możesz wracać do poprzednich dat i uzupełniać zaległe wpisy.
+        <K>Dane historyczne.</K> Widok szczegółów dnia w kalendarzu pokazuje, które nawyki były odhaczone w wybranym
+        dniu. Możesz wracać do poprzednich dat i uzupełniać zaległe wpisy.
       </>,
       <>
-        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki – ikona zniknie z kokpitu. Nie powoduje to usunięcia historycznych danych.
+        <K>Personalizacja.</K> W Ustawieniach możesz ukryć niepotrzebne nawyki – ikona zniknie z kokpitu. Nie powoduje
+        to usunięcia historycznych danych.
       </>,
       <>
         <K>Reset.</K> Reset następuje automatycznie o północy – każdy dzień zaczyna się od zera.
@@ -118,100 +149,124 @@ export const guideSections: GuideSection[] = [
   },
 
   {
-    id: 'water_tracker',
-    title: 'Tracker wody',
-    mainIcon: <Droplet className="w-6 h-6" />,
-    iconColorClass: 'text-cyan-500',
+    id: "water_tracker",
+    title: "Tracker wody",
+    mainIcon: <Droplet className="h-6 w-6" />,
+    iconColorClass: "text-deco-cyan",
     listItems: [
       <>
-        <K>Suwak. </K> Przesuń pasek lub kliknij w dowolne miejsce, by zaktualizować ilość wypitej wody. Wartość zapisuje się natychmiast. Cel to 2 litry dziennie.
+        <K>Suwak. </K> Przesuń pasek lub kliknij w dowolne miejsce, by zaktualizować ilość wypitej wody. Wartość
+        zapisuje się natychmiast. Cel to 2 litry dziennie.
       </>,
       <>
-        <K>Dostępność.</K> Widget widoczny jest na kokpicie głównym oraz w widoku szczegółów dnia w kalendarzu. Możesz uzupełniać wartości dla poprzednich dni.
+        <K>Dostępność.</K> Widget widoczny jest na kokpicie głównym oraz w widoku szczegółów dnia w kalendarzu. Możesz
+        uzupełniać wartości dla poprzednich dni.
       </>,
       <>
-        <K>Wyłączanie widgetu.</K> Jeśli nie potrzebujesz trackera wody, ukryj go w Ustawieniach (przełącznik <em>Pokaż tracker wody</em>). Historia danych zostaje zachowana.
+        <K>Wyłączanie widgetu.</K> Jeśli nie potrzebujesz trackera wody, ukryj go w Ustawieniach (przełącznik{" "}
+        <em>Pokaż tracker wody</em>). Historia danych zostaje zachowana.
       </>,
     ],
   },
 
   {
-    id: 'mood_tracker',
-    title: 'Śledzenie nastroju',
-    mainIcon: <Smile className="w-6 h-6" />,
-    iconColorClass: 'text-pink-500',
+    id: "mood_tracker",
+    title: "Śledzenie nastroju",
+    mainIcon: <Smile className="h-6 w-6" />,
+    iconColorClass: "text-deco-pink",
     listItems: [
       <>
-        <K>Dzienne oznaczenie.</K> Widget nastroju pokazuje kolorowe przyciski z etykietami. Kliknij jeden, by zapisać nastrój na dziś. Kliknięcie tego samego przycisku ponownie cofnie wybór.
+        <K>Dzienne oznaczenie.</K> Widget nastroju pokazuje kolorowe przyciski z etykietami. Kliknij jeden, by zapisać
+        nastrój na dziś. Kliknięcie tego samego przycisku ponownie cofnie wybór.
       </>,
       <>
-        <K>Widoczność w kalendarzu.</K> Każdy dzień z zapisanym nastrojem jest oznaczony kolorową kropką w komórce kalendarza miesięcznego – na komputerze w rogu, na telefonie jako mały wskaźnik.
+        <K>Widoczność w kalendarzu.</K> Każdy dzień z zapisanym nastrojem jest oznaczony kolorową kropką w komórce
+        kalendarza miesięcznego – na komputerze w rogu, na telefonie jako mały wskaźnik.
       </>,
       <>
-        <K>Konfiguracja.</K> W Ustawieniach możesz zmieniać etykiety, kolory (6 gotowych presetów + dowolny color picker) oraz usuwać lub dodawać opcje (limit 10). Zmiany są widoczne natychmiast.
+        <K>Konfiguracja.</K> W Ustawieniach możesz zmieniać etykiety, kolory (6 gotowych presetów + dowolny color
+        picker) oraz usuwać lub dodawać opcje (limit 10). Zmiany są widoczne natychmiast.
       </>,
       <>
-        <K>Włączanie modułu.</K> Nastrój jest domyślnie włączony. Możesz go wyłączyć przełącznikiem <em>Pokaż śledzenie nastroju</em> w Ustawieniach.
+        <K>Włączanie modułu.</K> Nastrój jest domyślnie włączony. Możesz go wyłączyć przełącznikiem{" "}
+        <em>Pokaż śledzenie nastroju</em> w Ustawieniach.
       </>,
     ],
   },
 
   {
-    id: 'tasks_list',
-    title: 'Lista zadań',
-    mainIcon: <CheckSquare className="w-6 h-6" />,
-    iconColorClass: 'text-green-500',
+    id: "tasks_list",
+    title: "Lista zadań",
+    mainIcon: <CheckSquare className="h-6 w-6" />,
+    iconColorClass: "text-success",
     listItems: [
       <>
-        <K>Priorytety 1-5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz sortować zadania według priorytetu, daty lub alfabetycznie – wybierz w Ustawieniach.
+        <K>Priorytety 1-5.</K> Priorytet 1 to najważniejsze (kolor czerwony), 5 to najmniej pilne (zielony). Możesz
+        sortować zadania według priorytetu, daty lub alfabetycznie – wybierz w Ustawieniach.
       </>,
       <>
-        <K>Filtry czasowe.</K> Pasek filtrów nad listą pozwala wyświetlić zadania z: wczoraj, dzisiaj, jutra, pojutrze lub wszystkie naraz. 
+        <K>Filtry czasowe.</K> Pasek filtrów nad listą pozwala wyświetlić zadania z: wczoraj, dzisiaj, jutra, pojutrze
+        lub wszystkie naraz.
       </>,
       <>
-        <K>Etykieta czasowa.</K> Każde zadanie ma kolorowy znacznik informujący o kontekście czasowym. Etykiety aktualizują się automatycznie o północy.
+        <K>Etykieta czasowa.</K> Każde zadanie ma kolorowy znacznik informujący o kontekście czasowym. Etykiety
+        aktualizują się automatycznie o północy.
       </>,
       <>
-        <K>Odłożenie na jutro.</K> Przycisk <em>Odłóż</em> przesuwa datę zadania o jeden dzień bez otwierania formularza edycji.
+        <K>Odłożenie na jutro.</K> Przycisk <em>Odłóż</em> przesuwa datę zadania o jeden dzień bez otwierania formularza
+        edycji.
       </>,
       <>
-        <K>Timer przy zadaniu.</K> Kliknij tytuł zadania lub przycisk <em>Timer</em>, by uruchomić stoper bezpośrednio na karcie. Po zakończeniu sesji (min. 60 sekund) wynik w minutach zostaje dopisany do opisu zadania.
+        <K>Timer przy zadaniu.</K> Kliknij tytuł zadania lub przycisk <em>Timer</em>, by uruchomić stoper bezpośrednio
+        na karcie. Po zakończeniu sesji (min. 60 sekund) wynik w minutach zostaje dopisany do opisu zadania.
       </>,
       <>
-        <K>Udostępnianie zadań.</K> Przy tworzeniu lub edycji możesz przypisać zadanie innemu użytkownikowi z listy zaufanych. Pojawi się u niego ze statusem <em>Oczekuje akceptacji</em> i wymaga potwierdzenia.
+        <K>Udostępnianie zadań.</K> Przy tworzeniu lub edycji możesz przypisać zadanie innemu użytkownikowi z listy
+        zaufanych. Pojawi się u niego ze statusem <em>Oczekuje akceptacji</em> i wymaga potwierdzenia.
       </>,
     ],
   },
 
   {
-    id: 'reminders',
-    title: 'Zadania cykliczne',
-    mainIcon: <RefreshCw className="w-6 h-6" />,
-    iconColorClass: 'text-teal-500',
+    id: "reminders",
+    title: "Zadania cykliczne",
+    mainIcon: <RefreshCw className="h-6 w-6" />,
+    iconColorClass: "text-deco-cyan",
     listItems: [
       <>
-        <K>Tworzenie.</K> W sekcji Zadania rozwiń panel <em>Zadania cykliczne</em> i kliknij <em>Dodaj</em>. Wpisz tytuł, datę pierwszego pojawienia i interwał w dniach.
+        <K>Powtarzanie.</K> W formularzu zadania wybierz w polu <em>Powtarzaj</em> częstotliwość (codziennie, co
+        tydzień, co miesiąc, co roku), w polu <em>Co ile</em> odstęp, a dla tygodni – dni tygodnia. W sekcji{" "}
+        <em>Koniec</em> ustawisz datę końcową albo liczbę powtórzeń.
       </>,
       <>
-        <K>Dostępne akcje.</K> Każde widoczne przypomnienie ma trzy przyciski: <em>Dodaj jako zadanie</em> (tworzy jednorazowe zadanie z odpowiednią datą), <em>Zakończ</em> (oznacza jako wykonane i odlicza kolejny termin), <em>Odłóż</em> (przesuwa termin o jeden interwał do przodu).
+        <K>Podgląd.</K> Na liście zadań sekcja <em>Powtórzenia (podgląd)</em> pokazuje kolejne wystąpienia z
+        najbliższych 14 dni.
       </>,
       <>
-        <K>Widoczność.</K> Domyślnie lista pokazuje tylko te przypomnienia, których termin już nadszedł. Kliknij <em>Pokaż wszystkie</em>, by wyświetlić całą bazę cyklicznych.
+        <K>Przypomnienia.</K> Do zadania z terminem dodasz przypomnienia push – gotowe propozycje (np. dzień wcześniej)
+        albo własną datę i godzinę. Wymagają włączenia powiadomień w Ustawieniach.
+      </>,
+      <>
+        <K>Urodziny, imieniny i kontakt.</K> Dla osób z modułu Osoby aplikacja przypomina o urodzinach, imieninach oraz
+        o tym, że dawno się z kimś nie kontaktowałeś (według ustawionego priorytetu). Każdy rodzaj powiadomień włączysz
+        osobno w Ustawieniach.
       </>,
     ],
   },
 
   {
-    id: 'slack',
-    title: 'Listy Slack',
-    mainIcon: <MessageSquareShare className="w-6 h-6" />,
-    iconColorClass: 'text-primary',
+    id: "slack",
+    title: "Listy Slack",
+    mainIcon: <MessageSquareShare className="h-6 w-6" />,
+    iconColorClass: "text-primary",
     listItems: [
       <>
-        <K>Połączenie.</K> W <em>Ustawieniach</em> połącz konto Slack i wklej link do listy (Slack Lists), którą chcesz synchronizować.
+        <K>Połączenie.</K> W <em>Ustawieniach</em> połącz konto Slack i wklej link do listy (Slack Lists), którą chcesz
+        synchronizować.
       </>,
       <>
-        <K>Synchronizacja w obie strony.</K> Zadania dodane lub zmienione w aplikacji trafiają na listę Slack, a zmiany ze Slacka wracają do Twoich zadań.
+        <K>Synchronizacja w obie strony.</K> Zadania dodane lub zmienione w aplikacji trafiają na listę Slack, a zmiany
+        ze Slacka wracają do Twoich zadań.
       </>,
       <>
         <K>Lista domyślna.</K> Wskaż listę, na którą trafiają nowe zadania, jeśli masz ich kilka.
@@ -223,298 +278,368 @@ export const guideSections: GuideSection[] = [
   },
 
   {
-    id: 'pomodoro',
-    title: 'Timer Pomodoro',
-    mainIcon: <Timer className="w-6 h-6" />,
-    iconColorClass: 'text-red-500',
+    id: "pomodoro",
+    title: "Timer Pomodoro",
+    mainIcon: <Timer className="h-6 w-6" />,
+    iconColorClass: "text-danger",
     listItems: [
       <>
-        <K>Technika Pomodoro.</K> Praca w blokach skupienia (domyślnie 25 minut) przeplatanych krótkimi przerwami (5 minut). Pomaga utrzymać koncentrację i zapobiegać wypaleniu.
+        <K>Technika Pomodoro.</K> Praca w blokach skupienia (domyślnie 25 minut) przeplatanych krótkimi przerwami (5
+        minut). Pomaga utrzymać koncentrację i zapobiegać wypaleniu.
       </>,
       <>
-        <K>Konfiguracja.</K> Kliknij ikonę koła zębatego pod timerem, by zmienić długość bloku pracy i przerwy. Nowe ustawienia wchodzą w życie przy kolejnym starcie timera.
+        <K>Konfiguracja.</K> Kliknij ikonę koła zębatego pod timerem, by zmienić długość bloku pracy i przerwy. Nowe
+        ustawienia wchodzą w życie przy kolejnym starcie timera.
       </>,
       <>
-        <K>Nawigacja między fazami.</K> Przyciski <em>Cofnij</em> i <em>Dalej</em> pozwalają ręcznie przechodzić między fazą pracy a przerwą bez czekania na koniec odliczania.
+        <K>Nawigacja między fazami.</K> Przyciski <em>Cofnij</em> i <em>Dalej</em> pozwalają ręcznie przechodzić między
+        fazą pracy a przerwą bez czekania na koniec odliczania.
       </>,
       <>
-        <K>Dźwięk i blokada ekranu.</K> Po zakończeniu każdej fazy odtwarzany jest sygnał dźwiękowy. Na obsługiwanych urządzeniach timer aktywuje blokadę wygaszania ekranu (Wake Lock).
+        <K>Dźwięk i blokada ekranu.</K> Po zakończeniu każdej fazy odtwarzany jest sygnał dźwiękowy. Na obsługiwanych
+        urządzeniach timer aktywuje blokadę wygaszania ekranu (Wake Lock).
       </>,
     ],
   },
 
   {
-    id: 'worklogs',
-    title: 'Czas pracy',
-    mainIcon: <Clock className="w-6 h-6" />,
-    iconColorClass: 'text-cyan-500',
+    id: "worklogs",
+    title: "Czas pracy",
+    mainIcon: <Clock className="h-6 w-6" />,
+    iconColorClass: "text-deco-cyan",
     listItems: [
       <>
-        <K>Ręczne wpisy czasu pracy.</K> Kliknij <em>Dodaj</em>, opisz czynność i podaj czas rozpoczęcia oraz zakończenia. Wpisy są pogrupowane i sumowane w ramach bieżącego miesiąca.
+        <K>Ręczne wpisy czasu pracy.</K> Kliknij <em>Dodaj</em>, opisz czynność i podaj czas rozpoczęcia oraz
+        zakończenia. Wpisy są pogrupowane i sumowane w ramach bieżącego miesiąca.
       </>,
       <>
-        <K>Podsumowanie miesięczne.</K> Nagłówek strony pokazuje łączny czas przepracowany w wybranym miesiącu (godziny i minuty). Strzałkami przechodzisz między miesiącami, by zobaczyć historię.
+        <K>Podsumowanie miesięczne.</K> Nagłówek strony pokazuje łączny czas przepracowany w wybranym miesiącu (godziny
+        i minuty). Strzałkami przechodzisz między miesiącami, by zobaczyć historię.
       </>,
       <>
-        <K>Automatyzacja przez Skróty (Shortcuts).</K> Dedykowany, zabezpieczony osobnym sekretem endpoint pozwala rozpocząć i zakończyć wpis automatycznie – np. skrótem uruchamianym po dotarciu do biura (geofencing) lub jednym dotknięciem na ekranie głównym telefonu, bez otwierania aplikacji.
+        <K>Automatyzacja przez Skróty (Shortcuts).</K> Dedykowany, zabezpieczony osobnym sekretem endpoint pozwala
+        rozpocząć i zakończyć wpis automatycznie – np. skrótem uruchamianym po dotarciu do biura (geofencing) lub jednym
+        dotknięciem na ekranie głównym telefonu, bez otwierania aplikacji.
       </>,
       <>
-        <K>Ochrona przed duplikatami.</K> Aplikacja nie pozwoli rozpocząć nowego wpisu, dopóki poprzedni pozostaje otwarty (brak zapisanego czasu zakończenia) – także przy wpisach dodanych automatycznie.
+        <K>Ochrona przed duplikatami.</K> Aplikacja nie pozwoli rozpocząć nowego wpisu, dopóki poprzedni pozostaje
+        otwarty (brak zapisanego czasu zakończenia) – także przy wpisach dodanych automatycznie.
       </>,
     ],
   },
 
   {
-    id: 'notes',
-    title: 'Notatki',
-    mainIcon: <Pen className="w-6 h-6" />,
-    iconColorClass: 'text-purple-500',
+    id: "notes",
+    title: "Notatki",
+    mainIcon: <Pen className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Format listowy.</K> Notatki to listy punktowane – każda linia to osobny element. Ułatwia to edycję, przeglądanie na telefonie i późniejsze rozwijanie treści.
+        <K>Format listowy.</K> Notatki to listy punktowane – każda linia to osobny element. Ułatwia to edycję,
+        przeglądanie na telefonie i późniejsze rozwijanie treści.
       </>,
       <>
-        <K>Automatyczne rozpoznawanie linków.</K> Jeśli wpiszesz URL (z http:// lub bez), aplikacja automatycznie zamieni go w klikalny link otwierający się w nowej karcie.
+        <K>Automatyczne rozpoznawanie linków.</K> Jeśli wpiszesz URL (z http:// lub bez), aplikacja automatycznie
+        zamieni go w klikalny link otwierający się w nowej karcie.
       </>,
       <>
-        <K>Kolory tła.</K> Każdej notatce można przypisać jeden z 5 kolorów: biały, żółty, zielony, niebieski, czerwony. W trybie ciemnym kolory są subtelnie przyciemnione.
+        <K>Kolory tła.</K> Każdej notatce można przypisać jeden z 5 kolorów: biały, żółty, zielony, niebieski, czerwony.
+        W trybie ciemnym kolory są subtelnie przyciemnione.
       </>,
       <>
-        <K>Przypinanie i archiwizacja.</K> Przypięte notatki wyświetlają się zawsze na górze listy. Zarchiwizowane są ukryte (nie usunięte) – przywrócisz je przyciskiem <em>Pokaż</em>.
+        <K>Przypinanie i archiwizacja.</K> Przypięte notatki wyświetlają się zawsze na górze listy. Zarchiwizowane są
+        ukryte (nie usunięte) – przywrócisz je przyciskiem <em>Pokaż</em>.
       </>,
       <>
-        <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie po dacie aktualizacji (domyślnie) lub alfabetycznie. Przypięte notatki zawsze są na górze niezależnie od wybranego sortowania.
+        <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie po dacie aktualizacji (domyślnie) lub alfabetycznie.
+        Przypięte notatki zawsze są na górze niezależnie od wybranego sortowania.
       </>,
       <>
-        <K>Wyszukiwarka.</K> Pole wyszukiwania filtruje notatki w czasie rzeczywistym, przeszukując zarówno tytuły, jak i zawartość każdego elementu listy.
+        <K>Wyszukiwarka.</K> Pole wyszukiwania filtruje notatki w czasie rzeczywistym, przeszukując zarówno tytuły, jak
+        i zawartość każdego elementu listy.
       </>,
     ],
   },
 
   {
-    id: 'reports',
-    title: 'Protokoły ze spotkań',
-    mainIcon: <ScrollText className="w-6 h-6" />,
-    iconColorClass: 'text-slate-500',
+    id: "reports",
+    title: "Protokoły ze spotkań",
+    mainIcon: <ScrollText className="h-6 w-6" />,
+    iconColorClass: "text-text-muted",
     listItems: [
       <>
-        <K>Struktura protokołu.</K> Każdy protokół zawiera: temat i datę spotkania, agendę (lista punktów), uczestników (z rolami moderatora i sprawozdawcy dla pierwszych dwóch pozycji) oraz zadania z osobą odpowiedzialną i datą.
+        <K>Struktura protokołu.</K> Każdy protokół zawiera: temat i datę spotkania, agendę (lista punktów), uczestników
+        (z rolami moderatora i sprawozdawcy dla pierwszych dwóch pozycji) oraz zadania z osobą odpowiedzialną i datą.
       </>,
       <>
-        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie protokoły, by pobrać gotowy, sformatowany dokument PDF, gotowy do wysłania mailem lub archiwizacji.
+        <K>Eksport do PDF.</K> Kliknij przycisk <em>PDF</em> na karcie protokoły, by pobrać gotowy, sformatowany
+        dokument PDF, gotowy do wysłania mailem lub archiwizacji.
       </>,
       <>
-        <K>Edycja po fakcie.</K> Możesz wracać do sprawozdań i uzupełniać brakujące dane. Każdą sekcję można rozszerzać o kolejne punkty agendy, uczestników lub zadania za pomocą przycisku <em>Dodaj</em>.
+        <K>Edycja po fakcie.</K> Możesz wracać do sprawozdań i uzupełniać brakujące dane. Każdą sekcję można rozszerzać
+        o kolejne punkty agendy, uczestników lub zadania za pomocą przycisku <em>Dodaj</em>.
       </>,
     ],
   },
 
   {
-    id: 'letters',
-    title: 'Pisma urzędowe',
-    mainIcon: <Gavel className="w-6 h-6" />,
-    iconColorClass: 'text-slate-500',
+    id: "letters",
+    title: "Pisma urzędowe",
+    mainIcon: <Gavel className="h-6 w-6" />,
+    iconColorClass: "text-text-muted",
     listItems: [
       <>
-        <K>Rejestr korespondencji.</K> Ewidencjonuj pisma wychodzące do urzędów i instytucji: adresat, opis sprawy, data wystawienia.
+        <K>Rejestr korespondencji.</K> Ewidencjonuj pisma wychodzące do urzędów i instytucji: adresat, opis sprawy, data
+        wystawienia.
       </>,
       <>
-        <K>Automatyczna sygnatura.</K> Każde pismo dostaje sygnaturę w formacie <em>nr.mm.rrrr.KOD</em> z numeracją ciągłą w ramach roku. Kategorii i sygnatury nie można zmienić po utworzeniu; sygnaturę skopiujesz jednym kliknięciem.
+        <K>Automatyczna sygnatura.</K> Każde pismo dostaje sygnaturę w formacie <em>nr.mm.rrrr.KOD</em> z numeracją
+        ciągłą w ramach roku. Kategorii i sygnatury nie można zmienić po utworzeniu; sygnaturę skopiujesz jednym
+        kliknięciem.
       </>,
       <>
-        <K>Kategorie i terminy odpowiedzi.</K> Dostępne kategorie: UDIP, wniosek, skarga, wykroczenie drogowe, wykroczenie, przestępstwo oraz własna. Aplikacja podpowiada termin odpowiedzi na podstawie kategorii (np. 14 dni dla UDIP, 31 dla wniosku lub skargi) – pole pozostaje edytowalne.
+        <K>Kategorie i terminy odpowiedzi.</K> Dostępne kategorie: UDIP, wniosek, skarga, wykroczenie drogowe,
+        wykroczenie, przestępstwo oraz własna. Aplikacja podpowiada termin odpowiedzi na podstawie kategorii (np. 14 dni
+        dla UDIP, 31 dla wniosku lub skargi) – pole pozostaje edytowalne.
       </>,
       <>
-        <K>Dane zdarzenia.</K> Dla zgłoszeń wykroczeń możesz dodać numer rejestracyjny pojazdu oraz datę i miejsce zdarzenia.
+        <K>Dane zdarzenia.</K> Dla zgłoszeń wykroczeń możesz dodać numer rejestracyjny pojazdu oraz datę i miejsce
+        zdarzenia.
       </>,
       <>
-        <K>Pliki i wyszukiwarka.</K> Do wpisu podepniesz plik pisma oraz plik otrzymanej odpowiedzi. Wyszukiwarka filtruje po sygnaturze, adresacie i opisie.
+        <K>Pliki i wyszukiwarka.</K> Do wpisu podepniesz plik pisma oraz plik otrzymanej odpowiedzi. Wyszukiwarka
+        filtruje po sygnaturze, adresacie i opisie.
       </>,
     ],
   },
 
   {
-    id: 'calendar',
-    title: 'Kalendarz',
-    mainIcon: <Calendar className="w-6 h-6" />,
-    iconColorClass: 'text-purple-500',
+    id: "calendar",
+    title: "Kalendarz",
+    mainIcon: <Calendar className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Widok miesięczny.</K> Kalendarz pokazuje cały miesiąc z naniesionymi wydarzeniami. Wielodniowe wydarzenia rozciągają się na kilka komórek. W komórkach widoczna jest liczba nadmiarowych wydarzeń (+N).
+        <K>Widok miesięczny.</K> Kalendarz pokazuje cały miesiąc z naniesionymi wydarzeniami. Wielodniowe wydarzenia
+        rozciągają się na kilka komórek. W komórkach widoczna jest liczba nadmiarowych wydarzeń (+N).
       </>,
       <>
-        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome – Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są automatycznie obliczane i oznaczane czerwonym kolorem w kalendarzu oraz w nagłówku aplikacji.
+        <K>Polskie święta.</K> Wszystkie święta (stałe i ruchome – Wielkanoc, Poniedziałek Wielkanocny, Boże Ciało) są
+        automatycznie obliczane i oznaczane czerwonym kolorem w kalendarzu oraz w nagłówku aplikacji.
       </>,
       <>
-        <K>Szczegóły dnia.</K> Kliknij dowolny dzień, by zobaczyć pełną listę wydarzeń, zadania z tego dnia oraz widgety nawyków, wody, nastroju i dziennych wydatków.
+        <K>Szczegóły dnia.</K> Kliknij dowolny dzień, by zobaczyć pełną listę wydarzeń, zadania z tego dnia oraz widgety
+        nawyków, wody, nastroju i dziennych wydatków.
       </>,
       <>
-        <K>Urodziny i rocznice.</K> Jeśli tytuł lub opis wydarzenia zawiera słowo <em>urodziny</em>, <em>imieniny</em>, <em>rocznica</em>, w nagłówku aplikacji tego dnia pojawi się nazwa wydarzenia.
+        <K>Urodziny i rocznice.</K> Jeśli tytuł lub opis wydarzenia zawiera słowo <em>urodziny</em>, <em>imieniny</em>,{" "}
+        <em>rocznica</em>, w nagłówku aplikacji tego dnia pojawi się nazwa wydarzenia.
       </>,
       <>
-        <K>Powtarzanie wydarzeń.</K> Przy tworzeniu możesz ustawić powtarzanie: co tydzień, co miesiąc lub co rok. Powtarzające się instancje generowane są automatycznie bez tworzenia osobnych wpisów w bazie danych.
+        <K>Powtarzanie wydarzeń.</K> Przy tworzeniu możesz ustawić powtarzanie: co tydzień, co miesiąc lub co rok.
+        Powtarzające się instancje generowane są automatycznie bez tworzenia osobnych wpisów w bazie danych.
       </>,
       <>
         <K>Eksport .ics.</K> Każde wydarzenie możesz pobrać jako plik .ics i dodać do dowolnego kalendarza zewnętrznego.
       </>,
       <>
-        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych – wydarzenie pojawi się w jego kalendarzu.
+        <K>Udostępnianie wydarzeń.</K> Przy tworzeniu możesz wskazać innego użytkownika z listy zaufanych – wydarzenie
+        pojawi się w jego kalendarzu.
       </>,
       <>
-        <K>Synchronizacja z Google i Outlookiem.</K> W sekcji <em>Połączone kalendarze</em> podłączysz konto Google lub Microsoft 365 – wydarzenia synchronizują się dwukierunkowo, a tokeny dostępu są przechowywane w formie zaszyfrowanej.
+        <K>Synchronizacja z Google i Outlookiem.</K> W sekcji <em>Połączone kalendarze</em> podłączysz konto Google lub
+        Microsoft 365 – wydarzenia synchronizują się dwukierunkowo, a tokeny dostępu są przechowywane w formie
+        zaszyfrowanej.
       </>,
     ],
   },
 
   {
-    id: 'meetings',
-    title: 'Terminy zespołowe',
-    mainIcon: <CalendarClock className="w-6 h-6" />,
-    iconColorClass: 'text-purple-500',
+    id: "meetings",
+    title: "Terminy zespołowe",
+    mainIcon: <CalendarClock className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
     listItems: [
       <>
-        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu – aplikacja zbuduje z tego siatkę dostępności. Przycisk <em>Najbliższe 5 dni robocze</em> dodaje dni jednym kliknięciem.
+        <K>Ankieta terminu.</K> Utwórz ankietę podając tytuł, listę dni oraz zakres godzin i długość slotu – aplikacja
+        zbuduje z tego siatkę dostępności. Przycisk <em>Najbliższe 5 dni robocze</em> dodaje dni jednym kliknięciem.
       </>,
       <>
-        <K>Lista ankiet.</K> Ankiety są podzielone na otwarte i zamknięte, a przy każdej widać liczbę odpowiedzi, liczbę dni i termin zamknięcia. Zamkniętą ankietę możesz otworzyć ponownie.
+        <K>Lista ankiet.</K> Ankiety są podzielone na otwarte i zamknięte, a przy każdej widać liczbę odpowiedzi, liczbę
+        dni i termin zamknięcia. Zamkniętą ankietę możesz otworzyć ponownie.
       </>,
       <>
-        <K>Publiczny link.</K> Każda ankieta ma link <em>/meet/…</em>, który możesz wysłać uczestnikom – odpowiadają bez zakładania konta, podając tylko imię (e-mail opcjonalnie).
+        <K>Publiczny link.</K> Każda ankieta ma link <em>/meet/…</em>, który możesz wysłać uczestnikom – odpowiadają bez
+        zakładania konta, podając tylko imię (e-mail opcjonalnie).
       </>,
       <>
-        <K>Edycja odpowiedzi.</K> Po wysłaniu odpowiedzi uczestnik może do niej wrócić na tym samym urządzeniu i ją poprawić.
+        <K>Edycja odpowiedzi.</K> Po wysłaniu odpowiedzi uczestnik może do niej wrócić na tym samym urządzeniu i ją
+        poprawić.
       </>,
       <>
-        <K>Wyniki.</K> Widok wyników to mapa cieplna – im ciemniejsze pole, tym więcej osób jest dostępnych w danym slocie.
+        <K>Wyniki.</K> Widok wyników to mapa cieplna – im ciemniejsze pole, tym więcej osób jest dostępnych w danym
+        slocie.
       </>,
       <>
-        <K>Kto wypełnił ankietę.</K> Pod siatką znajdziesz listę uczestników z adresem e-mail, godziną wypełnienia i łączną liczbą godzin dostępności. Adresy wszystkich uczestników skopiujesz jednym kliknięciem.
+        <K>Kto wypełnił ankietę.</K> Pod siatką znajdziesz listę uczestników z adresem e-mail, godziną wypełnienia i
+        łączną liczbą godzin dostępności. Adresy wszystkich uczestników skopiujesz jednym kliknięciem.
       </>,
       <>
-        <K>Dostępność jednej osoby.</K> Nad siatką wybierz uczestnika (albo kliknij <em>Zobacz dostępność</em> na liście uczestników) – siatka pokaże wyłącznie terminy, które ta osoba zaznaczyła, a nad nią zobaczysz jej łączną dostępność i przedziały godzin w każdym dniu. Przycisk <em>Wszyscy</em> albo <em>Pokaż wszystkich</em> wraca do widoku całego zespołu.
+        <K>Dostępność jednej osoby.</K> Nad siatką wybierz uczestnika (albo kliknij <em>Zobacz dostępność</em> na liście
+        uczestników) – siatka pokaże wyłącznie terminy, które ta osoba zaznaczyła, a nad nią zobaczysz jej łączną
+        dostępność i przedziały godzin w każdym dniu. Przycisk <em>Wszyscy</em> albo <em>Pokaż wszystkich</em> wraca do
+        widoku całego zespołu.
       </>,
       <>
-        <K>Najlepsze terminy.</K> Gdy są już odpowiedzi, aplikacja podpowiada najdłuższe przedziały, w których dostępnych jest najwięcej osób. Kliknij propozycję, aby od razu ją wybrać.
+        <K>Najlepsze terminy.</K> Gdy są już odpowiedzi, aplikacja podpowiada najdłuższe przedziały, w których
+        dostępnych jest najwięcej osób. Kliknij propozycję, aby od razu ją wybrać.
       </>,
       <>
-        <K>Kto jest wolny w danym terminie.</K> Kliknij pole siatki – pod nią pojawi się imienna lista osób dostępnych i niedostępnych w wybranym przedziale.
+        <K>Kto jest wolny w danym terminie.</K> Kliknij pole siatki – pod nią pojawi się imienna lista osób dostępnych i
+        niedostępnych w wybranym przedziale.
       </>,
       <>
-        <K>Wybór dłuższego terminu.</K> Kliknij godzinę początkową, a następnie końcową w tej samej kolumnie – zaznaczy się cały zakres. Siatka obsługuje też klawiaturę (Tab i Enter).
+        <K>Wybór dłuższego terminu.</K> Kliknij godzinę początkową, a następnie końcową w tej samej kolumnie – zaznaczy
+        się cały zakres. Siatka obsługuje też klawiaturę (Tab i Enter).
       </>,
       <>
-        <K>Finalizacja.</K> Wybierz zwycięski termin, a aplikacja utworzy wydarzenie w Twoim kalendarzu oraz w kalendarzach uczestników, którzy mają konto w aplikacji.
+        <K>Finalizacja.</K> Wybierz zwycięski termin, a aplikacja utworzy wydarzenie w Twoim kalendarzu oraz w
+        kalendarzach uczestników, którzy mają konto w aplikacji.
       </>,
     ],
   },
 
   {
-    id: 'bills',
-    title: 'Rachunki i finanse',
-    mainIcon: <Wallet className="w-6 h-6" />,
-    iconColorClass: 'text-emerald-500',
+    id: "bills",
+    title: "Rachunki i finanse",
+    mainIcon: <Wallet className="h-6 w-6" />,
+    iconColorClass: "text-success",
     listItems: [
       <>
-        <K>Wydatki i przychody.</K> Każdy wpis może być wydatkiem (-) lub przychodem (+). Przychody to np. wynagrodzenie, zwroty, wpłaty od innych. Wydatki to stałe opłaty, faktury i zaplanowane zakupy.
+        <K>Wydatki i przychody.</K> Każdy wpis może być wydatkiem (-) lub przychodem (+). Przychody to np.
+        wynagrodzenie, zwroty, wpłaty od innych. Wydatki to stałe opłaty, faktury i zaplanowane zakupy.
       </>,
       <>
-        <K>Oznaczanie jako zapłacone.</K> Wydatki mają przycisk <em>Opłać</em>. Po kliknięciu wpis znika z głównej listy (jest schowany, nie usunięty), dzięki czemu lista zawiera wyłącznie nieuregulowane pozycje.
+        <K>Oznaczanie jako zapłacone.</K> Wydatki mają przycisk <em>Opłać</em>. Po kliknięciu wpis znika z głównej listy
+        (jest schowany, nie usunięty), dzięki czemu lista zawiera wyłącznie nieuregulowane pozycje.
       </>,
       <>
-        <K>Udostępnij.</K> Kliknij <em>Wyślij</em> przy rachunku, by skopiować lub wysłać gotową wiadomość z kwotą i opisem – przydatne do żądania zwrotów.
+        <K>Udostępnij.</K> Kliknij <em>Wyślij</em> przy rachunku, by skopiować lub wysłać gotową wiadomość z kwotą i
+        opisem – przydatne do żądania zwrotów.
       </>,
       <>
-        <K>Grupowanie po miesiącach.</K> Rachunki automatycznie grupowane są według miesięcy, posortowane chronologicznie w obrębie każdej grupy.
+        <K>Grupowanie po miesiącach.</K> Rachunki automatycznie grupowane są według miesięcy, posortowane
+        chronologicznie w obrębie każdej grupy.
       </>,
       <>
-        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki </em> na kokpicie pozwala wpisać sumę drobnych dziennych wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie &quot;bieżące&quot;.
+        <K>Bieżące wydatki z kokpitu.</K> Widget <em>Wydatki </em> na kokpicie pozwala wpisać sumę drobnych dziennych
+        wydatków bez tworzenia osobnego wpisu w rachunkach. Dane trafiają do budżetu rocznego w kolumnie
+        &quot;bieżące&quot;.
       </>,
       <>
-        <K>Import wyciągów bankowych.</K> Przycisk <em>Wczytaj CSV</em> przyjmuje wyciągi z mBanku i PKO BP. Aplikacja sama dobiera kategorie na podstawie opisu operacji, a przed zapisem pokazuje tabelę z liczbą i sumą operacji w każdej kategorii. Duplikaty już zapisanych operacji są pomijane.
+        <K>Import wyciągów bankowych.</K> Przycisk <em>Wczytaj CSV</em> przyjmuje wyciągi z mBanku i PKO BP. Aplikacja
+        sama dobiera kategorie na podstawie opisu operacji, a przed zapisem pokazuje tabelę z liczbą i sumą operacji w
+        każdej kategorii. Duplikaty już zapisanych operacji są pomijane.
       </>,
       <>
-        <K>Edytor kategorii. </K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w &quot;Kategorie&quot;, aby dodać własne.
+        <K>Edytor kategorii. </K> Sam decydujesz, jakie tagi są przypisywane do wydatków. W panelu budżetu wejdź w
+        &quot;Kategorie&quot;, aby dodać własne.
       </>,
     ],
   },
 
   {
-    id: 'budget',
-    title: 'Budżet roczny',
-    mainIcon: <ChartColumnBig className="w-6 h-6" />,
-    iconColorClass: 'text-teal-500',
+    id: "budget",
+    title: "Budżet roczny",
+    mainIcon: <ChartColumnBig className="h-6 w-6" />,
+    iconColorClass: "text-deco-cyan",
     listItems: [
       <>
-        <K>Trzy tabele.</K> Strona budżetu rocznego zawiera: tabelę podsumowania (wpływy, wydatki zrealizowane, planowane, pozostało), tabelę bieżących wydatków (budżet vs. dzienne wydatki z nawyków) oraz tabelę godzin pracy.
+        <K>Trzy tabele.</K> Strona budżetu rocznego zawiera: tabelę podsumowania (wpływy, wydatki zrealizowane,
+        planowane, pozostało), tabelę bieżących wydatków (budżet vs. dzienne wydatki z nawyków) oraz tabelę godzin
+        pracy.
       </>,
       <>
-        <K>Obliczanie godzin pracy.</K> Wpisz stawkę godzinową dla każdego miesiąca (kliknij ikonę edycji). Aplikacja podzieli sumę wydatków przez stawkę i pokaże, ile godzin pracy potrzebujesz na pokrycie kosztów.
+        <K>Obliczanie godzin pracy.</K> Wpisz stawkę godzinową dla każdego miesiąca (kliknij ikonę edycji). Aplikacja
+        podzieli sumę wydatków przez stawkę i pokaże, ile godzin pracy potrzebujesz na pokrycie kosztów.
       </>,
       <>
-        <K>Wydatki bieżące.</K> Każdy rachunek z opisem <em>Bieżące</em> trafia do tabeli bieżących jako planowany budżet na drobne zakupy. Porównanie z faktycznie wydanymi (z dziennego trackera) pokazuje nadwyżkę lub niedobór.
+        <K>Wydatki bieżące.</K> Każdy rachunek z opisem <em>Bieżące</em> trafia do tabeli bieżących jako planowany
+        budżet na drobne zakupy. Porównanie z faktycznie wydanymi (z dziennego trackera) pokazuje nadwyżkę lub niedobór.
       </>,
       <>
-        <K>Nawigacja po latach.</K> Użyj strzałek w górnej części strony, by przeglądać budżety z poprzednich i przyszłych lat. Stawki godzinowe są pamiętane osobno dla każdego roku.
+        <K>Nawigacja po latach.</K> Użyj strzałek w górnej części strony, by przeglądać budżety z poprzednich i
+        przyszłych lat. Stawki godzinowe są pamiętane osobno dla każdego roku.
       </>,
     ],
   },
 
   {
-    id: 'calculator',
-    title: 'Kalkulator podziału rachunków',
-    mainIcon: <Calculator className="w-6 h-6" />,
-    iconColorClass: 'text-primary',
+    id: "calculator",
+    title: "Kalkulator podziału rachunków",
+    mainIcon: <Calculator className="h-6 w-6" />,
+    iconColorClass: "text-primary",
     listItems: [
       <>
-        <K>Do czego służy.</K> Narzędzie do sprawiedliwego podziału wspólnych kosztów mieszkania (wynajem, czynsz, media) między dwie osoby z uwzględnieniem różnicy w dochodach.
+        <K>Do czego służy.</K> Narzędzie do sprawiedliwego podziału wspólnych kosztów mieszkania (wynajem, czynsz,
+        media) między dwie osoby z uwzględnieniem różnicy w dochodach.
       </>,
       <>
-        <K>Algorytm hybrydowy.</K> Każda osoba płaci połowę kwoty stałej (50/50) plus dodatkową część proporcjonalną do swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej – uczciwie, nie po równo.
+        <K>Algorytm hybrydowy.</K> Każda osoba płaci połowę kwoty stałej (50/50) plus dodatkową część proporcjonalną do
+        swojego dochodu netto. Osoba zarabiająca więcej dopłaca proporcjonalnie więcej – uczciwie, nie po równo.
       </>,
       <>
-        <K>Obsługa walut.</K> Dochód każdej osoby można wpisać w PLN lub EUR. Kurs EUR/PLN pobierany jest automatycznie z API NBP. Możesz go też wpisać ręcznie.
+        <K>Obsługa walut.</K> Dochód każdej osoby można wpisać w PLN lub EUR. Kurs EUR/PLN pobierany jest automatycznie
+        z API NBP. Możesz go też wpisać ręcznie.
       </>,
       <>
-        <K>Podatki i ZUS. </K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto &quot;na rękę&quot;. Kalkulator pokaże kwotę podatku i wynikowy dochód.
+        <K>Podatki i ZUS. </K> Podaj procentową zaliczkę PIT i składkę ZUS, by obliczyć dochód netto &quot;na
+        rękę&quot;. Kalkulator pokaże kwotę podatku i wynikowy dochód.
       </>,
     ],
   },
 
   {
-    id: 'shopping',
-    title: 'Listy zakupów',
-    mainIcon: <ShoppingCart className="w-6 h-6" />,
-    iconColorClass: 'text-amber-500',
+    id: "shopping",
+    title: "Listy zakupów",
+    mainIcon: <ShoppingCart className="h-6 w-6" />,
+    iconColorClass: "text-warning",
     listItems: [
       <>
         <K>Maksymalnie 5 list.</K> Możesz prowadzić do 5 aktywnych list jednocześnie.
       </>,
       <>
-        <K>Odhaczanie produktów.</K> Kliknij checkbox lub tekst produktu, by go przekreślić. Odhaczone produkty zostają na liście (możesz odkliknąć), dzięki czemu lista jest wielokrotnego użytku.
+        <K>Odhaczanie produktów.</K> Kliknij checkbox lub tekst produktu, by go przekreślić. Odhaczone produkty zostają
+        na liście (możesz odkliknąć), dzięki czemu lista jest wielokrotnego użytku.
       </>,
       <>
-        <K>Udostępnianie w czasie rzeczywistym.</K> Udostępnij listę innemu użytkownikowi – oboje widzicie te same zmiany natychmiast, bez ręcznego odświeżania.
+        <K>Udostępnianie w czasie rzeczywistym.</K> Udostępnij listę innemu użytkownikowi – oboje widzicie te same
+        zmiany natychmiast, bez ręcznego odświeżania.
       </>,
       <>
-        <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub alfabetycznie.
+        <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub
+        alfabetycznie.
       </>,
     ],
   },
 
   {
-    id: 'recipes',
-    title: 'Przepisy kulinarne',
-    mainIcon: <CookingPot className="w-6 h-6" />,
-    iconColorClass: 'text-orange-500',
+    id: "recipes",
+    title: "Przepisy kulinarne",
+    mainIcon: <CookingPot className="h-6 w-6" />,
+    iconColorClass: "text-warning",
     listItems: [
       <>
-        <K>Baza przepisów.</K> Każdy przepis ma nazwę, kategorię (śniadanie, zupa, danie główne, przystawka, sałatka, deser), listę składników i opis przygotowania.
+        <K>Baza przepisów.</K> Każdy przepis ma nazwę, kategorię (śniadanie, zupa, danie główne, przystawka, sałatka,
+        deser), listę składników i opis przygotowania.
       </>,
       <>
-        <K>Autouzupełnianie składników.</K> Przy wpisywaniu składnika aplikacja sugeruje produkty użyte już w innych przepisach. Zatwierdź Enter-em lub przecinkiem. Backspace usuwa ostatni dodany składnik.
+        <K>Autouzupełnianie składników.</K> Przy wpisywaniu składnika aplikacja sugeruje produkty użyte już w innych
+        przepisach. Zatwierdź Enter-em lub przecinkiem. Backspace usuwa ostatni dodany składnik.
       </>,
       <>
-        <K>Filtrowanie po składnikach.</K> Kliknij <em>Pokaż filtry</em>, by wyświetlić chmurę tagów. Zaznaczenie kilku składników pokaże tylko przepisy zawierające wszystkie z nich jednocześnie.
+        <K>Filtrowanie po składnikach.</K> Kliknij <em>Pokaż filtry</em>, by wyświetlić chmurę tagów. Zaznaczenie kilku
+        składników pokaże tylko przepisy zawierające wszystkie z nich jednocześnie.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach wybierz: według kategorii (domyślnie), alfabetycznie lub według daty dodania.
@@ -523,136 +648,164 @@ export const guideSections: GuideSection[] = [
   },
 
   {
-    id: 'packing',
-    title: 'Checklisty pakowania',
-    mainIcon: <Backpack className="w-6 h-6" />,
-    iconColorClass: 'text-orange-500',
+    id: "packing",
+    title: "Checklisty pakowania",
+    mainIcon: <Backpack className="h-6 w-6" />,
+    iconColorClass: "text-warning",
     listItems: [
       <>
-        <K>Trzy predefiniowane listy.</K> Aplikacja zawiera: <em>Plecak</em> (codzienny ekwipunek), <em>Walizka</em> (wyjazdy i podróże) oraz <em>Plecak bezpieczeństwa</em> (lista ewakuacyjna).
+        <K>Trzy predefiniowane listy.</K> Aplikacja zawiera: <em>Plecak</em> (codzienny ekwipunek), <em>Walizka</em>{" "}
+        (wyjazdy i podróże) oraz <em>Plecak bezpieczeństwa</em> (lista ewakuacyjna).
       </>,
       <>
-        <K>Odhaczanie pozycji.</K> Kliknij pozycję lub checkbox, by ją zaznaczyć. Zaznaczone pozycje są przekreślone. 
+        <K>Odhaczanie pozycji.</K> Kliknij pozycję lub checkbox, by ją zaznaczyć. Zaznaczone pozycje są przekreślone.
       </>,
       <>
-        <K>Kategorie.</K> Listy podzielone są na kategorie (Apteczka, Elektronika, Odzież itp.), co ułatwia systematyczne pakowanie sekcja po sekcji.
+        <K>Kategorie.</K> Listy podzielone są na kategorie (Apteczka, Elektronika, Odzież itp.), co ułatwia
+        systematyczne pakowanie sekcja po sekcji.
       </>,
     ],
   },
 
   {
-    id: 'transport',
-    title: 'Transport miejski',
-    mainIcon: <Bus className="w-6 h-6" />,
-    iconColorClass: 'text-primary',
+    id: "transport",
+    title: "Transport miejski",
+    mainIcon: <Bus className="h-6 w-6" />,
+    iconColorClass: "text-primary",
     listItems: [
       <>
-        <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską w Poznaniu (dane PEKA) i Szczecinie (dane ZDiTM). Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
+        <K>Obsługiwane miasta.</K> Moduł obsługuje komunikację miejską w Poznaniu (dane PEKA) i Szczecinie (dane ZDiTM).
+        Dane o odjazdach pobierane są w czasie rzeczywistym i odświeżane co 30 sekund.
       </>,
       <>
-        <K>Odjazdy GPS.</K> Sekcja <em>Najbliżej (GPS)</em> pokazuje przystanki w pobliżu z odległością w metrach. Aplikacja pamięta pozycję przez 2 minuty i Twoją zgodę na lokalizację, więc nie pyta o nią przy każdym wejściu.
+        <K>Odjazdy GPS.</K> Sekcja <em>Najbliżej (GPS)</em> pokazuje przystanki w pobliżu z odległością w metrach.
+        Aplikacja pamięta pozycję przez 2 minuty i Twoją zgodę na lokalizację, więc nie pyta o nią przy każdym wejściu.
       </>,
       <>
-        <K>Ulubione przystanki.</K> Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają się zawsze na górze, bez konieczności włączania GPS. Przystanki o tej samej nazwie w różnych miejscowościach, np. <em>Dworcowa</em> w Poznaniu i w Luboniu, są rozróżniane i podpisane nazwą miejscowości.
+        <K>Ulubione przystanki.</K> Kliknij gwiazdkę przy przystanku, by dodać go do ulubionych. Ulubione wyświetlają
+        się zawsze na górze, bez konieczności włączania GPS. Przystanki o tej samej nazwie w różnych miejscowościach,
+        np. <em>Dworcowa</em> w Poznaniu i w Luboniu, są rozróżniane i podpisane nazwą miejscowości.
       </>,
       <>
-        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku – aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać do ulubionych.
+        <K>Wyszukiwarka.</K> Wpisz nazwę przystanku – aplikacja podpowiada pasujące z bazy. Kliknij sugestię, by dodać
+        do ulubionych.
       </>,
       <>
-        <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach. Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare – rozkładowe.
+        <K>Odczyt tablicy.</K> Przy każdym odjeździe widoczna jest: linia, kierunek i czas do odjazdu w minutach.
+        Niebieskie minuty oznaczają dane w czasie rzeczywistym (GPS pojazdu), szare – rozkładowe.
       </>,
     ],
   },
 
   {
-    id: 'trains',
-    title: 'Pociągi',
-    mainIcon: <TrainFront className="w-6 h-6" />,
-    iconColorClass: 'text-primary',
+    id: "trains",
+    title: "Pociągi",
+    mainIcon: <TrainFront className="h-6 w-6" />,
+    iconColorClass: "text-primary",
     listItems: [
       <>
-        <K>Dodawanie pociągu.</K> Na stronie <em>Pociągi</em> dodasz pociąg ręcznie albo wgrasz bilet PDF, z którego formularz wypełni się sam.
+        <K>Dodawanie pociągu.</K> Na stronie <em>Pociągi</em> dodasz pociąg ręcznie albo wgrasz bilet PDF, z którego
+        formularz wypełni się sam.
       </>,
       <>
-        <K>Sprawdź odczyt biletu.</K> Po wczytaniu biletu nad formularzem pojawia się informacja, które pola rozpoznano automatycznie, a których nie. Uzupełnij brakujące i sprawdź resztę przed zapisem.
+        <K>Sprawdź odczyt biletu.</K> Po wczytaniu biletu nad formularzem pojawia się informacja, które pola rozpoznano
+        automatycznie, a których nie. Uzupełnij brakujące i sprawdź resztę przed zapisem.
       </>,
       <>
         <K>Status na żywo.</K> Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK.
       </>,
       <>
-        <K>W planie dnia.</K> Pociąg pojawia się w <em>Planie dnia</em> o godzinie odjazdu, z peronem, wagonem, miejscem i opóźnieniem odświeżanym na żywo.
+        <K>W planie dnia.</K> Pociąg pojawia się w <em>Planie dnia</em> o godzinie odjazdu, z peronem, wagonem, miejscem
+        i opóźnieniem odświeżanym na żywo.
       </>,
       <>
-        <K>Tablice stacyjne.</K> Dodaj do trzech stacji, by śledzić ich odjazdy. Przy odświeżaniu poprzednie dane zostają na ekranie, a obok nazwy stacji widać godzinę ostatniej aktualizacji.
-      </>,
-    ],
-  },
-
-  {
-    id: 'streaks',
-    title: 'Postępy',
-    mainIcon: <Trophy className="w-6 h-6" />,
-    iconColorClass: 'text-rose-500',
-    listItems: [
-      <>
-        <K>Czym są postępy.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie wymaga codziennego odhaczania – automatycznie przelicza dni od daty startu.
-      </>,
-      <>
-        <K>Kamienie milowe.</K> Algorytm gratuluje Ci: pierwszego tygodnia (7 dni), okrągłych liczb dni (100, 200...), miesięcznic i rocznic. Gratulacje pojawiają się na karcie celu i na kokpicie w sekcji <em>Postępy</em>.
-      </>,
-      <>
-        <K>Ikony.</K> Każdy cel ma ikonę wybraną z zestawu 10 symboli (płomień, trofeum, cel, serce, papieros, piwo, sztućce, hantle, skarbonka, medycyna). Kliknij ikonę w trybie edycji, by ją zmienić.
-      </>,
-      <>
-        <K>Edycja daty startu.</K> Możesz zmienić datę startu (np. jeśli zapomnisz dodać cel od razu). Karta automatycznie przeliczy liczbę dni, tygodni, miesięcy i lat.
+        <K>Tablice stacyjne.</K> Dodaj do trzech stacji, by śledzić ich odjazdy. Przy odświeżaniu poprzednie dane
+        zostają na ekranie, a obok nazwy stacji widać godzinę ostatniej aktualizacji.
       </>,
     ],
   },
 
   {
-    id: 'training',
-    title: 'Timer treningowy',
-    mainIcon: <Dumbbell className="w-6 h-6" />,
-    iconColorClass: 'text-orange-500',
+    id: "streaks",
+    title: "Postępy",
+    mainIcon: <Trophy className="h-6 w-6" />,
+    iconColorClass: "text-danger",
     listItems: [
       <>
-        <K>Timer interwałowy.</K> Skonfiguruj: czas pracy (np. 40 s), czas krótkiej przerwy (15 s), liczbę serii (8) i liczbę cykli (3). Aplikacja przeprowadzi Cię przez cały trening automatycznie.
+        <K>Czym są postępy.</K> Streak mierzy liczbę dni, które upłynęły od daty startowej danego nawyku lub celu. Nie
+        wymaga codziennego odhaczania – automatycznie przelicza dni od daty startu.
       </>,
       <>
-        <K>Długa przerwa między cyklami.</K> Jeśli ustawisz więcej niż 1 cykl, pojawi się pole na długą przerwę (np. 90 sekund). Wstawiana jest automatycznie po każdym ukończonym cyklu serii.
+        <K>Kamienie milowe.</K> Algorytm gratuluje Ci: pierwszego tygodnia (7 dni), okrągłych liczb dni (100, 200...),
+        miesięcznic i rocznic. Gratulacje pojawiają się na karcie celu i na kokpicie w sekcji <em>Postępy</em>.
       </>,
       <>
-        <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach aktywuje Wake Lock – ekran nie będzie gasł podczas treningu.
+        <K>Ikony.</K> Każdy cel ma ikonę wybraną z zestawu 10 symboli (płomień, trofeum, cel, serce, papieros, piwo,
+        sztućce, hantle, skarbonka, medycyna). Kliknij ikonę w trybie edycji, by ją zmienić.
       </>,
       <>
-        <K>Konfiguracja.</K> Panel ustawień jest dostępny. Można w nim dowolnie modyfikować długość ćwiczeń, przerw, a także ilość powtórzeń. 
+        <K>Edycja daty startu.</K> Możesz zmienić datę startu (np. jeśli zapomnisz dodać cel od razu). Karta
+        automatycznie przeliczy liczbę dni, tygodni, miesięcy i lat.
       </>,
     ],
   },
 
   {
-    id: 'movies',
-    title: 'Filmy i seriale',
-    mainIcon: <Clapperboard className="w-6 h-6" />,
-    iconColorClass: 'text-indigo-500',
+    id: "training",
+    title: "Timer treningowy",
+    mainIcon: <Dumbbell className="h-6 w-6" />,
+    iconColorClass: "text-warning",
     listItems: [
       <>
-        <K>Integracja z TMDB.</K> Wpisz tytuł i kliknij <em>Szukaj w TMDB</em>. Możesz szukać wszędzie albo zawęzić do <em>Filmów</em> lub <em>Seriali</em>. Po wyborze aplikacja pobiera gatunek, ocenę, opis, rok, plakat i dostępność streamingową w Polsce.
+        <K>Timer interwałowy.</K> Skonfiguruj: czas pracy (np. 40 s), czas krótkiej przerwy (15 s), liczbę serii (8) i
+        liczbę cykli (3). Aplikacja przeprowadzi Cię przez cały trening automatycznie.
       </>,
       <>
-        <K>Seriale.</K> Dla seriali zapisywana jest liczba sezonów i odcinków oraz status (emitowany, zakończony, anulowany). Na karcie serialu śledzisz postęp: aktualny sezon i ostatni obejrzany odcinek.
+        <K>Długa przerwa między cyklami.</K> Jeśli ustawisz więcej niż 1 cykl, pojawi się pole na długą przerwę (np. 90
+        sekund). Wstawiana jest automatycznie po każdym ukończonym cyklu serii.
       </>,
       <>
-        <K>Odświeżanie.</K> Przycisk <em>Odśwież</em> na karcie pobiera aktualne dane z TMDB – np. nowy sezon albo zmianę platformy. Twoje notatki i postęp zostają bez zmian.
+        <K>Dźwięk i blokada ekranu.</K> Timer odtwarza sygnał przy każdej zmianie fazy. Na obsługiwanych urządzeniach
+        aktywuje Wake Lock – ekran nie będzie gasł podczas treningu.
       </>,
       <>
-        <K>Dostępność streamingowa.</K> Aplikacja sprawdza, na których platformach (Netflix, HBO Max, Disney+, Apple TV+, SkyShowtime, Player, Canal+...) tytuł jest dostępny w Polsce w abonamencie, a gdy go brak – do wypożyczenia lub kupienia.
+        <K>Konfiguracja.</K> Panel ustawień jest dostępny. Można w nim dowolnie modyfikować długość ćwiczeń, przerw, a
+        także ilość powtórzeń.
+      </>,
+    ],
+  },
+
+  {
+    id: "movies",
+    title: "Filmy i seriale",
+    mainIcon: <Clapperboard className="h-6 w-6" />,
+    iconColorClass: "text-deco-violet",
+    listItems: [
+      <>
+        <K>Integracja z TMDB.</K> Wpisz tytuł i kliknij <em>Szukaj w TMDB</em>. Możesz szukać wszędzie albo zawęzić do{" "}
+        <em>Filmów</em> lub <em>Seriali</em>. Po wyborze aplikacja pobiera gatunek, ocenę, opis, rok, plakat i
+        dostępność streamingową w Polsce.
       </>,
       <>
-        <K>Dwie sekcje.</K> Pozycje podzielone są na <em>Do obejrzenia</em> (góra) i <em>Obejrzane</em> (dół, przyciemnione). Zakładki <em>Wszystko / Filmy / Seriale</em> filtrują listę.
+        <K>Seriale.</K> Dla seriali zapisywana jest liczba sezonów i odcinków oraz status (emitowany, zakończony,
+        anulowany). Na karcie serialu śledzisz postęp: aktualny sezon i ostatni obejrzany odcinek.
       </>,
       <>
-        <K>Notatki.</K> Rozwiń panel <em>Notatki</em> na karcie, wpisz spostrzeżenia lub krótką recenzję i kliknij <em>Zapisz</em>.
+        <K>Odświeżanie.</K> Przycisk <em>Odśwież</em> na karcie pobiera aktualne dane z TMDB – np. nowy sezon albo
+        zmianę platformy. Twoje notatki i postęp zostają bez zmian.
+      </>,
+      <>
+        <K>Dostępność streamingowa.</K> Aplikacja sprawdza, na których platformach (Netflix, HBO Max, Disney+, Apple
+        TV+, SkyShowtime, Player, Canal+...) tytuł jest dostępny w Polsce w abonamencie, a gdy go brak – do wypożyczenia
+        lub kupienia.
+      </>,
+      <>
+        <K>Dwie sekcje.</K> Pozycje podzielone są na <em>Do obejrzenia</em> (góra) i <em>Obejrzane</em> (dół,
+        przyciemnione). Zakładki <em>Wszystko / Filmy / Seriale</em> filtrują listę.
+      </>,
+      <>
+        <K>Notatki.</K> Rozwiń panel <em>Notatki</em> na karcie, wpisz spostrzeżenia lub krótką recenzję i kliknij{" "}
+        <em>Zapisz</em>.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach: data modyfikacji, alfabetycznie lub według oceny (malejąco).
@@ -661,49 +814,59 @@ export const guideSections: GuideSection[] = [
   },
 
   {
-    id: 'weather',
-    title: 'Pogoda i jakość powietrza',
-    mainIcon: <Sun className="w-6 h-6" />,
-    iconColorClass: 'text-yellow-500',
+    id: "weather",
+    title: "Pogoda i jakość powietrza",
+    mainIcon: <Sun className="h-6 w-6" />,
+    iconColorClass: "text-warning",
     listItems: [
       <>
-        <K>Dane lokalizacyjne.</K> Aplikacja prosi o zgodę na dostęp do GPS i na jego podstawie pobiera dane z Open-Meteo (pogoda) i Open-Meteo Air Quality (jakość powietrza). Zapytania idą bezpośrednio z przeglądarki.
+        <K>Dane lokalizacyjne.</K> Aplikacja prosi o zgodę na dostęp do GPS i na jego podstawie pobiera dane z
+        Open-Meteo (pogoda) i Open-Meteo Air Quality (jakość powietrza). Zapytania idą bezpośrednio z przeglądarki.
       </>,
       <>
-        <K>Wskaźnik biometeorologiczny.</K> Autorski algorytm oblicza wpływ warunków pogodowych na samopoczucie na podstawie temperatury, ciśnienia, wilgotności i siły wiatru. Wynik: Korzystny / Umiarkowany / Niekorzystny.
+        <K>Wskaźnik biometeorologiczny.</K> Autorski algorytm oblicza wpływ warunków pogodowych na samopoczucie na
+        podstawie temperatury, ciśnienia, wilgotności i siły wiatru. Wynik: Korzystny / Umiarkowany / Niekorzystny.
       </>,
       <>
-        <K>Prognoza godzinowa.</K> Tabela z temperaturą, opadami, prędkością wiatru i indeksem UV dla kolejnych 24 godzin, zaczynając od bieżącej.
+        <K>Prognoza godzinowa.</K> Tabela z temperaturą, opadami, prędkością wiatru i indeksem UV dla kolejnych 24
+        godzin, zaczynając od bieżącej.
       </>,
       <>
         <K>Prognoza 5-dniowa.</K> Karty z ikonką pogody i temperaturą min/max dla każdego z kolejnych 5 dni.
       </>,
       <>
-        <K>Jakość powietrza.</K> PM10 i PM2.5 w µg/m³ z kolorowym wskaźnikiem: zielony (dobra), żółty (umiarkowana), czerwony (zła). Jeśli przekroczone są normy, alert pojawia się też w nagłówku aplikacji.
+        <K>Jakość powietrza.</K> PM10 i PM2.5 w µg/m³ z kolorowym wskaźnikiem: zielony (dobra), żółty (umiarkowana),
+        czerwony (zła). Jeśli przekroczone są normy, alert pojawia się też w nagłówku aplikacji.
       </>,
     ],
   },
 
   {
-    id: 'people',
-    title: 'Osoby i relacje',
-    mainIcon: <User className="w-6 h-6" />,
-    iconColorClass: 'text-rose-500',
+    id: "people",
+    title: "Osoby i relacje",
+    mainIcon: <User className="h-6 w-6" />,
+    iconColorClass: "text-danger",
     listItems: [
       <>
-        <K>Baza kontaktów.</K> Imię, nazwisko, relacja (np. Mama, Kolega), dowolna liczba telefonów i adresów e-mail, data urodzin i imienin oraz notatki.
+        <K>Baza kontaktów.</K> Imię, nazwisko, relacja (np. Mama, Kolega), dowolna liczba telefonów i adresów e-mail,
+        data urodzin i imienin oraz notatki.
       </>,
       <>
-        <K>Priorytet przypominania.</K> Każdej osobie przypisujesz priorytet 0-5, który decyduje, jak często aplikacja przypomni Ci o kontakcie: 1 – co 2 tygodnie, 2 – raz w miesiącu, 3 – co ok. 2 miesiące, 4 – raz w roku. Priorytety 0 i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
+        <K>Priorytet przypominania.</K> Każdej osobie przypisujesz priorytet 0-5, który decyduje, jak często aplikacja
+        przypomni Ci o kontakcie: 1 – co 2 tygodnie, 2 – raz w miesiącu, 3 – co ok. 2 miesiące, 4 – raz w roku.
+        Priorytety 0 i 5 wyłączają przypomnienia (np. dla osób, z którymi kontaktujesz się i tak regularnie).
       </>,
       <>
-        <K>Zaloguj kontakt.</K> Przycisk przy karcie osoby zapisuje bieżącą datę jako <em>ostatni kontakt</em> i odlicza od niej termin kolejnego przypomnienia.
+        <K>Zaloguj kontakt.</K> Przycisk przy karcie osoby zapisuje bieżącą datę jako <em>ostatni kontakt</em> i odlicza
+        od niej termin kolejnego przypomnienia.
       </>,
       <>
-        <K>QR i vCard.</K> Każda karta ma kod QR generowany z danych kontaktowych – zeskanowany telefonem od razu proponuje zapis kontaktu (standard vCard).
+        <K>QR i vCard.</K> Każda karta ma kod QR generowany z danych kontaktowych – zeskanowany telefonem od razu
+        proponuje zapis kontaktu (standard vCard).
       </>,
       <>
-        <K>Import i eksport CSV.</K> Zaimportuj kontakty wyeksportowane z Kontaktów Google (plik .csv) albo wyeksportuj swoją bazę do pliku, by zrobić kopię zapasową.
+        <K>Import i eksport CSV.</K> Zaimportuj kontakty wyeksportowane z Kontaktów Google (plik .csv) albo wyeksportuj
+        swoją bazę do pliku, by zrobić kopię zapasową.
       </>,
       <>
         <K>Szukaj.</K> Pole wyszukiwania filtruje listę po imieniu i nazwisku w czasie rzeczywistym.
@@ -712,64 +875,85 @@ export const guideSections: GuideSection[] = [
   },
 
   {
-    id: 'profiles',
-    title: 'Cyfrowa wizytówka',
-    mainIcon: <IdCard className="w-6 h-6" />,
-    iconColorClass: 'text-teal-500',
+    id: "profiles",
+    title: "Cyfrowa wizytówka",
+    mainIcon: <IdCard className="h-6 w-6" />,
+    iconColorClass: "text-deco-cyan",
     listItems: [
       <>
-        <K>Wiele wizytówek.</K> Stwórz osobne profile na różne okazje, np. <em>Służbowa</em> i <em>Prywatna</em> – każdy z własnym imieniem, organizacją, telefonami, e-mailami, adresami i linkami do social mediów.
+        <K>Wiele wizytówek.</K> Stwórz osobne profile na różne okazje, np. <em>Służbowa</em> i <em>Prywatna</em> – każdy
+        z własnym imieniem, organizacją, telefonami, e-mailami, adresami i linkami do social mediów.
       </>,
       <>
-        <K>Dane firmowe.</K> Opcjonalna sekcja z NIP-em, numerem KRS i numerem konta bankowego – przydatna przy wizytówce firmowej.
+        <K>Dane firmowe.</K> Opcjonalna sekcja z NIP-em, numerem KRS i numerem konta bankowego – przydatna przy
+        wizytówce firmowej.
       </>,
       <>
         <K>Własne kolory.</K> Wybierz kolor tła wizytówki osobno dla trybu jasnego i ciemnego.
       </>,
       <>
-        <K>Publiczny link.</K> Włącz przełącznik <em>Publiczna</em>, a wizytówka będzie dostępna pod adresem <em>dzisiaj.fun/v/twoj-link</em> – możesz nim swobodnie się dzielić, także z osobami bez konta w aplikacji. Wyłączona wizytówka jest widoczna tylko dla Ciebie.
+        <K>Publiczny link.</K> Włącz przełącznik <em>Publiczna</em>, a wizytówka będzie dostępna pod adresem{" "}
+        <em>dzisiaj.fun/v/twoj-link</em> – możesz nim swobodnie się dzielić, także z osobami bez konta w aplikacji.
+        Wyłączona wizytówka jest widoczna tylko dla Ciebie.
       </>,
       <>
-        <K>QR, vCard i udostępnianie.</K> Podgląd wizytówki generuje kod QR oraz plik .vcf do pobrania, a przycisk <em>Udostępnij</em> korzysta z natywnego menu udostępniania telefonu.
+        <K>QR, vCard i udostępnianie.</K> Podgląd wizytówki generuje kod QR oraz plik .vcf do pobrania, a przycisk{" "}
+        <em>Udostępnij</em> korzysta z natywnego menu udostępniania telefonu.
       </>,
     ],
   },
 
   {
-    id: 'system',
-    title: 'Ustawienia i konfiguracja',
-    mainIcon: <Settings className="w-6 h-6" />,
-    iconColorClass: 'text-gray-500',
+    id: "system",
+    title: "Ustawienia i konfiguracja",
+    mainIcon: <Settings className="h-6 w-6" />,
+    iconColorClass: "text-text-muted",
     listItems: [
       <>
-        <K>Instalacja jako aplikacja (PWA).</K> Kliknij przycisk <em>Zainstaluj</em> w ustawieniach (pojawia się gdy przeglądarka obsługuje PWA). Na iOS: Safari <em>Udostępnij</em> <em>Dodaj do ekranu głównego</em>.
+        <K>Instalacja jako aplikacja (PWA).</K> Kliknij przycisk <em>Zainstaluj</em> w ustawieniach (pojawia się gdy
+        przeglądarka obsługuje PWA). Na iOS: Safari <em>Udostępnij</em> <em>Dodaj do ekranu głównego</em>.
       </>,
       <>
-        <K>Tryb ciemny i jasny.</K> Przełącznik w formularzu ustawień. Domyślnie dopasowuje się do ustawień systemowych urządzenia.
+        <K>Tryb ciemny i jasny.</K> Przełącznik w formularzu ustawień. Domyślnie dopasowuje się do ustawień systemowych
+        urządzenia.
       </>,
       <>
-        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów, przepisów i osób.
+        <K>Sortowanie.</K> Możesz niezależnie ustawić domyślne sortowanie dla: zadań, notatek, list zakupów, filmów,
+        przepisów i osób.
       </>,
       <>
-        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z typów powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch działa poprawnie. Aplikacja pamięta włączone powiadomienia i sama odnawia subskrypcję, gdy system ją unieważni, np. po aktualizacji iOS.
+        <K>Powiadomienia push.</K> Kliknij <em>Nadaj uprawnienia</em>, a następnie <em>Aktywuj</em>. Każdy z typów
+        powiadomień możesz włączyć lub wyłączyć niezależnie. Przycisk <em>Wyślij Test</em> weryfikuje, czy cały łańcuch
+        działa poprawnie. Aplikacja pamięta włączone powiadomienia i sama odnawia subskrypcję, gdy system ją unieważni,
+        np. po aktualizacji iOS.
       </>,
       <>
-        <K>iPhone i Apple Watch.</K> Na iPhonie powiadomienia działają w aplikacji dodanej do ekranu początkowego (iOS 16.4 lub nowszy). iOS przekazuje je na Apple Watch, gdy iPhone jest zablokowany, a zegarek jest na ręce. Jeśli nie docierają, sprawdź w aplikacji Watch na iPhonie ustawienia powiadomień i dublowanie alertów z iPhone’a.
+        <K>iPhone i Apple Watch.</K> Na iPhonie powiadomienia działają w aplikacji dodanej do ekranu początkowego (iOS
+        16.4 lub nowszy). iOS przekazuje je na Apple Watch, gdy iPhone jest zablokowany, a zegarek jest na ręce. Jeśli
+        nie docierają, sprawdź w aplikacji Watch na iPhonie ustawienia powiadomień i dublowanie alertów z iPhone’a.
       </>,
       <>
-        <K>Zaufani użytkownicy.</K> Dodaj adresy email osób, z którymi chcesz współdzielić dane. Osoba musi mieć aktywne konto. Możesz dodać do 10 adresów.
+        <K>Zaufani użytkownicy.</K> Dodaj adresy email osób, z którymi chcesz współdzielić dane. Osoba musi mieć aktywne
+        konto. Możesz dodać do 10 adresów.
       </>,
       <>
-        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne. Lokalizacji używają Pogoda i sekcja <em>Najbliżej</em> w Transporcie. Aplikacja pamięta Twoją decyzję i ostatnią pozycję, więc okno zgody nie pojawia się przy każdym uruchomieniu. Po odmowie o zgodę zapyta dopiero, gdy użyjesz tego przycisku.
+        <K>Lokalizacja.</K> Przycisk <em>Pobierz lokalizację</em> odświeża GPS i wyświetla aktualne współrzędne.
+        Lokalizacji używają Pogoda i sekcja <em>Najbliżej</em> w Transporcie. Aplikacja pamięta Twoją decyzję i ostatnią
+        pozycję, więc okno zgody nie pojawia się przy każdym uruchomieniu. Po odmowie o zgodę zapyta dopiero, gdy
+        użyjesz tego przycisku.
       </>,
       <>
-        <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie usuwa żadnych danych użytkownika.
+        <K>Przywróć domyślne.</K> Resetuje wszystkie ustawienia do wartości fabrycznych i natychmiast je zapisuje. Nie
+        usuwa żadnych danych użytkownika.
       </>,
       <>
-        <K>Usunięcie konta.</K> Na dole sekcji <em>Użytkownik</em> znajdziesz opcję trwałego usunięcia konta. Kasuje ona wszystkie Twoje dane – zadania, wydarzenia, notatki, pisma, finanse, nawyki, załączniki oraz połączenia z kalendarzami i Slackiem. Wymaga wpisania frazy potwierdzającej i jest nieodwracalna.
+        <K>Usunięcie konta.</K> Na dole sekcji <em>Użytkownik</em> znajdziesz opcję trwałego usunięcia konta. Kasuje ona
+        wszystkie Twoje dane – zadania, wydarzenia, notatki, pisma, finanse, nawyki, załączniki oraz połączenia z
+        kalendarzami i Slackiem. Wymaga wpisania frazy potwierdzającej i jest nieodwracalna.
       </>,
       <>
-        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia – pobierane na żywo z GitHub.
+        <K>Wersja aplikacji.</K> Sekcja <em>Informacje o wersji</em> pokazuje numer wersji i datę ostatniego wdrożenia –
+        pobierane na żywo z GitHub.
       </>,
     ],
   },

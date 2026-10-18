@@ -1,11 +1,18 @@
 // components/dashboard/DayView.tsx
 
+import { useNow } from "@/hooks/useNow";
 import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { Calendar, ListTodo, SaveAll, Trophy } from "lucide-react";
 import {
-  DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragOverlay, defaultDropAnimationSideEffects
+  DndContext,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 
 import { useAuth } from "@/providers/AuthProvider";
@@ -53,11 +60,12 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { user } = useAuth();
   const userId = user!.id;
   const { settings, loading: loadingSettings, fetching: fetchingSettings } = useSettings();
-  
+
   const dateStr = useMemo(() => format(date, "yyyy-MM-dd"), [date]);
   const currentDayOfWeek = (date.getDay() + 6) % 7;
   const userOptions = settings?.users ?? [];
-  const isToday = useMemo(() => dateStr === format(new Date(), "yyyy-MM-dd"), [dateStr]);
+  const now = useNow();
+  const isToday = dateStr === format(now, "yyyy-MM-dd");
 
   const handlePrevDay = () => {
     if (onDateChange) {
@@ -81,21 +89,33 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
 
-  const { tasks, fetchTasks, setDoneTask, addTask, deleteTask, editTask, loading: loadingTasks, fetching: fetchingTasks, acceptTask } = 
-    useTasks(
-      dateStr, 
-      dateStr,
-    );
-  const { events, fetchEvents, addEvent, deleteEvent, editEvent, fetching: fetchingEvents, loading: loadingEvents } = useEvents(dateStr, dateStr);
+  const {
+    tasks,
+    fetchTasks,
+    setDoneTask,
+    addTask,
+    deleteTask,
+    editTask,
+    loading: loadingTasks,
+    fetching: fetchingTasks,
+    acceptTask,
+  } = useTasks(dateStr, dateStr);
+  const {
+    events,
+    fetchEvents,
+    addEvent,
+    deleteEvent,
+    editEvent,
+    fetching: fetchingEvents,
+    loading: loadingEvents,
+  } = useEvents(dateStr, dateStr);
   const { streaks, getMilestoneMessage, fetching: fetchingStreaks } = useStreaks();
   const { schemas } = useDaySchemas();
   const { workLogs } = useWorkLogs(dateStr);
   const { trains } = useTrainsForDate(dateStr);
 
   const loadedDatesRef = useRef<Set<string>>(new Set());
-  const [isFirstLoadForDate, setIsFirstLoadForDate] = useState(
-    () => !loadedDatesRef.current.has(dateStr)
-  );
+  const [isFirstLoadForDate, setIsFirstLoadForDate] = useState(true);
 
   useEffect(() => {
     setIsFirstLoadForDate(!loadedDatesRef.current.has(dateStr));
@@ -107,17 +127,26 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
       setIsFirstLoadForDate(false);
     }
   }, [fetchingTasks, fetchingEvents, dateStr]);
-  
+
   const { overrides, hideSchema, moveSchema, fetchOverrides } = useDailyOverrides(dateStr);
-  const { choice: schemaChoice, setChoice: setSchemaChoice, available: schemaChoiceAvailable, saving: savingSchemaChoice } =
-    useDaySchemaChoice(dateStr, () => void fetchOverrides());
+  const {
+    choice: schemaChoice,
+    setChoice: setSchemaChoice,
+    available: schemaChoiceAvailable,
+    saving: savingSchemaChoice,
+  } = useDaySchemaChoice(dateStr, () => void fetchOverrides());
   const activeSchema = useMemo(
     () => resolveActiveSchema(schemas, currentDayOfWeek, schemaChoice),
     [schemas, currentDayOfWeek, schemaChoice]
   );
 
   const { draggedTask, draggedEventTitle, handleDragStart, handleDragEnd } = useDashboardDnd({
-    tasks, events, userId, date, editTask, editEvent
+    tasks,
+    events,
+    userId,
+    date,
+    editTask,
+    editEvent,
   });
 
   const sensors = useSensors(
@@ -135,29 +164,40 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const unscheduledTasks = useMemo(() => activeTasks.filter((t) => !t.scheduled_time), [activeTasks]);
 
   const planByHour = usePlanByHour({
-    schemas, activeSchema, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides,
+    schemas,
+    activeSchema,
+    events,
+    workLogs,
+    scheduledTasks,
+    trains,
+    currentDayOfWeek,
+    isToday,
+    overrides,
   });
 
   const streaksWithMilestones = useMemo(() => {
     if (!streaks) return [];
     return streaks
-      .map(streak => ({
+      .map((streak) => ({
         ...streak,
-        milestoneMessage: getMilestoneMessage(streak.start_date)
+        milestoneMessage: getMilestoneMessage(streak.start_date),
       }))
-      .filter(streak => streak.milestoneMessage !== "");
+      .filter((streak) => streak.milestoneMessage !== "");
   }, [streaks, getMilestoneMessage]);
 
   const handleDragStartCustom = (event: DragStartEvent) => {
     const { active } = event;
     const activeId = String(active.id);
-    
+
     if (activeId.startsWith("plan-schema-")) {
       const schemaId = activeId.replaceAll("plan-schema-", "");
       let title = "Rutyna";
       for (const hour of Object.keys(planByHour)) {
-         const found = planByHour[hour].find(i => i.id === schemaId);
-         if (found) { title = found.title; break; }
+        const found = planByHour[hour].find((i) => i.id === schemaId);
+        if (found) {
+          title = found.title;
+          break;
+        }
       }
       setDraggedSchemaTitle(title);
     } else {
@@ -167,44 +207,50 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
 
   const handleDragEndCustom = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setDraggedSchemaTitle(null); 
+    setDraggedSchemaTitle(null);
 
     const activeId = String(active.id);
     if (activeId.startsWith("plan-schema-")) {
-       if (!over) return;
-       const schemaId = activeId.replaceAll("plan-schema-", "");
-       
-       const timeMatch = /\d{2}:\d{2}/.exec(String(over.id));
-       if (!timeMatch) return;
-       
-       const newTime = timeMatch[0];
-       
-       await moveSchema(schemaId, newTime);
+      if (!over) return;
+      const schemaId = activeId.replaceAll("plan-schema-", "");
+
+      const timeMatch = /\d{2}:\d{2}/.exec(String(over.id));
+      if (!timeMatch) return;
+
+      const newTime = timeMatch[0];
+
+      await moveSchema(schemaId, newTime);
     } else {
-       void handleDragEnd(event);
+      void handleDragEnd(event);
     }
   };
 
-  const handleRemoveFromSchedule = useCallback(async (id: string, type?: string) => {
-    if (type === "schema" || id.startsWith("schema-")) {
-      await hideSchema(id);
-      return;
-    }
+  const handleRemoveFromSchedule = useCallback(
+    async (id: string, type?: string) => {
+      if (type === "schema" || id.startsWith("schema-")) {
+        await hideSchema(id);
+        return;
+      }
 
-    const current = tasks.find((t) => String(t.id) === String(id));
-    if (current) {
-      await editTask({ ...current, scheduled_time: null });
-    }
-  }, [hideSchema, tasks, editTask]);
+      const current = tasks.find((t) => String(t.id) === String(id));
+      if (current) {
+        await editTask({ ...current, scheduled_time: null });
+      }
+    },
+    [hideSchema, tasks, editTask]
+  );
 
-  const handleMarkAsDone = useCallback(async (id: string) => {
-    if (id.startsWith("schema-")) {
-      await hideSchema(id);
-    } else {
-      await setDoneTask(id);
-      void fetchTasks();
-    }
-  }, [hideSchema, setDoneTask, fetchTasks]);
+  const handleMarkAsDone = useCallback(
+    async (id: string) => {
+      if (id.startsWith("schema-")) {
+        await hideSchema(id);
+      } else {
+        await setDoneTask(id);
+        void fetchTasks();
+      }
+    },
+    [hideSchema, setDoneTask, fetchTasks]
+  );
 
   const handleAddDraft = (type: "task" | "event") => {
     setDraftForms((prev) => [...prev, { id: crypto.randomUUID(), type }]);
@@ -218,204 +264,221 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
     if (draggedTask) {
       return <DraggingTaskItem title={draggedTask.title} />;
     }
-    
+
     if (draggedEventTitle) {
       return <DraggingEventItem title={draggedEventTitle} />;
     }
-    
+
     if (draggedSchemaTitle) {
       return <DraggingTaskItem title={draggedSchemaTitle} />;
     }
-    
+
     return null;
   })();
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStartCustom} onDragEnd={handleDragEndCustom}>
-      <div className="space-y-4 sm:space-y-6 mx-auto w-full">
-        <DayHeader 
-          date={date} 
-          dateStr={dateStr} 
-          onPrev={handlePrevDay} 
-          onNext={handleNextDay} 
-          handleAddDraft={handleAddDraft} 
-          settings={settings} 
+      <div className="mx-auto w-full space-y-4 sm:space-y-6">
+        <DayHeader
+          date={date}
+          dateStr={dateStr}
+          onPrev={handlePrevDay}
+          onNext={handleNextDay}
+          handleAddDraft={handleAddDraft}
+          settings={settings}
           loadingSettings={loadingSettings || fetchingSettings}
         />
-        
+
         {!fetchingSettings && (
-        <>
-          {draftForms.length > 0 && (
-            <div className="mb-6 space-y-4 multi-draft-container">
-              {draftForms.map((draft, idx) => (
-                <div key={draft.id} className="relative w-full md:w-fit">
-                  <div className="absolute -left-2 -top-2 bg-secondary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10 shadow">
-                    {idx + 1}
+          <>
+            {draftForms.length > 0 && (
+              <div className="multi-draft-container mb-6 space-y-4">
+                {draftForms.map((draft, idx) => (
+                  <div key={draft.id} className="relative w-full md:w-fit">
+                    <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold text-white shadow">
+                      {idx + 1}
+                    </div>
+                    {draft.type === "event" ? (
+                      <EventForm
+                        currentDate={date}
+                        selectedDate={date}
+                        addAnother={() => handleAddDraft("event")}
+                        onEventsChange={() => {
+                          void fetchEvents();
+                          handleRemoveDraft(draft.id);
+                        }}
+                        addEvent={addEvent}
+                        onCancel={() => handleRemoveDraft(draft.id)}
+                        loading={loadingEvents}
+                        addMany
+                      />
+                    ) : (
+                      <TaskForm
+                        selectedDate={dateStr}
+                        addTask={addTask}
+                        addAnother={() => handleAddDraft("task")}
+                        onTasksChange={() => {
+                          void fetchTasks();
+                          handleRemoveDraft(draft.id);
+                        }}
+                        onCancel={() => handleRemoveDraft(draft.id)}
+                        loading={loadingTasks}
+                        addMany
+                      />
+                    )}
                   </div>
-                  {draft.type === "event" ? (
-                    <EventForm 
-                      currentDate={date} 
-                      selectedDate={date} 
-                      addAnother={() => handleAddDraft('event')}
-                      onEventsChange={() => { void fetchEvents(); handleRemoveDraft(draft.id); }} 
-                      addEvent={addEvent}
-                      onCancel={() => handleRemoveDraft(draft.id)} 
-                      loading={loadingEvents}
-                      addMany
-                    />
-                  ) : (
-                    <TaskForm 
-                      selectedDate={dateStr}
-                      addTask={addTask}
-                      addAnother={() => handleAddDraft('task')}
-                      onTasksChange={() => { void fetchTasks(); handleRemoveDraft(draft.id); }} 
-                      onCancel={() => handleRemoveDraft(draft.id)} 
-                      loading={loadingTasks}
-                      addMany
-                    />
-                  )}
+                ))}
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <button
+                    onClick={() => {
+                      const forms = document.querySelectorAll(".multi-draft-container form");
+                      forms.forEach((form) => {
+                        const f = form as HTMLFormElement;
+                        if (typeof f.requestSubmit === "function") {
+                          f.requestSubmit();
+                        } else {
+                          f.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                        }
+                      });
+                    }}
+                    type="button"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-secondary-hover"
+                  >
+                    Dodaj wszystkie {draftForms.length}
+                    <SaveAll className="h-5 w-5" />
+                  </button>
+
+                  <CancelButton onClick={() => setDraftForms([])} />
                 </div>
-              ))}
-              <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                <button 
-                  onClick={() => {
-                    const forms = document.querySelectorAll('.multi-draft-container form');
-                    forms.forEach(form => {
-                      const f = form as HTMLFormElement;
-                      if (typeof f.requestSubmit === 'function') {
-                        f.requestSubmit();
-                      } else {
-                        f.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                      }
-                    });
-                  }}
-                  type='button'
-                  className="w-full py-3 hover:bg-secondary-hover bg-secondary text-white rounded-lg font-bold text-sm shadow-md flex justify-center items-center gap-2 transition-colors"
-                >
-                  Dodaj wszystkie {draftForms.length}
-                  <SaveAll className="w-5 h-5" />
-                </button>
-                
-                <CancelButton
-                  onClick={() => setDraftForms([])} 
+              </div>
+            )}
+
+            <QuickNotes
+              date={date}
+              dateStr={dateStr}
+              addTask={addTask}
+              addEvent={addEvent}
+              onTaskCreated={() => void fetchTasks()}
+              onEventCreated={() => void fetchEvents()}
+              loadingEvents={loadingEvents}
+            />
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="space-y-3 lg:col-span-2">
+                {schemaChoiceAvailable && (
+                  <DaySchemaSwitcher
+                    schemas={schemas}
+                    weekday={currentDayOfWeek}
+                    choice={schemaChoice}
+                    onChange={(v) => void setSchemaChoice(v)}
+                    disabled={savingSchemaChoice}
+                  />
+                )}
+                <DailyPlan
+                  planByHour={planByHour}
+                  handleMarkAsDone={handleMarkAsDone}
+                  handleRemoveFromSchedule={handleRemoveFromSchedule}
                 />
               </div>
-            </div>
-          )}
 
-          <QuickNotes
-            date={date}
-            dateStr={dateStr}
-            addTask={addTask}
-            addEvent={addEvent}
-            onTaskCreated={() => void fetchTasks()}
-            onEventCreated={() => void fetchEvents()}
-            loadingEvents={loadingEvents}
-          />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-3">
-              {schemaChoiceAvailable && (
-                <DaySchemaSwitcher
-                  schemas={schemas}
-                  weekday={currentDayOfWeek}
-                  choice={schemaChoice}
-                  onChange={(v) => void setSchemaChoice(v)}
-                  disabled={savingSchemaChoice}
-                />
-              )}
-              <DailyPlan
-                planByHour={planByHour}
-                handleMarkAsDone={handleMarkAsDone}
-                handleRemoveFromSchedule={handleRemoveFromSchedule}
-              />
-            </div>
-
-            <div className="lg:col-span-1 space-y-6">
-              <section>
-                <div className="flex flex-nowrap justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
-                  <h2 className="text-lg font-bold text-text flex items-center gap-2">
-                    <ListTodo className="text-primary w-5 h-5" />Zadania
-                  </h2>
-                  {!showTaskForm && <AddButton onClick={() => setShowTaskForm(true)} />}
-                </div>
-                
-                {showTaskForm && (
-                  <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-                    <TaskForm 
-                      selectedDate={dateStr}
-                      addTask={addTask}
-                      onTasksChange={() => { void fetchTasks(); setShowTaskForm(false); }} 
-                      onCancel={() => setShowTaskForm(false)} 
-                      loading={loadingTasks}
-                    />
-                  </div>
-                )}
-
-                <DayTasks 
-                  tasks={unscheduledTasks} 
-                  acceptTask={acceptTask} 
-                  setDoneTask={setDoneTask} 
-                  editTask={editTask} 
-                  deleteTask={deleteTask} 
-                  fetchingTasks={fetchingTasks && isFirstLoadForDate}
-                  loadingTasks={loadingTasks} 
-                  fetchTasks={fetchTasks}
-                  userId={userId}
-                  userOptions={userOptions} 
-                />
-                <RecurringPreviewList previews={repeatPreviews} />
-              </section>
-
-              <section>
-                <div className="flex flex-nowrap justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
-                  <h2 className="text-lg font-bold text-text flex items-center gap-2">
-                    <Calendar className="text-primary w-5 h-5" /> Wydarzenia
-                  </h2>
-                  {!showEventForm && <AddButton onClick={() => setShowEventForm(true)} />}
-                </div>
-                
-                {showEventForm && (
-                  <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-                    <EventForm 
-                      currentDate={date} 
-                      selectedDate={date} 
-                      onEventsChange={() => { void fetchEvents(); setShowEventForm(false); }} 
-                      addEvent={addEvent}
-                      onCancel={() => setShowEventForm(false)} 
-                      loading={loadingEvents}
-                    />
-                  </div>
-                )}
-
-                <DayEvents 
-                  events={events} 
-                  loadingEvents={loadingEvents} 
-                  fetchingEvents={fetchingEvents && isFirstLoadForDate}
-                  onEditEvent={editEvent} 
-                  onDeleteEvent={deleteEvent} 
-                  onEventsChange={fetchEvents} 
-                  userOptions={userOptions} 
-                />
-              </section>
-              
-              {streaksWithMilestones.length > 0 && (
+              <div className="space-y-6 lg:col-span-1">
                 <section>
-                  <div className="flex flex-nowrap justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
-                    <h2 className="text-lg font-bold text-text flex items-center gap-2">
-                      <Trophy className="text-primary w-5 h-5" /> Postępy
+                  <div className="mb-6 flex flex-nowrap items-center justify-between border-b border-line pb-4">
+                    <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+                      <ListTodo className="h-5 w-5 text-primary" />
+                      Zadania
                     </h2>
+                    {!showTaskForm && <AddButton onClick={() => setShowTaskForm(true)} />}
                   </div>
-                  <DayStreaks streaks={streaksWithMilestones} fetchingStreaks={fetchingStreaks && isFirstLoadForDate} />
+
+                  {showTaskForm && (
+                    <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+                      <TaskForm
+                        selectedDate={dateStr}
+                        addTask={addTask}
+                        onTasksChange={() => {
+                          void fetchTasks();
+                          setShowTaskForm(false);
+                        }}
+                        onCancel={() => setShowTaskForm(false)}
+                        loading={loadingTasks}
+                      />
+                    </div>
+                  )}
+
+                  <DayTasks
+                    tasks={unscheduledTasks}
+                    acceptTask={acceptTask}
+                    setDoneTask={setDoneTask}
+                    editTask={editTask}
+                    deleteTask={deleteTask}
+                    fetchingTasks={fetchingTasks && isFirstLoadForDate}
+                    loadingTasks={loadingTasks}
+                    fetchTasks={fetchTasks}
+                    userId={userId}
+                    userOptions={userOptions}
+                  />
+                  <RecurringPreviewList previews={repeatPreviews} />
                 </section>
-              )}
+
+                <section>
+                  <div className="mb-6 flex flex-nowrap items-center justify-between border-b border-line pb-4">
+                    <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+                      <Calendar className="h-5 w-5 text-primary" /> Wydarzenia
+                    </h2>
+                    {!showEventForm && <AddButton onClick={() => setShowEventForm(true)} />}
+                  </div>
+
+                  {showEventForm && (
+                    <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+                      <EventForm
+                        currentDate={date}
+                        selectedDate={date}
+                        onEventsChange={() => {
+                          void fetchEvents();
+                          setShowEventForm(false);
+                        }}
+                        addEvent={addEvent}
+                        onCancel={() => setShowEventForm(false)}
+                        loading={loadingEvents}
+                      />
+                    </div>
+                  )}
+
+                  <DayEvents
+                    events={events}
+                    loadingEvents={loadingEvents}
+                    fetchingEvents={fetchingEvents && isFirstLoadForDate}
+                    onEditEvent={editEvent}
+                    onDeleteEvent={deleteEvent}
+                    onEventsChange={fetchEvents}
+                    userOptions={userOptions}
+                  />
+                </section>
+
+                {streaksWithMilestones.length > 0 && (
+                  <section>
+                    <div className="mb-6 flex flex-nowrap items-center justify-between border-b border-line pb-4">
+                      <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+                        <Trophy className="h-5 w-5 text-primary" /> Postępy
+                      </h2>
+                    </div>
+                    <DayStreaks
+                      streaks={streaksWithMilestones}
+                      fetchingStreaks={fetchingStreaks && isFirstLoadForDate}
+                    />
+                  </section>
+                )}
+              </div>
             </div>
-          </div>
-        </>
+          </>
         )}
       </div>
 
-      <DragOverlay style={{ touchAction: "none" }} dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: "0.5" } } }) }}>
+      <DragOverlay
+        style={{ touchAction: "none" }}
+        dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: "0.5" } } }) }}
+      >
         {dragPreview}
       </DragOverlay>
     </DndContext>

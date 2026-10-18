@@ -1,5 +1,6 @@
-﻿// components/notes/NoteCard.tsx
+// components/notes/NoteCard.tsx
 
+import { noteColorClass } from "@/config/noteColors";
 import React from "react";
 import clsx from "clsx";
 import { Pin, Archive } from "lucide-react";
@@ -14,39 +15,31 @@ interface NoteCardProps {
   onDelete: (id: string) => void;
   onTogglePin: (id: string) => void;
   onToggleArchive: (id: string) => void;
-  colorMap: { [key: string]: string };
 }
 
-export default function NoteCard({
-  note,
-  onEdit,
-  onDelete,
-  onTogglePin,
-  onToggleArchive,
-  colorMap,
-}: Readonly<NoteCardProps>) {
+export default function NoteCard({ note, onEdit, onDelete, onTogglePin, onToggleArchive }: Readonly<NoteCardProps>) {
   return (
     <li
       className={clsx(
-        "relative break-inside-avoid p-4 max-w-sm min-w-75 rounded-card shadow-sm flex flex-col justify-start border card border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md max-h-fit mt-4 first:mt-0",
-        colorMap[note.bg_color],
+        "relative mt-4 flex max-h-fit max-w-sm min-w-75 break-inside-avoid flex-col justify-start rounded-card border p-4 transition-colors first:mt-0",
+        noteColorClass(note.bg_color),
         note.archived && "opacity-60 grayscale-[0.3]"
       )}
     >
       {note.pinned && !note.archived && (
-        <div className="absolute -top-2 -right-2 p-1.5 rounded-full shadow-sm card">
-          <Pin className="w-4 h-4 text-primary fill-primary" />
+        <div className="card absolute -top-2 -right-2 rounded-full p-1.5 shadow-sm">
+          <Pin className="h-4 w-4 fill-primary text-primary" />
         </div>
       )}
       {note.archived && (
-        <div className="absolute -top-2 -right-2 p-1.5 rounded-full shadow-sm card">
-          <Archive className="w-4 h-4 text-text-muted" />
+        <div className="card absolute -top-2 -right-2 rounded-full p-1.5 shadow-sm">
+          <Archive className="h-4 w-4 text-text-muted" />
         </div>
       )}
 
-      <div className="flex justify-between items-end border-b mb-3 border-gray-300 dark:border-gray-700">
-        <h3 className="font-bold text-lg text-text pr-2">{note.title}</h3>
-        <p className="flex-1 text-xs text-text-muted font-medium text-right whitespace-nowrap">
+      <div className="mb-3 flex items-end justify-between border-b border-line-strong">
+        <h3 className="pr-2 text-lg font-bold text-text">{note.title}</h3>
+        <p className="flex-1 text-right text-xs font-medium whitespace-nowrap text-text-muted">
           {note.updated_at && formatTime(note.updated_at, true)}
         </p>
       </div>
@@ -59,7 +52,7 @@ export default function NoteCard({
 
             if (block.kind === "bullet") {
               return (
-                <ul key={blockKey} className="list-disc pl-5 space-y-1">
+                <ul key={blockKey} className="list-disc space-y-1 pl-5">
                   {block.lines.map((line, lineIndex) => (
                     <li key={`${blockKey}-${lineIndex}`} className={itemClass}>
                       {renderNoteLineContent(line, `${blockKey}-${lineIndex}`)}
@@ -71,7 +64,7 @@ export default function NoteCard({
 
             if (block.kind === "number") {
               return (
-                <ol key={blockKey} className="list-decimal pl-5 space-y-1">
+                <ol key={blockKey} className="list-decimal space-y-1 pl-5">
                   {block.lines.map((line, lineIndex) => (
                     <li key={`${blockKey}-${lineIndex}`} className={itemClass}>
                       {renderNoteLineContent(line, `${blockKey}-${lineIndex}`)}
@@ -82,7 +75,7 @@ export default function NoteCard({
             }
 
             return (
-              <p key={blockKey} className="text-sm text-text-secondary leading-relaxed">
+              <p key={blockKey} className="text-sm leading-relaxed text-text-secondary">
                 {renderNoteLineContent(block.lines[0], blockKey)}
               </p>
             );
@@ -90,12 +83,9 @@ export default function NoteCard({
         </div>
       )}
 
-      <div className="relative flex justify-end gap-1.5 flex-wrap mt-auto pt-3">
+      <div className="relative mt-auto flex flex-wrap justify-end gap-1.5 pt-3">
         <PinButton onClick={() => onTogglePin(note.id)} isPinned={!!note.pinned} />
-        <ArchiveButton
-          onClick={() => onToggleArchive(note.id)}
-          isArchived={!!note.archived}
-        />
+        <ArchiveButton onClick={() => onToggleArchive(note.id)} isArchived={!!note.archived} />
         <EditButton onClick={() => onEdit(note)} />
         <DeleteButton onClick={() => onDelete(note.id)} />
       </div>

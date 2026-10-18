@@ -1,11 +1,10 @@
-﻿// lib/server/fetchWithTimeout.ts
+// lib/server/fetchWithTimeout.ts
 
-const DEFAULT_TIMEOUT_MS = 15_000;
-
+import { TIMEOUTS_MS } from "@/config/server";
 export async function fetchWithTimeout(
   input: string,
   init: RequestInit = {},
-  timeoutMs: number = DEFAULT_TIMEOUT_MS
+  timeoutMs: number = TIMEOUTS_MS.default
 ): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);

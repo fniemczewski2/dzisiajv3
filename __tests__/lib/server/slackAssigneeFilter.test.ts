@@ -31,10 +31,8 @@ describe("buildAssigneeFilter", () => {
   });
 
   it("bez kolumny osoby przypisanej nie importuje niczego", async () => {
-    const accepts = await buildAssigneeFilter(
-      { token: "t", assigneeEmails: ["jan@firma.pl"] },
-      [columns[0]],
-      () => Promise.resolve("U_JAN")
+    const accepts = await buildAssigneeFilter({ token: "t", assigneeEmails: ["jan@firma.pl"] }, [columns[0]], () =>
+      Promise.resolve("U_JAN")
     );
     expect(accepts(item("1", ["U_JAN"]))).toBe(false);
   });

@@ -1,11 +1,20 @@
-﻿// components/streaks/StreakCard.tsx
+// components/streaks/StreakCard.tsx
 
+import { useNow } from "@/hooks/useNow";
 import React, { useState } from "react";
-import { differenceInDays, parseISO } from "date-fns";
-import { 
-  Flame, Trophy, Target, Heart, Cigarette, Beer,
-  UtensilsCrossed, Dumbbell, PiggyBank,
-  BriefcaseMedical, type LucideIcon,
+import { differenceInDays, parseISO, format } from "date-fns";
+import {
+  Flame,
+  Trophy,
+  Target,
+  Heart,
+  Cigarette,
+  Beer,
+  UtensilsCrossed,
+  Dumbbell,
+  PiggyBank,
+  BriefcaseMedical,
+  type LucideIcon,
 } from "lucide-react";
 import { Streak } from "@/types/streaks";
 import { DeleteButton, EditButton, FormButtons } from "../ui/CommonButtons";
@@ -19,28 +28,47 @@ interface StreakCardProps {
 }
 
 const ICON_MAP: { [key: string]: LucideIcon } = {
-  flame: Flame, trophy: Trophy, target: Target, heart: Heart,
-  cigarette: Cigarette, beer: Beer, utensils: UtensilsCrossed,
-  dumbbell: Dumbbell, piggybank: PiggyBank, medical: BriefcaseMedical,
+  flame: Flame,
+  trophy: Trophy,
+  target: Target,
+  heart: Heart,
+  cigarette: Cigarette,
+  beer: Beer,
+  utensils: UtensilsCrossed,
+  dumbbell: Dumbbell,
+  piggybank: PiggyBank,
+  medical: BriefcaseMedical,
 };
 
 const ICONS = [
-  { name: "flame", icon: Flame }, { name: "trophy", icon: Trophy },
-  { name: "target", icon: Target}, { name: "heart", icon: Heart },
-  { name: "cigarette", icon: Cigarette }, { name: "beer", icon: Beer },
-  { name: "utensils", icon: UtensilsCrossed}, { name: "dumbbell", icon: Dumbbell },
-  { name: "piggybank", icon: PiggyBank }, { name: "medical", icon: BriefcaseMedical }, 
+  { name: "flame", icon: Flame },
+  { name: "trophy", icon: Trophy },
+  { name: "target", icon: Target },
+  { name: "heart", icon: Heart },
+  { name: "cigarette", icon: Cigarette },
+  { name: "beer", icon: Beer },
+  { name: "utensils", icon: UtensilsCrossed },
+  { name: "dumbbell", icon: Dumbbell },
+  { name: "piggybank", icon: PiggyBank },
+  { name: "medical", icon: BriefcaseMedical },
 ];
 
-export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessage, loading }: Readonly<StreakCardProps>) {
+export default function StreakCard({
+  streak,
+  onEdit,
+  onDelete,
+  getMilestoneMessage,
+  loading,
+}: Readonly<StreakCardProps>) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(streak.name);
   const [editedDate, setEditedDate] = useState(streak.start_date);
   const [editedIcon, setEditedIcon] = useState(streak.icon || "flame");
   const [showIconPicker, setShowIconPicker] = useState(false);
 
-  const days = differenceInDays(new Date(), parseISO(streak.start_date));
-  const Icon = ICON_MAP[isEditing ? editedIcon : (streak.icon || "flame")];
+  const now = useNow();
+  const days = differenceInDays(now, parseISO(streak.start_date));
+  const Icon = ICON_MAP[isEditing ? editedIcon : streak.icon || "flame"];
 
   const milestone = getMilestoneMessage(streak.start_date);
 
@@ -72,20 +100,20 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
   const dayLabel = days === 1 ? "dzień" : "dni";
 
   return (
-    <div className="card rounded-card shadow-sm p-4 transition-all hover:shadow-md flex flex-col h-full">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-start gap-3 flex-1 relative">
+    <div className="card flex h-full flex-col rounded-card p-4 shadow-sm transition-all hover:shadow-md">
+      <div className="mb-4 flex items-start justify-between">
+        <div className="relative flex flex-1 items-start gap-3">
           <button
-            className={`shrink-0 text-primary rounded-xl p-3 ${isEditing ? 'cursor-pointer hover:bg-blue-100 hover:dark:bg-blue-900/70 hover:scale-105' : ''} transition-transform`}
+            className={`shrink-0 rounded-xl p-3 text-primary ${isEditing ? "cursor-pointer hover:scale-105 hover:bg-info-soft" : ""} transition-transform`}
             onClick={() => isEditing && setShowIconPicker(!showIconPicker)}
-            type='button'
+            type="button"
             title={isEditing ? "Kliknij, aby zmienić ikonę" : undefined}
           >
-            <Icon className="w-7 h-7 sm:w-8 sm:h-8" />
+            <Icon className="h-7 w-7 sm:h-8 sm:w-8" />
           </button>
 
           {showIconPicker && (
-            <div className="absolute top-14 left-0 mt-2 card rounded-xl shadow-lg p-2 z-50 w-55 grid grid-cols-5 gap-2">
+            <div className="card absolute top-14 left-0 z-50 mt-2 grid w-55 grid-cols-5 gap-2 rounded-xl p-2 shadow-lg">
               {ICONS.map((item) => {
                 const IconComponent = item.icon;
                 return (
@@ -97,20 +125,20 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                       setEditedIcon(item.name);
                       setShowIconPicker(false);
                     }}
-                    className={`p-2 rounded-lg transition-colors flex justify-center items-center ${
+                    className={`flex items-center justify-center rounded-lg p-2 transition-colors ${
                       editedIcon === item.name
-                        ? 'bg-secondary text-white shadow-sm'
-                        : 'hover:bg-surface text-text-secondary hover:text-text'
+                        ? "bg-secondary text-white shadow-sm"
+                        : "text-text-secondary hover:bg-surface hover:text-text"
                     }`}
                   >
-                    <IconComponent className="w-5 h-5" />
+                    <IconComponent className="h-5 w-5" />
                   </button>
                 );
               })}
             </div>
           )}
 
-          <div className="flex-1 min-w-0 pt-1">
+          <div className="min-w-0 flex-1 pt-1">
             {isEditing ? (
               <div className="space-y-3">
                 <div>
@@ -136,17 +164,17 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
                     type="date w-full min-w-0 px-1 text-xs"
                     value={editedDate}
                     onChange={(e) => setEditedDate(e.target.value)}
-                    max={new Date().toISOString().split("T")[0]}
+                    max={format(now, "yyyy-MM-dd")}
                     className="input-field py-1.5"
                     required
                   />
                 </div>
-                  <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading}/>
+                <FormButtons onClickSave={handleSave} onClickClose={handleCancel} loading={loading} />
               </div>
             ) : (
               <>
-                <h3 className="font-bold text-lg text-text leading-tight wrap-break-word">{streak.name}</h3>
-                <p className="text-xs font-semibold text-text-muted mt-1">
+                <h3 className="text-lg leading-tight font-bold wrap-break-word text-text">{streak.name}</h3>
+                <p className="mt-1 text-xs font-semibold text-text-muted">
                   Od: {parseISO(streak.start_date).toLocaleDateString("pl-PL")}
                 </p>
               </>
@@ -157,44 +185,38 @@ export default function StreakCard({ streak, onEdit, onDelete, getMilestoneMessa
 
       <div className="mt-auto">
         {!isEditing && (
-          <div className="text-center py-4 bg-surface rounded-xl border border-gray-100 dark:border-gray-800/50 mb-3">
-            <div className="text-5xl font-bold text-primary tracking-tighter drop-shadow-sm">
-              {days}
-            </div>
-            <div className="text-xs font-medium text-text-secondary mt-1">
-              {dayLabel} z rzędu
-            </div>
+          <div className="mb-3 rounded-xl border border-line bg-surface py-4 text-center">
+            <div className="text-5xl font-bold tracking-tighter text-primary drop-shadow-sm">{days}</div>
+            <div className="mt-1 text-xs font-medium text-text-secondary">{dayLabel} z rzędu</div>
           </div>
         )}
         {milestone && !isEditing && (
           <div className="mb-3 text-center">
-            <div className="inline-block text-accent bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+            <div className="inline-block rounded-full border border-warning-line bg-warning-soft px-3 py-1 text-xs font-bold text-accent shadow-sm">
               {milestone}
             </div>
           </div>
         )}
 
         {!isEditing && (
-          <div className="grid grid-cols-3 gap-2 text-center mb-3">
-            <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-xs font-bold text-text-muted mb-0.5">Tygodnie</div>
+          <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg border border-line bg-surface py-2">
+              <div className="mb-0.5 text-xs font-bold text-text-muted">Tygodnie</div>
               <div className="font-bold text-text">{Math.floor(days / 7)}</div>
             </div>
-            <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-xs font-bold text-text-muted mb-0.5">Miesiące</div>
+            <div className="rounded-lg border border-line bg-surface py-2">
+              <div className="mb-0.5 text-xs font-bold text-text-muted">Miesiące</div>
               <div className="font-bold text-text">{Math.floor(days / 30)}</div>
             </div>
-            <div className="bg-surface rounded-lg py-2 border border-gray-100 dark:border-gray-800/50">
-              <div className="text-xs font-bold text-text-muted mb-0.5">Lata</div>
-              <div className="font-bold text-text">
-                {days >= 365 ? Math.floor(days / 365) : "0"}
-              </div>
+            <div className="rounded-lg border border-line bg-surface py-2">
+              <div className="mb-0.5 text-xs font-bold text-text-muted">Lata</div>
+              <div className="font-bold text-text">{days >= 365 ? Math.floor(days / 365) : "0"}</div>
             </div>
           </div>
         )}
 
         {!isEditing && (
-          <div className="flex gap-1.5 pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex gap-1.5 border-t border-line pt-3">
             <EditButton onClick={handleEdit} />
             <DeleteButton onClick={() => onDelete(streak.id)} />
           </div>

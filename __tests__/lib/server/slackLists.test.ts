@@ -13,12 +13,7 @@ import {
   type SlackColumn,
 } from "@/lib/server/slackLists";
 import { normalizeTaskStatus } from "@/config/slack";
-import {
-  belongsOnList,
-  resolveDirection,
-  taskUpdatedAt,
-  itemUpdatedAt,
-} from "@/pages/api/slack/sync";
+import { belongsOnList, resolveDirection, taskUpdatedAt, itemUpdatedAt } from "@/pages/api/slack/sync";
 
 interface Call {
   url: string;
@@ -32,9 +27,7 @@ function mockSlack(responder: (method: string) => unknown) {
   vi.stubGlobal(
     "fetch",
     vi.fn((url: string, init: RequestInit) => {
-      const body = init.body
-        ? (JSON.parse(String(init.body)) as Record<string, unknown>)
-        : {};
+      const body = typeof init.body === "string" ? (JSON.parse(init.body) as Record<string, unknown>) : {};
       calls.push({ url, method: String(init.method), body });
       const method = url.split("/api/")[1].split("?")[0];
       return Promise.resolve({
@@ -126,9 +119,7 @@ describe("updateItem", () => {
   it("sends row_id inside every cell, as slackLists.items.update requires", async () => {
     mockSlack(() => ({ ok: true }));
 
-    await updateItem("xoxp-test", "F123", "Rec777", [
-      { column_id: "Col002", date: ["2026-08-10"] },
-    ]);
+    await updateItem("xoxp-test", "F123", "Rec777", [{ column_id: "Col002", date: ["2026-08-10"] }]);
 
     expect(calls[0].url).toContain("slackLists.items.update");
     expect(calls[0].body).toEqual({
@@ -296,14 +287,8 @@ describe("buildAssigneeValue", () => {
 describe("isMissingItemError", () => {
   const withCode = (code: string) => Object.assign(new Error(code), { slackError: code });
 
-  it("rozpoznaje wszystkie warianty, którymi Slack mówi \"tej pozycji już nie ma\"", () => {
-    for (const code of [
-      "record_deleted",
-      "record_not_found",
-      "row_not_found",
-      "invalid_row_id",
-      "item_not_found",
-    ]) {
+  it('rozpoznaje wszystkie warianty, którymi Slack mówi "tej pozycji już nie ma"', () => {
+    for (const code of ["record_deleted", "record_not_found", "row_not_found", "invalid_row_id", "item_not_found"]) {
       expect(isMissingItemError(withCode(code))).toBe(true);
     }
   });
@@ -362,12 +347,12 @@ describe("resolveDirection", () => {
 
   it("bez daty po którejkolwiek stronie wygrywa Slack", () => {
     const konflikt = { appChanged: true, slackChanged: true };
-    expect(
-      resolveDirection({ ...konflikt, taskUpdatedAt: null, itemUpdatedAt: t("2026-08-04T10:00:00Z") })
-    ).toBe("pull");
-    expect(
-      resolveDirection({ ...konflikt, taskUpdatedAt: t("2026-08-04T10:00:00Z"), itemUpdatedAt: null })
-    ).toBe("pull");
+    expect(resolveDirection({ ...konflikt, taskUpdatedAt: null, itemUpdatedAt: t("2026-08-04T10:00:00Z") })).toBe(
+      "pull"
+    );
+    expect(resolveDirection({ ...konflikt, taskUpdatedAt: t("2026-08-04T10:00:00Z"), itemUpdatedAt: null })).toBe(
+      "pull"
+    );
     expect(resolveDirection({ ...konflikt, taskUpdatedAt: null, itemUpdatedAt: null })).toBe("pull");
   });
 
@@ -397,9 +382,7 @@ describe("resolveDirection", () => {
 
 describe("znaczniki czasu", () => {
   it("czyta updated_at zadania, tolerując brak kolumny", () => {
-    expect(taskUpdatedAt({ updated_at: "2026-08-04T10:00:00Z" })).toBe(
-      new Date("2026-08-04T10:00:00Z").getTime()
-    );
+    expect(taskUpdatedAt({ updated_at: "2026-08-04T10:00:00Z" })).toBe(new Date("2026-08-04T10:00:00Z").getTime());
     expect(taskUpdatedAt({ updated_at: null })).toBeNull();
     expect(taskUpdatedAt({})).toBeNull();
     expect(taskUpdatedAt({ updated_at: "nie-data" })).toBeNull();
@@ -421,12 +404,8 @@ describe("readFieldValue - kolumna zaznaczenia", () => {
   };
 
   it("czyta boolean, bo Slack NIE opakowuje checkboxa w tablicę", () => {
-    expect(readFieldValue({ column_id: "Col002", value: true, checkbox: true }, completed)).toBe(
-      "done"
-    );
-    expect(readFieldValue({ column_id: "Col002", value: false, checkbox: false }, completed)).toBe(
-      "pending"
-    );
+    expect(readFieldValue({ column_id: "Col002", value: true, checkbox: true }, completed)).toBe("done");
+    expect(readFieldValue({ column_id: "Col002", value: false, checkbox: false }, completed)).toBe("pending");
   });
 
   it("radzi sobie też z wariantem tablicowym", () => {

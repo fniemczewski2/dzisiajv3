@@ -1,7 +1,8 @@
 // pages/api/slack/callback.ts
 
+import { publicEnv, serverEnv } from "@/config/env";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/server/tokenCrypto";
 import { fetchWithTimeout } from "@/lib/server/fetchWithTimeout";
@@ -23,7 +24,7 @@ function redirectWithError(res: NextApiResponse, reason: string) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const appUrl = publicEnv.appUrl;
 
   const cookieNonce = req.cookies[SLACK_STATE_COOKIE];
   clearStateCookie(res, SLACK_STATE_COOKIE, appUrl.startsWith("https://"));
@@ -37,13 +38,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!cookieNonce || !safeEqual(cookieNonce, state)) return redirectWithError(res, "invalid_state");
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return redirectWithError(res, "auth_failed");
 
   try {
     const body = new URLSearchParams({
-      client_id: process.env.SLACK_CLIENT_ID ?? "",
-      client_secret: process.env.SLACK_CLIENT_SECRET ?? "",
+      client_id: serverEnv.slack.get()?.clientId ?? "",
+      client_secret: serverEnv.slack.get()?.clientSecret ?? "",
       code,
       redirect_uri: `${appUrl}/api/slack/callback`,
     });
@@ -66,10 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return redirectWithError(res, "token_exchange_failed");
     }
 
-    const admin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SECRET_KEY!
-    );
+    const admin = supabaseAdmin();
 
     const row = {
       user_id: user.id,

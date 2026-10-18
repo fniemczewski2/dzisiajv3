@@ -21,8 +21,14 @@ export function weekdayIndexPL(dateStr: string): number {
 /** Przesunięcie czasu w Polsce względem UTC (ms) w danej chwili. */
 function warsawOffsetAt(ms: number): number {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/Warsaw", hourCycle: "h23",
-    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    timeZone: "Europe/Warsaw",
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   }).formatToParts(new Date(ms));
   const p: Record<string, number> = {};
   for (const part of parts) if (part.type !== "literal") p[part.type] = Number(part.value);
@@ -42,7 +48,10 @@ function warsawMidnightUTC(dateStr: string): number {
  */
 export function plDayBoundsUTC(dateStr: string): { start: string; end: string } {
   const next = new Date(Date.parse(`${dateStr}T00:00:00Z`) + DAY_MS).toISOString().slice(0, 10);
-  return { start: new Date(warsawMidnightUTC(dateStr)).toISOString(), end: new Date(warsawMidnightUTC(next)).toISOString() };
+  return {
+    start: new Date(warsawMidnightUTC(dateStr)).toISOString(),
+    end: new Date(warsawMidnightUTC(next)).toISOString(),
+  };
 }
 
 export type EventReminder = "5min" | "1day" | "7days";

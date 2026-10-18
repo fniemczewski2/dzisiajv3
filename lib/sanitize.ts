@@ -1,14 +1,13 @@
-﻿// lib/sanitize.ts
+// lib/sanitize.ts
 
+import { MAX_TITLE_LENGTH, MAX_PLACE_LENGTH } from "@/config/limits";
 const SAFE_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
 export function sanitizeHref(raw: string): string | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
-  const withScheme = /^[a-z][a-z\d+\-.]*:/i.test(trimmed)
-    ? trimmed
-    : `https://${trimmed}`;
+  const withScheme = /^[a-z][a-z\d+\-.]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
 
   try {
     const url = new URL(withScheme);
@@ -38,8 +37,7 @@ export function sanitizeJsonLd(data: Record<string, unknown>): string {
     .replaceAll("\u2029", String.raw`\u2029`);
 }
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function validateUuid(id: unknown): string | null {
   if (typeof id !== "string") return null;
@@ -47,7 +45,7 @@ export function validateUuid(id: unknown): string | null {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
-const MAX_EMAIL_LENGTH = 254;  
+const MAX_EMAIL_LENGTH = 254;
 
 export function validateEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -66,9 +64,6 @@ export function validateSlot(value: unknown): { date: string; start_time: string
   if (typeof start_time !== "string" || !HHMM_RE.test(start_time)) return null;
   return { date, start_time };
 }
-
-const MAX_TITLE_LENGTH = 200;
-const MAX_PLACE_LENGTH = 200;
 
 export interface FinalizeSlotValidated {
   date: string;

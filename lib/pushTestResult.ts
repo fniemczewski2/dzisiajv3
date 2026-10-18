@@ -11,9 +11,7 @@ export interface PushSendResult {
   failedStatusCodes?: number[];
 }
 
-export type PushTestOutcome =
-  | { ok: true; message: string }
-  | { ok: false; message: string };
+export type PushTestOutcome = { ok: true; message: string } | { ok: false; message: string };
 
 /**
  * Komunikat dla odpowiedzi z błędem HTTP – z kodem statusu i przyczyną podaną

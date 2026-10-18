@@ -5,14 +5,17 @@
 // Sekcje, które zapisują się od razu (powiadomienia, szablony, profile
 // finansowe, Slack…), są na stronie Ustawień poniżej tych formularzy.
 
+import { CATEGORY_PALETTE, isPaletteColor } from "@/lib/categoryColors";
+import { DEFAULT_MOODS } from "@/config/defaults";
 import React, { useState } from "react";
-import { ArrowDownUp, CheckSquare, Coins, LayoutGrid, Pen, PlusCircle, Smile, Users } from "lucide-react";
+import { ArrowDownUp, CheckSquare, Coins, LayoutGrid, PlusCircle, Smile, Users } from "lucide-react";
 import ThemeToggle from "./ThemeButton";
 import { DeleteButton, ToggleSwitch } from "../ui/CommonButtons";
 import { MoodOption } from "@/types/moods";
 import { Settings } from "@/types/settings";
 import SettingsSection, { type SetField } from "./SettingsSection";
 import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
+import CategoryColorPicker from "@/components/settings/CategoryColorPicker";
 import HabitsEditor from "@/components/settings/HabitsEditor";
 import ModulesEditor from "@/components/settings/ModulesEditor";
 import FinanceSettings from "@/components/settings/FinanceSettings";
@@ -20,15 +23,6 @@ import { resolveHabits } from "@/lib/habits";
 import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-
-const DEFAULT_MOODS: MoodOption[] = [
-  { id: "m1", label: "Wspaniale", color: "#22c55e" },
-  { id: "m2", label: "Dobrze", color: "#3b82f6" },
-  { id: "m3", label: "Neutralnie", color: "#eab308" },
-  { id: "m4", label: "Źle", color: "#f97316" },
-  { id: "m5", label: "Okropnie", color: "#ef4444" },
-];
-const PRESET_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"];
 
 /** Spis sekcji – do nawigacji na górze strony. */
 export const SETTINGS_SECTIONS = [
@@ -47,23 +41,46 @@ interface SettingsFormProps {
   onSavePartial: (patch: Partial<Settings>) => Promise<boolean>;
 }
 
-function Switch({ id, label, checked, onChange }: Readonly<{ id: string; label: string; checked: boolean; onChange: (v: boolean) => void }>) {
+function Switch({
+  id,
+  label,
+  checked,
+  onChange,
+}: Readonly<{ id: string; label: string; checked: boolean; onChange: (v: boolean) => void }>) {
   return (
     <div className="flex min-h-11 items-center justify-between gap-3">
-      <label htmlFor={id} className="cursor-pointer select-none text-sm font-medium text-text">{label}</label>
-      <ToggleSwitch id={id} checked={checked} onChange={onChange} />
+      <label htmlFor={id} className="cursor-pointer text-sm font-medium text-text select-none">
+        {label}
+      </label>
+      <ToggleSwitch id={id} label={label} checked={checked} onChange={onChange} />
     </div>
   );
 }
 
 function SortSelect({
-  id, label, value, options, onChange,
-}: Readonly<{ id: string; label: string; value: string; options: Array<[string, string]>; onChange: (v: string) => void }>) {
+  id,
+  label,
+  value,
+  options,
+  onChange,
+}: Readonly<{
+  id: string;
+  label: string;
+  value: string;
+  options: Array<[string, string]>;
+  onChange: (v: string) => void;
+}>) {
   return (
     <div>
-      <label htmlFor={id} className="form-label">{label}</label>
+      <label htmlFor={id} className="form-label">
+        {label}
+      </label>
       <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="input-field">
-        {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        {options.map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
       </select>
     </div>
   );
@@ -86,42 +103,27 @@ function MoodsEditor({ value, onChange }: Readonly<{ value: MoodOption[]; onChan
               className="input-field flex-1"
               placeholder="Nazwa nastroju..."
             />
-            <DeleteButton small ariaLabel={`Usuń nastrój ${opt.label}`} onClick={() => onChange(value.filter((m) => m.id !== opt.id))} />
+            <DeleteButton
+              small
+              ariaLabel={`Usuń nastrój ${opt.label}`}
+              onClick={() => onChange(value.filter((m) => m.id !== opt.id))}
+            />
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            {PRESET_COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => patch(index, { color })}
-                aria-label={`Kolor nastroju ${opt.label}: ${color}`}
-                aria-pressed={opt.color === color}
-                className="flex h-11 w-9 items-center justify-center"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`h-6 w-6 rounded-full ${opt.color === color ? "ring-2 ring-text ring-offset-2 ring-offset-card" : ""}`}
-                  style={{ backgroundColor: color }}
-                />
-              </button>
-            ))}
-            <span className="relative ml-1 h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-line-strong" style={{ backgroundColor: opt.color }}>
-              <input
-                type="color"
-                aria-label={`Własny kolor nastroju ${opt.label}`}
-                value={opt.color}
-                onChange={(e) => patch(index, { color: e.target.value })}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-              <Pen className="pointer-events-none absolute left-2 top-2 h-3.5 w-3.5 text-white drop-shadow" aria-hidden="true" />
-            </span>
-          </div>
+          <CategoryColorPicker
+            categoryName={opt.label}
+            subject="nastroju"
+            allowNone={false}
+            value={isPaletteColor(opt.color) ? opt.color : null}
+            onChange={(color) => patch(index, { color: color ?? DEFAULT_MOODS[0].color })}
+          />
         </div>
       ))}
       {value.length < 10 && (
         <button
           type="button"
-          onClick={() => onChange([...value, { id: Date.now().toString(), label: "Nowy nastrój", color: "#3b82f6" }])}
+          onClick={() =>
+            onChange([...value, { id: crypto.randomUUID(), label: "Nowy nastrój", color: CATEGORY_PALETTE[0].value }])
+          }
           className="flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
         >
           <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj nastrój
@@ -161,8 +163,15 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
           <>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="min-w-48 flex-1">
-                <label htmlFor="main_view" className="form-label">Widok główny:</label>
-                <select id="main_view" value={d.main_view || "calendar"} onChange={(e) => set("main_view", e.target.value)} className="input-field">
+                <label htmlFor="main_view" className="form-label">
+                  Widok główny:
+                </label>
+                <select
+                  id="main_view"
+                  value={d.main_view || "calendar"}
+                  onChange={(e) => set("main_view", e.target.value)}
+                  className="input-field"
+                >
                   <option value="calendar">Kalendarz</option>
                   <option value="tasks">Zadania</option>
                   <option value="day_view">Plan dnia</option>
@@ -172,7 +181,10 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                 Motyw: <ThemeToggle />
               </div>
             </div>
-            <ModulesEditor disabled={d.disabled_modules ?? []} onChange={(next) => set("disabled_modules", next.length > 0 ? next : null)} />
+            <ModulesEditor
+              disabled={d.disabled_modules ?? []}
+              onChange={(next) => set("disabled_modules", next.length > 0 ? next : null)}
+            />
           </>
         )}
       </SettingsSection>
@@ -183,15 +195,32 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         title="Zadania"
         description="Co widać na liście zadań oraz kategorie z kolorami."
         icon={<CheckSquare className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
-        keys={["show_completed", "show_notifications", "hide_priority_5", "task_categories", "category_colors"] as const}
+        keys={
+          ["show_completed", "show_notifications", "hide_priority_5", "task_categories", "category_colors"] as const
+        }
         afterSave={applyRenames}
       >
         {(d, set) => (
           <>
             <div>
-              <Switch id="show_completed" label="Pokaż wykonane zadania" checked={on(d.show_completed)} onChange={(v) => set("show_completed", v)} />
-              <Switch id="show_notifications" label="Pokaż zadania cykliczne" checked={on(d.show_notifications)} onChange={(v) => set("show_notifications", v)} />
-              <Switch id="hide_priority_5" label="Ukryj priorytet 5 (Ludzie)" checked={on(d.hide_priority_5)} onChange={(v) => set("hide_priority_5", v)} />
+              <Switch
+                id="show_completed"
+                label="Pokaż wykonane zadania"
+                checked={on(d.show_completed)}
+                onChange={(v) => set("show_completed", v)}
+              />
+              <Switch
+                id="show_notifications"
+                label="Pokaż zadania cykliczne"
+                checked={on(d.show_notifications)}
+                onChange={(v) => set("show_notifications", v)}
+              />
+              <Switch
+                id="hide_priority_5"
+                label="Ukryj priorytet 5 (Ludzie)"
+                checked={on(d.hide_priority_5)}
+                onChange={(v) => set("hide_priority_5", v)}
+              />
             </div>
             <TaskCategoriesEditor
               value={d.task_categories}
@@ -215,12 +244,30 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         {(d, set) => (
           <>
             <div>
-              <Switch id="show_habits" label="Pokaż sekcję nawyków" checked={on(d.show_habits)} onChange={(v) => set("show_habits", v)} />
-              <Switch id="show_water_tracker" label="Pokaż tracker wody" checked={on(d.show_water_tracker)} onChange={(v) => set("show_water_tracker", v)} />
-              <Switch id="show_mood_tracker" label="Pokaż śledzenie nastroju" checked={Boolean(d.show_mood_tracker)} onChange={(v) => set("show_mood_tracker", v)} />
+              <Switch
+                id="show_habits"
+                label="Pokaż sekcję nawyków"
+                checked={on(d.show_habits)}
+                onChange={(v) => set("show_habits", v)}
+              />
+              <Switch
+                id="show_water_tracker"
+                label="Pokaż tracker wody"
+                checked={on(d.show_water_tracker)}
+                onChange={(v) => set("show_water_tracker", v)}
+              />
+              <Switch
+                id="show_mood_tracker"
+                label="Pokaż śledzenie nastroju"
+                checked={Boolean(d.show_mood_tracker)}
+                onChange={(v) => set("show_mood_tracker", v)}
+              />
             </div>
             {d.show_habits !== false && (
-              <HabitsEditor value={resolveHabits({ ...settings, ...d })} onChange={(next) => set("custom_habits", next)} />
+              <HabitsEditor
+                value={resolveHabits({ ...settings, ...d })}
+                onChange={(next) => set("custom_habits", next)}
+              />
             )}
             {d.show_mood_tracker && (
               <MoodsEditor value={d.mood_options ?? DEFAULT_MOODS} onChange={(next) => set("mood_options", next)} />
@@ -239,7 +286,12 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
       >
         {(d, set) => (
           <>
-            <Switch id="show_budget_items" label="Pokaż planowane wydatki" checked={on(d.show_budget_items)} onChange={(v) => set("show_budget_items", v)} />
+            <Switch
+              id="show_budget_items"
+              label="Pokaż planowane wydatki"
+              checked={on(d.show_budget_items)}
+              onChange={(v) => set("show_budget_items", v)}
+            />
             <FinanceSettings
               dailyCategories={d.daily_spending_categories ?? []}
               onDailyCategoriesChange={(next) => set("daily_spending_categories", next)}
@@ -254,24 +306,94 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         title="Sortowanie"
         description="Domyślna kolejność na listach."
         icon={<ArrowDownUp className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
-        keys={["sort_order", "sort_notes", "sort_shopping", "sort_movies", "sort_recipes", "sort_people", "sort_bills"] as const}
+        keys={
+          [
+            "sort_order",
+            "sort_notes",
+            "sort_shopping",
+            "sort_movies",
+            "sort_recipes",
+            "sort_people",
+            "sort_bills",
+          ] as const
+        }
       >
         {(d, set) => (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <SortSelect id="sort_order" label="Zadania:" value={d.sort_order || "priority"} onChange={(v) => set("sort_order", v)}
-              options={[["priority", "Priorytet"], ["due_date", "Data wykonania"], ["alphabetical", "Alfabetycznie"], ["due_date_alphabetical", "Data i alfabetycznie"]]} />
-            <SortSelect id="sort_notes" label="Notatki:" value={d.sort_notes || "updated_desc"} onChange={(v) => set("sort_notes", v)}
-              options={[["updated_desc", "Data aktualizacji"], ["alphabetical", "Alfabetycznie"]]} />
-            <SortSelect id="sort_shopping" label="Listy zakupów:" value={d.sort_shopping || "updated_desc"} onChange={(v) => set("sort_shopping", v)}
-              options={[["updated_desc", "Data aktualizacji"], ["alphabetical", "Alfabetycznie"]]} />
-            <SortSelect id="sort_movies" label="Filmy i seriale:" value={d.sort_movies || "updated_desc"} onChange={(v) => set("sort_movies", v)}
-              options={[["updated_desc", "Data aktualizacji"], ["alphabetical", "Alfabetycznie"], ["rating", "Wg oceny"]]} />
-            <SortSelect id="sort_recipes" label="Przepisy:" value={d.sort_recipes || "category"} onChange={(v) => set("sort_recipes", v)}
-              options={[["category", "Kategorie"], ["alphabetical", "Alfabetycznie"], ["created_desc", "Data dodania"]]} />
-            <SortSelect id="sort_people" label="Ludzie:" value={d.sort_people || "alphabetical"} onChange={(v) => set("sort_people", v)}
-              options={[["alphabetical", "Alfabetycznie"], ["priority", "Priorytet"]]} />
-            <SortSelect id="sort_bills" label="Rachunki:" value={d.sort_bills || "month"} onChange={(v) => set("sort_bills", v)}
-              options={[["month", "Wg miesięcy"], ["category", "Wg kategorii"]]} />
+            <SortSelect
+              id="sort_order"
+              label="Zadania:"
+              value={d.sort_order || "priority"}
+              onChange={(v) => set("sort_order", v)}
+              options={[
+                ["priority", "Priorytet"],
+                ["due_date", "Data wykonania"],
+                ["alphabetical", "Alfabetycznie"],
+                ["due_date_alphabetical", "Data i alfabetycznie"],
+              ]}
+            />
+            <SortSelect
+              id="sort_notes"
+              label="Notatki:"
+              value={d.sort_notes || "updated_desc"}
+              onChange={(v) => set("sort_notes", v)}
+              options={[
+                ["updated_desc", "Data aktualizacji"],
+                ["alphabetical", "Alfabetycznie"],
+              ]}
+            />
+            <SortSelect
+              id="sort_shopping"
+              label="Listy zakupów:"
+              value={d.sort_shopping || "updated_desc"}
+              onChange={(v) => set("sort_shopping", v)}
+              options={[
+                ["updated_desc", "Data aktualizacji"],
+                ["alphabetical", "Alfabetycznie"],
+              ]}
+            />
+            <SortSelect
+              id="sort_movies"
+              label="Filmy i seriale:"
+              value={d.sort_movies || "updated_desc"}
+              onChange={(v) => set("sort_movies", v)}
+              options={[
+                ["updated_desc", "Data aktualizacji"],
+                ["alphabetical", "Alfabetycznie"],
+                ["rating", "Wg oceny"],
+              ]}
+            />
+            <SortSelect
+              id="sort_recipes"
+              label="Przepisy:"
+              value={d.sort_recipes || "category"}
+              onChange={(v) => set("sort_recipes", v)}
+              options={[
+                ["category", "Kategorie"],
+                ["alphabetical", "Alfabetycznie"],
+                ["created_desc", "Data dodania"],
+              ]}
+            />
+            <SortSelect
+              id="sort_people"
+              label="Ludzie:"
+              value={d.sort_people || "alphabetical"}
+              onChange={(v) => set("sort_people", v)}
+              options={[
+                ["alphabetical", "Alfabetycznie"],
+                ["priority", "Priorytet"],
+              ]}
+            />
+            <SortSelect
+              id="sort_bills"
+              label="Rachunki:"
+              value={d.sort_bills || "month"}
+              onChange={(v) => set("sort_bills", v)}
+              options={[
+                ["month", "Wg miesięcy"],
+                ["category", "Wg kategorii"],
+              ]}
+            />
           </div>
         )}
       </SettingsSection>
@@ -287,20 +409,36 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         {(d, set) => {
           const users = d.users ?? [];
           return (
-            <fieldset className="min-w-0 max-w-md space-y-2">
+            <fieldset className="max-w-md min-w-0 space-y-2">
               <legend className="sr-only">Zaufani użytkownicy</legend>
               {users.map((u, idx) => (
                 <div key={`user-${idx}`} className="flex items-center gap-2">
-                  <label htmlFor={`trusted-user-${idx}`} className="sr-only">Adres e-mail zaufanej osoby {idx + 1}</label>
+                  <label htmlFor={`trusted-user-${idx}`} className="sr-only">
+                    Adres e-mail zaufanej osoby {idx + 1}
+                  </label>
                   <input
                     id={`trusted-user-${idx}`}
                     type="email"
                     value={u}
                     placeholder="E-mail"
-                    onChange={(e) => set("users", users.map((x, i) => (i === idx ? e.target.value : x)))}
+                    onChange={(e) =>
+                      set(
+                        "users",
+                        users.map((x, i) => (i === idx ? e.target.value : x))
+                      )
+                    }
                     className="input-field"
                   />
-                  <DeleteButton small ariaLabel={`Usuń ${u || `osobę ${idx + 1}`}`} onClick={() => set("users", users.filter((_, i) => i !== idx))} />
+                  <DeleteButton
+                    small
+                    ariaLabel={`Usuń ${u || `osobę ${idx + 1}`}`}
+                    onClick={() =>
+                      set(
+                        "users",
+                        users.filter((_, i) => i !== idx)
+                      )
+                    }
+                  />
                 </div>
               ))}
               {users.length < 10 && (

@@ -19,10 +19,14 @@ const at = (s: string) => new Date(s);
 
 describe("rangesOverlap", () => {
   it("stykające się terminy nie kolidują", () => {
-    expect(rangesOverlap(at("2026-10-12T10:00"), at("2026-10-12T11:00"), at("2026-10-12T11:00"), at("2026-10-12T12:00"))).toBe(false);
+    expect(
+      rangesOverlap(at("2026-10-12T10:00"), at("2026-10-12T11:00"), at("2026-10-12T11:00"), at("2026-10-12T12:00"))
+    ).toBe(false);
   });
   it("częściowe nakładanie to kolizja", () => {
-    expect(rangesOverlap(at("2026-10-12T10:00"), at("2026-10-12T11:00"), at("2026-10-12T10:30"), at("2026-10-12T12:00"))).toBe(true);
+    expect(
+      rangesOverlap(at("2026-10-12T10:00"), at("2026-10-12T11:00"), at("2026-10-12T10:30"), at("2026-10-12T12:00"))
+    ).toBe(true);
   });
 });
 

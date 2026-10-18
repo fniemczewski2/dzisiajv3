@@ -1,161 +1,74 @@
-﻿// hooks/db/useProfiles.ts
+// hooks/db/useProfiles.ts
+//
+// Wizytówki (vcard_profiles) – na wspólnym useCrudResource: optymistyczne
+// zmiany, ponowienia i kopia offline jak w pozostałych modułach.
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
-import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/hooks/useRetry';
-import { useAbortController } from '@/hooks/useAbortController';
-import { isAbortError } from '@/lib/abortUtils';
-import { NewVCardProfile, VCardProfile } from '@/types/profiles';
-import { getErrorMessage, getPostgresErrorCode } from '@/lib/errorUtils';
+import { useCallback } from "react";
+import { useToast } from "@/providers/ToastProvider";
+import { getPostgresErrorCode } from "@/lib/errorUtils";
+import { MAX_VCARD_PROFILES } from "@/config/limits";
+import type { NewVCardProfile, VCardProfile } from "@/types/profiles";
+import { useCrudResource } from "./useCrudResource";
+
+type ProfileResult = { success: boolean; data?: VCardProfile; error?: string };
+
+const SLUG_TAKEN = "Ten publiczny adres jest już zajęty.";
+const LIMIT_REACHED = `Osiągnięto limit ${MAX_VCARD_PROFILES} wizytówek.`;
 
 export function useProfiles() {
-  const { user, supabase } = useAuth();
-  const userId = user?.id;
-
-  const [profiles, setProfiles] = useState<VCardProfile[]>([]);
-  const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const withRetry = useRetry();
-  const { getSignal } = useAbortController();
-
-  const fetchProfiles = useCallback(async () => {
-    if (!userId) {
-      return
-    }
-    const signal = getSignal();
-    setFetching(true);
-    setError(null);
-    try {
-      const { data, error: fetchError } = await withRetry(
-        () =>
-          supabase
-            .from('vcard_profiles')
-            .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: true })
-            .abortSignal(signal),
-        signal
-      );
-
-      if (fetchError) throw fetchError;
-      setProfiles(data || []);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error('Błąd pobierania profili.');
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [supabase, userId, toast, withRetry, getSignal]);
+  const crud = useCrudResource<VCardProfile, NewVCardProfile>({
+    table: "vcard_profiles",
+    order: { column: "created_at", ascending: true },
+    insertPosition: "end",
+    cachePrefix: "vcard_profiles",
+    applyServerRowOnEdit: true,
+    describeError: (error) => (getPostgresErrorCode(error) === "23505" ? SLUG_TAKEN : undefined),
+    messages: {
+      fetchError: "Nie udało się pobrać wizytówek.",
+      added: "Dodano wizytówkę.",
+      addError: "Nie udało się dodać wizytówki.",
+      edited: "Zapisano wizytówkę.",
+      editError: "Nie udało się zapisać wizytówki.",
+      deleted: "Usunięto wizytówkę.",
+      deleteError: "Nie udało się usunąć wizytówki.",
+      confirmDelete: "Czy chcesz usunąć wizytówkę?",
+    },
+  });
+  const { items, add, patch, remove } = crud;
 
   const addProfile = useCallback(
-    async (profileData: NewVCardProfile) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
+    async (profile: NewVCardProfile): Promise<ProfileResult> => {
+      if (items.length >= MAX_VCARD_PROFILES) {
+        toast.error(LIMIT_REACHED);
+        return { success: false, error: LIMIT_REACHED };
       }
-      if (profiles.length >= 5) {
-        toast.error("Osiągnięto limit 5 wizytówek.");
-        return { success: false, error: 'Osiągnięto limit 5 wizytówek.' };
-      }
-      setLoading(true);
-      const tempId = `temp-${Date.now()}`;
-      const optimisticProfile = { ...profileData, id: tempId, user_id: userId } as VCardProfile;
-      setProfiles((prev) => [...prev, optimisticProfile]);
-
-      try {
-        const { data, error: insertError } = await withRetry(() =>
-          supabase.from('vcard_profiles').insert([{ ...profileData, user_id: userId }]).select().single()
-        );
-
-        if (insertError) throw insertError;
-        setProfiles((prev) => prev.map((p) => (p.id === tempId ? data : p)));
-        toast.success("Dodano wizytówkę");
-        return { success: true, data };
-      } catch (err) {
-        setProfiles((prev) => prev.filter((p) => p.id !== tempId));
-        const message = getPostgresErrorCode(err) === '23505' ? 'Ten publiczny link jest już zajęty.' : getErrorMessage(err);
-        toast.error(message || 'Błąd dodawania wizytówki.');
-        return { success: false, error: message };
-      } finally {
-        setLoading(false);
-      }
+      const data = await add(profile);
+      return data ? { success: true, data } : { success: false };
     },
-    [userId, profiles.length, supabase, toast, withRetry]
+    [items.length, add, toast]
   );
 
   const updateProfile = useCallback(
-    async (id: string, updates: Partial<VCardProfile>) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      setLoading(true);
-      const previous = profiles;
-      setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
-
-      try {
-        const { data, error: updateError } = await withRetry(() =>
-          supabase.from('vcard_profiles').update(updates).eq('id', id).select().single()
-        );
-
-        if (updateError) throw updateError;
-        setProfiles((prev) => prev.map((p) => (p.id === id ? data : p)));
-        toast.success("Zaktualizowano wizytówkę");
-        return { success: true, data };
-      } catch (err) {
-        setProfiles(previous);
-        const message = getPostgresErrorCode(err) === '23505' ? 'Ten publiczny link jest już zajęty.' : getErrorMessage(err);
-        toast.error(message || 'Błąd edycji wizytówki.');
-        return { success: false, error: message };
-      } finally {
-        setLoading(false);
-      }
+    async (id: string, updates: Partial<VCardProfile>): Promise<ProfileResult> => {
+      const data = await patch(id, updates);
+      return data ? { success: true, data } : { success: false };
     },
-    [userId, supabase, profiles, toast, withRetry]
+    [patch]
   );
 
   const deleteProfile = useCallback(
     async (id: string) => {
-      if (!userId) {
-  
-        throw new Error("Unauthorized");
-      }
-      const ok = await toast.confirm(`Czy chcesz usunąć profil?`);
-      if (!ok) return;
-
-      setLoading(true);
-      const previous = profiles;
-      setProfiles((prev) => prev.filter((p) => p.id !== id));
-
-      try {
-        const { error: deleteError } = await withRetry(() =>
-          supabase.from('vcard_profiles').delete().eq('id', id)
-        );
-        if (deleteError) throw deleteError;
-        toast.success("Usunięto wizytówkę");
-      } catch {
-        setProfiles(previous);
-        toast.error("Błąd usuwania wizytówki.");
-      } finally {
-        setLoading(false);
-      }
+      await remove(id);
     },
-    [userId, supabase, profiles, toast, withRetry]
+    [remove]
   );
 
-  useEffect(() => {
-    void fetchProfiles();
-  }, [fetchProfiles]);
-
   return {
-    profiles,
-    fetching,
-    loading,
-    error,
-    refetch: fetchProfiles,
+    profiles: items,
+    fetching: crud.fetching,
+    loading: crud.loading,
+    refetch: crud.refetch,
     addProfile,
     updateProfile,
     deleteProfile,

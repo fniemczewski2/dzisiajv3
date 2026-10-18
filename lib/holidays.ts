@@ -1,4 +1,4 @@
-﻿// lib/holidays.ts
+// lib/holidays.ts
 
 export function getEaster(year: number): Date {
   const f = Math.floor;
@@ -16,7 +16,7 @@ export function getEaster(year: number): Date {
 
 export function getPolishHolidays(year: number): Record<string, string> {
   const easter = getEaster(year);
-  
+
   const addDays = (date: Date, days: number) => {
     const result = new Date(date);
     result.setDate(result.getDate() + days);
@@ -24,8 +24,8 @@ export function getPolishHolidays(year: number): Record<string, string> {
   };
 
   const formatDate = (d: Date) => {
-    const m = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
+    const m = (d.getMonth() + 1).toString().padStart(2, "0");
+    const day = d.getDate().toString().padStart(2, "0");
     return `${d.getFullYear()}-${m}-${day}`;
   };
 

@@ -1,16 +1,16 @@
-﻿// components/dashboard/DraggingItem.tsx
+// components/dashboard/DraggingItem.tsx
 
 import React from "react";
 import { Calendar, ListTodo } from "lucide-react";
 
 export const DraggingTaskItem = ({ title }: { title: string }) => (
-  <div className="p-3 w-full min-w-65 max-w-100 bg-card border border-primary shadow-2xl rounded-xl opacity-90 cursor-grabbing z-50 text-text flex items-center gap-3">
-    <ListTodo className="w-4 h-4 text-primary" /> {title}
+  <div className="z-50 flex w-full max-w-100 min-w-65 cursor-grabbing items-center gap-3 rounded-xl border border-primary bg-card p-3 text-text opacity-90 shadow-2xl">
+    <ListTodo className="h-4 w-4 text-primary" /> {title}
   </div>
 );
 
 export const DraggingEventItem = ({ title }: { title: string }) => (
-  <div className="p-3 w-full min-w-65 max-w-100 bg-card border border-primary shadow-2xl rounded-xl opacity-90 cursor-grabbing z-50 text-text flex items-center gap-3">
-    <Calendar className="w-4 h-4 text-primary" /> {title}
+  <div className="z-50 flex w-full max-w-100 min-w-65 cursor-grabbing items-center gap-3 rounded-xl border border-primary bg-card p-3 text-text opacity-90 shadow-2xl">
+    <Calendar className="h-4 w-4 text-primary" /> {title}
   </div>
 );

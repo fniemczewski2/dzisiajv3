@@ -1,4 +1,4 @@
-﻿// components/settings/InstallButton.tsx
+// components/settings/InstallButton.tsx
 
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -28,8 +28,7 @@ export default function InstallPromptButton() {
 
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
-    const standalone =
-      "standalone" in navigator && (navigator as NavigatorWithStandalone).standalone;
+    const standalone = "standalone" in navigator && (navigator as NavigatorWithStandalone).standalone;
 
     setIsIOS(ios);
 
@@ -62,11 +61,11 @@ export default function InstallPromptButton() {
   return (
     <button
       onClick={handleInstall}
-      type='button'
-      className="px-4 py-2 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary-hover text-white font-bold rounded-xl shadow-sm hover:shadow transition-all w-fit sm:w-auto"
+      type="button"
+      className="flex w-fit items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2 font-bold text-white shadow-sm transition-all hover:bg-secondary-hover hover:shadow sm:w-auto"
     >
       <span>Zainstaluj</span>
-      <Download className="w-5 h-5" />
+      <Download className="h-5 w-5" />
     </button>
   );
 }

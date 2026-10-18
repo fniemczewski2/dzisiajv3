@@ -1,8 +1,7 @@
-﻿// components/ui/SEO.tsx
+// components/ui/SEO.tsx
 
 import Head from "next/head";
 import { sanitizeJsonLd } from "@/lib/sanitize";
-import { useEffect, useState } from "react";
 
 interface SeoProps {
   title?: string;
@@ -35,8 +34,6 @@ export default function Seo({
   publishedTime,
   modifiedTime,
 }: Readonly<SeoProps>) {
-  const [nonce, setNonce] = useState<string | undefined>();
-
   const fullTitle = title.includes("Dzisiaj") ? title : `${title} | Dzisiaj.Fun`;
   const robotsContent = `${noindex ? "noindex" : "index"},${nofollow ? "nofollow" : "follow"}`;
 
@@ -62,10 +59,6 @@ export default function Seo({
 
   const finalStructuredData = structuredData ?? defaultStructuredData;
   const safeJsonLd = sanitizeJsonLd(finalStructuredData);
-  
-  useEffect(() => {
-    setNonce(document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]')?.content);
-  }, []);
 
   return (
     <Head>
@@ -87,15 +80,9 @@ export default function Seo({
       <meta property="og:site_name" content="Dzisiaj.Fun" />
       <meta property="og:locale" content="pl_PL" />
 
-      {ogType === "article" && publishedTime && (
-        <meta property="article:published_time" content={publishedTime} />
-      )}
-      {ogType === "article" && modifiedTime && (
-        <meta property="article:modified_time" content={modifiedTime} />
-      )}
-      {ogType === "article" && (
-        <meta property="article:author" content={author} />
-      )}
+      {ogType === "article" && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+      {ogType === "article" && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+      {ogType === "article" && <meta property="article:author" content={author} />}
 
       <meta name="twitter:card" content={twitterCard} />
       <meta name="twitter:url" content={canonical} />
@@ -111,11 +98,7 @@ export default function Seo({
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       <meta name="apple-mobile-web-app-title" content="Dzisiaj.Fun" />
 
-      <script
-        type="application/ld+json"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: safeJsonLd }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd }} />
     </Head>
   );
 }

@@ -46,7 +46,11 @@ describe("nextWorkingDays", () => {
 
 describe("contiguousRanges", () => {
   it("skleja kolejne wolne sloty i rozdziela przerwy", () => {
-    const free = new Set([slotKey("2026-10-05", "10:00"), slotKey("2026-10-05", "10:30"), slotKey("2026-10-05", "11:30")]);
+    const free = new Set([
+      slotKey("2026-10-05", "10:00"),
+      slotKey("2026-10-05", "10:30"),
+      slotKey("2026-10-05", "11:30"),
+    ]);
     const ranges = contiguousRanges(["2026-10-05", "2026-10-06"], times, 30, (d, t) => free.has(slotKey(d, t)));
     expect(ranges.map((r) => [r.date, r.start, r.end, r.slots])).toEqual([
       ["2026-10-05", "10:00", "11:00", 2],
@@ -92,7 +96,15 @@ describe("pluralPl", () => {
 
   it("odmienia po liczebniku", () => {
     expect([1, 2, 4, 5, 12, 14, 22, 25, 112].map(forms)).toEqual([
-      "slot", "sloty", "sloty", "slotów", "slotów", "slotów", "sloty", "slotów", "slotów",
+      "slot",
+      "sloty",
+      "sloty",
+      "slotów",
+      "slotów",
+      "slotów",
+      "sloty",
+      "slotów",
+      "slotów",
     ]);
   });
 });

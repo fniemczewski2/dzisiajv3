@@ -82,11 +82,7 @@ function applyPatchValue(
   }
 }
 
-export function itemToTaskPatch(
-  item: SlackItem,
-  columnMap: ColumnMap,
-  columns: SlackColumn[]
-): Partial<TaskRow> {
+export function itemToTaskPatch(item: SlackItem, columnMap: ColumnMap, columns: SlackColumn[]): Partial<TaskRow> {
   const byColumn = indexFieldsByColumn(item.fields);
   const columnById = new Map(columns.map((c) => [c.id, c]));
   const patch: Record<string, string | number | null> = {};

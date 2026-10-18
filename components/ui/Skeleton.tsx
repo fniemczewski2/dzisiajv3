@@ -3,12 +3,7 @@
 import React, { useId, useMemo } from "react";
 
 function Bar({ className = "" }: { readonly className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`skeleton rounded-lg ${className}`}
-    />
-  );
+  return <div aria-hidden="true" className={`skeleton rounded-lg ${className}`} />;
 }
 
 export const SkeletonLine = Bar;
@@ -18,13 +13,14 @@ export function SkeletonCard({ lines = 2 }: { readonly lines?: number }) {
   const lineIds = useMemo(() => Array.from({ length: lines }, (_, i) => `${id}-line-${i}`), [lines, id]);
 
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-card p-4 shadow-sm flex flex-col gap-3">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4 shadow-sm"
+    >
       <Bar className="h-4 w-2/5" />
       {lineIds.map((lineId, i) => (
-        <Bar
-          key={lineId}
-          className={`h-3 ${i === lines - 1 ? "w-3/5" : "w-full"}`}
-        />
+        <Bar key={lineId} className={`h-3 ${i === lines - 1 ? "w-3/5" : "w-full"}`} />
       ))}
     </output>
   );
@@ -36,11 +32,11 @@ export function SkeletonSlotGrid({ columns = 5, rows = 8 }: { readonly columns?:
   const colIds = useMemo(() => Array.from({ length: columns }, (_, i) => `${id}-col-${i}`), [columns, id]);
 
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="block card rounded-card shadow-sm p-4 space-y-1">
+    <output aria-busy="true" aria-label="Ładowanie" className="card block space-y-1 rounded-card p-4 shadow-sm">
       {rowIds.map((rowId) => (
         <div key={rowId} className="flex gap-1">
           {colIds.map((colId) => (
-            <Bar key={colId} className="w-12 h-8" />
+            <Bar key={colId} className="h-8 w-12" />
           ))}
         </div>
       ))}
@@ -50,9 +46,13 @@ export function SkeletonSlotGrid({ columns = 5, rows = 8 }: { readonly columns?:
 
 export function SkeletonRow() {
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-card p-4 shadow-sm flex items-center gap-4">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex items-center gap-4 rounded-card border border-line bg-card p-4 shadow-sm"
+    >
       <Bar className="h-10 w-10 shrink-0 rounded-full" />
-      <div className="flex-1 flex flex-col gap-2">
+      <div className="flex flex-1 flex-col gap-2">
         <Bar className="h-4 w-1/2" />
         <Bar className="h-3 w-1/3" />
       </div>
@@ -62,9 +62,13 @@ export function SkeletonRow() {
 
 export function SkeletonStreakCard() {
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-xl p-5 shadow-sm flex gap-4 items-center">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex items-center gap-4 rounded-xl border border-line bg-card p-5 shadow-sm"
+    >
       <Bar className="h-14 w-14 shrink-0 rounded-xl" />
-      <div className="flex-1 flex flex-col gap-2.5">
+      <div className="flex flex-1 flex-col gap-2.5">
         <Bar className="h-4 w-3/5" />
         <Bar className="h-3 w-2/5" />
         <Bar className="h-3 w-1/4" />
@@ -75,13 +79,17 @@ export function SkeletonStreakCard() {
 
 export function SkeletonMovieCard() {
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-card p-4 shadow-sm flex gap-4 items-start">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex items-start gap-4 rounded-card border border-line bg-card p-4 shadow-sm"
+    >
       <Bar className="h-24 w-16 shrink-0 rounded-lg" />
-      <div className="flex-1 flex flex-col gap-2">
+      <div className="flex flex-1 flex-col gap-2">
         <Bar className="h-4 w-3/4" />
         <Bar className="h-3 w-1/2" />
         <Bar className="h-3 w-2/3" />
-        <Bar className="h-8 w-20 rounded-lg mt-2" />
+        <Bar className="mt-2 h-8 w-20 rounded-lg" />
       </div>
     </output>
   );
@@ -89,7 +97,11 @@ export function SkeletonMovieCard() {
 
 export function SkeletonShoppingList() {
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-card p-4 shadow-sm flex flex-col gap-3">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4 shadow-sm"
+    >
       <Bar className="h-5 w-2/5" />
       {[85, 70, 60].map((w) => (
         <div key={w} className="flex items-center gap-3">
@@ -108,7 +120,7 @@ export function SkeletonCalendar() {
 
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-1">
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="mb-2 grid grid-cols-7 gap-1">
         {dayIds.map((dayId) => (
           <Bar key={`header-${dayId}`} className="h-6 w-full" />
         ))}
@@ -131,10 +143,7 @@ export function SkeletonTaskList({ count = 5 }: { readonly count?: number }) {
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-2">
       {taskIds.map((taskId, i) => (
-        <div
-          key={taskId}
-          className="bg-card border border-line rounded-xl p-3 flex items-center gap-3"
-        >
+        <div key={taskId} className="flex items-center gap-3 rounded-xl border border-line bg-card p-3">
           <Bar className="h-5 w-5 shrink-0 rounded-lg" />
           <Bar className={`h-4 flex-1 ${i % 3 === 0 ? "w-3/4" : "w-full"}`} />
           <Bar className="h-5 w-12 shrink-0 rounded-full" />
@@ -157,10 +166,7 @@ export function SkeletonBudgetTable({ rows = 6 }: { readonly rows?: number }) {
         ))}
       </div>
       {rowIds.map((rowId) => (
-        <div
-          key={rowId}
-          className="grid grid-cols-4 gap-4 px-4 py-3 bg-card border border-line rounded-lg"
-        >
+        <div key={rowId} className="grid grid-cols-4 gap-4 rounded-lg border border-line bg-card px-4 py-3">
           <Bar className="h-4 w-full" />
           <Bar className="h-4 w-3/4" />
           <Bar className="h-4 w-full" />
@@ -176,7 +182,11 @@ export function SkeletonStopCard({ departures = 4 }: { readonly departures?: num
   const depIds = useMemo(() => Array.from({ length: departures }, (_, i) => `${id}-dep-${i}`), [departures, id]);
 
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-card p-4 shadow-sm flex flex-col gap-3">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex flex-col gap-3 rounded-card border border-line bg-card p-4 shadow-sm"
+    >
       <div className="flex items-center gap-3">
         <Bar className="h-8 w-8 shrink-0 rounded-lg" />
         <Bar className="h-4 w-1/3" />
@@ -198,7 +208,7 @@ export function SkeletonWeather() {
 
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-4">
-      <div className="bg-card border border-line rounded-xl p-6 flex items-center gap-6">
+      <div className="flex items-center gap-6 rounded-xl border border-line bg-card p-6">
         <Bar className="h-20 w-20 shrink-0 rounded-card" />
         <div className="flex flex-col gap-3">
           <Bar className="h-10 w-32" />
@@ -208,10 +218,7 @@ export function SkeletonWeather() {
       </div>
       <div className="grid grid-cols-5 gap-2">
         {forecastIds.map((forecastId) => (
-          <div
-            key={forecastId}
-            className="bg-card border border-line rounded-xl p-3 flex flex-col items-center gap-2"
-          >
+          <div key={forecastId} className="flex flex-col items-center gap-2 rounded-xl border border-line bg-card p-3">
             <Bar className="h-3 w-8" />
             <Bar className="h-8 w-8 rounded-lg" />
             <Bar className="h-4 w-10" />
@@ -227,10 +234,14 @@ export function SkeletonProfile() {
   const itemIds = useMemo(() => Array.from({ length: 3 }, (_, i) => `${id}-item-${i}`), [id]);
 
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-xl p-5 shadow-sm flex flex-col gap-4">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex flex-col gap-4 rounded-xl border border-line bg-card p-5 shadow-sm"
+    >
       <div className="flex items-center gap-4">
         <Bar className="h-16 w-16 shrink-0 rounded-full" />
-        <div className="flex-1 flex flex-col gap-2">
+        <div className="flex flex-1 flex-col gap-2">
           <Bar className="h-5 w-2/5" />
           <Bar className="h-3 w-1/3" />
         </div>
@@ -248,7 +259,11 @@ export function SkeletonProfile() {
 
 export function SkeletonReport() {
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="bg-card border border-line rounded-xl p-5 shadow-sm flex flex-col gap-3">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5 shadow-sm"
+    >
       <div className="flex items-start justify-between">
         <Bar className="h-5 w-2/5" />
         <Bar className="h-4 w-16" />
@@ -267,10 +282,7 @@ export function SkeletonDaySchema({ rows = 5 }: { readonly rows?: number }) {
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-2">
       {rowIds.map((rowId) => (
-        <div
-          key={rowId}
-          className="bg-card border border-line rounded-xl p-3 flex items-center gap-4"
-        >
+        <div key={rowId} className="flex items-center gap-4 rounded-xl border border-line bg-card p-3">
           <Bar className="h-10 w-14 shrink-0 rounded-lg" />
           <Bar className="h-4 flex-1" />
           <Bar className="h-6 w-6 shrink-0 rounded-full" />
@@ -287,15 +299,15 @@ export function SkeletonSettings() {
 
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-4">
-      <div className="card rounded-card shadow-sm p-3">
-        <Bar className="h-3 w-16 mb-3" />
+      <div className="card rounded-card p-3 shadow-sm">
+        <Bar className="mb-3 h-3 w-16" />
         <div className="grid grid-cols-4 gap-2">
           {gridIds.map((gridId) => (
             <Bar key={gridId} className="h-14 w-full rounded-lg" />
           ))}
         </div>
       </div>
-      <div className="card rounded-xl shadow-sm p-4 flex flex-col gap-4">
+      <div className="card flex flex-col gap-4 rounded-xl p-4 shadow-sm">
         <Bar className="h-5 w-2/5" />
         {listIds.map((listId) => (
           <div key={listId} className="flex items-center justify-between">
@@ -304,11 +316,11 @@ export function SkeletonSettings() {
           </div>
         ))}
       </div>
-      <div className="card rounded-xl shadow-sm p-4 flex items-center gap-4">
+      <div className="card flex items-center gap-4 rounded-xl p-4 shadow-sm">
         <Bar className="h-10 w-10 shrink-0 rounded-lg" />
         <Bar className="h-4 flex-1" />
       </div>
-      <div className="card rounded-xl shadow-sm p-4 flex items-center gap-4">
+      <div className="card flex items-center gap-4 rounded-xl p-4 shadow-sm">
         <Bar className="h-10 w-10 shrink-0 rounded-lg" />
         <Bar className="h-4 flex-1" />
       </div>
@@ -318,9 +330,13 @@ export function SkeletonSettings() {
 
 export function SkeletonTrainCard() {
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="block p-4 pt-10 w-full card rounded-xl relative overflow-hidden">
-      <Bar className="absolute top-0 left-0 w-full h-6 rounded-none" />
-      <div className="flex justify-between items-start mb-4">
+    <output
+      aria-busy="true"
+      aria-label="Ładowanie"
+      className="card relative block w-full overflow-hidden rounded-xl p-4 pt-10"
+    >
+      <Bar className="absolute top-0 left-0 h-6 w-full rounded-none" />
+      <div className="mb-4 flex items-start justify-between">
         <div className="flex flex-col gap-2">
           <Bar className="h-7 w-16" />
           <Bar className="h-5 w-24 rounded-lg" />
@@ -330,12 +346,12 @@ export function SkeletonTrainCard() {
           <Bar className="h-3 w-10" />
         </div>
       </div>
-      <div className="flex items-center gap-3 mb-4 px-1">
-        <Bar className="h-4 flex-1 max-w-[40%]" />
+      <div className="mb-4 flex items-center gap-3 px-1">
+        <Bar className="h-4 max-w-[40%] flex-1" />
         <Bar className="h-px flex-1" />
-        <Bar className="h-4 flex-1 max-w-[40%]" />
+        <Bar className="h-4 max-w-[40%] flex-1" />
       </div>
-      <div className="flex gap-2 border-t border-line pt-3 mt-2">
+      <div className="mt-2 flex gap-2 border-t border-line pt-3">
         <Bar className="h-12 flex-1 rounded-lg" />
         <Bar className="h-12 flex-1 rounded-lg" />
       </div>

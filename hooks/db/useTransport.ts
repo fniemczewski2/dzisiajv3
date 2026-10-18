@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
-import { TRANSPORT_API_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
+import { TRANSPORT_DEPARTURES_LIMIT, TRANSPORT_STOP_SEARCH_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { useRetry } from "@/hooks/useRetry";
 import { LocalSearchResult, StopGroup } from "@/types/transport";
@@ -17,10 +17,9 @@ import {
   type FavoriteStop,
   type StopCluster,
   type StopPost,
-} from "@/supabase/functions/_shared/stopGrouping";
+} from "@/shared/stopGrouping";
 
 /** Ile słupków pobrać przy wyszukiwaniu – przystanek ma ich zwykle kilka. */
-const SEARCH_POSTS_LIMIT = 300;
 
 const localityCache = new Map<string, string | null>();
 
@@ -50,7 +49,13 @@ export function describeCluster(cluster: StopCluster, locality: string | null): 
 
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();
-  const { settings, addFavoriteStop, removeFavoriteStop, upgradeFavoriteStops, loading: settingsLoading } = useSettings();
+  const {
+    settings,
+    addFavoriteStop,
+    removeFavoriteStop,
+    upgradeFavoriteStops,
+    loading: settingsLoading,
+  } = useSettings();
 
   const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
   const [favoritesGroups, setFavoritesGroups] = useState<StopGroup[]>([]);
@@ -212,7 +217,7 @@ export function useTransport(autoRefresh = false) {
             .from("stops")
             .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
             .ilike("stop_name", `%${q}%`)
-            .limit(SEARCH_POSTS_LIMIT)
+            .limit(TRANSPORT_STOP_SEARCH_LIMIT)
         );
 
         if (error || !data) {
@@ -223,7 +228,7 @@ export function useTransport(autoRefresh = false) {
 
         const clusters = clusterStops(data as StopPost[])
           .sort((a, b) => a.name.localeCompare(b.name, "pl") || a.lat - b.lat)
-          .slice(0, Math.max(TRANSPORT_SUGGESTIONS_LIMIT, TRANSPORT_API_LIMIT / 3));
+          .slice(0, Math.max(TRANSPORT_SUGGESTIONS_LIMIT, TRANSPORT_DEPARTURES_LIMIT / 3));
         const ambiguous = ambiguousNames(clusters);
 
         const withLocality = await Promise.all(
@@ -252,7 +257,7 @@ export function useTransport(autoRefresh = false) {
     };
 
     let cancelled = false;
-    const debounce = setTimeout(loadSuggestions, 300);
+    const debounce = setTimeout(() => void loadSuggestions(), 300);
     return () => {
       cancelled = true;
       clearTimeout(debounce);
@@ -274,8 +279,13 @@ export function useTransport(autoRefresh = false) {
   const addNearbyToFavorites = useCallback(
     (group: StopGroup) => {
       const cluster: StopCluster = {
-        key: group.key, name: group.stop_name, network: group.zone_id === "S" ? "szczecin" : "poznan",
-        zone_id: group.zone_id, stop_codes: group.stop_codes, lat: group.lat, lon: group.lon,
+        key: group.key,
+        name: group.stop_name,
+        network: group.zone_id === "S" ? "szczecin" : "poznan",
+        zone_id: group.zone_id,
+        stop_codes: group.stop_codes,
+        lat: group.lat,
+        lon: group.lon,
       };
       return addFavoriteStop(favoriteFromCluster(cluster, localities[group.key] ?? null));
     },
@@ -302,7 +312,7 @@ export function useTransport(autoRefresh = false) {
     (group: StopGroup): string | null => {
       const stored = favoriteStops.find((f) => favoriteKey(f) === group.key)?.locality;
       if (stored) return stored;
-      return group.ambiguous ? localities[group.key] ?? null : null;
+      return group.ambiguous ? (localities[group.key] ?? null) : null;
     },
     [favoriteStops, localities]
   );

@@ -1,4 +1,4 @@
-﻿// supabase/functions/_shared/errors.ts
+// supabase/functions/_shared/errors.ts
 
 export function getErrorMessage(error: unknown, fallback = "Nieznany błąd"): string {
   if (error instanceof Error) return error.message;

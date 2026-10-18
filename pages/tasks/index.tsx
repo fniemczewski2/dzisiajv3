@@ -1,14 +1,9 @@
 // pages/tasks/index.tsx
 
+import { RECURRING_PREVIEW_DAYS } from "@/config/defaults";
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import {
-  List,
-  ChevronLeft,
-  Calendar,
-  ChevronRight,
-  ChevronsRight,
-} from "lucide-react";
+import { List, ChevronLeft, Calendar, ChevronRight, ChevronsRight } from "lucide-react";
 import { format, addDays } from "date-fns";
 import TaskList from "@/components/tasks/TaskList";
 import { useTasks } from "@/hooks/db/useTasks";
@@ -27,10 +22,8 @@ import { useTaskCategories, useCategoryColors } from "@/hooks/useTaskCategories"
 import { taskCategoryOptions } from "@/lib/taskCategories";
 
 const TaskForm = dynamic(() => import("@/components/tasks/TaskForm"), {
-  ssr: false, 
+  ssr: false,
 });
-
-const PREVIEW_DAYS = 14;
 
 const FILTER_OPTIONS = [
   { value: "all", icon: List, title: "Wszystkie" },
@@ -49,7 +42,7 @@ export default function TasksPage() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const userCategories = useTaskCategories();
   const categoryColors = useCategoryColors();
-  
+
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { user } = useAuth();
   const { settings } = useSettings();
@@ -73,19 +66,25 @@ export default function TasksPage() {
   const filterDate = useMemo(() => {
     const now = getAppDateTime();
     switch (dateFilter) {
-      case "yesterday":        return format(addDays(now, -1), "yyyy-MM-dd");
-      case "today":            return format(now, "yyyy-MM-dd");
-      case "tomorrow":         return format(addDays(now, 1), "yyyy-MM-dd");
-      case "dayAfterTomorrow": return format(addDays(now, 2), "yyyy-MM-dd");
-      case "all":              return null;
-      default:                 return null;
+      case "yesterday":
+        return format(addDays(now, -1), "yyyy-MM-dd");
+      case "today":
+        return format(now, "yyyy-MM-dd");
+      case "tomorrow":
+        return format(addDays(now, 1), "yyyy-MM-dd");
+      case "dayAfterTomorrow":
+        return format(addDays(now, 2), "yyyy-MM-dd");
+      case "all":
+        return null;
+      default:
+        return null;
     }
   }, [dateFilter]);
 
   const previewRange = useMemo(() => {
     if (filterDate) return { from: filterDate, to: filterDate };
     const now = getAppDateTime();
-    return { from: format(now, "yyyy-MM-dd"), to: format(addDays(now, PREVIEW_DAYS), "yyyy-MM-dd") };
+    return { from: format(now, "yyyy-MM-dd"), to: format(addDays(now, RECURRING_PREVIEW_DAYS), "yyyy-MM-dd") };
   }, [filterDate]);
   const allPreviews = useRecurringTaskPreviews(previewRange.from, previewRange.to, tasks);
 
@@ -96,7 +95,9 @@ export default function TasksPage() {
     if (!filterDate) {
       result = tasks;
     } else if (filterDate === format(getAppDateTime(), "yyyy-MM-dd")) {
-      result = tasks.filter((t) => (t.due_date === filterDate) || (t.due_date <= filterDate && allowedStatuses.has(t.status)));
+      result = tasks.filter(
+        (t) => t.due_date === filterDate || (t.due_date <= filterDate && allowedStatuses.has(t.status))
+      );
     } else {
       result = tasks.filter((t) => t.due_date === filterDate);
     }
@@ -108,9 +109,7 @@ export default function TasksPage() {
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       result = result.filter(
-        (t) =>
-          t.title.toLowerCase().includes(query) ||
-          (t.description ?? "").toLowerCase().includes(query)
+        (t) => t.title.toLowerCase().includes(query) || (t.description ?? "").toLowerCase().includes(query)
       );
     }
     return result;
@@ -120,13 +119,17 @@ export default function TasksPage() {
     const query = searchQuery.trim().toLowerCase();
     return allPreviews.filter((p) => {
       if (categoryFilter && p.task.category !== categoryFilter) return false;
-      return !query || p.task.title.toLowerCase().includes(query) || (p.task.description ?? "").toLowerCase().includes(query);
+      return (
+        !query || p.task.title.toLowerCase().includes(query) || (p.task.description ?? "").toLowerCase().includes(query)
+      );
     });
   }, [allPreviews, categoryFilter, searchQuery]);
 
   const filterCategories = useMemo(() => {
     const base = taskCategoryOptions(userCategories);
-    const extra = [...new Set(tasks.map((t) => t.category).filter((c): c is string => Boolean(c) && !base.includes(c)))];
+    const extra = [
+      ...new Set(tasks.map((t) => t.category).filter((c): c is string => Boolean(c) && !base.includes(c))),
+    ];
     const counts = new Map<string, number>();
     for (const t of tasks) if (t.category) counts.set(t.category, (counts.get(t.category) ?? 0) + 1);
     // Puste kategorie systemowe tylko zaśmiecają pasek filtra.
@@ -136,7 +139,6 @@ export default function TasksPage() {
   useQuickAction({
     onActionAdd: () => setShowForm(true),
   });
-  
 
   return (
     <>
@@ -146,82 +148,83 @@ export default function TasksPage() {
         canonical="https://dzisiaj.fun/tasks"
         keywords="zadania, lista to-do, projekty, priorytety, zarządzanie projektami"
       />
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="page-title flex items-center gap-3">
-            <span>Zadania</span>
-            <span className="text-sm font-semibold text-text-secondary tabular-nums">
-              <span className="sr-only">Dziś zrobione: </span>{todayDone}/{todayTotal}
-            </span>
-          </h1>
-          {!showForm && <AddButton onClick={openNew} />}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="page-title flex items-center gap-3">
+          <span>Zadania</span>
+          <span className="text-sm font-semibold text-text-secondary tabular-nums">
+            <span className="sr-only">Dziś zrobione: </span>
+            {todayDone}/{todayTotal}
+          </span>
+        </h1>
+        {!showForm && <AddButton onClick={openNew} />}
+      </div>
+
+      <fieldset className="card mb-4 flex max-w-md items-center justify-between gap-1 rounded-xl p-1.5">
+        <legend className="sr-only">Filtruj po dniu</legend>
+        {FILTER_OPTIONS.map((opt) => {
+          const Icon = opt.icon;
+          return (
+            <button
+              key={opt.value}
+              onClick={() => setDateFilter(opt.value)}
+              type="button"
+              aria-pressed={dateFilter === opt.value}
+              className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 transition-colors sm:px-3 ${
+                dateFilter === opt.value
+                  ? "bg-text text-card"
+                  : "bg-transparent text-text-secondary hover:bg-surface hover:text-text"
+              }`}
+            >
+              <Icon className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
+              <span className="text-xs font-semibold">{opt.title}</span>
+            </button>
+          );
+        })}
+      </fieldset>
+
+      <CategoryFilter
+        categories={filterCategories}
+        colors={categoryColors}
+        value={categoryFilter}
+        onChange={setCategoryFilter}
+      />
+
+      {showForm && (
+        <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+          <TaskForm
+            addTask={addTask}
+            onTasksChange={() => {
+              void fetchTasks();
+              closeForm();
+            }}
+            onCancel={closeForm}
+            loading={loading}
+          />
         </div>
-        
-        <fieldset className="flex items-center justify-between mb-4 card p-1.5 rounded-xl gap-1 max-w-md">
-            <legend className="sr-only">Filtruj po dniu</legend>
-            {FILTER_OPTIONS.map((opt) => {
-              const Icon = opt.icon;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setDateFilter(opt.value)}
-                  type='button'
-                  aria-pressed={dateFilter === opt.value}
-                  className={`min-h-12 px-1 sm:px-3 py-1.5 rounded-lg transition-colors flex flex-1 flex-col items-center justify-center gap-1 ${
-                    dateFilter === opt.value
-                      ? "bg-text text-card"
-                      : "bg-transparent text-text-secondary hover:text-text hover:bg-surface"
-                  }`}
-                >
-                  <Icon className="w-5 h-5 sm:w-4 sm:h-4" aria-hidden="true" />
-                  <span className="text-xs font-semibold">{opt.title}</span>
-                </button>
-              );
-            })}
-        </fieldset>
-
-        <CategoryFilter
-          categories={filterCategories}
-          colors={categoryColors}
-          value={categoryFilter}
-          onChange={setCategoryFilter}
-        />
-
-        {showForm && (
-          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-            <TaskForm
-              addTask={addTask}
-              onTasksChange={() => {
-                void fetchTasks();
-                closeForm();
-              }}
-              onCancel={closeForm}
-              loading={loading}
-            />
-          </div>
+      )}
+      <div className="space-y-6">
+        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Szukaj w zadaniach..." />
+        {fetching ? (
+          <SkeletonTaskList count={6} />
+        ) : (
+          <TaskList
+            tasks={filteredTasks}
+            acceptTask={acceptTask}
+            setDoneTask={setDoneTask}
+            editTask={editTask}
+            deleteTask={deleteTask}
+            onTasksChange={fetchTasks}
+            userId={userId}
+            userOptions={userOptions}
+            loading={loading}
+          />
         )}
-          <div className="space-y-6">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Szukaj w zadaniach..." />
-            {fetching ? (
-              <SkeletonTaskList count={6} />
-            ) : (
-              <TaskList
-                tasks={filteredTasks}
-                acceptTask={acceptTask}
-                setDoneTask={setDoneTask}
-                editTask={editTask}
-                deleteTask={deleteTask}
-                onTasksChange={fetchTasks}
-                userId={userId}
-                userOptions={userOptions}
-                loading={loading}
-              />
-            )}
-            <RecurringPreviewList
-              previews={visiblePreviews}
-              groupByDate={!filterDate}
-              title={filterDate ? "Powtórzenia (podgląd)" : `Powtórzenia w ciągu ${PREVIEW_DAYS} dni (podgląd)`}
-            />
-        </div>
+        <RecurringPreviewList
+          previews={visiblePreviews}
+          groupByDate={!filterDate}
+          title={filterDate ? "Powtórzenia (podgląd)" : `Powtórzenia w ciągu ${RECURRING_PREVIEW_DAYS} dni (podgląd)`}
+        />
+      </div>
     </>
   );
 }

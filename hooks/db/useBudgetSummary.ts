@@ -1,5 +1,6 @@
 // hooks/db/useBudgetSummary.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory, RawBillRow, SummaryItem } from "@/types/bills";
@@ -53,9 +54,7 @@ function buildSummaryItems(
     const mPlanned = spendMap[cat.id]?.mPlan ?? 0;
 
     const limit = calculateExpectedYearlyLimit(cat, monthIndex, year);
-    const mLimit = cat.is_monthly
-      ? cat.monthly_amounts?.[monthIndex] || 0
-      : (cat.monthly_amounts?.[0] || 0) / 12;
+    const mLimit = cat.is_monthly ? cat.monthly_amounts?.[monthIndex] || 0 : (cat.monthly_amounts?.[0] || 0) / 12;
 
     return {
       category: cat,
@@ -82,7 +81,9 @@ export function plannedBillRows(
   yearEnd: string,
   today: string = getAppDate()
 ): RawBillRow[] {
-  const paidMonths = new Set(txs.filter((t) => t.recurring_bill_id).map((t) => `${t.recurring_bill_id}|${t.date.slice(0, 7)}`));
+  const paidMonths = new Set(
+    txs.filter((t) => t.recurring_bill_id).map((t) => `${t.recurring_bill_id}|${t.date.slice(0, 7)}`)
+  );
   const from = today > yearStart ? today : yearStart;
   const rows: RawBillRow[] = [];
   for (const bill of bills) {
@@ -94,7 +95,12 @@ export function plannedBillRows(
   return rows;
 }
 
-export function useBudgetSummary(year: number, monthIndex: number, categories: BudgetCategory[], recurringBills: readonly RecurringBill[] = []) {
+export function useBudgetSummary(
+  year: number,
+  monthIndex: number,
+  categories: BudgetCategory[],
+  recurringBills: readonly RecurringBill[] = []
+) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const [summary, setSummary] = useState<SummaryItem[]>([]);
@@ -108,8 +114,7 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
 
   const compute = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
 
     if (categories.length === 0) {
@@ -145,7 +150,10 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
 
       if (error) throw error;
 
-      const txs = ((data ?? []) as Array<RawBillRow & { recurring_bill_id: string | null }>).map((t) => ({ ...t, amount: Number(t.amount) }));
+      const txs = ((data ?? []) as Array<RawBillRow & { recurring_bill_id: string | null }>).map((t) => ({
+        ...t,
+        amount: Number(t.amount),
+      }));
       const income = txs.filter((b) => b.is_income).reduce((sum, b) => sum + b.amount, 0);
       setTotalIncome(income);
 
@@ -163,7 +171,9 @@ export function useBudgetSummary(year: number, monthIndex: number, categories: B
     }
   }, [supabase, userId, year, monthIndex, categories, recurringBills, toast, withRetry, getSignal]);
 
-  useEffect(() => { void compute(); }, [compute]);
+  useEffect(() => {
+    void compute();
+  }, [compute]);
 
   return { summary, uncategorised, totalIncome, loading, refresh: compute };
 }

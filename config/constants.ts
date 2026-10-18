@@ -1,4 +1,4 @@
-﻿// config/constants.ts
+// config/constants.ts
 
 export const DAY_NAMES = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nie"];
 export const MONTH_NAMES = [
@@ -85,7 +85,7 @@ export const DESCRIPTION_MAPPINGS = [
   { match: ["MULTIKINO"], name: "Multikino" },
   { match: ["HELIOS"], name: "Helios" },
   { match: ["NATIONALE-NEDERLANDEN"], name: "NN Ubezpieczenie" },
-  { match: ["POZNAN ZARZAD"], name: "ZTM Poznań" }
+  { match: ["POZNAN ZARZAD"], name: "ZTM Poznań" },
 ];
 
 export const BOILERPLATE_REGEXES = [
@@ -104,7 +104,7 @@ export const BOILERPLATE_REGEXES = [
   /PRZELEW ŚRODKÓW/gi,
   /\d{2}\.\d{2}\.\d{4}/g,
   /\d{2}-\d{3}\s+[a-zęóąśłżźćń]+/gi,
-  /\d{26}/g 
+  /\d{26}/g,
 ];
 
 export const REQUIRED_CATEGORIES = [
@@ -116,5 +116,5 @@ export const REQUIRED_CATEGORIES = [
   "Gastronomia",
   "Podróże",
   "Wakacje",
-  "Inne"
+  "Inne",
 ];

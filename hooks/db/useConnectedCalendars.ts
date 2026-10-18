@@ -1,14 +1,15 @@
 // hooks/db/useConnectedCalendars.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
-import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/hooks/useRetry';
-import { useAbortController } from '@/hooks/useAbortController';
-import { isAbortError } from '@/lib/abortUtils';
-import { ConnectedAccount, ExternalCalendar } from '@/types/events';
+import { NotSignedInError } from "@/lib/errors";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
+import { ConnectedAccount, ExternalCalendar } from "@/types/events";
 
-type Provider = 'google' | 'outlook';
+type Provider = "google" | "outlook";
 
 export async function fetchProviderCalendars(
   provider: Provider,
@@ -16,15 +17,15 @@ export async function fetchProviderCalendars(
   accessToken: string,
   signal: AbortSignal,
   withRetry: ReturnType<typeof useRetry>,
-  toast: ReturnType<typeof useToast>['toast']
+  toast: ReturnType<typeof useToast>["toast"]
 ): Promise<ExternalCalendar[]> {
   const primaryAccount =
-    fetchedAccounts.find((acc) => acc.provider === provider && acc.google_calendar_id === '@account_connection') ||
+    fetchedAccounts.find((acc) => acc.provider === provider && acc.google_calendar_id === "@account_connection") ||
     fetchedAccounts.find((acc) => acc.provider === provider);
   if (!primaryAccount) return [];
 
-  const endpoint = provider === 'google' ? '/api/google-calendar' : '/api/outlook-calendar';
-  const errorMessage = provider === 'google' ? "Błąd kalendarzy Google." : "Błąd kalendarzy Outlook.";
+  const endpoint = provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
+  const errorMessage = provider === "google" ? "Błąd kalendarzy Google." : "Błąd kalendarzy Outlook.";
 
   try {
     const res = await withRetry(
@@ -48,9 +49,7 @@ export async function fetchProviderCalendars(
       const owner = fetchedAccounts.find((acc) => acc.id === cal.primaryAccountId) ?? primaryAccount;
       const dbMatch = fetchedAccounts.find(
         (acc) =>
-          acc.provider === provider &&
-          acc.account_email === owner.account_email &&
-          acc.google_calendar_id === cal.id
+          acc.provider === provider && acc.account_email === owner.account_email && acc.google_calendar_id === cal.id
       );
       return {
         id: cal.id,
@@ -83,8 +82,7 @@ export function useConnectedCalendars(expanded: boolean) {
   const fetchAccountsAndCalendars = useCallback(
     async (onlyAccounts = false) => {
       if (!user) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const signal = getSignal();
       setFetching(true);
@@ -93,9 +91,9 @@ export function useConnectedCalendars(expanded: boolean) {
         const { data: accountsData, error } = await withRetry(
           () =>
             supabase
-              .from('connected_calendars')
-              .select('id, provider, account_email, google_calendar_id, calendar_name, expires_at, sync_error')
-              .eq('user_id', user.id)
+              .from("connected_calendars")
+              .select("id, provider, account_email, google_calendar_id, calendar_name, expires_at, sync_error")
+              .eq("user_id", user.id)
               .abortSignal(signal),
           signal
         );
@@ -109,11 +107,27 @@ export function useConnectedCalendars(expanded: boolean) {
           return;
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session?.access_token) return;
 
-        const googleCals = await fetchProviderCalendars('google', fetchedAccounts, session.access_token, signal, withRetry, toast);
-        const outlookCals = await fetchProviderCalendars('outlook', fetchedAccounts, session.access_token, signal, withRetry, toast);
+        const googleCals = await fetchProviderCalendars(
+          "google",
+          fetchedAccounts,
+          session.access_token,
+          signal,
+          withRetry,
+          toast
+        );
+        const outlookCals = await fetchProviderCalendars(
+          "outlook",
+          fetchedAccounts,
+          session.access_token,
+          signal,
+          withRetry,
+          toast
+        );
         const combinedCalendars = [...googleCals, ...outlookCals];
 
         setCalendars(combinedCalendars);
@@ -139,8 +153,7 @@ export function useConnectedCalendars(expanded: boolean) {
   const handleToggleCalendar = useCallback(
     async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {
       if (!user) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const key = `${primaryAccountForEmail.id}:::${cal.id}`;
       setTogglingId(cal.id);
@@ -148,16 +161,19 @@ export function useConnectedCalendars(expanded: boolean) {
       setSelectedCalendars((prev) => (isCurrentlyOn ? prev.filter((id) => id !== key) : [...prev, key]));
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session?.access_token) throw new Error("Brak sesji");
 
-        const baseApiUrl = primaryAccountForEmail.provider === 'google' ? '/api/google-calendar' : '/api/outlook-calendar';
+        const baseApiUrl =
+          primaryAccountForEmail.provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
 
         if (isCurrentlyOn) {
           if (cal.accountId) {
             await withRetry(() =>
               fetch(`${baseApiUrl}?action=disconnect&subCalendarId=${cal.accountId}`, {
-                method: 'DELETE',
+                method: "DELETE",
                 headers: { Authorization: `Bearer ${session.access_token}` },
               })
             );
@@ -167,7 +183,7 @@ export function useConnectedCalendars(expanded: boolean) {
         } else {
           const { data: newAcc, error: insertErr } = await withRetry(() =>
             supabase
-              .from('connected_calendars')
+              .from("connected_calendars")
               .insert({
                 user_id: user.id,
                 provider: primaryAccountForEmail.provider,
@@ -175,7 +191,7 @@ export function useConnectedCalendars(expanded: boolean) {
                 google_calendar_id: cal.id,
                 calendar_name: cal.summary,
               })
-              .select('id')
+              .select("id")
               .single()
           );
 
@@ -183,9 +199,9 @@ export function useConnectedCalendars(expanded: boolean) {
 
           await withRetry(() =>
             fetch(`${baseApiUrl}?action=import`, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${session.access_token}`,
               },
               body: JSON.stringify({ calendarId: cal.id, accountId: newAcc.id }),
@@ -208,26 +224,27 @@ export function useConnectedCalendars(expanded: boolean) {
   );
 
   const handleDisconnect = useCallback(
-    async (id: string, email: string, provider: 'google' | 'outlook') => {
+    async (id: string, email: string, provider: "google" | "outlook") => {
       if (!user) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const ok = await toast.confirm(`Czy chcesz odłączyć konto ${email} i usunąć zaimportowane wydarzenia?`);
       if (!ok) return;
 
       setLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session?.access_token) {
           toast.error("Zaloguj się ponownie.");
           return;
         }
 
-        const baseApiUrl = provider === 'google' ? '/api/google-calendar' : '/api/outlook-calendar';
+        const baseApiUrl = provider === "google" ? "/api/google-calendar" : "/api/outlook-calendar";
         const res = await withRetry(() =>
           fetch(`${baseApiUrl}?action=disconnect&email=${encodeURIComponent(email)}`, {
-            method: 'DELETE',
+            method: "DELETE",
             headers: { Authorization: `Bearer ${session.access_token}` },
           })
         );
@@ -240,7 +257,7 @@ export function useConnectedCalendars(expanded: boolean) {
 
         await fetchAccountsAndCalendars();
       } catch {
-        toast.error('Błąd podczas odłączania konta.');
+        toast.error("Błąd podczas odłączania konta.");
       } finally {
         setLoading(false);
       }
@@ -250,18 +267,20 @@ export function useConnectedCalendars(expanded: boolean) {
 
   const handleConnectGoogle = useCallback(async () => {
     if (!user) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
     setLoading(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError || !session?.access_token) {
         toast.error("Zaloguj się ponownie.");
         return;
       }
       const res = await withRetry(() =>
-        fetch('/api/google-calendar?action=auth-url', {
+        fetch("/api/google-calendar?action=auth-url", {
           headers: { Authorization: `Bearer ${session.access_token}` },
         })
       );
@@ -277,19 +296,21 @@ export function useConnectedCalendars(expanded: boolean) {
 
   const handleConnectOutlook = useCallback(async () => {
     if (!user) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
     setLoading(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError || !session?.access_token) {
         toast.error("Zaloguj się ponownie.");
         return;
       }
 
       const res = await withRetry(() =>
-        fetch('/api/outlook-calendar?action=auth-url', {
+        fetch("/api/outlook-calendar?action=auth-url", {
           headers: { Authorization: `Bearer ${session.access_token}` },
         })
       );

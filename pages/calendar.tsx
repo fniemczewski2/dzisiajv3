@@ -11,7 +11,7 @@ import { AddButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/hooks/useQuickAction";
 import { useMoods } from "@/hooks/db/useMoods";
 import { useSettings } from "@/hooks/db/useSettings";
-import { DEFAULT_MOODS } from "@/components/widgets/MoodTracker";
+import { DEFAULT_MOODS } from "@/config/defaults";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import Seo from "@/components/ui/SEO";
 import { useRouter } from "next/router";
@@ -23,7 +23,7 @@ const EventsBulkImport = dynamic(() => import("../components/calendar/EventsBulk
 
 export default function CalendarPage() {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -49,7 +49,7 @@ export default function CalendarPage() {
   useQuickAction({ onActionAdd: () => setShowForm(true) });
   useEffect(() => {
     if (router.query.reset === "true") {
-      setSelectedDate(null); 
+      setSelectedDate(null);
       void router.replace("/calendar", undefined, { shallow: true });
     }
   }, [router.query.reset, router]);
@@ -61,21 +61,16 @@ export default function CalendarPage() {
         description="Planuj wydarzenia, udostępniaj je innym i synchronizuj z Kalendarzem Google oraz Outlookiem. Urodziny i imieniny bliskich widać obok wydarzeń."
         canonical="https://dzisiaj.fun/calendar"
         keywords="kalendarz, planowanie, terminy, harmonogram, kalendarz google, outlook"
-      />   
-        
-        {selectedDate ? (
-          <DayView date={selectedDate} onDateChange={setSelectedDate} />
-        ) : (
+      />
+
+      {selectedDate ? (
+        <DayView date={selectedDate} onDateChange={setSelectedDate} />
+      ) : (
         <>
-          <div className="flex justify-between items-center mb-6 gap-2">
+          <div className="mb-6 flex items-center justify-between gap-2">
             <h1 className="page-title">Kalendarz</h1>
             <div className="flex items-center gap-2">
-              {!showImport && (
-                <UploadButton
-                  small
-                  onClick={() => setShowImport(true)}
-                />
-              )}
+              {!showImport && <UploadButton small onClick={() => setShowImport(true)} />}
               {!showForm && !selectedDate && <AddButton onClick={() => setShowForm(true)} />}
             </div>
           </div>
@@ -88,23 +83,37 @@ export default function CalendarPage() {
 
           {showForm && (
             <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-              <EventForm addEvent={addEvent} currentDate={currentDate} selectedDate={selectedDate} onEventsChange={handleAfterAdd} onCancel={handleCancelForm} loading={fetching} />
+              <EventForm
+                addEvent={addEvent}
+                currentDate={currentDate}
+                selectedDate={selectedDate}
+                onEventsChange={handleAfterAdd}
+                onCancel={handleCancelForm}
+                loading={fetching}
+              />
             </div>
           )}
 
           {!selectedDate && <CalendarHeader currentDate={currentDate} onPrev={goToPrevMonth} onNext={goToNextMonth} />}
 
-          {fetching
-            ? <SkeletonCalendar />
-            : <MonthView currentDate={currentDate} events={events} onSelectDate={(date) => setSelectedDate(date)} moods={moods} moodOptions={moodOptions} />
-          }
+          {fetching ? (
+            <SkeletonCalendar />
+          ) : (
+            <MonthView
+              currentDate={currentDate}
+              events={events}
+              onSelectDate={(date) => setSelectedDate(date)}
+              moods={moods}
+              moodOptions={moodOptions}
+            />
+          )}
         </>
-        )}
-        {!selectedDate && (
-          <div className="mt-8 space-y-4">
-            <ConnectedCalendars />
-          </div>
-        )}
+      )}
+      {!selectedDate && (
+        <div className="mt-8 space-y-4">
+          <ConnectedCalendars />
+        </div>
+      )}
     </>
   );
 }

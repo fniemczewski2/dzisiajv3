@@ -18,11 +18,21 @@ import {
   Bell,
   BellOff,
   Copy,
-  ChartNoAxesCombined, ListPlus, 
-  RefreshCw} from "lucide-react";
+  ChartNoAxesCombined,
+  ListPlus,
+  RefreshCw,
+} from "lucide-react";
 import { actionButton, actionIcon, ACTION_LABEL_CLASS } from "./actionButtonVariants";
 
-export const ConfirmButton = ({ onClick, small = false, label = "OK" }: { onClick: () => void; small?: boolean; label: string }) => (
+export const ConfirmButton = ({
+  onClick,
+  small = false,
+  label,
+}: {
+  onClick: () => void;
+  small?: boolean;
+  label: string;
+}) => (
   <button
     onClick={onClick}
     type="button"
@@ -49,7 +59,7 @@ export const DeleteButton = ({
     onClick={onClick}
     type="button"
     disabled={disabled}
-    className={actionButton({ color: "red", size: small ? "small" : "default" })}
+    className={actionButton({ color: "danger", size: small ? "small" : "default" })}
     aria-label={ariaLabel}
   >
     <Trash2 className={actionIcon(small)} />
@@ -57,18 +67,22 @@ export const DeleteButton = ({
   </button>
 );
 
-export const NotifyButton = ({ onClick, small = false, disabled = false }: { onClick: () => void; small?: boolean; disabled?: boolean }) => (
+export const NotifyButton = ({
+  onClick,
+  small = false,
+  disabled = false,
+}: {
+  onClick: () => void;
+  small?: boolean;
+  disabled?: boolean;
+}) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
-    aria-label="powiadom"
+    className={actionButton({ color: "info", size: small ? "small" : "default" })}
+    aria-label="Powiadom"
   >
-    {disabled ? (
-      <Bell className={actionIcon(small)} />
-    ) : (
-      <BellOff className={actionIcon(small)} />
-    )}
+    {disabled ? <Bell className={actionIcon(small)} /> : <BellOff className={actionIcon(small)} />}
     {!small && <span className={ACTION_LABEL_CLASS}>Powiadom</span>}
   </button>
 );
@@ -88,7 +102,7 @@ export const EditButton = ({
     onClick={onClick}
     type="button"
     disabled={disabled}
-    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
+    className={actionButton({ color: "info", size: small ? "small" : "default" })}
     aria-label={ariaLabel}
   >
     <Edit2 className={actionIcon(small)} />
@@ -96,11 +110,19 @@ export const EditButton = ({
   </button>
 );
 
-export const FavButton = ({ onClick, small = false, label = "dodaj do ulubionych" }: { onClick: () => void; small?: boolean; label?: string }) => (
+export const FavButton = ({
+  onClick,
+  small = false,
+  label = "dodaj do ulubionych",
+}: {
+  onClick: () => void;
+  small?: boolean;
+  label?: string;
+}) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
+    className={actionButton({ color: "info", size: small ? "small" : "default" })}
     aria-label={label}
     title={label}
   >
@@ -114,14 +136,12 @@ export const RescheduleButton = ({ onClick, loading }: { onClick: () => void; lo
     onClick={onClick}
     type="button"
     disabled={loading}
-    className={actionButton({ color: "yellow" })}
-    aria-label="przesuń na jutro"
+    className={actionButton({ color: "warning" })}
+    aria-label="Przesuń na jutro"
     title="Przesuń na jutro"
   >
     <ChevronsRight className={actionIcon()} />
-    <span className={ACTION_LABEL_CLASS}>
-      {loading ? '...' : 'Odłóż'}
-    </span>
+    <span className={ACTION_LABEL_CLASS}>{loading ? "..." : "Odłóż"}</span>
   </button>
 );
 
@@ -129,8 +149,8 @@ export const TimerButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "purple" })}
-    aria-label="uruchom timer"
+    className={actionButton({ color: "success" })}
+    aria-label="Uruchom timer"
     title="Uruchom timer Pomodoro"
   >
     <Timer className={actionIcon()} />
@@ -142,8 +162,8 @@ export const ShareButton = ({ onClick, small = false }: { onClick: () => void; s
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue" })}
-    aria-label="udostępnij"
+    className={actionButton({ color: "info" })}
+    aria-label="Udostępnij"
     title="Udostępnij"
   >
     <Share className={actionIcon(small)} />
@@ -152,12 +172,7 @@ export const ShareButton = ({ onClick, small = false }: { onClick: () => void; s
 );
 
 export const ShowResultsButton = ({ href, small = false }: { href: string; small?: boolean }) => (
-  <a
-    href={href}
-    className={actionButton({ color: "blue" })}
-    aria-label="pokaż wyniki"
-    title="Pokaż wyniki"
-  >
+  <a href={href} className={actionButton({ color: "info" })} aria-label="Pokaż wyniki" title="Pokaż wyniki">
     <ChartNoAxesCombined className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Wyniki</span>}
   </a>
@@ -167,14 +182,12 @@ export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue" })}
+    className={actionButton({ color: "info" })}
     title={isPinned ? "Odepnij" : "Przypnij"}
     aria-label={isPinned ? "Odepnij" : "Przypnij"}
   >
     <Pin className={`${actionIcon()} ${isPinned ? "fill-primary" : ""}`} />
-    <span className={ACTION_LABEL_CLASS}>
-      {isPinned ? "Odepnij" : "Przypnij"}
-    </span>
+    <span className={ACTION_LABEL_CLASS}>{isPinned ? "Odepnij" : "Przypnij"}</span>
   </button>
 );
 
@@ -182,14 +195,12 @@ export const ArchiveButton = ({ onClick, isArchived }: { onClick: () => void; is
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "purple" })}
+    className={actionButton({ color: "success" })}
     title={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
     aria-label={isArchived ? "Przywróć z archiwum" : "Zarchiwizuj"}
   >
     <Archive className={actionIcon()} />
-    <span className={ACTION_LABEL_CLASS}>
-      {isArchived ? "Pokaż" : "Ukryj"}
-    </span>
+    <span className={ACTION_LABEL_CLASS}>{isArchived ? "Pokaż" : "Ukryj"}</span>
   </button>
 );
 
@@ -210,7 +221,7 @@ export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue" })}
+    className={actionButton({ color: "info" })}
     title="Do obejrzenia"
     aria-label="Do obejrzenia"
   >
@@ -219,12 +230,20 @@ export const UnwatchButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export const ToTasksButton = ({ onClick, pending, expanded }: { onClick: () => void; pending: number; expanded: boolean }) => (
+export const ToTasksButton = ({
+  onClick,
+  pending,
+  expanded,
+}: {
+  onClick: () => void;
+  pending: number;
+  expanded: boolean;
+}) => (
   <button
     onClick={onClick}
     type="button"
     aria-expanded={expanded}
-    className={actionButton({ color: expanded ? "active" : "yellow" })}
+    className={actionButton({ color: expanded ? "active" : "warning" })}
     title={pending > 0 ? `Dodaj zadania z protokołu do Zadań (${pending})` : "Zadania z protokołu są już w Zadaniach"}
   >
     <ListPlus className={actionIcon()} aria-hidden="true" />
@@ -232,11 +251,11 @@ export const ToTasksButton = ({ onClick, pending, expanded }: { onClick: () => v
   </button>
 );
 
-export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void, fileFormat: string }) => (
+export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void; fileFormat: string }) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "purple" })}
+    className={actionButton({ color: "success" })}
     aria-label={`Pobierz plik ${fileFormat}`}
     title={`Pobierz plik ${fileFormat}`}
   >
@@ -245,32 +264,41 @@ export const DownloadButton = ({ onClick, fileFormat }: { onClick: () => void, f
   </button>
 );
 
-export const UploadButton = ({ onClick, fileFormat, small }: { onClick: () => void, fileFormat?: string, small?: boolean }) => (
+export const UploadButton = ({
+  onClick,
+  fileFormat,
+  small,
+  busy = false,
+}: {
+  onClick: () => void;
+  fileFormat?: string;
+  small?: boolean;
+  busy?: boolean;
+}) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "purple", size: small ? "small" : "default" })}
-    aria-label={fileFormat ? `Prześlij plik ${fileFormat}` : "importuj"}
-    title={fileFormat ? `Prześlij plik ${fileFormat}` : "importuj"}
+    disabled={busy}
+    aria-busy={busy}
+    className={actionButton({ color: "success", size: small ? "small" : "default" })}
+    aria-label={fileFormat ? `Prześlij plik ${fileFormat}` : "Importuj plik"}
+    title={fileFormat ? `Prześlij plik ${fileFormat}` : "Importuj plik"}
   >
     <Upload className={actionIcon()} />
     {!small && <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>}
   </button>
 );
 
-
-export const CopyButton = ({ onClick}: { onClick: () => void }) => (
+export const CopyButton = ({ onClick }: { onClick: () => void }) => (
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue" })}
+    className={actionButton({ color: "info" })}
     title="Kopiuj"
     aria-label="Kopiuj"
   >
     <Copy className={actionIcon()} />
-    <span className={ACTION_LABEL_CLASS}>
-      Kopiuj
-    </span>
+    <span className={ACTION_LABEL_CLASS}>Kopiuj</span>
   </button>
 );
 
@@ -278,7 +306,7 @@ export const UndoButton = ({ onClick, small = false }: { onClick: () => void; sm
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
+    className={actionButton({ color: "info", size: small ? "small" : "default" })}
     aria-label="Oznacz jako niewykonane"
     title="Oznacz jako niewykonane"
   >
@@ -291,7 +319,7 @@ export const RefreshButton = ({ onClick, small = false }: { onClick: () => void;
   <button
     onClick={onClick}
     type="button"
-    className={actionButton({ color: "blue", size: small ? "small" : "default" })}
+    className={actionButton({ color: "info", size: small ? "small" : "default" })}
     aria-label="Odśwież"
     title="Odśwież"
   >

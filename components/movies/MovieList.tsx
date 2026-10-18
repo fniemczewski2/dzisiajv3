@@ -10,7 +10,6 @@ import MovieCard from "./MovieCard";
 import NoResultsState from "../ui/NoResultsState";
 import type { MediaType, Movie, NewMovieData } from "@/types/movies";
 
-
 const EMPTY_LABEL: Partial<Record<string, string>> = { tv: "seriali", movie: "filmów" };
 interface MoviesProps {
   movies: Movie[];
@@ -46,14 +45,19 @@ export function sortMovies(movies: readonly Movie[], sortType = "updated_desc"):
     }
     return byDate(a, b);
   };
-  return [
-    ...movies.filter((m) => !m.watched).sort(sortFn),
-    ...movies.filter((m) => m.watched).sort(sortFn),
-  ];
+  return [...movies.filter((m) => !m.watched).sort(sortFn), ...movies.filter((m) => m.watched).sort(sortFn)];
 }
 
 export default function MovieWatchlist({
-  movies, loading, addMovie, updateMovie, deleteMovie, toggleWatched, updateNotes, updateProgress, refreshFromTmdb,
+  movies,
+  loading,
+  addMovie,
+  updateMovie,
+  deleteMovie,
+  toggleWatched,
+  updateNotes,
+  updateProgress,
+  refreshFromTmdb,
 }: Readonly<MoviesProps>) {
   const { settings } = useSettings();
   const [searchQuery, setSearchQuery] = useState("");
@@ -114,7 +118,7 @@ export default function MovieWatchlist({
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6 mt-2">
+      <div className="mt-2 mb-6 flex items-center justify-between">
         <h1 className="page-title">Filmy i seriale</h1>
         {!showAddForm && <AddButton onClick={() => setShowAddForm(true)} />}
       </div>
@@ -125,22 +129,28 @@ export default function MovieWatchlist({
         </div>
       )}
 
-      <div role="tablist" aria-label="Rodzaj" className="flex gap-1.5 mb-4 overflow-x-auto">
+      <div role="tablist" aria-label="Rodzaj" className="mb-4 flex gap-1.5 overflow-x-auto">
         {tabs.map((t) => (
-          <button key={t.value} type="button" role="tab" aria-selected={typeFilter === t.value}
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={typeFilter === t.value}
             onClick={() => setTypeFilter(t.value)}
-            className={`px-3.5 py-1.5 rounded-full text-sm font-bold border whitespace-nowrap transition-colors ${
+            className={`rounded-full border px-3.5 py-1.5 text-sm font-bold whitespace-nowrap transition-colors ${
               typeFilter === t.value
-                ? "bg-secondary text-white border-primary"
-                : "bg-surface text-text-secondary border-gray-200 dark:border-gray-700 hover:text-text"
-            }`}>
+                ? "border-primary bg-secondary text-white"
+                : "border-line bg-surface text-text-secondary hover:text-text"
+            }`}
+          >
             {t.label} <span className={typeFilter === t.value ? "opacity-80" : "text-text-muted"}>{t.count}</span>
           </button>
         ))}
       </div>
 
       <SearchBar
-        value={searchQuery} onChange={setSearchQuery}
+        value={searchQuery}
+        onChange={setSearchQuery}
         placeholder="Szukaj po tytule, gatunku lub platformie..."
         suggestions={suggestions}
         resultsCount={isFiltering ? filteredMovies.length : undefined}
@@ -148,10 +158,10 @@ export default function MovieWatchlist({
         className="mb-8"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredMovies.length === 0 ? (
-          <div className="col-span-full text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-card">
-            {isFiltering && <Search className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />}
+          <div className="col-span-full rounded-card border border-dashed border-line bg-surface py-16 text-center">
+            {isFiltering && <Search className="mx-auto mb-4 h-12 w-12 text-text-muted opacity-50" />}
             <NoResultsState text={emptyText} isSearch={isFiltering} />
           </div>
         ) : (

@@ -35,13 +35,7 @@ import {
 
 export type FeatureStatus = "nowe" | "zmienione";
 
-export type FeatureCategory =
-  | "Zadania"
-  | "Spotkania"
-  | "Notatki"
-  | "Finanse"
-  | "Wyjścia i wyjazdy"
-  | "Osobiste";
+export type FeatureCategory = "Zadania" | "Spotkania" | "Notatki" | "Finanse" | "Wyjścia i wyjazdy" | "Osobiste";
 
 export interface Feature {
   title: string;
@@ -73,14 +67,16 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Kokpit dnia",
-        description: "Oś czasu 06:00–23:00 z zadaniami, wydarzeniami, rutynami i pociągami. Przeciągasz zadanie na godzinę, a plan układa się sam.",
+        description:
+          "Oś czasu 06:00–23:00 z zadaniami, wydarzeniami, rutynami i pociągami. Przeciągasz zadanie na godzinę, a plan układa się sam.",
         icon: LayoutDashboard,
         path: "/",
         guideId: "dashboard",
       },
       {
         title: "Zadania",
-        description: "Priorytety, terminy, kategorie i filtry. Zadania od zaufanych osób przyjmujesz jednym kliknięciem.",
+        description:
+          "Priorytety, terminy, kategorie i filtry. Zadania od zaufanych osób przyjmujesz jednym kliknięciem.",
         icon: ListTodo,
         path: "/tasks",
         guideId: "tasks_list",
@@ -90,7 +86,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Plan dnia",
-        description: "Schematy powtarzalnych dni, które same trafiają do kokpitu, np. osobny plan na dni robocze i weekend.",
+        description:
+          "Schematy powtarzalnych dni, które same trafiają do kokpitu, np. osobny plan na dni robocze i weekend.",
         icon: Logs,
         path: "/tasks/daySchema",
         guideId: "day_schema",
@@ -100,7 +97,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Szybkie notatki",
-        description: "Punkty na górze planu dnia, dodawane w aplikacji albo Skrótem z iPhone'a. Każdy punkt zamienisz jednym dotknięciem w zadanie lub wydarzenie.",
+        description:
+          "Punkty na górze planu dnia, dodawane w aplikacji albo Skrótem z iPhone'a. Każdy punkt zamienisz jednym dotknięciem w zadanie lub wydarzenie.",
         icon: NotebookPen,
         path: "/",
         guideId: "dashboard",
@@ -116,7 +114,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Listy Slack",
-        description: "Dwukierunkowa synchronizacja zadań z listami Slack. Wybierasz listę domyślną i dopasowujesz kolumny do pól zadania.",
+        description:
+          "Dwukierunkowa synchronizacja zadań z listami Slack. Wybierasz listę domyślną i dopasowujesz kolumny do pól zadania.",
         icon: MessageSquareShare,
         path: "/settings",
         guideId: "slack",
@@ -141,7 +140,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Terminy zespołowe",
-        description: "Ankieta terminu z siatką dostępności. Link działa bez konta, a wybrany termin trafia do kalendarzy uczestników.",
+        description:
+          "Ankieta terminu z siatką dostępności. Link działa bez konta, a wybrany termin trafia do kalendarzy uczestników.",
         icon: CalendarClock,
         path: "/meetings",
         guideId: "meetings",
@@ -194,14 +194,16 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Przepisy",
-        description: "Książka kucharska z kategoriami, podpowiedziami składników i filtrem, który znajdzie danie z tego, co masz.",
+        description:
+          "Książka kucharska z kategoriami, podpowiedziami składników i filtrem, który znajdzie danie z tego, co masz.",
         icon: CookingPot,
         path: "/notes/recipes",
         guideId: "recipes",
       },
       {
         title: "Filmy i seriale",
-        description: "Katalog z bazą TMDB i dostępnością w polskich serwisach VOD. Przy serialach śledzisz sezon i odcinek.",
+        description:
+          "Katalog z bazą TMDB i dostępnością w polskich serwisach VOD. Przy serialach śledzisz sezon i odcinek.",
         icon: Clapperboard,
         path: "/notes/movies",
         guideId: "movies",
@@ -217,7 +219,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Finanse",
-        description: "Rachunki stałe z terminami (zadanie „Zapłać” w dniu płatności) i miesięczne podsumowanie wydatków z importem wyciągów CSV.",
+        description:
+          "Rachunki stałe z terminami (zadanie „Zapłać” w dniu płatności) i miesięczne podsumowanie wydatków z importem wyciągów CSV.",
         icon: Coins,
         path: "/bills",
         guideId: "bills",
@@ -264,7 +267,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Pociągi",
-        description: "Śledzenie pociągów PKP z opóźnieniem na żywo. Bilet PDF wypełnia formularz, a pociąg pojawia się w planie dnia.",
+        description:
+          "Śledzenie pociągów PKP z opóźnieniem na żywo. Bilet PDF wypełnia formularz, a pociąg pojawia się w planie dnia.",
         icon: TrainFront,
         path: "/trains",
         guideId: "trains",
@@ -280,7 +284,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Listy pakowania",
-        description: "Gotowe checklisty: codzienny plecak, walizka na wyjazd i plecak bezpieczeństwa na sytuacje kryzysowe.",
+        description:
+          "Gotowe checklisty: codzienny plecak, walizka na wyjazd i plecak bezpieczeństwa na sytuacje kryzysowe.",
         icon: Backpack,
         path: "/packing",
         guideId: "packing",
@@ -317,7 +322,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Wiadomości",
-        description: "Czytnik RSS: wybierasz źródła (Poznań, NGO i granty, kolej, klimat, prawa człowieka, technologia) i dodajesz własne kanały.",
+        description:
+          "Czytnik RSS: wybierasz źródła (Poznań, NGO i granty, kolej, klimat, prawa człowieka, technologia) i dodajesz własne kanały.",
         icon: Newspaper,
         path: "/news",
         status: "nowe",
@@ -325,7 +331,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Pisma",
-        description: "Rejestr pism urzędowych z automatyczną sygnaturą, załącznikami i pilnowaniem ustawowych terminów odpowiedzi.",
+        description:
+          "Rejestr pism urzędowych z automatyczną sygnaturą, załącznikami i pilnowaniem ustawowych terminów odpowiedzi.",
         icon: Gavel,
         path: "/notes/letters",
         guideId: "letters",

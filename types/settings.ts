@@ -1,6 +1,6 @@
 // types/settings.ts
 
-import type { FavoriteStop } from "@/supabase/functions/_shared/stopGrouping";
+import type { FavoriteStop } from "@/shared/stopGrouping";
 import { MoodOption } from "./moods";
 import type { HabitDef } from "./habits";
 import type { CustomFeed } from "@/config/rssSources";
@@ -29,7 +29,7 @@ export interface Settings {
   notif_water: boolean;
   notif_habits: boolean;
   notif_evening: boolean;
-  notif_birthdays: boolean; 
+  notif_birthdays: boolean;
   notif_contact: boolean;
 
   habit_pills: boolean;

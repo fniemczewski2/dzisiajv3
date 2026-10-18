@@ -62,9 +62,7 @@ export default function RecipeForm({
   const suggestions = useMemo(() => {
     const q = prodInput.trim().toLocaleLowerCase("pl");
     if (!q) return [];
-    return products
-      .filter((p) => p.toLocaleLowerCase("pl").includes(q) && !hasProduct(picked, p))
-      .slice(0, 8);
+    return products.filter((p) => p.toLocaleLowerCase("pl").includes(q) && !hasProduct(picked, p)).slice(0, 8);
   }, [prodInput, products, picked]);
 
   const commitProduct = (raw: string) => {
@@ -117,7 +115,9 @@ export default function RecipeForm({
   return (
     <form onSubmit={handleSubmit} className={className}>
       <div>
-        <label htmlFor={`${prefix}-name`} className="form-label">Nazwa przepisu:</label>
+        <label htmlFor={`${prefix}-name`} className="form-label">
+          Nazwa przepisu:
+        </label>
         <input
           id={`${prefix}-name`}
           ref={nameRef}
@@ -132,7 +132,9 @@ export default function RecipeForm({
         />
       </div>
       <div>
-        <label htmlFor={`${prefix}-category`} className="form-label">Kategoria:</label>
+        <label htmlFor={`${prefix}-category`} className="form-label">
+          Kategoria:
+        </label>
         <select
           id={`${prefix}-category`}
           value={category}
@@ -140,11 +142,17 @@ export default function RecipeForm({
           className="input-field"
           disabled={loading}
         >
-          {RECIPE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          {RECIPE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
       </div>
       <div>
-        <label htmlFor={`${prefix}-product`} className="form-label">Składniki:</label>
+        <label htmlFor={`${prefix}-product`} className="form-label">
+          Składniki:
+        </label>
         <div className="flex gap-2">
           <input
             id={`${prefix}-product`}
@@ -160,21 +168,21 @@ export default function RecipeForm({
           <button
             type="button"
             onClick={() => commitProduct(prodInput)}
-            className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:opacity-50"
             disabled={loading || !prodInput.trim()}
             aria-label="Dodaj składnik"
           >
-            Dodaj <PlusCircleIcon className="w-4 h-4" />
+            Dodaj <PlusCircleIcon className="h-4 w-4" />
           </button>
         </div>
         {suggestions.length > 0 && (
-          <div className="mt-1 rounded-lg card divide-y divide-gray-100 dark:divide-gray-800 shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+          <div className="card mt-1 max-h-48 divide-y divide-line overflow-hidden overflow-y-auto rounded-lg shadow-lg">
             {suggestions.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => commitProduct(s)}
-                className="w-full text-left px-4 py-2 hover:bg-surface text-text text-sm transition-colors"
+                className="w-full px-4 py-2 text-left text-sm text-text transition-colors hover:bg-surface"
               >
                 {s}
               </button>
@@ -184,16 +192,19 @@ export default function RecipeForm({
         {picked.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2" aria-label="Wybrane składniki">
             {picked.map((p) => (
-              <li key={p} className="inline-flex items-center gap-1.5 bg-surface border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-full text-sm text-text-secondary">
+              <li
+                key={p}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-text-secondary"
+              >
                 {p}
                 <button
                   type="button"
                   onClick={() => removeProduct(p)}
-                  className="text-text-muted hover:text-red-500 transition-colors"
+                  className="text-text-muted transition-colors hover:text-danger"
                   disabled={loading}
                   aria-label={`Usuń składnik ${p}`}
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </li>
             ))}
@@ -201,7 +212,9 @@ export default function RecipeForm({
         )}
       </div>
       <div>
-        <label htmlFor={`${prefix}-desc`} className="form-label">Sposób przygotowania / Opis:</label>
+        <label htmlFor={`${prefix}-desc`} className="form-label">
+          Sposób przygotowania / Opis:
+        </label>
         <textarea
           id={`${prefix}-desc`}
           value={description}

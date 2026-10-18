@@ -1,6 +1,6 @@
 // types/events.ts
 
-import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import type { RecurrenceRule } from "@/shared/recurrence";
 
 export interface Event {
   id: string;
@@ -22,7 +22,7 @@ export interface Event {
 
 export interface ConnectedAccount {
   id: string;
-  provider: 'google' | 'outlook';
+  provider: "google" | "outlook";
   account_email: string;
   google_calendar_id?: string;
   sync_error?: string | null;

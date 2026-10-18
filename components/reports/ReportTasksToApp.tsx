@@ -40,10 +40,16 @@ export default function ReportTasksToApp({ report, onTasksLinked, onClose }: Rea
     if (!user || !choice || choice.added) return;
     setBusyIndex(index);
     try {
-      const row = toAppTask(report, choice.task, { userId: user.id, category, fallbackDue: dueByIndex[index] ?? getAppDate() });
+      const row = toAppTask(report, choice.task, {
+        userId: user.id,
+        category,
+        fallbackDue: dueByIndex[index] ?? getAppDate(),
+      });
       const { data, error } = await supabase.from("tasks").insert(row).select("id").single();
       if (error || !data) throw error ?? new Error("insert");
-      await onTasksLinked(withAppTaskIds(report.tasks ?? [], new Map([[index, String((data as { id: string | number }).id)]])));
+      await onTasksLinked(
+        withAppTaskIds(report.tasks ?? [], new Map([[index, String((data as { id: string | number }).id)]]))
+      );
       toast.success(`Dodano do Zadań: ${choice.task.zadanie}`);
     } catch {
       toast.error("Nie udało się dodać zadania.");
@@ -59,12 +65,26 @@ export default function ReportTasksToApp({ report, onTasksLinked, onClose }: Rea
   return (
     <section aria-labelledby={`${id}-h`} className="space-y-3 rounded-lg border border-line p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 id={`${id}-h`} className="text-sm font-semibold text-text">Dodaj do Zadań</h4>
+        <h4 id={`${id}-h`} className="text-sm font-semibold text-text">
+          Dodaj do Zadań
+        </h4>
         {pendingCount > 0 && (
           <div className="min-w-40">
-            <label htmlFor={`${id}-cat`} className="sr-only">Kategoria dodawanych zadań</label>
-            <select id={`${id}-cat`} value={category} onChange={(e) => setCategory(e.target.value)} className="input-field" title="Kategoria dodawanych zadań">
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            <label htmlFor={`${id}-cat`} className="sr-only">
+              Kategoria dodawanych zadań
+            </label>
+            <select
+              id={`${id}-cat`}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="input-field"
+              title="Kategoria dodawanych zadań"
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
         )}
@@ -82,14 +102,16 @@ export default function ReportTasksToApp({ report, onTasksLinked, onClose }: Rea
             </div>
 
             {c.added ? (
-              <span className="inline-flex min-h-11 items-center gap-1.5 text-sm text-green-800 dark:text-green-300">
-                Dodane <Check className="h-4 w-4" aria-hidden="true" />
+              <span className="inline-flex min-h-11 items-center gap-1.5 text-sm text-success">
+                W Zadaniach <Check className="h-4 w-4" aria-hidden="true" />
               </span>
             ) : (
               <div className="flex items-center gap-2">
                 {!c.task.data && (
                   <>
-                    <label htmlFor={`${id}-due-${c.index}`} className="sr-only">Termin zadania „{c.task.zadanie}”</label>
+                    <label htmlFor={`${id}-due-${c.index}`} className="sr-only">
+                      Termin zadania „{c.task.zadanie}”
+                    </label>
                     <input
                       id={`${id}-due-${c.index}`}
                       type="date"
@@ -103,7 +125,7 @@ export default function ReportTasksToApp({ report, onTasksLinked, onClose }: Rea
                   small
                   onClick={() => void addOne(c.index)}
                   disabled={busyIndex !== null}
-                  aria-label={`Dodaj do Zadań: ${c.task.zadanie}`}
+                  ariaLabel={`Dodaj do Zadań: ${c.task.zadanie}`}
                 />
               </div>
             )}

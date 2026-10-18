@@ -1,9 +1,19 @@
-﻿// components/streaks/StreakForm.tsx
+// components/streaks/StreakForm.tsx
 
+import { format } from "date-fns";
+import { useNow } from "@/hooks/useNow";
 import React, { useState, SyntheticEvent } from "react";
 import {
-  Flame, Trophy, Target, Heart, Cigarette, Beer,
-  UtensilsCrossed, Dumbbell, PiggyBank, BriefcaseMedical,
+  Flame,
+  Trophy,
+  Target,
+  Heart,
+  Cigarette,
+  Beer,
+  UtensilsCrossed,
+  Dumbbell,
+  PiggyBank,
+  BriefcaseMedical,
 } from "lucide-react";
 import { useStreaks } from "@/hooks/db/useStreaks";
 import { getAppDate } from "@/lib/dateUtils";
@@ -15,22 +25,23 @@ interface StreakFormProps {
 }
 
 const ICONS = [
-  { name: "flame",     icon: Flame },
-  { name: "trophy",    icon: Trophy },
-  { name: "target",    icon: Target },
-  { name: "heart",     icon: Heart },
+  { name: "flame", icon: Flame },
+  { name: "trophy", icon: Trophy },
+  { name: "target", icon: Target },
+  { name: "heart", icon: Heart },
   { name: "cigarette", icon: Cigarette },
-  { name: "beer",      icon: Beer },
-  { name: "utensils",  icon: UtensilsCrossed },
-  { name: "dumbbell",  icon: Dumbbell },
+  { name: "beer", icon: Beer },
+  { name: "utensils", icon: UtensilsCrossed },
+  { name: "dumbbell", icon: Dumbbell },
   { name: "piggybank", icon: PiggyBank },
-  { name: "medical",   icon: BriefcaseMedical },
+  { name: "medical", icon: BriefcaseMedical },
 ];
 
 export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormProps>) {
   const { addStreak } = useStreaks();
+  const today = format(useNow(), "yyyy-MM-dd");
   const [name, setName] = useState("");
-  const [startDate, setStartDate] = useState(getAppDate());
+  const [startDate, setStartDate] = useState(getAppDate);
   const [icon, setIcon] = useState("flame");
   const [loading, setLoading] = useState(false);
 
@@ -47,13 +58,12 @@ export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormPr
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="form-card"
-    >
+    <form onSubmit={handleSubmit} className="form-card">
       <div className="space-y-4">
         <div>
-          <label className="form-label" htmlFor="streak-name">Nazwa nawyku:</label>
+          <label className="form-label" htmlFor="streak-name">
+            Nazwa nawyku:
+          </label>
           <input
             id="streak-name"
             type="text"
@@ -65,38 +75,40 @@ export default function StreakForm({ onChange, onCancel }: Readonly<StreakFormPr
           />
         </div>
         <div>
-          <label className="form-label" htmlFor="start-date">Data rozpoczęcia:</label>
+          <label className="form-label" htmlFor="start-date">
+            Data rozpoczęcia:
+          </label>
           <input
             id="start-date"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            max={new Date().toISOString().split("T")[0]}
+            max={today}
             className="input-field w-full min-w-0 px-1 text-xs"
             required
           />
         </div>
         <div>
           <div className="form-label mb-2">Ikona:</div>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+          <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
             {ICONS.map(({ name: iName, icon: IconComponent }) => (
               <button
                 key={iName}
                 type="button"
                 onClick={() => setIcon(iName)}
                 title={`Wybierz ikonę: ${iName}`}
-                className={`p-1.5 sm:p-2.5 rounded-xl transition-all flex flex-col items-center justify-center ${
+                className={`flex flex-col items-center justify-center rounded-xl p-1.5 transition-all sm:p-2.5 ${
                   icon === iName
-                    ? "bg-surface-hover text-text shadow-sm scale-110"
+                    ? "scale-110 bg-surface-hover text-text shadow-sm"
                     : "bg-transparent text-text-muted hover:bg-surface hover:text-text"
                 }`}
               >
-                <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+                <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             ))}
           </div>
         </div>
-        <FormButtons onClickClose={onCancel} loading={loading}/>
+        <FormButtons onClickClose={onCancel} loading={loading} />
       </div>
     </form>
   );

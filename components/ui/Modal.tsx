@@ -63,7 +63,7 @@ export default function Modal({ open, onClose, labelledBy, label, className, chi
       aria-labelledby={labelledBy}
       aria-label={labelledBy ? undefined : label}
       className={cn(
-        "m-auto w-full max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-visible border-0 bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm",
+        "m-auto max-h-[90vh] w-full max-w-[calc(100vw-2rem)] overflow-visible border-0 bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-sm",
         className
       )}
     >

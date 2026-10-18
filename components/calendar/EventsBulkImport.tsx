@@ -63,7 +63,11 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
       .eq("user_id", user.id)
       .gte("start_time", `${from}T00:00:00+00`)
       .lte("start_time", `${to}T23:59:59+00`);
-    const taken = new Set((data ?? []).map((e) => `${(e as { title: string }).title}|${String((e as { start_time: string }).start_time).slice(0, 10)}`));
+    const taken = new Set(
+      (data ?? []).map(
+        (e) => `${(e as { title: string }).title}|${String((e as { start_time: string }).start_time).slice(0, 10)}`
+      )
+    );
     const dup = new Set(found.filter((e) => taken.has(`${titleOf(e)}|${e.start}`)).map((e) => e.key));
     setExisting(dup);
     setExcluded(dup);
@@ -101,7 +105,13 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
       let ticketErrors = 0;
       if (tickets && category) {
         const results = await Promise.all(
-          selected.map((e) => createTicketReminderTask(supabase, user.id, { title: `${titleOf(e)} ${fmt(e.start)}`, startDay: e.start, category }))
+          selected.map((e) =>
+            createTicketReminderTask(supabase, user.id, {
+              title: `${titleOf(e)} ${fmt(e.start)}`,
+              startDay: e.start,
+              category,
+            })
+          )
         );
         ticketErrors = results.filter((r) => r.error).length;
       }
@@ -123,17 +133,25 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
           <CalendarPlus className="h-5 w-5 text-primary" aria-hidden="true" />
           Dodaj wiele wydarzeń
         </h2>
-        <button type="button" onClick={onClose} aria-label="Zamknij import" className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-surface">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Zamknij import"
+          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-surface"
+        >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
 
       <p className="text-sm text-text-secondary">
-        Wklej listę – każda linia to wydarzenie: data lub zakres dat (np. 15.10.2026, 20-22.11, 7 listopada), opcjonalnie godziny (10:00–12:00) i nazwa.
+        Wklej listę – każda linia to wydarzenie: data lub zakres dat (np. 15.10.2026, 20-22.11, 7 listopada),
+        opcjonalnie godziny (10:00–12:00) i nazwa.
       </p>
 
       <div>
-        <label htmlFor={`${id}-text`} className="form-label">Lista wydarzeń:</label>
+        <label htmlFor={`${id}-text`} className="form-label">
+          Lista wydarzeń:
+        </label>
         <textarea
           id={`${id}-text`}
           rows={7}
@@ -147,12 +165,27 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${id}-name`} className="form-label">Nazwa, gdy w linii jej brak:</label>
-          <input id={`${id}-name`} value={defaultTitle} onChange={(e) => setDefaultTitle(e.target.value)} className="input-field" />
+          <label htmlFor={`${id}-name`} className="form-label">
+            Nazwa, gdy w linii jej brak:
+          </label>
+          <input
+            id={`${id}-name`}
+            value={defaultTitle}
+            onChange={(e) => setDefaultTitle(e.target.value)}
+            className="input-field"
+          />
         </div>
         <div>
-          <label htmlFor={`${id}-place`} className="form-label">Miejsce (wszystkie):</label>
-          <input id={`${id}-place`} value={place} onChange={(e) => setPlace(e.target.value)} className="input-field" placeholder="opcjonalnie" />
+          <label htmlFor={`${id}-place`} className="form-label">
+            Miejsce (wszystkie):
+          </label>
+          <input
+            id={`${id}-place`}
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
+            className="input-field"
+            placeholder="opcjonalnie"
+          />
         </div>
       </div>
 
@@ -185,7 +218,9 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
                 const dup = existing.has(e.key);
                 return (
                   <li key={e.key}>
-                    <label className={`flex min-h-11 items-center gap-3 px-3 py-1.5 ${past ? "opacity-60" : "cursor-pointer"}`}>
+                    <label
+                      className={`flex min-h-11 items-center gap-3 px-3 py-1.5 ${past ? "opacity-60" : "cursor-pointer"}`}
+                    >
                       <input
                         type="checkbox"
                         className="h-5 w-5 shrink-0"
@@ -194,8 +229,11 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
                         onChange={() => toggle(e.key)}
                       />
                       <span className="min-w-0 flex-1">
-                        <span className={`block font-medium ${e.title ? "text-text" : "text-text-secondary"}`}>{titleOf(e)}</span>
-                        <span className="block text-sm tabular-nums text-text-secondary">
+                        <span className="sr-only">Importuj wydarzenie: </span>
+                        <span className={`block font-medium ${e.title ? "text-text" : "text-text-secondary"}`}>
+                          {titleOf(e)}
+                        </span>
+                        <span className="block text-sm text-text-secondary tabular-nums">
                           {whenLabel(e)}
                           {past && " – minęło"}
                           {dup && " – już w kalendarzu"}

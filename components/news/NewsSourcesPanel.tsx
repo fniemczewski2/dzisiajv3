@@ -2,12 +2,7 @@
 
 import React, { useId, useState } from "react";
 import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
-import {
-  MAX_CUSTOM_FEEDS,
-  RSS_GROUPS,
-  RSS_SOURCES,
-  type CustomFeed,
-} from "@/config/rssSources";
+import { MAX_CUSTOM_FEEDS, RSS_GROUPS, RSS_SOURCES, type CustomFeed } from "@/config/rssSources";
 import { checkCustomFeed } from "@/hooks/useNews";
 import { FormButtons } from "../ui/CommonButtons";
 
@@ -23,10 +18,10 @@ interface Props {
 function StatusIcon({ state }: Readonly<{ state: string | null | undefined }>) {
   if (state === undefined) return null;
   if (state === null) {
-    return <CheckCircle2 className="h-4 w-4 shrink-0 text-green-700 dark:text-green-400" aria-label="pobrano" />;
+    return <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-label="Pobrano" />;
   }
   return (
-    <span className="inline-flex items-center gap-1 text-sm text-red-700 dark:text-red-300" title={state}>
+    <span className="inline-flex items-center gap-1 text-sm text-danger" title={state}>
       <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
       nie udało się pobrać
     </span>
@@ -64,7 +59,11 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
     setChecking(false);
     setCheckMsg(result);
     if (!result.ok) return;
-    const feed: CustomFeed = { id: `c_${Date.now().toString(36)}`, name: name.trim() || new URL(url).hostname, url: url.trim() };
+    const feed: CustomFeed = {
+      id: `c_${Date.now().toString(36)}`,
+      name: name.trim() || new URL(url).hostname,
+      url: url.trim(),
+    };
     setFeeds((f) => [...f, feed]);
     setSelected((s) => new Set(s).add(feed.id));
     setName("");
@@ -74,8 +73,15 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
   return (
     <section aria-labelledby={`${id}-h`} className="form-card max-w-3xl">
       <div className="flex items-start justify-between gap-3">
-        <h2 id={`${id}-h`} className="text-lg font-bold text-text">Źródła wiadomości</h2>
-        <button type="button" onClick={onClose} aria-label="Zamknij źródła" className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-surface">
+        <h2 id={`${id}-h`} className="text-lg font-bold text-text">
+          Źródła wiadomości
+        </h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Zamknij źródła"
+          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-surface"
+        >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
@@ -102,7 +108,13 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
               </legend>
               {sources.map((s) => (
                 <div key={s.id} className="flex min-h-11 items-center gap-3">
-                  <input id={`${id}-${s.id}`} type="checkbox" className="h-5 w-5 shrink-0" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
+                  <input
+                    id={`${id}-${s.id}`}
+                    type="checkbox"
+                    className="h-5 w-5 shrink-0"
+                    checked={selected.has(s.id)}
+                    onChange={() => toggle(s.id)}
+                  />
                   <label htmlFor={`${id}-${s.id}`} className="flex-1 cursor-pointer text-text">
                     {s.name}
                     {s.lang === "en" && <span className="ml-1.5 text-sm text-text-secondary">(EN)</span>}
@@ -115,11 +127,25 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
         })}
 
         <fieldset>
-          <legend className="text-sm font-semibold text-text">Własne kanały ({feeds.length}/{MAX_CUSTOM_FEEDS})</legend>
+          <legend className="text-sm font-semibold text-text">
+            Własne kanały ({feeds.length}/{MAX_CUSTOM_FEEDS})
+          </legend>
           {feeds.map((f) => (
             <div key={f.id} className="flex min-h-11 items-center gap-3">
-              <input id={`${id}-${f.id}`} type="checkbox" className="h-5 w-5 shrink-0" checked={selected.has(f.id)} onChange={() => toggle(f.id)} />
-              <label htmlFor={`${id}-${f.id}`} className="min-w-0 flex-1 cursor-pointer truncate text-text" title={f.url}>{f.name}</label>
+              <input
+                id={`${id}-${f.id}`}
+                type="checkbox"
+                className="h-5 w-5 shrink-0"
+                checked={selected.has(f.id)}
+                onChange={() => toggle(f.id)}
+              />
+              <label
+                htmlFor={`${id}-${f.id}`}
+                className="min-w-0 flex-1 cursor-pointer truncate text-text"
+                title={f.url}
+              >
+                {f.name}
+              </label>
               {selected.has(f.id) && <StatusIcon state={status[f.id]} />}
               <button
                 type="button"
@@ -133,9 +159,21 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
           ))}
           {feeds.length < MAX_CUSTOM_FEEDS && (
             <div className="mt-2 space-y-2">
-              <label htmlFor={`${id}-url`} className="form-label">Adres kanału RSS lub Atom:</label>
-              <input id={`${id}-url`} type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…/feed/" className="input-field" />
-              <label htmlFor={`${id}-name`} className="form-label">Nazwa (opcjonalnie):</label>
+              <label htmlFor={`${id}-url`} className="form-label">
+                Adres kanału RSS lub Atom:
+              </label>
+              <input
+                id={`${id}-url`}
+                type="url"
+                inputMode="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://…/feed/"
+                className="input-field"
+              />
+              <label htmlFor={`${id}-name`} className="form-label">
+                Nazwa (opcjonalnie):
+              </label>
               <input id={`${id}-name`} value={name} onChange={(e) => setName(e.target.value)} className="input-field" />
               <button
                 type="button"
@@ -147,7 +185,7 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
                 {checking ? "Sprawdzam…" : "Sprawdź i dodaj"}
               </button>
               {checkMsg && (
-                <output className={`block text-sm ${checkMsg.ok ? "text-green-800 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}>
+                <output className={`block text-sm ${checkMsg.ok ? "text-success" : "text-danger"}`}>
                   {checkMsg.message}
                 </output>
               )}
@@ -155,11 +193,7 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
           )}
         </fieldset>
       </div>
-      <FormButtons
-        onClickSave={() => onSave([...selected], feeds)}
-        onClickClose={() => onClose()}
-        loading={saving}
-      />
+      <FormButtons onClickSave={() => onSave([...selected], feeds)} onClickClose={() => onClose()} loading={saving} />
     </section>
   );
 }

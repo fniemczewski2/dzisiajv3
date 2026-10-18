@@ -1,8 +1,10 @@
 // pages/api/slack/index.ts
 
+import { publicEnv, serverEnv } from "@/config/env";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { randomBytes } from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { decryptToken } from "@/lib/server/tokenCrypto";
 import { listColumnsSafe, translateSlackError, type SlackColumn } from "@/lib/server/slackLists";
@@ -23,12 +25,11 @@ interface ConnectionRow {
   access_token: string;
 }
 
-function adminClient(): SupabaseClient {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
-}
-
 class ApiError extends Error {
-  constructor(readonly status: number, message: string) {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
     super(message);
   }
 }
@@ -47,13 +48,13 @@ function requestHost(req: NextApiRequest): string | null {
 }
 
 function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
-  const clientId = process.env.SLACK_CLIENT_ID;
-  if (!clientId) return res.status(500).json({ error: "Brak konfiguracji SLACK_CLIENT_ID." });
-  if (!process.env.SLACK_CLIENT_SECRET) {
-    return res.status(500).json({ error: "Brak konfiguracji SLACK_CLIENT_SECRET." });
+  const credentials = serverEnv.slack.get();
+  if (!credentials) {
+    return res.status(500).json({ error: "Brak konfiguracji SLACK_CLIENT_ID / SLACK_CLIENT_SECRET." });
   }
+  const clientId = credentials.clientId;
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const appUrl = publicEnv.appUrl;
 
   const expectedHost = new URL(appUrl).host.toLowerCase();
   const currentHost = requestHost(req);
@@ -95,26 +96,16 @@ async function loadConnections(admin: SupabaseClient, userId: string): Promise<C
   return (data ?? []) as ConnectionRow[];
 }
 
-async function tokenForConnection(
-  admin: SupabaseClient,
-  userId: string,
-  connectionId: string
-): Promise<string> {
+async function tokenForConnection(admin: SupabaseClient, userId: string, connectionId: string): Promise<string> {
   const connections = await loadConnections(admin, userId);
   const match = connections.find((c) => String(c.id) === String(connectionId));
 
   if (!match) {
-    throw new ApiError(
-      400,
-      "To konto Slack nie istnieje już w bazie. Odłącz je i połącz ponownie."
-    );
+    throw new ApiError(400, "To konto Slack nie istnieje już w bazie. Odłącz je i połącz ponownie.");
   }
 
   if (!match.access_token) {
-    throw new ApiError(
-      400,
-      "Konto Slack jest zapisane bez tokenu. Odłącz je i połącz ponownie."
-    );
+    throw new ApiError(400, "Konto Slack jest zapisane bez tokenu. Odłącz je i połącz ponownie.");
   }
 
   let token: string;
@@ -173,12 +164,7 @@ async function handleStatus(admin: SupabaseClient, userId: string, res: NextApiR
   });
 }
 
-async function handleAddList(
-  admin: SupabaseClient,
-  userId: string,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handleAddList(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
   const body = req.body as {
     connection_id?: string;
     list?: string;
@@ -192,10 +178,7 @@ async function handleAddList(
   const token = await tokenForConnection(admin, userId, body.connection_id);
   const columns = await listColumnsSafe(token, listId);
 
-  const { count } = await admin
-    .from("slack_lists")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
+  const { count } = await admin.from("slack_lists").select("id", { count: "exact", head: true }).eq("user_id", userId);
 
   const { error } = await admin.from("slack_lists").insert({
     connection_id: body.connection_id,
@@ -211,20 +194,13 @@ async function handleAddList(
     console.error("[slack/index] slack_lists insert:", error.message);
     const duplicate = error.code === "23505";
     return res.status(400).json({
-      error: duplicate
-        ? "Ta lista jest już podłączona."
-        : "Nie udało się zapisać listy.",
+      error: duplicate ? "Ta lista jest już podłączona." : "Nie udało się zapisać listy.",
     });
   }
   return res.status(200).json({ list_id: listId, columns });
 }
 
-async function handleColumns(
-  admin: SupabaseClient,
-  userId: string,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handleColumns(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
   const rowId = String(req.query.list_row_id ?? "");
   const { data } = await admin
     .from("slack_lists")
@@ -245,12 +221,7 @@ function toAssigneeEmailsCsv(input: unknown): string {
   return typeof input === "string" ? input : "";
 }
 
-async function handleSaveList(
-  admin: SupabaseClient,
-  userId: string,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handleSaveList(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
   const body = req.body as {
     list_row_id?: string;
     column_map?: unknown;
@@ -312,11 +283,7 @@ async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextA
   if (!ownedTask) return res.status(404).json({ error: "Nie znaleziono zadania." });
 
   if (!body.list_id) {
-    const { error } = await admin
-      .from("slack_task_targets")
-      .delete()
-      .eq("task_id", taskId)
-      .eq("user_id", userId);
+    const { error } = await admin.from("slack_task_targets").delete().eq("task_id", taskId).eq("user_id", userId);
     if (error) {
       console.error("[slack/index] slack_task_targets delete:", error.message);
       throw new ApiError(500, "Nie udało się wyczyścić listy zadania.");
@@ -333,9 +300,7 @@ async function handleSetTarget(admin: SupabaseClient, userId: string, req: NextA
   if (!owned) return res.status(400).json({ error: "Nie znaleziono tej listy." });
 
   const targetRow = { task_id: taskId, user_id: userId, list_id: body.list_id };
-  const { error: upsertError } = await admin
-    .from("slack_task_targets")
-    .upsert(targetRow, { onConflict: "task_id" });
+  const { error: upsertError } = await admin.from("slack_task_targets").upsert(targetRow, { onConflict: "task_id" });
 
   if (upsertError) {
     if (upsertError.code !== "42P10") {
@@ -361,11 +326,7 @@ async function handleRemoveList(admin: SupabaseClient, userId: string, req: Next
 
 async function handleDisconnect(admin: SupabaseClient, userId: string, req: NextApiRequest, res: NextApiResponse) {
   const connectionId = String((req.body as { connection_id?: string })?.connection_id ?? "");
-  await admin
-    .from("slack_connections")
-    .delete()
-    .eq("id", connectionId)
-    .eq("user_id", userId);
+  await admin.from("slack_connections").delete().eq("id", connectionId).eq("user_id", userId);
   return res.status(200).json({ removed: true });
 }
 
@@ -381,19 +342,21 @@ const POST_ACTION_HANDLERS: Record<string, PostActionHandler> = {
   "save-list": handleSaveList,
   "set-target": handleSetTarget,
   "remove-list": handleRemoveList,
-  "disconnect": handleDisconnect,
+  disconnect: handleDisconnect,
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const action = String(req.query.action ?? "");
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
 
   if (action === "auth-url") return handleAuthUrl(req, res);
 
-  const admin = adminClient();
+  const admin = supabaseAdmin();
 
   try {
     if (action === "status") return await handleStatus(admin, user.id, res);

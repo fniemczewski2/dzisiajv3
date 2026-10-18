@@ -3,8 +3,8 @@
 import { FEATURE_STATUS_LABEL, type FeatureStatus } from "@/config/features";
 
 const STYLES: Record<FeatureStatus, string> = {
-  nowe: "bg-green-100 text-green-800 ring-green-600/20 dark:bg-green-900/50 dark:text-green-200 dark:ring-green-400/30",
-  zmienione: "bg-blue-50 text-blue-800 ring-blue-600/20 dark:bg-blue-900/50 dark:text-blue-200 dark:ring-blue-400/30",
+  nowe: "bg-success-soft text-success ring-success/20 ",
+  zmienione: "bg-info-soft text-info ring-info/20 ",
 };
 
 export default function FeatureStatusBadge({ status, since }: Readonly<{ status: FeatureStatus; since?: string }>) {

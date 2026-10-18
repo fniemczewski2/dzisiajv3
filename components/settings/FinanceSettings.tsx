@@ -26,7 +26,9 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
 
   const toggleCategory = (name: string) => {
     const key = name.toLocaleLowerCase("pl");
-    onDailyCategoriesChange(selected.has(key) ? dailyCategories.filter((n) => n.toLocaleLowerCase("pl") !== key) : [...dailyCategories, name]);
+    onDailyCategoriesChange(
+      selected.has(key) ? dailyCategories.filter((n) => n.toLocaleLowerCase("pl") !== key) : [...dailyCategories, name]
+    );
   };
 
   return (
@@ -39,18 +41,28 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
         <legend className="mb-1 text-sm font-medium text-text">
           Profile finansowe ({profiles.length}/{MAX_FINANCE_PROFILES})
         </legend>
-        <p className="text-sm text-text-secondary">Np. konto osobiste, firmowe, wspólne. Zmiany zapisują się od razu.</p>
+        <p className="text-sm text-text-secondary">
+          Np. konto osobiste, firmowe, wspólne. Zmiany zapisują się od razu.
+        </p>
         {profiles.map((p, i) => (
           <div key={p.id} className="flex flex-wrap items-center gap-2">
-            <label htmlFor={`${id}-p-${p.id}`} className="sr-only">Nazwa profilu {i + 1}</label>
+            <label htmlFor={`${id}-p-${p.id}`} className="sr-only">
+              Nazwa profilu {i + 1}
+            </label>
             <input
               id={`${id}-p-${p.id}`}
               defaultValue={p.name}
               maxLength={40}
-              onBlur={(e) => e.target.value.trim() && e.target.value.trim() !== p.name && void updateProfile(p.id, { name: e.target.value.trim() })}
+              onBlur={(e) =>
+                e.target.value.trim() &&
+                e.target.value.trim() !== p.name &&
+                void updateProfile(p.id, { name: e.target.value.trim() })
+              }
               className="input-field min-w-40 flex-1"
             />
-            <label htmlFor={`${id}-c-${p.id}`} className="sr-only">Kolor profilu {p.name}</label>
+            <label htmlFor={`${id}-c-${p.id}`} className="sr-only">
+              Kolor profilu {p.name}
+            </label>
             <select
               id={`${id}-c-${p.id}`}
               value={p.color ?? ""}
@@ -58,13 +70,17 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
               className="input-field w-auto"
             >
               <option value="">bez koloru</option>
-              {CATEGORY_PALETTE.map((c) => <option key={c.value} value={c.value}>{c.name}</option>)}
+              {CATEGORY_PALETTE.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.name}
+                </option>
+              ))}
             </select>
             <button
               type="button"
               onClick={() => void removeProfile(p.id)}
               aria-label={`Usuń profil ${p.name}`}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-red-700"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-danger"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -72,7 +88,9 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
         ))}
         {!maxReached && (
           <div className="flex items-center gap-2">
-            <label htmlFor={`${id}-new`} className="sr-only">Nowy profil</label>
+            <label htmlFor={`${id}-new`} className="sr-only">
+              Nowy profil
+            </label>
             <input
               id={`${id}-new`}
               value={draft}
@@ -117,7 +135,9 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
                   checked={selected.has(c.name.toLocaleLowerCase("pl"))}
                   onChange={() => toggleCategory(c.name)}
                 />
-                <label htmlFor={`${id}-d-${c.id}`} className="cursor-pointer text-text">{c.name}</label>
+                <label htmlFor={`${id}-d-${c.id}`} className="cursor-pointer text-text">
+                  {c.name}
+                </label>
               </div>
             ))}
           </div>

@@ -1,5 +1,4 @@
-﻿// types/moods.ts
-
+// types/moods.ts
 
 export interface MoodOption {
   id: string;

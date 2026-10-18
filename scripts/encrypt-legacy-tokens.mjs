@@ -66,7 +66,6 @@ for (const { table, key: pk, columns } of TARGETS) {
       .order(pk)
       .range(from, from + PAGE - 1);
     if (error) {
-
       console.warn(`[${table}] pominięto: ${error.message}`);
       break;
     }
@@ -78,4 +77,6 @@ for (const { table, key: pk, columns } of TARGETS) {
   total += found;
 }
 
-console.log(APPLY ? `Gotowe. Zaszyfrowano ${total} wierszy.` : `Podgląd: ${total} wierszy do zaszyfrowania. Uruchom z --apply.`);
+console.log(
+  APPLY ? `Gotowe. Zaszyfrowano ${total} wierszy.` : `Podgląd: ${total} wierszy do zaszyfrowania. Uruchom z --apply.`
+);

@@ -1,4 +1,4 @@
-﻿// hooks/useDashboardDnd.ts
+// hooks/useDashboardDnd.ts
 
 import { useState, useCallback } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
@@ -15,14 +15,7 @@ interface UseDashboardDndProps {
   editEvent: (event: Event & { shared_with_email?: string }) => Promise<void>;
 }
 
-export function useDashboardDnd({
-  tasks,
-  events,
-  userId,
-  date,
-  editTask,
-  editEvent,
-}: Readonly<UseDashboardDndProps>) {
+export function useDashboardDnd({ tasks, events, userId, date, editTask, editEvent }: Readonly<UseDashboardDndProps>) {
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedEventTitle, setDraggedEventTitle] = useState<string | null>(null);
 
@@ -68,7 +61,6 @@ export function useDashboardDnd({
         await editTask({ ...currentTask, scheduled_time: dateToTimestamp(scheduledDateTime) });
         return;
       }
-
 
       if (dragId.startsWith("plan-event-") || dragId.startsWith("side-event-")) {
         const eventId = dragId.replace("plan-event-", "").replace("side-event-", "");

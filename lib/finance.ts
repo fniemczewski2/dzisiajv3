@@ -10,7 +10,7 @@
 // - podsumowanie miesiąca.
 
 import { addDays, addMonths, endOfMonth, format, parseISO, startOfMonth } from "date-fns";
-import { billOccurrences as sharedBillOccurrences } from "@/supabase/functions/_shared/bills";
+import { billOccurrences as sharedBillOccurrences } from "@/shared/bills";
 import type { BudgetCategory } from "@/types/bills";
 import type { RecurringBill, Transaction } from "@/types/finance";
 
@@ -19,7 +19,11 @@ const day = (d: Date) => format(d, "yyyy-MM-dd");
 // --- Terminy ----------------------------------------------------------------------
 
 /** Terminy rachunku w [from, to] (yyyy-MM-dd). Jednorazowy – tylko start_date. */
-export function billOccurrences(bill: Pick<RecurringBill, "start_date" | "recurrence" | "active">, from: string, to: string): string[] {
+export function billOccurrences(
+  bill: Pick<RecurringBill, "start_date" | "recurrence" | "active">,
+  from: string,
+  to: string
+): string[] {
   return sharedBillOccurrences(bill, from, to);
 }
 
@@ -45,7 +49,10 @@ export interface ForecastItem {
 }
 
 /** Prognoza rachunków stałych w miesiącu `monthKey` (yyyy-MM). */
-export function forecastMonth(bills: readonly RecurringBill[], monthKey: string): { items: ForecastItem[]; total: number } {
+export function forecastMonth(
+  bills: readonly RecurringBill[],
+  monthKey: string
+): { items: ForecastItem[]; total: number } {
   const { from, to } = monthRange(monthKey);
   const items = bills
     .map((bill) => {
@@ -80,7 +87,23 @@ export function billMonthStatus(
 
 // --- D1: łączenie transakcji z rachunkami -------------------------------------------
 
-const STOP_WORDS = new Set(["PLATNOSC", "PŁATNOŚĆ", "KARTA", "KARTĄ", "BLIK", "PRZELEW", "ZAKUP", "TRANSAKCJA", "WWW", "COM", "PL", "SP", "Z", "O", "OO"]);
+const STOP_WORDS = new Set([
+  "PLATNOSC",
+  "PŁATNOŚĆ",
+  "KARTA",
+  "KARTĄ",
+  "BLIK",
+  "PRZELEW",
+  "ZAKUP",
+  "TRANSAKCJA",
+  "WWW",
+  "COM",
+  "PL",
+  "SP",
+  "Z",
+  "O",
+  "OO",
+]);
 
 /**
  * Klucz sprzedawcy: pierwsze znaczące słowo opisu, bez polskich znaków.
@@ -158,7 +181,7 @@ export function suggestCategoryName(
   const match = history
     .filter((h) => h.category_id && h.is_income === tx.is_income && merchantKey(h.description) === key)
     .sort((a, b) => b.date.localeCompare(a.date))[0];
-  return match?.category_id ? categoryNameById.get(match.category_id) ?? null : null;
+  return match?.category_id ? (categoryNameById.get(match.category_id) ?? null) : null;
 }
 
 // --- Wydatki dnia i podsumowania ----------------------------------------------------------
@@ -197,7 +220,10 @@ export interface MonthSummary {
   billsPaid: number;
 }
 
-export function summarizeMonth(transactions: readonly Transaction[], categories: readonly BudgetCategory[]): MonthSummary {
+export function summarizeMonth(
+  transactions: readonly Transaction[],
+  categories: readonly BudgetCategory[]
+): MonthSummary {
   const names = new Map(categories.map((c) => [c.id, c.name]));
   const rows = new Map<string, MonthCategoryRow>();
   let income = 0;
@@ -214,7 +240,7 @@ export function summarizeMonth(transactions: readonly Transaction[], categories:
     const key = t.category_id ?? "__none__";
     const row = rows.get(key) ?? {
       categoryId: t.category_id,
-      name: t.category_id ? names.get(t.category_id) ?? "Inna kategoria" : "Bez kategorii",
+      name: t.category_id ? (names.get(t.category_id) ?? "Inna kategoria") : "Bez kategorii",
       expenses: 0,
       count: 0,
     };
@@ -225,7 +251,13 @@ export function summarizeMonth(transactions: readonly Transaction[], categories:
   const byCategory = [...rows.values()]
     .map((r) => ({ ...r, expenses: round2(r.expenses) }))
     .sort((a, b) => b.expenses - a.expenses);
-  return { income: round2(income), expenses: round2(expenses), balance: round2(income - expenses), byCategory, billsPaid: round2(billsPaid) };
+  return {
+    income: round2(income),
+    expenses: round2(expenses),
+    balance: round2(income - expenses),
+    byCategory,
+    billsPaid: round2(billsPaid),
+  };
 }
 
 export function round2(n: number): number {
@@ -237,6 +269,15 @@ export function formatPln(value: number): string {
 }
 
 /** Klucz deduplikacji transakcji z CSV. */
-export function importKey(t: { date: string; amount: number; is_income: boolean; description: string }, occurrence = 0): string {
-  return [t.date, t.is_income ? "+" : "-", Number(t.amount).toFixed(2), t.description.trim().toUpperCase().slice(0, 60), occurrence].join("|");
+export function importKey(
+  t: { date: string; amount: number; is_income: boolean; description: string },
+  occurrence = 0
+): string {
+  return [
+    t.date,
+    t.is_income ? "+" : "-",
+    Number(t.amount).toFixed(2),
+    t.description.trim().toUpperCase().slice(0, 60),
+    occurrence,
+  ].join("|");
 }

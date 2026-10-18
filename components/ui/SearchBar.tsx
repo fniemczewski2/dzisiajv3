@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Clock, X } from "lucide-react";
-import { MAX_HISTORY, MAX_SEARCH_SUGGESTIONS } from "@/config/limits";
+import { MAX_SEARCH_HISTORY, MAX_SEARCH_SUGGESTIONS } from "@/config/limits";
 
 function useSessionHistory() {
   const [history, setHistory] = useState<string[]>([]);
@@ -12,7 +12,7 @@ function useSessionHistory() {
     if (!trimmed) return;
     setHistory((prev) => {
       const deduped = prev.filter((s) => s !== trimmed);
-      return [trimmed, ...deduped].slice(0, MAX_HISTORY);
+      return [trimmed, ...deduped].slice(0, MAX_SEARCH_HISTORY);
     });
   }, []);
 
@@ -95,19 +95,15 @@ export default function SearchBar({
   }, []);
 
   const filteredSuggestions = value
-    ? suggestions
-        .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
-        .slice(0, MAX_SEARCH_SUGGESTIONS)
+    ? suggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase())).slice(0, MAX_SEARCH_SUGGESTIONS)
     : [];
 
-  const showDropdown =
-    isFocused && (history.length > 0 || filteredSuggestions.length > 0);
+  const showDropdown = isFocused && (history.length > 0 || filteredSuggestions.length > 0);
 
   return (
     <div className={`relative ${className}`}>
-
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-text-muted" />
         <input
           ref={inputRef}
           type="text"
@@ -119,22 +115,22 @@ export default function SearchBar({
           aria-label={placeholder || "Szukaj"}
           autoComplete="off"
           spellCheck={false}
-          className="w-full rounded-xl pl-11 pr-10 py-2.5 card shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text transition-all"
+          className="card w-full rounded-xl py-2.5 pr-10 pl-11 text-text shadow-sm transition-all focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
         />
         {value && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
+            className="absolute top-1/2 right-3.5 -translate-y-1/2 text-text-muted transition-colors hover:text-text"
             aria-label="Wyczyść wyszukiwanie"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
       {value && resultsCount !== undefined && (
-        <p className="text-sm font-medium text-text-secondary mt-2.5 pl-1">
+        <p className="mt-2.5 pl-1 text-sm font-medium text-text-secondary">
           {resultsLabel ?? `Znaleziono: ${resultsCount}`}
         </p>
       )}
@@ -142,21 +138,16 @@ export default function SearchBar({
       {showDropdown && (
         <div
           ref={dropdownRef}
-          role="listbox"
-          aria-label="Podpowiedzi wyszukiwania"
-          className="absolute z-50 w-full mt-2 card rounded-xl shadow-lg max-h-64 overflow-y-auto scrollbar-thin"
+          className="card absolute z-50 mt-2 max-h-64 w-full scrollbar-thin overflow-y-auto rounded-xl shadow-lg"
         >
-
           {!value && history.length > 0 && (
             <div className="p-2">
-              <div className="flex items-center justify-between px-3 py-2 mb-1">
-                <span className="text-xs font-bold text-text-muted">
-                  Ostatnie wyszukiwania
-                </span>
+              <div className="mb-1 flex items-center justify-between px-3 py-2">
+                <span className="text-xs font-bold text-text-muted">Ostatnie wyszukiwania</span>
                 <button
                   type="button"
                   onClick={clearHistory}
-                  className="text-xs font-semibold text-text-muted hover:text-text transition-colors"
+                  className="text-xs font-semibold text-text-muted transition-colors hover:text-text"
                 >
                   Wyczyść
                 </button>
@@ -165,13 +156,11 @@ export default function SearchBar({
                 <button
                   key={`history-${query}`}
                   type="button"
-                  role="option"
-                  aria-selected={false}
                   onClick={() => handleSuggestionClick(query)}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
+                  className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface"
                 >
-                  <Clock className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0" />
-                  <span className="text-text font-medium truncate">{query}</span>
+                  <Clock className="h-4 w-4 shrink-0 text-text-muted transition-colors group-hover:text-primary" />
+                  <span className="truncate font-medium text-text">{query}</span>
                 </button>
               ))}
             </div>
@@ -179,22 +168,18 @@ export default function SearchBar({
 
           {value && filteredSuggestions.length > 0 && (
             <div className="p-2">
-              <div className="px-3 py-2 mb-1">
-                <span className="text-xs font-bold text-text-muted">
-                  Sugestie
-                </span>
+              <div className="mb-1 px-3 py-2">
+                <span className="text-xs font-bold text-text-muted">Sugestie</span>
               </div>
               {filteredSuggestions.map((suggestion) => (
                 <button
                   key={`suggestion-${suggestion}`}
                   type="button"
-                  role="option"
-                  aria-selected={false}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors group"
+                  className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface"
                 >
-                  <Search className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0" />
-                  <span className="text-text font-medium truncate">{suggestion}</span>
+                  <Search className="h-4 w-4 shrink-0 text-text-muted transition-colors group-hover:text-primary" />
+                  <span className="truncate font-medium text-text">{suggestion}</span>
                 </button>
               ))}
             </div>

@@ -3,7 +3,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 
-const toast = { success: vi.fn(), error: vi.fn(), info: vi.fn(), confirm: vi.fn(), loading: vi.fn(), dismiss: vi.fn(), batch: vi.fn() };
+const toast = {
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  confirm: vi.fn(),
+  loading: vi.fn(),
+  dismiss: vi.fn(),
+  batch: vi.fn(),
+};
 
 const ownList = { id: "own", name: "Moja", elements: [], user_id: "me", shared_with_id: "friend" };
 const sharedList = { id: "shared", name: "Od znajomego", elements: [], user_id: "friend", shared_with_id: "me" };
@@ -24,14 +32,20 @@ function deleteBuilder() {
   const filters: [string, unknown][] = [];
   deleteCalls.push(filters);
   const b: Record<string, unknown> = {};
-  b.eq = (col: string, val: unknown) => { filters.push([col, val]); return b; };
+  b.eq = (col: string, val: unknown) => {
+    filters.push([col, val]);
+    return b;
+  };
   b.select = () => Promise.resolve(deleteResult);
   return b;
 }
 
 const supabase = {
   from: () => ({ select: () => selectBuilder(), delete: () => deleteBuilder() }),
-  rpc: (fn: string, args: unknown) => { rpcCalls.push({ fn, args }); return Promise.resolve(rpcResult); },
+  rpc: (fn: string, args: unknown) => {
+    rpcCalls.push({ fn, args });
+    return Promise.resolve(rpcResult);
+  },
 };
 
 const auth = { user: { id: "me" }, supabase };
@@ -83,7 +97,12 @@ describe("useShoppingLists – „Usuń” zależnie od roli", () => {
 
     expect(toast.confirm).toHaveBeenCalledWith(expect.stringContaining("zniknie także u drugiej osoby"));
     expect(rpcCalls).toHaveLength(0);
-    expect(deleteCalls).toEqual([[["id", "own"], ["user_id", "me"]]]);
+    expect(deleteCalls).toEqual([
+      [
+        ["id", "own"],
+        ["user_id", "me"],
+      ],
+    ]);
     expect(result.current.lists.map((l) => l.id)).toEqual(["shared"]);
     expect(toast.success).toHaveBeenCalledWith("Usunięto listę zakupów");
   });

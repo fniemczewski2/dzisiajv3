@@ -55,15 +55,9 @@ export function useRecipes() {
 
   const [productDictionary, setProductDictionary] = useState<string[]>([]);
 
-  const recipes = useMemo(
-    () => sortRecipes(crud.items, settings?.sort_recipes),
-    [crud.items, settings?.sort_recipes]
-  );
+  const recipes = useMemo(() => sortRecipes(crud.items, settings?.sort_recipes), [crud.items, settings?.sort_recipes]);
 
-  const products = useMemo(
-    () => collectProducts(productDictionary, crud.items),
-    [productDictionary, crud.items]
-  );
+  const products = useMemo(() => collectProducts(productDictionary, crud.items), [productDictionary, crud.items]);
 
   const fetchProducts = useCallback(async (): Promise<string[]> => {
     if (!userId) return [];
@@ -71,7 +65,12 @@ export function useRecipes() {
     try {
       const { data, error } = await withRetry(
         () =>
-          supabase.from("products").select("name").eq("user_id", userId).order("name", { ascending: true }).abortSignal(signal),
+          supabase
+            .from("products")
+            .select("name")
+            .eq("user_id", userId)
+            .order("name", { ascending: true })
+            .abortSignal(signal),
         signal
       );
       if (error) throw error;
@@ -83,10 +82,7 @@ export function useRecipes() {
     }
   }, [supabase, userId, toast, withRetry, getProductsSignal]);
 
-  const addRecipe = useCallback(
-    (recipe: NewRecipe): Promise<Recipe | undefined> => crud.add(recipe),
-    [crud]
-  );
+  const addRecipe = useCallback((recipe: NewRecipe): Promise<Recipe | undefined> => crud.add(recipe), [crud]);
 
   const editRecipe = useCallback(
     (recipe: Recipe): Promise<Recipe | undefined> => {
@@ -101,10 +97,7 @@ export function useRecipes() {
     [crud]
   );
 
-  const deleteRecipe = useCallback(
-    (id: string): Promise<boolean> => crud.remove(id),
-    [crud]
-  );
+  const deleteRecipe = useCallback((id: string): Promise<boolean> => crud.remove(id), [crud]);
 
   const refresh = useCallback(async () => {
     const [p] = await Promise.all([fetchProducts(), crud.refetch()]);

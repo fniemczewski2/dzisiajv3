@@ -1,4 +1,4 @@
-﻿// types/worklogs.ts
+// types/worklogs.ts
 
 export interface WorkLog {
   id: string;

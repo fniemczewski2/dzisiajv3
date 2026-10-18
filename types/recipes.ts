@@ -5,14 +5,7 @@
  * z enumem `public.recipe_category` w bazie (patrz migracja
  * 20260928000000_fix_recipe_category_enum.sql).
  */
-export const RECIPE_CATEGORIES = [
-  "śniadanie",
-  "zupa",
-  "danie główne",
-  "przystawka",
-  "sałatka",
-  "deser",
-] as const;
+export const RECIPE_CATEGORIES = ["śniadanie", "zupa", "danie główne", "przystawka", "sałatka", "deser"] as const;
 
 export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
 

@@ -60,11 +60,7 @@ async function requestSlack<T>(send: () => Promise<Response>): Promise<T & Slack
   }
 }
 
-function callSlack<T>(
-  method: string,
-  token: string,
-  payload: Record<string, unknown>
-): Promise<T & SlackEnvelope> {
+function callSlack<T>(method: string, token: string, payload: Record<string, unknown>): Promise<T & SlackEnvelope> {
   return requestSlack<T>(() =>
     fetchWithTimeout(
       `${SLACK_API_BASE}/${method}`,
@@ -81,11 +77,7 @@ function callSlack<T>(
   );
 }
 
-function callSlackQuery<T>(
-  method: string,
-  token: string,
-  params: Record<string, string>
-): Promise<T & SlackEnvelope> {
+function callSlackQuery<T>(method: string, token: string, params: Record<string, string>): Promise<T & SlackEnvelope> {
   const query = new URLSearchParams(params).toString();
   return requestSlack<T>(() =>
     fetchWithTimeout(
@@ -235,11 +227,7 @@ function canFallBackFromSchemaError(err: unknown): boolean {
   return !code || !FATAL_SCHEMA_ERRORS.has(code);
 }
 
-export async function listColumnsSafe(
-  token: string,
-  listId: string,
-  items?: SlackItem[]
-): Promise<SlackColumn[]> {
+export async function listColumnsSafe(token: string, listId: string, items?: SlackItem[]): Promise<SlackColumn[]> {
   try {
     const columns = await listColumns(token, listId);
     if (columns.length > 0) return columns;
@@ -254,9 +242,7 @@ export async function listColumnsSafe(
 }
 
 export function findAssigneeColumn(columns: SlackColumn[]): SlackColumn | null {
-  const supported = columns.filter((c) =>
-    (SLACK_ASSIGNEE_COLUMN_TYPES as readonly string[]).includes(c.type)
-  );
+  const supported = columns.filter((c) => (SLACK_ASSIGNEE_COLUMN_TYPES as readonly string[]).includes(c.type));
 
   const byType = supported.find((c) => c.type === "todo_assignee" || c.type === "assignee");
   if (byType) return byType;
@@ -269,16 +255,9 @@ export function findAssigneeColumn(columns: SlackColumn[]): SlackColumn | null {
   );
 }
 
-export async function lookupUserIdByEmail(
-  token: string,
-  email: string
-): Promise<string | null> {
+export async function lookupUserIdByEmail(token: string, email: string): Promise<string | null> {
   try {
-    const body = await callSlackQuery<{ user?: { id?: string } }>(
-      "users.lookupByEmail",
-      token,
-      { email }
-    );
+    const body = await callSlackQuery<{ user?: { id?: string } }>("users.lookupByEmail", token, { email });
     return body.user?.id ?? null;
   } catch (err) {
     const code = (err as SlackApiError).slackError;
@@ -326,7 +305,8 @@ async function fetchAllItems(token: string, listId: string): Promise<SlackItem[]
   let cursor: string | undefined;
 
   do {
-    const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, { // NOSONAR
+    const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, {
+      // NOSONAR
       list_id: listId,
       limit: SLACK_ITEMS_PAGE_SIZE,
       ...(cursor ? { cursor } : {}),
@@ -348,11 +328,7 @@ export async function listItems(
   return { items, columns };
 }
 
-export async function itemExists(
-  token: string,
-  listId: string,
-  itemId: string
-): Promise<boolean> {
+export async function itemExists(token: string, listId: string, itemId: string): Promise<boolean> {
   try {
     await callSlack("slackLists.items.info", token, { list_id: listId, id: itemId });
     return true;
@@ -385,7 +361,10 @@ export interface SlackFieldValue {
 }
 
 function canonical(value: string): string {
-  return value.trim().toLowerCase().replaceAll(/[\s-]+/g, "_");
+  return value
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[\s-]+/g, "_");
 }
 
 function matchChoice(column: SlackColumn, rawValue: string): string | null {
@@ -443,10 +422,7 @@ function readCheckbox(field: SlackItemField): boolean | null {
   return null;
 }
 
-export function readFieldValue(
-  field: SlackItemField,
-  column?: SlackColumn
-): string | null {
+export function readFieldValue(field: SlackItemField, column?: SlackColumn): string | null {
   if (column && columnFamily(column.type) === "checkbox") {
     const checked = readCheckbox(field);
     if (checked === null) return null;
@@ -469,11 +445,7 @@ export function readFieldValue(
   return null;
 }
 
-export async function createItem(
-  token: string,
-  listId: string,
-  fields: SlackFieldValue[]
-): Promise<string> {
+export async function createItem(token: string, listId: string, fields: SlackFieldValue[]): Promise<string> {
   const body = await callSlack<{ item?: { id?: string } }>("slackLists.items.create", token, {
     list_id: listId,
     initial_fields: fields,

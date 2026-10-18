@@ -1,5 +1,6 @@
 // hooks/db/useMoods.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { MoodEntry } from "@/types/moods";
@@ -20,8 +21,7 @@ export function useMoods(startDate?: string, endDate?: string) {
 
   const fetchMoods = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
     const signal = getSignal();
     setFetching(true);
@@ -50,8 +50,7 @@ export function useMoods(startDate?: string, endDate?: string) {
   const logMood = useCallback(
     async (date: string, moodId: string | null) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const previous = moods;
@@ -74,9 +73,7 @@ export function useMoods(startDate?: string, endDate?: string) {
 
         setMoods((prev) => {
           const exists = prev.find((m) => m.date === date);
-          return exists
-            ? prev.map((m) => (m.date === date ? (data as MoodEntry) : m))
-            : [...prev, data as MoodEntry];
+          return exists ? prev.map((m) => (m.date === date ? (data as MoodEntry) : m)) : [...prev, data as MoodEntry];
         });
         toast.success("Zapisano nastrój");
       } catch {

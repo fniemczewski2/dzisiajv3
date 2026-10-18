@@ -5,18 +5,23 @@
 // „report-templates” w folderze użytkownika; w ustawieniach zapisujemy tylko
 // ścieżki i nazwy plików.
 
+import { DEFAULT_REPORT_LOGO_WIDTH } from "@/config/defaults";
+import { REPORT_TEMPLATE_MAX_FONT_BYTES, REPORT_TEMPLATE_MAX_LOGO_BYTES } from "@/config/limits";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isHexColor } from "./reportColors";
-import type { NamedReportTemplate, ReportFontRole, ReportTemplate, ReportTemplateAsset, ReportTemplateSet } from "@/types/reports";
+import type {
+  NamedReportTemplate,
+  ReportFontRole,
+  ReportTemplate,
+  ReportTemplateAsset,
+  ReportTemplateSet,
+} from "@/types/reports";
 
 export const REPORT_TEMPLATE_BUCKET = "report-templates";
 export const MAX_REPORT_TEMPLATES = 5;
 export const MAX_TEMPLATE_NAME = 40;
 /** Id szablonu przeniesionego z czasów, gdy był tylko jeden. */
 export const LEGACY_TEMPLATE_ID = "default";
-export const MAX_FONT_BYTES = 2 * 1024 * 1024;
-export const MAX_LOGO_BYTES = 1024 * 1024 * 5;
-export const DEFAULT_LOGO_WIDTH = 140;
 export const LOGO_WIDTH_RANGE = { min: 60, max: 220 } as const;
 
 export const FONT_ROLES: ReadonlyArray<{ role: ReportFontRole; label: string; hint: string }> = [
@@ -40,7 +45,8 @@ export function detectFontKind(bytes: Uint8Array): FontKind | null {
 }
 
 export function detectImageKind(bytes: Uint8Array): ImageKind | null {
-  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
+    return "png";
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "jpeg";
   return null;
 }
@@ -52,7 +58,7 @@ function isAsset(value: unknown): value is ReportTemplateAsset {
 
 export function clampLogoWidth(value: unknown): number {
   const n = Number(value);
-  if (!Number.isFinite(n)) return DEFAULT_LOGO_WIDTH;
+  if (!Number.isFinite(n)) return DEFAULT_REPORT_LOGO_WIDTH;
   return Math.min(LOGO_WIDTH_RANGE.max, Math.max(LOGO_WIDTH_RANGE.min, Math.round(n)));
 }
 
@@ -66,9 +72,10 @@ export function normalizeReportTemplate(raw: unknown, userId?: string): ReportTe
     const f = t.fonts?.[role];
     if (isAsset(f) && own(f)) fonts[role] = { path: f.path, name: f.name.slice(0, 120) };
   }
-  const logo = isAsset(t.logo) && own(t.logo)
-    ? { path: t.logo.path, name: t.logo.name.slice(0, 120), width: clampLogoWidth(t.logo.width) }
-    : null;
+  const logo =
+    isAsset(t.logo) && own(t.logo)
+      ? { path: t.logo.path, name: t.logo.name.slice(0, 120), width: clampLogoWidth(t.logo.width) }
+      : null;
   return { fonts, logo, heading_color: isHexColor(t.heading_color) ? t.heading_color.toUpperCase() : null };
 }
 
@@ -82,7 +89,10 @@ export function normalizeTemplateSet(raw: unknown, userId?: string): ReportTempl
   if (!Array.isArray(obj.templates)) {
     const legacy = normalizeReportTemplate(obj, userId);
     if (!hasCustomTemplate(legacy)) return { templates: [], default_id: null };
-    return { templates: [{ id: LEGACY_TEMPLATE_ID, name: "Szablon podstawowy", ...legacy }], default_id: LEGACY_TEMPLATE_ID };
+    return {
+      templates: [{ id: LEGACY_TEMPLATE_ID, name: "Szablon podstawowy", ...legacy }],
+      default_id: LEGACY_TEMPLATE_ID,
+    };
   }
   const seen = new Set<string>();
   const templates: NamedReportTemplate[] = [];
@@ -94,7 +104,9 @@ export function normalizeTemplateSet(raw: unknown, userId?: string): ReportTempl
     templates.push({ id, name, ...normalizeReportTemplate(t, userId) });
     if (templates.length >= MAX_REPORT_TEMPLATES) break;
   }
-  const defaultId = templates.some((t) => t.id === obj.default_id) ? (obj.default_id as string) : templates[0]?.id ?? null;
+  const defaultId = templates.some((t) => t.id === obj.default_id)
+    ? (obj.default_id as string)
+    : (templates[0]?.id ?? null);
   return { templates, default_id: defaultId };
 }
 
@@ -128,11 +140,13 @@ export async function uploadFont(
   file: File,
   templateId: string = LEGACY_TEMPLATE_ID
 ): Promise<ReportTemplateAsset | { error: string }> {
-  if (file.size > MAX_FONT_BYTES) return { error: "Plik czcionki może mieć najwyżej 2 MB." };
+  if (file.size > REPORT_TEMPLATE_MAX_FONT_BYTES) return { error: "Plik czcionki może mieć najwyżej 2 MB." };
   const kind = detectFontKind(await fileBytes(file));
   if (!kind) return { error: "To nie jest czcionka TTF ani OTF. Pliki WOFF/WOFF2 nie są obsługiwane." };
   const path = `${userId}/${templateId}/font-${role}.${kind}`;
-  const { error } = await supabase.storage.from(REPORT_TEMPLATE_BUCKET).upload(path, file, { upsert: true, contentType: `font/${kind}` });
+  const { error } = await supabase.storage
+    .from(REPORT_TEMPLATE_BUCKET)
+    .upload(path, file, { upsert: true, contentType: `font/${kind}` });
   if (error) return { error: "Nie udało się wysłać czcionki." };
   return { path, name: file.name };
 }
@@ -143,11 +157,13 @@ export async function uploadLogo(
   file: File,
   templateId: string = LEGACY_TEMPLATE_ID
 ): Promise<ReportTemplateAsset | { error: string }> {
-  if (file.size > MAX_LOGO_BYTES) return { error: "Logo może mieć najwyżej 1 MB." };
+  if (file.size > REPORT_TEMPLATE_MAX_LOGO_BYTES) return { error: "Logo może mieć najwyżej 1 MB." };
   const kind = detectImageKind(await fileBytes(file));
   if (!kind) return { error: "Logo musi być plikiem PNG albo JPG." };
   const path = `${userId}/${templateId}/logo.${kind === "png" ? "png" : "jpg"}`;
-  const { error } = await supabase.storage.from(REPORT_TEMPLATE_BUCKET).upload(path, file, { upsert: true, contentType: `image/${kind}` });
+  const { error } = await supabase.storage
+    .from(REPORT_TEMPLATE_BUCKET)
+    .upload(path, file, { upsert: true, contentType: `image/${kind}` });
   if (error) return { error: "Nie udało się wysłać logo." };
   return { path, name: file.name };
 }
@@ -174,7 +190,10 @@ export interface LoadedReportTemplate {
   logo?: { dataUrl: string; width: number };
 }
 
-export async function loadReportTemplate(supabase: SupabaseClient, template: ReportTemplate): Promise<LoadedReportTemplate> {
+export async function loadReportTemplate(
+  supabase: SupabaseClient,
+  template: ReportTemplate
+): Promise<LoadedReportTemplate> {
   const bucket = supabase.storage.from(REPORT_TEMPLATE_BUCKET);
   const result: LoadedReportTemplate = { fonts: {}, headingColor: template.heading_color ?? null };
 

@@ -40,10 +40,9 @@ interface SyncResponse {
 }
 
 async function callSlackApi<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
+  const headers = new Headers(init?.headers);
+  headers.set("Content-Type", "application/json");
+  const response = await fetch(url, { ...init, headers });
   const body = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new Error(body.error ?? "Błąd komunikacji ze Slackiem.");
   return body;
@@ -204,9 +203,7 @@ export function useSlackTasks() {
         async () => {
           const data = await callSlackApi<SyncResponse>("/api/slack/sync", { method: "POST" });
 
-          const problem = (data.results ?? [])
-            .map((result) => result.error ?? result.first_error)
-            .find(Boolean);
+          const problem = (data.results ?? []).map((result) => result.error ?? result.first_error).find(Boolean);
           if (problem) throw new Error(problem);
 
           await refresh();

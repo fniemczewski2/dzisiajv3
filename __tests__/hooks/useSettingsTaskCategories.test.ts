@@ -22,7 +22,9 @@ const supabase = {
     upsert: (row: Record<string, unknown>) => {
       upserts.push(row);
       if (missingColumn && "task_categories" in row) {
-        return Promise.resolve({ error: { code: "PGRST204", message: "Could not find the 'task_categories' column of 'settings'" } });
+        return Promise.resolve({
+          error: { code: "PGRST204", message: "Could not find the 'task_categories' column of 'settings'" },
+        });
       }
       return Promise.resolve({ error: null });
     },
@@ -39,8 +41,13 @@ vi.mock("@/providers/ToastProvider", () => ({ useToast: () => toastValue }));
 vi.mock("@/hooks/useRetry", () => ({ useRetry: () => retry }));
 vi.mock("@/hooks/useAbortController", () => ({ useAbortController: () => abort }));
 vi.mock("@/lib/locationUtils", () => ({ requestSmartLocation: vi.fn() }));
+vi.mock("next/router", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
+import { createElement, type ReactNode } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
+import { SettingsProvider } from "@/providers/SettingsProvider";
+
+const wrapper = ({ children }: { children: ReactNode }) => createElement(SettingsProvider, null, children);
 
 beforeEach(() => {
   upserts.length = 0;
@@ -51,19 +58,23 @@ beforeEach(() => {
 
 describe("useSettings – task_categories", () => {
   it("wczytuje i zapisuje własne kategorie", async () => {
-    const { result } = renderHook(() => useSettings());
+    const { result } = renderHook(() => useSettings(), { wrapper });
     await waitFor(() => expect(result.current.settings.task_categories).toEqual(["Dom"]));
-    await act(async () => { await result.current.updateSettings({ task_categories: ["Dom", "Ogród"] }); });
+    await act(async () => {
+      await result.current.updateSettings({ task_categories: ["Dom", "Ogród"] });
+    });
     expect(upserts.at(-1)?.task_categories).toEqual(["Dom", "Ogród"]);
     expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("bez kolumny w bazie zapisuje resztę ustawień zamiast zgłaszać błąd", async () => {
     missingColumn = true;
-    const { result } = renderHook(() => useSettings());
+    const { result } = renderHook(() => useSettings(), { wrapper });
     await waitFor(() => expect(result.current.settings.task_categories).toEqual(["Dom"]));
     // Zapis kategorii na bazie bez kolumny: kolumna pominięta, reszta zapisana.
-    await act(async () => { await result.current.updateSettings({ task_categories: ["Dom", "Ogród"], show_completed: false }); });
+    await act(async () => {
+      await result.current.updateSettings({ task_categories: ["Dom", "Ogród"], show_completed: false });
+    });
     expect(upserts).toHaveLength(2);
     expect("task_categories" in upserts[1]).toBe(false);
     expect(upserts[1].show_completed).toBe(false);
@@ -72,17 +83,20 @@ describe("useSettings – task_categories", () => {
   });
 
   it("zapisuje tylko zmienione pola (inne sekcje i karty nie są nadpisywane)", async () => {
-    const { result } = renderHook(() => useSettings());
+    const { result } = renderHook(() => useSettings(), { wrapper });
     await waitFor(() => expect(result.current.settings.task_categories).toEqual(["Dom"]));
-    await act(async () => { await result.current.updateSettings({ sort_order: "alphabetical" }); });
+    await act(async () => {
+      await result.current.updateSettings({ sort_order: "alphabetical" });
+    });
     expect(upserts.at(-1)).toEqual({ user_id: "me", sort_order: "alphabetical" });
   });
 
-  it("instancje hooka widzą nawzajem swoje zapisy", async () => {
-    const a = renderHook(() => useSettings());
-    const b = renderHook(() => useSettings());
-    await waitFor(() => expect(b.result.current.settings.task_categories).toEqual(["Dom"]));
-    await act(async () => { await a.result.current.updateSettings({ sort_order: "alphabetical" }); });
-    expect(b.result.current.settings.sort_order).toBe("alphabetical");
+  it("wszystkie komponenty widzą ten sam stan (jedno źródło ustawień)", async () => {
+    const { result } = renderHook(() => ({ a: useSettings(), b: useSettings() }), { wrapper });
+    await waitFor(() => expect(result.current.b.settings.task_categories).toEqual(["Dom"]));
+    await act(async () => {
+      await result.current.a.updateSettings({ sort_order: "alphabetical" });
+    });
+    expect(result.current.b.settings.sort_order).toBe("alphabetical");
   });
 });

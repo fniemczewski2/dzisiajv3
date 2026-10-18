@@ -52,12 +52,14 @@ async function updateFieldsIndividually(
 ): Promise<void> {
   for (const field of fields) {
     try {
-      await updateItem(target.token, target.listId, itemId, [field]); // NOSONAR 
+      await updateItem(target.token, target.listId, itemId, [field]); // NOSONAR
     } catch (err) {
       if (!isFieldRejection(err)) throw err;
       console.warn(
         `[slack/sync] ${context}: Slack odrzucił kolumnę ${field.column_id} ` +
-          `(${Object.keys(field).filter((k) => k !== "column_id").join(", ")}): ` +
+          `(${Object.keys(field)
+            .filter((k) => k !== "column_id")
+            .join(", ")}): ` +
           `${(err as Error).message}`
       );
     }
@@ -79,21 +81,12 @@ export async function pushTask(
       return;
     } catch (err) {
       if (isFieldRejection(err)) {
-        await updateFieldsIndividually(
-          target,
-          link.item_id,
-          updateFields,
-          `zadanie ${task.id}`
-        );
+        await updateFieldsIndividually(target, link.item_id, updateFields, `zadanie ${task.id}`);
         await touchLink(admin, target, task.id, task);
         return;
       }
       if (!isMissingItemError(err)) throw err;
-      await admin
-        .from("slack_task_links")
-        .delete()
-        .eq("task_id", task.id)
-        .eq("list_id", target.listId);
+      await admin.from("slack_task_links").delete().eq("task_id", task.id).eq("list_id", target.listId);
     }
   }
 

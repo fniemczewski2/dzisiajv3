@@ -1,4 +1,4 @@
-﻿// components/notes/NoteList.tsx
+// components/notes/NoteList.tsx
 
 import React, { useState, useMemo } from "react";
 import { Search } from "lucide-react";
@@ -16,14 +16,6 @@ interface NoteListProps {
   onNotesChange: () => void;
 }
 
-const COLOR_MAP: { [key: string]: string } = {
-  "zinc-50":    "bg-zinc-50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-700/30",
-  "yellow-100": "bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/30",
-  "green-100":  "bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-700/30",
-  "cyan-100":   "bg-cyan-100 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700/30",
-  "red-100":    "bg-red-100 dark:bg-red-900/20 border-red-200 dark:border-red-700/30",
-};
-
 export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProps>) {
   const { deleteNote, editNote, togglePin, toggleArchive, loading } = useNotes();
   const { settings } = useSettings();
@@ -37,31 +29,25 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
       if (a.archived !== b.archived) {
         return a.archived ? 1 : -1;
       }
-      
+
       if (a.pinned !== b.pinned) {
         return a.pinned ? -1 : 1;
       }
       if (sortType === "alphabetical") {
         return (a.title || "").localeCompare(b.title || "", "pl");
       }
-      return (
-        new Date(b.updated_at || 0).getTime() -
-        new Date(a.updated_at || 0).getTime()
-      );
+      return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
     });
   }, [notes, settings?.sort_notes]);
 
-  const filteredNotes = useMemo(
-    () => filterNotes(sortedNotes, searchQuery),
-    [sortedNotes, searchQuery]
-  );
+  const filteredNotes = useMemo(() => filterNotes(sortedNotes, searchQuery), [sortedNotes, searchQuery]);
   const suggestions = useMemo(() => getNoteTitles(notes), [notes]);
 
   const resultsLabel = useMemo(() => {
     const n = filteredNotes.length;
     if (n === 0) return "Nie znaleziono notatek";
     if (n === 1) return "Znaleziono: 1 notatkę";
-    if (n < 5)  return `Znaleziono: ${n} notatki`;
+    if (n < 5) return `Znaleziono: ${n} notatki`;
     return `Znaleziono: ${n} notatek`;
   }, [filteredNotes.length]);
 
@@ -100,7 +86,8 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
   return (
     <div>
       <SearchBar
-        value={searchQuery} onChange={setSearchQuery}
+        value={searchQuery}
+        onChange={setSearchQuery}
         placeholder="Szukaj w notatkach…"
         suggestions={suggestions}
         resultsCount={searchQuery ? filteredNotes.length : undefined}
@@ -108,10 +95,8 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
         className="mb-6 max-w-md"
       />
 
-      <ul className="columns-1 sm:columns-2 lg:columns-3 gap-4 gap-y-2 mx-auto w-full">
-        {filteredNotes.length === 0 && 
-          <NoResultsState text="notatek"/>
-        }
+      <ul className="mx-auto w-full columns-1 gap-4 gap-y-2 sm:columns-2 lg:columns-3">
+        {filteredNotes.length === 0 && <NoResultsState text="notatek" />}
         {filteredNotes.map((note) => {
           if (editingId === note.id && editedNote) {
             return (
@@ -121,7 +106,6 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
                 onSave={handleSaveEdit}
                 onCancel={handleCancelEdit}
                 onChange={setEditedNote}
-                colorMap={COLOR_MAP}
                 loading={loading}
               />
             );
@@ -134,16 +118,15 @@ export default function NoteList({ notes, onNotesChange }: Readonly<NoteListProp
               onDelete={handleDelete}
               onTogglePin={handleTogglePin}
               onToggleArchive={handleToggleArchive}
-              colorMap={COLOR_MAP}
             />
           );
         })}
       </ul>
 
       {filteredNotes.length === 0 && searchQuery && (
-        <div className="text-center py-16 bg-surface border border-dashed border-gray-200 dark:border-gray-700 rounded-card mt-4">
-          <Search className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />
-          <p className="text-text-secondary font-medium">
+        <div className="mt-4 rounded-card border border-dashed border-line bg-surface py-16 text-center">
+          <Search className="mx-auto mb-4 h-12 w-12 text-text-muted opacity-50" />
+          <p className="font-medium text-text-secondary">
             <NoResultsState text="notatek" isSearch />
           </p>
         </div>

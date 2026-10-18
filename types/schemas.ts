@@ -25,7 +25,13 @@ export interface PlanItemData {
   id: string;
   title: string;
   type: PlanItemType;
-  data?: { category?: string | null; start_time?: string; end_time?: string | null; priority?: number; due_date?: string };
+  data?: {
+    category?: string | null;
+    start_time?: string;
+    end_time?: string | null;
+    priority?: number;
+    due_date?: string;
+  };
   /** Tylko dla type === "train" – bilet z user_trains. */
   train?: TrackedTrain;
 }

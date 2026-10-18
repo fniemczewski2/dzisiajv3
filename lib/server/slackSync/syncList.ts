@@ -73,7 +73,11 @@ async function pushUnlinkedTask(ctx: SyncTaskContext, task: TaskRow): Promise<vo
 
 type SyncDirection = ReturnType<typeof resolveDirection>;
 
-function effectiveDirection(direction: SyncDirection, pullEnabled: boolean, appChanged: boolean): SyncDirection | "none" {
+function effectiveDirection(
+  direction: SyncDirection,
+  pullEnabled: boolean,
+  appChanged: boolean
+): SyncDirection | "none" {
   if (pullEnabled || direction !== "pull") return direction;
   return appChanged ? "push" : "none";
 }
@@ -91,16 +95,8 @@ async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
 
   if (!item) {
     if (await itemExists(target.token, target.listId, link.item_id)) return;
-    await admin
-      .from("slack_task_links")
-      .delete()
-      .eq("task_id", task.id)
-      .eq("list_id", target.listId);
-    await admin
-      .from("slack_deleted_tasks")
-      .delete()
-      .eq("list_id", target.listId)
-      .eq("item_id", link.item_id);
+    await admin.from("slack_task_links").delete().eq("task_id", task.id).eq("list_id", target.listId);
+    await admin.from("slack_deleted_tasks").delete().eq("list_id", target.listId).eq("item_id", link.item_id);
 
     await pushTask(admin, target, task, columns, undefined);
     counters.recreated_in_slack += 1;
@@ -179,7 +175,9 @@ export async function buildAssigneeFilter(
   if (ids.size === 0) return () => false;
 
   return (item) => {
-    const field = item.fields?.find((f) => f.column_id === column.id || (column.key !== undefined && f.key === column.key));
+    const field = item.fields?.find(
+      (f) => f.column_id === column.id || (column.key !== undefined && f.key === column.key)
+    );
     return readUserIds(field).some((id) => ids.has(id));
   };
 }
@@ -221,10 +219,17 @@ export async function syncList(
   const linkedItemIds = new Set(links.map((l) => l.item_id));
 
   const taskCtx: SyncTaskContext = {
-    admin, target, columns, linkByTask, itemById, linkedAnywhere, targetListByTask, counters,
+    admin,
+    target,
+    columns,
+    linkByTask,
+    itemById,
+    linkedAnywhere,
+    targetListByTask,
+    counters,
   };
   for (const task of tasks) {
-    await processTaskSync(taskCtx, task); // NOSONAR 
+    await processTaskSync(taskCtx, task); // NOSONAR
   }
 
   const { data: pendingRows } = await admin
@@ -232,16 +237,14 @@ export async function syncList(
     .select("item_id")
     .eq("user_id", target.userId)
     .eq("list_id", target.listId);
-  const pendingDeletion = new Set(
-    (pendingRows ?? []).map((r) => (r as { item_id: string }).item_id)
-  );
+  const pendingDeletion = new Set((pendingRows ?? []).map((r) => (r as { item_id: string }).item_id));
 
   if (!target.pullEnabled) return counters;
 
   const accepts = await buildAssigneeFilter(target, columns);
   for (const item of items) {
     if (!accepts(item)) continue;
-    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters); // NOSONAR 
+    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters); // NOSONAR
   }
 
   return counters;

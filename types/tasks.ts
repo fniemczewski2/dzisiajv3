@@ -1,6 +1,6 @@
 // types/tasks.ts
 
-import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import type { RecurrenceRule } from "@/shared/recurrence";
 
 export interface Task {
   id: string;

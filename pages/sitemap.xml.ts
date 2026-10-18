@@ -1,5 +1,6 @@
-﻿// pages/sitemap.xml.ts
+// pages/sitemap.xml.ts
 
+import { CACHE_CONTROL } from "@/config/server";
 import type { GetServerSideProps } from "next";
 
 const BASE_URL = "https://dzisiaj.fun";
@@ -9,10 +10,10 @@ const STATIC_PAGES: Array<{
   priority: string;
   changefreq: string;
 }> = [
-  { url: "",         priority: "1.0", changefreq: "weekly"  },
-  { url: "/start",   priority: "0.9", changefreq: "monthly" },
-  { url: "/guide",   priority: "0.7", changefreq: "monthly" },
-  { url: "/privacy", priority: "0.3", changefreq: "yearly"  },
+  { url: "", priority: "1.0", changefreq: "weekly" },
+  { url: "/start", priority: "0.9", changefreq: "monthly" },
+  { url: "/guide", priority: "0.7", changefreq: "monthly" },
+  { url: "/privacy", priority: "0.3", changefreq: "yearly" },
 ];
 
 function generateSiteMap(): string {
@@ -39,10 +40,7 @@ ${urls}
 
 export const getServerSideProps: GetServerSideProps = ({ res }) => {
   res.setHeader("Content-Type", "text/xml; charset=utf-8");
-  res.setHeader(
-    "Cache-Control",
-    "public, s-maxage=86400, stale-while-revalidate"
-  );
+  res.setHeader("Cache-Control", CACHE_CONTROL.sitemap);
   res.write(generateSiteMap());
   res.end();
   return Promise.resolve({ props: {} });

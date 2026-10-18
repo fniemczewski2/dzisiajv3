@@ -2,10 +2,20 @@
 
 import React, { useMemo, memo } from "react";
 import { Event, PlacedEvent } from "@/types/events";
-import { MoodEntry, MoodOption } from "@/types/moods"
+import { MoodEntry, MoodOption } from "@/types/moods";
 import {
-  startOfMonth, endOfMonth, addDays, startOfWeek, endOfWeek,
-  isBefore, isAfter, max, min, differenceInCalendarDays, format, endOfDay,
+  startOfMonth,
+  endOfMonth,
+  addDays,
+  startOfWeek,
+  endOfWeek,
+  isBefore,
+  isAfter,
+  max,
+  min,
+  differenceInCalendarDays,
+  format,
+  endOfDay,
 } from "date-fns";
 import CalendarCell from "./CalendarCell";
 import { useResponsive } from "@/hooks/useResponsive";
@@ -42,7 +52,7 @@ const getSortedEventsForWeek = (events: Event[], weekStart: Date, weekEnd: Date)
     const bEnd = parseEventDate(b.end_time);
     const aSpan = differenceInCalendarDays(min([aEnd, weekEnd]), max([aStart, weekStart])) + 1;
     const bSpan = differenceInCalendarDays(min([bEnd, weekEnd]), max([bStart, weekStart])) + 1;
-    return bSpan - aSpan; 
+    return bSpan - aSpan;
   });
 };
 
@@ -80,9 +90,9 @@ const processWeekLayout = (week: Date[], events: Event[]) => {
 
   const sortedEvents = getSortedEventsForWeek(events, weekStart, weekEnd);
 
-  const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => new Array(3).fill(false));
+  const colOccupancy: boolean[][] = Array.from({ length: 7 }, () => Array.from({ length: 3 }, () => false));
   const limitedEvents: PlacedEvent[] = [];
-  const overflowCounts: number[] = new Array(7).fill(0);
+  const overflowCounts: number[] = Array.from({ length: 7 }, () => 0);
 
   for (const event of sortedEvents) {
     const start = parseEventDate(event.start_time);
@@ -116,16 +126,16 @@ const MonthView = memo(function MonthView({
 
   const { calendarStart, calendarEnd } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
-    const monthEnd   = endOfMonth(currentDate);
-    const calStart   = startOfWeek(monthStart, { weekStartsOn: 1 });
-    const calEnd     = endOfWeek(monthEnd,     { weekStartsOn: 1 });
+    const monthEnd = endOfMonth(currentDate);
+    const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+    const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
     return {
       monthStart,
       monthEnd,
       calendarStart: calStart,
       calendarEnd: calEnd,
       rangeStart: format(calStart, "yyyy-MM-dd"),
-      rangeEnd:   format(calEnd,   "yyyy-MM-dd"),
+      rangeEnd: format(calEnd, "yyyy-MM-dd"),
     };
   }, [currentDate]);
 
@@ -168,7 +178,9 @@ const MonthView = memo(function MonthView({
 
   const moodMap = useMemo(() => {
     const map: Record<string, MoodEntry> = {};
-    moods.forEach((m) => { map[m.date] = m; });
+    moods.forEach((m) => {
+      map[m.date] = m;
+    });
     return map;
   }, [moods]);
 
@@ -192,12 +204,16 @@ const MonthView = memo(function MonthView({
 
   return (
     <div className="space-y-0.5 sm:space-y-2">
-      <div className="grid grid-cols-7 text-center font-bold text-xs sm:text-sm text-text-muted pb-2 border-b border-gray-100 dark:border-gray-800">
-        {weekdayNamesPL.map((d) => <div key={d} className="py-1">{d}</div>)}
+      <div className="grid grid-cols-7 border-b border-line pb-2 text-center text-xs font-bold text-text-muted sm:text-sm">
+        {weekdayNamesPL.map((d) => (
+          <div key={d} className="py-1">
+            {d}
+          </div>
+        ))}
       </div>
 
       {weekData.map(({ week, limitedEvents, overflowCounts }) => (
-        <div key={`week-${week}`} className="relative">
+        <div key={`week-${week[0].toISOString()}`} className="relative">
           <div className="grid grid-cols-7 gap-0.5 sm:gap-2">
             {week.map((day) => {
               const dateStr = format(day, "yyyy-MM-dd");
@@ -221,11 +237,14 @@ const MonthView = memo(function MonthView({
           </div>
 
           {/* Paski są tylko wizualne: treść dnia ogłasza etykieta przycisku komórki. */}
-          <div aria-hidden="true" className="absolute top-8 sm:top-9.5 left-0 right-0 h-13.5 sm:h-15 grid grid-cols-7 grid-rows-3 gap-0.5 sm:gap-2 pointer-events-none">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-8 right-0 left-0 grid h-13.5 grid-cols-7 grid-rows-3 gap-0.5 sm:top-9.5 sm:h-15 sm:gap-2"
+          >
             {limitedEvents.map(({ event, col, span, row, start }) => (
               <div
                 key={`${event.id}-${start.toISOString()}`}
-                className="text-white text-xs font-medium rounded-md truncate h-4 sm:h-4.5 px-1.5 flex items-center dark:ring-1 dark:ring-white/15"
+                className="flex h-4 items-center truncate rounded-md px-1.5 text-xs font-medium text-white sm:h-4.5 dark:ring-1 dark:ring-white/15"
                 style={{
                   gridColumnStart: col + 1,
                   gridColumnEnd: `span ${span}`,

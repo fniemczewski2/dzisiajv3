@@ -62,10 +62,7 @@ export function validateReminders(values: readonly string[], now: Date = new Dat
 }
 
 /** Niewysłane przypomnienia zadania jako wartości pól formularza, od najwcześniejszego. */
-export async function fetchPendingReminders(
-  supabase: SupabaseClient,
-  taskId: string | number
-): Promise<string[]> {
+export async function fetchPendingReminders(supabase: SupabaseClient, taskId: string | number): Promise<string[]> {
   const { data, error } = await supabase
     .from("task_reminders")
     .select("remind_at")
@@ -103,9 +100,7 @@ export async function replacePendingReminders(
     .insert(iso.map((remind_at) => ({ task_id: taskId, user_id: userId, remind_at })));
   if (ins.error) {
     return {
-      error: ins.error.message.includes("najwyżej")
-        ? ins.error.message
-        : "Nie udało się zapisać przypomnień.",
+      error: ins.error.message.includes("najwyżej") ? ins.error.message : "Nie udało się zapisać przypomnień.",
     };
   }
   return { error: null };

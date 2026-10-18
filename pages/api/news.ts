@@ -6,12 +6,13 @@
 // Źródła i własne kanały czytamy z ustawień zalogowanego użytkownika – klient
 // nie może podać dowolnego adresu do pobrania (poza sprawdzeniem z kontrolą SSRF).
 
+import { RSS_LIMITS } from "@/config/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { RSS_SOURCES, normalizeCustomFeeds, resolveEnabledSources } from "@/config/rssSources";
 import { getFeed, checkPublicUrl } from "@/lib/server/rss";
-import { checkRateLimit } from "@/lib/server/rateLimit";
-import { mapPool } from "@/lib/asyncPool";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
+import { mapPool } from "@/shared/asyncPool";
 
 export interface NewsItem {
   sourceId: string;
@@ -26,17 +27,14 @@ export interface NewsResponse {
   status: Record<string, string | null>;
 }
 
-const MAX_ITEMS = 300;
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabase = createServerSupabase(req, res);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
 
-  if (!checkRateLimit(`news:${user.id}`, 20, 60_000)) {
-    res.setHeader("Retry-After", "60");
-    return res.status(429).json({ error: "Zbyt wiele odświeżeń. Spróbuj za minutę." });
-  }
+  if (!(await enforceRateLimit(res, "news", user.id, "Zbyt wiele odświeżeń. Spróbuj za minutę."))) return;
 
   if (req.method === "POST" && req.query.check === "1") {
     const url = typeof req.body?.url === "string" ? req.body.url.trim() : "";
@@ -51,7 +49,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data } = await supabase.from("settings").select("*").eq("user_id", user.id).maybeSingle();
   const custom = normalizeCustomFeeds(data?.rss_custom);
-  const enabled = new Set(resolveEnabledSources(data?.rss_sources, custom.map((c) => c.id)));
+  const enabled = new Set(
+    resolveEnabledSources(
+      data?.rss_sources,
+      custom.map((c) => c.id)
+    )
+  );
 
   const feeds = [
     ...RSS_SOURCES.filter((s) => enabled.has(s.id)).map((s) => ({ id: s.id, url: s.url, guard: false })),
@@ -71,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const sorted = items
     .toSorted((a, b) => (b.published ?? "").localeCompare(a.published ?? ""))
     .filter((i) => (seen.has(i.link) ? false : (seen.add(i.link), true)))
-    .slice(0, MAX_ITEMS);
+    .slice(0, RSS_LIMITS.maxItemsTotal);
 
   res.setHeader("Cache-Control", "private, max-age=300");
   return res.status(200).json({ items: sorted, status } satisfies NewsResponse);

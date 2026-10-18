@@ -5,7 +5,7 @@
 // miejsca w kodzie i eksport danych nadal coś rozumiały.
 
 import type { Task } from "@/types/tasks";
-import { normalizeRule, withMonthDay, type RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import { normalizeRule, withMonthDay, type RecurrenceRule } from "@/shared/recurrence";
 
 /** Odpowiednik reguły w starym polu „co N dni” – tylko tam, gdzie da się go wyrazić. */
 function legacyRepeatDays(rule: RecurrenceRule): number | null {
@@ -29,7 +29,9 @@ export function taskRecurrenceFields(rule: RecurrenceRule | null, dueDate?: stri
 }
 
 /** Reguła zadania: `recurrence`, a dla starszych zadań – co `repeat_days` dni. */
-export function taskRule(task: Pick<Task, "is_recurring" | "recurrence" | "repeat_days" | "recurring_until">): RecurrenceRule | null {
+export function taskRule(
+  task: Pick<Task, "is_recurring" | "recurrence" | "repeat_days" | "recurring_until">
+): RecurrenceRule | null {
   if (!task.is_recurring) return null;
   const rule = normalizeRule(task.recurrence);
   if (rule) return rule;

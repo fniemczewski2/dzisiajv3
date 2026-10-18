@@ -11,11 +11,26 @@ export default function DynamicPackingPage() {
   const listData = useMemo(() => {
     switch (id) {
       case "backpack":
-        return { pageTitle: "Plecak", headerTitle: "Plecak", description: "Lista rzeczy do spakowania do plecaka na krótki wyjazd – odhaczaj spakowane rzeczy.", categories: BACKPACK };
+        return {
+          pageTitle: "Plecak",
+          headerTitle: "Plecak",
+          description: "Lista rzeczy do spakowania do plecaka na krótki wyjazd – odhaczaj spakowane rzeczy.",
+          categories: BACKPACK,
+        };
       case "safety":
-        return { pageTitle: "Plecak bezpieczeństwa", headerTitle: "Plecak bezpieczeństwa", description: "Lista rzeczy do plecaka bezpieczeństwa na wypadek ewakuacji lub sytuacji kryzysowej.", categories: SAFETY };
+        return {
+          pageTitle: "Plecak bezpieczeństwa",
+          headerTitle: "Plecak bezpieczeństwa",
+          description: "Lista rzeczy do plecaka bezpieczeństwa na wypadek ewakuacji lub sytuacji kryzysowej.",
+          categories: SAFETY,
+        };
       case "suitcase":
-        return { pageTitle: "Walizka", headerTitle: "Walizka", description: "Lista rzeczy do spakowania do walizki na dłuższy wyjazd – odhaczaj spakowane rzeczy.", categories: SUITCASE };
+        return {
+          pageTitle: "Walizka",
+          headerTitle: "Walizka",
+          description: "Lista rzeczy do spakowania do walizki na dłuższy wyjazd – odhaczaj spakowane rzeczy.",
+          categories: SUITCASE,
+        };
       case undefined:
         return null;
       default:
@@ -39,9 +54,9 @@ export default function DynamicPackingPage() {
         canonical={`https://dzisiaj.fun/packing/${String(router.query.id ?? "")}`}
         noindex={true}
       />
-      <PackingList 
-        headerTitle={listData.headerTitle} 
-        categories={listData.categories} 
+      <PackingList
+        headerTitle={listData.headerTitle}
+        categories={listData.categories}
         onBack={() => router.push("/packing")}
       />
     </>

@@ -1,4 +1,4 @@
-﻿// types/streaks.ts
+// types/streaks.ts
 
 export interface Streak {
   id: string;

@@ -1,14 +1,14 @@
 // hooks/useWeather.ts
 
-import { useState, useEffect } from 'react';
-import { WeatherData, WeatherState, AirQualityData } from '@/types/weather';
-import { requestSmartLocation } from '@/lib/locationUtils';
+import { useState, useEffect } from "react";
+import { WeatherData, WeatherState, AirQualityData } from "@/types/weather";
+import { requestSmartLocation } from "@/lib/locationUtils";
 
 export function useWeather() {
   const [state, setState] = useState<WeatherState>({
     forecast: null,
     air: null,
-    loading: true, 
+    loading: true,
     error: null,
   });
 
@@ -17,11 +17,11 @@ export function useWeather() {
     const controller = new AbortController();
     const { signal } = controller;
 
-    if (typeof window === 'undefined' || !navigator?.geolocation) {
-      setState(prev => ({ 
-        ...prev, 
-        loading: false, 
-        error: "Geolokalizacja nie jest wspierana w tym środowisku." 
+    if (typeof window === "undefined" || !navigator?.geolocation) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Geolokalizacja nie jest wspierana w tym środowisku.",
       }));
       return;
     }
@@ -29,66 +29,68 @@ export function useWeather() {
     requestSmartLocation({
       maxAgeMs: 30 * 60 * 1000,
       highAccuracy: false,
-      onSuccess: async ({ coords }) => {
-        try {
-          const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
-          forecastUrl.searchParams.set("latitude", coords.latitude.toString());
-          forecastUrl.searchParams.set("longitude", coords.longitude.toString());
-          forecastUrl.searchParams.set("current_weather", "true");
-          forecastUrl.searchParams.set(
-            "hourly",
-            "temperature_2m,precipitation,windspeed_10m,uv_index,weathercode,pressure_msl,relative_humidity_2m,winddirection_10m"
-          );
-          forecastUrl.searchParams.set(
-            "daily",
-            "apparent_temperature_min,apparent_temperature_max,temperature_2m_max,temperature_2m_min,weathercode,uv_index_max,sunrise,sunset,precipitation_sum"
-          );
-          forecastUrl.searchParams.set("timezone", "auto");
-          forecastUrl.searchParams.set("forecast_days", "6");
+      onSuccess: ({ coords }) => {
+        void (async () => {
+          try {
+            const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+            forecastUrl.searchParams.set("latitude", coords.latitude.toString());
+            forecastUrl.searchParams.set("longitude", coords.longitude.toString());
+            forecastUrl.searchParams.set("current_weather", "true");
+            forecastUrl.searchParams.set(
+              "hourly",
+              "temperature_2m,precipitation,windspeed_10m,uv_index,weathercode,pressure_msl,relative_humidity_2m,winddirection_10m"
+            );
+            forecastUrl.searchParams.set(
+              "daily",
+              "apparent_temperature_min,apparent_temperature_max,temperature_2m_max,temperature_2m_min,weathercode,uv_index_max,sunrise,sunset,precipitation_sum"
+            );
+            forecastUrl.searchParams.set("timezone", "auto");
+            forecastUrl.searchParams.set("forecast_days", "6");
 
-          const airUrl = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
-          airUrl.searchParams.set("latitude", coords.latitude.toString());
-          airUrl.searchParams.set("longitude", coords.longitude.toString());
-          airUrl.searchParams.set("hourly", "pm10,pm2_5");
-          airUrl.searchParams.set("timezone", "auto");
+            const airUrl = new URL("https://air-quality-api.open-meteo.com/v1/air-quality");
+            airUrl.searchParams.set("latitude", coords.latitude.toString());
+            airUrl.searchParams.set("longitude", coords.longitude.toString());
+            airUrl.searchParams.set("hourly", "pm10,pm2_5");
+            airUrl.searchParams.set("timezone", "auto");
 
-          const [forecastRes, airRes] = await Promise.all([
-            fetch(forecastUrl.toString(), { signal }),
-            fetch(airUrl.toString(), { signal }),
-          ]);
+            const [forecastRes, airRes] = await Promise.all([
+              fetch(forecastUrl.toString(), { signal }),
+              fetch(airUrl.toString(), { signal }),
+            ]);
 
-          if (!isMounted) return;
+            if (!isMounted) return;
 
-          if (!forecastRes.ok || !airRes.ok) {
-            throw new Error("Brak danych pogodowych!");
+            if (!forecastRes.ok || !airRes.ok) {
+              throw new Error("Brak danych pogodowych!");
+            }
+
+            const forecastJson = (await forecastRes.json()) as WeatherData;
+            const airJson = (await airRes.json()) as AirQualityData;
+
+            if (isMounted) {
+              setState({
+                forecast: forecastJson,
+                air: airJson,
+                loading: false,
+                error: null,
+              });
+            }
+          } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") return;
+
+            if (isMounted) {
+              setState((prev) => ({
+                ...prev,
+                loading: false,
+                error: "Błąd pobierania danych pogodowych lub jakości powietrza.",
+              }));
+            }
           }
-
-          const forecastJson = (await forecastRes.json()) as WeatherData;
-          const airJson = (await airRes.json()) as AirQualityData;
-
-          if (isMounted) {
-            setState({
-              forecast: forecastJson,
-              air: airJson,
-              loading: false,
-              error: null,
-            });
-          }
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') return; 
-          
-          if (isMounted) {
-            setState(prev => ({
-              ...prev,
-              loading: false,
-              error: "Błąd pobierania danych pogodowych lub jakości powietrza.",
-            }));
-          }
-        }
+        })();
       },
       onError: () => {
         if (isMounted) {
-          setState(prev => ({ ...prev, loading: false, error: "Nie można uzyskać lokalizacji." }));
+          setState((prev) => ({ ...prev, loading: false, error: "Nie można uzyskać lokalizacji." }));
         }
       },
     });

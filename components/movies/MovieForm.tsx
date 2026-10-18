@@ -33,14 +33,24 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { title: "", genre: "", rating: "", platform: "", description: "", mediaType: "movie" };
 
-type TmdbMeta = Pick<NewMovieData, "tmdb_id" | "poster_path" | "release_year" | "seasons_count" | "episodes_count" | "series_status">;
-const EMPTY_META: TmdbMeta = { tmdb_id: null, poster_path: null, release_year: null, seasons_count: null, episodes_count: null, series_status: null };
+type TmdbMeta = Pick<
+  NewMovieData,
+  "tmdb_id" | "poster_path" | "release_year" | "seasons_count" | "episodes_count" | "series_status"
+>;
+const EMPTY_META: TmdbMeta = {
+  tmdb_id: null,
+  poster_path: null,
+  release_year: null,
+  seasons_count: null,
+  episodes_count: null,
+  series_status: null,
+};
 
 export function MediaTypeBadge({ type }: Readonly<{ type: MediaType }>) {
   const Icon = type === "tv" ? Tv : Film;
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-bold px-1.5 py-0.5 rounded-lg bg-surface border border-gray-200 dark:border-gray-700 text-text-secondary">
-      <Icon className="w-3 h-3" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-1.5 py-0.5 text-xs font-bold text-text-secondary">
+      <Icon className="h-3 w-3" aria-hidden="true" />
       {MEDIA_TYPE_LABELS[type]}
     </span>
   );
@@ -156,10 +166,12 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
 
   return (
     <form onSubmit={handleSubmit} className="form-card mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-4">
         <div className="md:col-span-2">
-          <label htmlFor="new-movie-title" className="form-label">Tytuł:</label>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <label htmlFor="new-movie-title" className="form-label">
+            Tytuł:
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               id="new-movie-title"
               type="text"
@@ -168,7 +180,10 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               value={form.title}
               onChange={(e) => onTitleChange(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !meta.tmdb_id) { e.preventDefault(); void runSearch(); }
+                if (e.key === "Enter" && !meta.tmdb_id) {
+                  e.preventDefault();
+                  void runSearch();
+                }
               }}
               className="input-field flex-1"
               placeholder="Np. Moonlight albo Wiedźmin"
@@ -177,80 +192,123 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
               type="button"
               onClick={runSearch}
               disabled={fetching || !form.title.trim()}
-              className="px-4 py-2 bg-surface hover:bg-surface-hover text-text shadow border border-gray-200 dark:border-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 whitespace-nowrap text-text shadow transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {fetching ? <><Loader2 className="w-4 h-4 animate-spin" /> Szukam...</> : <>Szukaj w TMDB <Search className="w-4 h-4" /></>}
+              {fetching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Szukam...
+                </>
+              ) : (
+                <>
+                  Szukaj w TMDB <Search className="h-4 w-4" />
+                </>
+              )}
             </button>
           </div>
 
           <fieldset className="mt-2 flex flex-wrap gap-1.5">
             <legend className="sr-only">Czego szukać</legend>
             {FILTERS.map((f) => (
-              <label key={f.value}
-                className={`cursor-pointer px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
+              <label
+                key={f.value}
+                className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-colors ${
                   filter === f.value
-                    ? "bg-secondary text-white border-primary"
-                    : "bg-surface text-text-secondary border-gray-200 dark:border-gray-700 hover:text-text"
-                }`}>
-                <input type="radio" name="tmdb-filter" value={f.value} checked={filter === f.value}
-                  onChange={() => { setFilter(f.value); setOptions([]); }} className="sr-only" />
+                    ? "border-primary bg-secondary text-white"
+                    : "border-line bg-surface text-text-secondary hover:text-text"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="tmdb-filter"
+                  value={f.value}
+                  checked={filter === f.value}
+                  onChange={() => {
+                    setFilter(f.value);
+                    setOptions([]);
+                  }}
+                  className="sr-only"
+                />
                 {f.label}
               </label>
             ))}
           </fieldset>
 
-          {tmdbError && <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">{tmdbError}</p>}
+          {tmdbError && <p className="mt-2 text-sm font-medium text-danger">{tmdbError}</p>}
         </div>
 
         {options.length > 0 && (
-          <div className="md:col-span-2 bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+          <div className="rounded-lg border border-line bg-surface p-3 md:col-span-2">
             <p className="form-label">Wybierz z wyników ({options.length}):</p>
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-2 scrollbar-thin">
+            <div className="max-h-72 scrollbar-thin space-y-2 overflow-y-auto pr-2">
               {options.map((r) => {
                 const img = posterUrl(r.posterPath, "w92");
                 return (
-                  <button key={`${r.mediaType}-${r.tmdbId}`} type="button" onClick={() => selectResult(r)}
+                  <button
+                    key={`${r.mediaType}-${r.tmdbId}`}
+                    type="button"
+                    onClick={() => selectResult(r)}
                     disabled={fetching}
-                    className="w-full text-left p-3 card hover:bg-surface-hover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60">
+                    className="card w-full rounded-lg p-3 text-left transition-colors hover:bg-surface-hover focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-60"
+                  >
                     <div className="flex gap-3">
                       {img ? (
-                        <Image src={img} alt="" loading="lazy" width={48} height={72}
-                          className="w-12 h-18 object-cover rounded-lg shadow-sm shrink-0" />
+                        <Image
+                          src={img}
+                          alt=""
+                          loading="lazy"
+                          width={48}
+                          height={72}
+                          className="h-18 w-12 shrink-0 rounded-lg object-cover shadow-sm"
+                        />
                       ) : (
-                        <div className="w-12 h-18 rounded-lg bg-surface-hover shrink-0 flex items-center justify-center text-text-muted" aria-hidden="true">
-                          {r.mediaType === "tv" ? <Tv className="w-5 h-5" /> : <Film className="w-5 h-5" />}
+                        <div
+                          className="flex h-18 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-text-muted"
+                          aria-hidden="true"
+                        >
+                          {r.mediaType === "tv" ? <Tv className="h-5 w-5" /> : <Film className="h-5 w-5" />}
                         </div>
                       )}
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <MediaTypeBadge type={r.mediaType} />
                           <p className="font-semibold text-text">
                             {r.title}
-                            {r.year && <span className="text-text-muted font-normal"> ({r.year})</span>}
+                            {r.year && <span className="font-normal text-text-muted"> ({r.year})</span>}
                           </p>
                         </div>
-                        {r.rating && <p className="text-sm text-accent mt-0.5">{r.rating.toFixed(1)}/10</p>}
-                        {r.overview && <p className="text-xs text-text-secondary mt-1 line-clamp-2">{r.overview}</p>}
+                        {r.rating && <p className="mt-0.5 text-sm text-accent">{r.rating.toFixed(1)}/10</p>}
+                        {r.overview && <p className="mt-1 line-clamp-2 text-xs text-text-secondary">{r.overview}</p>}
                       </div>
                     </div>
                   </button>
                 );
               })}
             </div>
-            <button type="button" onClick={() => setOptions([])}
-              className="mt-3 text-sm font-medium text-text-muted hover:text-text transition-colors">
+            <button
+              type="button"
+              onClick={() => setOptions([])}
+              className="mt-3 text-sm font-medium text-text-muted transition-colors hover:text-text"
+            >
               Zamknij wyniki
             </button>
           </div>
         )}
 
         {meta.tmdb_id && (
-          <div className="md:col-span-2 flex items-center gap-3 p-3 rounded-lg bg-surface border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 rounded-lg border border-line bg-surface p-3 md:col-span-2">
             {selectedPoster && (
-              <Image src={selectedPoster} alt="" width={40} height={60} className="w-10 h-15 object-cover rounded-lg shrink-0" />
+              <Image
+                src={selectedPoster}
+                alt=""
+                width={40}
+                height={60}
+                className="h-15 w-10 shrink-0 rounded-lg object-cover"
+              />
             )}
-            <div className="text-xs text-text-secondary space-y-0.5">
-              <p className="font-bold text-text">Uzupełniono z TMDB{meta.release_year ? ` · ${meta.release_year}` : ""}</p>
+            <div className="space-y-0.5 text-xs text-text-secondary">
+              <p className="font-bold text-text">
+                Uzupełniono z TMDB{meta.release_year ? ` · ${meta.release_year}` : ""}
+              </p>
               {form.mediaType === "tv" && (meta.seasons_count || meta.series_status) && (
                 <p>
                   {meta.seasons_count ? `${meta.seasons_count} ${pluralSeasons(meta.seasons_count)}` : ""}
@@ -263,34 +321,76 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
         )}
 
         <div>
-          <label htmlFor="new-movie-type" className="form-label">Typ:</label>
-          <select id="new-movie-type" value={form.mediaType}
-            onChange={(e) => update("mediaType", e.target.value as MediaType)} className="input-field">
+          <label htmlFor="new-movie-type" className="form-label">
+            Typ:
+          </label>
+          <select
+            id="new-movie-type"
+            value={form.mediaType}
+            onChange={(e) => update("mediaType", e.target.value as MediaType)}
+            className="input-field"
+          >
             <option value="movie">Film</option>
             <option value="tv">Serial</option>
           </select>
         </div>
         <div>
-          <label htmlFor="new-movie-rating" className="form-label">Ocena (0-10):</label>
-          <input id="new-movie-rating" type="number" step="0.1" min="0" max="10" value={form.rating}
-            onChange={(e) => update("rating", e.target.value)} className="input-field" placeholder="7.5" />
+          <label htmlFor="new-movie-rating" className="form-label">
+            Ocena (0-10):
+          </label>
+          <input
+            id="new-movie-rating"
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            value={form.rating}
+            onChange={(e) => update("rating", e.target.value)}
+            className="input-field"
+            placeholder="7.5"
+          />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="new-movie-genre" className="form-label">Gatunek:</label>
-          <input id="new-movie-genre" type="text" value={form.genre} maxLength={200}
-            onChange={(e) => update("genre", e.target.value)} className="input-field" placeholder="Np. Dramat, Romans" />
+          <label htmlFor="new-movie-genre" className="form-label">
+            Gatunek:
+          </label>
+          <input
+            id="new-movie-genre"
+            type="text"
+            value={form.genre}
+            maxLength={200}
+            onChange={(e) => update("genre", e.target.value)}
+            className="input-field"
+            placeholder="Np. Dramat, Romans"
+          />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="new-movie-platform" className="form-label">Dostępność:</label>
-          <input id="new-movie-platform" type="text" value={form.platform} maxLength={300}
-            onChange={(e) => update("platform", e.target.value)} className="input-field"
-            placeholder="Np. Netflix, HBO Max (wypełni się automatycznie)" />
+          <label htmlFor="new-movie-platform" className="form-label">
+            Dostępność:
+          </label>
+          <input
+            id="new-movie-platform"
+            type="text"
+            value={form.platform}
+            maxLength={300}
+            onChange={(e) => update("platform", e.target.value)}
+            className="input-field"
+            placeholder="Np. Netflix, HBO Max (wypełni się automatycznie)"
+          />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="new-movie-description" className="form-label">Opis:</label>
-          <textarea id="new-movie-description" value={form.description} maxLength={5000}
-            onChange={(e) => update("description", e.target.value)} className="input-field" rows={3}
-            placeholder={form.mediaType === "tv" ? "Krótki opis serialu..." : "Krótki opis filmu..."} />
+          <label htmlFor="new-movie-description" className="form-label">
+            Opis:
+          </label>
+          <textarea
+            id="new-movie-description"
+            value={form.description}
+            maxLength={5000}
+            onChange={(e) => update("description", e.target.value)}
+            className="input-field"
+            rows={3}
+            placeholder={form.mediaType === "tv" ? "Krótki opis serialu..." : "Krótki opis filmu..."}
+          />
         </div>
       </div>
       <FormButtons onClickClose={onCancel} loading={loading} />

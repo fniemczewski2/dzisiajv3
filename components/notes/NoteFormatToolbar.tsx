@@ -28,7 +28,7 @@ export default function NoteFormatToolbar({ textareaRef, disabled }: Readonly<No
     "p-1.5 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
-    <div className="flex items-center gap-1 p-1 rounded-lg bg-surface border border-gray-200 dark:border-gray-800 w-fit">
+    <div className="flex w-fit items-center gap-1 rounded-lg border border-line bg-surface p-1">
       <button
         type="button"
         disabled={disabled}
@@ -37,7 +37,7 @@ export default function NoteFormatToolbar({ textareaRef, disabled }: Readonly<No
         title="Pogrubienie"
         className={buttonClass}
       >
-        <Bold className="w-4 h-4" />
+        <Bold className="h-4 w-4" />
       </button>
       <button
         type="button"
@@ -47,7 +47,7 @@ export default function NoteFormatToolbar({ textareaRef, disabled }: Readonly<No
         title="Lista punktowana"
         className={buttonClass}
       >
-        <List className="w-4 h-4" />
+        <List className="h-4 w-4" />
       </button>
       <button
         type="button"
@@ -57,7 +57,7 @@ export default function NoteFormatToolbar({ textareaRef, disabled }: Readonly<No
         title="Lista numerowana"
         className={buttonClass}
       >
-        <ListOrdered className="w-4 h-4" />
+        <ListOrdered className="h-4 w-4" />
       </button>
     </div>
   );

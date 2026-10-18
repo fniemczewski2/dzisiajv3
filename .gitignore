@@ -1,57 +1,35 @@
-# Dependencies
+# Zależności
 node_modules/
 
-# Next.js build output
+# Build Next.js
 .next/
 out/
 build/
-.next/trace
-.next/cache/webpack/client-development/index.pack.gz
-.next/*
 
-# Local env files
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Zmienne środowiskowe (szablon .env.example jest w repozytorium)
 .env*
 !.env.example
 
-# Supabase CLI artifacts (if using supabase locally)
+# Supabase CLI – lokalny stan (ref projektu, host poolera)
 .supabase/
+supabase/.temp/
+# Migracje nie są wersjonowane od 1.38.7 – zob. supabase/README.md
+supabase/migrations
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
+# Logi
 *.log
 
-# Editor directories and files
+# Edytory i system
 .vscode/
 .idea/
-
-# OS files
+*.sublime-workspace
+*.sublime-project
 .DS_Store
 Thumbs.db
 
-# TypeScript build cache
+# TypeScript i testy
 *.tsbuildinfo
-
-# Coverage
 coverage/
 
-# Optional editor-specific files
-*.sublime-workspace
-*.sublime-project
-
-.next/trace
-public/workbox-4754cb34.js
-public/workbox-cb477421.js
-public/workbox-c2c0676f.js
-public/workbox-f1770938.js
-next-env.d.ts
-
-# Supabase CLI – lokalny stan linkowania (ref projektu, host poolera)
-supabase/.temp/
+# Notatki lokalne
 AUDYT.md
-supabase/migrations

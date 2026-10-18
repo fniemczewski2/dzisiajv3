@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { currentTrainStop, formatHm, relativeStopTime } from "@/lib/trainPlan";
 
 const train = { date: "2026-09-29", departureTime: "14:10", from: "Poznań Główny", to: "Warszawa Centralna" };
-const live = { departurePlatform: "4", departureDelay: 10, arrivalPlatform: "2", arrivalDelay: 15, plannedArrival: "16:55" };
+const live = {
+  departurePlatform: "4",
+  departureDelay: 10,
+  arrivalPlatform: "2",
+  arrivalDelay: 15,
+  plannedArrival: "16:55",
+};
 const at = (hm: string, day = 29) => {
   const [h, m] = hm.split(":").map(Number);
   return new Date(2026, 8, day, h, m);

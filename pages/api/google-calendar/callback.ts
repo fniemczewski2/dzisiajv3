@@ -1,5 +1,6 @@
-﻿// pages/api/google-calendar/callback.ts
+// pages/api/google-calendar/callback.ts
 
+import { serverEnv } from "@/config/env";
 import { NextApiRequest, NextApiResponse } from "next";
 import { handleOAuthCallback } from "@/lib/server/oauthCallback";
 import { GOOGLE_TOKEN_URL } from "@/lib/server/oauthTokens";
@@ -11,10 +12,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     tokenUrl: GOOGLE_TOKEN_URL,
     profileUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
     calendarName: "Połączenie Google",
-    buildClientCredentials: () => ({
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    buildClientCredentials: () => {
+      const { clientId, clientSecret } = serverEnv.google.require();
+      return { client_id: clientId, client_secret: clientSecret };
+    },
     extractEmail: (profile) => profile.email as string | undefined,
   });
 }

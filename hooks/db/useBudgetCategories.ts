@@ -1,5 +1,6 @@
 // hooks/db/useBudgetCategories.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory } from "@/types/bills";
@@ -23,8 +24,7 @@ export function useBudgetCategories(year: number) {
 
   const fetchCategories = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
     const signal = getSignal();
     setFetching(true);
@@ -58,10 +58,13 @@ export function useBudgetCategories(year: number) {
   }, [fetchCategories, userId]);
 
   const addCategory = useCallback(
-    async (payload: { name: string; monthly_amounts: number[]; is_monthly: boolean }): Promise<BudgetCategory | undefined> => {
+    async (payload: {
+      name: string;
+      monthly_amounts: number[];
+      is_monthly: boolean;
+    }): Promise<BudgetCategory | undefined> => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       if (categories.length >= MAX_CATEGORIES) {
         toast.error(`Maksymalnie ${MAX_CATEGORIES} kategorii budżetu.`);
@@ -117,8 +120,7 @@ export function useBudgetCategories(year: number) {
       updates: Partial<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">>
     ): Promise<void> => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const previous = categories;
@@ -143,8 +145,7 @@ export function useBudgetCategories(year: number) {
   const deleteCategory = useCallback(
     async (id: string): Promise<void> => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const ok = await toast.confirm(`Czy chcesz usunąć kategorię?`);
       if (!ok) return;
@@ -171,8 +172,7 @@ export function useBudgetCategories(year: number) {
   const reorderCategories = useCallback(
     async (reordered: BudgetCategory[]): Promise<void> => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const previous = categories;
       setCategories(reordered);
@@ -202,8 +202,7 @@ export function useBudgetCategories(year: number) {
   const seedDefaults = useCallback(
     async (defaults: Array<{ name: string; monthly_amounts: number[]; is_monthly: boolean }>): Promise<void> => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       try {
@@ -253,7 +252,9 @@ export function useBudgetCategories(year: number) {
           return 0;
         }
         const offset = categories.length;
-        const rows = (source as Array<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">>).map((c, i) => ({
+        const rows = (
+          source as Array<Pick<BudgetCategory, "name" | "monthly_amounts" | "is_monthly" | "sort_order">>
+        ).map((c, i) => ({
           user_id: userId,
           year,
           name: c.name,

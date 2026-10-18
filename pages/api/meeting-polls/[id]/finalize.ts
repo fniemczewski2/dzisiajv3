@@ -1,19 +1,13 @@
 // pages/api/meeting-polls/[id]/finalize.ts
 
+import { MAX_SLOTS_PER_FINALIZE } from "@/config/limits";
 import { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { generateTimeSlots } from "@/lib/meetingPollGrid";
 import { validateFinalizeSlot, type FinalizeSlotValidated } from "@/lib/sanitize";
 import type { FinalizeRequest, FinalizeResponse, FinalizeResultSlot } from "@/types/meetingPolls";
-import { mapPool } from "@/lib/asyncPool";
-
-const MAX_SLOTS_PER_FINALIZE = 20;
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
+import { mapPool } from "@/shared/asyncPool";
 
 interface FinalizeContext {
   user: { id: string };
@@ -38,7 +32,10 @@ async function loadFinalizeContext(req: NextApiRequest, res: NextApiResponse): P
   }
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     res.status(401).json({ error: "Brak autoryzacji." });
     return null;
@@ -120,12 +117,10 @@ async function inviteParticipants(
   await mapPool(ctx.responses, 5, async (response) => {
     if (!response.user_id || response.user_id === ctx.user.id) return;
 
-    const isFullyAvailable = requiredTimes.every((t) =>
-      ctx.availabilitySet.has(`${response.id}|${slot.date}|${t}`)
-    );
+    const isFullyAvailable = requiredTimes.every((t) => ctx.availabilitySet.has(`${response.id}|${slot.date}|${t}`));
     if (!isFullyAvailable) return;
 
-    const { data: participantEvent, error: participantEventError } = await supabaseAdmin
+    const { data: participantEvent, error: participantEventError } = await supabaseAdmin()
       .from("events")
       .insert({
         user_id: response.user_id,
@@ -221,7 +216,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (failure !== null) {
     if (created.length > 0) {
-      await supabaseAdmin.from("events").delete().in("id", created);
+      await supabaseAdmin().from("events").delete().in("id", created);
     }
     await ctx.supabase.from("meeting_polls").update({ finalized_at: null }).eq("id", ctx.poll.id);
     return res.status(500).json({ error: failure });

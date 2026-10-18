@@ -33,6 +33,7 @@ triggerami na `auth.users` oraz listą wykrytych problemów bezpieczeństwa
 ## Krok 2: przegląd i pierwsza migracja
 
 Po wyciągnięciu schematu (metodą A lub B) należy sprawdzić:
+
 - czy nazwy kolumn są konsekwentnie `snake_case`,
 - czy typy danych są dopasowane (np. `timestamptz` zamiast `text` na daty,
   `numeric` zamiast `float8` na kwoty pieniężne, `uuid` na klucze obce do

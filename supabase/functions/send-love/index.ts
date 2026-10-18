@@ -1,12 +1,7 @@
 // supabase/functions/send-love/index.ts
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
+import { json, preflight } from "../_shared/auth.ts";
 
 const LOVE_LIMIT = 5;
 const LOVE_WINDOW_MINUTES = 10;
@@ -16,9 +11,7 @@ const NOT_DELIVERABLE = {
   message: "Nie można wysłać serduszka. Upewnij się, że ta osoba też ma Cię na liście zaufanych.",
 };
 
-function respond(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
-}
+const respond = json;
 
 function normalizeEmails(list: unknown): string[] {
   if (!Array.isArray(list)) return [];
@@ -28,7 +21,7 @@ function normalizeEmails(list: unknown): string[] {
     .filter(Boolean);
 }
 
-type Client = ReturnType<typeof createClient>;
+type Client = SupabaseClient;
 
 async function readTrustedEmails(admin: Client, userId: string): Promise<string[]> {
   const { data, error } = await admin.from("settings").select("users").eq("user_id", userId).maybeSingle();
@@ -50,7 +43,12 @@ async function isRateLimited(admin: Client, userId: string): Promise<boolean> {
 
 type RecipientResult = { ok: true; userId: string } | { ok: false; body: Record<string, unknown> };
 
-async function resolveRecipient(admin: Client, asSender: Client, senderId: string, senderEmail: string): Promise<RecipientResult> {
+async function resolveRecipient(
+  admin: Client,
+  asSender: Client,
+  senderId: string,
+  senderEmail: string
+): Promise<RecipientResult> {
   const recipientEmail = (await readTrustedEmails(admin, senderId))[0];
   if (!recipientEmail) return { ok: false, body: { success: false, message: "Brak odbiorców" } };
   if (recipientEmail === senderEmail) return { ok: false, body: NOT_DELIVERABLE };
@@ -65,9 +63,7 @@ async function resolveRecipient(admin: Client, asSender: Client, senderId: strin
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return preflight();
   if (req.method !== "POST") return respond({ error: "Metoda niedozwolona." }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -81,7 +77,10 @@ Deno.serve(async (req) => {
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
   try {
-    const { data: { user }, error: userError } = await admin.auth.getUser(jwt);
+    const {
+      data: { user },
+      error: userError,
+    } = await admin.auth.getUser(jwt);
     if (userError || !user?.email) return respond({ error: "Brak autoryzacji." }, 401);
     const senderEmail = user.email.toLowerCase();
 
@@ -127,13 +126,11 @@ Deno.serve(async (req) => {
       console.error("[send-love] send-push failed:", await pushRes.text());
     }
 
-    await admin
-      .channel(`love_channel_${targetUserId}`)
-      .send({
-        type: "broadcast",
-        event: "love_received",
-        payload: { message: "Ktoś przesłał Ci serduszko!" },
-      });
+    await admin.channel(`love_channel_${targetUserId}`).send({
+      type: "broadcast",
+      event: "love_received",
+      payload: { message: "Ktoś przesłał Ci serduszko!" },
+    });
 
     return respond({ success: true, message: "Wysłano serduszko" });
   } catch (error) {

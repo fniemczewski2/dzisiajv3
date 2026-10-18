@@ -4,26 +4,14 @@ export const SLACK_API_BASE = "https://slack.com/api";
 export const SLACK_AUTHORIZE_URL = "https://slack.com/oauth/v2/authorize";
 export const SLACK_STATE_COOKIE = "slack_oauth_state";
 export const SLACK_STATE_TTL_SECONDS = 600;
-export const SLACK_USER_SCOPES = [
-  "lists:read",
-  "lists:write",
-  "files:read",
-  "users:read",
-  "users:read.email",
-] as const;
+export const SLACK_USER_SCOPES = ["lists:read", "lists:write", "files:read", "users:read", "users:read.email"] as const;
 
 export const SLACK_REQUEST_TIMEOUT_MS = 15_000;
 export const SLACK_ITEMS_PAGE_SIZE = 100;
 export const SLACK_RATE_LIMIT_RETRIES = 2;
 export const SLACK_RATE_LIMIT_MAX_WAIT_MS = 20_000;
 
-export const SLACK_MAPPABLE_TASK_FIELDS = [
-  "title",
-  "description",
-  "due_date",
-  "priority",
-  "status",
-] as const;
+export const SLACK_MAPPABLE_TASK_FIELDS = ["title", "description", "due_date", "priority", "status"] as const;
 
 export type SlackMappableTaskField = (typeof SLACK_MAPPABLE_TASK_FIELDS)[number];
 
@@ -87,10 +75,7 @@ export function withExtraFieldsBlock(
   const base = stripExtraFieldsBlock(baseDescription);
   if (extras.length === 0) return base;
 
-  const block = [
-    SLACK_EXTRA_FIELDS_SEPARATOR,
-    ...extras.map((extra) => `${extra.name}: ${extra.value}`),
-  ].join("\n");
+  const block = [SLACK_EXTRA_FIELDS_SEPARATOR, ...extras.map((extra) => `${extra.name}: ${extra.value}`)].join("\n");
 
   return base ? `${base}\n\n${block}` : block;
 }
@@ -100,7 +85,6 @@ export const SLACK_PULL_EXCLUDED_FIELDS: readonly SlackMappableTaskField[] = [];
 export const TASK_STATUSES = ["pending", "done", "waiting_for_acceptance"] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const DEFAULT_TASK_STATUS: TaskStatus = "pending";
-
 
 const STATUS_SYNONYMS: Record<TaskStatus, string[]> = {
   done: ["done", "completed", "complete", "finished", "closed", "zrobione", "gotowe", "ukończone"],
@@ -117,7 +101,10 @@ const STATUS_SYNONYMS: Record<TaskStatus, string[]> = {
 };
 
 function canonical(value: string): string {
-  return value.trim().toLowerCase().replaceAll(/[\s-]+/g, "_");
+  return value
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[\s-]+/g, "_");
 }
 
 export function normalizeTaskStatus(raw: string | null | undefined): TaskStatus | null {

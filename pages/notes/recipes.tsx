@@ -35,7 +35,7 @@ export default function RecipesPage() {
         canonical="https://dzisiaj.fun/notes/recipes"
         keywords="przepisy kulinarne, gotowanie, książka kucharska, jedzenie"
       />
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title">Przepisy</h1>
         {!showForm && <AddButton onClick={() => setShowForm(true)} />}
       </div>

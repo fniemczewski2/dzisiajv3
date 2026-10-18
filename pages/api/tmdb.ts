@@ -1,5 +1,6 @@
 // pages/api/tmdb.ts
 
+import { serverEnv } from "@/config/env";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -39,10 +40,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) return res.status(401).json({ error: "Brak autoryzacji." });
 
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = serverEnv.tmdbApiKey;
   if (!apiKey) return res.status(500).json({ error: "Brak zmiennej środowiskowej TMDB_API_KEY" });
 
   const { path, ...queryParams } = req.query;

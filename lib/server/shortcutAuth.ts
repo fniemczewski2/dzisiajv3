@@ -23,10 +23,7 @@ export async function resolveShortcutUser(admin: SupabaseClient, token: string):
     .maybeSingle<{ user_id: string }>();
   if (error || !data) return null;
 
-  await admin
-    .from("shortcut_tokens")
-    .update({ last_used_at: new Date().toISOString() })
-    .eq("user_id", data.user_id);
+  await admin.from("shortcut_tokens").update({ last_used_at: new Date().toISOString() }).eq("user_id", data.user_id);
 
   return data.user_id;
 }

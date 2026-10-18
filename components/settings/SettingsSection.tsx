@@ -94,7 +94,7 @@ export default function SettingsSection<K extends keyof Settings>({
             type="button"
             onClick={restoreDefaults}
             disabled={isDefault || saving}
-            className="flex min-h-11 items-center gap-2 px-2 text-sm font-medium text-text-secondary hover:underline disabled:opacity-40 disabled:no-underline"
+            className="flex min-h-11 items-center gap-2 px-2 text-sm font-medium text-text-secondary hover:underline disabled:no-underline disabled:opacity-40"
           >
             <RotateCcw className="h-4 w-4" aria-hidden="true" /> Domyślne w tej sekcji
           </button>

@@ -1,4 +1,4 @@
-﻿// types/meetingPolls.ts
+// types/meetingPolls.ts
 
 export type MeetingPollStatus = "open" | "closed";
 export const MEETING_POLL_SLOT_DURATIONS = [15, 30, 60] as const;
@@ -16,7 +16,7 @@ export interface MeetingPoll {
   status: MeetingPollStatus;
   created_at: string;
   updated_at: string;
-  closes_at: string | null; 
+  closes_at: string | null;
 }
 
 export interface MeetingPollDate {

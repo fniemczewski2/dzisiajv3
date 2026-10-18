@@ -28,9 +28,9 @@ function heatClass(count: number, total: number): string {
   if (total === 0 || count === 0) return "bg-surface text-text-muted";
   const ratio = count / total;
   if (ratio >= 0.99) return "bg-secondary text-white";
-  if (ratio >= 0.66) return "bg-blue-300 text-navy dark:bg-blue-700 dark:text-white";
-  if (ratio >= 0.33) return "bg-blue-200 text-navy dark:bg-blue-800 dark:text-blue-50";
-  return "bg-blue-100 text-navy dark:bg-blue-900 dark:text-blue-100";
+  if (ratio >= 0.66) return "bg-info-line text-text";
+  if (ratio >= 0.33) return "bg-info-soft text-text";
+  return "bg-info-soft text-text-secondary";
 }
 
 function CellContent({ personMode, free, count }: Readonly<{ personMode: boolean; free: boolean; count: number }>) {
@@ -39,7 +39,7 @@ function CellContent({ personMode, free, count }: Readonly<{ personMode: boolean
 }
 
 function cellTone(inSelection: boolean, personMode: boolean, free: boolean, count: number, total: number): string {
-  if (inSelection) return "bg-amber-400 text-navy";
+  if (inSelection) return "bg-warning-line text-text";
   if (personMode) return free ? "bg-accent text-white dark:text-background" : "bg-surface";
   return heatClass(count, total);
 }
@@ -65,11 +65,11 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
           <span>Zaznaczona dostępność</span>
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="h-4 w-4 rounded-lg bg-surface ring-1 ring-inset ring-line-strong" />
+          <span className="h-4 w-4 rounded-lg bg-surface ring-1 ring-line-strong ring-inset" />
           <span>Brak zaznaczenia</span>
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="h-4 w-4 rounded-lg bg-amber-400" />
+          <span className="h-4 w-4 rounded-lg bg-warning-line" />
           <span>Wybrany zakres</span>
         </li>
       </ul>
@@ -78,20 +78,20 @@ export function GridLegend({ personMode }: Readonly<{ personMode: boolean }>) {
   return (
     <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-text-secondary" aria-label="Legenda">
       <li className="flex items-center gap-1.5">
-        <span className="h-4 w-4 rounded-lg bg-surface ring-1 ring-inset ring-line-strong" />
+        <span className="h-4 w-4 rounded-lg bg-surface ring-1 ring-line-strong ring-inset" />
         <span>Nikt</span>
       </li>
       <li className="flex items-center gap-1.5">
         <span className="flex gap-0.5" aria-hidden="true">
-          <span className="h-4 w-3 rounded-l bg-blue-100 dark:bg-blue-900" />
-          <span className="h-4 w-3 bg-blue-200 dark:bg-blue-800" />
-          <span className="h-4 w-3 bg-blue-300 dark:bg-blue-700" />
+          <span className="h-4 w-3 rounded-l bg-info-soft" />
+          <span className="h-4 w-3 bg-info-soft" />
+          <span className="h-4 w-3 bg-info-line" />
           <span className="h-4 w-3 rounded-r bg-secondary" />
         </span>
         <span>Im ciemniej, tym więcej osób</span>
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="h-4 w-4 rounded-lg bg-amber-400" />
+        <span className="h-4 w-4 rounded-lg bg-warning-line" />
         <span>Wybrany zakres</span>
       </li>
     </ul>
@@ -122,7 +122,7 @@ export default function MeetingPollGrid({
         </caption>
         <thead>
           <tr>
-            <th scope="col" className="sticky left-0 top-0 z-30 bg-card p-1">
+            <th scope="col" className="sticky top-0 left-0 z-30 bg-card p-1">
               <span className="sr-only">Godzina</span>
             </th>
             {dates.map((date) => {
@@ -131,10 +131,10 @@ export default function MeetingPollGrid({
                 <th
                   scope="col"
                   key={date}
-                  className="sticky top-0 z-20 min-w-14 bg-card px-1 pb-2 pt-1 text-center font-normal"
+                  className="sticky top-0 z-20 min-w-14 bg-card px-1 pt-1 pb-2 text-center font-normal"
                 >
                   <span className="block text-xs leading-none text-text-muted">{weekday}</span>
-                  <span className="mt-1 block text-sm font-semibold leading-none text-text tabular-nums">{day}</span>
+                  <span className="mt-1 block text-sm leading-none font-semibold text-text tabular-nums">{day}</span>
                 </th>
               );
             })}
@@ -147,7 +147,7 @@ export default function MeetingPollGrid({
               <tr key={time}>
                 <th
                   scope="row"
-                  className={`sticky left-0 z-10 bg-card py-0 pr-2 text-right text-xs tabular-nums whitespace-nowrap ${
+                  className={`sticky left-0 z-10 bg-card py-0 pr-2 text-right text-xs whitespace-nowrap tabular-nums ${
                     isHour ? "font-semibold text-text-secondary" : "font-normal text-text-muted"
                   }`}
                 >
@@ -180,7 +180,7 @@ export default function MeetingPollGrid({
                         }`}
                         aria-pressed={inSelection}
                         className={`flex h-9 w-full min-w-14 cursor-pointer items-center justify-center text-xs font-semibold tabular-nums transition-colors hover:brightness-95 dark:hover:brightness-110 ${tone} ${
-                          isAnchor ? "ring-2 ring-inset ring-navy dark:ring-white" : ""
+                          isAnchor ? "ring-2 ring-text ring-inset" : ""
                         }`}
                       >
                         <CellContent personMode={personMode} free={free} count={count} />

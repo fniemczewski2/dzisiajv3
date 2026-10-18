@@ -9,8 +9,8 @@ import { AddButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
 
 export default function ShoppingPage() {
-
-  const { lists, loading, fetching, addShoppingList, editShoppingList, updateElements, deleteShoppingList } = useShoppingLists();
+  const { lists, loading, fetching, addShoppingList, editShoppingList, updateElements, deleteShoppingList } =
+    useShoppingLists();
   const [showForm, setShowForm] = useState(false);
 
   const openNew = () => {
@@ -25,37 +25,37 @@ export default function ShoppingPage() {
         canonical="https://dzisiaj.fun/notes/shopping"
         keywords="zakupy, lista zakupów, planowanie zakupów, sprawunki"
       />
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="page-title">
-            Listy zakupów
-          </h1>
-          {!showForm && <AddButton onClick={openNew} />}
-        </div>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="page-title">Listy zakupów</h1>
+        {!showForm && <AddButton onClick={openNew} />}
+      </div>
 
-        {showForm && (
-          <div className="mb-6">
-            <ShoppingForm
-              loading={loading}
-              addShoppingList={addShoppingList}
-              onChange={() => setShowForm(false)}
-              onCancel={() => setShowForm(false)}
-            />
-          </div>
-        )}
-        
-        {fetching && lists.length === 0 ? (
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 3 }).map((_, i) => <SkeletonShoppingList key={i} />)}
-          </div>
-        ) : (
-          <ShoppingListView
-            lists={lists}
-            editShoppingList={editShoppingList}
-            updateElements={updateElements}
-            deleteShoppingList={deleteShoppingList}
+      {showForm && (
+        <div className="mb-6">
+          <ShoppingForm
             loading={loading}
+            addShoppingList={addShoppingList}
+            onChange={() => setShowForm(false)}
+            onCancel={() => setShowForm(false)}
           />
-        )}
+        </div>
+      )}
+
+      {fetching && lists.length === 0 ? (
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonShoppingList key={i} />
+          ))}
+        </div>
+      ) : (
+        <ShoppingListView
+          lists={lists}
+          editShoppingList={editShoppingList}
+          updateElements={updateElements}
+          deleteShoppingList={deleteShoppingList}
+          loading={loading}
+        />
+      )}
     </>
   );
 }

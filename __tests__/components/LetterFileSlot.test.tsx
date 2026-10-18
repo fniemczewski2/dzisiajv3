@@ -23,9 +23,7 @@ describe("FileSlot preview (regression: noopener/noreferrer nulling window.open)
     const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWindow as unknown as Window);
     getLetterFileUrl.mockResolvedValue("https://example.supabase.co/storage/v1/object/sign/letters/foo.pdf?token=abc");
 
-    render(
-      <FileSlot label="Pismo" path="user/letter.pdf" letterId="letter-1" category="UDIP" kind="letter" />
-    );
+    render(<FileSlot label="Pismo" path="user/letter.pdf" letterId="letter-1" category="UDIP" kind="letter" />);
 
     await userEvent.click(screen.getByRole("button", { name: /podgląd/i }));
 
@@ -41,9 +39,7 @@ describe("FileSlot preview (regression: noopener/noreferrer nulling window.open)
     vi.spyOn(window, "open").mockReturnValue(fakeWindow as unknown as Window);
     getLetterFileUrl.mockResolvedValue(null);
 
-    render(
-      <FileSlot label="Pismo" path="user/letter.pdf" letterId="letter-1" category="UDIP" kind="letter" />
-    );
+    render(<FileSlot label="Pismo" path="user/letter.pdf" letterId="letter-1" category="UDIP" kind="letter" />);
 
     await userEvent.click(screen.getByRole("button", { name: /podgląd/i }));
 

@@ -1,15 +1,12 @@
-﻿// hooks/db/useMeetingPolls.ts
+// hooks/db/useMeetingPolls.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useCrudResource } from "./useCrudResource";
 import { pollAutoCloseAt } from "@/lib/meetingPollDeadline";
-import {
-  MEETING_POLL_TASK_CATEGORY,
-  MEETING_POLL_TASK_TITLE,
-  MEETING_POLL_TASK_PRIORITY,
-} from "@/config/tasks";
+import { MEETING_POLL_TASK_CATEGORY, MEETING_POLL_TASK_TITLE, MEETING_POLL_TASK_PRIORITY } from "@/config/tasks";
 import type {
   MeetingPoll,
   MeetingPollStatus,
@@ -44,7 +41,7 @@ export function useMeetingPolls() {
 
   const createPoll = useCallback(
     async (payload: MeetingPollInsert): Promise<MeetingPoll | undefined> => {
-      if (!userId) throw new Error("Unauthorized");
+      if (!userId) throw new NotSignedInError();
       if (payload.dates.length === 0) {
         toast.error("Wybierz przynajmniej jeden dzień.");
         return undefined;
@@ -108,10 +105,7 @@ export function useMeetingPolls() {
    */
   const setPollStatus = useCallback(
     async (id: string, status: MeetingPollStatus): Promise<void> => {
-      const patch =
-        status === "open"
-          ? { status, closes_at: pollAutoCloseAt().toISOString() }
-          : { status };
+      const patch = status === "open" ? { status, closes_at: pollAutoCloseAt().toISOString() } : { status };
 
       const { data, error } = await supabase
         .from("meeting_polls")
@@ -121,9 +115,7 @@ export function useMeetingPolls() {
         .single();
 
       if (error || !data) {
-        toast.error(
-          status === "open" ? "Nie udało się otworzyć ankiety." : "Nie udało się zamknąć ankiety."
-        );
+        toast.error(status === "open" ? "Nie udało się otworzyć ankiety." : "Nie udało się zamknąć ankiety.");
         return;
       }
 

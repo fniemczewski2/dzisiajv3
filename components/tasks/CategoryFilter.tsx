@@ -28,7 +28,13 @@ export default function CategoryFilter({ categories, colors, value, onChange }: 
               : "border-line-strong bg-card text-text-secondary hover:border-text-muted hover:text-text"
           }`}
         >
-          {color && <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full ring-1 ring-card" style={{ backgroundColor: color }} />}
+          {color && (
+            <span
+              aria-hidden="true"
+              className="h-2.5 w-2.5 rounded-full ring-1 ring-card"
+              style={{ backgroundColor: color }}
+            />
+          )}
           {label}
         </button>
       </li>
@@ -36,10 +42,10 @@ export default function CategoryFilter({ categories, colors, value, onChange }: 
   };
 
   return (
-    <fieldset className="min-w-0 -mx-3 mb-6 sm:mx-0">
-<legend className="sr-only">Filtruj po kategorii</legend>
+    <fieldset className="-mx-3 mb-6 min-w-0 sm:mx-0">
+      <legend className="sr-only">Filtruj po kategorii</legend>
 
-      <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 scrollbar-thin">
+      <ul className="flex scrollbar-thin gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0">
         {chip("wszystkie", null)}
         {categories.map((c) => chip(c, c))}
       </ul>

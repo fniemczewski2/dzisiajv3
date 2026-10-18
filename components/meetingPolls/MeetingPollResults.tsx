@@ -1,5 +1,6 @@
 // components/meetingPolls/MeetingPollResults.tsx
 
+import { useOrigin } from "@/hooks/useIsClient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarCheck2,
@@ -39,7 +40,7 @@ import MeetingPollRespondents, { initialsOf } from "./MeetingPollRespondents";
 import MeetingPollGrid, { GridLegend, type GridSelection } from "./MeetingPollGrid";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
 
-import { mapPool } from "@/lib/asyncPool";
+import { mapPool } from "@/shared/asyncPool";
 import { exportEventToCalendar, calendarTargetLabel } from "@/lib/calendarExport";
 interface MeetingPollResultsProps {
   pollId: string;
@@ -47,10 +48,13 @@ interface MeetingPollResultsProps {
 
 /** Imiona osób dostępnych w każdym terminie (klucz: slotKey). */
 function respondentNamesBySlot(
-  data: {
-    responses: readonly { id: string; respondent_name: string }[];
-    availabilities: readonly { response_id: string; date: string; start_time: string }[];
-  } | null | undefined
+  data:
+    | {
+        responses: readonly { id: string; respondent_name: string }[];
+        availabilities: readonly { response_id: string; date: string; start_time: string }[];
+      }
+    | null
+    | undefined
 ): Record<string, string[]> {
   const map: Record<string, string[]> = {};
   if (!data) return map;
@@ -192,14 +196,14 @@ function PersonSummary({
               const { weekday, day } = formatPollDay(date);
               return (
                 <li key={date} className="flex flex-wrap items-baseline gap-x-4 gap-y-1.5 py-2.5 first:pt-0 last:pb-0">
-                  <span className="w-24 shrink-0 whitespace-nowrap text-sm font-semibold text-text tabular-nums">
+                  <span className="w-24 shrink-0 text-sm font-semibold whitespace-nowrap text-text tabular-nums">
                     {weekday} {day}
                   </span>
                   <span className="flex flex-wrap gap-1.5">
                     {dayRanges.map((range) => (
                       <span
                         key={range.start}
-                        className="rounded-lg bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 tabular-nums dark:bg-green-900/50 dark:text-green-200"
+                        className="rounded-lg bg-success-soft px-2 py-0.5 text-xs font-semibold text-success tabular-nums"
                       >
                         {range.start}–{range.end}
                       </span>
@@ -239,8 +243,8 @@ function BestRangesCard({
         Najlepsze terminy
       </h2>
       <p className="mt-0.5 text-sm text-text-secondary">
-        {everyone ? "W tych terminach dostępni są wszyscy uczestnicy." : `Najwięcej osób naraz: ${count} z ${total}.`} Kliknij,
-        aby wybrać termin.
+        {everyone ? "W tych terminach dostępni są wszyscy uczestnicy." : `Najwięcej osób naraz: ${count} z ${total}.`}{" "}
+        Kliknij, aby wybrać termin.
       </p>
       <ul className="mt-3 flex flex-wrap gap-2">
         {ranges.map((range) => {
@@ -253,7 +257,9 @@ function BestRangesCard({
                 className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line-strong bg-card px-3 py-1.5 text-sm font-semibold text-text tabular-nums transition-colors hover:border-primary hover:bg-surface"
               >
                 {weekday} {day} · {range.start}–{range.end}
-                <span className="text-xs font-normal text-text-muted">{formatDurationMinutes(range.slots * slotDurationMinutes)}</span>
+                <span className="text-xs font-normal text-text-muted">
+                  {formatDurationMinutes(range.slots * slotDurationMinutes)}
+                </span>
               </button>
             </li>
           );
@@ -274,7 +280,7 @@ function PeopleChips({ label, people, tone }: Readonly<{ label: string; people: 
             key={p.id}
             className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
               tone === "free"
-                ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200"
+                ? "bg-success-soft text-success"
                 : "bg-surface text-text-secondary line-through decoration-text-muted/60"
             }`}
           >
@@ -299,7 +305,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [finalizing, setFinalizing] = useState(false);
   const [finalizedResults, setFinalizedResults] = useState<FinalizeResultSlot[] | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
-  const [origin, setOrigin] = useState("");
+  const origin = useOrigin();
 
   const [calendarOptions, setCalendarOptions] = useState<ConnectedCalendarOption[]>([]);
 
@@ -345,10 +351,6 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   }, []);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  useEffect(() => {
     let cancelled = false;
     setLoadingResults(true);
     void getPollResults(pollId).then((res) => {
@@ -379,7 +381,8 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   }, [user?.id, supabase]);
 
   useEffect(() => {
-    if (selection) panelRef.current?.scrollIntoView?.({ block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    if (selection)
+      panelRef.current?.scrollIntoView?.({ block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [selection]);
 
   const times = useMemo(
@@ -413,10 +416,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const totalResponses = data?.responses.length ?? 0;
   const duration = data?.poll.slot_duration_minutes ?? 30;
 
-  const focused = useMemo(
-    () => data?.responses.find((r) => r.id === focusedId) ?? null,
-    [data, focusedId]
-  );
+  const focused = useMemo(() => data?.responses.find((r) => r.id === focusedId) ?? null, [data, focusedId]);
   const personSlots = useMemo(
     () => (focused ? (slotsByResponse.get(focused.id) ?? new Set<string>()) : null),
     [focused, slotsByResponse]
@@ -497,7 +497,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       const results = await finalizePoll(pollId, pendingSlots);
       if (!results) return;
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         await mapPool(pendingSlots, 3, async (slot, i) => {
           const result = results[i];
@@ -518,7 +520,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   }
   if (!data) {
     return (
-      <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800/60 dark:bg-red-900/30 dark:text-red-200">
+      <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm text-danger">
         Nie udało się wczytać wyników ankiety.
       </p>
     );
@@ -533,6 +535,13 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <h1 className="page-title text-xl sm:text-2xl">{data.poll.title}</h1>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+              isOpen ? "border-success-line bg-success-soft text-success" : "border-line bg-surface text-text-secondary"
+            }`}
+          >
+            {isOpen ? "Przyjmuje odpowiedzi" : "Zamknięta"}
+          </span>
         </div>
         {data.poll.description && <p className="max-w-2xl text-sm text-text-secondary">{data.poll.description}</p>}
         <ul className="flex flex-wrap gap-2">
@@ -595,7 +604,11 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             )
           )}
 
-          <section ref={gridRef} aria-labelledby="grid-heading" className="card max-w-none space-y-3 rounded-card p-4 sm:p-5">
+          <section
+            ref={gridRef}
+            aria-labelledby="grid-heading"
+            className="card max-w-none space-y-3 rounded-card p-4 sm:p-5"
+          >
             <div className="space-y-1">
               <h2 id="grid-heading" className="font-display text-lg font-bold text-text">
                 {focused ? `Dostępność: ${focused.respondent_name}` : "Dostępność zespołu"}
@@ -654,7 +667,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
           </div>
 
           <div>
-            <label htmlFor="slot-title" className="form-label">Tytuł wydarzenia:</label>
+            <label htmlFor="slot-title" className="form-label">
+              Tytuł wydarzenia:
+            </label>
             <input
               id="slot-title"
               type="text"
@@ -667,7 +682,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4">
             <div>
-              <label htmlFor="slot-place" className="form-label">Miejsce:</label>
+              <label htmlFor="slot-place" className="form-label">
+                Miejsce:
+              </label>
               <input
                 id="slot-place"
                 type="text"
@@ -677,7 +694,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
               />
             </div>
             <div>
-              <label htmlFor="slot-calendar" className="form-label">Dodaj do:</label>
+              <label htmlFor="slot-calendar" className="form-label">
+                Dodaj do:
+              </label>
               <select
                 id="slot-calendar"
                 value={slotCalendar}
@@ -697,14 +716,21 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
 
           <div className="flex items-center gap-2">
             <SaveButton onClick={addSelectionToPending} disabled={!slotTitle.trim()} />
-            <CancelButton onClick={() => { setSelection(null); setRangeAnchor(null); }} />
+            <CancelButton
+              onClick={() => {
+                setSelection(null);
+                setRangeAnchor(null);
+              }}
+            />
           </div>
         </section>
       )}
 
       {pendingSlots.length > 0 && (
         <section aria-labelledby="pending-heading" className="form-card max-w-none space-y-3">
-          <h2 id="pending-heading" className="font-display text-lg font-bold text-text">Ustalone terminy</h2>
+          <h2 id="pending-heading" className="font-display text-lg font-bold text-text">
+            Ustalone terminy
+          </h2>
           <ul className="space-y-1.5">
             {pendingSlots.map((s, i) => (
               <li key={`${s.date}-${s.start_time}`} className="flex items-center justify-between gap-2 text-sm">
@@ -712,7 +738,12 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
                   <span className="font-semibold text-text">{s.title}</span> – {s.date}, {s.start_time}–{s.end_time}
                   <span className="text-text-muted"> • {calendarLabel(s.calendarChoice)}</span>
                 </span>
-                <IconActionButton onClick={() => removePending(i)} Icon={Trash2} title="Usuń z listy" variant="danger" />
+                <IconActionButton
+                  onClick={() => removePending(i)}
+                  Icon={Trash2}
+                  title="Usuń z listy"
+                  variant="danger"
+                />
               </li>
             ))}
           </ul>

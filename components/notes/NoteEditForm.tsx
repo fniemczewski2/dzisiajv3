@@ -1,9 +1,11 @@
-﻿// components/notes/NoteEditForm.tsx
+// components/notes/NoteEditForm.tsx
 
+import { noteColorClass } from "@/config/noteColors";
 import React, { useRef, useEffect, KeyboardEvent } from "react";
 import clsx from "clsx";
 import { Note } from "@/types/notes";
-import { FormButtons } from "../ui/CommonButtons";
+import { FormButtons } from "@/components/ui/CommonButtons";
+import NoteColorPicker from "@/components/notes/NoteColorPicker";
 import NoteFormatToolbar from "./NoteFormatToolbar";
 import { normalizeNoteLine } from "@/lib/notesUtils";
 import { handleListContinuation } from "@/lib/noteEditing";
@@ -13,22 +15,12 @@ interface NoteEditFormProps {
   onSave: (note: Note) => void;
   onCancel: () => void;
   onChange: (note: Note) => void;
-  colorMap: { [key: string]: string };
   loading: boolean;
 }
 
-export default function NoteEditForm({
-  note,
-  onSave,
-  onCancel,
-  onChange,
-  colorMap,
-  loading
-}: Readonly<NoteEditFormProps>) {
+export default function NoteEditForm({ note, onSave, onCancel, onChange, loading }: Readonly<NoteEditFormProps>) {
   const titleRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<HTMLTextAreaElement>(null);
-
-  const tailwindColors = Object.keys(colorMap);
 
   useEffect(() => {
     if (titleRef.current) titleRef.current.focus();
@@ -40,10 +32,7 @@ export default function NoteEditForm({
       return;
     }
 
-    const normalizedItems = itemsRef.current.value
-      .split("\n")
-      .map(normalizeNoteLine)
-      .filter(Boolean);
+    const normalizedItems = itemsRef.current.value.split("\n").map(normalizeNoteLine).filter(Boolean);
 
     onSave({ ...note, items: normalizedItems });
   };
@@ -56,25 +45,30 @@ export default function NoteEditForm({
   };
 
   return (
-    <li className={clsx(
-        "break-inside-avoid border-2 py-4 px-5 my-2 sm:m-3 max-w-sm min-w-[300px] rounded-card shadow-lg flex flex-col max-h-fit transition-colors",
-        note.bg_color === "zinc-50" ? "card" : colorMap[note.bg_color]
+    <li
+      className={clsx(
+        "my-2 flex max-h-fit max-w-sm min-w-[300px] break-inside-avoid flex-col rounded-card border-2 px-5 py-4 shadow-lg transition-colors sm:m-3",
+        noteColorClass(note.bg_color)
       )}
     >
       <div className="space-y-4">
         <div>
-        <label className="form-label" htmlFor="title">Tytuł:</label>
-        <input 
-            id="title" 
-            ref={titleRef} 
+          <label className="form-label" htmlFor="title">
+            Tytuł:
+          </label>
+          <input
+            id="title"
+            ref={titleRef}
             type="text"
             value={note.title}
             onChange={(e) => onChange({ ...note, title: e.target.value })}
-            className="input-field bg-white/50 dark:bg-black/20 font-medium"
+            className="input-field bg-card/60 font-medium"
           />
         </div>
         <div>
-          <label className="form-label" htmlFor="desc">Treść:</label>
+          <label className="form-label" htmlFor="desc">
+            Treść:
+          </label>
           <div className="mb-2">
             <NoteFormatToolbar textareaRef={itemsRef} disabled={loading} />
           </div>
@@ -84,32 +78,15 @@ export default function NoteEditForm({
             onKeyDown={handleTextareaKeyDown}
             defaultValue={note.items.join("\n")}
             placeholder="Notatka… linki wklejone w tekście stają się klikalne automatycznie"
-            className="input-field bg-white/50 dark:bg-black/20 h-32"
+            className="input-field h-32 bg-card/60"
           />
         </div>
-        <div className="bg-white/50 dark:bg-black/20 p-2 rounded-xl border border-black/5 dark:border-white/5">
-          <span className="block text-xs font-bold text-text-muted mb-2 pl-1">
-            Kolor tła
-          </span>
-          <div className="flex gap-3 items-center px-1">
-            {tailwindColors.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => onChange({ ...note, bg_color: color })}
-                className={clsx(
-                  "w-7 h-7 rounded-full border-2 transition-all shadow-sm",
-                  note.bg_color === color
-                    ? "border-primary ring-2 ring-primary ring-offset-2 dark:ring-offset-card scale-110"
-                    : "border-black/10 dark:border-white/10 hover:scale-110",
-                  colorMap[color].split(" ")[0] 
-                )}
-                title={`Wybierz kolor`}
-              />
-            ))}
-          </div>
-        </div>
-          <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} />
+        <NoteColorPicker
+          value={note.bg_color}
+          onChange={(bg_color) => onChange({ ...note, bg_color })}
+          disabled={loading}
+        />
+        <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} />
       </div>
     </li>
   );

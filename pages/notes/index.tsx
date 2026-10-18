@@ -31,46 +31,37 @@ export default function NotesPage() {
         canonical="https://dzisiaj.fun/notes"
         keywords="notatki, second brain, baza wiedzy, zapiski, notatnik online"
       />
-        <div className="flex justify-between items-center mb-6 gap-2">
-          <div className="flex flex-row items-center gap-3 sm:gap-4">
-            <h1 className="page-title">
-              Notatki
-            </h1>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <button
-                onClick={() => router.push("/notes/movies")}
-                type='button'
-                title="Filmy i seriale"
-                className="p-2 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-xl text-text-secondary hover:text-text hover:bg-surface-hover transition-colors shadow-sm"
-              >
-                <Clapperboard className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
+      <div className="mb-6 flex items-center justify-between gap-2">
+        <div className="flex flex-row items-center gap-3 sm:gap-4">
+          <h1 className="page-title">Notatki</h1>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => router.push("/notes/movies")}
+              type="button"
+              title="Filmy i seriale"
+              className="rounded-xl border border-line bg-surface p-2 text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
+            >
+              <Clapperboard className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
           </div>
-          
-          {!showForm && <AddButton onClick={openNew}/>}
         </div>
-        
-        {showForm && (
-          <div className="mb-6 animate-in fade-in slide-in-from-top-4">
-            <NoteForm
-              onChange={() => {
-                void fetchNotes();
-                setShowForm(false);
-              }}
-              onCancel={() => setShowForm(false)}
-            />
-          </div>
-        )}
 
-        {fetching ? (
-          <SkeletonList count={6} variant="card" />
-        ) : (
-          <NoteList
-            notes={notes}
-            onNotesChange={fetchNotes}
+        {!showForm && <AddButton onClick={openNew} />}
+      </div>
+
+      {showForm && (
+        <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+          <NoteForm
+            onChange={() => {
+              void fetchNotes();
+              setShowForm(false);
+            }}
+            onCancel={() => setShowForm(false)}
           />
-        )}
+        </div>
+      )}
+
+      {fetching ? <SkeletonList count={6} variant="card" /> : <NoteList notes={notes} onNotesChange={fetchNotes} />}
     </>
   );
 }

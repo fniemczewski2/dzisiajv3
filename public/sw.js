@@ -1,11 +1,17 @@
 // public/sw.js
+//
+// Service worker: pamięć podręczna wyłącznie dla zasobów aplikacji (skrypty,
+// style, obrazy, strony). Danych użytkownika z Supabase NIE zapisujemy –
+// kopię do pracy offline trzyma IndexedDB z kluczami per konto
+// (lib/offlineCache.ts), czyszczona przy wylogowaniu.
+// Zmiana CACHE_VERSION usuwa przy aktywacji wszystkie starsze pamięci, także
+// dawną „data-v2” z odpowiedziami API.
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const PAGES_CACHE = `pages-${CACHE_VERSION}`;
 const ASSETS_CACHE = `assets-${CACHE_VERSION}`;
-const DATA_CACHE = `data-${CACHE_VERSION}`;
-const KNOWN_CACHES = new Set([STATIC_CACHE, PAGES_CACHE, ASSETS_CACHE, DATA_CACHE]);
+const KNOWN_CACHES = new Set([STATIC_CACHE, PAGES_CACHE, ASSETS_CACHE]);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -25,12 +31,18 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.origin !== self.location.origin) {
-    console.warn(`Ignored message from unauthorized origin: ${event.origin}`);
+    console.warn(`[sw] Zignorowano wiadomość z nieznanego źródła: ${event.origin}`);
     return;
   }
 
-  if (event.data?.type === 'PURGE_DATA_CACHE') {
-    event.waitUntil(caches.delete(DATA_CACHE));
+  // Wylogowanie: strony z pamięci mogły zawierać stan konta – usuwamy je.
+  if (event.data?.type === 'PURGE_USER_DATA') {
+    event.waitUntil(
+      (async () => {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter((key) => key !== STATIC_CACHE && key !== ASSETS_CACHE).map((key) => caches.delete(key)));
+      })()
+    );
   }
 });
 
@@ -77,46 +89,9 @@ async function staleWhileRevalidate(request, cacheName) {
   return hit || (await refresh) || Response.error();
 }
 
-async function networkFirstData(request) {
-  const cache = await caches.open(DATA_CACHE);
-  const cacheKey = new Request(request.url);
-  try {
-    const response = await fetch(request);
-    if (response.status === 200) {
-      const body = await response.clone().blob();
-      const sanitized = new Response(body, {
-        status: 200,
-        headers: {
-          'Content-Type': response.headers.get('Content-Type') || 'application/json',
-          'X-SW-Cached-At': new Date().toISOString(),
-        },
-      });
-      await cache.put(cacheKey, sanitized);
-    }
-    return response;
-  } catch (err) {
-    const hit = await cache.match(cacheKey);
-    if (hit) return hit;
-    throw err;
-  }
-}
-
-function isSupabaseRestGet(request, url) {
-  return (
-    request.method === 'GET' &&
-    url.hostname.endsWith('.supabase.co') &&
-    url.pathname.startsWith('/rest/v1/')
-  );
-}
-
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
-  if (isSupabaseRestGet(request, url)) {
-    event.respondWith(networkFirstData(request));
-    return;
-  }
 
   if (request.method !== 'GET') return;
 

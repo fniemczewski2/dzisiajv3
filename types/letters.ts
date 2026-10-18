@@ -1,4 +1,4 @@
-﻿// types/letters.ts
+// types/letters.ts
 
 export const LETTER_CATEGORIES = [
   "UDIP",

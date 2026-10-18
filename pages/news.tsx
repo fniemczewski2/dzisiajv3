@@ -3,8 +3,9 @@
 // Wiadomości z wybranych kanałów RSS: filtr grup, wyszukiwanie, ładowanie
 // porcjami. Linki otwierają się w nowej karcie (ogłoszone czytnikom ekranu).
 
+import { NEWS_PAGE_SIZE } from "@/config/limits";
 import React, { useMemo, useState } from "react";
-import { RefreshCw, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import Seo from "@/components/ui/SEO";
 import SearchBar from "@/components/ui/SearchBar";
 import NoResultsState from "@/components/ui/NoResultsState";
@@ -20,10 +21,14 @@ import {
 } from "@/config/rssSources";
 import { RefreshButton } from "@/components/ui/CommonButtons";
 
-const PAGE = 30;
 const OWN_GROUP = "Własne kanały";
 const rtf = new Intl.RelativeTimeFormat("pl", { numeric: "auto" });
-const dateFmt = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const dateFmt = new Intl.DateTimeFormat("pl-PL", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 function relative(iso: string | null): string {
   if (!iso) return "";
@@ -39,10 +44,13 @@ export default function NewsPage() {
   const [showSources, setShowSources] = useState(false);
   const [group, setGroup] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [limit, setLimit] = useState(PAGE);
+  const [limit, setLimit] = useState(NEWS_PAGE_SIZE);
 
   const custom = normalizeCustomFeeds(settings.rss_custom);
-  const enabled = resolveEnabledSources(settings.rss_sources, custom.map((c) => c.id));
+  const enabled = resolveEnabledSources(
+    settings.rss_sources,
+    custom.map((c) => c.id)
+  );
 
   const sourceInfo = useMemo(() => {
     const map = new Map<string, { name: string; group: string }>();
@@ -53,7 +61,9 @@ export default function NewsPage() {
 
   const groups = useMemo(() => {
     const present = new Set(items.map((i) => sourceInfo.get(i.sourceId)?.group).filter(Boolean) as string[]);
-    return [...new Set<string>([...RSS_SOURCES.map((s) => s.group as RssGroup), OWN_GROUP])].filter((g) => present.has(g));
+    return [...new Set<string>([...RSS_SOURCES.map((s) => s.group as RssGroup), OWN_GROUP])].filter((g) =>
+      present.has(g)
+    );
   }, [items, sourceInfo]);
 
   const filtered = useMemo(() => {
@@ -76,15 +86,17 @@ export default function NewsPage() {
 
   return (
     <>
-      <Seo title="Wiadomości" description="Wiadomości z wybranych kanałów RSS w jednym miejscu." canonical="https://dzisiaj.fun/news" keywords="rss, wiadomości, czytnik rss" />
+      <Seo
+        title="Wiadomości"
+        description="Wiadomości z wybranych kanałów RSS w jednym miejscu."
+        canonical="https://dzisiaj.fun/news"
+        keywords="rss, wiadomości, czytnik rss"
+      />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title">Wiadomości</h1>
         <div className="flex gap-2">
-          <RefreshButton
-            onClick={() => void reload()}
-            small
-          />
+          <RefreshButton onClick={() => void reload()} small />
           <button
             type="button"
             onClick={() => setShowSources((v) => !v)}
@@ -112,14 +124,22 @@ export default function NewsPage() {
 
       <p aria-live="polite" className="mb-3 text-sm text-text-secondary">
         {loading && "Pobieram wiadomości…"}
-        {!loading && updatedAt && `Zaktualizowano ${updatedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}. `}
-        {!loading && failed > 0 && `Nie udało się pobrać ${failed} ${failed === 1 ? "źródła" : "źródeł"} – szczegóły w „Źródła”.`}
+        {!loading &&
+          updatedAt &&
+          `Zaktualizowano ${updatedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}. `}
+        {!loading &&
+          failed > 0 &&
+          `Nie udało się pobrać ${failed} ${failed === 1 ? "źródła" : "źródeł"} – szczegóły w „Źródła”.`}
       </p>
-      {error && <p role="alert" className="mb-4 text-red-700 dark:text-red-300">{error}</p>}
+      {error && (
+        <p role="alert" className="mb-4 text-danger">
+          {error}
+        </p>
+      )}
 
       {groups.length > 1 && (
-        <fieldset className="min-w-0 -mx-3 mb-4 sm:mx-0">
-<legend className="sr-only">Filtruj po temacie</legend>
+        <fieldset className="-mx-3 mb-4 min-w-0 sm:mx-0">
+          <legend className="sr-only">Filtruj po temacie</legend>
 
           <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:px-0">
             {[null, ...groups].map((g) => (
@@ -127,9 +147,14 @@ export default function NewsPage() {
                 <button
                   type="button"
                   aria-pressed={group === g}
-                  onClick={() => { setGroup(g); setLimit(PAGE); }}
+                  onClick={() => {
+                    setGroup(g);
+                    setLimit(NEWS_PAGE_SIZE);
+                  }}
                   className={`min-h-11 rounded-full border px-4 text-sm font-medium ${
-                    group === g ? "border-text bg-text text-card" : "border-line-strong bg-card text-text-secondary hover:text-text"
+                    group === g
+                      ? "border-text bg-text text-card"
+                      : "border-line-strong bg-card text-text-secondary hover:text-text"
                   }`}
                 >
                   {g ?? "Wszystkie"}
@@ -141,7 +166,14 @@ export default function NewsPage() {
       )}
 
       <div className="mb-4 max-w-xl">
-        <SearchBar value={query} onChange={(v: string) => { setQuery(v); setLimit(PAGE); }} placeholder="Szukaj w wiadomościach..." />
+        <SearchBar
+          value={query}
+          onChange={(v: string) => {
+            setQuery(v);
+            setLimit(NEWS_PAGE_SIZE);
+          }}
+          placeholder="Szukaj w wiadomościach..."
+        />
       </div>
 
       {!loading && filtered.length === 0 && <NoResultsState text="wiadomości" />}
@@ -161,8 +193,13 @@ export default function NewsPage() {
                     </>
                   )}
                 </p>
-                <h2 className="text-lg font-bold leading-snug text-text">
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:underline">
+                <h2 className="text-lg leading-snug font-bold text-text">
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-4 hover:underline"
+                  >
                     {item.title}
                     <span className="sr-only"> (otwiera się w nowej karcie)</span>
                   </a>
@@ -177,7 +214,7 @@ export default function NewsPage() {
       {filtered.length > limit && (
         <button
           type="button"
-          onClick={() => setLimit((l) => l + PAGE)}
+          onClick={() => setLimit((l) => l + NEWS_PAGE_SIZE)}
           className="mt-4 min-h-11 w-full max-w-3xl rounded-lg border border-line-strong font-medium text-text hover:bg-surface"
         >
           Pokaż więcej ({filtered.length - limit})

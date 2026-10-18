@@ -5,9 +5,10 @@
 // reguł co wydarzenia, tylko do wyświetlenia. Prawdziwe zadanie na nowy termin
 // powstaje dopiero po wykonaniu bieżącego (przesuwa je process-reminders).
 
+import { MAX_TASK_OCCURRENCES } from "@/config/limits";
 import type { Task } from "@/types/tasks";
 import { taskRule } from "./taskRecurrence";
-import { occurrencesBetween, withMonthDay } from "@/supabase/functions/_shared/recurrence";
+import { occurrencesBetween, withMonthDay } from "@/shared/recurrence";
 
 export interface TaskOccurrencePreview {
   /** Unikalny klucz: id zadania + dzień. */
@@ -18,7 +19,6 @@ export interface TaskOccurrencePreview {
 }
 
 /** Bezpiecznik: codzienne zadanie w widoku miesiąca to ~31 podglądów. */
-const MAX_PER_TASK = 62;
 
 /**
  * Przyszłe wystąpienia w [from, to]. Pomijamy bieżący termin (to prawdziwe
@@ -42,7 +42,7 @@ export function projectTaskOccurrences(
     const after = task.due_date > today ? task.due_date : today;
     const days = occurrencesBetween(task.due_date, anchored, from, to)
       .filter((day) => day > after)
-      .slice(0, MAX_PER_TASK);
+      .slice(0, MAX_TASK_OCCURRENCES);
     for (const date of days) previews.push({ key: `${task.id}@${date}`, date, task });
   }
   return previews.sort((a, b) => a.date.localeCompare(b.date) || a.task.title.localeCompare(b.task.title, "pl"));

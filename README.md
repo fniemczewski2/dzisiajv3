@@ -4,13 +4,13 @@
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![React](https://img.shields.io/badge/React-19-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.0-blue)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)
 ![Tests](https://img.shields.io/badge/tests-vitest-6E9F18)
 
 **Live:** [https://dzisiaj.fun](https://dzisiaj.fun)
 
-> Numer wersji nie jest trzymany statycznie w tym pliku - aplikacja pobiera go na żywo z wiadomości ostatniego commita (format `Ver X.Y.Z`) i wyświetla w **Ustawieniach → Informacje o wersji**.
+> Numer wersji pochodzi z `package.json` i jest wstrzykiwany podczas builda (razem ze skrótem commita i datą wdrożenia) – widać go w **Ustawieniach → Informacje o wersji**.
 
 ## Spis treści
 
@@ -31,35 +31,41 @@
 Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.ts`](./config/features.ts) (karty na stronie startowej) i w [`config/guideData.tsx`](./config/guideData.tsx) (przewodnik w aplikacji pod `/guide`). Poniżej skrót.
 
 ### 📋 Produktywność
+
 - **Zadania** - priorytety, daty, filtry, przeciąganie (drag & drop) na oś czasu kokpitu
 - **Pomodoro** - konfigurowalny timer pracy/przerwy z Wake Lock i dźwiękiem
 - **Harmonogram dnia** - powtarzalne schematy dnia, które same pojawiają się w planie
 - **Czas pracy** - ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
 
 ### 🗓️ Organizacja
+
 - **Kalendarz** - wydarzenia z dwukierunkową synchronizacją Google Calendar i Outlook/Microsoft Graph
 - **Terminy zespołowe** - ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników
-- **Notatki**, **Protokoły** (agenda, uczestnicy, zadania → eksport PDF), **Przypomnienia** cykliczne
+- **Notatki**, **Protokoły** (agenda, uczestnicy, zadania → eksport PDF), **przypomnienia o zadaniach** (push) i **zadania cykliczne**
 - **Listy pakowania** - plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
 - **Osoby i relacje** - kontakty z priorytetem przypominania o kontakcie, QR/vCard, import/eksport CSV
 - **Pisma** - rejestr pism urzędowych z automatyczną sygnaturą (nr.mm.rrrr.KOD) i pilnowaniem ustawowych terminów odpowiedzi
 
 ### 💰 Finanse
+
 - **Rachunki** i **Budżet roczny** - kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
 - **Kalkulator rachunków** - sprawiedliwy podział kosztów wg dochodów (algorytm hybrydowy)
 - **Listy zakupów** (współdzielone w czasie rzeczywistym) i **Przepisy** (filtrowanie po składnikach)
 
 ### 🏃 Styl życia
-- **Nawyki** - 8 codziennych nawyków + tracker wody i nastroju
+
+- **Nawyki** - do 8 własnych nawyków dziennie + tracker wody i nastroju
 - **Postępy (streaks)** z kamieniami milowymi
 - **Trening interwałowy** (HIIT/Tabata) z Wake Lock
 - **Pogoda** - prognoza godzinowa/5-dniowa, autorski wskaźnik biometeorologiczny, jakość powietrza (Open-Meteo)
 - **Transport miejski** - tablice odjazdów na żywo (GPS lub ulubione przystanki) + śledzenie pociągów PKP
 
 ### 🎬 Rozrywka
+
 - **Filmy i seriale** - wyszukiwanie filmów i seriali w TMDB, dostępność VOD w Polsce (Netflix, HBO Max, Disney+ i inne), liczba sezonów i status serialu, śledzenie postępu oglądania
 
 ### 🛠️ Narzędzia
+
 - **Udostępnianie** - współdzielenie zadań/kalendarza/list z zaufanymi użytkownikami
 - **Cyfrowa wizytówka** - wiele profili vCard z publicznym linkiem (`/v/twoj-link`), własnymi kolorami i danymi firmowymi
 - **Ustawienia systemowe** - motyw, powiadomienia push, sortowanie, instalacja jako PWA
@@ -67,22 +73,23 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 ## 🏗️ Stack technologiczny
 
-| Warstwa | Technologia |
-|---|---|
-| Framework | [Next.js 16](https://nextjs.org/) (Pages Router) |
-| UI | [React 19](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide](https://lucide.dev/) |
-| Język | TypeScript (strict) |
-| Backend / DB | [Supabase](https://supabase.com/) (PostgreSQL, Auth, Realtime) |
-| Drag & drop | `@dnd-kit` |
-| Daty | `date-fns` |
-| PDF / kalendarz | `pdfmake`, `ical.js` |
-| QR / vCard | `qrcode.react` |
-| Logowanie | `@react-oauth/google`, Supabase Auth |
-| Testy | `vitest`, `@testing-library/react` |
+| Warstwa         | Technologia                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| Framework       | [Next.js 16](https://nextjs.org/) (Pages Router)                                                        |
+| UI              | [React 19](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide](https://lucide.dev/) |
+| Język           | TypeScript (strict)                                                                                     |
+| Backend / DB    | [Supabase](https://supabase.com/) (PostgreSQL, Auth, Realtime)                                          |
+| Drag & drop     | `@dnd-kit`                                                                                              |
+| Daty            | `date-fns`                                                                                              |
+| PDF / kalendarz | `pdfmake`, `ical.js`                                                                                    |
+| QR / vCard      | `qrcode.react`                                                                                          |
+| Logowanie       | Supabase Auth (OAuth Google / Microsoft)                                                                |
+| Testy           | `vitest`, `@testing-library/react`, `jsdom`                                                             |
+| Lint            | [Oxlint](https://oxc.rs/) z regułami zależnymi od typów (`oxlint-tsgolint`, oparty na TypeScript 7)     |
 
 ## 🚀 Szybki start
 
-Wymagany Node.js 20+.
+Wymagany Node.js 22.22.2+ lub 24.15.0+ (zob. `engines` w `package.json`).
 
 ```bash
 git clone https://github.com/fniemczewski2/dzisiajv3.git
@@ -98,19 +105,28 @@ Aplikacja wystartuje na `http://localhost:3000`.
 
 Utwórz plik `.env.local` w katalogu głównym. Zmienne oznaczone `NEXT_PUBLIC_` trafiają do kodu klienckiego - nie umieszczaj tam nic wrażliwego.
 
-| Zmienna | Wymagana do | Opis |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Wszystko | URL projektu Supabase |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Wszystko | Publiczny klucz Supabase (anon/publishable) |
-| `SUPABASE_SECRET_KEY` | API cron/webhooki | Klucz serwisowy (service role) - tylko po stronie serwera |
-| `NEXT_PUBLIC_APP_URL` | OAuth, publiczne linki wizytówek | Bazowy URL aplikacji (np. `https://dzisiaj.fun`) |
-| `CALENDAR_TOKEN_ENCRYPTION_KEY` | Sync kalendarzy | 32-bajtowy klucz base64 do szyfrowania tokenów OAuth (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`) |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Logowanie Google, sync Google Calendar | Dane aplikacji OAuth w Google Cloud Console |
-| `OUTLOOK_CLIENT_ID` / `OUTLOOK_CLIENT_SECRET` | Sync Outlook/Microsoft Graph | Rejestracja aplikacji w Azure AD |
-| `TMDB_API_KEY` | Filmy i seriale | Klucz do The Movie Database API |
-| `PLK_API_KEY` | Transport (pociągi) | Klucz do PKP PLK Portal Danych Pasażera |
-| `CRON_SECRET` | Cron sync kalendarzy | Sekret chroniący `/api/calendar/sync-calendars` |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Powiadomienia push | Klucz publiczny VAPID (Web Push) |
+Pełna lista z opisami jest w [`.env.example`](./.env.example); kod czyta zmienne wyłącznie przez [`config/env.ts`](./config/env.ts).
+
+| Zmienna                                               | Wymagana do                                             | Opis                                                                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`                            | Wszystko                                                | URL projektu Supabase                                                                                                          |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`                | Wszystko                                                | Publiczny klucz Supabase (anon/publishable)                                                                                    |
+| `SUPABASE_SECRET_KEY`                                 | API serwerowe (cron, eksport i usuwanie konta, ankiety) | Klucz service role – tylko po stronie serwera                                                                                  |
+| `NEXT_PUBLIC_APP_URL`                                 | OAuth, publiczne linki                                  | Bazowy URL aplikacji (np. `https://dzisiaj.fun`)                                                                               |
+| `CALENDAR_TOKEN_ENCRYPTION_KEY`                       | Kalendarze, Slack                                       | 32-bajtowy klucz base64 do szyfrowania tokenów (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`) |
+| `REJECT_PLAINTEXT_TOKENS`                             | –                                                       | `1` = odrzucaj niezaszyfrowane tokeny w bazie (po uruchomieniu `scripts/encrypt-legacy-tokens.mjs`)                            |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`           | Google Calendar                                         | Aplikacja OAuth w Google Cloud Console                                                                                         |
+| `OUTLOOK_CLIENT_ID` / `OUTLOOK_CLIENT_SECRET`         | Outlook / Microsoft Graph                               | Rejestracja aplikacji w Microsoft Entra ID                                                                                     |
+| `SLACK_CLIENT_ID` / `SLACK_CLIENT_SECRET`             | Integracja ze Slackiem                                  | Aplikacja Slack (OAuth)                                                                                                        |
+| `TMDB_API_KEY`                                        | Filmy i seriale                                         | Klucz The Movie Database API                                                                                                   |
+| `PLK_API_KEY`                                         | Pociągi                                                 | Klucz PKP PLK Portal Danych Pasażera                                                                                           |
+| `CRON_SECRET`                                         | Endpointy cron                                          | Sekret nagłówka `x-cron-secret`                                                                                                |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`                        | Powiadomienia push                                      | Klucz publiczny VAPID (prywatny ustawia się w sekretach Edge Functions)                                                        |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Limity zapytań w produkcji                              | Upstash Redis (albo `KV_REST_API_URL` / `KV_REST_API_TOKEN` z integracji Vercel). Bez nich limiter działa w pamięci instancji. |
+| `CSP_REPORT_ONLY`                                     | –                                                       | `1` = CSP tylko raportuje zamiast blokować (diagnoza)                                                                          |
+| `NEXT_PUBLIC_SW_DEV`                                  | –                                                       | `1` = service worker także w `next dev` (testy powiadomień); domyślnie wyłączony w trybie deweloperskim                        |
+
+Edge Functions mają własne sekrety (Supabase → Edge Functions → Secrets): `CRON_SECRET`, `ALLOWED_ORIGIN` (adres aplikacji dla CORS, lokalnie `http://localhost:3000`), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 
 ## 📜 Dostępne skrypty
 
@@ -118,8 +134,10 @@ Utwórz plik `.env.local` w katalogu głównym. Zmienne oznaczone `NEXT_PUBLIC_`
 npm run dev            # serwer deweloperski
 npm run build           # build produkcyjny
 npm run start            # start builda produkcyjnego
-npm run lint             # ESLint
-npm run lint:fix          # ESLint z automatycznymi poprawkami
+npm run lint             # Oxlint (z regułami zależnymi od typów)
+npm run lint:fix          # Oxlint z automatycznymi poprawkami
+npm run typecheck        # tsc --noEmit (TypeScript 7)
+npm run check            # typecheck + lint + testy
 npm run test              # testy jednorazowo (CI)
 npm run test:watch         # testy w trybie watch
 npm run test:coverage       # testy z raportem pokrycia
@@ -147,13 +165,15 @@ npm run test
 
 ```
 ├── components/     # komponenty React pogrupowane per funkcja (calendar/, bills/, ui/...)
-├── config/         # statyczna konfiguracja: features.ts, guideData.tsx, navigation.ts, limits.ts...
-├── hooks/          # hooki (hooks/db/ = jeden hook na tabelę Supabase, każdy z retry + toastami)
+├── config/         # konfiguracja: env.ts (zmienne środowiskowe), limits.ts, timing.ts, server.ts,
+│                   #   defaults.ts, storage.ts, userData.ts (rejestr tabel do eksportu i usuwania)…
+├── hooks/          # hooki (hooks/db/ = jeden hook na tabelę Supabase; proste listy na useCrudResource)
 ├── lib/            # czyste funkcje pomocnicze (daty, CSV, tagowanie, szyfrowanie) + integracje serwerowe
 ├── pages/          # routing Next.js (Pages Router) + pages/api = endpointy backendowe
-├── providers/      # konteksty React (Auth, Toast)
+├── providers/      # konteksty React (Auth, Settings, Toast)
 ├── public/         # zasoby statyczne, manifest PWA, service worker
-├── styles/         # globalne style Tailwind
+├── styles/         # globals.css: tokeny motywu (jasny/ciemny) i kolory znaczeniowe
+├── supabase/       # Edge Functions (functions/, _shared/ = kod wspólny, w aplikacji jako @/shared/*) i skrypty SQL (sql/)
 ├── types/          # typy TypeScript, jeden plik na domenę/zewnętrzne API
 └── __tests__/      # testy automatyczne (Vitest)
 ```
@@ -162,19 +182,22 @@ npm run test
 
 ## 🗄️ Baza danych
 
-PostgreSQL przez Supabase. Główne tabele: `tasks`, `events`, `notes`, `letters`, `reports`, `reminders`, `meeting_polls` (z tabelami `meeting_poll_*` dla dat, odpowiedzi i dostępności), `day_schemas`, `bills`, `budgets`, `budget_categories`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `connected_calendars`, `work_logs`, `user_trains`, `stops`, `push_subscriptions`, `notifications`, `settings`. Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych użytkowników, którym jawnie udostępniono dane).
+PostgreSQL przez Supabase. Wszystkie tabele z danymi użytkownika są wymienione w [`config/userData.ts`](./config/userData.ts) (rejestr używany przy eksporcie i usuwaniu konta). Najważniejsze: `tasks`, `task_reminders`, `events`, `connected_calendars`, `notes`, `quick_notes`, `letters`, `reports`, `meeting_polls` (z `meeting_poll_dates`, `meeting_poll_responses`, `meeting_poll_availabilities`), `day_schemas`, `transactions`, `recurring_bills`, `budget_categories`, `finance_profiles`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `work_logs`, `user_trains`, `slack_*`, `push_subscriptions`, `notifications`, `errors`, `settings`; publiczna `stops` (przystanki). Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych osób, którym jawnie udostępniono dane). Skrypty zmian w bazie: [`supabase/sql/`](./supabase/sql).
 
 ## 📱 PWA
 
-Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na iOS: Safari → Udostępnij → Dodaj do ekranu głównego). Wspiera powiadomienia push i tryb ciemny/jasny dopasowany do systemu.
+Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na iOS: Safari → Udostępnij → Dodaj do ekranu głównego). Wspiera powiadomienia push, tryb ciemny/jasny dopasowany do systemu i pracę bez sieci: ostatnio pobrane listy są w IndexedDB, a zadania dodane bez sieci trafiają do kolejki i są wysyłane po odzyskaniu połączenia. Dane w przeglądarce są czyszczone przy wylogowaniu.
 
 ## 🔐 Bezpieczeństwo
 
-- Tokeny OAuth kalendarzy (Google/Outlook) są szyfrowane (AES-256-GCM) przed zapisem do bazy - zob. `lib/server/tokenCrypto.ts`.
+- Tokeny OAuth (Google, Outlook, Slack) są szyfrowane (AES-256-GCM) przed zapisem do bazy – `lib/server/tokenCrypto.ts`.
 - Endpointy cron (`/api/calendar/sync-calendars`, `/api/meeting-polls/close-expired`, `/api/slack/sync`) porównują `CRON_SECRET` w czasie stałym (`lib/server/safeEqual.ts`).
-- `/api/worklogs/auto` (Siri Shortcuts) uwierzytelnia **tokenem per użytkownik** generowanym w Ustawieniach (w bazie tylko SHA-256, tabela `shortcut_tokens`). Globalny `SHORTCUTS_API_SECRET` nie jest już używany.
-- Endpointy proxy do zewnętrznych API (TMDB, Google Places) wymagają zalogowanego użytkownika i nie przekazują kluczy API do klienta.
-- Skonfigurowane nagłówki bezpieczeństwa (`X-Frame-Options`, `Strict-Transport-Security`, `Permissions-Policy`, CSP) w `next.config.mjs`.
+- `/api/worklogs/auto` (Skróty Siri) uwierzytelnia **tokenem per użytkownik** generowanym w Ustawieniach (w bazie tylko SHA-256, tabela `shortcut_tokens`).
+- Endpointy pośredniczące (TMDB, PKP, RSS, geokodowanie) wymagają zalogowania i nie ujawniają kluczy API klientowi.
+- Publiczne endpointy (`/api/vcard`, ankiety) i endpointy narażone na nadużycia mają limity zapytań (Upstash Redis, `config/server.ts`).
+- Proxy (`proxy.ts`) weryfikuje sesję lokalnie (`getClaims()`), bez zapytania do Supabase Auth przy każdej stronie.
+- Nagłówki bezpieczeństwa i egzekwowane CSP w `next.config.mjs` (`'unsafe-inline'` w `script-src` zostaje ze względu na statycznie generowane strony – szczegóły w komentarzu).
+- Service worker nie zapisuje odpowiedzi API; dane offline są w IndexedDB per konto.
 
 ## 📚 Dokumentacja
 
@@ -186,8 +209,8 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 
 1. Forkuj repozytorium
 2. Utwórz branch (`git checkout -b feature/nazwa-funkcji`)
-3. Commituj zmiany (`git commit -m 'Ver x.y.z - opis zmiany'`) - numer wersji w wiadomości commita jest odczytywany na żywo przez aplikację
-4. Uruchom `npm run lint` i `npm run test` przed otwarciem PR
+3. Commituj zmiany i podbij `version` w `package.json` – numer, skrót commita i data wdrożenia trafiają do aplikacji podczas builda
+4. Uruchom `npm run check` przed otwarciem PR
 5. Otwórz Pull Request
 
 ## 📝 Licencja

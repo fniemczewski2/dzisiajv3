@@ -25,23 +25,23 @@ import { useWeather } from "@/hooks/useWeather";
 import { HourlyRow, WeatherData } from "@/types/weather";
 
 function WeatherIcon({ code }: { readonly code: number }) {
-  if (code <= 1) return <Sun className="w-10 h-10 text-amber-600 dark:text-amber-400 drop-shadow-sm" />;
-  if (code === 2) return <CloudSun className="w-10 h-10 text-amber-600 dark:text-amber-400 drop-shadow-sm" />;
-  if (code <= 3) return <Cloud className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
-  if (code <= 48) return <CloudFog className="w-10 h-10 text-gray-400 dark:text-gray-500 drop-shadow-sm" />;
-  if (code <= 67) return <CloudDrizzle className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
-  if (code <= 77) return <CloudSnow className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
-  if (code <= 82) return <CloudRain className="w-10 h-10 text-primary drop-shadow-sm" />;
-  if (code <= 86) return <CloudSnow className="w-10 h-10 text-blue-400 drop-shadow-sm" />;
-  return <CloudLightning className="w-10 h-10 text-amber-600 dark:text-amber-400 drop-shadow-sm" />;
+  if (code <= 1) return <Sun className="h-10 w-10 text-warning drop-shadow-sm" />;
+  if (code === 2) return <CloudSun className="h-10 w-10 text-warning drop-shadow-sm" />;
+  if (code <= 3) return <Cloud className="h-10 w-10 text-text-muted drop-shadow-sm" />;
+  if (code <= 48) return <CloudFog className="h-10 w-10 text-text-muted drop-shadow-sm" />;
+  if (code <= 67) return <CloudDrizzle className="h-10 w-10 text-info drop-shadow-sm" />;
+  if (code <= 77) return <CloudSnow className="h-10 w-10 text-info drop-shadow-sm" />;
+  if (code <= 82) return <CloudRain className="h-10 w-10 text-primary drop-shadow-sm" />;
+  if (code <= 86) return <CloudSnow className="h-10 w-10 text-info drop-shadow-sm" />;
+  return <CloudLightning className="h-10 w-10 text-warning drop-shadow-sm" />;
 }
 
 function airQualityColor(value: number): string {
-  if (value <= 20) return "text-green-600 dark:text-green-400";
-  if (value <= 35) return "text-green-600 dark:text-green-400";
-  if (value <= 50) return "text-yellow-700 dark:text-yellow-400";
-  if (value <= 100) return "text-orange-600 dark:text-orange-400";
-  return "text-red-600 dark:text-red-400";
+  if (value <= 20) return "text-success ";
+  if (value <= 35) return "text-success ";
+  if (value <= 50) return "text-warning ";
+  if (value <= 100) return "text-warning ";
+  return "text-danger ";
 }
 
 function evaluateBiomet(forecast: WeatherData) {
@@ -56,7 +56,7 @@ function evaluateBiomet(forecast: WeatherData) {
 
   let score = 100;
 
-  if (t < 18) score -= (18 - t) * 2; 
+  if (t < 18) score -= (18 - t) * 2;
   if (t > 24) score -= (t - 24) * 2;
   if (w > 10) score -= (w - 10) * 1.5;
   if (h < 40) score -= (40 - h) * 0.5;
@@ -67,13 +67,12 @@ function evaluateBiomet(forecast: WeatherData) {
   if (score > 100) score = 100;
   if (score < 0) score = 0;
 
-  if (score >= 75) return { label: "Korzystny", color: "text-green-600 dark:text-green-400" };
-  if (score >= 50) return { label: "Umiarkowany", color: "text-yellow-700 dark:text-yellow-400" };
-  return { label: "Niekorzystny", color: "text-red-600 dark:text-red-400" };
+  if (score >= 75) return { label: "Korzystny", color: "text-success " };
+  if (score >= 50) return { label: "Umiarkowany", color: "text-warning " };
+  return { label: "Niekorzystny", color: "text-danger " };
 }
 
 export default function WeatherPage() {
-
   const { forecast, air, loading, error } = useWeather();
   const hourlyData: HourlyRow[] = (() => {
     if (!forecast?.hourly) return [];
@@ -81,14 +80,14 @@ export default function WeatherPage() {
     const currentISO = now.toISOString();
     const start = forecast.hourly.time.findIndex((t: string) => t >= currentISO);
     if (start === -1) return [];
-    
+
     return forecast.hourly.time.slice(start, start + 24).map((time: string, i: number) => ({
       time,
       temp: forecast.hourly.temperature_2m[start + i],
       precip: forecast.hourly.precipitation[start + i],
       wind: forecast.hourly.windspeed_10m[start + i],
       uv: forecast.hourly.uv_index[start + i],
-      index: i
+      index: i,
     }));
   })();
 
@@ -99,43 +98,40 @@ export default function WeatherPage() {
   if (loading) {
     content = <SkeletonWeather />;
   } else if (error) {
-    content = <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>;
+    content = <p className="text-center font-medium text-danger">{error}</p>;
   } else if (forecast && air) {
     content = (
       <>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <ThermometerSnowflake className="w-5 h-5 text-blue-500" />
+        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <ThermometerSnowflake className="h-5 w-5 text-info" />
             <span className="text-base font-medium text-text">
               {"Min "}
-              <span className="font-semibold">
-                {forecast.daily.temperature_2m_min?.[0]?.toFixed(1) ?? "-"}°C
-              </span>
+              <span className="font-semibold">{forecast.daily.temperature_2m_min?.[0]?.toFixed(1) ?? "-"}°C</span>
             </span>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <ThermometerSun className="w-5 h-5 text-red-500" />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <ThermometerSun className="h-5 w-5 text-danger" />
             <span className="text-base font-medium text-text">
               {"Max "}
-              <span className="font-semibold">
-                {forecast.daily.temperature_2m_max?.[0]?.toFixed(1) ?? "-"}°C
-              </span>
+              <span className="font-semibold">{forecast.daily.temperature_2m_max?.[0]?.toFixed(1) ?? "-"}°C</span>
             </span>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <CloudRain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <div className="flex flex-col text-text">
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <CloudRain className="h-5 w-5 text-info" />
+            <div className="flex flex-col text-text">
               <span className="font-medium">Opady</span>
-              <span className="text-sm">
-                {forecast.daily.precipitation_sum?.[0]?.toFixed(1) ?? "0"} mm
-              </span>
+              <span className="text-sm">{forecast.daily.precipitation_sum?.[0]?.toFixed(1) ?? "0"} mm</span>
             </div>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Wind className="w-5 h-5 text-sky-500" style={{ transform: `rotate(${forecast.hourly.winddirection_10m?.[0] ?? 0}deg)` }} />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Wind
+              className="h-5 w-5 text-info"
+              style={{ transform: `rotate(${forecast.hourly.winddirection_10m?.[0] ?? 0}deg)` }}
+            />
             <div className="flex flex-col text-text">
               <span className="font-medium">Wiatr</span>
               <span className="text-sm">
@@ -144,28 +140,24 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Cloud className={`w-5 h-5 ${airQualityColor(air.hourly.pm10?.[0] ?? 0)}`} />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Cloud className={`h-5 w-5 ${airQualityColor(air.hourly.pm10?.[0] ?? 0)}`} />
             <div className="flex flex-col text-text">
               <span className="font-medium">PM10</span>
-              <span className="text-sm">
-                {air.hourly.pm10?.[0] ?? "-"} µg/m³
-              </span>
+              <span className="text-sm">{air.hourly.pm10?.[0] ?? "-"} µg/m³</span>
             </div>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Cloud className={`w-5 h-5 ${airQualityColor(air.hourly.pm2_5?.[0] ?? 0)}`} />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Cloud className={`h-5 w-5 ${airQualityColor(air.hourly.pm2_5?.[0] ?? 0)}`} />
             <div className="flex flex-col text-text">
               <span className="font-medium">PM2.5</span>
-              <span className="text-sm">
-                {air.hourly.pm2_5?.[0] ?? "-"} µg/m³
-              </span>
+              <span className="text-sm">{air.hourly.pm2_5?.[0] ?? "-"} µg/m³</span>
             </div>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Gauge className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Gauge className="h-5 w-5 text-info" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Ciśnienie</span>
               <span className="text-sm">
@@ -174,8 +166,8 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Droplet className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Droplet className="h-5 w-5 text-deco-violet" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Wilgotność</span>
               <span className="text-sm">
@@ -183,9 +175,9 @@ export default function WeatherPage() {
               </span>
             </div>
           </div>
-        
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Sun className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Sun className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="font-medium">UV max</span>
               <span className="text-sm">{forecast.daily.uv_index_max?.[0] ?? "-"}</span>
@@ -193,8 +185,8 @@ export default function WeatherPage() {
           </div>
 
           {biomet && (
-            <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-              <Gauge className={`w-5 h-5 ${biomet.color}`} />
+            <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+              <Gauge className={`h-5 w-5 ${biomet.color}`} />
               <div className="flex flex-col text-text">
                 <span className="text-base font-medium">Biomet</span>
                 <span className={`text-sm ${biomet.color}`}>{biomet.label}</span>
@@ -202,8 +194,8 @@ export default function WeatherPage() {
             </div>
           )}
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Sunrise className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Sunrise className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Wschód</span>
               <span className="text-sm">
@@ -215,8 +207,8 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card p-3 rounded-xl shadow flex items-center space-x-3">
-            <Sunset className="w-5 h-5 text-orange-500 dark:text-orange-400" />
+          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <Sunset className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Zachód</span>
               <span className="text-sm">
@@ -229,28 +221,38 @@ export default function WeatherPage() {
           </div>
         </div>
 
-        <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne 24h</h3>
-        <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-xl shadow-md mb-6">
-          <table className="min-w-full text-sm table-auto text-left">
-            <thead className="bg-surface text-text-secondary font-semibold border-b border-gray-200 dark:border-gray-700">
+        <h3 className="mb-2 text-lg font-semibold text-text">Prognoza na kolejne 24h</h3>
+        <div className="mb-6 overflow-x-auto rounded-xl border border-line shadow-md">
+          <table className="min-w-full table-auto text-left text-sm">
+            <thead className="border-b border-line bg-surface font-semibold text-text-secondary">
               <tr>
-                <th scope="col" className="p-2">Godz</th>
-                <th scope="col" className="p-2">Temp.</th>
-                <th scope="col" className="p-2">Opady</th>
-                <th scope="col" className="p-2">Wiatr</th>
-                <th scope="col" className="p-2">UV</th>
+                <th scope="col" className="p-2">
+                  Godz
+                </th>
+                <th scope="col" className="p-2">
+                  Temp.
+                </th>
+                <th scope="col" className="p-2">
+                  Opady
+                </th>
+                <th scope="col" className="p-2">
+                  Wiatr
+                </th>
+                <th scope="col" className="p-2">
+                  UV
+                </th>
               </tr>
             </thead>
             <tbody className="text-text-secondary">
               {hourlyData.map((row) => (
                 <tr key={row.time} className={row.index % 2 === 0 ? "bg-card" : "bg-surface"}>
-                  <td className="px-2 py-2 text-text font-medium">
+                  <td className="px-2 py-2 font-medium text-text">
                     {new Date(row.time).toLocaleTimeString("pl-PL", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </td>
-                  <td className="px-2 py-2 text-text font-medium">{row.temp}°C</td>
+                  <td className="px-2 py-2 font-medium text-text">{row.temp}°C</td>
                   <td className="px-2 py-2">{row.precip} mm</td>
                   <td className="px-2 py-2">{row.wind} km/h</td>
                   <td className="px-2 py-2">{row.uv}</td>
@@ -259,11 +261,11 @@ export default function WeatherPage() {
             </tbody>
           </table>
         </div>
-        
-        <h3 className="text-lg font-semibold mb-2 text-text">Prognoza na kolejne dni</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4 mb-6">
+
+        <h3 className="mb-2 text-lg font-semibold text-text">Prognoza na kolejne dni</h3>
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-7">
           {forecast.daily.time.slice(1).map((date: string, i: number) => (
-            <div key={date} className="card p-4 rounded-xl text-center shadow">
+            <div key={date} className="card rounded-xl p-4 text-center shadow">
               <p className="text-sm text-text-secondary">
                 {new Date(date).toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
               </p>
@@ -290,8 +292,8 @@ export default function WeatherPage() {
         canonical="https://dzisiaj.fun/weather"
         keywords="pogoda, prognoza pogody, warunki atmosferyczne, aura, temperatura"
       />
-        <h1 className="page-title mb-4">Pogoda</h1>
-        {content}
+      <h1 className="page-title mb-4">Pogoda</h1>
+      {content}
     </>
   );
 }

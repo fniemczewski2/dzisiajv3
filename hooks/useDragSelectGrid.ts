@@ -83,7 +83,7 @@ export function useDragSelectGrid({ onBegin, onExtend, onEnd }: DragSelectGridOp
 
   /** Ruch po siatce (podpinany do kontenera): działa dla myszy, palca i rysika. */
   const handlePointerMove = useCallback(
-    (event: React.PointerEvent) => {
+    (event: Pick<PointerEvent, "clientX" | "clientY">) => {
       if (!activeGroupRef.current) return;
       const cell = cellFromPoint(event.clientX, event.clientY);
       if (cell) extend(cell.groupId, cell.cellId);
@@ -108,5 +108,25 @@ export function useDragSelectGrid({ onBegin, onExtend, onEnd }: DragSelectGridOp
     [begin]
   );
 
-  return { isDragging, cellHandlers, handlePointerMove, /** @deprecated użyj handlePointerMove */ handleTouchMove: handlePointerMove };
+  /**
+   * Ref dla kontenera siatki. Ruch wskaźnika i blokadę przeciągania (drag &
+   * drop przeglądarki) podpinamy natywnie – kontener sam nie jest kontrolką;
+   * dostęp z klawiatury dają przyciski w komórkach.
+   */
+  const gridRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (!node) return;
+      const onMove = (event: PointerEvent) => handlePointerMove(event);
+      const onDragStart = (event: DragEvent) => event.preventDefault();
+      node.addEventListener("pointermove", onMove);
+      node.addEventListener("dragstart", onDragStart);
+      return () => {
+        node.removeEventListener("pointermove", onMove);
+        node.removeEventListener("dragstart", onDragStart);
+      };
+    },
+    [handlePointerMove]
+  );
+
+  return { isDragging, cellHandlers, handlePointerMove, gridRef };
 }

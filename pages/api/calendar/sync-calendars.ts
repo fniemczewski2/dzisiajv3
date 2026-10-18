@@ -1,21 +1,18 @@
-﻿
-import { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
-import { verifyCronRequest } from '@/lib/server/cronAuth';
-import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
-import { refreshGoogleToken, refreshOutlookToken } from '@/lib/server/oauthTokens';
-import { fetchWithTimeout } from '@/lib/server/fetchWithTimeout';
-import { buildGoogleEventsUrl } from '@/lib/server/googleCalendarApi';
-import { toSupabaseTime, outlookToSupabaseTime } from '@/lib/server/calendarTime';
-import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from '@/types/connectedCalendars';
-import { GoogleEventsListResponse } from '@/types/googleCalendar';
-import { OutlookEventsResponse } from '@/types/outlookCalendar';
+// pages/api/calendar/sync-calendars.ts
+import { PAGING } from "@/config/server";
+import { NextApiRequest, NextApiResponse } from "next";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
+import { verifyCronRequest } from "@/lib/server/cronAuth";
+import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
+import { refreshGoogleToken, refreshOutlookToken } from "@/lib/server/oauthTokens";
+import { fetchWithTimeout } from "@/lib/server/fetchWithTimeout";
+import { buildGoogleEventsUrl } from "@/lib/server/googleCalendarApi";
+import { toSupabaseTime, outlookToSupabaseTime } from "@/lib/server/calendarTime";
+import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from "@/types/connectedCalendars";
+import { GoogleEventsListResponse } from "@/types/googleCalendar";
+import { OutlookEventsResponse } from "@/types/outlookCalendar";
 
-import { mapPool, chunk } from "@/lib/asyncPool";
-const supabaseService = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
+import { mapPool, chunk } from "@/shared/asyncPool";
 
 interface ImportedEventRow {
   user_id: string;
@@ -25,71 +22,66 @@ interface ImportedEventRow {
   start_time: string;
   end_time: string;
   place: string;
-  repeat: 'none';
+  repeat: "none";
   google_event_id: string;
 }
 
 async function upsertImportedEvents(rows: ImportedEventRow[]): Promise<number> {
   if (rows.length === 0) return 0;
 
-  const { error } = await supabaseService
-    .from('events')
-    .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
+  const { error } = await supabaseAdmin().from("events").upsert(rows, { onConflict: "calendar_id,google_event_id" });
 
   if (error) {
-
     throw new Error(`events upsert: ${error.message}`);
   }
   return rows.length;
 }
 
-const PAGE_SIZE = 1000;
-const DELETE_CHUNK = 200;
-
-async function deleteStaleEvents(calendarId: string, seenIds: Set<string>, timeMin: Date, timeMax: Date): Promise<number> {
+async function deleteStaleEvents(
+  calendarId: string,
+  seenIds: Set<string>,
+  timeMin: Date,
+  timeMax: Date
+): Promise<number> {
   const staleIds: string[] = [];
 
-  for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService // NOSONAR
-      .from('events')
-      .select('id, google_event_id')
-      .eq('calendar_id', calendarId)
-      .not('google_event_id', 'is', null)
-      .gte('start_time', timeMin.toISOString())
-      .lt('start_time', timeMax.toISOString())
-      .order('id')
-      .range(from, from + PAGE_SIZE - 1);
+  for (let from = 0; ; from += PAGING.calendarSyncPage) {
+    const { data, error } = await supabaseAdmin() // NOSONAR
+      .from("events")
+      .select("id, google_event_id")
+      .eq("calendar_id", calendarId)
+      .not("google_event_id", "is", null)
+      .gte("start_time", timeMin.toISOString())
+      .lt("start_time", timeMax.toISOString())
+      .order("id")
+      .range(from, from + PAGING.calendarSyncPage - 1);
     if (error) throw new Error(`events stale lookup: ${error.message}`);
 
     for (const row of data ?? []) {
       if (!seenIds.has(row.google_event_id as string)) staleIds.push(row.id as string);
     }
-    if (!data || data.length < PAGE_SIZE) break;
+    if (!data || data.length < PAGING.calendarSyncPage) break;
   }
 
-  await mapPool(chunk(staleIds, DELETE_CHUNK), 3, async (ids) => {
-    const { error } = await supabaseService
-      .from('events')
-      .delete()
-      .in('id', ids);
+  await mapPool(chunk(staleIds, PAGING.calendarSyncDeleteChunk), 3, async (ids) => {
+    const { error } = await supabaseAdmin().from("events").delete().in("id", ids);
     if (error) throw new Error(`events stale delete: ${error.message}`);
   });
   return staleIds.length;
 }
 
 async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
-
   const all: ConnectedCalendarRow[] = [];
-  for (let from = 0; ; from += PAGE_SIZE) {
-    const { data, error } = await supabaseService // NOSONAR
-      .from('connected_calendars')
-      .select('*')
-      .order('id')
-      .range(from, from + PAGE_SIZE - 1)
+  for (let from = 0; ; from += PAGING.calendarSyncPage) {
+    const { data, error } = await supabaseAdmin() // NOSONAR
+      .from("connected_calendars")
+      .select("*")
+      .order("id")
+      .range(from, from + PAGING.calendarSyncPage - 1)
       .overrideTypes<ConnectedCalendarRow[], { merge: false }>();
     if (error) throw error;
     all.push(...(data ?? []));
-    if (!data || data.length < PAGE_SIZE) break;
+    if (!data || data.length < PAGING.calendarSyncPage) break;
   }
   return all;
 }
@@ -100,12 +92,12 @@ async function getAccessToken(
   tokenCache: TokenCache,
   mainAccountsCache: MainAccountsCache
 ): Promise<string | null> {
-
-  const mainAcc = accounts.find(a =>
-    a.user_id === acc.user_id &&
-    a.account_email === acc.account_email &&
-    a.google_calendar_id === '@account_connection' &&
-    a.provider === acc.provider
+  const mainAcc = accounts.find(
+    (a) =>
+      a.user_id === acc.user_id &&
+      a.account_email === acc.account_email &&
+      a.google_calendar_id === "@account_connection" &&
+      a.provider === acc.provider
   );
   const storedRefreshToken = decryptToken(mainAcc?.refresh_token);
   if (!storedRefreshToken || !mainAcc) return null;
@@ -113,12 +105,12 @@ async function getAccessToken(
   const cacheKey = `${acc.user_id}:${acc.provider}:${mainAcc.account_email}`;
   if (tokenCache[cacheKey]) return tokenCache[cacheKey];
 
-  let accessToken = '';
-  if (acc.provider === 'google') {
-    accessToken = (await refreshGoogleToken(storedRefreshToken)) || '';
-  } else if (acc.provider === 'outlook') {
+  let accessToken = "";
+  if (acc.provider === "google") {
+    accessToken = (await refreshGoogleToken(storedRefreshToken)) || "";
+  } else if (acc.provider === "outlook") {
     const tokenData = await refreshOutlookToken(storedRefreshToken);
-    accessToken = tokenData?.access_token ?? '';
+    accessToken = tokenData?.access_token ?? "";
   }
 
   if (accessToken) {
@@ -126,14 +118,13 @@ async function getAccessToken(
     mainAccountsCache[cacheKey] = mainAcc;
 
     if (mainAcc.sync_error) {
-      await supabaseService.from('connected_calendars').update({ sync_error: null }).eq('id', mainAcc.id);
+      await supabaseAdmin().from("connected_calendars").update({ sync_error: null }).eq("id", mainAcc.id);
     }
   } else {
-
-    await supabaseService
-      .from('connected_calendars')
-      .update({ sync_error: 'token_refresh_failed' })
-      .eq('id', mainAcc.id);
+    await supabaseAdmin()
+      .from("connected_calendars")
+      .update({ sync_error: "token_refresh_failed" })
+      .eq("id", mainAcc.id);
   }
   return accessToken || null;
 }
@@ -169,11 +160,16 @@ interface CalendarSyncResult {
   removed: number;
 }
 
-async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<CalendarSyncResult> {
+async function syncGoogleCalendar(
+  acc: ConnectedCalendarRow,
+  accessToken: string,
+  timeMin: Date,
+  timeMax: Date
+): Promise<CalendarSyncResult> {
   let imported = 0;
   const seenIds = new Set<string>();
   const isBirthdayVirtual = acc.google_calendar_id === "google_birthdays";
-  const targetCalendarId = isBirthdayVirtual ? "primary" : (acc.google_calendar_id || "primary");
+  const targetCalendarId = isBirthdayVirtual ? "primary" : acc.google_calendar_id || "primary";
 
   const url = new URL(buildGoogleEventsUrl(targetCalendarId));
   url.searchParams.set("timeMin", timeMin.toISOString());
@@ -188,12 +184,12 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const googleRes = await fetchWithTimeout(fetchUrl.toString(), { // NOSONAR
+    const googleRes = await fetchWithTimeout(fetchUrl.toString(), {
+      // NOSONAR
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!googleRes.ok) {
-
       throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
     const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR
@@ -208,14 +204,21 @@ async function syncGoogleCalendar(acc: ConnectedCalendarRow, accessToken: string
   return { imported, removed };
 }
 
-async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: string, timeMin: Date, timeMax: Date): Promise<CalendarSyncResult> {
+async function syncOutlookCalendar(
+  acc: ConnectedCalendarRow,
+  accessToken: string,
+  timeMin: Date,
+  timeMax: Date
+): Promise<CalendarSyncResult> {
   let imported = 0;
   const seenIds = new Set<string>();
-  let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
+  let fetchUrl: string | undefined =
+    `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
   while (fetchUrl) {
-    const msRes: Response = await fetchWithTimeout(fetchUrl, { // NOSONAR
-      headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
+    const msRes: Response = await fetchWithTimeout(fetchUrl, {
+      // NOSONAR
+      headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' },
     });
 
     if (!msRes.ok) {
@@ -241,7 +244,7 @@ async function syncOutlookCalendar(acc: ConnectedCalendarRow, accessToken: strin
     }
     rows.forEach((r) => seenIds.add(r.google_event_id));
     imported += await upsertImportedEvents(rows); // NOSONAR
-    fetchUrl = data['@odata.nextLink'];
+    fetchUrl = data["@odata.nextLink"];
   }
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
@@ -252,7 +255,8 @@ async function updateMainTokens(tokenCache: TokenCache, mainAccountsCache: MainA
   await mapPool(Object.entries(tokenCache), 5, async ([key, token]) => {
     const mainAcc = mainAccountsCache[key];
     if (!mainAcc) return;
-    await supabaseService.from("connected_calendars")
+    await supabaseAdmin()
+      .from("connected_calendars")
       .update({ access_token: encryptToken(token), expires_at: new Date(Date.now() + 3600000).toISOString() })
       .eq("id", mainAcc.id);
   });
@@ -270,7 +274,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const accounts = await loadAllConnectedCalendars();
     if (accounts.length === 0) return res.json({ message: "Brak kont do synchronizacji." });
 
-    const targets = accounts.filter(a => a.google_calendar_id !== '@account_connection');
+    const targets = accounts.filter((a) => a.google_calendar_id !== "@account_connection");
     const tokenCache: TokenCache = {};
     const mainAccountsCache: MainAccountsCache = {};
 
@@ -284,8 +288,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const accessToken = await getAccessToken(acc, accounts, tokenCache, mainAccountsCache);
       if (!accessToken) return noop;
 
-      if (acc.provider === 'google') return syncGoogleCalendar(acc, accessToken, timeMin, timeMax);
-      if (acc.provider === 'outlook') return syncOutlookCalendar(acc, accessToken, timeMin, timeMax);
+      if (acc.provider === "google") return syncGoogleCalendar(acc, accessToken, timeMin, timeMax);
+      if (acc.provider === "outlook") return syncOutlookCalendar(acc, accessToken, timeMin, timeMax);
       return noop;
     };
 
@@ -299,16 +303,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         totalImported += result.imported;
         totalRemoved += result.removed;
       } catch (reason) {
-        console.error(`[CRON] Sync failed for account ${acc.id}:`, reason);
+        console.error(`[sync-calendars] Synchronizacja konta ${acc.id} nie powiodła się:`, reason);
         failedAccounts.push(acc.id);
       }
     });
 
     await updateMainTokens(tokenCache, mainAccountsCache);
 
-    return res.json({ success: failedAccounts.length === 0, imported: totalImported, removed: totalRemoved, failedAccounts });
+    return res.json({
+      success: failedAccounts.length === 0,
+      imported: totalImported,
+      removed: totalRemoved,
+      failedAccounts,
+    });
   } catch (error) {
-    console.error("[CRON ERROR]:", error);
+    console.error("[sync-calendars] Nieoczekiwany błąd:", error);
     return res.status(500).json({ error: "Synchronizacja nie powiodła się." });
   }
 }

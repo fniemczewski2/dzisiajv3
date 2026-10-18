@@ -1,6 +1,5 @@
 // types/reports.ts
 
-
 export interface ReportTask {
   zadanie: string;
   data: string;

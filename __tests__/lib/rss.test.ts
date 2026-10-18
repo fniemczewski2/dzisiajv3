@@ -31,7 +31,9 @@ describe("parseFeed", () => {
 
   it("odrzuca stronę HTML i deklaracje encji", () => {
     expect(() => parseFeed("<html><body>RSS</body></html>", "https://x.example")).toThrow(/RSS ani Atom/);
-    expect(() => parseFeed('<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><rss/>', "https://x.example")).toThrow(/encji/);
+    expect(() =>
+      parseFeed('<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><rss/>', "https://x.example")
+    ).toThrow(/encji/);
   });
 
   it("stripHtml dekoduje encje liczbowe", () => {
@@ -62,6 +64,11 @@ describe("źródła", () => {
   it("zapis użytkownika: tylko znane id; brak zapisu = domyślne", () => {
     expect(resolveEnabledSources(["tvn24", "nieznane", "c_1"], ["c_1"])).toEqual(["tvn24", "c_1"]);
     expect(resolveEnabledSources(null)).toEqual(defaultEnabledSources());
-    expect(normalizeCustomFeeds([{ id: "c_1", name: "X", url: "ftp://x" }, { id: "c_2", name: "Y", url: "https://y.example/feed" }])).toHaveLength(1);
+    expect(
+      normalizeCustomFeeds([
+        { id: "c_1", name: "X", url: "ftp://x" },
+        { id: "c_2", name: "Y", url: "https://y.example/feed" },
+      ])
+    ).toHaveLength(1);
   });
 });

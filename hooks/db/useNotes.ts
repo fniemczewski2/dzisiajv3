@@ -1,4 +1,4 @@
-﻿// hooks/db/useNotes.ts
+// hooks/db/useNotes.ts
 
 import { useCallback } from "react";
 import { Note } from "@/types/notes";
@@ -36,18 +36,22 @@ export function useNotes() {
   const editNote = useCallback(
     async (note: Note) => {
       const { id, ...clean } = note;
-      await crud.patch(id, {
-        title: clean.title,
-        items: clean.items,
-        bg_color: clean.bg_color,
-        user_id: clean.user_id,
-        pinned: clean.pinned,
-        archived: clean.archived,
-        updated_at: getAppDateTime().toISOString(),
-      }, {
-        successMessage: MESSAGES.edited,
-        errorMessage: MESSAGES.editError,
-      });
+      await crud.patch(
+        id,
+        {
+          title: clean.title,
+          items: clean.items,
+          bg_color: clean.bg_color,
+          user_id: clean.user_id,
+          pinned: clean.pinned,
+          archived: clean.archived,
+          updated_at: getAppDateTime().toISOString(),
+        },
+        {
+          successMessage: MESSAGES.edited,
+          errorMessage: MESSAGES.editError,
+        }
+      );
     },
     [crud]
   );

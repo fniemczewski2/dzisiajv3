@@ -1,4 +1,4 @@
-﻿// lib/errorUtils.ts
+// lib/errorUtils.ts
 
 export function getErrorMessage(error: unknown, fallback = "Wystąpił nieoczekiwany błąd"): string {
   if (error instanceof Error) return error.message;

@@ -1,4 +1,4 @@
-﻿// __tests__/lib/dateUtils.test.ts
+// __tests__/lib/dateUtils.test.ts
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
@@ -54,7 +54,7 @@ describe("parseEventDate", () => {
   it("parses a Postgres-style timestamp into the matching local Date fields", () => {
     const d = parseEventDate("2024-03-15 14:30:00+02");
     expect(d.getFullYear()).toBe(2024);
-    expect(d.getMonth()).toBe(2); 
+    expect(d.getMonth()).toBe(2);
     expect(d.getDate()).toBe(15);
     expect(d.getHours()).toBe(14);
     expect(d.getMinutes()).toBe(30);

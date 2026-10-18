@@ -1,5 +1,6 @@
-﻿// hooks/db/useCrudResource.ts
+// hooks/db/useCrudResource.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useAuth } from "@/providers/AuthProvider";
@@ -36,6 +37,11 @@ export interface CrudResourceConfig<T extends { id: string }, TInsert> {
   prepareUpdate?: (updates: Partial<T>) => Record<string, unknown>;
   applyServerRowOnEdit?: boolean;
   messages: CrudMessages;
+  /**
+   * Komunikat dla konkretnego błędu bazy (np. naruszenie unikalności 23505).
+   * Brak wyniku = komunikat ogólny z `messages`.
+   */
+  describeError?: (error: unknown, action: "add" | "edit" | "delete") => string | undefined;
 }
 
 export interface PatchOptions {
@@ -66,10 +72,13 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
   const querySuffix = queryKey ? `:${queryKey}` : "";
   const cacheKey = config.cachePrefix && userId ? `${config.cachePrefix}:${userId}${querySuffix}` : null;
 
-  const transform = useCallback((row: unknown): T => {
-    const fn = configRef.current.transformRow;
-    return fn ? fn(row) : (row as T);
-  }, [configRef]);
+  const transform = useCallback(
+    (row: unknown): T => {
+      const fn = configRef.current.transformRow;
+      return fn ? fn(row) : (row as T);
+    },
+    [configRef]
+  );
 
   const refetch = useCallback(async (): Promise<T[]> => {
     const cfg = configRef.current;
@@ -81,9 +90,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
     try {
       const { data, error } = await withRetry(() => {
         const base = supabase.from(cfg.table).select("*");
-        let query = cfg.buildQuery
-          ? cfg.buildQuery(base, userId)
-          : base.eq("user_id", userId);
+        let query = cfg.buildQuery ? cfg.buildQuery(base, userId) : base.eq("user_id", userId);
         if (!cfg.buildQuery && cfg.order) {
           query = query.order(cfg.order.column, {
             ascending: cfg.order.ascending ?? true,
@@ -135,7 +142,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
     async (payload: TInsert): Promise<T | undefined> => {
       const cfg = configRef.current;
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
@@ -143,29 +150,21 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         ? cfg.buildOptimistic(payload, tempId, userId)
         : ({ ...payload, id: tempId, user_id: userId } as unknown as T);
 
-      setItems((prev) =>
-        (cfg.insertPosition ?? "start") === "start"
-          ? [optimistic, ...prev]
-          : [...prev, optimistic]
-      );
+      setItems((prev) => ((cfg.insertPosition ?? "start") === "start" ? [optimistic, ...prev] : [...prev, optimistic]));
 
       try {
-        const row = cfg.prepareInsert
-          ? cfg.prepareInsert(payload, userId)
-          : { ...payload, user_id: userId };
+        const row = cfg.prepareInsert ? cfg.prepareInsert(payload, userId) : { ...payload, user_id: userId };
 
-        const { data, error } = await withRetry(() =>
-          supabase.from(cfg.table).insert(row).select().single()
-        );
+        const { data, error } = await withRetry(() => supabase.from(cfg.table).insert(row).select().single());
         if (error) throw error;
 
         const created = transform(data);
         setItems((prev) => prev.map((it) => (it.id === tempId ? created : it)));
         toast.success(cfg.messages.added);
         return created;
-      } catch {
+      } catch (error) {
         setItems((prev) => prev.filter((it) => it.id !== tempId));
-        toast.error(cfg.messages.addError);
+        toast.error(cfg.describeError?.(error, "add") ?? cfg.messages.addError);
         return undefined;
       } finally {
         setLoading(false);
@@ -178,7 +177,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
     async (id: string, updates: Partial<T>, options: PatchOptions = {}): Promise<T | undefined> => {
       const cfg = configRef.current;
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       setItems((prev) => {
@@ -200,15 +199,13 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
           return updated;
         }
 
-        const { error } = await withRetry(() =>
-          supabase.from(cfg.table).update(payload).eq("id", id)
-        );
+        const { error } = await withRetry(() => supabase.from(cfg.table).update(payload).eq("id", id));
         if (error) throw error;
         if (!options.silent) toast.success(options.successMessage ?? cfg.messages.edited);
         return undefined;
-      } catch {
+      } catch (error) {
         setItems(rollbackRef.current);
-        toast.error(options.errorMessage ?? cfg.messages.editError);
+        toast.error(options.errorMessage ?? cfg.describeError?.(error, "edit") ?? cfg.messages.editError);
         return undefined;
       } finally {
         setLoading(false);
@@ -221,7 +218,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
     async (id: string): Promise<boolean> => {
       const cfg = configRef.current;
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const ok = await toast.confirm(cfg.messages.confirmDelete);
       if (!ok) return false;
@@ -233,15 +230,13 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
       });
 
       try {
-        const { error } = await withRetry(() =>
-          supabase.from(cfg.table).delete().eq("id", id)
-        );
+        const { error } = await withRetry(() => supabase.from(cfg.table).delete().eq("id", id));
         if (error) throw error;
         toast.success(cfg.messages.deleted);
         return true;
-      } catch {
+      } catch (error) {
         setItems(rollbackRef.current);
-        toast.error(cfg.messages.deleteError);
+        toast.error(cfg.describeError?.(error, "delete") ?? cfg.messages.deleteError);
         return false;
       } finally {
         setLoading(false);

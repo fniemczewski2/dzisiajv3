@@ -1,5 +1,6 @@
 // hooks/usePlanByHour.ts
 
+import { useNow } from "@/hooks/useNow";
 import { useMemo } from "react";
 import type { PlanItemData, Schema, DailyOverride } from "@/types/schemas";
 import type { Event } from "@/types/events";
@@ -64,17 +65,20 @@ export function usePlanByHour({
   isToday,
   overrides,
 }: UsePlanByHourArgs): Record<string, PlanItemData[]> {
+  const now = useNow();
+
   return useMemo(() => {
     const map: Record<string, PlanItemData[]> = {};
-    HOURS.forEach((h) => { map[`${String(h).padStart(2, "0")}:00`] = []; });
+    HOURS.forEach((h) => {
+      map[`${String(h).padStart(2, "0")}:00`] = [];
+    });
 
-    const todaySchema = activeSchema === undefined
-      ? schemas.find((s) => s.days?.includes(currentDayOfWeek))
-      : activeSchema;
+    const todaySchema =
+      activeSchema === undefined ? schemas.find((s) => s.days?.includes(currentDayOfWeek)) : activeSchema;
     if (todaySchema?.entries) {
       todaySchema.entries.forEach((entry, idx) => {
         const schemaId = `schema-${idx}`;
-        const override = overrides.find(o => o.schema_id === schemaId);
+        const override = overrides.find((o) => o.schema_id === schemaId);
         if (override?.is_hidden) return;
 
         const rawTime = override?.new_time || entry.time;
@@ -146,15 +150,16 @@ export function usePlanByHour({
     });
 
     if (isToday) {
-      const currentHour = new Date().getHours();
+      const currentHour = now.getHours();
       const filteredMap: Record<string, PlanItemData[]> = {};
 
       Object.keys(map).forEach((timeKey) => {
         const hourNum = Number.parseInt(timeKey.split(":")[0], 10);
 
         if (hourNum < currentHour) {
-          const shouldKeepPastHour = map[timeKey].some(item => {
-            if (item.type === "task" || item.type === "schema" || item.type === "worklog" || item.type === "train") return true;
+          const shouldKeepPastHour = map[timeKey].some((item) => {
+            if (item.type === "task" || item.type === "schema" || item.type === "worklog" || item.type === "train")
+              return true;
 
             if (item.type === "event" && item.data?.end_time) {
               const endH = getHourStr(item.data.end_time);
@@ -176,5 +181,5 @@ export function usePlanByHour({
     }
 
     return map;
-  }, [schemas, activeSchema, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides]);
+  }, [schemas, activeSchema, events, workLogs, scheduledTasks, trains, currentDayOfWeek, isToday, overrides, now]);
 }

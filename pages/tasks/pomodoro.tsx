@@ -1,10 +1,8 @@
 // pages/tasks/pomodoro.tsx
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { useEffect, useState, useRef } from "react";
 import UniversalTimer, { TimerPhase, TimerControls } from "@/components/ui/Timer";
-import { ListTodo, Settings, X } from "lucide-react";
+import { Settings, X } from "lucide-react";
 import Seo from "@/components/ui/SEO";
 
 export default function PomodoroPage() {
@@ -21,7 +19,6 @@ export default function PomodoroPage() {
   const [isBreak, setIsBreak] = useState(false);
   const [round, setRound] = useState(1);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
 
   const toggleOpen = () => setOpen((prev) => !prev);
 
@@ -43,11 +40,11 @@ export default function PomodoroPage() {
       intervalRef.current = setInterval(() => {
         setSecondsLeft((s) => s - 1);
       }, 1000);
-    } else if (intervalRef.current) { 
+    } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -67,14 +64,14 @@ export default function PomodoroPage() {
     }
   }, [secondsLeft, running, isBreak, focusSeconds, breakSeconds]);
 
-const controls: TimerControls = {
+  const controls: TimerControls = {
     start: () => {
       const defaultSeconds = isBreak ? breakSeconds : focusSeconds;
       setSecondsLeft((currentSeconds) => {
         if (currentSeconds > 0) {
-          return currentSeconds; 
+          return currentSeconds;
         }
-        return defaultSeconds; 
+        return defaultSeconds;
       });
 
       setRunning(true);
@@ -110,16 +107,6 @@ const controls: TimerControls = {
       .toString()
       .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
-  const handleBack = useCallback(() => {
-    const pathParts = router.pathname.split("/").filter(Boolean);
-    if (pathParts.length > 1) {
-      const parentPath = "/" + pathParts.slice(0, -1).join("/");
-      void router.push(parentPath);
-    } else {
-      void router.push("/");
-    }
-  }, [router]);
-
   return (
     <>
       <Seo
@@ -128,56 +115,51 @@ const controls: TimerControls = {
         canonical="https://dzisiaj.fun/tasks/pomodoro"
         keywords="pomodoro, technika pomodoro, skupienie, focus, timer, praca głęboka"
       />
-        <div className="flex justify-start gap-3 items-center mb-4 relative">
-          <h1 className="page-title">Pomodoro</h1>
+      <div className="relative mb-4 flex items-center justify-start gap-3">
+        <h1 className="page-title">Pomodoro</h1>
+      </div>
+
+      <UniversalTimer
+        secondsLeft={secondsLeft}
+        running={running}
+        paused={paused}
+        phaseIndex={phaseIndex}
+        round={round}
+        phases={phases}
+        controls={controls}
+        formatTime={format}
+      />
+
+      <div className="mt-4 flex justify-center">
+        <button onClick={toggleOpen} type="button" className="transition" aria-label="Ustawienia">
+          {open ? <X className="h-5 w-5" /> : <Settings className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {open && (
+        <div className="mx-auto mt-2 max-w-md overflow-hidden transition-all duration-300">
+          <label className="flex items-center justify-between px-4 py-2">
+            <span>Focus (min):</span>
+            <input
+              type="number"
+              value={focusSeconds / 60}
+              onChange={(e) => setFocusSeconds(Number(e.target.value) * 60)}
+              className="input-field w-20 py-1.5 text-center tabular-nums"
+              min={1}
+            />
+          </label>
+          <label className="flex items-center justify-between px-4 py-2">
+            <span>Break (min):</span>
+            <input
+              type="number"
+              value={breakSeconds / 60}
+              onChange={(e) => setBreakSeconds(Number(e.target.value) * 60)}
+              className="input-field w-20 py-1.5 text-center tabular-nums"
+              min={1}
+            />
+          </label>
         </div>
-
-        <UniversalTimer
-          secondsLeft={secondsLeft}
-          running={running}
-          paused={paused}
-          phaseIndex={phaseIndex}
-          round={round}
-          phases={phases}
-          controls={controls}
-          formatTime={format}
-        />
-
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={toggleOpen}
-            type='button'
-            className="transition"
-            aria-label="Ustawienia"
-          >
-            {open ? <X className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
-          </button>
-        </div>
-
-        {open && (
-          <div className="mt-2 max-w-md mx-auto transition-all duration-300 overflow-hidden">
-            <label className="flex justify-between px-4 py-2 items-center">
-              <span>Focus (min):</span>
-              <input
-                type="number"
-                value={focusSeconds / 60}
-                onChange={(e) => setFocusSeconds(Number(e.target.value) * 60)}
-                className="input-field w-20 text-center tabular-nums py-1.5"
-                min={1}
-              />
-            </label>
-            <label className="flex justify-between px-4 py-2 items-center">
-              <span>Break (min):</span>
-              <input
-                type="number"
-                value={breakSeconds / 60}
-                onChange={(e) => setBreakSeconds(Number(e.target.value) * 60)}
-                className="input-field w-20 text-center tabular-nums py-1.5"
-                min={1}
-              />
-            </label>
-          </div>
-        )}
+      )}
     </>
   );
 }

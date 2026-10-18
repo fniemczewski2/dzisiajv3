@@ -1,6 +1,7 @@
 // components/settings/PushNotificationManager.tsx
 
-import React, { useEffect, useState } from "react";
+import { useIsClient } from "@/hooks/useIsClient";
+import React, { useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
 import { usePushNotifications } from "@/hooks/db/usePushNotifications";
 import { useAuth } from "@/providers/AuthProvider";
@@ -28,7 +29,8 @@ const getPlatform = (): Platform => {
 
 const checkIsStandalone = (): boolean => {
   if (typeof window === "undefined") return false;
-  const matchMediaMatches = typeof globalThis.matchMedia === "function" && globalThis.matchMedia("(display-mode: standalone)").matches;
+  const matchMediaMatches =
+    typeof globalThis.matchMedia === "function" && globalThis.matchMedia("(display-mode: standalone)").matches;
   const navigatorStandalone = (globalThis.navigator as NavigatorWithStandalone)?.standalone === true;
   return matchMediaMatches || navigatorStandalone;
 };
@@ -43,21 +45,29 @@ const checkIsSupported = (): boolean => {
   );
 };
 
-function DetailRow({ label, value, ok, warn = false }: { readonly label: string; readonly value: string; readonly ok: boolean; readonly warn?: boolean }) {
-  let colorClass = "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50";
+function DetailRow({
+  label,
+  value,
+  ok,
+  warn = false,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly ok: boolean;
+  readonly warn?: boolean;
+}) {
+  let colorClass = "bg-danger-soft text-danger border-danger-line ";
 
   if (ok) {
-    colorClass = "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30";
+    colorClass = "bg-success-soft text-success border-success-line ";
   } else if (warn) {
-    colorClass = "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 border-yellow-200 dark:border-yellow-700/50";
+    colorClass = "bg-warning-soft text-warning border-warning-line ";
   }
 
   return (
-    <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-2">
+    <div className="flex items-center justify-between border-t border-line pt-2 text-xs sm:text-sm">
       <span className="font-semibold text-text-secondary">{label}</span>
-      <span className={`px-2 py-1 rounded-lg font-bold border ${colorClass}`}>
-        {value}
-      </span>
+      <span className={`rounded-lg border px-2 py-1 font-bold ${colorClass}`}>{value}</span>
     </div>
   );
 }
@@ -67,7 +77,7 @@ function TechDetailsInfo({
   isStandalone,
   isSupported,
   permission,
-  isSubscribed
+  isSubscribed,
 }: {
   readonly platform: string;
   readonly isStandalone: boolean;
@@ -88,34 +98,33 @@ function TechDetailsInfo({
   const platformLabel = platformMap[platform] || "Desktop";
 
   return (
-    <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 space-y-3">
+    <div className="mb-5 space-y-3 rounded-lg border border-line bg-surface p-4">
       <div className="flex items-center justify-between text-xs sm:text-sm">
         <span className="font-semibold text-text-secondary">Platforma:</span>
         <div className="flex gap-2">
-          <span className="px-2 py-1 rounded-lg card text-text font-medium">
-            {platformLabel}
-          </span>
+          <span className="card rounded-lg px-2 py-1 font-medium text-text">{platformLabel}</span>
           {isStandalone && (
-            <span className="px-2 py-1 rounded-lg bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 font-bold border border-green-200 dark:border-green-500/30">
+            <span className="rounded-lg border border-success-line bg-success-soft px-2 py-1 font-bold text-success">
               PWA
             </span>
           )}
         </div>
       </div>
-      
+
       <DetailRow label="Przeglądarka:" value={isSupported ? "Wspierane" : "Brak"} ok={isSupported} />
-      <DetailRow label="Uprawnienia:" value={permissionText} ok={permission === "granted"} warn={permission === "default"} />
+      <DetailRow
+        label="Uprawnienia:"
+        value={permissionText}
+        ok={permission === "granted"}
+        warn={permission === "default"}
+      />
       <DetailRow label="Subskrypcja:" value={isSubscribed ? "Aktywna" : "Brak"} ok={isSubscribed} />
     </div>
   );
 }
 
 export default function PushNotificationManager({ userId }: PushNotificationManagerProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsClient();
 
   const { isSubscribed, loading, subscribeToPush, unsubscribeFromPush } = usePushNotifications(userId);
   const { supabase } = useAuth();
@@ -127,7 +136,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
   );
 
   if (!mounted) {
-    return null; 
+    return null;
   }
 
   const platform = getPlatform();
@@ -169,7 +178,9 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       if (!supabaseUrl) throw new Error("Błąd konfiguracji Supabase");
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error("Brak aktywnej sesji");
 
       let response: Response;
@@ -212,67 +223,80 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
     buttonContent = (
       <>
         <span>Wyłącz</span>
-        <BellOff className="w-5 h-5" />
+        <BellOff className="h-5 w-5" />
       </>
     );
   } else {
     buttonContent = (
       <>
         <span>Aktywuj</span>
-        <Bell className="w-5 h-5" />
+        <Bell className="h-5 w-5" />
       </>
     );
   }
 
   return (
-    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
-      <div className="flex items-center justify-between mb-4">
+    <div className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
-          <div><Bell className="w-5 h-5 text-primary shrink-0" /></div>
+          <div>
+            <Bell className="h-5 w-5 shrink-0 text-primary" />
+          </div>
           <h3 className="text-lg font-bold">Powiadomienia</h3>
         </div>
-        <button 
+        <button
           onClick={() => setShowDetails(!showDetails)}
-          type='button'
-          className="text-xs font-bold text-primary hover:text-primary-strong transition-colors">
+          type="button"
+          className="text-xs font-bold text-primary transition-colors hover:text-primary-strong"
+        >
           {showDetails ? "Ukryj tech." : "Techniczne"}
         </button>
       </div>
 
       {showDetails && (
-        <TechDetailsInfo 
-          platform={platform} 
-          isStandalone={isStandalone} 
-          isSupported={isSupported} 
-          permission={permission} 
-          isSubscribed={isSubscribed} 
+        <TechDetailsInfo
+          platform={platform}
+          isStandalone={isStandalone}
+          isSupported={isSupported}
+          permission={permission}
+          isSubscribed={isSubscribed}
         />
       )}
 
       <NotificationPreferences />
 
-      <div className="flex flex-wrap md:grid md:grid-cols-2 gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2 md:grid md:grid-cols-2">
         {isSupported && permission === "default" && (
-          <button onClick={handleRequestPermission} type='button' disabled={loading}
-            className="flex-1 min-w-35 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-secondary-hover transition-colors disabled:opacity-50">
+          <button
+            onClick={handleRequestPermission}
+            type="button"
+            disabled={loading}
+            className="flex min-w-35 flex-1 items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 font-bold text-white transition-colors hover:bg-secondary-hover disabled:opacity-50"
+          >
             {loading ? "Czekaj..." : "Nadaj Uprawnienia"}
-            <AlertCircle className="w-5 h-5" />
+            <AlertCircle className="h-5 w-5" />
           </button>
         )}
         {isSupported && permission === "granted" && (
-          <button onClick={handleToggleNotifications} type='button' disabled={loading}
-            className={`font-semibold px-4 py-2 w-full bg-surface hover:bg-surface-hover text-text-secondary rounded-lg flex flex-1 justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
-              isSubscribed
-                ? "bg-red-5 dark:bg-red-950 border border-red-200 dark:border-red-900/50"
-                : "bg-surface hover:bg-surface-hover"
-            }`}>
+          <button
+            onClick={handleToggleNotifications}
+            type="button"
+            disabled={loading}
+            className={`flex w-full flex-1 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-semibold text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60 ${
+              isSubscribed ? "border border-danger-line bg-danger-soft" : "bg-surface hover:bg-surface-hover"
+            }`}
+          >
             {buttonContent}
           </button>
         )}
         {isSubscribed && (
-          <button onClick={handleTestNotification} type='button' disabled={loading}
-            className="font-semibold px-4 py-2 w-full bg-surface hover:bg-surface-hover text-text-secondary rounded-lg flex justify-center items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-            Wyślij Test <CheckCircle className="w-5 h-5" />
+          <button
+            onClick={handleTestNotification}
+            type="button"
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-semibold text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Wyślij Test <CheckCircle className="h-5 w-5" />
           </button>
         )}
       </div>

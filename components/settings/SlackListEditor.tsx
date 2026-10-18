@@ -43,9 +43,7 @@ export default function SlackListEditor({
   const [draftMap, setDraftMap] = useState<ColumnMap>(list.column_map ?? {});
   const [isDefault, setIsDefault] = useState(list.is_default);
   const [syncEnabled, setSyncEnabled] = useState(list.sync_enabled);
-  const [assigneeEmails, setAssigneeEmails] = useState(
-    formatAssigneeEmails(list.assignee_emails)
-  );
+  const [assigneeEmails, setAssigneeEmails] = useState(formatAssigneeEmails(list.assignee_emails));
 
   useEffect(() => {
     setDraftMap(list.column_map ?? {});
@@ -66,7 +64,7 @@ export default function SlackListEditor({
         type="button"
         onClick={handleToggle}
         aria-expanded={expanded}
-        className="text-xs font-bold text-primary hover:text-primary-strong transition-colors"
+        className="text-xs font-bold text-primary transition-colors hover:text-primary-strong"
       >
         {expanded ? "Ukryj mapowanie" : "Mapowanie kolumn"}
       </button>
@@ -74,30 +72,21 @@ export default function SlackListEditor({
       {expanded && (
         <div className="mt-2 space-y-2 rounded-lg bg-surface p-3">
           {columns === undefined && <p className="text-xs text-text-muted">Wczytuję kolumny…</p>}
-          {columns?.length === 0 && (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              Nie udało się odczytać kolumn tej listy.
-            </p>
-          )}
+          {columns?.length === 0 && <p className="text-xs text-danger">Nie udało się odczytać kolumn tej listy.</p>}
 
           {columns && columns.length > 0 && (
             <>
               {SLACK_MAPPABLE_TASK_FIELDS.map((field) => (
                 <div key={field} className="flex items-center gap-2">
-                  <label
-                    htmlFor={`col-${list.id}-${field}`}
-                    className="w-24 shrink-0 text-xs text-text-secondary"
-                  >
+                  <label htmlFor={`col-${list.id}-${field}`} className="w-24 shrink-0 text-xs text-text-secondary">
                     {SLACK_FIELD_LABELS[field]}
                     {field === "title" && <span className="text-primary"> *</span>}
                   </label>
                   <select
                     id={`col-${list.id}-${field}`}
                     value={draftMap[field] ?? ""}
-                    onChange={(e) =>
-                      setDraftMap((prev) => ({ ...prev, [field]: e.target.value || undefined }))
-                    }
-                    className="input-field flex-1 min-w-0 text-sm"
+                    onChange={(e) => setDraftMap((prev) => ({ ...prev, [field]: e.target.value || undefined }))}
+                    className="input-field min-w-0 flex-1 text-sm"
                   >
                     <option value="">– nie synchronizuj –</option>
                     {columns.map((column) => (
@@ -114,7 +103,7 @@ export default function SlackListEditor({
                   type="checkbox"
                   checked={isDefault}
                   onChange={(e) => setIsDefault(e.target.checked)}
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                 />{" "}
                 Nowe zadania z aplikacji trafiają na tę listę
               </label>
@@ -124,7 +113,7 @@ export default function SlackListEditor({
                   type="checkbox"
                   checked={syncEnabled}
                   onChange={(e) => setSyncEnabled(e.target.checked)}
-                  className="w-4 h-4 mt-0.5"
+                  className="mt-0.5 h-4 w-4"
                 />
                 <span>
                   Pobieraj zadania z tej listy{" "}
@@ -136,10 +125,7 @@ export default function SlackListEditor({
 
               {syncEnabled && (
                 <div>
-                  <label
-                    htmlFor={`slack-emails-${list.id}`}
-                    className="block text-xs text-text-secondary"
-                  >
+                  <label htmlFor={`slack-emails-${list.id}`} className="block text-xs text-text-secondary">
                     Pobieraj tylko zadania przypisane do (adresy e-mail):
                   </label>
                   <input
@@ -148,9 +134,9 @@ export default function SlackListEditor({
                     value={assigneeEmails}
                     onChange={(e) => setAssigneeEmails(e.target.value)}
                     placeholder="jan@firma.pl, anna@firma.pl"
-                    className="input-field w-full text-sm mt-1"
+                    className="input-field mt-1 w-full text-sm"
                   />
-                  <span className="block text-xs text-text-muted mt-1">
+                  <span className="mt-1 block text-xs text-text-muted">
                     Puste = pobieraj wszystkie zadania z listy.
                   </span>
                 </div>
@@ -167,7 +153,9 @@ export default function SlackListEditor({
                   className="input-field mt-1"
                 >
                   {categoryChoices.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                 </select>
               </div>

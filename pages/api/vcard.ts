@@ -1,120 +1,58 @@
-﻿// pages/api/vcard.ts
+// pages/api/vcard.ts
+//
+// GET /api/vcard?slug=… – plik .vcf publicznej wizytówki (bez logowania).
 
-import { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
-import type { VCardProfile } from '@/types/profiles';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createAnonSupabase } from "@/lib/supabase/server";
+import { buildVCard, vcardContentDisposition } from "@/lib/vcard";
+import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
+import { CACHE_CONTROL } from "@/config/server";
+import type { VCardProfile } from "@/types/profiles";
 
-export function escVCardValue(raw: string): string {
-return raw
-  .replaceAll('\\', String.raw`\\`)
-  .replaceAll(/\r?\n/g, String.raw`\n`)
-  .replaceAll(';', String.raw`\;`)
-  .replaceAll(',', String.raw`\,`);
-}
+type PublicVCard = Pick<
+  VCardProfile,
+  "full_name" | "organization" | "phones" | "emails" | "addresses" | "social_links"
+>;
 
-export function sanitizeTypeToken(raw: string): string {
-  const cleaned = raw.replaceAll(/[^A-Za-z0-9-]/g, '').toUpperCase();
-  return cleaned || 'OTHER';
-}
-
-/** Obcina podkreślenia z obu końców – liniowo (regex /_+$/ miał nadliniowy czas). */
-function trimUnderscores(text: string): string {
-  let start = 0;
-  let end = text.length;
-  while (start < end && text[start] === '_') start++;
-  while (end > start && text[end - 1] === '_') end--;
-  return text.slice(start, end);
-}
-
-export function safeFileName(raw: string | undefined): string {
-  const cleaned = trimUnderscores((raw ?? '').replaceAll(/[^\p{L}\p{N}_-]+/gu, '_'));
-  return cleaned || 'wizytowka';
-}
-
-function buildPhoneLines(phones: VCardProfile['phones']): string[] {
-  const lines: string[] = [];
-  if (!Array.isArray(phones)) return lines;
-  for (const phone of phones) {
-    if (!phone?.number) continue;
-    const cleanNumber = escVCardValue(phone.number.replaceAll(/\s+/g, ''));
-    const type = sanitizeTypeToken(phone.type ?? '');
-    lines.push(`TEL;TYPE=${type},VOICE:${cleanNumber}`);
-  }
-  return lines;
-}
-
-function buildEmailLines(emails: VCardProfile['emails']): string[] {
-  const lines: string[] = [];
-  if (!Array.isArray(emails)) return lines;
-  for (const email of emails) {
-    if (!email?.email) continue;
-    const type = sanitizeTypeToken(email.type ?? '');
-    lines.push(`EMAIL;TYPE=${type}:${escVCardValue(email.email)}`);
-  }
-  return lines;
-}
-
-function buildSocialLinkLines(socialLinks: VCardProfile['social_links']): string[] {
-  const lines: string[] = [];
-  if (!Array.isArray(socialLinks)) return lines;
-  for (const link of socialLinks) {
-    const url = link?.url?.trim();
-    if (!url) continue;
-    const type = sanitizeTypeToken(link.platform ?? '');
-    lines.push(`URL;TYPE=${type}:${escVCardValue(url)}`);
-  }
-  return lines;
-}
-
-function buildVCardLines(profile: VCardProfile): string[] {
-  const lines: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
-
-  lines.push(`FN:${escVCardValue(profile.full_name || '')}`);
-
-  if (profile.organization) {
-    lines.push(`ORG:${escVCardValue(profile.organization)}`);
-  }
-
-  lines.push(
-    ...buildPhoneLines(profile.phones),
-    ...buildEmailLines(profile.emails),
-    ...buildSocialLinkLines(profile.social_links),
-    'END:VCARD',
-    '',
-  );
-  return lines;
-}
+const PUBLIC_COLUMNS = "full_name, organization, phones, emails, addresses, social_links";
+const SLUG_PATTERN = /^[a-z0-9-]{1,100}$/;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Metoda niedozwolona.' });
-  const { slug } = req.query;
-
-  if (!slug || typeof slug !== 'string') {
-    return res.status(400).json({ error: 'Brak adresu wizytówki.' });
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).json({ error: "Metoda niedozwolona." });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  if (!(await enforceRateLimit(res, "vcard", clientIp(req)))) return;
 
-  const { data: profile, error } = await supabase
-    .from('vcard_profiles')
-    .select('*')
-    .eq('public_slug', slug)
-    .eq('is_public', true)
-    .single<VCardProfile>();
+  const { slug } = req.query;
+  if (typeof slug !== "string" || !SLUG_PATTERN.test(slug)) {
+    return res.status(400).json({ error: "Brak lub nieprawidłowy adres wizytówki." });
+  }
+
+  const { data: profile, error } = await createAnonSupabase()
+    .from("vcard_profiles")
+    .select(PUBLIC_COLUMNS)
+    .eq("public_slug", slug)
+    .eq("is_public", true)
+    .maybeSingle<PublicVCard>();
 
   if (error || !profile) {
-    return res.status(404).json({ error: 'Nie znaleziono wizytówki lub jest prywatna.' });
+    res.setHeader("Cache-Control", CACHE_CONTROL.private);
+    return res.status(404).json({ error: "Nie znaleziono wizytówki albo nie jest publiczna." });
   }
 
-  const lines = buildVCardLines(profile);
-  const vcf = lines.join('\r\n');
+  const vcf = buildVCard({
+    fullName: profile.full_name ?? "",
+    organization: profile.organization,
+    phones: profile.phones,
+    emails: profile.emails,
+    addresses: profile.addresses,
+    urls: (profile.social_links ?? []).map((link) => ({ type: link.platform, url: link.url })),
+  });
 
-  const filename = safeFileName(profile.full_name);
-  res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}.vcf"`);
-
-  res.status(200).send(vcf);
+  res.setHeader("Content-Type", "text/vcard; charset=utf-8");
+  res.setHeader("Content-Disposition", vcardContentDisposition(profile.full_name));
+  res.setHeader("Cache-Control", CACHE_CONTROL.vcard);
+  return res.status(200).send(vcf);
 }

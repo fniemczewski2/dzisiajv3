@@ -1,6 +1,8 @@
 // components/settings/UserSection.tsx
 
+import { clearLocalUserData } from "@/lib/localUserData";
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 import { CircleUser, LogOut, TriangleAlert, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import { ACCOUNT_DELETE_CONFIRMATION } from "@/config/userData";
@@ -13,6 +15,7 @@ interface UserSectionProps {
 
 export default function UserSection({ email, onSignOut }: Readonly<UserSectionProps>) {
   const { toast } = useToast();
+  const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
   const [showDeletePanel, setShowDeletePanel] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -37,7 +40,8 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       }
 
       toast.success("Konto i wszystkie dane zostały usunięte.");
-      globalThis.location.href = "/start";
+      await clearLocalUserData();
+      await router.replace("/start");
     } catch {
       toast.error("Usuwanie konta nie powiodło się.");
     } finally {
@@ -46,97 +50,95 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
   };
 
   return (
-    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
-      <div className="flex items-center justify-between mb-4">
+    <div className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <div>
-            <CircleUser className="w-5 h-5 text-primary shrink-0" />
+            <CircleUser className="h-5 w-5 shrink-0 text-primary" />
           </div>
           <h3 className="text-lg font-bold">Użytkownik</h3>
         </div>
         <button
           onClick={() => setShowDetails(!showDetails)}
           type="button"
-          className="text-xs font-bold text-primary hover:text-primary-strong transition-colors"
+          className="text-xs font-bold text-primary transition-colors hover:text-primary-strong"
         >
           {showDetails ? "Ukryj tech." : "Techniczne"}
         </button>
       </div>
 
-
-          <div className="flex flex-col text-xs sm:text-sm gap-2 py-4">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-text mb-2">
-              <CircleUser className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
-              Zalogowano jako
-            </h4>
-            <span className="px-2.5 py-1 font-mono font-medium rounded-lg card text-text truncate max-w-full">
-              {email || "Brak danych"}
-            </span>
-          </div>
+      <div className="flex flex-col gap-2 py-4 text-xs sm:text-sm">
+        <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-text">
+          <CircleUser className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          Zalogowano jako
+        </h4>
+        <span className="card max-w-full truncate rounded-lg px-2.5 py-1 font-mono font-medium text-text">
+          {email || "Brak danych"}
+        </span>
+      </div>
 
       <SecondaryFullButton onClick={onSignOut} Icon={LogOut}>
         Wyloguj się
       </SecondaryFullButton>
 
-      <div className="flex flex-col text-xs sm:text-sm gap-2 py-4">
-        <h4 className="flex items-center gap-2 text-sm font-bold text-text my-2">
-          <TriangleAlert className="w-4 h-4  text-red-600 dark:text-red-400 shrink-0" aria-hidden="true" />
+      <div className="flex flex-col gap-2 py-4 text-xs sm:text-sm">
+        <h4 className="my-2 flex items-center gap-2 text-sm font-bold text-text">
+          <TriangleAlert className="h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
           Usunięcie konta
         </h4>
-        <p className="text-sm text-text-secondary mb-3">
-          Usuwa konto wraz ze wszystkimi danymi.
-          Operacji nie da się cofnąć.
+        <p className="mb-3 text-sm text-text-secondary">
+          Usuwa konto wraz ze wszystkimi danymi. Operacji nie da się cofnąć.
         </p>
       </div>
 
-        {!showDeletePanel && (
-          <SecondaryFullButton onClick={() => setShowDeletePanel(true)} Icon={Trash2} variant="danger">
-            Usuń konto
-          </SecondaryFullButton>
-        )}
+      {!showDeletePanel && (
+        <SecondaryFullButton onClick={() => setShowDeletePanel(true)} Icon={Trash2} variant="danger">
+          Usuń konto
+        </SecondaryFullButton>
+      )}
 
-        {showDeletePanel && (
-          <div className="space-y-3">
-            <label htmlFor="delete-confirmation" className="block text-sm text-text">
-              Wpisz <strong>{ACCOUNT_DELETE_CONFIRMATION}</strong>, aby potwierdzić:
-            </label>
-            <input
-              id="delete-confirmation"
-              type="text"
-              value={confirmation}
-              onChange={(e) => setConfirmation(e.target.value)}
-              autoComplete="off"
-              className="input-field w-full"
-              aria-describedby="delete-confirmation-hint"
-            />
-            <p id="delete-confirmation-hint" className="text-xs text-text-muted">
-              Po usunięciu nastąpi wylogowanie. Odzyskanie danych nie będzie możliwe.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => void handleDeleteAccount()}
-                disabled={!canDelete || deleting}
-                aria-busy={deleting}
-                className="px-4 py-2 text-sm font-bold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleting && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
-                {deleting ? "Usuwam konto…" : "Usuń konto na zawsze"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDeletePanel(false);
-                  setConfirmation("");
-                }}
-                disabled={deleting}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-surface hover:bg-surface-hover text-text-secondary border border-gray-200 dark:border-gray-800 transition-colors disabled:opacity-50"
-              >
-                Anuluj
-              </button>
-            </div>
+      {showDeletePanel && (
+        <div className="space-y-3">
+          <label htmlFor="delete-confirmation" className="block text-sm text-text">
+            Wpisz <strong>{ACCOUNT_DELETE_CONFIRMATION}</strong>, aby potwierdzić:
+          </label>
+          <input
+            id="delete-confirmation"
+            type="text"
+            value={confirmation}
+            onChange={(e) => setConfirmation(e.target.value)}
+            autoComplete="off"
+            className="input-field w-full"
+            aria-describedby="delete-confirmation-hint"
+          />
+          <p id="delete-confirmation-hint" className="text-xs text-text-muted">
+            Po usunięciu nastąpi wylogowanie. Odzyskanie danych nie będzie możliwe.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void handleDeleteAccount()}
+              disabled={!canDelete || deleting}
+              aria-busy={deleting}
+              className="flex items-center gap-2 rounded-lg bg-danger-solid px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-danger-solid-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {deleting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+              {deleting ? "Usuwam konto…" : "Usuń konto na zawsze"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeletePanel(false);
+                setConfirmation("");
+              }}
+              disabled={deleting}
+              className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:opacity-50"
+            >
+              Anuluj
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
   );
 }

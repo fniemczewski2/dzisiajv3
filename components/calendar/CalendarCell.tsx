@@ -76,9 +76,9 @@ const CalendarCell = memo(function CalendarCell({
     <button
       type="button"
       className={clsx(
-        "flex flex-col relative text-left justify-between p-1 sm:p-2 sm:min-h-26.5 min-h-21.5 rounded-xl cursor-pointer overflow-hidden border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        "relative flex min-h-21.5 cursor-pointer flex-col justify-between overflow-hidden rounded-xl border p-1 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:min-h-26.5 sm:p-2",
         isOutside
-          ? "bg-transparent border-transparent text-text-muted opacity-50 hover:bg-surface"
+          ? "border-transparent bg-transparent text-text-muted opacity-50 hover:bg-surface"
           : "card hover:border-line-strong",
         isToday && "ring-1 ring-primary"
       )}
@@ -91,19 +91,18 @@ const CalendarCell = memo(function CalendarCell({
         hasConflict ? "uwaga: nakładające się terminy" : null,
         repeatCount > 0 ? `powtórzenia zadań: ${repeatTitles.join(", ")}` : null,
         moodOption ? `nastrój: ${moodOption.label}` : null,
-      ].filter(Boolean).join(", ")}
+      ]
+        .filter(Boolean)
+        .join(", ")}
       aria-current={isToday ? "date" : undefined}
     >
-      <div className="flex flex-nowrap justify-between items-center w-full">
+      <div className="flex w-full flex-nowrap items-center justify-between">
         <div
           className={clsx(
-            "text-sm font-bold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors",
+            "flex h-6 w-6 items-center justify-center rounded-full text-sm font-bold transition-colors sm:h-7 sm:w-7",
             isToday ? "bg-secondary text-white" : "text-text",
             isOutside && !isToday && "text-text-muted",
-            holiday &&
-              (isToday
-                ? "bg-red-600 dark:bg-red-400/80" 
-                : "text-red-600 dark:text-red-400")
+            holiday && (isToday ? "bg-danger-solid" : "text-danger")
           )}
         >
           {date.getDate()}
@@ -112,13 +111,13 @@ const CalendarCell = memo(function CalendarCell({
         {moodOption && isMobile && (
           <div
             aria-hidden="true"
-            className="w-2 h-2 sm:w-3 sm:h-3 rounded-full absolute top-1 right-1"
+            className="absolute top-1 right-1 h-2 w-2 rounded-full sm:h-3 sm:w-3"
             style={{ backgroundColor: moodOption.color }}
             title={moodOption.label}
           />
         )}
 
-        <div className="flex items-center gap-1 z-10">
+        <div className="z-10 flex items-center gap-1">
           {repeatCount > 0 && (
             <span
               aria-hidden="true"
@@ -133,21 +132,20 @@ const CalendarCell = memo(function CalendarCell({
             <span
               aria-hidden="true"
               title="Nakładające się terminy"
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-(--warning-bg) text-(--warning-fg)"
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-warning-soft text-warning"
             >
               <AlertTriangle className="h-3 w-3" />
             </span>
           )}
-          {(eCount != 0 && !isMobile) && (
-            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-surface rounded-lg text-xs font-bold text-text-secondary">
-              <Calendar size={12} aria-hidden="true" />
-              +{eCount}
+          {eCount != 0 && !isMobile && (
+            <div className="flex items-center gap-0.5 rounded-lg bg-surface px-1.5 py-0.5 text-xs font-bold text-text-secondary">
+              <Calendar size={12} aria-hidden="true" />+{eCount}
             </div>
           )}
           {!isMobile && (
             <div
               aria-hidden="true"
-              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full"
+              className="h-2 w-2 rounded-full sm:h-3 sm:w-3"
               style={{ backgroundColor: moodOption?.color }}
               title={moodOption?.label}
             />
@@ -156,7 +154,6 @@ const CalendarCell = memo(function CalendarCell({
       </div>
     </button>
   );
-},
-areEqual);
+}, areEqual);
 
 export default CalendarCell;

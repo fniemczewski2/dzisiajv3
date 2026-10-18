@@ -7,6 +7,7 @@
 // Puste wiersze z dawnego formularza (12 punktów agendy, 8 zadań) nie są już
 // drukowane – dokument pokazuje tylko to, co zostało wpisane.
 
+import { REPORT_LOGO_MAX_HEIGHT } from "@/config/limits";
 import type { Report, ReportFontRole, ReportTask } from "@/types/reports";
 import type { LoadedReportTemplate } from "./reportTemplate";
 import { derivePalette, type ReportPalette } from "./reportColors";
@@ -138,7 +139,9 @@ function peopleBlock(people: ReportParticipant[]): Content {
   if (people.length === 0) return empty("Brak listy osób");
   return {
     stack: people.map((p) =>
-      p.role ? { text: [{ text: `${p.role}: `, style: "role" }, { text: p.name }], margin: [0, 1, 0, 1] } : { text: p.name, margin: [0, 1, 0, 1] }
+      p.role
+        ? { text: [{ text: `${p.role}: `, style: "role" }, { text: p.name }], margin: [0, 1, 0, 1] }
+        : { text: p.name, margin: [0, 1, 0, 1] }
     ),
   };
 }
@@ -197,8 +200,6 @@ export function resolveReportFonts(fonts: ReportLayoutOptions["fonts"] = {}): Re
   return { title, heading, body };
 }
 
-const LOGO_MAX_HEIGHT = 150;
-
 function titleBlock(title: string, date: string, logo?: { dataUrl: string; width: number }): Content {
   const text = {
     stack: [
@@ -210,7 +211,7 @@ function titleBlock(title: string, date: string, logo?: { dataUrl: string; width
   return {
     columns: [
       { width: "*", ...text },
-      { width: logo.width, image: logo.dataUrl, fit: [logo.width, LOGO_MAX_HEIGHT], alignment: "right" },
+      { width: logo.width, image: logo.dataUrl, fit: [logo.width, REPORT_LOGO_MAX_HEIGHT], alignment: "right" },
     ],
     columnGap: 10,
   };
@@ -228,7 +229,7 @@ export function buildReportDocDefinition(report: Report, options: ReportLayoutOp
 
   return {
     pageSize: "A4",
-    pageMargins: [50,50,50,50],
+    pageMargins: [50, 50, 50, 50],
     info: { title: `Protokół – ${title}`, subject: "Protokół ze spotkania", creator: "Dzisiaj.Fun" },
     content: [
       titleBlock(title, date, logo),
@@ -292,7 +293,9 @@ type PdfMakeInstance = {
   createPdf: (def: unknown) => { download: (name: string) => unknown; open: (win?: Window | null) => unknown };
 };
 
-async function loadPdfMake(template?: LoadedReportTemplate): Promise<{ pdf: PdfMakeInstance; options: ReportLayoutOptions }> {
+async function loadPdfMake(
+  template?: LoadedReportTemplate
+): Promise<{ pdf: PdfMakeInstance; options: ReportLayoutOptions }> {
   const pdfMakeModule = await import("pdfmake/build/pdfmake");
   const pdfFontsModule = await import("pdfmake/build/vfs_fonts");
   const pdfMake = (pdfMakeModule as { default?: unknown }).default ?? pdfMakeModule;
@@ -321,7 +324,7 @@ async function loadPdfMake(template?: LoadedReportTemplate): Promise<{ pdf: PdfM
     if (typeof pdf.addVirtualFileSystem === "function") pdf.addVirtualFileSystem(customVfs);
     else pdf.vfs = { ...(pdf.vfs as object), ...customVfs };
     if (typeof pdf.addFonts === "function") pdf.addFonts(custom);
-    else pdf.fonts = { ...(pdf.fonts ?? {}), ...custom };
+    else pdf.fonts = { ...pdf.fonts, ...custom };
   }
   return { pdf, options };
 }

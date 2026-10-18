@@ -5,8 +5,7 @@
 // z odrobiną tego odcienia, linie tabeli jako jasny odcień. Zbyt jasny kolor
 // przyciemniamy do kontrastu 4.5:1 na białym, żeby nagłówki były czytelne.
 
-export const DEFAULT_HEADING_COLOR = "#0A2947";
-
+import { DEFAULT_REPORT_HEADING_COLOR } from "@/config/defaults";
 export interface ReportPalette {
   /** Nagłówki, tytuł, numeracja, nagłówek tabeli. */
   heading: string;
@@ -32,7 +31,13 @@ function toRgb(hex: string): Rgb {
 }
 
 function toHex([r, g, b]: Rgb): string {
-  return `#${[r, g, b].map((c) => Math.round(Math.min(255, Math.max(0, c))).toString(16).padStart(2, "0")).join("")}`.toUpperCase();
+  return `#${[r, g, b]
+    .map((c) =>
+      Math.round(Math.min(255, Math.max(0, c)))
+        .toString(16)
+        .padStart(2, "0")
+    )
+    .join("")}`.toUpperCase();
 }
 
 /** Mieszanka a→b; t = udział koloru b (0–1). */
@@ -62,7 +67,7 @@ export function ensureReadable(hex: string, minContrast = 4.5): string {
 }
 
 export function derivePalette(headingColor?: string | null): ReportPalette {
-  const heading = ensureReadable(isHexColor(headingColor) ? headingColor : DEFAULT_HEADING_COLOR);
+  const heading = ensureReadable(isHexColor(headingColor) ? headingColor : DEFAULT_REPORT_HEADING_COLOR);
   return {
     heading,
     ink: mix(heading, "#000000", 0.82),

@@ -1,10 +1,10 @@
 // pages/api/transport/locality.ts
+import { MEMORY_CACHE_MAX } from "@/config/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { checkRateLimit } from "@/lib/server/rateLimit";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 
 const PHOTON_URL = "https://photon.komoot.io/reverse";
-const CACHE_MAX = 5000;
 const cache = new Map<string, string | null>();
 const BOUNDS = { minLat: 49, maxLat: 55, minLon: 14, maxLon: 24.2 };
 
@@ -36,7 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
 
   const lat = parseCoord(req.query.lat, BOUNDS.minLat, BOUNDS.maxLat);
@@ -49,9 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ locality: cache.get(key) });
   }
 
-  if (!checkRateLimit(`locality:${user.id}`, 60, 60_000)) {
-    return res.status(429).json({ error: "Zbyt wiele zapytań." });
-  }
+  if (!(await enforceRateLimit(res, "locality", user.id))) return;
 
   try {
     const url = new URL(PHOTON_URL);
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const data = (await upstream.json()) as { features?: PhotonFeature[] };
     const locality = pickLocality(data.features?.[0]);
 
-    if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
+    if (cache.size >= MEMORY_CACHE_MAX.locality) cache.delete(cache.keys().next().value as string);
     cache.set(key, locality);
 
     res.setHeader("Cache-Control", "private, max-age=86400");

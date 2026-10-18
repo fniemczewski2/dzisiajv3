@@ -1,14 +1,29 @@
 // __tests__/hooks/useTasksAccept.test.ts
 
-
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 
-const toast = { success: vi.fn(), error: vi.fn(), info: vi.fn(), confirm: vi.fn(), loading: vi.fn(), dismiss: vi.fn(), batch: vi.fn() };
+const toast = {
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  confirm: vi.fn(),
+  loading: vi.fn(),
+  dismiss: vi.fn(),
+  batch: vi.fn(),
+};
 const updates: { payload: unknown; filters: [string, unknown][] }[] = [];
 let updateResult: { data: unknown; error: unknown } = { data: [{ id: 42 }], error: null };
 
-const task = { id: 42, title: "Zlecone", status: "waiting_for_acceptance", user_id: "boss", for_user_id: "me", due_date: "2026-09-30", priority: 3 };
+const task = {
+  id: 42,
+  title: "Zlecone",
+  status: "waiting_for_acceptance",
+  user_id: "boss",
+  for_user_id: "me",
+  due_date: "2026-09-30",
+  priority: 3,
+};
 
 function selectBuilder() {
   const b: Record<string, unknown> = {};
@@ -22,8 +37,14 @@ function updateBuilder(payload: unknown) {
   const entry = { payload, filters: [] as [string, unknown][] };
   updates.push(entry);
   const b: Record<string, unknown> = {};
-  b.eq = (col: string, val: unknown) => { entry.filters.push([col, val]); return b; };
-  const selected = { single: () => Promise.resolve(updateResult), then: (res: (v: unknown) => void) => res(updateResult) };
+  b.eq = (col: string, val: unknown) => {
+    entry.filters.push([col, val]);
+    return b;
+  };
+  const selected = {
+    single: () => Promise.resolve(updateResult),
+    then: (res: (v: unknown) => void) => res(updateResult),
+  };
   b.select = () => selected;
   b.then = (res: (v: unknown) => void) => res(updateResult);
   return b;
@@ -60,7 +81,9 @@ beforeEach(() => {
 describe("useTasks.acceptTask", () => {
   it("accepts a task whose id comes from the DB as a number", async () => {
     const { result } = renderHook(() => useTasks());
-    await act(async () => { await result.current.fetchTasks(); });
+    await act(async () => {
+      await result.current.fetchTasks();
+    });
     await waitFor(() => expect(result.current.tasks).toHaveLength(1));
 
     await act(async () => {
@@ -77,21 +100,27 @@ describe("useTasks.acceptTask", () => {
 
   it("only the recipient can accept (filters by for_user_id)", async () => {
     const { result } = renderHook(() => useTasks());
-    await act(async () => { await result.current.acceptTask("42"); });
+    await act(async () => {
+      await result.current.acceptTask("42");
+    });
     expect(updates[0].filters).toContainEqual(["for_user_id", "me"]);
   });
 
   it("reports an error when no row was updated (RLS / already accepted) instead of a false success", async () => {
     updateResult = { data: [], error: null };
     const { result } = renderHook(() => useTasks());
-    await act(async () => { await result.current.fetchTasks(); });
+    await act(async () => {
+      await result.current.fetchTasks();
+    });
     await waitFor(() => expect(result.current.tasks).toHaveLength(1));
 
-    await act(async () => { await result.current.acceptTask("42"); });
+    await act(async () => {
+      await result.current.acceptTask("42");
+    });
 
     expect(toast.success).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
-    expect(result.current.tasks[0].status).toBe("waiting_for_acceptance"); 
+    expect(result.current.tasks[0].status).toBe("waiting_for_acceptance");
     expect(result.current.loading).toBe(false);
   });
 });
@@ -100,13 +129,19 @@ describe("useTasks id handling", () => {
   it("setDoneTask called with a string id (as from the day plan) updates a numeric-id task optimistically", async () => {
     updateResult = { data: { ...task, status: "done" }, error: null };
     const { result } = renderHook(() => useTasks());
-    await act(async () => { await result.current.fetchTasks(); });
+    await act(async () => {
+      await result.current.fetchTasks();
+    });
     await waitFor(() => expect(result.current.tasks).toHaveLength(1));
 
     let pending!: Promise<unknown>;
-    act(() => { pending = Promise.resolve(result.current.setDoneTask("42")); });
+    act(() => {
+      pending = Promise.resolve(result.current.setDoneTask("42"));
+    });
     await waitFor(() => expect(result.current.tasks[0]?.status).toBe("done"));
-    await act(async () => { await pending; });
+    await act(async () => {
+      await pending;
+    });
     expect(result.current.tasks[0]?.status).toBe("done");
     expect(toast.success).toHaveBeenCalledWith("Wykonano zadanie");
     expect(toast.error).not.toHaveBeenCalled();
@@ -118,10 +153,14 @@ describe("useTasks – cofnięcie wykonania", () => {
     updates.length = 0;
     updateResult = { data: { ...task, status: "pending" }, error: null };
     const { result } = renderHook(() => useTasks());
-    await act(async () => { await result.current.fetchTasks(); });
+    await act(async () => {
+      await result.current.fetchTasks();
+    });
     await waitFor(() => expect(result.current.tasks).toHaveLength(1));
 
-    await act(async () => { await result.current.setDoneTask("42", false); });
+    await act(async () => {
+      await result.current.setDoneTask("42", false);
+    });
 
     expect(updates.at(-1)?.payload).toEqual({ status: "pending" });
     expect(updates.at(-1)?.filters).toContainEqual(["id", "42"]);
@@ -132,11 +171,15 @@ describe("useTasks – cofnięcie wykonania", () => {
   it("nieudane przywrócenie wraca do poprzedniego stanu i pokazuje błąd", async () => {
     updateResult = { data: null, error: { message: "x" } };
     const { result } = renderHook(() => useTasks());
-    await act(async () => { await result.current.fetchTasks(); });
+    await act(async () => {
+      await result.current.fetchTasks();
+    });
     await waitFor(() => expect(result.current.tasks).toHaveLength(1));
     const before = result.current.tasks[0]?.status;
 
-    await act(async () => { await result.current.setDoneTask("42", false); });
+    await act(async () => {
+      await result.current.setDoneTask("42", false);
+    });
 
     expect(result.current.tasks[0]?.status).toBe(before);
     expect(toast.error).toHaveBeenCalledWith("Nie udało się przywrócić zadania.");

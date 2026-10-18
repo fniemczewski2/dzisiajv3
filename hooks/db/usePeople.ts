@@ -1,5 +1,6 @@
-﻿// hooks/db/usePeople.ts
+// hooks/db/usePeople.ts
 
+import { useNow } from "@/hooks/useNow";
 import { useCallback, useMemo } from "react";
 import { Person, PersonInsert } from "@/types/people";
 import { useCrudResource } from "./useCrudResource";
@@ -22,10 +23,7 @@ export function usePeople() {
     messages: MESSAGES,
   });
 
-  const people = useMemo(
-    () => [...crud.items].sort((a, b) => a.first_name.localeCompare(b.first_name)),
-    [crud.items]
-  );
+  const people = useMemo(() => [...crud.items].sort((a, b) => a.first_name.localeCompare(b.first_name)), [crud.items]);
 
   const deletePerson = useCallback(
     async (id: string): Promise<void> => {
@@ -41,22 +39,28 @@ export function usePeople() {
     [crud]
   );
 
+  const now = useNow();
+
   const getPeopleToContact = useMemo(() => {
-    const now = new Date();
     return people.filter((p) => {
       if (p.priority === 0 || p.priority === 5) return false;
       if (!p.last_contact_date) return true;
       const lastContact = new Date(p.last_contact_date);
       const diffDays = Math.ceil(Math.abs(now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
       switch (p.priority) {
-        case 1: return diffDays >= 14;
-        case 2: return diffDays >= 30;
-        case 3: return diffDays >= 61;
-        case 4: return diffDays >= 365;
-        default: return false;
+        case 1:
+          return diffDays >= 14;
+        case 2:
+          return diffDays >= 30;
+        case 3:
+          return diffDays >= 61;
+        case 4:
+          return diffDays >= 365;
+        default:
+          return false;
       }
     });
-  }, [people]);
+  }, [people, now]);
 
   return {
     people,

@@ -1,4 +1,4 @@
-﻿// config/packing.ts
+// config/packing.ts
 
 export const BACKPACK = [
   {
@@ -57,7 +57,7 @@ export const BACKPACK = [
       "Rolka do ubrań",
       "Gąbka i płyn do naczyń",
       "Sznurek i klamerki",
-      "Kropelka"
+      "Kropelka",
     ],
   },
   {
@@ -72,7 +72,7 @@ export const BACKPACK = [
       "Zestaw do szycia",
       "Długopis",
       "Ołówek",
-      "Pisaki"
+      "Pisaki",
     ],
   },
   {
@@ -95,23 +95,11 @@ export const BACKPACK = [
   },
   {
     title: "Elektronika",
-    items: [
-      "Powerbank",
-      "Przewody",
-      "Adapter",
-      "Baterie",
-    ]
+    items: ["Powerbank", "Przewody", "Adapter", "Baterie"],
   },
   {
     title: "Jedzenie",
-    items: [
-      "Sztućce",
-      "Kawa, herbata",
-      "Cukier",
-      "Pieprz, sól",
-      "Kisiel",
-      "Guma do żucia",
-    ],
+    items: ["Sztućce", "Kawa, herbata", "Cukier", "Pieprz, sól", "Kisiel", "Guma do żucia"],
   },
   {
     title: "Inne",
@@ -150,7 +138,7 @@ export const SAFETY = [
       "Chusteczki nawilżane",
       "Papier toaletowy",
       "Żel antybakteryjny",
-      "Mydło"
+      "Mydło",
     ],
   },
   {
@@ -165,13 +153,7 @@ export const SAFETY = [
   },
   {
     title: "Odzież",
-    items: [
-      "Kurtka przeciwdeszczowa",
-      "Ciepła bluza / polar",
-      "Bielizna",
-      "Skarpetki",
-      "Odzież termoaktywna",
-    ],
+    items: ["Kurtka przeciwdeszczowa", "Ciepła bluza / polar", "Bielizna", "Skarpetki", "Odzież termoaktywna"],
   },
   {
     title: "Sprzęt i narzędzia",
@@ -186,21 +168,12 @@ export const SAFETY = [
   },
   {
     title: "Nocleg",
-    items: [
-      "Koc termiczny (folia NRC)",
-      "Śpiwór",
-      "Karimata",
-    ],
+    items: ["Koc termiczny (folia NRC)", "Śpiwór", "Karimata"],
   },
   {
     title: "Komunikacja i informacje",
-    items: [
-      "Radio na baterie",
-      "Gwizdek alarmowy",
-      "Notatnik i długopis",
-      "Mapa lokalna",
-    ],
-  }
+    items: ["Radio na baterie", "Gwizdek alarmowy", "Notatnik i długopis", "Mapa lokalna"],
+  },
 ];
 
 export const SUITCASE = [
@@ -287,22 +260,10 @@ export const SUITCASE = [
   },
   {
     title: "Akcesoria i dodatki",
-    items: [
-      "Okulary przeciwsłoneczne",
-      "Kapelusz / czapka",
-      "Pasek",
-      "Parasolka składana",
-      "Biżuteria",
-    ],
+    items: ["Okulary przeciwsłoneczne", "Kapelusz / czapka", "Pasek", "Parasolka składana", "Biżuteria"],
   },
   {
     title: "Rozrywka i inne",
-    items: [
-      "Książka",
-      "Notes i długopis",
-      "Gry / karty",
-      "Mapa (offline)",
-      "Filmy / muzyka",
-    ],
+    items: ["Książka", "Notes i długopis", "Gry / karty", "Mapa (offline)", "Filmy / muzyka"],
   },
 ];

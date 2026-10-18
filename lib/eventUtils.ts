@@ -1,12 +1,7 @@
 // lib/eventUtils.ts
 
 import { addDays, differenceInCalendarDays, format } from "date-fns";
-import {
-  normalizeRule,
-  occurrencesBetween,
-  ruleFromLegacyRepeat,
-  type RecurrenceRule,
-} from "@/supabase/functions/_shared/recurrence";
+import { normalizeRule, occurrencesBetween, ruleFromLegacyRepeat, type RecurrenceRule } from "@/shared/recurrence";
 import { Event } from "@/types/events";
 import { getAppDate, parseEventDate, dateToTimestamp } from "./dateUtils";
 
@@ -32,7 +27,14 @@ const generateRepeatingInstances = (
 
   return days.map((day) => {
     const [y, m, d] = day.split("-").map(Number);
-    const instanceStart = new Date(y, m - 1, d, originalStart.getHours(), originalStart.getMinutes(), originalStart.getSeconds());
+    const instanceStart = new Date(
+      y,
+      m - 1,
+      d,
+      originalStart.getHours(),
+      originalStart.getMinutes(),
+      originalStart.getSeconds()
+    );
     // Koniec liczony od godziny zakończenia oryginału (cotygodniowe 10:00–11:00 zostaje 10:00–11:00).
     const instanceEnd = addDays(instanceStart, durationInDays);
     instanceEnd.setHours(originalEnd.getHours(), originalEnd.getMinutes(), originalEnd.getSeconds(), 0);
@@ -45,11 +47,7 @@ const generateRepeatingInstances = (
   });
 };
 
-export function expandRepeatingEvents(
-  events: Event[],
-  start?: Date,
-  end?: Date
-): Event[] {
+export function expandRepeatingEvents(events: Event[], start?: Date, end?: Date): Event[] {
   const rangeStart = start ?? new Date(`${getAppDate()}T00:00:00`);
   const rangeEnd = end ?? new Date(`${getAppDate()}T23:59:59`);
 

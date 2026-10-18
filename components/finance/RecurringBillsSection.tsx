@@ -2,7 +2,7 @@
 
 import React, { useId, useMemo, useState } from "react";
 import { CheckCircle, Clock, Repeat, TriangleAlert, type LucideIcon } from "lucide-react";
-import { describeRule } from "@/supabase/functions/_shared/recurrence";
+import { describeRule } from "@/shared/recurrence";
 import { billMonthStatus, forecastMonth, formatPln, nextMonthKey, type BillStatus } from "@/lib/finance";
 import { getAppDate } from "@/lib/dateUtils";
 import RecurringBillForm from "./RecurringBillForm";
@@ -24,10 +24,10 @@ interface Props {
 }
 
 const STATUS: Record<BillStatus, { icon: LucideIcon | null; label: string; className: string }> = {
-  paid: { icon: CheckCircle, label: "zapłacony", className: "bg-green-50 text-green-800 border-green-700/30 dark:bg-green-900/30 dark:text-green-200" },
+  paid: { icon: CheckCircle, label: "zapłacony", className: "bg-success-soft text-success border-success/30 " },
   pending: { icon: Clock, label: "do zapłaty", className: "bg-surface text-text-secondary border-line-strong" },
   none: { icon: null, label: "brak terminu", className: "bg-surface text-text-secondary border-line-strong" },
-  overdue: { icon: TriangleAlert, label: "zaległy", className: "bg-red-50 text-red-800 border-red-700/30 dark:bg-red-900/30 dark:text-red-200" },
+  overdue: { icon: TriangleAlert, label: "zaległy", className: "bg-danger-soft text-danger border-danger/30 " },
 };
 
 function StatusBadge({ status }: Readonly<{ status: BillStatus }>) {
@@ -87,16 +87,16 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
       {rows.length === 0 ? (
         <p className="text-sm text-text-secondary">Brak rachunków z terminem w tym miesiącu.</p>
       ) : (
-        <div className="flex flex-col overflow-x-auto gap-4">
+        <div className="flex flex-col gap-4 overflow-x-auto">
           {rows.map(({ bill, status, paid }) => (
             <div key={bill.id} className="card rounded-card p-4 sm:p-5">
-              <div className="flex justify-between items-start mb-2 pb-2">
+              <div className="mb-2 flex items-start justify-between pb-2">
                 <div className="flex flex-col gap-1">
                   <p className="font-medium text-text">{bill.name}</p>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="flex items-center gap-1 text-xs text-text-secondary">
                       {bill.recurrence && <Repeat className="h-3 w-3" aria-hidden="true" />}
-                      {bill.recurrence ? describeRule(bill.recurrence, bill.start_date) : "jednorazowy"}
+                      {bill.recurrence ? describeRule(bill.recurrence, bill.start_date) : "Jednorazowy"}
                     </span>
                     {bill.category_id && catName.get(bill.category_id) && (
                       <span className="inline-block rounded-full border px-2 py-0.5 text-center text-xs text-text-secondary">
@@ -110,7 +110,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
                   {status === "paid" && paid !== bill.amount ? formatPln(paid) : formatPln(bill.amount)}
                 </span>
               </div>
-              <div className="flex flex-nowrap items-center gap-2 flex-1">
+              <div className="flex flex-1 flex-nowrap items-center gap-2">
                 <EditButton onClick={() => setEditing(bill)} ariaLabel={`Edytuj ${bill.name}`} />
                 <DeleteButton onClick={() => onRemove(bill.id)} ariaLabel={`Usuń ${bill.name}`} />
               </div>
@@ -126,13 +126,15 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
       <div className="mt-4 rounded-card border border-dashed border-line-strong p-3">
         <p className="flex flex-wrap items-baseline justify-between gap-2">
           <span className="text-sm font-medium text-text">Prognoza rachunków – {nextMonthLabel}</span>
-          <span className="text-lg font-semibold tabular-nums text-text">{formatPln(forecast.total)}</span>
+          <span className="text-lg font-semibold text-text tabular-nums">{formatPln(forecast.total)}</span>
         </p>
         {forecast.items.length > 0 && (
           <ul className="mt-1 text-sm text-text-secondary">
             {forecast.items.map((i) => (
               <li key={i.bill.id} className="flex justify-between gap-3">
-                <span>{i.dates.map(short).join(", ")} · {i.bill.name}</span>
+                <span>
+                  {i.dates.map(short).join(", ")} · {i.bill.name}
+                </span>
                 <span className="tabular-nums">{formatPln(i.total)}</span>
               </li>
             ))}
@@ -150,7 +152,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
               <li key={b.id} className="flex items-center justify-between gap-3 py-1">
                 <span className={b.active ? "text-text" : "text-text-secondary line-through"}>{b.name}</span>
                 <span className="flex items-center gap-1">
-                  <span className="tabular-nums text-sm">{formatPln(b.amount)}</span>
+                  <span className="text-sm tabular-nums">{formatPln(b.amount)}</span>
                   <EditButton small onClick={() => setEditing(b)} ariaLabel={`Edytuj ${b.name}`} />
                 </span>
               </li>

@@ -1,12 +1,13 @@
 // hooks/db/useDailyOverrides.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
-import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/hooks/useRetry';
-import { useAbortController } from '@/hooks/useAbortController';
-import { isAbortError } from '@/lib/abortUtils';
-import { DailyOverride } from '@/types/schemas';
+import { NotSignedInError } from "@/lib/errors";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
+import { DailyOverride } from "@/types/schemas";
 
 export function useDailyOverrides(dateStr: string) {
   const { supabase, user } = useAuth();
@@ -20,8 +21,7 @@ export function useDailyOverrides(dateStr: string) {
 
   const fetchOverrides = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
     const signal = getSignal();
     setFetching(true);
@@ -29,10 +29,10 @@ export function useDailyOverrides(dateStr: string) {
       const { data, error } = await withRetry(
         () =>
           supabase
-            .from('daily_overrides')
-            .select('schema_id, new_time, is_hidden')
-            .eq('user_id', userId)
-            .eq('date', dateStr)
+            .from("daily_overrides")
+            .select("schema_id, new_time, is_hidden")
+            .eq("user_id", userId)
+            .eq("date", dateStr)
             .abortSignal(signal),
         signal
       );
@@ -54,8 +54,7 @@ export function useDailyOverrides(dateStr: string) {
   const hideSchema = useCallback(
     async (schemaId: string) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
 
       setLoading(true);
@@ -71,20 +70,18 @@ export function useDailyOverrides(dateStr: string) {
       try {
         const { data: existing } = await withRetry(() =>
           supabase
-            .from('daily_overrides')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('date', dateStr)
-            .eq('schema_id', schemaId)
+            .from("daily_overrides")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("date", dateStr)
+            .eq("schema_id", schemaId)
             .maybeSingle()
         );
 
         const { error } = existing
-          ? await withRetry(() =>
-              supabase.from('daily_overrides').update({ is_hidden: true }).eq('id', existing.id)
-            )
+          ? await withRetry(() => supabase.from("daily_overrides").update({ is_hidden: true }).eq("id", existing.id))
           : await withRetry(() =>
-              supabase.from('daily_overrides').insert({
+              supabase.from("daily_overrides").insert({
                 user_id: userId,
                 date: dateStr,
                 schema_id: schemaId,
@@ -107,8 +104,7 @@ export function useDailyOverrides(dateStr: string) {
   const moveSchema = useCallback(
     async (schemaId: string, newTime: string) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
 
       setLoading(true);
@@ -116,9 +112,7 @@ export function useDailyOverrides(dateStr: string) {
       setOverrides((prev) => {
         const existing = prev.find((o) => o.schema_id === schemaId);
         if (existing) {
-          return prev.map((o) =>
-            o.schema_id === schemaId ? { ...o, new_time: newTime, is_hidden: false } : o
-          );
+          return prev.map((o) => (o.schema_id === schemaId ? { ...o, new_time: newTime, is_hidden: false } : o));
         }
         return [...prev, { schema_id: schemaId, new_time: newTime, is_hidden: false }];
       });
@@ -126,23 +120,20 @@ export function useDailyOverrides(dateStr: string) {
       try {
         const { data: existing } = await withRetry(() =>
           supabase
-            .from('daily_overrides')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('date', dateStr)
-            .eq('schema_id', schemaId)
+            .from("daily_overrides")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("date", dateStr)
+            .eq("schema_id", schemaId)
             .maybeSingle()
         );
 
         const { error } = existing
           ? await withRetry(() =>
-              supabase
-                .from('daily_overrides')
-                .update({ new_time: newTime, is_hidden: false })
-                .eq('id', existing.id)
+              supabase.from("daily_overrides").update({ new_time: newTime, is_hidden: false }).eq("id", existing.id)
             )
           : await withRetry(() =>
-              supabase.from('daily_overrides').insert({
+              supabase.from("daily_overrides").insert({
                 user_id: userId,
                 date: dateStr,
                 schema_id: schemaId,

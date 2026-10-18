@@ -1,11 +1,11 @@
 // hooks/useAppStreak.ts
 
+import { APP_STREAK_LOOKBACK_DAYS } from "@/config/limits";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { getAppDate } from "@/lib/dateUtils";
 import { computeStreak } from "@/lib/appStreak";
 
-const LOOKBACK_DAYS = 400;
 let recordedFor: string | null = null;
 
 export function useAppStreak(): number | null {
@@ -32,9 +32,14 @@ export function useAppStreak(): number | null {
         .select("day")
         .eq("user_id", userId)
         .order("day", { ascending: false })
-        .limit(LOOKBACK_DAYS);
+        .limit(APP_STREAK_LOOKBACK_DAYS);
       if (cancelled || error) return;
-      setStreak(computeStreak((data ?? []).map((r) => (r as { day: string }).day), today));
+      setStreak(
+        computeStreak(
+          (data ?? []).map((r) => (r as { day: string }).day),
+          today
+        )
+      );
     })();
 
     return () => {

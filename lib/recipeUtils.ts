@@ -1,11 +1,11 @@
 // lib/recipeUtils.ts
 
+import { MAX_RECIPE_PRODUCTS } from "@/config/limits";
 import type { NewRecipe, Recipe } from "@/types/recipes";
 
 export const RECIPE_NAME_MIN_LENGTH = 2;
 export const RECIPE_NAME_MAX_LENGTH = 200;
 export const RECIPE_PRODUCT_MAX_LENGTH = 80;
-export const RECIPE_PRODUCTS_MAX = 100;
 export const RECIPE_DESCRIPTION_MAX_LENGTH = 10000;
 
 const collator = new Intl.Collator("pl", { sensitivity: "base" });
@@ -25,7 +25,7 @@ export function normalizeProducts(products: readonly string[]): string[] {
     if (!key || seen.has(key)) continue;
     seen.add(key);
     out.push(value);
-    if (out.length >= RECIPE_PRODUCTS_MAX) break;
+    if (out.length >= MAX_RECIPE_PRODUCTS) break;
   }
   return out;
 }
@@ -67,6 +67,7 @@ export function sortRecipes(recipes: readonly Recipe[], sort: string | undefined
       return list.sort(byName);
     case "created_desc":
       return list.sort(byDate);
+    case undefined:
     default:
       return list.sort((a, b) => {
         const aEmpty = !a.category?.trim();
@@ -78,7 +79,11 @@ export function sortRecipes(recipes: readonly Recipe[], sort: string | undefined
 }
 
 /** Filtr: tekst dopasowuje nazwę, opis lub składnik; wybrane składniki muszą wystąpić wszystkie. */
-export function filterRecipes(recipes: readonly Recipe[], query: string, requiredProducts: readonly string[]): Recipe[] {
+export function filterRecipes(
+  recipes: readonly Recipe[],
+  query: string,
+  requiredProducts: readonly string[]
+): Recipe[] {
   const q = query.trim().toLocaleLowerCase("pl");
   return recipes.filter((r) => {
     const matchesText =

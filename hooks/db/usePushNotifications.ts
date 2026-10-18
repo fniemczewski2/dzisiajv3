@@ -1,24 +1,27 @@
 // hooks/db/usePushNotifications.ts
 
-import { useEffect, useState, useCallback } from 'react'
-import { useAuth } from '@/providers/AuthProvider'
-import urlBase64ToUint8Array from '@/lib/urlBase64ToUint8Array'
-import { subscriptionMatchesVapidKey } from '@/lib/pushKeys'
-import { useToast } from '@/providers/ToastProvider'
-import { useRetry } from '@/hooks/useRetry'
-import { getErrorMessage } from '@/lib/errorUtils'
+import { registerServiceWorker, SERVICE_WORKER_DISABLED_MESSAGE } from "@/lib/serviceWorker";
+import { NotSignedInError } from "@/lib/errors";
+import { USER_LOCAL_STORAGE_KEYS } from "@/config/storage";
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/providers/AuthProvider";
+import urlBase64ToUint8Array from "@/lib/urlBase64ToUint8Array";
+import { subscriptionMatchesVapidKey } from "@/lib/pushKeys";
+import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/hooks/useRetry";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 interface PushSubscriptionRow {
   id: string;
   subscription: string | { endpoint: string };
 }
 
-const OPT_IN_KEY = 'dzisiaj:push_opt_in';
+const OPT_IN_KEY = USER_LOCAL_STORAGE_KEYS.pushOptIn;
 
 function readOptIn(): boolean | null {
   try {
     const value = localStorage.getItem(OPT_IN_KEY);
-    return value === null ? null : value === '1';
+    return value === null ? null : value === "1";
   } catch {
     return null;
   }
@@ -26,86 +29,105 @@ function readOptIn(): boolean | null {
 
 function writeOptIn(value: boolean) {
   try {
-    localStorage.setItem(OPT_IN_KEY, value ? '1' : '0');
+    localStorage.setItem(OPT_IN_KEY, value ? "1" : "0");
   } catch {
     /* brak dostępu do localStorage */
   }
 }
 
+async function requireRegistration(): Promise<ServiceWorkerRegistration> {
+  const registration = await registerServiceWorker();
+  if (!registration) throw new Error(SERVICE_WORKER_DISABLED_MESSAGE);
+  return registration;
+}
+
 export function usePushNotifications(userId: string | undefined) {
-  const { supabase } = useAuth()
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const { supabase } = useAuth();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
   const withRetry = useRetry();
 
-  const saveSubscription = useCallback(async (subscription: PushSubscription) => {
-    if (!userId) throw new Error("Unauthorized");
-    const subscriptionJSON = subscription.toJSON();
-    const endpoint = subscriptionJSON.endpoint;
+  const saveSubscription = useCallback(
+    async (subscription: PushSubscription) => {
+      if (!userId) throw new NotSignedInError();
+      const subscriptionJSON = subscription.toJSON();
+      const endpoint = subscriptionJSON.endpoint;
 
-    const { data: allSubs, error: fetchError } = await withRetry(() =>
-      supabase.from('push_subscriptions').select('*').eq('user_id', userId)
-    );
-    if (fetchError) throw fetchError;
-
-    const existing = (allSubs as PushSubscriptionRow[])?.find((sub) => {
-      const subData = typeof sub.subscription === 'string' ? JSON.parse(sub.subscription) : sub.subscription;
-      return subData?.endpoint === endpoint;
-    });
-
-    const { error } = existing
-      ? await withRetry(() =>
-          supabase
-            .from('push_subscriptions')
-            .update({ subscription: subscriptionJSON, user_agent: navigator.userAgent, last_used: new Date().toISOString() })
-            .eq('id', existing.id)
-        )
-      : await withRetry(() =>
-          supabase.from('push_subscriptions').insert({ user_id: userId, subscription: subscriptionJSON, user_agent: navigator.userAgent })
-        );
-    if (error) throw error;
-  }, [userId, supabase, withRetry]);
-
-  const deleteStoredSubscription = useCallback(async (endpoint: string | undefined) => {
-    if (!userId || !endpoint) return;
-    const { data: allSubs } = await withRetry(() =>
-      supabase.from('push_subscriptions').select('*').eq('user_id', userId)
-    );
-    const toDelete = (allSubs as PushSubscriptionRow[])?.find((sub) => {
-      const subData = typeof sub.subscription === 'string' ? JSON.parse(sub.subscription) : sub.subscription;
-      return subData?.endpoint === endpoint;
-    });
-    if (toDelete) {
-      const { error } = await withRetry(() =>
-        supabase.from('push_subscriptions').delete().eq('id', toDelete.id)
+      const { data: allSubs, error: fetchError } = await withRetry(() =>
+        supabase.from("push_subscriptions").select("*").eq("user_id", userId)
       );
+      if (fetchError) throw fetchError;
+
+      const existing = (allSubs as PushSubscriptionRow[])?.find((sub) => {
+        const subData = typeof sub.subscription === "string" ? JSON.parse(sub.subscription) : sub.subscription;
+        return subData?.endpoint === endpoint;
+      });
+
+      const { error } = existing
+        ? await withRetry(() =>
+            supabase
+              .from("push_subscriptions")
+              .update({
+                subscription: subscriptionJSON,
+                user_agent: navigator.userAgent,
+                last_used: new Date().toISOString(),
+              })
+              .eq("id", existing.id)
+          )
+        : await withRetry(() =>
+            supabase
+              .from("push_subscriptions")
+              .insert({ user_id: userId, subscription: subscriptionJSON, user_agent: navigator.userAgent })
+          );
       if (error) throw error;
-    }
-  }, [userId, supabase, withRetry]);
+    },
+    [userId, supabase, withRetry]
+  );
+
+  const deleteStoredSubscription = useCallback(
+    async (endpoint: string | undefined) => {
+      if (!userId || !endpoint) return;
+      const { data: allSubs } = await withRetry(() =>
+        supabase.from("push_subscriptions").select("*").eq("user_id", userId)
+      );
+      const toDelete = (allSubs as PushSubscriptionRow[])?.find((sub) => {
+        const subData = typeof sub.subscription === "string" ? JSON.parse(sub.subscription) : sub.subscription;
+        return subData?.endpoint === endpoint;
+      });
+      if (toDelete) {
+        const { error } = await withRetry(() => supabase.from("push_subscriptions").delete().eq("id", toDelete.id));
+        if (error) throw error;
+      }
+    },
+    [userId, supabase, withRetry]
+  );
 
   /**
    * Bieżąca subskrypcja przeglądarki – albo null, jeśli jej nie ma lub powstała
    * z innym kluczem VAPID (wtedy ją anulujemy i usuwamy z bazy, żeby dało się
    * utworzyć nową, działającą).
    */
-  const getUsableSubscription = useCallback(async (registration: ServiceWorkerRegistration) => {
-    const subscription = await registration.pushManager.getSubscription();
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!subscription || !vapidKey || subscriptionMatchesVapidKey(subscription, vapidKey)) return subscription;
+  const getUsableSubscription = useCallback(
+    async (registration: ServiceWorkerRegistration) => {
+      const subscription = await registration.pushManager.getSubscription();
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!subscription || !vapidKey || subscriptionMatchesVapidKey(subscription, vapidKey)) return subscription;
 
-    console.warn('[SW] Subskrypcja push z innym kluczem VAPID – tworzę nową');
-    const endpoint = subscription.toJSON().endpoint;
-    await subscription.unsubscribe();
-    await deleteStoredSubscription(endpoint);
-    return null;
-  }, [deleteStoredSubscription]);
+      console.warn("[SW] Subskrypcja push z innym kluczem VAPID – tworzę nową");
+      const endpoint = subscription.toJSON().endpoint;
+      await subscription.unsubscribe();
+      await deleteStoredSubscription(endpoint);
+      return null;
+    },
+    [deleteStoredSubscription]
+  );
 
   const createSubscription = useCallback(async () => {
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidKey) throw new Error("Błąd: Brak klucza VAPID w zmiennych środowiskowych.");
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await requireRegistration();
     return registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidKey),
@@ -114,16 +136,18 @@ export function usePushNotifications(userId: string | undefined) {
 
   useEffect(() => {
     async function initSW() {
-      if (!('serviceWorker' in navigator) || !('PushManager' in globalThis)) {
+      if (!("serviceWorker" in navigator) || !("PushManager" in globalThis)) {
         setLoading(false);
         return;
       }
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-        await registration.update();
+        // Rejestracja jest wspólna z _app; aktualizację sprawdza _app – jej błąd nie może
+        // przerywać odświeżania subskrypcji.
+        const registration = await registerServiceWorker();
+        if (!registration) return;
         let subscription = await getUsableSubscription(registration);
 
-        const permissionGranted = 'Notification' in globalThis && Notification.permission === 'granted';
+        const permissionGranted = "Notification" in globalThis && Notification.permission === "granted";
         if (!subscription && permissionGranted && readOptIn() === true) {
           subscription = await createSubscription();
         }
@@ -136,7 +160,7 @@ export function usePushNotifications(userId: string | undefined) {
           setIsSubscribed(!!subscription);
         }
       } catch (err) {
-        console.error('[SW] Nie udało się odświeżyć subskrypcji push', err);
+        console.error("[SW] Nie udało się odświeżyć subskrypcji push", err);
       } finally {
         setLoading(false);
       }
@@ -148,28 +172,28 @@ export function usePushNotifications(userId: string | undefined) {
   }, [userId, createSubscription, saveSubscription, getUsableSubscription]);
 
   useEffect(() => {
-    if (!userId || !('serviceWorker' in navigator)) return;
+    if (!userId || !("serviceWorker" in navigator)) return;
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type !== 'PUSH_SUBSCRIPTION_CHANGED') return;
-      void navigator.serviceWorker.ready
+      if (event.data?.type !== "PUSH_SUBSCRIPTION_CHANGED") return;
+      void requireRegistration()
         .then((registration) => registration.pushManager.getSubscription())
         .then((subscription) => (subscription ? saveSubscription(subscription) : undefined))
-        .catch((err) => console.error('[SW] Nie zapisano odnowionej subskrypcji', err));
+        .catch((err) => console.error("[SW] Nie zapisano odnowionej subskrypcji", err));
     };
-    navigator.serviceWorker.addEventListener('message', handleMessage);
-    return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+    navigator.serviceWorker.addEventListener("message", handleMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", handleMessage);
   }, [userId, saveSubscription]);
 
   const subscribeToPush = useCallback(async () => {
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) throw new NotSignedInError();
     setLoading(true);
     try {
-      const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('Włącz powiadomienia w ustawieniach przeglądarki');
+      const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+      if (permission !== "granted") {
+        throw new Error("Włącz powiadomienia w ustawieniach przeglądarki");
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await requireRegistration();
       const subscription = (await getUsableSubscription(registration)) ?? (await createSubscription());
       await saveSubscription(subscription);
 
@@ -185,29 +209,28 @@ export function usePushNotifications(userId: string | undefined) {
 
   const unsubscribeFromPush = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
-    setLoading(true)
+    setLoading(true);
     try {
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
+      const registration = await registerServiceWorker();
+      const subscription = await registration?.pushManager.getSubscription();
 
       if (subscription) {
-        const endpoint = subscription.toJSON().endpoint
-        await subscription.unsubscribe()
-        await deleteStoredSubscription(endpoint)
+        const endpoint = subscription.toJSON().endpoint;
+        await subscription.unsubscribe();
+        await deleteStoredSubscription(endpoint);
       }
 
-      writeOptIn(false)
-      setIsSubscribed(false)
+      writeOptIn(false);
+      setIsSubscribed(false);
       toast.success("Wyłączono powiadomienia push");
     } catch {
       toast.error("Błąd wyłączania powiadomień.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [userId, toast, deleteStoredSubscription])
+  }, [userId, toast, deleteStoredSubscription]);
 
-  return { isSubscribed, loading, subscribeToPush, unsubscribeFromPush }
+  return { isSubscribed, loading, subscribeToPush, unsubscribeFromPush };
 }

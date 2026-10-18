@@ -4,6 +4,7 @@
 // Szybkie wybory („Jutro 9:00”, „Dzień przed”) oszczędzają przewijania
 // natywnego pola daty na telefonie.
 
+import { useNow } from "@/hooks/useNow";
 import React, { useId, useMemo } from "react";
 import { Bell, Plus, X } from "lucide-react";
 import { MAX_TASK_REMINDERS, reminderPresets, toLocalInput, validateReminders } from "@/lib/taskReminders";
@@ -19,11 +20,18 @@ interface Props {
   showErrors?: boolean;
 }
 
-export default function TaskRemindersEditor({ value, onChange, dueDate, disabled, showErrors = true }: Readonly<Props>) {
+export default function TaskRemindersEditor({
+  value,
+  onChange,
+  dueDate,
+  disabled,
+  showErrors = true,
+}: Readonly<Props>) {
   const baseId = useId();
   const atLimit = value.length >= MAX_TASK_REMINDERS;
-  // Presety liczymy przy renderze – „teraz” zmienia się, ale minuta dokładności wystarczy.
-  const presets = useMemo(() => reminderPresets(new Date(), dueDate), [dueDate]);
+  // „Teraz” z zegara odświeżanego co minutę – minuta dokładności wystarczy.
+  const now = useNow();
+  const presets = useMemo(() => reminderPresets(now, dueDate), [now, dueDate]);
   const error = showErrors ? validateReminders(value) : null;
   const errorId = `${baseId}-error`;
 
@@ -33,7 +41,11 @@ export default function TaskRemindersEditor({ value, onChange, dueDate, disabled
   };
 
   return (
-    <fieldset className="rounded-lg border border-line p-3" disabled={disabled} aria-describedby={error ? errorId : undefined}>
+    <fieldset
+      className="rounded-lg border border-line p-3"
+      disabled={disabled}
+      aria-describedby={error ? errorId : undefined}
+    >
       <legend className="flex items-center gap-2 px-1 text-sm font-medium text-text-secondary">
         <Bell className="h-4 w-4" aria-hidden="true" />
         Przypomnienia ({value.length}/{MAX_TASK_REMINDERS})
@@ -43,14 +55,16 @@ export default function TaskRemindersEditor({ value, onChange, dueDate, disabled
         <ul className="mb-3 space-y-2">
           {value.map((v, i) => (
             <li key={`${i}-${v}`} className="flex items-center gap-2">
-              <label htmlFor={`${baseId}-r${i}`} className="sr-only">Przypomnienie {i + 1}</label>
+              <label htmlFor={`${baseId}-r${i}`} className="sr-only">
+                Przypomnienie {i + 1}
+              </label>
               <input
                 id={`${baseId}-r${i}`}
                 type="datetime-local"
                 value={v}
-                min={toLocalInput(new Date())}
+                min={toLocalInput(now)}
                 onChange={(e) => onChange(value.map((x, j) => (j === i ? e.target.value : x)))}
-                className="input-field flex-1 min-w-0 px-2"
+                className="input-field min-w-0 flex-1 px-2"
               />
               <button
                 type="button"
@@ -92,7 +106,7 @@ export default function TaskRemindersEditor({ value, onChange, dueDate, disabled
       )}
 
       {error && value.length > 0 && (
-        <p id={errorId} role="alert" className="mt-2 text-sm text-red-700 dark:text-red-300">
+        <p id={errorId} role="alert" className="mt-2 text-sm text-danger">
           {error}
         </p>
       )}

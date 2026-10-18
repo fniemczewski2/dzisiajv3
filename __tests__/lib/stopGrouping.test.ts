@@ -10,19 +10,23 @@ import {
   isSameStopPlace,
   pickClusterForFavorite,
   type StopPost,
-} from "@/supabase/functions/_shared/stopGrouping";
+} from "@/shared/stopGrouping";
 
-const POZNAN = { lat: 52.4020, lon: 16.9110 };
-const LUBON = { lat: 52.3470, lon: 16.8770 };
+const POZNAN = { lat: 52.402, lon: 16.911 };
+const LUBON = { lat: 52.347, lon: 16.877 };
 const post = (code: string, name: string, base: { lat: number; lon: number }, dLat = 0, zone = "A"): StopPost => ({
-  stop_code: code, stop_name: name, stop_lat: base.lat + dLat, stop_lon: base.lon, zone_id: zone,
+  stop_code: code,
+  stop_name: name,
+  stop_lat: base.lat + dLat,
+  stop_lon: base.lon,
+  zone_id: zone,
 });
 
 const posts: StopPost[] = [
   post("DWOR01", "Dworcowa", POZNAN),
-  post("DWOR02", "Dworcowa", POZNAN, 0.0008),         
+  post("DWOR02", "Dworcowa", POZNAN, 0.0008),
   post("LDWO01", "Dworcowa", LUBON, 0, "B"),
-  post("LDWO02", "dworcowa ", LUBON, 0.0006, "B"),     
+  post("LDWO02", "dworcowa ", LUBON, 0.0006, "B"),
   post("DWK01", "Dworzec Zachodni", POZNAN, 0.003),
   { stop_code: null, stop_name: "Dworcowa", stop_lat: POZNAN.lat, stop_lon: POZNAN.lon, zone_id: "A" },
 ];
@@ -34,7 +38,10 @@ describe("clusterStops", () => {
   it("splits same-named stops in different towns into separate groups", () => {
     expect(dworcowa).toHaveLength(2);
     const codes = dworcowa.map((c) => c.stop_codes).sort((a, b) => a.join(",").localeCompare(b.join(",")));
-    expect(codes).toEqual([["DWOR01", "DWOR02"], ["LDWO01", "LDWO02"]]);
+    expect(codes).toEqual([
+      ["DWOR01", "DWOR02"],
+      ["LDWO01", "LDWO02"],
+    ]);
   });
 
   it("keeps nearby posts of one stop together and ignores posts without a code", () => {
@@ -55,7 +62,12 @@ describe("clusterStops", () => {
   it("flags the name as ambiguous", () => {
     const amb = ambiguousNames(clusters);
     expect(dworcowa.every((c) => isAmbiguous(c, amb))).toBe(true);
-    expect(isAmbiguous(clusters.find((c) => c.name === "Dworzec Zachodni")!, amb)).toBe(false);
+    expect(
+      isAmbiguous(
+        clusters.find((c) => c.name === "Dworzec Zachodni")!,
+        amb
+      )
+    ).toBe(false);
   });
 });
 
@@ -66,7 +78,7 @@ describe("favorites", () => {
 
   it("a favorite added in Luboń resolves only to Luboń (the reported bug)", () => {
     const fav = favoriteFromCluster(lubon, "Luboń");
-    const picked = pickClusterForFavorite(fav, clusters, POZNAN); 
+    const picked = pickClusterForFavorite(fav, clusters, POZNAN);
     expect(picked?.stop_codes).toEqual(["LDWO01", "LDWO02"]);
   });
 
@@ -84,6 +96,8 @@ describe("favorites", () => {
   });
 
   it("re-adding the same stop is detected as duplicate", () => {
-    expect(isSameStopPlace(favoriteFromCluster(poznan), { ...favoriteFromCluster(poznan), lat: poznan.lat + 0.001 })).toBe(true);
+    expect(
+      isSameStopPlace(favoriteFromCluster(poznan), { ...favoriteFromCluster(poznan), lat: poznan.lat + 0.001 })
+    ).toBe(true);
   });
 });

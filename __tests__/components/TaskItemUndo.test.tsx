@@ -5,15 +5,24 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => ({ user: { id: "me" }, supabase: {} }) }));
-vi.mock("@/hooks/useTaskCategories", () => ({ useTaskCategories: () => ["praca", "inne"], useCategoryColors: () => ({}) }));
+vi.mock("@/hooks/useTaskCategories", () => ({
+  useTaskCategories: () => ["praca", "inne"],
+  useCategoryColors: () => ({}),
+}));
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { success: vi.fn(), error: vi.fn() } }) }));
 
 import TaskItem from "@/components/tasks/TaskItem";
 import type { Task } from "@/types/tasks";
 
 const base = {
-  id: "t1", title: "Raport", description: "", category: "praca", priority: 3,
-  due_date: "2030-05-15", user_id: "me", for_user_id: null,
+  id: "t1",
+  title: "Raport",
+  description: "",
+  category: "praca",
+  priority: 3,
+  due_date: "2030-05-15",
+  user_id: "me",
+  for_user_id: null,
 } as unknown as Task;
 
 function setup(status: string) {
@@ -22,8 +31,14 @@ function setup(status: string) {
   render(
     <TaskItem
       task={{ ...base, status } as Task}
-      acceptTask={vi.fn()} setDoneTask={setDoneTask} editTask={vi.fn()} deleteTask={vi.fn()}
-      onTasksChange={onTasksChange} userId="me" userOptions={[]} loading={false}
+      acceptTask={vi.fn()}
+      setDoneTask={setDoneTask}
+      editTask={vi.fn()}
+      deleteTask={vi.fn()}
+      onTasksChange={onTasksChange}
+      userId="me"
+      userOptions={[]}
+      loading={false}
     />
   );
   return { setDoneTask, onTasksChange };

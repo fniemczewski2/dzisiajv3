@@ -1,4 +1,4 @@
-﻿// types/weather.ts
+// types/weather.ts
 
 export interface WeatherData {
   current_weather: {

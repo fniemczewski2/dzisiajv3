@@ -1,4 +1,4 @@
-﻿// components/letters/LetterForm.tsx
+// components/letters/LetterForm.tsx
 
 import React, { useState, SyntheticEvent, useMemo } from "react";
 import { useLetters, suggestResponseDate } from "@/hooks/db/useLetters";
@@ -90,7 +90,9 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
   return (
     <form onSubmit={handleSubmit} className="form-card max-w-2xl">
       <div>
-        <label htmlFor="lf-category" className="form-label">Kategoria:</label>
+        <label htmlFor="lf-category" className="form-label">
+          Kategoria:
+        </label>
         <select
           id="lf-category"
           value={category}
@@ -99,15 +101,19 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
           disabled={loading}
         >
           {LETTER_CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </select>
       </div>
 
       {isOtherCategory && (
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
           <div>
-            <label htmlFor="lf-cat-other" className="form-label">Nazwa kategorii:</label>
+            <label htmlFor="lf-cat-other" className="form-label">
+              Nazwa kategorii:
+            </label>
             <input
               id="lf-cat-other"
               value={categoryOther}
@@ -119,7 +125,9 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
             />
           </div>
           <div>
-            <label htmlFor="lf-cat-code" className="form-label">Kod (do sygnatury):</label>
+            <label htmlFor="lf-cat-code" className="form-label">
+              Kod (do sygnatury):
+            </label>
             <input
               id="lf-cat-code"
               value={categoryCode}
@@ -134,9 +142,11 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="lf-issue-date" className="form-label">Data wystawienia:</label>
+          <label htmlFor="lf-issue-date" className="form-label">
+            Data wystawienia:
+          </label>
           <input
             id="lf-issue-date"
             type="date"
@@ -155,7 +165,10 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
             id="lf-response-date"
             type="date"
             value={responseDate}
-            onChange={(e) => { setResponseDate(e.target.value); setResponseDateTouched(true); }}
+            onChange={(e) => {
+              setResponseDate(e.target.value);
+              setResponseDateTouched(true);
+            }}
             className="input-field"
             disabled={loading}
           />
@@ -163,7 +176,9 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
       </div>
 
       <div>
-        <label htmlFor="lf-recipient" className="form-label">Adresat:</label>
+        <label htmlFor="lf-recipient" className="form-label">
+          Adresat:
+        </label>
         <input
           id="lf-recipient"
           value={recipient}
@@ -176,7 +191,9 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
       </div>
 
       <div>
-        <label htmlFor="lf-description" className="form-label">Opis:</label>
+        <label htmlFor="lf-description" className="form-label">
+          Opis:
+        </label>
         <textarea
           id="lf-description"
           value={description}
@@ -190,7 +207,9 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
 
       {isTrafficViolation && (
         <div>
-          <label htmlFor="lf-plate" className="form-label">Numer rejestracyjny:</label>
+          <label htmlFor="lf-plate" className="form-label">
+            Numer rejestracyjny:
+          </label>
           <input
             id="lf-plate"
             value={licensePlate}
@@ -202,9 +221,11 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="lf-incident-date" className="form-label">Data zdarzenia (opcjonalnie):</label>
+          <label htmlFor="lf-incident-date" className="form-label">
+            Data zdarzenia (opcjonalnie):
+          </label>
           <input
             id="lf-incident-date"
             type="date"
@@ -215,7 +236,9 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
           />
         </div>
         <div>
-          <label htmlFor="lf-incident-place" className="form-label">Miejsce zdarzenia (opcjonalnie):</label>
+          <label htmlFor="lf-incident-place" className="form-label">
+            Miejsce zdarzenia (opcjonalnie):
+          </label>
           <input
             id="lf-incident-place"
             value={incidentPlace}
@@ -227,11 +250,7 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
         </div>
       </div>
 
-      <FormButtons
-        onClickClose={() => onCancel?.()}
-        loading={loading}
-        disabled={!canSave}
-      />
+      <FormButtons onClickClose={() => onCancel?.()} loading={loading} disabled={!canSave} />
     </form>
   );
 }

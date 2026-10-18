@@ -1,4 +1,4 @@
-﻿// types/connectedCalendars.ts
+// types/connectedCalendars.ts
 
 export interface ConnectedCalendarRow {
   id: string;

@@ -1,31 +1,17 @@
-﻿// pages/api/outlook-calendar/index.ts
+// pages/api/outlook-calendar/index.ts
 
-import { NextApiRequest, NextApiResponse } from 'next';
-import { createServerSupabase } from '@/lib/supabase/server';
-import { randomBytes } from 'node:crypto';
-import { encryptToken, decryptToken } from '@/lib/server/tokenCrypto';
-import { User, SupabaseClient } from '@supabase/supabase-js';
-import { ConnectedCalendarRow } from '@/types/connectedCalendars';
-import { OutlookTokenResponse, OutlookEventsResponse, OutlookCalendarsResponse } from '@/types/outlookCalendar';
-import { outlookToSupabaseTime, warsawNaiveToRFC3339 } from '@/lib/server/calendarTime';
-import { mapPool } from "@/lib/asyncPool";
-
-import { resolveExportTarget, canAttachToTarget, type ExportTarget } from '@/lib/server/exportTarget';
-async function refreshOutlookToken(refreshToken: string): Promise<OutlookTokenResponse | null> {
-  const r = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: process.env.OUTLOOK_CLIENT_ID!,
-      client_secret: process.env.OUTLOOK_CLIENT_SECRET!,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
-  });
-  if (!r.ok) return null;
-  return await r.json();
-}
-
+import { publicEnv, serverEnv } from "@/config/env";
+import { NextApiRequest, NextApiResponse } from "next";
+import { createServerSupabase } from "@/lib/supabase/server";
+import { randomBytes } from "node:crypto";
+import { encryptToken, decryptToken } from "@/lib/server/tokenCrypto";
+import { User, SupabaseClient } from "@supabase/supabase-js";
+import { ConnectedCalendarRow } from "@/types/connectedCalendars";
+import { OutlookEventsResponse, OutlookCalendarsResponse } from "@/types/outlookCalendar";
+import { refreshOutlookToken } from "@/lib/server/oauthTokens";
+import { outlookToSupabaseTime, warsawNaiveToRFC3339 } from "@/lib/server/calendarTime";
+import { mapPool } from "@/shared/asyncPool";
+import { resolveExportTarget, canAttachToTarget, type ExportTarget } from "@/lib/server/exportTarget";
 async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: ConnectedCalendarRow): Promise<string> {
   let accessToken = decryptToken(mainAcc.access_token);
   const storedRefreshToken = decryptToken(mainAcc.refresh_token);
@@ -35,58 +21,68 @@ async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: Connec
     const tokenData = await refreshOutlookToken(storedRefreshToken);
     if (tokenData?.access_token) {
       accessToken = tokenData.access_token;
-      await supabase.from('connected_calendars').update({
-        access_token: encryptToken(accessToken),
-        refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
-        expires_at: new Date(Date.now() + (tokenData.expires_in ?? 3600) * 1000).toISOString(),
-      }).eq('id', mainAcc.id);
+      await supabase
+        .from("connected_calendars")
+        .update({
+          access_token: encryptToken(accessToken),
+          refresh_token: encryptToken(tokenData.refresh_token || storedRefreshToken),
+          expires_at: new Date(Date.now() + (tokenData.expires_in ?? 3600) * 1000).toISOString(),
+        })
+        .eq("id", mainAcc.id);
     }
   }
   return accessToken;
 }
 
 function handleAuthUrl(req: NextApiRequest, res: NextApiResponse) {
-  const nonce = randomBytes(24).toString('base64url');
+  const credentials = serverEnv.outlook.get();
+  if (!credentials)
+    return res.status(500).json({ error: "Brak konfiguracji OUTLOOK_CLIENT_ID / OUTLOOK_CLIENT_SECRET." });
+  const nonce = randomBytes(24).toString("base64url");
   res.setHeader("Set-Cookie", `outlook_oauth_state=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=600; Path=/`);
 
   const params = new URLSearchParams({
-    client_id: process.env.OUTLOOK_CLIENT_ID!,
-    response_type: 'code',
-    redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/outlook-calendar/callback`,
-    scope: 'offline_access Calendars.Read User.Read',
+    client_id: credentials.clientId,
+    response_type: "code",
+    redirect_uri: `${publicEnv.appUrl}/api/outlook-calendar/callback`,
+    scope: "offline_access Calendars.Read User.Read",
     state: nonce,
-    prompt: 'select_account'
+    prompt: "select_account",
   });
-  
-  return res.status(200).json({ url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}` });
+
+  return res
+    .status(200)
+    .json({ url: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}` });
 }
 
 async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
   try {
     const { data: mainAcc, error: dbError } = await supabase
-      .from('connected_calendars')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('provider', 'outlook')
-      .eq('google_calendar_id', '@account_connection')
+      .from("connected_calendars")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("provider", "outlook")
+      .eq("google_calendar_id", "@account_connection")
       .maybeSingle<ConnectedCalendarRow>();
 
-    if (dbError || !mainAcc) return res.status(404).json({ error: 'Brak połączonego konta Outlook.' });
+    if (dbError || !mainAcc) return res.status(404).json({ error: "Brak połączonego konta Outlook." });
 
     const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
 
-    const response = await fetch('https://graph.microsoft.com/v1.0/me/calendars', {
-      headers: { Authorization: `Bearer ${accessToken}` }
+    const response = await fetch("https://graph.microsoft.com/v1.0/me/calendars", {
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    if (!response.ok) { return res.status(500).json({ error: "Wystąpił błąd Microsoft" });}
+    if (!response.ok) {
+      return res.status(500).json({ error: "Wystąpił błąd Microsoft" });
+    }
     const data: OutlookCalendarsResponse = await response.json();
-    
+
     const calendars = (data.value || []).map((cal) => ({
       id: cal.id,
       summary: cal.name,
       primary: cal.isDefaultCalendar,
-      primaryAccountId: mainAcc.id
+      primaryAccountId: mainAcc.id,
     }));
 
     return res.status(200).json({ calendars });
@@ -95,11 +91,7 @@ async function handleListCalendars(req: NextApiRequest, res: NextApiResponse, su
   }
 }
 
-function buildOutlookEventRows(
-  events: OutlookEventsResponse["value"],
-  userId: string,
-  accountId: string
-): object[] {
+function buildOutlookEventRows(events: OutlookEventsResponse["value"], userId: string, accountId: string): object[] {
   const rows = [];
   for (const ev of events || []) {
     if (ev.isCancelled) continue;
@@ -114,12 +106,12 @@ function buildOutlookEventRows(
     rows.push({
       user_id: userId,
       calendar_id: accountId,
-      title: ev.subject || '(bez tytułu)',
-      description: ev.bodyPreview || '',
+      title: ev.subject || "(bez tytułu)",
+      description: ev.bodyPreview || "",
       start_time: startTime,
       end_time: endTime,
-      place: ev.location?.displayName || '',
-      repeat: 'none',
+      place: ev.location?.displayName || "",
+      repeat: "none",
       google_event_id: ev.id,
     });
   }
@@ -127,28 +119,28 @@ function buildOutlookEventRows(
 }
 
 async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona.' });
+  if (req.method !== "POST") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   try {
     const { calendarId, accountId } = (req.body ?? {}) as { calendarId?: unknown; accountId?: unknown };
-    if (typeof calendarId !== 'string' || typeof accountId !== 'string' || !calendarId || !accountId) {
-      return res.status(400).json({ error: 'Brak wymaganych parametrów' });
+    if (typeof calendarId !== "string" || typeof accountId !== "string" || !calendarId || !accountId) {
+      return res.status(400).json({ error: "Brak wymaganych parametrów" });
     }
 
     const { data: ownedCalendar } = await supabase
-      .from('connected_calendars')
-      .select('id')
-      .eq('id', accountId)
-      .eq('user_id', user.id)
+      .from("connected_calendars")
+      .select("id")
+      .eq("id", accountId)
+      .eq("user_id", user.id)
       .maybeSingle();
-    if (!ownedCalendar) return res.status(404).json({ error: 'Nie znaleziono kalendarza' });
+    if (!ownedCalendar) return res.status(404).json({ error: "Nie znaleziono kalendarza" });
 
     const { data: mainAcc } = await supabase
-      .from('connected_calendars')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('provider', 'outlook')
-      .eq('google_calendar_id', '@account_connection')
+      .from("connected_calendars")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("provider", "outlook")
+      .eq("google_calendar_id", "@account_connection")
       .maybeSingle<ConnectedCalendarRow>();
 
     if (!mainAcc) return res.status(500).json({ error: "Brak podłączonego konta Microsoft" });
@@ -159,30 +151,32 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
     const timeMax = new Date();
     timeMax.setFullYear(timeMax.getFullYear() + 1);
 
-    let fetchUrl: string | undefined = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
+    let fetchUrl: string | undefined =
+      `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
     let imported = 0;
 
     while (fetchUrl) {
-      const msRes: Response = await fetch(fetchUrl, { // NOSONAR
-        headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' }
+      const msRes: Response = await fetch(fetchUrl, {
+        // NOSONAR
+        headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' },
       });
-          
+
       if (!msRes.ok) break;
       const data: OutlookEventsResponse = await msRes.json(); // NOSONAR
       const rows = buildOutlookEventRows(data.value, user.id, accountId);
 
       if (rows.length > 0) {
-        const { error: upsertError } = await supabase // NOSONAR 
-          .from('events')
-          .upsert(rows, { onConflict: 'calendar_id,google_event_id' });
+        const { error: upsertError } = await supabase // NOSONAR
+          .from("events")
+          .upsert(rows, { onConflict: "calendar_id,google_event_id" });
         if (upsertError) {
-          console.error('[outlook import] upsert error:', upsertError.message);
+          console.error("[outlook import] Zapis wydarzeń nie powiódł się:", upsertError.message);
         } else {
           imported += rows.length;
         }
       }
 
-      fetchUrl = data['@odata.nextLink']; 
+      fetchUrl = data["@odata.nextLink"];
     }
 
     return res.status(200).json({ success: true, imported });
@@ -195,9 +189,14 @@ async function handleDisconnect(req: NextApiRequest, res: NextApiResponse, supab
   try {
     const { subCalendarId, email } = req.query;
     if (subCalendarId) {
-      await supabase.from('connected_calendars').delete().eq('id', subCalendarId).eq('user_id', user.id);
+      await supabase.from("connected_calendars").delete().eq("id", subCalendarId).eq("user_id", user.id);
     } else if (email) {
-      await supabase.from('connected_calendars').delete().eq('account_email', email).eq('provider', 'outlook').eq('user_id', user.id);
+      await supabase
+        .from("connected_calendars")
+        .delete()
+        .eq("account_email", email)
+        .eq("provider", "outlook")
+        .eq("user_id", user.id);
     }
     return res.status(200).json({ success: true });
   } catch {
@@ -234,28 +233,28 @@ async function exportEventsToOutlook(
     }
     const body = {
       subject: ev.title,
-      body: { contentType: 'text', content: ev.description || '' },
-      location: { displayName: ev.place || '' },
-      start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: 'Europe/Warsaw' },
-      end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: 'Europe/Warsaw' },
+      body: { contentType: "text", content: ev.description || "" },
+      location: { displayName: ev.place || "" },
+      start: { dateTime: warsawNaiveToRFC3339(ev.start_time), timeZone: "Europe/Warsaw" },
+      end: { dateTime: warsawNaiveToRFC3339(ev.end_time), timeZone: "Europe/Warsaw" },
     };
-    const method = ev.google_event_id ? 'PATCH' : 'POST';
+    const method = ev.google_event_id ? "PATCH" : "POST";
     const endpoint = ev.google_event_id
       ? `https://graph.microsoft.com/v1.0/me/events/${ev.google_event_id}`
       : `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/events`;
 
     const r = await fetch(endpoint, {
       method,
-      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
     if (r.ok) {
       const created = await r.json();
       await supabase
-        .from('events')
+        .from("events")
         .update(target ? { google_event_id: created.id, calendar_id: target.rowId } : { google_event_id: created.id })
-        .eq('id', ev.id);
+        .eq("id", ev.id);
       exported++;
     } else {
       skipped++;
@@ -265,69 +264,78 @@ async function exportEventsToOutlook(
 }
 
 async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Metoda niedozwolona.' });
+  if (req.method !== "POST") return res.status(405).json({ error: "Metoda niedozwolona." });
 
   try {
     const { eventIds, connectedCalendarId } = req.body ?? {};
     let { calendarId } = req.body ?? {};
 
     const target = connectedCalendarId
-      ? await resolveExportTarget(supabase, user.id, 'outlook', connectedCalendarId)
+      ? await resolveExportTarget(supabase, user.id, "outlook", connectedCalendarId)
       : null;
-    if (connectedCalendarId && !target) return res.status(404).json({ error: 'Nie znaleziono kalendarza.' });
+    if (connectedCalendarId && !target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
     if (target) calendarId = target.calendarId;
-    if (!calendarId) return res.status(400).json({ error: 'Brak identyfikatora kalendarza.' });
+    if (!calendarId) return res.status(400).json({ error: "Brak identyfikatora kalendarza." });
     let mainQuery = supabase
-      .from('connected_calendars')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('provider', 'outlook')
-      .eq('google_calendar_id', '@account_connection');
-    if (target) mainQuery = mainQuery.eq('account_email', target.accountEmail);
+      .from("connected_calendars")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("provider", "outlook")
+      .eq("google_calendar_id", "@account_connection");
+    if (target) mainQuery = mainQuery.eq("account_email", target.accountEmail);
     const { data: mainAcc } = await mainQuery.limit(1).maybeSingle<ConnectedCalendarRow>();
 
-    if (!mainAcc) return res.status(400).json({ error: 'Brak podłączonego konta Microsoft' });
+    if (!mainAcc) return res.status(400).json({ error: "Brak podłączonego konta Microsoft" });
 
     const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
 
-    let query = supabase.from('events').select('*').eq('user_id', user.id);
+    let query = supabase.from("events").select("*").eq("user_id", user.id);
     if (eventIds?.length) {
-      query = query.in('id', eventIds);
+      query = query.in("id", eventIds);
     } else {
       const past30 = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
       const future = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
-      query = query.gte('start_time', past30).lte('start_time', future);
+      query = query.gte("start_time", past30).lte("start_time", future);
     }
 
     const { data: events, error: fetchErr } = await query;
-    if (fetchErr) return res.status(500).json({ error: 'Nie udało się pobrać wydarzeń z aplikacji.' });
-    if (!events?.length) return res.json({ exported: 0, skipped: 0, message: 'Brak wydarzeń w wybranym zakresie.' });
+    if (fetchErr) return res.status(500).json({ error: "Nie udało się pobrać wydarzeń z aplikacji." });
+    if (!events?.length) return res.json({ exported: 0, skipped: 0, message: "Brak wydarzeń w wybranym zakresie." });
 
-    const { exported, skipped } = await exportEventsToOutlook(supabase, events as ExportableEvent[], accessToken, calendarId, target);
+    const { exported, skipped } = await exportEventsToOutlook(
+      supabase,
+      events as ExportableEvent[],
+      accessToken,
+      calendarId,
+      target
+    );
     return res.json({ exported, skipped });
   } catch {
-    return res.status(500).json({ error: 'Błąd eksportu do kalendarza Outlook' });
+    return res.status(500).json({ error: "Błąd eksportu do kalendarza Outlook" });
   }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabase = createServerSupabase(req, res);
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
-    return res.status(401).json({ error: 'Nieautoryzowany dostęp' });
+    return res.status(401).json({ error: "Nieautoryzowany dostęp" });
   }
 
   const { action } = req.query;
 
-  if (action === 'auth-url') {
-    return handleAuthUrl(req, res); 
+  if (action === "auth-url") {
+    return handleAuthUrl(req, res);
   }
-  
-  if (action === 'list-calendars') return handleListCalendars(req, res, supabase, user);
-  if (action === 'import') return handleImport(req, res, supabase, user);
-  if (action === 'export') return handleExport(req, res, supabase, user);
-  if (action === 'disconnect') return handleDisconnect(req, res, supabase, user);
 
-  return res.status(404).json({ error: 'Nieznana akcja.' });
+  if (action === "list-calendars") return handleListCalendars(req, res, supabase, user);
+  if (action === "import") return handleImport(req, res, supabase, user);
+  if (action === "export") return handleExport(req, res, supabase, user);
+  if (action === "disconnect") return handleDisconnect(req, res, supabase, user);
+
+  return res.status(404).json({ error: "Nieznana akcja." });
 }

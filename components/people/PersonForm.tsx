@@ -1,9 +1,9 @@
 // components/people/PersonForm.tsx
 
-import React, { useState } from 'react';
-import { Person, PersonInsert } from '@/types/people';
-import { AddButton, FormButtons } from '../ui/CommonButtons';
-import { X } from 'lucide-react';
+import React, { useState } from "react";
+import { Person, PersonInsert } from "@/types/people";
+import { AddButton, FormButtons } from "../ui/CommonButtons";
+import { X } from "lucide-react";
 
 interface PersonFormProps {
   initialData?: Person | null;
@@ -13,21 +13,21 @@ interface PersonFormProps {
 }
 
 const EMPTY_PERSON: PersonInsert = {
-  first_name: '',
-  last_name: '',
-  relationship: '',
+  first_name: "",
+  last_name: "",
+  relationship: "",
   priority: 0,
   phones: [],
   emails: [],
-  notes: '',
-  birthday: '',
-  nameday: '',
+  notes: "",
+  birthday: "",
+  nameday: "",
 };
 
 export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<PersonFormProps>) => {
   const [formData, setFormData] = useState<PersonInsert | Person>(initialData ?? EMPTY_PERSON);
-  const [newPhone, setNewPhone] = useState('');
-  const [newEmail, setNewEmail] = useState('');
+  const [newPhone, setNewPhone] = useState("");
+  const [newEmail, setNewEmail] = useState("");
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,7 +37,7 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
   const handleAddPhone = () => {
     if (!newPhone.trim()) return;
     setFormData((prev) => ({ ...prev, phones: [...(prev.phones || []), newPhone.trim()] }));
-    setNewPhone('');
+    setNewPhone("");
   };
 
   const handleRemovePhone = (phoneToRemove: string) => {
@@ -47,7 +47,7 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
   const handleAddEmail = () => {
     if (!newEmail.trim()) return;
     setFormData((prev) => ({ ...prev, emails: [...(prev.emails || []), newEmail.trim()] }));
-    setNewEmail('');
+    setNewEmail("");
   };
 
   const handleRemoveEmail = (emailToRemove: string) => {
@@ -57,25 +57,27 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
   const renderChip = (value: string, onRemove: () => void) => (
     <span
       key={value}
-      className="px-3 py-1 bg-surface text-text-secondary border border-gray-200 dark:border-gray-700 rounded-full text-sm flex items-center gap-1.5"
+      className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-text-secondary"
     >
       {value}
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Usuń ${value}`}
-        className="text-text-muted hover:text-red-500 transition-colors"
+        className="text-text-muted transition-colors hover:text-danger"
       >
-        <X className="w-3.5 h-3.5" />
+        <X className="h-3.5 w-3.5" />
       </button>
     </span>
   );
 
   return (
     <form onSubmit={handleSubmit} className="form-card">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="first_name" className="form-label">Imię *</label>
+          <label htmlFor="first_name" className="form-label">
+            Imię *
+          </label>
           <input
             id="first_name"
             required
@@ -85,30 +87,36 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
           />
         </div>
         <div>
-          <label htmlFor="last_name" className="form-label">Nazwisko</label>
+          <label htmlFor="last_name" className="form-label">
+            Nazwisko
+          </label>
           <input
             id="last_name"
-            value={formData.last_name || ''}
+            value={formData.last_name || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
             className="input-field"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="relationship" className="form-label">Relacja</label>
+          <label htmlFor="relationship" className="form-label">
+            Relacja
+          </label>
           <input
             id="relationship"
             placeholder="np. Mama, Kolega"
-            value={formData.relationship || ''}
+            value={formData.relationship || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, relationship: e.target.value }))}
             className="input-field"
           />
         </div>
 
         <div>
-          <label htmlFor="priority" className="form-label">Priorytet kontaktu</label>
+          <label htmlFor="priority" className="form-label">
+            Priorytet kontaktu
+          </label>
           <select
             id="priority"
             value={formData.priority}
@@ -125,23 +133,27 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="birthday" className="form-label">Data urodzin</label>
+          <label htmlFor="birthday" className="form-label">
+            Data urodzin
+          </label>
           <input
             id="birthday"
             type="date"
-            value={formData.birthday || ''}
+            value={formData.birthday || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, birthday: e.target.value }))}
             className="input-field"
           />
         </div>
         <div>
-          <label htmlFor="nameday" className="form-label">Data imienin</label>
+          <label htmlFor="nameday" className="form-label">
+            Data imienin
+          </label>
           <input
             id="nameday"
             type="date"
-            value={formData.nameday || ''}
+            value={formData.nameday || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, nameday: e.target.value }))}
             className="input-field"
           />
@@ -189,11 +201,13 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
       </div>
 
       <div>
-        <label htmlFor="notes" className="form-label">Notatki</label>
+        <label htmlFor="notes" className="form-label">
+          Notatki
+        </label>
         <textarea
           id="notes"
           rows={3}
-          value={formData.notes || ''}
+          value={formData.notes || ""}
           onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
           className="input-field"
         />

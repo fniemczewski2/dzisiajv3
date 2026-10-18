@@ -48,10 +48,24 @@ export interface NewMovieData {
 
 /* ---------- Surowe odpowiedzi TMDB ---------- */
 
-export interface TmdbGenre { id: number; name: string }
-export interface TmdbProvider { provider_id: number; provider_name: string }
+export interface TmdbGenre {
+  id: number;
+  name: string;
+}
+export interface TmdbProvider {
+  provider_id: number;
+  provider_name: string;
+}
 export interface TmdbWatchProviders {
-  results?: { PL?: { flatrate?: TmdbProvider[]; rent?: TmdbProvider[]; buy?: TmdbProvider[]; ads?: TmdbProvider[]; free?: TmdbProvider[] } };
+  results?: {
+    PL?: {
+      flatrate?: TmdbProvider[];
+      rent?: TmdbProvider[];
+      buy?: TmdbProvider[];
+      ads?: TmdbProvider[];
+      free?: TmdbProvider[];
+    };
+  };
 }
 
 /** Wynik /search/multi – filmy mają `title`, seriale `name`. */
@@ -71,7 +85,9 @@ export interface TmdbMultiResult {
   popularity?: number;
 }
 
-export interface TmdbSearchResponse { results?: TmdbMultiResult[] }
+export interface TmdbSearchResponse {
+  results?: TmdbMultiResult[];
+}
 
 export interface TmdbDetailsResponse {
   id: number;

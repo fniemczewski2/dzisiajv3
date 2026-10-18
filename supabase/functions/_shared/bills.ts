@@ -16,7 +16,7 @@ export function billOccurrences(bill: BillSchedule, from: string, to: string): s
   if (!bill.active) return [];
   const rule = normalizeRule(bill.recurrence);
   if (!rule) return bill.start_date >= from && bill.start_date <= to ? [bill.start_date] : [];
-  const anchored = rule.monthDay ? rule : withMonthDay(rule, bill.start_date) ?? rule;
+  const anchored = rule.monthDay ? rule : (withMonthDay(rule, bill.start_date) ?? rule);
   return occurrencesBetween(bill.start_date, anchored, from, to);
 }
 

@@ -1,12 +1,7 @@
 // lib/stopGroupKeys.ts
 
 import type { StopGroup } from "@/types/transport";
-import {
-  favoriteKey,
-  networkOf,
-  normalizeStopName,
-  type FavoriteStop,
-} from "@/supabase/functions/_shared/stopGrouping";
+import { favoriteKey, networkOf, normalizeStopName, type FavoriteStop } from "@/shared/stopGrouping";
 
 function placeKey(group: Pick<StopGroup, "zone_id" | "stop_name">): string {
   return `${networkOf(group.zone_id)}:${normalizeStopName(group.stop_name ?? "")}`;
@@ -30,7 +25,8 @@ export function withFavoriteKeys(groups: StopGroup[], favorites: FavoriteStop[])
 export function withNearbyKeys(groups: StopGroup[]): StopGroup[] {
   const seen = new Map<string, number>();
   return groups.map((group) => {
-    const base = group.key || (group.stop_codes?.[0] ? `${networkOf(group.zone_id)}:${group.stop_codes[0]}` : placeKey(group));
+    const base =
+      group.key || (group.stop_codes?.[0] ? `${networkOf(group.zone_id)}:${group.stop_codes[0]}` : placeKey(group));
     const count = seen.get(base) ?? 0;
     seen.set(base, count + 1);
     const key = count === 0 ? base : `${base}#${count}`;

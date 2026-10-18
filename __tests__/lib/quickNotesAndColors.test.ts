@@ -1,7 +1,8 @@
 // __tests__/lib/quickNotesAndColors.test.ts
 
+import { MAX_QUICK_NOTES_PER_SUBMIT } from "@/config/limits";
 import { describe, it, expect } from "vitest";
-import { splitQuickNoteText, stripBullet, readQuickNoteText, MAX_QUICK_NOTES_PER_SUBMIT } from "@/lib/quickNotes";
+import { splitQuickNoteText, stripBullet, readQuickNoteText } from "@/lib/quickNotes";
 import { CATEGORY_PALETTE, normalizeCategoryColors, remapCategoryColors } from "@/lib/categoryColors";
 import { validateReminders, MAX_TASK_REMINDERS } from "@/lib/taskReminders";
 
@@ -31,14 +32,15 @@ describe("szybkie notatki", () => {
 
 describe("kolory kategorii", () => {
   const lum = (hex: string) => {
-    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    const [r, g, b] = [1, 3, 5]
+      .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
       .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
 
   it("każdy kolor palety ma kontrast ≥ 4.5:1 z białym tekstem", () => {
     for (const c of CATEGORY_PALETTE) {
-      expect((1.05) / (lum(c.value) + 0.05)).toBeGreaterThanOrEqual(4.5);
+      expect(1.05 / (lum(c.value) + 0.05)).toBeGreaterThanOrEqual(4.5);
     }
   });
 
@@ -48,7 +50,9 @@ describe("kolory kategorii", () => {
   });
 
   it("zmiana nazwy przenosi kolor, usunięcie go zdejmuje", () => {
-    expect(remapCategoryColors({ praca: "#1D5FB0", stare: "#B83232" }, [["praca", "JDG"]], ["JDG"])).toEqual({ JDG: "#1D5FB0" });
+    expect(remapCategoryColors({ praca: "#1D5FB0", stare: "#B83232" }, [["praca", "JDG"]], ["JDG"])).toEqual({
+      JDG: "#1D5FB0",
+    });
   });
 });
 

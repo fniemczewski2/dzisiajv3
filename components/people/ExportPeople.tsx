@@ -1,8 +1,8 @@
-﻿// components/people/ExportPeople.tsx
+// components/people/ExportPeople.tsx
 
-import React from 'react';
-import { Download } from 'lucide-react';
-import { Person } from '@/types/people';
+import React from "react";
+import { Download } from "lucide-react";
+import { Person } from "@/types/people";
 
 interface ExportProps {
   people: Person[];
@@ -11,30 +11,29 @@ interface ExportProps {
 export const ExportPeople = ({ people }: ExportProps) => {
   const handleExport = () => {
     const headers = [
-      'First Name', 
-      'Last Name', 
-      'Phone 1 - Value', 
-      'Phone 2 - Value', 
-      'Phone 3 - Value', 
-      'E-mail 1 - Value', 
-      'E-mail 2 - Value', 
-      'E-mail 3 - Value'
+      "First Name",
+      "Last Name",
+      "Phone 1 - Value",
+      "Phone 2 - Value",
+      "Phone 3 - Value",
+      "E-mail 1 - Value",
+      "E-mail 2 - Value",
+      "E-mail 3 - Value",
     ];
-    
 
     const escapeCSV = (str: string | undefined | null) => {
-      if (!str) return '';
+      if (!str) return "";
       const stringified = String(str);
-      if (stringified.includes(',') || stringified.includes('"') || stringified.includes('\n')) {
+      if (stringified.includes(",") || stringified.includes('"') || stringified.includes("\n")) {
         return `"${stringified.replaceAll('"', '""')}"`;
       }
       return stringified;
     };
 
-    const rows = people.map(p => {
+    const rows = people.map((p) => {
       const phones = p.phones || [];
       const emails = p.emails || [];
-      
+
       return [
         escapeCSV(p.first_name),
         escapeCSV(p.last_name),
@@ -43,30 +42,30 @@ export const ExportPeople = ({ people }: ExportProps) => {
         escapeCSV(phones[2]),
         escapeCSV(emails[0]),
         escapeCSV(emails[1]),
-        escapeCSV(emails[2])
-      ].join(',');
+        escapeCSV(emails[2]),
+      ].join(",");
     });
 
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); 
-    
+    const csvContent = [headers.join(","), ...rows].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', `dzisiaj_kontakty_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `dzisiaj_kontakty_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
   };
 
   return (
-    <button 
+    <button
       onClick={handleExport}
-      type='button'
-      className="px-4 py-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg flex items-center gap-2 border border-gray-200 dark:border-gray-800 transition-colors"
+      type="button"
+      className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover"
     >
-      .csv <Download className="w-5 h-5" />
+      .csv <Download className="h-5 w-5" />
     </button>
   );
 };

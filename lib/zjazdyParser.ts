@@ -8,23 +8,55 @@
 // w tekście, a jeśli żadnego nie było, rok akademicki: paź–gru → rok
 // rozpoczęcia, sty–wrz → następny.
 
+import { MAX_STUDY_SESSION_SPAN_DAYS } from "@/config/limits";
 export interface StudyDateRange {
   start: string; // yyyy-MM-dd
-  end: string;   // yyyy-MM-dd
+  end: string; // yyyy-MM-dd
   raw: string;
 }
 
 const MONTHS: Record<string, number> = {
-  stycznia: 1, styczeń: 1, lutego: 2, luty: 2, marca: 3, marzec: 3, kwietnia: 4, kwiecień: 4,
-  maja: 5, maj: 5, czerwca: 6, czerwiec: 6, lipca: 7, lipiec: 7, sierpnia: 8, sierpień: 8,
-  września: 9, wrzesień: 9, października: 10, październik: 10, listopada: 11, listopad: 11,
-  grudnia: 12, grudzień: 12,
-  i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9, x: 10, xi: 11, xii: 12,
+  stycznia: 1,
+  styczeń: 1,
+  lutego: 2,
+  luty: 2,
+  marca: 3,
+  marzec: 3,
+  kwietnia: 4,
+  kwiecień: 4,
+  maja: 5,
+  maj: 5,
+  czerwca: 6,
+  czerwiec: 6,
+  lipca: 7,
+  lipiec: 7,
+  sierpnia: 8,
+  sierpień: 8,
+  września: 9,
+  wrzesień: 9,
+  października: 10,
+  październik: 10,
+  listopada: 11,
+  listopad: 11,
+  grudnia: 12,
+  grudzień: 12,
+  i: 1,
+  ii: 2,
+  iii: 3,
+  iv: 4,
+  v: 5,
+  vi: 6,
+  vii: 7,
+  viii: 8,
+  ix: 9,
+  x: 10,
+  xi: 11,
+  xii: 12,
 };
-const MONTH_WORD = "(stycznia|styczeń|lutego|luty|marca|marzec|kwietnia|kwiecień|maja|maj|czerwca|czerwiec|lipca|lipiec|sierpnia|sierpień|września|wrzesień|października|październik|listopada|listopad|grudnia|grudzień|xii|xi|x|ix|viii|vii|vi|v|iv|iii|ii|i)";
+const MONTH_WORD =
+  "(stycznia|styczeń|lutego|luty|marca|marzec|kwietnia|kwiecień|maja|maj|czerwca|czerwiec|lipca|lipiec|sierpnia|sierpień|września|wrzesień|października|październik|listopada|listopad|grudnia|grudzień|xii|xi|x|ix|viii|vii|vi|v|iv|iii|ii|i)";
 
 /** Najdłuższy sensowny zjazd (np. pt–nd z zapasem). */
-const MAX_SPAN_DAYS = 4;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const iso = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
@@ -137,7 +169,7 @@ function yearFromMark(mark: YearMark, month: number): number {
 }
 
 /** Poprawny zakres dni (prawdziwe daty, koniec nie przed początkiem, nie za długi). */
-function isValidRange(start: string, end: string, maxSpan = MAX_SPAN_DAYS): boolean {
+function isValidRange(start: string, end: string, maxSpan = MAX_STUDY_SESSION_SPAN_DAYS): boolean {
   const [ys, ms, ds] = start.split("-").map(Number);
   const [ye, me, de] = end.split("-").map(Number);
   if (!valid(ys, ms, ds) || !valid(ye, me, de)) return false;
@@ -155,7 +187,11 @@ export interface DateMatch extends StudyDateRange {
  * Wszystkie daty i zakresy dat w tekście, z pozycją (bez usuwania powtórzeń).
  * `maxSpanDays` – najdłuższy dopuszczalny zakres (zjazdy: 4 dni, ogólnie: miesiąc).
  */
-export function findDateMatches(text: string, now: Date = new Date(), maxSpanDays = MAX_SPAN_DAYS): DateMatch[] {
+export function findDateMatches(
+  text: string,
+  now: Date = new Date(),
+  maxSpanDays = MAX_STUDY_SESSION_SPAN_DAYS
+): DateMatch[] {
   const consumed: Array<[number, number]> = [];
   const found: DateMatch[] = [];
   const overlaps = (a: number, b: number) => consumed.some(([x, y]) => a < y && x < b);

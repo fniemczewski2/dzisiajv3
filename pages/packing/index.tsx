@@ -22,32 +22,28 @@ export default function PackingMenuPage() {
         canonical="https://dzisiaj.fun/packing"
         keywords="pakowanie, lista rzeczy na wyjazd, bagaż, podróże, wakacje"
       />
-        <div className="w-full flex items-center mb-6">
-          <h1 className="page-title mx-auto text-center first-letter:uppercase">
-            Wybierz listę
-          </h1>
-        </div>
+      <div className="mb-6 flex w-full items-center">
+        <h1 className="page-title mx-auto text-center first-letter:uppercase">Wybierz listę</h1>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {lists.map((list) => {
-            const Icon = list.icon;
-            return (
-              <button
-                key={list.id}
-                onClick={() => router.push(`/packing/${list.id}`)}
-                type='button'
-                className="card rounded-card p-6 flex flex-col items-center justify-center gap-4 hover:bg-surface-hover transition-all hover:scale-[1.02] border border-transparent hover:border-primary/20"
-              >
-                <div className={`p-4 rounded-full bg-blue-50 dark:bg-blue-950 text-primary`}>
-                  <Icon className="w-8 h-8" />
-                </div>
-                <span className="font-bold text-lg text-text text-center">
-                  {list.title}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+        {lists.map((list) => {
+          const Icon = list.icon;
+          return (
+            <button
+              key={list.id}
+              onClick={() => router.push(`/packing/${list.id}`)}
+              type="button"
+              className="card flex flex-col items-center justify-center gap-4 rounded-card border border-transparent p-6 transition-all hover:scale-[1.02] hover:border-primary/20 hover:bg-surface-hover"
+            >
+              <div className={`rounded-full bg-info-soft p-4 text-primary`}>
+                <Icon className="h-8 w-8" />
+              </div>
+              <span className="text-center text-lg font-bold text-text">{list.title}</span>
+            </button>
+          );
+        })}
+      </div>
     </>
   );
 }

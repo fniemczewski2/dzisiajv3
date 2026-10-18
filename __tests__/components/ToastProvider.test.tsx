@@ -23,10 +23,18 @@ function Grab() {
 
 describe("ToastProvider confirm", () => {
   it("renders the confirm dialog outside the bottom notification stack, centered", async () => {
-    render(<ToastProvider><Grab /></ToastProvider>);
-    act(() => { api.success("Zapisano"); });
+    render(
+      <ToastProvider>
+        <Grab />
+      </ToastProvider>
+    );
+    act(() => {
+      api.success("Zapisano");
+    });
     let promise!: Promise<boolean>;
-    act(() => { promise = api.confirm("Czy chcesz usunąć przepis?"); });
+    act(() => {
+      promise = api.confirm("Czy chcesz usunąć przepis?");
+    });
 
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveAttribute("open");
@@ -42,16 +50,28 @@ describe("ToastProvider confirm", () => {
   });
 
   it("resolves false on cancel", async () => {
-    render(<ToastProvider><Grab /></ToastProvider>);
+    render(
+      <ToastProvider>
+        <Grab />
+      </ToastProvider>
+    );
     let promise!: Promise<boolean>;
-    act(() => { promise = api.confirm("Usunąć?"); });
+    act(() => {
+      promise = api.confirm("Usunąć?");
+    });
     await userEvent.click(await screen.findByRole("button", { name: "Anuluj" }));
     await expect(promise).resolves.toBe(false);
   });
 
   it("uses a correctly encoded default loading message", () => {
-    render(<ToastProvider><Grab /></ToastProvider>);
-    act(() => { api.loading(); });
+    render(
+      <ToastProvider>
+        <Grab />
+      </ToastProvider>
+    );
+    act(() => {
+      api.loading();
+    });
     expect(screen.getByText("Ładowanie...")).toBeInTheDocument();
   });
 });

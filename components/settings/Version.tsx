@@ -1,46 +1,42 @@
-﻿// components/settings/Version.tsx
+// components/settings/Version.tsx
+//
+// Wersja wdrożonej aplikacji. Numer pochodzi z package.json, a data i skrót
+// commita z builda (next.config.mjs) – bez zapytań do GitHuba z przeglądarki.
 
 import { Info } from "lucide-react";
-import { useVersion } from "@/hooks/useVersion";
+import { publicEnv } from "@/config/env";
+
+const dateFormat = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
 export default function VersionInfo() {
-  const { version, commitDate, loading, error } = useVersion();
-  const statusContent = error ? (
-    <div className="text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
-      Błąd: {error}
-    </div>
-  ) : (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between text-xs sm:text-sm">
-        <span className="font-semibold text-text-secondary">Wersja aplikacji:</span>
-        <span className="px-2.5 py-1 font-mono font-bold rounded-lg bg-blue-100 dark:bg-blue-900/70 border border-blue-100 dark:border-blue-900/50">
-          {version}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between text-xs sm:text-sm border-t border-gray-200 dark:border-gray-700 pt-3">
-        <span className="font-semibold text-text-secondary">Data aktualizacji:</span>
-        <span className="px-2.5 py-1 font-mono font-medium rounded-lg bg-card text-text border border-gray-200 dark:border-gray-700">
-          {commitDate}
-        </span>
-      </div>
-    </div>
-  );
-
-
+  const buildDate = publicEnv.buildDate;
+  const commit = publicEnv.commitSha;
 
   return (
-    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
-      <div className="flex items-center gap-3 text-text mb-4">
-        <div>
-          <Info className="w-5 h-5 text-primary shrink-0" />
-        </div>
-        <h3 className="text-lg font-bold">Informacje o wersji</h3>
+    <section className="card mb-4 rounded-xl p-4 sm:p-6" aria-labelledby="version-heading">
+      <div className="mb-4 flex items-center gap-3 text-text">
+        <Info className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+        <h3 id="version-heading" className="text-lg font-bold">
+          Informacje o wersji
+        </h3>
       </div>
-
-      {loading ? (
-        <div className="text-sm font-medium text-text-muted animate-pulse">Pobieranie informacji o wersji...</div>
-      ) : statusContent}
-    </div>
+      <dl className="space-y-3 text-xs sm:text-sm">
+        <div className="flex items-center justify-between">
+          <dt className="font-semibold text-text-secondary">Wersja aplikacji:</dt>
+          <dd className="rounded-lg border border-info-line bg-info-soft px-2.5 py-1 font-mono font-bold text-info">
+            {publicEnv.appVersion}
+            {commit ? <span className="font-normal"> ({commit})</span> : null}
+          </dd>
+        </div>
+        {buildDate && (
+          <div className="flex items-center justify-between border-t border-line pt-3">
+            <dt className="font-semibold text-text-secondary">Data wdrożenia:</dt>
+            <dd className="rounded-lg border border-line bg-card px-2.5 py-1 font-mono font-medium text-text">
+              {dateFormat.format(new Date(buildDate))}
+            </dd>
+          </div>
+        )}
+      </dl>
+    </section>
   );
 }

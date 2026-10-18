@@ -1,17 +1,17 @@
 // components/calendar/EventForm.tsx
 
+import { DEFAULT_EVENT_DURATION_MIN } from "@/config/defaults";
 import React, { useState, SyntheticEvent, useEffect, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
 import { format } from "date-fns";
-import { getAppDateTime, localDateTimeToISO } from "@/lib/dateUtils";
+import { localDateTimeToISO } from "@/lib/dateUtils";
 import { FormButtons } from "../ui/CommonButtons";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/ToastProvider";
 import { exportEventToCalendar, calendarTargetLabel, type CalendarTarget } from "@/lib/calendarExport";
 import {
-  DEFAULT_EVENT_DURATION_MIN,
   LOCAL_DATE_FORMAT,
   QUICK_EVENT_DURATIONS,
   addMinutesToLocal,
@@ -22,9 +22,8 @@ import { parseLocalInput, useEventConflicts } from "@/hooks/useEventConflicts";
 import ConflictNotice from "./ConflictNotice";
 import EventCategorySelect from "./EventCategorySelect";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
-import { legacyRepeatFor, type RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import { legacyRepeatFor, type RecurrenceRule } from "@/shared/recurrence";
 import { createTicketReminderTask, isTravelCategory, TICKET_REMINDER_DAYS_BEFORE } from "@/lib/travelTickets";
-
 
 interface EventsFormProps {
   onEventsChange: () => void;
@@ -43,7 +42,7 @@ export default function EventForm({
   onEventsChange,
   addEvent,
   onCancel,
-  currentDate = getAppDateTime(),
+  currentDate,
   selectedDate,
   loading,
   addMany = false,
@@ -54,7 +53,7 @@ export default function EventForm({
   const userId = user?.id;
   const { settings } = useSettings();
   const { toast } = useToast();
-  
+
   const userOptions = settings?.users ?? [];
   const supabase = createClient();
 
@@ -94,13 +93,15 @@ export default function EventForm({
 
   useEffect(() => {
     if (refTime === null) {
-      setStart(""); setEnd("");
+      setStart("");
+      setEnd("");
       return;
     }
     const ref = new Date(refTime);
     if (allDay) {
       const day = format(ref, LOCAL_DATE_FORMAT);
-      setStart(day); setEnd(day);
+      setStart(day);
+      setEnd(day);
     } else {
       const first = defaultTimedStart(ref);
       setStart(first);
@@ -148,9 +149,18 @@ export default function EventForm({
   };
 
   const resetForm = () => {
-    setTitle(""); setDescription(""); setStart(""); setEnd(""); setDurationMin(DEFAULT_EVENT_DURATION_MIN);
-    setPlace(""); setShare("null"); setRecurrence(null); setTicketReminder(true); 
-    setSelectedCalendar("local"); setCategory(null); setConflictAcknowledged(false);
+    setTitle("");
+    setDescription("");
+    setStart("");
+    setEnd("");
+    setDurationMin(DEFAULT_EVENT_DURATION_MIN);
+    setPlace("");
+    setShare("null");
+    setRecurrence(null);
+    setTicketReminder(true);
+    setSelectedCalendar("local");
+    setCategory(null);
+    setConflictAcknowledged(false);
   };
 
   /** Pierwsze „Zapisz” przy kolizji tylko pokazuje ostrzeżenie; drugie zapisuje. */
@@ -180,12 +190,16 @@ export default function EventForm({
   const exportToExternalCalendar = async (eventId: string) => {
     const target = calendars.find((c) => c.id === selectedCalendar);
     if (!target) return;
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     const ok = session ? await exportEventToCalendar(target, eventId, session.access_token) : false;
     if (ok) {
       toast.success(`Dodano też do kalendarza ${calendarTargetLabel(target)}`);
     } else {
-      toast.error(`Wydarzenie zapisano w aplikacji, ale nie udało się dodać go do kalendarza ${calendarTargetLabel(target)}.`);
+      toast.error(
+        `Wydarzenie zapisano w aplikacji, ale nie udało się dodać go do kalendarza ${calendarTargetLabel(target)}.`
+      );
     }
   };
 
@@ -219,35 +233,66 @@ export default function EventForm({
   return (
     <form onSubmit={handleSubmit} className="form-card">
       <div>
-        <label htmlFor="title" className="form-label">Tytuł wydarzenia:</label>
-        <input id="title" type="text" value={title}
+        <label htmlFor="title" className="form-label">
+          Tytuł wydarzenia:
+        </label>
+        <input
+          id="title"
+          type="text"
+          value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="input-field" required disabled={loading}
-          placeholder="Wydarzenie"/>
+          className="input-field"
+          required
+          disabled={loading}
+          placeholder="Wydarzenie"
+        />
       </div>
 
       <div className="flex items-center">
-        <input id="allDay" type="checkbox" checked={allDay}
+        <input
+          id="allDay"
+          type="checkbox"
+          checked={allDay}
           onChange={(e) => setAllDay(e.target.checked)}
           className="h-5 w-5 shrink-0"
-          disabled={loading} />
-        <label htmlFor="allDay" className="flex min-h-11 items-center pl-3 text-base font-medium text-text cursor-pointer">
+          disabled={loading}
+        />
+        <label
+          htmlFor="allDay"
+          className="flex min-h-11 cursor-pointer items-center pl-3 text-base font-medium text-text"
+        >
           Wydarzenie całodniowe
         </label>
       </div>
       <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>
-          <label htmlFor="start" className="form-label">Początek:</label>
-          <input id="start" type={allDay ? "date" : "datetime-local"} value={start}
+          <label htmlFor="start" className="form-label">
+            Początek:
+          </label>
+          <input
+            id="start"
+            type={allDay ? "date" : "datetime-local"}
+            value={start}
             onChange={(e) => handleStartChange(e.target.value)}
-            className="input-field w-full min-w-0 px-2" required disabled={loading} />
+            className="input-field w-full min-w-0 px-2"
+            required
+            disabled={loading}
+          />
         </div>
         <div>
-          <label htmlFor="end" className="form-label">Koniec:</label>
-          <input id="end" type={allDay ? "date" : "datetime-local"} value={end}
+          <label htmlFor="end" className="form-label">
+            Koniec:
+          </label>
+          <input
+            id="end"
+            type={allDay ? "date" : "datetime-local"}
+            value={end}
             onChange={(e) => handleEndChange(e.target.value)}
             min={start || undefined}
-            className="input-field w-full min-w-0 px-2" required disabled={loading} />
+            className="input-field w-full min-w-0 px-2"
+            required
+            disabled={loading}
+          />
         </div>
       </div>
 
@@ -256,34 +301,49 @@ export default function EventForm({
       {!allDay && (
         <fieldset className="flex flex-wrap items-center gap-2" disabled={loading}>
           <legend className="sr-only">Czas trwania</legend>
-          <span className="text-sm font-medium text-text-secondary" aria-hidden="true">Czas trwania:</span>
+          <span className="text-sm font-medium text-text-secondary" aria-hidden="true">
+            Czas trwania:
+          </span>
           {QUICK_EVENT_DURATIONS.map(({ minutes, label }) => (
             <button
               key={minutes}
               type="button"
               onClick={() => applyDuration(minutes)}
               aria-pressed={durationMin === minutes}
-              className="min-h-11 px-4 rounded-full text-sm font-semibold border border-line bg-surface text-text-secondary hover:bg-surface-hover transition-colors aria-pressed:bg-secondary aria-pressed:text-white aria-pressed:border-transparent disabled:opacity-60"
+              className="min-h-11 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-text-secondary transition-colors hover:bg-surface-hover disabled:opacity-60 aria-pressed:border-transparent aria-pressed:bg-secondary aria-pressed:text-white"
             >
               {label}
             </button>
           ))}
         </fieldset>
       )}
-      
+
       <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div>
-          <label htmlFor="place" className="form-label">Miejsce:</label>
-          <input id="place" type="text" value={place}
+          <label htmlFor="place" className="form-label">
+            Miejsce:
+          </label>
+          <input
+            id="place"
+            type="text"
+            value={place}
             onChange={(e) => setPlace(e.target.value)}
-            className="input-field" disabled={loading} />
+            className="input-field"
+            disabled={loading}
+          />
         </div>
         <div>
-          <label htmlFor="calendar" className="form-label">Dodaj do:</label>
-          <select id="calendar" value={selectedCalendar}
+          <label htmlFor="calendar" className="form-label">
+            Dodaj do:
+          </label>
+          <select
+            id="calendar"
+            value={selectedCalendar}
             onChange={(e) => setSelectedCalendar(e.target.value)}
             aria-describedby={isRecurring && calendars.length > 0 ? "calendar-recurring-hint" : undefined}
-            className="input-field" disabled={loading}>
+            className="input-field"
+            disabled={loading}
+          >
             <option value="local">Aplikacja – kalendarz domyślny</option>
             {calendars.map((cal) => (
               <option key={cal.id} value={cal.id} disabled={isRecurring}>
@@ -300,12 +360,22 @@ export default function EventForm({
       </div>
 
       <div>
-        <label htmlFor="share" className="form-label">Udostępnij:</label>
-        <select id="share" value={share}
+        <label htmlFor="share" className="form-label">
+          Udostępnij:
+        </label>
+        <select
+          id="share"
+          value={share}
           onChange={(e) => setShare(e.target.value)}
-          className="input-field" disabled={loading}>
+          className="input-field"
+          disabled={loading}
+        >
           <option value="null">Nie udostępniaj</option>
-          {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
+          {userOptions.map((email) => (
+            <option key={email} value={email}>
+              {email}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -330,7 +400,7 @@ export default function EventForm({
             aria-describedby="ticket-reminder-hint"
           />
           <div>
-            <label htmlFor="ticket-reminder" className="font-medium text-text cursor-pointer">
+            <label htmlFor="ticket-reminder" className="cursor-pointer font-medium text-text">
               Przypomnij o zakupie biletów {TICKET_REMINDER_DAYS_BEFORE} dni wcześniej
             </label>
             <p id="ticket-reminder-hint" className="text-sm text-text-secondary">
@@ -341,13 +411,25 @@ export default function EventForm({
       )}
 
       <div>
-        <label htmlFor="desc" className="form-label">Opis:</label>
-        <textarea id="desc" value={description}
+        <label htmlFor="desc" className="form-label">
+          Opis:
+        </label>
+        <textarea
+          id="desc"
+          value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="input-field" rows={2} disabled={loading} 
-          placeholder="Dodatkowe informacje..." />
+          className="input-field"
+          rows={2}
+          disabled={loading}
+          placeholder="Dodatkowe informacje..."
+        />
       </div>
-        <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother?.('event')} />
+      <FormButtons
+        onClickClose={onCancel}
+        loading={loading}
+        addMany={addMany}
+        onAddAnother={() => addAnother?.("event")}
+      />
     </form>
   );
 }

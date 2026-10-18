@@ -1,5 +1,6 @@
-﻿// hooks/db/useLetters.ts
+// hooks/db/useLetters.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -37,23 +38,25 @@ export function suggestResponseDate(category: LetterCategory, issueDate: string)
 
 function getLetterType(category: LetterCategory, kind: LetterFileKind): string {
   if (kind === "letter") {
-    switch(category){
-      case "Wykroczenie": 
+    switch (category) {
+      case "Wykroczenie":
       case "Wykroczenie drogowe":
-      case "Przestępstwo": 
-        return "zawiadomienie"
+      case "Przestępstwo":
+        return "zawiadomienie";
       case "Wniosek":
-      case "UDIP": 
-        return "wniosek"
+      case "UDIP":
+        return "wniosek";
       case "Skarga":
-        return "skarga"
-      default: return "pismo"
+        return "skarga";
+      case "Inne":
+      default:
+        return "pismo";
     }
-  } 
-  if (kind === "response") {
-    return "odpowiedz"
   }
-  return "inne"
+  if (kind === "response") {
+    return "odpowiedz";
+  }
+  return "inne";
 }
 
 function storagePath(userId: string, letterId: string, category: LetterCategory, kind: LetterFileKind): string {
@@ -84,8 +87,7 @@ export function useLetters() {
       incident_place: payload.incident_place ?? null,
     }),
     buildOptimistic: (payload, tempId, uId) => {
-      const code =
-        payload.category === "Inne" ? (payload.category_code ?? "?") : CATEGORY_CODE_MAP[payload.category];
+      const code = payload.category === "Inne" ? (payload.category_code ?? "?") : CATEGORY_CODE_MAP[payload.category];
       const d = new Date(`${payload.issue_date}T00:00:00`);
       const mm = String(d.getMonth() + 1).padStart(2, "0");
       const yyyy = String(d.getFullYear());
@@ -115,16 +117,11 @@ export function useLetters() {
     messages: MESSAGES,
   });
 
-  const editLetter = useCallback(
-    (id: string, updates: LetterUpdate) => crud.patch(id, updates),
-    [crud]
-  );
+  const editLetter = useCallback((id: string, updates: LetterUpdate) => crud.patch(id, updates), [crud]);
   const deleteLetter = useCallback(
     async (id: string): Promise<void> => {
       const letter = crud.items.find((l) => l.id === id);
-      const paths = [letter?.letter_file_path, letter?.response_file_path].filter(
-        (p): p is string => Boolean(p)
-      );
+      const paths = [letter?.letter_file_path, letter?.response_file_path].filter((p): p is string => Boolean(p));
 
       const removed = await crud.remove(id);
       if (!removed) return;
@@ -141,7 +138,7 @@ export function useLetters() {
 
   const uploadLetterFile = useCallback(
     async (letterId: string, category: LetterCategory, kind: LetterFileKind, file: File): Promise<void> => {
-      if (!userId) throw new Error("Unauthorized");
+      if (!userId) throw new NotSignedInError();
 
       if (file.type !== "application/pdf") {
         toast.error("Załącznik musi być plikiem PDF.");
@@ -163,16 +160,11 @@ export function useLetters() {
         return;
       }
 
-      const update: Partial<Letter> =
-        kind === "letter" ? { letter_file_path: path } : { response_file_path: path };
-      const result = await crud.patch(
-        letterId,
-        update,
-        {
-          successMessage: kind === "letter" ? "Wgrano pismo" : "Wgrano odpowiedź",
-          errorMessage: "Plik wgrany, ale nie udało się zapisać w bazie.",
-        }
-      );
+      const update: Partial<Letter> = kind === "letter" ? { letter_file_path: path } : { response_file_path: path };
+      const result = await crud.patch(letterId, update, {
+        successMessage: kind === "letter" ? "Wgrano pismo" : "Wgrano odpowiedź",
+        errorMessage: "Plik wgrany, ale nie udało się zapisać w bazie.",
+      });
       if (!result) {
         await supabase.storage.from("letters").remove([path]);
       }

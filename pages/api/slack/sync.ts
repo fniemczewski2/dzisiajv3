@@ -5,7 +5,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { translateSlackError } from "@/lib/server/slackLists";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { verifyCronRequest } from "@/lib/server/cronAuth";
-import { adminClient, loadTargets, loadTasks } from "@/lib/server/slackSync/targets";
+import { loadTargets, loadTasks } from "@/lib/server/slackSync/targets";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { syncList } from "@/lib/server/slackSync/syncList";
 import type { SyncCounters, SyncTarget, TaskRow } from "@/lib/server/slackSync/types";
 
@@ -55,10 +56,7 @@ async function loadLinkedAnywhere(admin: SupabaseClient, listIds: string[]): Pro
 }
 
 async function loadTargetListByTask(admin: SupabaseClient, userId: string): Promise<Map<number, string>> {
-  const { data: targetRows } = await admin
-    .from("slack_task_targets")
-    .select("task_id, list_id")
-    .eq("user_id", userId);
+  const { data: targetRows } = await admin.from("slack_task_targets").select("task_id, list_id").eq("user_id", userId);
   return new Map(
     (targetRows ?? []).map((r) => {
       const row = r as { task_id: number; list_id: string };
@@ -90,12 +88,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const allowedMethod = isCron ? req.method === "GET" || req.method === "POST" : req.method === "POST";
   if (!allowedMethod) return res.status(405).json({ error: "Metoda niedozwolona." });
 
-  const admin = adminClient();
+  const admin = supabaseAdmin();
   let scopedUserId: string | undefined;
 
   if (!isCron) {
     const supabase = createServerSupabase(req, res);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
     scopedUserId = user.id;
   }

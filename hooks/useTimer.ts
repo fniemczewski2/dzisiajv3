@@ -1,4 +1,4 @@
-﻿// hooks/useTimer.ts
+// hooks/useTimer.ts
 
 import { useEffect, useRef, useState } from "react";
 import type { TimerPhase } from "@/components/ui/Timer";
@@ -73,7 +73,7 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch((err) => {
-        console.warn("[useTimerEngine] Audio playback failed:", err);
+        console.warn("[useTimerEngine] Nie udało się odtworzyć dźwięku:", err);
       });
     }
   };
@@ -152,8 +152,18 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
   };
 
   return {
-    secondsLeft, running, paused, phaseIndex, round,
-    start, pause, stop, next, prev, jumpToPhase,
-    setPhaseIndex, setRound,
+    secondsLeft,
+    running,
+    paused,
+    phaseIndex,
+    round,
+    start,
+    pause,
+    stop,
+    next,
+    prev,
+    jumpToPhase,
+    setPhaseIndex,
+    setRound,
   };
 }

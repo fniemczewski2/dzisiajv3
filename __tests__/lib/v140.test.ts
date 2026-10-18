@@ -26,7 +26,13 @@ describe("moduły", () => {
 });
 
 describe("schematy dnia", () => {
-  const s = (id: string, days: number[], is_default = false): Schema => ({ id, name: id, days, entries: [], is_default });
+  const s = (id: string, days: number[], is_default = false): Schema => ({
+    id,
+    name: id,
+    days,
+    entries: [],
+    is_default,
+  });
   const schemas = [s("zwykly", [0, 1, 2, 3, 4]), s("warsztat", [3], true), s("weekend", [5, 6])];
   it("domyślny wygrywa z pierwszym, ręczny wybór z domyślnym", () => {
     expect(resolveActiveSchema(schemas, 3, undefined)?.id).toBe("warsztat");
@@ -42,7 +48,11 @@ describe("nawyki", () => {
     expect(resolveHabits({ custom_habits: null, habit_pills: false } as never)).toHaveLength(LEGACY_HABITS.length - 1);
   });
   it("maksymalnie 8, bez pustych i duplikatów", () => {
-    const many = Array.from({ length: 12 }, (_, i) => ({ id: `h${i % 10}`, label: i === 0 ? " " : `N${i}`, icon: "Nope" }));
+    const many = Array.from({ length: 12 }, (_, i) => ({
+      id: `h${i % 10}`,
+      label: i === 0 ? " " : `N${i}`,
+      icon: "Nope",
+    }));
     const result = normalizeHabits(many);
     expect(result).toHaveLength(8);
     expect(result.every((h) => h.icon === "Sparkles")).toBe(true);

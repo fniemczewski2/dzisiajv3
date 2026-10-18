@@ -23,10 +23,12 @@ describe("tablica stacji", () => {
     fireEvent.change(screen.getByPlaceholderText("Poznań Główny"), { target: { value: "Poznań Główny" } });
     fireEvent.submit(screen.getByPlaceholderText("Poznań Główny").closest("form")!);
 
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
-      "/api/transport/station-board?stationName=Pozna%C5%84%20G%C5%82%C3%B3wny",
-      expect.objectContaining({ signal: expect.anything() })
-    ));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/transport/station-board?stationName=Pozna%C5%84%20G%C5%82%C3%B3wny",
+        expect.objectContaining({ signal: expect.anything() })
+      )
+    );
     await waitFor(() => expect(screen.queryByText(/Aktualizuję/)).toBeNull());
   });
 

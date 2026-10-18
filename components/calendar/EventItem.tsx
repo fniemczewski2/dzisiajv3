@@ -12,7 +12,7 @@ import ConflictNotice from "./ConflictNotice";
 import EventCategorySelect from "./EventCategorySelect";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { eventRule } from "@/lib/eventUtils";
-import { describeRule, legacyRepeatFor } from "@/supabase/functions/_shared/recurrence";
+import { describeRule, legacyRepeatFor } from "@/shared/recurrence";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons, DownloadButton } from "../ui/CommonButtons";
 
@@ -31,7 +31,7 @@ export default function EventItem({
   onEditEvent,
   onDeleteEvent,
   onEventsChange,
-  userOptions
+  userOptions,
 }: Readonly<EventItemProps>) {
   const { supabase } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -81,7 +81,7 @@ export default function EventItem({
       conflictRef.current?.focus();
       return;
     }
-    await onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email })
+    await onEditEvent({ ...editedEvent, shared_with_email: event.shared_with_email });
     setIsEditing(false);
     setEditedEvent(null);
     setSharedEmail("");
@@ -89,8 +89,8 @@ export default function EventItem({
   };
 
   const handleDelete = async () => {
-      await onDeleteEvent(event.id)
-      onEventsChange();
+    await onDeleteEvent(event.id);
+    onEventsChange();
   };
 
   const handleCancelEdit = () => {
@@ -101,83 +101,97 @@ export default function EventItem({
   const isSameDay = event.start_time.slice(0, 10) === event.end_time.slice(0, 10);
 
   const renderedTime = isSameDay ? (
-    <>{formatTime(event.start_time)}–{formatTime(event.end_time)}</>
+    <>
+      {formatTime(event.start_time)}–{formatTime(event.end_time)}
+    </>
   ) : (
-    <>{formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}</>
+    <>
+      {formatTime(event.start_time, true)} – {formatTime(event.end_time, true)}
+    </>
   );
 
-  const fixedPlace = event?.place?.startsWith("https://") ? 
-  ( 
-    <div className="flex items-center text-sm font-medium text-text-secondary truncate underline">
-      <Globe className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
-      <a href={event.place} rel="noreferrer" target="_blank">Link do spotkania<span className="sr-only"> (otwiera się w nowej karcie)</span></a>
+  const fixedPlace = event?.place?.startsWith("https://") ? (
+    <div className="flex items-center truncate text-sm font-medium text-text-secondary underline">
+      <Globe className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
+      <a href={event.place} rel="noreferrer" target="_blank">
+        Link do spotkania<span className="sr-only"> (otwiera się w nowej karcie)</span>
+      </a>
     </div>
-
   ) : (
-    <div className="flex items-center text-sm font-medium text-text-secondary truncate">
-      <MapPin className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
+    <div className="flex items-center truncate text-sm font-medium text-text-secondary">
+      <MapPin className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
       {event.place}
     </div>
-  )
+  );
 
   if (isEditing && editedEvent) {
     const editPrefix = `edit-event-${event.id}`;
-    
+
     return (
-      <div className="p-4 w-full max-w-md bg-card border border-primary rounded-card space-y-4">
+      <div className="w-full max-w-md space-y-4 rounded-card border border-primary bg-card p-4">
         <div>
-          <label htmlFor={`${editPrefix}-title`} className="form-label">Tytuł wydarzenia:</label>
-          <input 
+          <label htmlFor={`${editPrefix}-title`} className="form-label">
+            Tytuł wydarzenia:
+          </label>
+          <input
             id={`${editPrefix}-title`}
-            ref={titleRef} 
-            type="text" 
-            value={editedEvent.title} 
-            onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })} 
-            className="input-field font-medium" 
+            ref={titleRef}
+            type="text"
+            value={editedEvent.title}
+            onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })}
+            className="input-field font-medium"
           />
         </div>
         <div>
-          <label htmlFor={`${editPrefix}-desc`} className="form-label">Opis (opcjonalny):</label>
-          <textarea 
+          <label htmlFor={`${editPrefix}-desc`} className="form-label">
+            Opis (opcjonalny):
+          </label>
+          <textarea
             id={`${editPrefix}-desc`}
-            value={editedEvent.description || ""} 
-            onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })} 
-            className="input-field" 
-            rows={3} 
+            value={editedEvent.description || ""}
+            onChange={(e) => setEditedEvent({ ...editedEvent, description: e.target.value })}
+            className="input-field"
+            rows={3}
           />
         </div>
         <div className="grid grid-cols-2 gap-1 md:gap-3">
-          <div className="min-w-0 max-w-full">
-            <label htmlFor={`${editPrefix}-start`} className="form-label">Rozpoczęcie:</label>
-            <input 
+          <div className="max-w-full min-w-0">
+            <label htmlFor={`${editPrefix}-start`} className="form-label">
+              Rozpoczęcie:
+            </label>
+            <input
               id={`${editPrefix}-start`}
-              type="datetime-local" 
-              value={editedEvent.start_time.slice(0, 16)} 
-              onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })} 
-              className="input-field w-full min-w-0 px-2" 
+              type="datetime-local"
+              value={editedEvent.start_time.slice(0, 16)}
+              onChange={(e) => setEditedEvent({ ...editedEvent, start_time: localDateTimeToISO(e.target.value) })}
+              className="input-field w-full min-w-0 px-2"
             />
           </div>
-          <div className="min-w-0 max-w-full">
-            <label htmlFor={`${editPrefix}-end`} className="form-label">Zakończenie:</label>
-            <input 
+          <div className="max-w-full min-w-0">
+            <label htmlFor={`${editPrefix}-end`} className="form-label">
+              Zakończenie:
+            </label>
+            <input
               id={`${editPrefix}-end`}
-              type="datetime-local" 
-              value={editedEvent.end_time.slice(0, 16)} 
-              onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })} 
-              className="input-field w-full min-w-0 px-2" 
+              type="datetime-local"
+              value={editedEvent.end_time.slice(0, 16)}
+              onChange={(e) => setEditedEvent({ ...editedEvent, end_time: localDateTimeToISO(e.target.value) })}
+              className="input-field w-full min-w-0 px-2"
             />
           </div>
         </div>
         <ConflictNotice ref={conflictRef} report={conflicts} acknowledged={conflictAcknowledged} />
         <div>
-          <label htmlFor={`${editPrefix}-place`} className="form-label">Miejsce:</label>
-          <input 
+          <label htmlFor={`${editPrefix}-place`} className="form-label">
+            Miejsce:
+          </label>
+          <input
             id={`${editPrefix}-place`}
-            type="text" 
-            value={editedEvent.place || ""} 
-            onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })} 
-            className="input-field" 
-            placeholder="Gdzie się odbędzie?" 
+            type="text"
+            value={editedEvent.place || ""}
+            onChange={(e) => setEditedEvent({ ...editedEvent, place: e.target.value })}
+            className="input-field"
+            placeholder="Gdzie się odbędzie?"
           />
         </div>
         <RecurrenceEditor
@@ -194,21 +208,24 @@ export default function EventItem({
         <div className="grid grid-cols-2 gap-3">
           {userOptions.length > 0 && (
             <div>
-              <label htmlFor={`${editPrefix}-share`} className="form-label">Udostępnij dla:</label>
-              <select 
+              <label htmlFor={`${editPrefix}-share`} className="form-label">
+                Udostępnij dla:
+              </label>
+              <select
                 id={`${editPrefix}-share`}
-                value={sharedEmail} 
-                onChange={(e) => setSharedEmail(e.target.value)} 
+                value={sharedEmail}
+                onChange={(e) => setSharedEmail(e.target.value)}
                 className="input-field"
               >
                 <option value="">Tylko dla mnie</option>
                 {userOptions.map((email) => (
-                  <option key={email} value={email}>{email}</option>
+                  <option key={email} value={email}>
+                    {email}
+                  </option>
                 ))}
               </select>
             </div>
           )}
-
         </div>
         <FormButtons onClickClose={handleCancelEdit} onClickSave={handleSaveEdit} loading={loading} />
       </div>
@@ -216,9 +233,9 @@ export default function EventItem({
   }
 
   return (
-    <div className="p-4 w-full max-w-md card rounded-card transition-all flex flex-col">
-      <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
-        <h3 className="font-bold text-lg text-text leading-tight">{event.title}</h3>
+    <div className="card flex w-full max-w-md flex-col rounded-card p-4 transition-all">
+      <div className="mb-4 flex items-start justify-between border-b border-line pb-3">
+        <h3 className="text-lg leading-tight font-bold text-text">{event.title}</h3>
         {event.category && (
           <span className="ml-3 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-sm text-text-secondary">
             <span
@@ -230,32 +247,37 @@ export default function EventItem({
           </span>
         )}
       </div>
-      <div className="space-y-2.5 mb-4">
+      <div className="mb-4 space-y-2.5">
         <div className="flex items-center text-sm font-medium text-text-secondary">
-          <Clock className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
+          <Clock className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
           {renderedTime}
         </div>
         {eventRule(event) && (
           <div className="flex items-center text-sm font-medium text-text-secondary">
-            <Repeat className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
+            <Repeat className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
             {describeRule(eventRule(event), event.start_time.slice(0, 10))}
           </div>
         )}
         {event.place && fixedPlace}
         {event.display_share_info && (
-          <div className="flex items-center text-sm font-medium text-text-secondary truncate">
-            <User className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
+          <div className="flex items-center truncate text-sm font-medium text-text-secondary">
+            <User className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
             <span className="truncate">{event.display_share_info}</span>
           </div>
         )}
       </div>
       {event.description && (
-        <p className="text-sm text-text-secondary bg-surface p-3 rounded-xl border border-gray-100 dark:border-gray-800 leading-relaxed mb-4 wrap-break-word whitespace-pre-wrap">
+        <p className="mb-4 rounded-xl border border-line bg-surface p-3 text-sm leading-relaxed wrap-break-word whitespace-pre-wrap text-text-secondary">
           {event.description}
         </p>
       )}
-      <div className="flex justify-between w-full gap-1 sm:gap-1.5 mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-        <DownloadButton onClick={() => { generateSingleEventICS(event); }} fileFormat=".ics" />
+      <div className="mt-auto flex w-full justify-between gap-1 border-t border-line pt-4 sm:gap-1.5">
+        <DownloadButton
+          onClick={() => {
+            generateSingleEventICS(event);
+          }}
+          fileFormat=".ics"
+        />
         <EditButton onClick={handleEdit} />
         <DeleteButton onClick={handleDelete} />
       </div>

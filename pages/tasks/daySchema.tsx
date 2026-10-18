@@ -43,96 +43,92 @@ export default function DaySchemaPage() {
     setShowForm(false);
   };
 
-  
-
   return (
     <>
-        <Seo
-          title="Schemat dnia"
-          description="Ułóż stały plan dnia z godzinami, np. poranną i wieczorną rutynę, i korzystaj z niego w widoku dnia."
-          canonical="https://dzisiaj.fun/tasks/daySchema"
-          keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
-        />
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="page-title">Plan dnia</h1>
-          {!showForm && <AddButton onClick={openNew} />}
-        </div>
+      <Seo
+        title="Schemat dnia"
+        description="Ułóż stały plan dnia z godzinami, np. poranną i wieczorną rutynę, i korzystaj z niego w widoku dnia."
+        canonical="https://dzisiaj.fun/tasks/daySchema"
+        keywords="schemat dnia, rutyna, planowanie, nawyki, harmonogram dnia"
+      />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="page-title">Plan dnia</h1>
+        {!showForm && <AddButton onClick={openNew} />}
+      </div>
 
-        {showForm && (
-          <section className="mb-6">
-            <DaySchemaForm
-              initialSchema={editing}
-              onCancel={closeForm}
-              onSchemaSaved={() => {
-                void fetchSchemas();
-                closeForm();
-              }}
-            />
-          </section>
-        )}
+      {showForm && (
+        <section className="mb-6">
+          <DaySchemaForm
+            initialSchema={editing}
+            onCancel={closeForm}
+            onSchemaSaved={() => {
+              void fetchSchemas();
+              closeForm();
+            }}
+          />
+        </section>
+      )}
 
-        {fetching ? (
-          <SkeletonDaySchema rows={4} />
-        ) : (
-        <ul className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {fetching ? (
+        <SkeletonDaySchema rows={4} />
+      ) : (
+        <ul className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {schemas.map((schema) => (
             <li
               key={schema.id}
-              className="flex justify-between items-center card p-3 rounded-card border border-gray-200 dark:border-gray-800 shadow-sm"
+              className="card flex items-center justify-between rounded-card border border-line p-3 shadow-sm"
             >
               <span className="ml-1 flex flex-wrap items-center gap-2">
                 <span className="font-bold text-text">{schema.name}</span>
                 {schema.is_default && (
-                  <span className="rounded-full border border-line px-2 py-0.5 text-sm text-text-secondary">domyślny</span>
+                  <span className="rounded-full border border-line px-2 py-0.5 text-sm text-text-secondary">
+                    domyślny
+                  </span>
                 )}
               </span>
-              <div className="flex gap-1.5 shrink-0">
+              <div className="flex shrink-0 gap-1.5">
                 <EditButton onClick={() => openEdit(schema)} />
                 <DeleteButton onClick={() => deleteSchema(schema.id || "")} />
               </div>
             </li>
           ))}
-          {schemas.length === 0 && !loading && (
-            <NoResultsState text="schematów dnia" />
-          )}
+          {schemas.length === 0 && !loading && <NoResultsState text="schematów dnia" />}
         </ul>
+      )}
+
+      <div className="card mb-6 rounded-card p-5 shadow-sm">
+        {sortedEntries.length > 0 ? (
+          <div className="relative border-line py-2">
+            <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />
+
+            {sortedEntries.map((entry) => (
+              <div key={entry.time} className="relative mb-3 flex items-center space-x-2">
+                <span className="flex h-6 w-12 shrink-0 items-center text-sm font-bold text-text-muted">
+                  {entry.time}
+                </span>
+                <span className="text-lg font-medium text-text">{entry.label}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="py-2 text-sm font-medium text-text-muted">
+            Ten schemat nie ma jeszcze żadnych punktów w planie dnia.
+          </p>
         )}
-
-        <div className="mb-6 card p-5 rounded-card shadow-sm">
-          {sortedEntries.length > 0 ? (
-            <div className="relative border-gray-200 dark:border-gray-700 py-2">
-              <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />
-
-              {sortedEntries.map((entry) => (
-                <div key={entry.time} className="relative mb-3 flex items-center space-x-2">
-                  <span className="text-sm font-bold text-text-muted w-12 h-6 flex items-center shrink-0">{entry.time}</span>
-                  <span className="text-lg font-medium text-text">{entry.label}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-text-muted text-sm font-medium py-2">Ten schemat nie ma jeszcze żadnych punktów w planie dnia.</p>
-          )}
-        </div>
+      </div>
     </>
   );
 }
 
-function CurrentTimeLine({
-  entries,
-  currentTime,
-}: {
-  readonly entries: ScheduleItem[];
-  readonly currentTime: string;
-}) {
+function CurrentTimeLine({ entries, currentTime }: { readonly entries: ScheduleItem[]; readonly currentTime: string }) {
   const slotHeight = 36;
   const index = entries.findIndex((entry) => entry.time >= currentTime);
   const offset = index >= 0 ? index * slotHeight : entries.length * slotHeight;
 
   return (
-    <div className="absolute left-0 w-full z-10 transition-all duration-500 ease-in-out" style={{ top: offset + 8 }}>
-      <div className="absolute -left-4 h-0.5 w-[calc(100%+1rem)] bg-red-500 dark:bg-red-400 opacity-80" />
-      <div className="absolute -left-5.25 -top-1.5 w-3 h-3 bg-red-500 dark:bg-red-400 rounded-full shadow-sm" />
+    <div className="absolute left-0 z-10 w-full transition-all duration-500 ease-in-out" style={{ top: offset + 8 }}>
+      <div className="absolute -left-4 h-0.5 w-[calc(100%+1rem)] bg-danger-solid opacity-80" />
+      <div className="absolute -top-1.5 -left-5.25 h-3 w-3 rounded-full bg-danger-solid shadow-sm" />
     </div>
   );
 }

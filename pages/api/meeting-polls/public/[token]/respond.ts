@@ -1,24 +1,17 @@
 // pages/api/meeting-polls/public/[token]/respond.ts
 
+import { MAX_RESPONDENT_NAME_LENGTH, MAX_SLOTS_PER_RESPONSE } from "@/config/limits";
 import { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { buildAllowedSlotSet, slotKey } from "@/lib/meetingPollGrid";
-import { checkRateLimit, clientIp } from "@/lib/server/rateLimit";
+import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
 import { validateEmail, validateSlot } from "@/lib/sanitize";
 import type {
   MeetingPollResponsePayload,
   MeetingPollResponseSubmitResult,
   MeetingPollSlot,
 } from "@/types/meetingPolls";
-
-const MAX_RESPONDENT_NAME_LENGTH = 100;
-const MAX_SLOTS_PER_RESPONSE = 500;
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
 
 type ValidatedSlot = NonNullable<ReturnType<typeof validateSlot>>;
 
@@ -36,14 +29,14 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, token: strin
     return res.status(400).json({ error: "Brak tokenu edycji." });
   }
 
-  const { data: poll } = await supabaseAdmin
+  const { data: poll } = await supabaseAdmin()
     .from("meeting_polls")
     .select("id")
     .eq("share_token", token)
     .maybeSingle();
   if (!poll) return res.status(404).json({ error: "Ankieta nie istnieje." });
 
-  const { data: existing } = await supabaseAdmin
+  const { data: existing } = await supabaseAdmin()
     .from("meeting_poll_responses")
     .select("id, respondent_name, respondent_email")
     .eq("poll_id", poll.id)
@@ -51,7 +44,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, token: strin
     .maybeSingle();
   if (!existing) return res.status(404).json({ error: "Nie znaleziono odpowiedzi." });
 
-  const { data: availRows } = await supabaseAdmin
+  const { data: availRows } = await supabaseAdmin()
     .from("meeting_poll_availabilities")
     .select("date, start_time")
     .eq("response_id", existing.id);
@@ -99,7 +92,7 @@ function validateResponsePayload(
 }
 
 async function loadOpenPoll(token: string): Promise<{ poll: PollForResponse } | { error: string; status: number }> {
-  const { data: poll, error: pollError } = await supabaseAdmin
+  const { data: poll, error: pollError } = await supabaseAdmin()
     .from("meeting_polls")
     .select("id, status, slot_duration_minutes, time_start, time_end")
     .eq("share_token", token)
@@ -111,7 +104,7 @@ async function loadOpenPoll(token: string): Promise<{ poll: PollForResponse } | 
 }
 
 async function ensureSlotsMatchGrid(poll: PollForResponse, slots: ValidatedSlot[]): Promise<{ error: string } | null> {
-  const { data: dateRows, error: datesError } = await supabaseAdmin
+  const { data: dateRows, error: datesError } = await supabaseAdmin()
     .from("meeting_poll_dates")
     .select("date")
     .eq("poll_id", poll.id);
@@ -131,7 +124,9 @@ async function ensureSlotsMatchGrid(poll: PollForResponse, slots: ValidatedSlot[
 async function resolveSessionUserId(req: NextApiRequest, res: NextApiResponse): Promise<string | null> {
   try {
     const sessionClient = createServerSupabase(req, res);
-    const { data: { user } } = await sessionClient.auth.getUser();
+    const {
+      data: { user },
+    } = await sessionClient.auth.getUser();
     return user?.id ?? null;
   } catch {
     return null;
@@ -146,7 +141,7 @@ async function upsertResponseRecord(
   sessionUserId: string | null
 ): Promise<{ responseId: string; responseEditToken: string } | { error: string; status: number }> {
   if (editToken) {
-    const { data: existing, error: existingError } = await supabaseAdmin
+    const { data: existing, error: existingError } = await supabaseAdmin()
       .from("meeting_poll_responses")
       .select("id")
       .eq("poll_id", pollId)
@@ -157,7 +152,7 @@ async function upsertResponseRecord(
     const update: Record<string, unknown> = { respondent_name: respondentName, respondent_email: respondentEmail };
     if (sessionUserId) update.user_id = sessionUserId;
 
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin()
       .from("meeting_poll_responses")
       .update(update)
       .eq("id", existing.id);
@@ -167,7 +162,7 @@ async function upsertResponseRecord(
   }
 
   const newEditToken = crypto.randomUUID();
-  const { data: created, error: insertError } = await supabaseAdmin
+  const { data: created, error: insertError } = await supabaseAdmin()
     .from("meeting_poll_responses")
     .insert({
       poll_id: pollId,
@@ -193,12 +188,12 @@ type AvailabilityRow = { response_id: string; date: string; start_time: string }
  * nadmiarowe terminy, które usunie kolejna edycja.
  */
 async function replaceAvailabilities(responseId: string, rows: AvailabilityRow[]): Promise<boolean> {
-  const { error: upsertError } = await supabaseAdmin
+  const { error: upsertError } = await supabaseAdmin()
     .from("meeting_poll_availabilities")
     .upsert(rows, { onConflict: "response_id,date,start_time", ignoreDuplicates: true });
   if (upsertError) return false;
 
-  const { data: current, error: currentError } = await supabaseAdmin
+  const { data: current, error: currentError } = await supabaseAdmin()
     .from("meeting_poll_availabilities")
     .select("id, date, start_time")
     .eq("response_id", responseId);
@@ -210,10 +205,7 @@ async function replaceAvailabilities(responseId: string, rows: AvailabilityRow[]
     .map((a) => a.id as string);
 
   if (staleIds.length === 0) return true;
-  const { error: deleteError } = await supabaseAdmin
-    .from("meeting_poll_availabilities")
-    .delete()
-    .in("id", staleIds);
+  const { error: deleteError } = await supabaseAdmin().from("meeting_poll_availabilities").delete().in("id", staleIds);
   return !deleteError;
 }
 
@@ -247,9 +239,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, token: stri
     const ok = await replaceAvailabilities(responseId, rows);
     if (!ok) return res.status(500).json({ error: "Błąd aktualizacji dostępności." });
   } else {
-    const { error: availError } = await supabaseAdmin.from("meeting_poll_availabilities").insert(rows);
+    const { error: availError } = await supabaseAdmin().from("meeting_poll_availabilities").insert(rows);
     if (availError) {
-      await supabaseAdmin.from("meeting_poll_responses").delete().eq("id", responseId);
+      await supabaseAdmin().from("meeting_poll_responses").delete().eq("id", responseId);
       return res.status(500).json({ error: "Błąd zapisu dostępności." });
     }
   }
@@ -265,10 +257,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    if (!checkRateLimit(`poll:${token}:${clientIp(req)}`, 5, 10 * 60_000)) {
-      res.setHeader("Retry-After", "600");
-      return res.status(429).json({ error: "Zbyt wiele odpowiedzi. Spróbuj ponownie za kilka minut." });
-    }
+    const allowed = await enforceRateLimit(
+      res,
+      "pollRespond",
+      `${token}:${clientIp(req)}`,
+      "Zbyt wiele odpowiedzi. Spróbuj ponownie za kilka minut."
+    );
+    if (!allowed) return;
     await handlePost(req, res, token);
     return;
   }

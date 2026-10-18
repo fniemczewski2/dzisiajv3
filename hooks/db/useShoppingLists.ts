@@ -1,5 +1,7 @@
 // hooks/db/useShoppingLists.ts
 
+import { NotSignedInError } from "@/lib/errors";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingElement, ShoppingList } from "@/types/shopping";
 import { useAuth } from "@/providers/AuthProvider";
@@ -28,8 +30,7 @@ export function useShoppingLists() {
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
-  const listsRef = useRef<ShoppingList[]>([]);
-  listsRef.current = lists;
+  const listsRef = useLatestRef(lists);
   /** Ostatni stan pozycji potwierdzony przez bazę – do cofnięcia po błędzie. */
   const confirmedElementsRef = useRef<Record<string, ShoppingElement[]>>({});
   /** Kolejka zapisów pozycji per lista – szybkie kliknięcia zapisują się po kolei. */
@@ -42,46 +43,47 @@ export function useShoppingLists() {
    * `background` – odświeżenie bez szkieletu wczytywania (np. po zmianie
    * udostępnienia). Szkielet pokazujemy tylko przy pierwszym wczytaniu.
    */
-  const fetchShoppingLists = useCallback(async (options: { background?: boolean } = {}) => {
-    if (!userId) {
-
-      throw new Error("Unauthorized");
-    }
-    const signal = getSignal();
-    if (!options.background) setFetching(true);
-    try {
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("shopping_lists")
-            .select("*")
-            .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
-            .limit(MAX_SHOPPING_LISTS)
-            .abortSignal(signal),
-        signal
-      );
-
-      if (error) throw error;
-
-      const fetchedLists = (data || []) as ShoppingList[];
-      const listsWithDisplayInfo = await resolveSharedEmails(fetchedLists, userId, supabase, userEmailsRef);
-      if (!signal.aborted) {
-        confirmedElementsRef.current = Object.fromEntries(listsWithDisplayInfo.map((l) => [l.id ?? "", l.elements]));
-        setLists(listsWithDisplayInfo);
+  const fetchShoppingLists = useCallback(
+    async (options: { background?: boolean } = {}) => {
+      if (!userId) {
+        throw new NotSignedInError();
       }
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania list zakupów.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [userId, supabase, toast, withRetry, getSignal]);
+      const signal = getSignal();
+      if (!options.background) setFetching(true);
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("shopping_lists")
+              .select("*")
+              .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
+              .limit(MAX_SHOPPING_LISTS)
+              .abortSignal(signal),
+          signal
+        );
+
+        if (error) throw error;
+
+        const fetchedLists = (data || []) as ShoppingList[];
+        const listsWithDisplayInfo = await resolveSharedEmails(fetchedLists, userId, supabase, userEmailsRef);
+        if (!signal.aborted) {
+          confirmedElementsRef.current = Object.fromEntries(listsWithDisplayInfo.map((l) => [l.id ?? "", l.elements]));
+          setLists(listsWithDisplayInfo);
+        }
+      } catch (err) {
+        if (isAbortError(err)) return;
+        toast.error("Błąd pobierania list zakupów.");
+      } finally {
+        if (!signal.aborted) setFetching(false);
+      }
+    },
+    [userId, supabase, toast, withRetry, getSignal]
+  );
 
   const addShoppingList = useCallback(
     async (name: string, sharedWithEmail: string | null): Promise<boolean> => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       if (lists.length >= MAX_SHOPPING_LISTS) {
         toast.error(`Osiągnięto limit ${MAX_SHOPPING_LISTS} list zakupów.`);
@@ -118,8 +120,7 @@ export function useShoppingLists() {
   const editShoppingList = useCallback(
     async (id: string, updates: Partial<ShoppingList> & { shared_with_email?: string }) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const previous = lists;
@@ -132,9 +133,7 @@ export function useShoppingLists() {
           finalUpdates.shared_with_id = await getUserIdByEmail(sharedWithEmail, supabase);
         }
 
-        const { error } = await withRetry(() =>
-          supabase.from("shopping_lists").update(finalUpdates).eq("id", id)
-        );
+        const { error } = await withRetry(() => supabase.from("shopping_lists").update(finalUpdates).eq("id", id));
         if (error) throw error;
 
         // Nowa nazwa jest już na ekranie; odświeżamy w tle tylko przy zmianie
@@ -171,19 +170,17 @@ export function useShoppingLists() {
         if (error) throw error;
         confirmedElementsRef.current[id] = next;
       };
-      const queued = (writeQueueRef.current[id] ?? Promise.resolve())
-        .then(write)
-        .catch(() => {
-          const confirmed = confirmedElementsRef.current[id];
-          if (confirmed) {
-            listsRef.current = listsRef.current.map((l) => (l.id === id ? { ...l, elements: confirmed } : l));
-            setLists(listsRef.current);
-          }
-          toast.error("Nie udało się zapisać zmiany na liście.");
-        });
+      const queued = (writeQueueRef.current[id] ?? Promise.resolve()).then(write).catch(() => {
+        const confirmed = confirmedElementsRef.current[id];
+        if (confirmed) {
+          listsRef.current = listsRef.current.map((l) => (l.id === id ? { ...l, elements: confirmed } : l));
+          setLists(listsRef.current);
+        }
+        toast.error("Nie udało się zapisać zmiany na liście.");
+      });
       writeQueueRef.current[id] = queued;
     },
-    [supabase, toast]
+    [supabase, toast, listsRef]
   );
 
   const deleteOwnList = useCallback(
@@ -199,9 +196,7 @@ export function useShoppingLists() {
 
   const leaveSharedList = useCallback(
     async (id: string) => {
-      const { data, error } = await withRetry(() =>
-        supabase.rpc("leave_shared_shopping_list", { p_list_id: id })
-      );
+      const { data, error } = await withRetry(() => supabase.rpc("leave_shared_shopping_list", { p_list_id: id }));
       if (error) throw error;
       if (data !== true) throw new Error("NOT_A_RECIPIENT");
     },
@@ -211,7 +206,7 @@ export function useShoppingLists() {
   const deleteShoppingList = useCallback(
     async (id: string) => {
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const list = lists.find((l) => l.id === id);
       const isOwner = !list || list.user_id === userId;
@@ -234,9 +229,7 @@ export function useShoppingLists() {
       } catch {
         setLists(previous);
         toast.error(
-          isOwner
-            ? "Błąd usuwania listy zakupów."
-            : "Nie udało się wypisać z listy. Odśwież listy i spróbuj ponownie."
+          isOwner ? "Błąd usuwania listy zakupów." : "Nie udało się wypisać z listy. Odśwież listy i spróbuj ponownie."
         );
       } finally {
         setLoading(false);

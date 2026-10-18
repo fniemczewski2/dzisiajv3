@@ -8,7 +8,7 @@ import { SkeletonStopCard } from "@/components/ui/Skeleton";
 import { useToast } from "@/providers/ToastProvider";
 import { DeleteButton, FavButton } from "@/components/ui/CommonButtons";
 import Seo from "@/components/ui/SEO";
-import { favoriteKey } from "@/supabase/functions/_shared/stopGrouping";
+import { favoriteKey } from "@/shared/stopGrouping";
 import type { StopGroup } from "@/types/transport";
 
 export default function TransportPage() {
@@ -17,7 +17,7 @@ export default function TransportPage() {
   const {
     nearbyGroups,
     favoritesGroups,
-    locationError, 
+    locationError,
     searchQuery,
     setSearchQuery,
     suggestions,
@@ -28,9 +28,8 @@ export default function TransportPage() {
     localityFor,
     loadingNearby,
     loadingFavorites,
-    transportError
+    transportError,
   } = useTransport(true);
-
 
   useEffect(() => {
     if (transportError) {
@@ -44,7 +43,10 @@ export default function TransportPage() {
   const renderStopTitle = (group: StopGroup) => {
     const locality = localityFor(group);
     return (
-      <h3 className="font-bold text-primary truncate pr-2 flex-1 min-w-0" title={locality ? `${group.stop_name}, ${locality}` : group.stop_name}>
+      <h3
+        className="min-w-0 flex-1 truncate pr-2 font-bold text-primary"
+        title={locality ? `${group.stop_name}, ${locality}` : group.stop_name}
+      >
         {group.stop_name}
         {locality && <span className="ml-1.5 text-xs font-medium text-text-secondary">{locality}</span>}
       </h3>
@@ -56,7 +58,9 @@ export default function TransportPage() {
   if (loadingFavorites) {
     favoritesContent = (
       <div className="space-y-4">
-        {Array.from({ length: 2 }).map((_, i) => <SkeletonStopCard key={i} departures={4} />)}
+        {Array.from({ length: 2 }).map((_, i) => (
+          <SkeletonStopCard key={i} departures={4} />
+        ))}
       </div>
     );
   } else if (favoriteStops.length === 0) {
@@ -65,26 +69,29 @@ export default function TransportPage() {
     favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
   } else {
     favoritesContent = visibleFavorites.map((group) => (
-      <div key={`group_${group.key}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
-        <div className="flex justify-between items-center mb-2 border-b pb-2">
+      <div key={`group_${group.key}`} className="card min-w-0 overflow-hidden rounded-xl p-4">
+        <div className="mb-2 flex items-center justify-between border-b pb-2">
           {renderStopTitle(group)}
           <DeleteButton onClick={() => removeFavoriteStop(group.key)} small />
         </div>
-        
-        <div className="grid gap-3 min-w-0">
+
+        <div className="grid min-w-0 gap-3">
           {group.bollards?.map((bollard) => (
             <div key={bollard.bollard_code} className="min-w-0">
-              <span className="text-xs font-medium text-text-secondary">
-                {bollard.bollard_code}
-              </span>
+              <span className="text-xs font-medium text-text-secondary">{bollard.bollard_code}</span>
               <div className="mt-1 min-w-0">
                 {bollard.departures.map((dep) => (
-                  <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-gray-200 dark:border-gray-800 last:border-0 min-w-0 w-full">
-                    <span className="font-medium truncate">{dep.line}</span>
+                  <div
+                    key={`${dep.line}-${dep.direction}-${dep.time}`}
+                    className="grid w-full min-w-0 grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-line py-1 text-sm last:border-0"
+                  >
+                    <span className="truncate font-medium">{dep.line}</span>
                     <span className="truncate text-text-secondary" title={dep.direction}>
                       {dep.direction}
                     </span>
-                    <span className={`whitespace-nowrap tabular-nums text-right ${dep.is_realtime ? "text-primary font-bold" : ""}`}>
+                    <span
+                      className={`text-right whitespace-nowrap tabular-nums ${dep.is_realtime ? "font-bold text-primary" : ""}`}
+                    >
                       {dep.minutes} min
                     </span>
                   </div>
@@ -102,44 +109,56 @@ export default function TransportPage() {
   if (loadingNearby) {
     nearbyContent = (
       <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => <SkeletonStopCard key={i} departures={5} />)}
+        {Array.from({ length: 3 }).map((_, i) => (
+          <SkeletonStopCard key={i} departures={5} />
+        ))}
       </div>
     );
   } else if (locationError) {
     nearbyContent = (
-      <div className="text-center py-10 w-full" >
-          <h3 className="text-lg font-medium text-text mb-4">Błąd lokalizacji</h3>
-          <p className="text-text-secondary">{locationError}</p>
+      <div className="w-full py-10 text-center">
+        <h3 className="mb-4 text-lg font-medium text-text">Błąd lokalizacji</h3>
+        <p className="text-text-secondary">{locationError}</p>
       </div>
     );
   } else if (nearbyGroups.length === 0) {
     nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
   } else {
     nearbyContent = nearbyGroups.map((group) => (
-      <div key={`nearby_group_${group.key}`} className="card rounded-xl p-4 min-w-0 overflow-hidden">
-        <div className="flex flex-wrap justify-between items-center mb-2 border-b pb-2">
+      <div key={`nearby_group_${group.key}`} className="card min-w-0 overflow-hidden rounded-xl p-4">
+        <div className="mb-2 flex flex-wrap items-center justify-between border-b pb-2">
           {renderStopTitle(group)}
-          <div className="flex items-center gap-3 shrink-0">
-            {group.distance && <span className="text-xs text-text-secondary whitespace-nowrap">{group.distance} m</span>}
+          <div className="flex shrink-0 items-center gap-3">
+            {group.distance && (
+              <span className="text-xs whitespace-nowrap text-text-secondary">{group.distance} m</span>
+            )}
             {/* Toast pokazuje addFavoriteStop – wcześniej pojawiał się podwójnie. */}
-            <FavButton onClick={() => { void addNearbyToFavorites(group); }} small />
+            <FavButton
+              onClick={() => {
+                void addNearbyToFavorites(group);
+              }}
+              small
+            />
           </div>
         </div>
-        
-        <div className="grid gap-3 min-w-0">
+
+        <div className="grid min-w-0 gap-3">
           {group.bollards?.map((bollard) => (
-            <div key={`nearby_${bollard.bollard_code}`} className="bg-surface/60 p-2 rounded-lg min-w-0">
-              <span className="text-xs font-medium text-text-secondary">
-                {bollard.bollard_code}
-              </span>
+            <div key={`nearby_${bollard.bollard_code}`} className="min-w-0 rounded-lg bg-surface/60 p-2">
+              <span className="text-xs font-medium text-text-secondary">{bollard.bollard_code}</span>
               <div className="mt-1 min-w-0">
                 {bollard.departures.map((dep) => (
-                  <div key={`${dep.line}-${dep.direction}-${dep.time}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 text-sm py-1 border-b border-gray-200 dark:border-gray-800 last:border-0 min-w-0 w-full">
-                    <span className="font-medium truncate">{dep.line}</span>
+                  <div
+                    key={`${dep.line}-${dep.direction}-${dep.time}`}
+                    className="grid w-full min-w-0 grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-line py-1 text-sm last:border-0"
+                  >
+                    <span className="truncate font-medium">{dep.line}</span>
                     <span className="truncate text-text-secondary" title={dep.direction}>
                       {dep.direction}
                     </span>
-                    <span className={`whitespace-nowrap tabular-nums text-right ${dep.is_realtime ? "text-primary font-bold" : ""}`}>
+                    <span
+                      className={`text-right whitespace-nowrap tabular-nums ${dep.is_realtime ? "font-bold text-primary" : ""}`}
+                    >
                       {dep.minutes} min
                     </span>
                   </div>
@@ -152,7 +171,6 @@ export default function TransportPage() {
     ));
   }
 
-
   return (
     <>
       <Seo
@@ -161,33 +179,29 @@ export default function TransportPage() {
         canonical="https://dzisiaj.fun/transport"
         keywords="transport, komunikacja miejska, przystanki, odjazdy, rozkład jazdy"
       />
-        <div className="flex items-center mb-4">
-          <h1 className="page-title">Komunikacja miejska</h1>
-        </div>
+      <div className="mb-4 flex items-center">
+        <h1 className="page-title">Komunikacja miejska</h1>
+      </div>
 
-        <div className="space-y-6">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Wyszukaj przystanek..."
-            suggestions={suggestions}
-            onSuggestionClick={handleSuggestionClick}
-          />
+      <div className="space-y-6">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Wyszukaj przystanek..."
+          suggestions={suggestions}
+          onSuggestionClick={handleSuggestionClick}
+        />
 
-          <section className="min-w-0">
-            <h2 className="text-lg font-semibold mb-3">Ulubione</h2>
-            <div className="space-y-4 min-w-0">
-              {favoritesContent}
-            </div>
-          </section>
-          
-          <section className="min-w-0">
-            <h2 className="text-lg font-semibold mb-3">Najbliżej (GPS)</h2>
-            <div className="space-y-4 min-w-0">
-               {nearbyContent}
-            </div>
-          </section>
-        </div>
+        <section className="min-w-0">
+          <h2 className="mb-3 text-lg font-semibold">Ulubione</h2>
+          <div className="min-w-0 space-y-4">{favoritesContent}</div>
+        </section>
+
+        <section className="min-w-0">
+          <h2 className="mb-3 text-lg font-semibold">Najbliżej (GPS)</h2>
+          <div className="min-w-0 space-y-4">{nearbyContent}</div>
+        </section>
+      </div>
     </>
   );
 }

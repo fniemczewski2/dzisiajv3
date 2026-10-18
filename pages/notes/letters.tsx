@@ -24,7 +24,7 @@ export default function LettersPage() {
         canonical="https://dzisiaj.fun/notes/letters"
         keywords="UDIP, wniosek, skarga, wykroczenie, pismo urzędowe, korespondencja"
       />
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title">Pisma</h1>
         {!showForm && <AddButton onClick={() => setShowForm(true)} />}
       </div>
@@ -42,10 +42,7 @@ export default function LettersPage() {
       )}
 
       <section>
-        {fetching
-          ? <SkeletonList count={4} variant="card" />
-          : <LetterList refreshToken={refreshToken} />
-        }
+        {fetching ? <SkeletonList count={4} variant="card" /> : <LetterList refreshToken={refreshToken} />}
       </section>
     </>
   );

@@ -1,4 +1,4 @@
-﻿// components/settings/LocationSection.tsx
+// components/settings/LocationSection.tsx
 
 import React, { useState } from "react";
 import { MapPin } from "lucide-react";
@@ -9,41 +9,38 @@ interface LocationSectionProps {
   locationStatus: string | null;
 }
 
-export default function LocationSection({
-  onRequestLocation,
-  locationStatus,
-}: Readonly<LocationSectionProps>) {
+export default function LocationSection({ onRequestLocation, locationStatus }: Readonly<LocationSectionProps>) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
-    <div className="card rounded-xl shadow-sm p-4 sm:p-6 mb-4 transition-colors">
-      <div className="flex items-center justify-between mb-4">
+    <div className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <div>
-            <MapPin className="w-5 h-5 text-primary shrink-0" />
+            <MapPin className="h-5 w-5 shrink-0 text-primary" />
           </div>
           <h3 className="text-lg font-bold">Lokalizacja</h3>
         </div>
         <button
           onClick={() => setShowDetails(!showDetails)}
-          type='button'
-          className="text-xs font-bold text-primary hover:text-primary-strong transition-colors"
+          type="button"
+          className="text-xs font-bold text-primary transition-colors hover:text-primary-strong"
         >
-          {showDetails ? 'Ukryj tech.' : 'Techniczne'}
+          {showDetails ? "Ukryj tech." : "Techniczne"}
         </button>
       </div>
 
       {showDetails && (
-        <div className="bg-surface border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-2">
+        <div className="mb-5 rounded-lg border border-line bg-surface p-4">
+          <div className="flex flex-col justify-between gap-2 text-xs sm:flex-row sm:items-center sm:text-sm">
             <span className="font-semibold text-text-secondary">Aktualne współrzędne:</span>
-            <span className="px-2.5 py-1 font-mono font-medium rounded-lg card text-text">
-              {locationStatus || 'Brak danych'}
+            <span className="card rounded-lg px-2.5 py-1 font-mono font-medium text-text">
+              {locationStatus || "Brak danych"}
             </span>
           </div>
         </div>
       )}
-      
+
       <SecondaryFullButton onClick={() => onRequestLocation()} Icon={MapPin}>
         Pobierz lokalizację
       </SecondaryFullButton>

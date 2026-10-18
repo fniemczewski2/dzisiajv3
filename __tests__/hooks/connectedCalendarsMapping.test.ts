@@ -27,9 +27,14 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("fetchProviderCalendars", () => {
   it("zostawia kalendarze przy koncie, z którego pochodzą, i rozpoznaje włączone", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ calendars: apiCalendars }), { status: 200 })));
-    const withRetry = (<T,>(fn: () => Promise<T>) => fn()) as never;
-    const result = await fetchProviderCalendars("google", accounts, "token", new AbortController().signal, withRetry, { error: vi.fn() } as never);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ calendars: apiCalendars }), { status: 200 }))
+    );
+    const withRetry = (<T>(fn: () => Promise<T>) => fn()) as never;
+    const result = await fetchProviderCalendars("google", accounts, "token", new AbortController().signal, withRetry, {
+      error: vi.fn(),
+    } as never);
 
     const owner = Object.fromEntries(result.map((c) => [c.id, c.primaryAccountId]));
     expect(owner).toEqual({ "a@gmail.com": "acc-gmail", "a@org.pl": "acc-org", "msk@group": "acc-org" });

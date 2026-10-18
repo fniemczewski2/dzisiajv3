@@ -1,4 +1,4 @@
-﻿// hooks/db/useReports.ts
+// hooks/db/useReports.ts
 
 import { useCallback } from "react";
 import { Report } from "@/types/reports";
@@ -22,7 +22,7 @@ export function useReports() {
     table: "reports",
     order: { column: "date", ascending: false },
     insertPosition: "start",
-    applyServerRowOnEdit: true, 
+    applyServerRowOnEdit: true,
     messages: MESSAGES,
   });
 

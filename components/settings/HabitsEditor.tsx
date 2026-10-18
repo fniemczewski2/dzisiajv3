@@ -57,10 +57,15 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
           const Icon = habitIcon(habit.icon);
           return (
             <li key={habit.id} className="flex flex-wrap items-center gap-2">
-              <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line">
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line"
+              >
                 <Icon className="h-5 w-5" />
               </span>
-              <label htmlFor={`${baseId}-label-${habit.id}`} className="sr-only">Nazwa nawyku {index + 1}</label>
+              <label htmlFor={`${baseId}-label-${habit.id}`} className="sr-only">
+                Nazwa nawyku {index + 1}
+              </label>
               <input
                 id={`${baseId}-label-${habit.id}`}
                 type="text"
@@ -70,7 +75,9 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
                 className="input-field min-w-32 flex-1"
                 required
               />
-              <label htmlFor={`${baseId}-icon-${habit.id}`} className="sr-only">Ikona nawyku {habit.label}</label>
+              <label htmlFor={`${baseId}-icon-${habit.id}`} className="sr-only">
+                Ikona nawyku {habit.label}
+              </label>
               <select
                 id={`${baseId}-icon-${habit.id}`}
                 value={habit.icon}
@@ -78,7 +85,9 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
                 className="input-field w-auto"
               >
                 {Object.entries(HABIT_ICON_NAMES).map(([name, plName]) => (
-                  <option key={name} value={name}>{plName}</option>
+                  <option key={name} value={name}>
+                    {plName}
+                  </option>
                 ))}
               </select>
               <button
@@ -99,14 +108,20 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
               >
                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
               </button>
-              <DeleteButton small ariaLabel={`Usuń nawyk ${habit.label}`} onClick={() => onChange(value.filter((h) => h.id !== habit.id))} />
+              <DeleteButton
+                small
+                ariaLabel={`Usuń nawyk ${habit.label}`}
+                onClick={() => onChange(value.filter((h) => h.id !== habit.id))}
+              />
             </li>
           );
         })}
       </ul>
 
       <div className="mt-3 flex items-center gap-2">
-        <label htmlFor={`${baseId}-new`} className="sr-only">Nowy nawyk</label>
+        <label htmlFor={`${baseId}-new`} className="sr-only">
+          Nowy nawyk
+        </label>
         <input
           id={`${baseId}-new`}
           type="text"

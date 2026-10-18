@@ -1,13 +1,11 @@
 // pages/bills/calculator.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-import { Plus, Minus, Wallet, ArrowRightLeft, Coins } from "lucide-react";
-import { useRouter } from "next/router";
+import { Plus, Minus, Wallet, ArrowRightLeft } from "lucide-react";
 import { useEuroRate } from "@/hooks/useEuroRate";
 import { SkeletonLine } from "@/components/ui/Skeleton";
 import Seo from "@/components/ui/SEO";
-import { FLAT_RENTAL_DEFAULT, FLAT_FEE_DEFAULT, TAX_DEFAULT, ZUS_DEFAULT} from "@/config/limits";
+import { BILLS_CALCULATOR_DEFAULTS } from "@/config/defaults";
 
 const InputField = ({
   label,
@@ -32,11 +30,9 @@ const InputField = ({
 }) => {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-xs font-bold text-text-secondary pl-1">
-        {label}
-      </label>
+      <label className="pl-1 text-xs font-bold text-text-secondary">{label}</label>
       <div className="relative flex items-stretch">
-        <div className="bg-surface border border-gray-200 dark:border-gray-700 border-r-0 rounded-l-xl flex items-center justify-center w-11 text-text-muted shrink-0">
+        <div className="flex w-11 shrink-0 items-center justify-center rounded-l-xl border border-r-0 border-line bg-surface text-text-muted">
           {icon || <Plus size={16} />}
         </div>
         <input
@@ -49,11 +45,11 @@ const InputField = ({
           aria-label={typeof label === "string" ? label : undefined}
           onChange={onChange}
           readOnly={readOnly}
-          className={`w-full py-2.5 px-3 rounded-r-xl outline-none font-medium text-text card focus:ring-2 focus:ring-primary focus:border-primary transition-all ${
-            readOnly ? 'bg-surface cursor-not-allowed opacity-70' : ''
+          className={`card w-full rounded-r-xl px-3 py-2.5 font-medium text-text transition-all outline-none focus:border-primary focus:ring-2 focus:ring-primary ${
+            readOnly ? "cursor-not-allowed bg-surface opacity-70" : ""
           }`}
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted pointer-events-none">
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm font-bold text-text-muted">
           {suffix}
         </span>
       </div>
@@ -76,7 +72,7 @@ export default function BillCalculator() {
   const pit1Ref = useRef<HTMLInputElement>(null);
   const zus1Ref = useRef<HTMLInputElement>(null);
   const [currency1, setCurrency1] = useState<"PLN" | "EUR">("EUR");
-  
+
   const income2Ref = useRef<HTMLInputElement>(null);
   const pit2Ref = useRef<HTMLInputElement>(null);
   const zus2Ref = useRef<HTMLInputElement>(null);
@@ -94,14 +90,14 @@ export default function BillCalculator() {
     grossPln2: 0,
   });
 
-  const calculate = useCallback(() => { 
+  const calculate = useCallback(() => {
     const baseRent = Number(baseRentRef.current?.value) || 0;
     const community = Number(communityRef.current?.value) || 0;
     const water = Number(waterRef.current?.value) || 0;
     const electricity = Number(electricityRef.current?.value) || 0;
     const gas = Number(gasRef.current?.value) || 0;
     const overpayment = Number(overpaymentRef.current?.value) || 0;
-    
+
     const rate = Number(exchangeRateRef.current?.value) || 0;
 
     const inc1Raw = Number(income1Ref.current?.value) || 0;
@@ -120,7 +116,7 @@ export default function BillCalculator() {
 
     const totalCost = baseRent + community + water + electricity + gas - overpayment;
     const halfCost = totalCost / 2;
-    const fixedShare = halfCost / 2; 
+    const fixedShare = halfCost / 2;
     const totalIncome = net1 + net2;
 
     let s1 = totalCost / 2;
@@ -152,209 +148,226 @@ export default function BillCalculator() {
 
   useEffect(() => {
     if (fetchedEuroRate && exchangeRateRef.current) {
-        exchangeRateRef.current.value = fetchedEuroRate.toString();
-        calculate();
+      exchangeRateRef.current.value = fetchedEuroRate.toString();
+      calculate();
     }
   }, [fetchedEuroRate, calculate]);
 
-  const router = useRouter();
-  const handleBack = () => {
-    const parts = router.pathname.split("/").filter(Boolean);
-    void router.push(parts.length > 1 ? `/${parts.slice(0, -1).join("/")}` : "/");
-  };
-
   const getCurrencySymbol = (curr: string) => {
-    if(curr === "EUR") {
+    if (curr === "EUR") {
       return "€";
     } else {
       return "zł";
     }
-  }
+  };
 
   const showExchangeRate = currency1 === "EUR" || currency2 === "EUR";
 
   return (
     <>
-    <Seo
-      title="Kalkulator kosztów"
-      description="Podziel wspólne koszty mieszkania między dwie osoby proporcjonalnie do dochodów netto – z uwzględnieniem ZUS, zaliczki na PIT i kursu EUR/PLN."
-      canonical="https://dzisiaj.fun/bills/calculator"
-      keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
-    />
-      <div className="max-w-4xl mx-auto space-y-6">
-        
-        <div className="flex justify-between gap-3 items-center mb-6">
-          <h1 className="page-title">
-            Kalkulator Podziału
-          </h1>
+      <Seo
+        title="Kalkulator kosztów"
+        description="Podziel wspólne koszty mieszkania między dwie osoby proporcjonalnie do dochodów netto – z uwzględnieniem ZUS, zaliczki na PIT i kursu EUR/PLN."
+        canonical="https://dzisiaj.fun/bills/calculator"
+        keywords="kalkulator, obliczenia, kalkulator finansowy, wydatki"
+      />
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <h1 className="page-title">Kalkulator Podziału</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-
-            <section className="card p-5 sm:p-6 rounded-card shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-5 pb-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <section className="card rounded-card p-5 shadow-sm sm:p-6">
+              <h2 className="mb-5 flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-text">
                 Miesięczne Opłaty
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <InputField label="Wynajem" inputRef={baseRentRef} defaultValue={FLAT_RENTAL_DEFAULT} onChange={calculate} />
-                <InputField label="Czynsz" inputRef={communityRef} defaultValue={FLAT_FEE_DEFAULT} onChange={calculate} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                <InputField
+                  label="Wynajem"
+                  inputRef={baseRentRef}
+                  defaultValue={BILLS_CALCULATOR_DEFAULTS.flatRental}
+                  onChange={calculate}
+                />
+                <InputField
+                  label="Czynsz"
+                  inputRef={communityRef}
+                  defaultValue={BILLS_CALCULATOR_DEFAULTS.flatFee}
+                  onChange={calculate}
+                />
                 <InputField label="Woda" inputRef={waterRef} onChange={calculate} />
                 <InputField label="Prąd" inputRef={electricityRef} onChange={calculate} />
                 <InputField label="Gaz" inputRef={gasRef} onChange={calculate} />
-                <InputField label="Nadpłata" inputRef={overpaymentRef} icon={<Minus size={16} />} onChange={calculate} />
+                <InputField
+                  label="Nadpłata"
+                  inputRef={overpaymentRef}
+                  icon={<Minus size={16} />}
+                  onChange={calculate}
+                />
               </div>
-              
-              <div className="mt-5 pt-4 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-sm font-medium text-text-secondary">Suma:</span>
-                  <span className="text-xl font-bold text-primary">{results.total.toFixed(2)} zł</span>
+
+              <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+                <span className="text-sm font-medium text-text-secondary">Suma:</span>
+                <span className="text-xl font-bold text-primary">{results.total.toFixed(2)} zł</span>
               </div>
             </section>
 
-            <section className="card p-5 sm:p-6 rounded-card shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+            <section className="card rounded-card p-5 shadow-sm sm:p-6">
+              <h2 className="mb-4 flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-text">
                 Dochody i Podatki
               </h2>
 
-              <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showExchangeRate ? 'max-h-40 opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
-                <div className="bg-surface p-4 rounded-xl border border-gray-200 dark:border-gray-700 relative">
-                  <InputField 
+              <div
+                className={`overflow-hidden transition-all duration-500 ease-in-out ${showExchangeRate ? "mb-6 max-h-40 opacity-100" : "mb-0 max-h-0 opacity-0"}`}
+              >
+                <div className="relative rounded-xl border border-line bg-surface p-4">
+                  <InputField
                     label="Kurs EUR/PLN"
-                    inputRef={exchangeRateRef} 
-                    defaultValue={4.21} 
+                    inputRef={exchangeRateRef}
+                    defaultValue={4.21}
                     icon={<ArrowRightLeft size={16} />}
-                    onChange={calculate} 
+                    onChange={calculate}
                   />
-                  {rateLoading && <SkeletonLine className="h-3 w-40 mt-2 ml-1" />}
+                  {rateLoading && <SkeletonLine className="mt-2 ml-1 h-3 w-40" />}
                   {!rateLoading && Boolean(fetchedEuroRate) && (
-                      <p className="text-xs font-bold text-primary mt-2 ml-1">
-                          Aktualny kurs z NBP: {fetchedEuroRate} zł
-                      </p>
+                    <p className="mt-2 ml-1 text-xs font-bold text-primary">
+                      Aktualny kurs z NBP: {fetchedEuroRate} zł
+                    </p>
                   )}
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-                <div className="space-y-4 p-4 rounded-xl border flex flex-col justify-between border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="flex flex-col justify-between space-y-4 rounded-xl border border-line p-4">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
                     <h3 className="font-bold text-text">Osoba 1</h3>
-                    <select 
-                        aria-label="Waluta – osoba 1"
-                        value={currency1}
-                        onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
-                        className="text-xs font-bold card text-text rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
+                    <select
+                      aria-label="Waluta – osoba 1"
+                      value={currency1}
+                      onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
+                      className="card rounded-lg px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
                     >
-                        <option value="PLN">PLN</option>
-                        <option value="EUR">EUR</option>
+                      <option value="PLN">PLN</option>
+                      <option value="EUR">EUR</option>
                     </select>
                   </div>
-                  <div className="flex justify-between flex-col gap-2">
-                    <div className="flex-1 min-h-22.5">
-                      <InputField 
+                  <div className="flex flex-col justify-between gap-2">
+                    <div className="min-h-22.5 flex-1">
+                      <InputField
                         label="Przychód Brutto"
-                        inputRef={income1Ref} 
-                        icon={<Wallet size={16}/>} 
+                        inputRef={income1Ref}
+                        icon={<Wallet size={16} />}
                         suffix={getCurrencySymbol(currency1)}
-                        onChange={calculate} 
+                        onChange={calculate}
                       />
                       {currency1 !== "PLN" && (
-                        <div className="text-right text-xs font-bold text-text-muted mt-1">
-                            w przeliczeniu: {results.grossPln1.toFixed(2)} zł
+                        <div className="mt-1 text-right text-xs font-bold text-text-muted">
+                          w przeliczeniu: {results.grossPln1.toFixed(2)} zł
                         </div>
                       )}
                     </div>
-                  
-                    <div className="flex-1 min-h-22.5">
-                      <InputField 
-                        label="Zaliczka PIT" 
-                        inputRef={pit1Ref} 
-                        defaultValue={TAX_DEFAULT} 
+
+                    <div className="min-h-22.5 flex-1">
+                      <InputField
+                        label="Zaliczka PIT"
+                        inputRef={pit1Ref}
+                        defaultValue={BILLS_CALCULATOR_DEFAULTS.taxPercent}
                         suffix="%"
                         step={1}
                         onChange={calculate}
                         icon={<Minus size={16} />}
                       />
-                      <div className="text-right text-xs font-bold text-red-600 dark:text-red-400 mt-1">
+                      <div className="mt-1 text-right text-xs font-bold text-danger">
                         - {results.pitValue1.toFixed(2)} zł
                       </div>
                     </div>
-                    <div className="flex-1 min-h-22.5">
-                      <InputField label="Składka ZUS" inputRef={zus1Ref} defaultValue={ZUS_DEFAULT} icon={<Minus size={16} />} onChange={calculate} />
+                    <div className="min-h-22.5 flex-1">
+                      <InputField
+                        label="Składka ZUS"
+                        inputRef={zus1Ref}
+                        defaultValue={BILLS_CALCULATOR_DEFAULTS.zus}
+                        icon={<Minus size={16} />}
+                        onChange={calculate}
+                      />
                     </div>
                   </div>
-                  <div className="text-right mt-5 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                  <div className="mt-5 flex items-center justify-between border-t border-line pt-3 text-right">
                     <span className="text-xs font-medium text-text-secondary">Dochód Netto:</span>
-                    <span className="text-lg font-medium text-green-600 dark:text-green-500">{results.netIncome1.toFixed(2)} zł</span>
+                    <span className="text-lg font-medium text-success">{results.netIncome1.toFixed(2)} zł</span>
                   </div>
                 </div>
 
-                <div className="space-y-4 p-4 rounded-xl flex flex-col justify-between border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                <div className="flex flex-col justify-between space-y-4 rounded-xl border border-line p-4">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
                     <h3 className="font-medium text-text">Osoba 2</h3>
-                    <select 
-                        aria-label="Waluta – osoba 2"
-                        value={currency2}
-                        onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
-                        className="text-xs font-bold card text-text rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-primary"
+                    <select
+                      aria-label="Waluta – osoba 2"
+                      value={currency2}
+                      onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
+                      className="card rounded-lg px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
                     >
-                        <option value="PLN">PLN</option>
-                        <option value="EUR">EUR</option>
+                      <option value="PLN">PLN</option>
+                      <option value="EUR">EUR</option>
                     </select>
                   </div>
-                  <div className="flex justify-between flex-col gap-2">
-                  <div className="flex-1 min-h-22.5">
-                    <InputField 
-                      label="Przychód Brutto"
-                      inputRef={income2Ref} 
-                      icon={<Wallet size={16}/>} 
-                      suffix={getCurrencySymbol(currency2)}
-                      onChange={calculate} 
-                    />
-                    {currency2 !== "PLN" && (
-                      <div className="text-right text-xs font-bold text-text-muted mt-1">
+                  <div className="flex flex-col justify-between gap-2">
+                    <div className="min-h-22.5 flex-1">
+                      <InputField
+                        label="Przychód Brutto"
+                        inputRef={income2Ref}
+                        icon={<Wallet size={16} />}
+                        suffix={getCurrencySymbol(currency2)}
+                        onChange={calculate}
+                      />
+                      {currency2 !== "PLN" && (
+                        <div className="mt-1 text-right text-xs font-bold text-text-muted">
                           w przeliczeniu: {results.grossPln2.toFixed(2)} zł
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-h-22.5 flex-1">
+                      <InputField
+                        label="Zaliczka PIT"
+                        inputRef={pit2Ref}
+                        defaultValue={0}
+                        icon={<Minus size={16} />}
+                        suffix="%"
+                        step={1}
+                        onChange={calculate}
+                      />
+                      <div className="mt-1 text-right text-xs font-bold text-danger">
+                        - {results.pitValue2.toFixed(2)} zł
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-h-22.5">
-                    <InputField 
-                      label="Zaliczka PIT" 
-                      inputRef={pit2Ref} 
-                      defaultValue={0} 
-                      icon={<Minus size={16} />}
-                      suffix="%" 
-                      step={1}
-                      onChange={calculate}
-                    />
-                    <div className="text-right text-xs font-bold text-red-600 dark:text-red-400 mt-1">
-                      - {results.pitValue2.toFixed(2)} zł
+                    </div>
+                    <div className="min-h-22.5 flex-1">
+                      <InputField
+                        label="Składka ZUS"
+                        inputRef={zus2Ref}
+                        defaultValue={0}
+                        icon={<Minus size={16} />}
+                        onChange={calculate}
+                      />
                     </div>
                   </div>
-                  <div className="flex-1 min-h-22.5">
-                  <InputField label="Składka ZUS" inputRef={zus2Ref} defaultValue={0} icon={<Minus size={16} />} onChange={calculate} />
-                  </div>
-                  </div>
-                  <div className="text-right mt-5 pt-3 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                  <div className="mt-5 flex items-center justify-between border-t border-line pt-3 text-right">
                     <span className="text-xs font-bold text-text-secondary">Dochód Netto:</span>
-                    <span className="text-lg font-black text-green-600 dark:text-green-500">{results.netIncome2.toFixed(2)} zł</span>
+                    <span className="text-lg font-black text-success">{results.netIncome2.toFixed(2)} zł</span>
                   </div>
                 </div>
-
               </div>
             </section>
           </div>
           <div className="lg:col-span-1">
-            <section className="card p-5 sm:p-6 rounded-card shadow-sm sticky top-6">
-              <h2 className="text-lg font-bold text-text mb-6 text-center border-b border-gray-100 dark:border-gray-800 pb-3">Podsumowanie</h2>
-              
+            <section className="card sticky top-6 rounded-card p-5 shadow-sm sm:p-6">
+              <h2 className="mb-6 border-b border-line pb-3 text-center text-lg font-bold text-text">Podsumowanie</h2>
+
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
-                  <div className="flex justify-between items-center mb-2">
+                <div className="rounded-xl border border-line bg-surface p-4">
+                  <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm font-bold text-text-secondary">Osoba 1</span>
-                    <span className="text-sm font-bold text-primary px-2.5 py-1">
-                      {(results.share1 / results.total * 100 || 0).toFixed(0)}%
+                    <span className="px-2.5 py-1 text-sm font-bold text-primary">
+                      {((results.share1 / results.total) * 100 || 0).toFixed(0)}%
                     </span>
                   </div>
                   <div className="text-2xl font-bold text-text">
@@ -362,11 +375,11 @@ export default function BillCalculator() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-surface border border-gray-200 dark:border-gray-700">
-                  <div className="flex justify-between items-center mb-2">
+                <div className="rounded-xl border border-line bg-surface p-4">
+                  <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm font-bold text-text-secondary">Osoba 2</span>
-                    <span className="text-sm font-bold text-primary px-2.5 py-1">
-                      {(results.share2 / results.total * 100 || 0).toFixed(0)}%
+                    <span className="px-2.5 py-1 text-sm font-bold text-primary">
+                      {((results.share2 / results.total) * 100 || 0).toFixed(0)}%
                     </span>
                   </div>
                   <div className="text-2xl font-bold text-text">

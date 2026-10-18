@@ -42,10 +42,7 @@ function lineBounds(value: string, start: number, end: number): { lineStart: num
   return { lineStart, lineEnd };
 }
 
-export function toggleListPrefix(
-  state: TextSelectionState,
-  kind: "bullet" | "number"
-): TextSelectionState {
+export function toggleListPrefix(state: TextSelectionState, kind: "bullet" | "number"): TextSelectionState {
   const { value, start, end } = state;
   const { lineStart, lineEnd } = lineBounds(value, start, end);
   const before = value.slice(0, lineStart);

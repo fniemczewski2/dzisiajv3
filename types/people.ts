@@ -1,4 +1,4 @@
-﻿// types/people.ts
+// types/people.ts
 
 export interface Person {
   id: string;
@@ -6,7 +6,7 @@ export interface Person {
   first_name: string;
   last_name: string;
   relationship: string;
-  priority: number; 
+  priority: number;
   birthday?: string | null;
   nameday?: string | null;
   phones: string[];

@@ -1,34 +1,34 @@
 // components/profiles/ProfilesList.tsx
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { useProfiles } from '@/hooks/db/useProfiles';
-import NoResultsState from '@/components/ui/NoResultsState';
-import ProfileEditorForm from './ProfileEditorForm';
-import VCardPreview from './VCardPreview';
-import { AddButton, DeleteButton, EditButton, ShareButton } from '../ui/CommonButtons';
-import { NewVCardProfile, VCardProfile } from '@/types/profiles';
+import React, { useState } from "react";
+import Image from "next/image";
+import { useProfiles } from "@/hooks/db/useProfiles";
+import NoResultsState from "@/components/ui/NoResultsState";
+import ProfileEditorForm from "./ProfileEditorForm";
+import VCardPreview from "./VCardPreview";
+import { AddButton, DeleteButton, EditButton, ShareButton } from "../ui/CommonButtons";
+import { NewVCardProfile, VCardProfile } from "@/types/profiles";
 
-type ViewState = 'list' | 'form' | 'preview';
+type ViewState = "list" | "form" | "preview";
 
 export default function ProfilesList() {
-  const { profiles, loading, error, addProfile, updateProfile, deleteProfile } = useProfiles();
-  const [view, setView] = useState<ViewState>('list');
+  const { profiles, loading, addProfile, updateProfile, deleteProfile } = useProfiles();
+  const [view, setView] = useState<ViewState>("list");
   const [selectedProfile, setSelectedProfile] = useState<VCardProfile | null>(null);
 
   const handleAddClick = () => {
-    setSelectedProfile(null); 
-    setView('form');
+    setSelectedProfile(null);
+    setView("form");
   };
 
   const handleEditClick = (profile: VCardProfile) => {
     setSelectedProfile(profile);
-    setView('form');
+    setView("form");
   };
 
   const handlePreviewClick = (profile: VCardProfile) => {
     setSelectedProfile(profile);
-    setView('preview');
+    setView("preview");
   };
 
   const handleFormSubmit = async (data: NewVCardProfile) => {
@@ -40,7 +40,7 @@ export default function ProfilesList() {
     }
 
     if (result.success) {
-      setView('list');
+      setView("list");
     }
     return result;
   };
@@ -49,74 +49,57 @@ export default function ProfilesList() {
     await deleteProfile(id);
   };
 
-  if (error) return <div className="p-4 text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 rounded-xl">Błąd: {error}</div>;
-
-  if (view === 'form') {
+  if (view === "form") {
     return (
-      <ProfileEditorForm 
-        initialData={selectedProfile || undefined} 
+      <ProfileEditorForm
+        initialData={selectedProfile || undefined}
         onSubmit={handleFormSubmit}
-        onCancel={() => setView('list')}
+        onCancel={() => setView("list")}
       />
     );
   }
 
-  if (view === 'preview' && selectedProfile) {
-    return (
-      <VCardPreview 
-        profile={selectedProfile} 
-        onBack={() => setView('list')} 
-      />
-    );
+  if (view === "preview" && selectedProfile) {
+    return <VCardPreview profile={selectedProfile} onBack={() => setView("list")} />;
   }
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-            <h1 className="page-title">Wizytówki</h1>
-            <AddButton
-              onClick={handleAddClick}
-              disabled={profiles.length >= 5 || loading}
-            />
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="page-title">Wizytówki</h1>
+        <AddButton onClick={handleAddClick} disabled={profiles.length >= 5 || loading} />
+      </div>
       {profiles.length === 0 ? (
-        <NoResultsState 
-          text="wizytówek" 
-        />
+        <NoResultsState text="wizytówek" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {profiles.map(profile => (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {profiles.map((profile) => (
             <div key={profile.id} className="card rounded-xl p-4">
-              
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-surface-hover">
                   {profile.avatar_url ? (
                     <Image src={profile.avatar_url} alt="" fill sizes="48px" className="object-cover" />
                   ) : (
-                    <span className="w-full h-full flex items-center justify-center text-neutral-500 dark:text-neutral-400 text-xs">Brak</span>
+                    <span className="flex h-full w-full items-center justify-center text-xs text-text-muted">Brak</span>
                   )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold dark:text-white truncate">{profile.profile_name}</h3>
+                    <h3 className="truncate font-semibold text-text">{profile.profile_name}</h3>
                     {profile.is_public && (
-                      <span className="px-2 py-0.5 text-xs bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 font-semibold rounded-full">Publiczna</span>
+                      <span className="rounded-full bg-info-soft px-2 py-0.5 text-xs font-semibold text-info">
+                        Publiczna
+                      </span>
                     )}
                   </div>
-                  <p className="text-sm dark:text-gray-200 text-gray-800 truncate">{profile.full_name}</p>
+                  <p className="truncate text-sm text-text">{profile.full_name}</p>
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-2 pt-4 border-t border-gray-200 dark:border-gray-800">
-                <ShareButton 
-                  onClick={() => handlePreviewClick(profile)}
-                />
-                <EditButton 
-                  onClick={() => handleEditClick(profile)}
-                />
-                <DeleteButton 
-                  onClick={() => handleDelete(profile.id)}
-                />
+              <div className="mt-2 flex gap-2 border-t border-line pt-4">
+                <ShareButton onClick={() => handlePreviewClick(profile)} />
+                <EditButton onClick={() => handleEditClick(profile)} />
+                <DeleteButton onClick={() => handleDelete(profile.id)} />
               </div>
             </div>
           ))}

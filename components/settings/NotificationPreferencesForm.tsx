@@ -1,4 +1,4 @@
-﻿// components/settings/NotificationPreferencesForm.tsx
+// components/settings/NotificationPreferencesForm.tsx
 
 import React, { useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
@@ -17,30 +17,52 @@ export default function NotificationPreferences() {
   };
 
   const notifOptions = [
-    { key: "notif_morning_brief", label: "Poranny Brief",            description: "Zaplanuj dzień o 07:00",                              icon: Sun},
-    { key: "notif_tasks",         label: "Nadchodzące zadania",       description: "5 minut przed zadaniem na planie dnia",              icon: Clock},
-    { key: "notif_events",        label: "Wydarzenia z kalendarza",   description: "5 min, 1 dzień i 7 dni przed wydarzeniem",           icon: Calendar},
-    { key: "notif_water",         label: "Nawodnienie",               description: "Powiadomienia o 10:00, 14:00 i 18:00",               icon: Droplet},
-    { key: "notif_habits",        label: "Codzienne nawyki",          description: "Przypomnienie o nawykach",                           icon: CheckSquare},
-    { key: "notif_evening",       label: "Wieczorny audyt",           description: "Podsumowanie dnia o 21:00",                          icon: Moon},
-    { key: "notif_birthdays",     label: "Urodziny i imieniny",       description: "W dniu oraz 1 i 7 dni wcześniej",                    icon: Gift},
-    { key: "notif_contact",       label: "Przypomnienia o kontakcie", description: "Zgodnie z ustawionym priorytetem",                   icon: Users},
-    { key: "notif_bills",         label: "Płatności rachunków",       description: "W dniu oraz 1 i 7 dni wcześniej",                    icon: Coins},
+    { key: "notif_morning_brief", label: "Poranny Brief", description: "Zaplanuj dzień o 07:00", icon: Sun },
+    {
+      key: "notif_tasks",
+      label: "Nadchodzące zadania",
+      description: "5 minut przed zadaniem na planie dnia",
+      icon: Clock,
+    },
+    {
+      key: "notif_events",
+      label: "Wydarzenia z kalendarza",
+      description: "5 min, 1 dzień i 7 dni przed wydarzeniem",
+      icon: Calendar,
+    },
+    { key: "notif_water", label: "Nawodnienie", description: "Powiadomienia o 10:00, 14:00 i 18:00", icon: Droplet },
+    { key: "notif_habits", label: "Codzienne nawyki", description: "Przypomnienie o nawykach", icon: CheckSquare },
+    { key: "notif_evening", label: "Wieczorny audyt", description: "Podsumowanie dnia o 21:00", icon: Moon },
+    {
+      key: "notif_birthdays",
+      label: "Urodziny i imieniny",
+      description: "W dniu oraz 1 i 7 dni wcześniej",
+      icon: Gift,
+    },
+    {
+      key: "notif_contact",
+      label: "Przypomnienia o kontakcie",
+      description: "Zgodnie z ustawionym priorytetem",
+      icon: Users,
+    },
+    { key: "notif_bills", label: "Płatności rachunków", description: "W dniu oraz 1 i 7 dni wcześniej", icon: Coins },
   ];
 
   return (
     <div className="space-y-2">
-      {notifOptions.map(({ key, label, description, icon: Icon}) => {
+      {notifOptions.map(({ key, label, description, icon: Icon }) => {
         const isActive = settings[key as keyof typeof settings] !== false;
         return (
-          <div key={key} className="flex items-center justify-between gap-4 p-3 rounded-xl transition-colors">
+          <div key={key} className="flex items-center justify-between gap-4 rounded-xl p-3 transition-colors">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-surface border border-gray-100 dark:border-gray-800 shrink-0 text-text">
-                <Icon className="w-4 h-4" />
+              <div className="shrink-0 rounded-xl border border-line bg-surface p-2 text-text">
+                <Icon className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-bold text-text text-sm sm:text-base">{label}</p>
-                <p className="text-xs sm:text-sm text-text-muted mt-0.5 leading-snug max-w-62.5 sm:max-w-full">{description}</p>
+                <p className="text-sm font-bold text-text sm:text-base">{label}</p>
+                <p className="mt-0.5 max-w-62.5 text-xs leading-snug text-text-muted sm:max-w-full sm:text-sm">
+                  {description}
+                </p>
               </div>
             </div>
             <button
@@ -48,10 +70,11 @@ export default function NotificationPreferences() {
               disabled={isUpdating}
               onClick={() => handleToggle(key, isActive)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
-                isActive ? "bg-secondary" : "bg-gray-300 dark:bg-gray-700"
-              } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
+                isActive ? "bg-secondary" : "bg-line-strong"
+              } ${isUpdating ? "cursor-not-allowed opacity-50" : ""}`}
               role="switch"
               aria-checked={isActive}
+              aria-label={label}
             >
               <span
                 aria-hidden="true"

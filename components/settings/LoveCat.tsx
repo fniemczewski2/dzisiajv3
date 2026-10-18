@@ -1,4 +1,4 @@
-﻿// components/settings/LoveCat.tsx
+// components/settings/LoveCat.tsx
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -38,35 +38,32 @@ export default function LoveCat() {
       isTriggering = true;
       triggerCat();
 
-      scheduleTimeout(() => { isTriggering = false; }, 2000);
+      scheduleTimeout(() => {
+        isTriggering = false;
+      }, 2000);
     };
 
-const channel = supabase
-  .channel(`love_channel_${user.id}`)
-  .on(
-    "broadcast",
-    { event: "love_received" },
-    () => handleTrigger()
-  )
-  .on(
-    "postgres_changes",
-    {
-      event: "INSERT",
-      schema: "public",
-      table: "notifications",
-      filter: `user_id=eq.${user.id}`,
-    },
-    (payload: NotificationPayload) => {
-      const type = payload.new?.type || "";
-      const title = payload.new?.title || "";
+    const channel = supabase
+      .channel(`love_channel_${user.id}`)
+      .on("broadcast", { event: "love_received" }, () => handleTrigger())
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload: NotificationPayload) => {
+          const type = payload.new?.type || "";
+          const title = payload.new?.title || "";
 
-      if (type === "love_message" || title.toLowerCase().includes("love")) {
-        handleTrigger();
-      }
-    }
-  )
-  .subscribe(() => {});
-
+          if (type === "love_message" || title.toLowerCase().includes("love")) {
+            handleTrigger();
+          }
+        }
+      )
+      .subscribe(() => {});
 
     const handleMessage = (event: MessageEvent) => {
       const data = event.data;
@@ -87,17 +84,13 @@ const channel = supabase
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-10000 pointer-events-none flex flex-col items-center justify-center overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-10000 flex flex-col items-center justify-center overflow-hidden">
+      <div className="relative animate-in duration-500 ease-out fade-in slide-in-from-bottom-10 zoom-in">
+        <div className="animate-bounce text-[120px] drop-shadow-2xl sm:text-[150px]">😻</div>
 
-      <div className="relative animate-in zoom-in slide-in-from-bottom-10 fade-in duration-500 ease-out">
-
-        <div className="text-[120px] sm:text-[150px] animate-bounce drop-shadow-2xl">
-          😻
-        </div>
-
-        <div className="absolute -top-10 -left-10 text-4xl animate-pulse text-pink-500">💖</div>
-        <div className="absolute top-10 -right-12 text-5xl animate-bounce text-red-500 delay-100">❤️</div>
-        <div className="absolute -bottom-4 left-1/2 text-3xl animate-ping text-pink-400 delay-200">💕</div>
+        <div className="absolute -top-10 -left-10 animate-pulse text-4xl text-deco-pink">💖</div>
+        <div className="absolute top-10 -right-12 animate-bounce text-5xl text-danger delay-100">❤️</div>
+        <div className="absolute -bottom-4 left-1/2 animate-ping text-3xl text-deco-pink delay-200">💕</div>
       </div>
     </div>
   );

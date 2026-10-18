@@ -1,4 +1,4 @@
-﻿// hooks/useQuickAction.ts
+// hooks/useQuickAction.ts
 
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -18,11 +18,7 @@ export function useQuickAction(options: UseQuickActionOptions = {}) {
       onActionAdd();
       if (removeQueryAfterTrigger) {
         const rest = omit(router.query, ["action"]);
-        void router.replace(
-          { pathname: router.pathname, query: rest },
-          undefined,
-          { shallow: true }
-        );
+        void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
       }
     }
   }, [router, onActionAdd, removeQueryAfterTrigger]);

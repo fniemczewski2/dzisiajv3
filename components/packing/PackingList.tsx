@@ -26,51 +26,50 @@ export default function PackingList({ headerTitle, categories, onBack }: Readonl
 
   return (
     <>
-        <div className="flex justify-between gap-3 items-center mb-6">
-          <button
-            onClick={handleBack}
-            type='button'
-            className="w-10 h-10 bg-surface hover:bg-surface-hover border border-gray-200 dark:border-gray-700 flex items-center justify-center text-text-secondary hover:text-text rounded-xl transition-colors absolute left-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            title="Powrót" aria-label="Powrót"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <h1 className="page-title text-xl sm:text-2xl mx-auto text-center first-letter:uppercase truncate px-14">
-            {headerTitle}
-          </h1>
-        </div>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <button
+          onClick={handleBack}
+          type="button"
+          className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface text-text-secondary transition-colors hover:bg-surface-hover hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          title="Powrót"
+          aria-label="Powrót"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <h1 className="page-title mx-auto truncate px-14 text-center text-xl first-letter:uppercase sm:text-2xl">
+          {headerTitle}
+        </h1>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {categories.map((cat) => (
-            <div key={cat.title} className="card rounded-card shadow-sm p-4 sm:p-5 flex flex-col h-full">
-              <h3 className="font-bold text-lg text-text mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-                {cat.title}
-              </h3>
-              <ul className="flex-1">
-                {cat.items.map((item) => {
-                  const isChecked = !!checked[item];
-                  return (
-                    <li key={item} className="my-1">
-                      <label 
-                        className={`flex items-start gap-3 rounded-lg p-1 -ml-1 transition-colors hover:bg-surface cursor-pointer ${
-                          isChecked ? "text-text-muted line-through" : "text-text font-medium"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => toggle(item)} 
-                          className="mt-0.5 h-5 w-5 shrink-0 rounded-lg text-primary focus:ring-primary accent-primary cursor-pointer card transition-colors"
-                        />
-                        <span className="flex-1 leading-tight select-none pt-0.5">{item}</span>
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {categories.map((cat) => (
+          <div key={cat.title} className="card flex h-full flex-col rounded-card p-4 shadow-sm sm:p-5">
+            <h3 className="mb-2 border-b border-line pb-2 text-lg font-bold text-text">{cat.title}</h3>
+            <ul className="flex-1">
+              {cat.items.map((item) => {
+                const isChecked = !!checked[item];
+                return (
+                  <li key={item} className="my-1">
+                    <label
+                      className={`-ml-1 flex cursor-pointer items-start gap-3 rounded-lg p-1 transition-colors hover:bg-surface ${
+                        isChecked ? "text-text-muted line-through" : "font-medium text-text"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggle(item)}
+                        className="card mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded-lg text-primary accent-primary transition-colors focus:ring-primary"
+                      />
+                      <span className="flex-1 pt-0.5 leading-tight select-none">{item}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
     </>
   );
 }

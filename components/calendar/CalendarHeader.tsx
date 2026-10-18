@@ -1,4 +1,4 @@
-﻿// components/calendar/CalendarHeader.tsx
+// components/calendar/CalendarHeader.tsx
 
 import React from "react";
 import { format } from "date-fns";
@@ -14,30 +14,30 @@ interface CalendarHeaderProps {
 
 export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly<CalendarHeaderProps>) {
   return (
-    <div className={clsx("flex items-center px-4 pb-4 sm:pb-6 my-2 sm:my-4 justify-center")}>
-      <div className="flex items-center card rounded-card p-1 shadow-sm">
+    <div className={clsx("my-2 flex items-center justify-center px-4 pb-4 sm:my-4 sm:pb-6")}>
+      <div className="card flex items-center rounded-card p-1 shadow-sm">
         <button
           onClick={onPrev}
-          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
-          type='button'
+          className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
+          type="button"
           title="Poprzedni miesiąc"
           aria-label="Poprzedni miesiąc"
         >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
 
-        <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
+        <h2 className="mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl">
           {format(currentDate, "LLLL yyyy", { locale: pl })}
         </h2>
 
         <button
           onClick={onNext}
-          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
-          type='button'
+          className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
+          type="button"
           title="Następny miesiąc"
           aria-label="Następny miesiąc"
         >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
       </div>
     </div>

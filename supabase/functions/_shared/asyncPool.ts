@@ -1,4 +1,6 @@
-// supabase/functions/_shared/asyncPool.ts – kopia lib/asyncPool.ts (Edge Functions nie importują kodu aplikacji).
+// supabase/functions/_shared/asyncPool.ts
+//
+// Wspólne dla aplikacji (import "@/shared/asyncPool") i Edge Functions.
 
 export async function mapPool<T, R>(
   items: Iterable<T>,
@@ -6,7 +8,7 @@ export async function mapPool<T, R>(
   fn: (item: T, index: number) => Promise<R>
 ): Promise<R[]> {
   const list = Array.from(items);
-  const results = new Array<R>(list.length);
+  const results: R[] = Array.from({ length: list.length });
   let next = 0;
 
   const worker = async (): Promise<void> => {
@@ -19,4 +21,10 @@ export async function mapPool<T, R>(
   const workers = Array.from({ length: Math.max(1, Math.min(limit, list.length)) }, worker);
   await Promise.all(workers);
   return results;
+}
+
+export function chunk<T>(items: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
 }

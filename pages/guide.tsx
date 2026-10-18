@@ -16,11 +16,18 @@ const SETTINGS_GROUP = { category: "Ustawienia", summary: "Konto, powiadomienia 
 
 const sectionById = new Map(guideSections.map((s) => [s.id, s]));
 const featureByGuideId = new Map<string, Feature>(
-  FEATURE_GROUPS.flatMap((g) => g.features).filter((f) => f.guideId).map((f) => [f.guideId as string, f])
+  FEATURE_GROUPS.flatMap((g) => g.features)
+    .filter((f) => f.guideId)
+    .map((f) => [f.guideId as string, f])
 );
 
 const slug = (value: string) =>
-  value.toLowerCase().normalize("NFD").replaceAll(/[\u0300-\u036f]/g, "").replaceAll('ł', "l").replaceAll(/[^a-z0-9]+/g, "-");
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .replaceAll("ł", "l")
+    .replaceAll(/[^a-z0-9]+/g, "-");
 
 const GROUPS = [
   ...FEATURE_GROUPS.map((group) => {
@@ -38,8 +45,8 @@ const GROUPS = [
 function GuideCard({ section }: Readonly<{ section: GuideSection }>) {
   const feature = featureByGuideId.get(section.id);
   return (
-    <article id={section.id} className="scroll-mt-6 rounded-card border border-line bg-card p-5 sm:p-6 shadow-sm">
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
+    <article id={section.id} className="scroll-mt-6 rounded-card border border-line bg-card p-5 shadow-sm sm:p-6">
+      <header className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface text-primary [&_svg]:h-5 [&_svg]:w-5">
           {section.mainIcon}
         </span>
@@ -49,7 +56,7 @@ function GuideCard({ section }: Readonly<{ section: GuideSection }>) {
       {feature?.status && feature.note && (
         <p className="mb-4 rounded-lg bg-surface px-3 py-2 text-sm text-text-secondary">{feature.note}</p>
       )}
-      <ul className="space-y-3 text-text-secondary leading-relaxed [&_ul]:mt-1 [&_ul]:list-disc [&_ul]:pl-5">
+      <ul className="space-y-3 leading-relaxed text-text-secondary [&_ul]:mt-1 [&_ul]:list-disc [&_ul]:pl-5">
         {section.listItems.map((item, i) => (
           <li key={`${section.id}-${i}`}>{item}</li>
         ))}
@@ -69,23 +76,23 @@ export default function GuidePage() {
         canonical="https://dzisiaj.fun/guide"
         keywords="przewodnik, pomoc, instrukcja obsługi, tutorial, faq"
       />
-      <div className="max-w-4xl mx-auto px-1 sm:px-2 mb-10">
+      <div className="mx-auto mb-10 max-w-4xl px-1 sm:px-2">
         <header className="mt-2 mb-6">
-          <h1 className="page-title sm:text-4xl flex items-center gap-3">
-            <BookOpen aria-hidden="true" className="w-8 h-8 text-primary" />
+          <h1 className="page-title flex items-center gap-3 sm:text-4xl">
+            <BookOpen aria-hidden="true" className="h-8 w-8 text-primary" />
             Instrukcja
           </h1>
-          <p className="text-text-secondary mt-2 max-w-2xl">
+          <p className="mt-2 max-w-2xl text-text-secondary">
             Jak korzystać z każdego modułu. Sekcje ułożone są tak jak w menu aplikacji.
           </p>
         </header>
 
-        <nav aria-label="Spis treści" className="mb-8 -mx-1 flex flex-wrap gap-2">
+        <nav aria-label="Spis treści" className="-mx-1 mb-8 flex flex-wrap gap-2">
           {GROUPS.map((group) => (
             <a
               key={group.anchor}
               href={`#${group.anchor}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-sm font-medium text-text-secondary hover:border-line-strong hover:text-text transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:border-line-strong hover:text-text"
             >
               {group.category}
               <span className="text-xs text-text-muted tabular-nums">{group.sections.length}</span>
@@ -94,14 +101,25 @@ export default function GuidePage() {
         </nav>
 
         {changed.length > 0 && (
-          <section aria-labelledby="guide-news" className="mb-10 rounded-card border border-line bg-card p-5 sm:p-6 shadow-sm">
-            <h2 id="guide-news" className="font-display text-xl font-bold text-text mb-4">Co nowego</h2>
+          <section
+            aria-labelledby="guide-news"
+            className="mb-10 rounded-card border border-line bg-card p-5 shadow-sm sm:p-6"
+          >
+            <h2 id="guide-news" className="mb-4 font-display text-xl font-bold text-text">
+              Co nowego
+            </h2>
             <ul className="divide-y divide-line">
               {changed.map((feature) => (
-                <li key={feature.title} className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 py-2.5 first:pt-0 last:pb-0">
+                <li
+                  key={feature.title}
+                  className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 py-2.5 first:pt-0 last:pb-0"
+                >
                   <div className="min-w-0 flex-1">
                     {feature.guideId ? (
-                      <Link href={`#${feature.guideId}`} className="font-semibold text-primary hover:text-primary-strong underline-offset-4 hover:underline">
+                      <Link
+                        href={`#${feature.guideId}`}
+                        className="font-semibold text-primary underline-offset-4 hover:text-primary-strong hover:underline"
+                      >
                         {feature.title}
                       </Link>
                     ) : (
@@ -118,9 +136,16 @@ export default function GuidePage() {
 
         <div className="space-y-12">
           {GROUPS.map((group) => (
-            <section key={group.anchor} id={group.anchor} aria-labelledby={`${group.anchor}-title`} className="scroll-mt-6">
+            <section
+              key={group.anchor}
+              id={group.anchor}
+              aria-labelledby={`${group.anchor}-title`}
+              className="scroll-mt-6"
+            >
               <div className="mb-4">
-                <h2 id={`${group.anchor}-title`} className="font-display text-2xl font-bold text-text">{group.category}</h2>
+                <h2 id={`${group.anchor}-title`} className="font-display text-2xl font-bold text-text">
+                  {group.category}
+                </h2>
                 <p className="text-sm text-text-muted">{group.summary}</p>
               </div>
               <div className="space-y-4">

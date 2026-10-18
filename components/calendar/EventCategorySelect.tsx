@@ -23,7 +23,9 @@ export default function EventCategorySelect({ id, value, onChange, disabled }: R
 
   return (
     <div>
-      <label htmlFor={id} className="form-label">Kategoria:</label>
+      <label htmlFor={id} className="form-label">
+        Kategoria:
+      </label>
       <div className="flex items-center gap-2">
         <select
           id={id}
@@ -35,7 +37,9 @@ export default function EventCategorySelect({ id, value, onChange, disabled }: R
         >
           <option value="">Bez kategorii</option>
           {options.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </select>
         <span
@@ -43,7 +47,11 @@ export default function EventCategorySelect({ id, value, onChange, disabled }: R
           className="h-6 w-6 shrink-0 rounded-full border border-line-strong"
           style={{ backgroundColor: color ?? "transparent" }}
         />
-        {color && <span id={hintId} className="sr-only">Kolor: {paletteColorName(color)}</span>}
+        {color && (
+          <span id={hintId} className="sr-only">
+            Kolor: {paletteColorName(color)}
+          </span>
+        )}
       </div>
     </div>
   );

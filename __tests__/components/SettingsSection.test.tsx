@@ -11,7 +11,14 @@ const defaults = { ...base, sort_order: "priority", sort_notes: "updated_desc" }
 
 function Section({ settings, onSave }: { settings: Settings; onSave: (p: Partial<Settings>) => Promise<boolean> }) {
   return (
-    <SettingsSection id="s" title="Sortowanie" keys={["sort_order", "sort_notes"] as const} settings={settings} defaults={defaults} onSave={onSave}>
+    <SettingsSection
+      id="s"
+      title="Sortowanie"
+      keys={["sort_order", "sort_notes"] as const}
+      settings={settings}
+      defaults={defaults}
+      onSave={onSave}
+    >
       {(d, set) => (
         <>
           <label htmlFor="o">Zadania</label>
@@ -29,13 +36,15 @@ describe("SettingsSection", () => {
   it("zapisuje tylko pola sekcji i tylko gdy coś się zmieniło", async () => {
     const onSave = vi.fn().mockResolvedValue(true);
     render(<Section settings={base} onSave={onSave} />);
-    const save = screen.getByRole("button", { name: "zapisz" });
+    const save = screen.getByRole("button", { name: "Zapisz" });
     expect((save as HTMLButtonElement).disabled).toBe(true);
 
     fireEvent.change(screen.getByLabelText("Zadania"), { target: { value: "alphabetical" } });
     expect(screen.getByText("Niezapisane zmiany")).toBeTruthy();
     fireEvent.click(save);
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ sort_order: "alphabetical", sort_notes: "updated_desc" }));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({ sort_order: "alphabetical", sort_notes: "updated_desc" })
+    );
     expect(Object.keys(onSave.mock.calls[0][0])).not.toContain("show_completed");
   });
 

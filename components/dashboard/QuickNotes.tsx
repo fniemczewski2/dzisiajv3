@@ -1,5 +1,6 @@
 // components/dashboard/QuickNotes.tsx
 
+import { MAX_QUICK_NOTE_LENGTH } from "@/config/limits";
 import React, { useId, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Calendar, ListTodo, NotebookPen, X } from "lucide-react";
@@ -8,7 +9,7 @@ import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { useTaskCategories } from "@/hooks/useTaskCategories";
 import { defaultTaskCategory } from "@/lib/taskCategories";
-import { MAX_QUICK_NOTE_LENGTH, QuickNote } from "@/lib/quickNotes";
+import { QuickNote } from "@/lib/quickNotes";
 import type { Task } from "@/types/tasks";
 import type { Event } from "@/types/events";
 import { SaveButton } from "../ui/CommonButtons";
@@ -103,7 +104,9 @@ export default function QuickNotes({
         }}
         className="flex flex-col items-start gap-2"
       >
-        <label htmlFor={inputId} className="sr-only">Nowa szybka notatka</label>
+        <label htmlFor={inputId} className="sr-only">
+          Nowa szybka notatka
+        </label>
         <textarea
           id={inputId}
           ref={inputRef}
@@ -119,21 +122,21 @@ export default function QuickNotes({
           }}
           placeholder="Zapisz myśl, zanim ucieknie"
           aria-describedby={hintId}
-          className="input-field min-h-11 flex-1 resize-none field-sizing-content max-h-40"
+          className="input-field field-sizing-content max-h-40 min-h-11 flex-1 resize-none"
         />
-        <SaveButton
-          disabled={!draft.trim()}
-        />
+        <SaveButton disabled={!draft.trim()} />
       </form>
 
-      <p aria-live="polite" className="sr-only">{announcement}</p>
+      <p aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
 
       {!fetching && notes.length > 0 && (
-        <ul className="mt-4 divide-y divide-line list-none">
+        <ul className="mt-4 list-none divide-y divide-line">
           {notes.map((note) => (
             <li key={note.id} className="py-2">
               <div className="flex items-start gap-3">
-                <p className="min-w-0 flex-1 py-1.5 text-base leading-snug text-text wrap-break-word">{note.content}</p>
+                <p className="min-w-0 flex-1 py-1.5 text-base leading-snug wrap-break-word text-text">{note.content}</p>
                 <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
@@ -144,7 +147,9 @@ export default function QuickNotes({
                     className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text disabled:opacity-50"
                   >
                     <ListTodo className="h-5 w-5" aria-hidden="true" />
-                    <span className="hidden sm:inline" aria-hidden="true">Zadanie</span>
+                    <span className="hidden sm:inline" aria-hidden="true">
+                      Zadanie
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -156,7 +161,9 @@ export default function QuickNotes({
                     className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text disabled:opacity-50 aria-expanded:bg-surface aria-expanded:text-text"
                   >
                     <Calendar className="h-5 w-5" aria-hidden="true" />
-                    <span className="hidden sm:inline" aria-hidden="true">Wydarzenie</span>
+                    <span className="hidden sm:inline" aria-hidden="true">
+                      Wydarzenie
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -164,7 +171,7 @@ export default function QuickNotes({
                     disabled={note.id.startsWith("temp-")}
                     aria-label={`Usuń punkt: ${note.content}`}
                     title="Usuń"
-                    className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50"
+                    className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface hover:text-danger disabled:opacity-50"
                   >
                     <X className="h-5 w-5" aria-hidden="true" />
                   </button>

@@ -55,7 +55,12 @@ describe("projectTaskOccurrences", () => {
   });
 
   it("grupuje po dniu", () => {
-    const p = projectTaskOccurrences([task({}), task({ id: "t2", title: "Drugie" })], "2026-10-15", "2026-10-15", TODAY);
+    const p = projectTaskOccurrences(
+      [task({}), task({ id: "t2", title: "Drugie" })],
+      "2026-10-15",
+      "2026-10-15",
+      TODAY
+    );
     expect(groupPreviewsByDate(p).get("2026-10-15")).toHaveLength(2);
   });
 });

@@ -1,13 +1,9 @@
 // lib/server/slackSync/targets.ts
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptToken } from "@/lib/server/tokenCrypto";
 import { DEFAULT_SLACK_IMPORT_CATEGORY, LEGACY_SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { ColumnMap, SyncTarget, TaskRow } from "./types";
-
-export function adminClient(): SupabaseClient {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!);
-}
 
 interface SlackListRow {
   user_id: string;
@@ -32,9 +28,7 @@ export async function loadTargets(admin: SupabaseClient, userId?: string): Promi
   const lists = (listData ?? []) as SlackListRow[];
   if (lists.length === 0) return [];
 
-  let connectionQuery = admin
-    .from("slack_connections")
-    .select("id, access_token, slack_user_id");
+  let connectionQuery = admin.from("slack_connections").select("id, access_token, slack_user_id");
   if (userId) connectionQuery = connectionQuery.eq("user_id", userId);
 
   const { data: connectionData, error: connectionError } = await connectionQuery;
@@ -94,7 +88,8 @@ async function syncedTaskIds(admin: SupabaseClient, userId: string): Promise<num
   ]);
   if (links.error) throw new Error(`slack_task_links: ${links.error.message}`);
   const ids = new Set<number>();
-  for (const row of [...(links.data ?? []), ...(targets.data ?? [])]) ids.add(Number((row as { task_id: number }).task_id));
+  for (const row of [...(links.data ?? []), ...(targets.data ?? [])])
+    ids.add(Number((row as { task_id: number }).task_id));
   return [...ids].filter(Number.isSafeInteger);
 }
 
@@ -116,15 +111,9 @@ export async function loadTasks(admin: SupabaseClient, userId: string): Promise<
     throw new Error(`tasks: ${withTimestamp.error.message}`);
   }
 
-  console.warn(
-    "[slack/sync] tabela tasks nie ma kolumny updated_at – w konfliktach wygrywa wersja ze Slacka"
-  );
+  console.warn("[slack/sync] tabela tasks nie ma kolumny updated_at – w konfliktach wygrywa wersja ze Slacka");
 
-  const fallback = await admin
-    .from("tasks")
-    .select(TASK_COLUMNS)
-    .eq("user_id", userId)
-    .or(filter);
+  const fallback = await admin.from("tasks").select(TASK_COLUMNS).eq("user_id", userId).or(filter);
   if (fallback.error) throw new Error(`tasks: ${fallback.error.message}`);
   return (fallback.data ?? []) as TaskRow[];
 }

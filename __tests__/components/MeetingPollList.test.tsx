@@ -5,15 +5,29 @@ import { render, screen, within } from "@testing-library/react";
 import type { MeetingPoll } from "@/types/meetingPolls";
 
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => <a href={href} {...rest}>{children}</a>,
+  default: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { success: vi.fn(), error: vi.fn() } }) }));
 
 const poll = (over: Partial<MeetingPoll>): MeetingPoll => ({
-  id: "a", user_id: "u", title: "Retrospektywa", description: null, slot_duration_minutes: 30,
-  time_start: "10:00:00", time_end: "16:00:00", share_token: "tok-a", status: "open",
-  created_at: "2026-10-03T10:00:00Z", updated_at: "2026-10-03T10:00:00Z", closes_at: "2099-01-01T00:00:00+00:00", ...over,
+  id: "a",
+  user_id: "u",
+  title: "Retrospektywa",
+  description: null,
+  slot_duration_minutes: 30,
+  time_start: "10:00:00",
+  time_end: "16:00:00",
+  share_token: "tok-a",
+  status: "open",
+  created_at: "2026-10-03T10:00:00Z",
+  updated_at: "2026-10-03T10:00:00Z",
+  closes_at: "2099-01-01T00:00:00+00:00",
+  ...over,
 });
 
 const POLLS = [

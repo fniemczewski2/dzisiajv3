@@ -7,12 +7,11 @@ import { useSlackListOptions } from "@/hooks/db/useSlackListOptions";
 function mockStatus(response: unknown, ok = true) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(
-      () =>
-        Promise.resolve({
-          ok,
-          json: () => Promise.resolve(response),
-        } as unknown as Response)
+    vi.fn(() =>
+      Promise.resolve({
+        ok,
+        json: () => Promise.resolve(response),
+      } as unknown as Response)
     )
   );
 }

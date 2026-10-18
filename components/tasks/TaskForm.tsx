@@ -10,7 +10,7 @@ import { Minus, Plus } from "lucide-react";
 import { DEFAULT_TASK_CATEGORY } from "@/config/tasks";
 import RecurrenceEditor from "../ui/RecurrenceEditor";
 import { taskRecurrenceFields } from "@/lib/taskRecurrence";
-import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import type { RecurrenceRule } from "@/shared/recurrence";
 import { defaultTaskCategory, taskCategoryOptions } from "@/lib/taskCategories";
 import { useTaskCategories } from "@/hooks/useTaskCategories";
 import { useSlackListOptions, setSlackTaskTarget } from "@/hooks/db/useSlackListOptions";
@@ -30,18 +30,27 @@ interface TaskFormProps {
   initialTitle?: string;
 }
 
-export default function TaskForm({ addTask, onTasksChange, onCancel, loading, selectedDate, addMany = false, addAnother, initialTitle = "" }: Readonly<TaskFormProps>) {
+export default function TaskForm({
+  addTask,
+  onTasksChange,
+  onCancel,
+  loading,
+  selectedDate,
+  addMany = false,
+  addAnother,
+  initialTitle = "",
+}: Readonly<TaskFormProps>) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { settings } = useSettings();
   const { toast } = useToast();
   const todayIso = getAppDate();
 
-  const titleRef       = useRef<HTMLInputElement>(null);
-  const forUserRef     = useRef<HTMLSelectElement>(null);
-  const categoryRef    = useRef<HTMLSelectElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const forUserRef = useRef<HTMLSelectElement>(null);
+  const categoryRef = useRef<HTMLSelectElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const dueDateRef     = useRef<HTMLInputElement>(null);
+  const dueDateRef = useRef<HTMLInputElement>(null);
   const [priority, setPriority] = useState(3);
   const userCategories = useTaskCategories();
   const categoryOptions = taskCategoryOptions(userCategories);
@@ -103,9 +112,7 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
         await setSlackTaskTarget(Number(created.id), slackListId);
         triggerSlackSync();
       } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Nie udało się przypisać listy Slack."
-        );
+        toast.error(err instanceof Error ? err.message : "Nie udało się przypisać listy Slack.");
       }
     }
 
@@ -117,37 +124,53 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
   const decreasePriority = () => setPriority((p) => Math.min(5, p + 1));
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="form-card"
-    >
+    <form onSubmit={handleSubmit} className="form-card">
       <div>
-        <label htmlFor="title" className="form-label">Tytuł zadania:</label>
-        <input id="title" ref={titleRef} type="text" defaultValue={initialTitle}
-          className="input-field font-medium" placeholder="Zadanie" required />
+        <label htmlFor="title" className="form-label">
+          Tytuł zadania:
+        </label>
+        <input
+          id="title"
+          ref={titleRef}
+          type="text"
+          defaultValue={initialTitle}
+          className="input-field font-medium"
+          placeholder="Zadanie"
+          required
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <div className="form-label">Priorytet:</div>
-          <div className="flex items-stretch gap-1.5 mt-1">
-            <button type="button" onClick={decreasePriority}
-              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"
-              title="Zmniejsz priorytet" aria-label="Zmniejsz priorytet">
+          <div className="mt-1 flex items-stretch gap-1.5">
+            <button
+              type="button"
+              onClick={decreasePriority}
+              className="flex flex-1 shrink-0 items-center justify-center rounded-lg border border-line bg-surface p-1 text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
+              title="Zmniejsz priorytet"
+              aria-label="Zmniejsz priorytet"
+            >
               <Minus size={18} />
             </button>
-            <div className="input-field flex-1 flex items-center justify-center card rounded-lg text-text shadow-inner">
+            <div className="input-field card flex flex-1 items-center justify-center rounded-lg text-text shadow-inner">
               {priority}
             </div>
-            <button type="button" onClick={increasePriority}
-              className="flex flex-1 items-center justify-center p-1 sm:p-2.5 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-text transition-colors shadow-sm shrink-0"
-              title="Zwiększ priorytet" aria-label="Zwiększ priorytet">
+            <button
+              type="button"
+              onClick={increasePriority}
+              className="flex flex-1 shrink-0 items-center justify-center rounded-lg border border-line bg-surface p-1 text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text sm:p-2.5"
+              title="Zwiększ priorytet"
+              aria-label="Zwiększ priorytet"
+            >
               <Plus size={18} />
             </button>
           </div>
         </div>
         <div>
-          <label htmlFor="category" className="form-label">Kategoria:</label>
+          <label htmlFor="category" className="form-label">
+            Kategoria:
+          </label>
           <select
             id="category"
             ref={categoryRef}
@@ -156,25 +179,40 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
             onChange={(e) => setCategory(e.target.value)}
           >
             {categoryOptions.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
-
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label htmlFor="due" className="form-label">Data wykonania:</label>
-          <input id="due" ref={dueDateRef} defaultValue={selectedDate || todayIso} type="date"
+          <label htmlFor="due" className="form-label">
+            Data wykonania:
+          </label>
+          <input
+            id="due"
+            ref={dueDateRef}
+            defaultValue={selectedDate || todayIso}
+            type="date"
             onChange={(e) => setDueDate(e.target.value)}
-            className="input-field w-full min-w-0 px-2" required />
+            className="input-field w-full min-w-0 px-2"
+            required
+          />
         </div>
         <div>
-          <label htmlFor="for" className="form-label">Zadanie dla:</label>
+          <label htmlFor="for" className="form-label">
+            Zadanie dla:
+          </label>
           <select id="for" ref={forUserRef} className="input-field h-min sm:h-12" required defaultValue={userId}>
             <option value={userId}>Mnie</option>
-            {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
+            {userOptions.map((email) => (
+              <option key={email} value={email}>
+                {email}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -190,7 +228,9 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
 
       {slackLists.length > 0 && (
         <div>
-          <label htmlFor="slack-list" className="form-label">Wyślij do listy Slack:</label>
+          <label htmlFor="slack-list" className="form-label">
+            Wyślij do listy Slack:
+          </label>
           <select
             id="slack-list"
             className="input-field"
@@ -211,12 +251,24 @@ export default function TaskForm({ addTask, onTasksChange, onCancel, loading, se
       <TaskRemindersEditor value={reminders} onChange={setReminders} dueDate={dueDate} disabled={loading} />
 
       <div>
-        <label htmlFor="desc" className="form-label">Opis:</label>
-        <textarea id="desc" ref={descriptionRef} className="input-field" rows={3}
-          placeholder="Dodatkowe informacje..." />
+        <label htmlFor="desc" className="form-label">
+          Opis:
+        </label>
+        <textarea
+          id="desc"
+          ref={descriptionRef}
+          className="input-field"
+          rows={3}
+          placeholder="Dodatkowe informacje..."
+        />
       </div>
 
-      <FormButtons onClickClose={onCancel} loading={loading} addMany={addMany} onAddAnother={() => addAnother?.('task')}/>
+      <FormButtons
+        onClickClose={onCancel}
+        loading={loading}
+        addMany={addMany}
+        onAddAnother={() => addAnother?.("task")}
+      />
     </form>
   );
 }

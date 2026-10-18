@@ -1,11 +1,19 @@
 // components/meetingPolls/MeetingPollList.tsx
 
+import { useOrigin } from "@/hooks/useIsClient";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChartNoAxesCombined, Clock, ExternalLink, Hourglass, Link2, Timer } from "lucide-react";
+import { CalendarDays, ChartNoAxesCombined, Clock, ExternalLink, Hourglass, Link2, Timer, Lock } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { useAuth } from "@/providers/AuthProvider";
-import { AddButton, DeleteButton, CopyButtonSmall, actionButton, actionIcon, ACTION_LABEL_CLASS } from "../ui/CommonButtons";
+import {
+  AddButton,
+  DeleteButton,
+  CopyButtonSmall,
+  actionButton,
+  actionIcon,
+  ACTION_LABEL_CLASS,
+} from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import { effectivePollStatus } from "@/lib/meetingPollDeadline";
 import { formatTime } from "@/lib/dateUtils";
@@ -73,13 +81,14 @@ function PollCard({
             </Meta>
             <Meta icon={Timer}>{poll.slot_duration_minutes} min</Meta>
             {open && poll.closes_at && <Meta icon={Hourglass}>do {formatTime(poll.closes_at, true)}</Meta>}
+            {!open && <Meta icon={Lock}>Zamknięta</Meta>}
           </ul>
         </div>
 
         <div className="shrink-0 text-right">
           {counts?.responses !== undefined ? (
             <>
-              <p className="font-display text-3xl font-bold leading-none text-text tabular-nums">{counts.responses}</p>
+              <p className="font-display text-3xl leading-none font-bold text-text tabular-nums">{counts.responses}</p>
               <p className="mt-1 text-xs text-text-muted">{pluralizeResponses(counts.responses)}</p>
             </>
           ) : null}
@@ -106,26 +115,22 @@ function PollCard({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link
-          className={actionButton({ color: "blue", size: "default" })}
+          className={actionButton({ color: "info", size: "default" })}
           href={resultsHref}
           title="Pokaż wyniki ankiety"
         >
-          <ChartNoAxesCombined aria-hidden="true" className={actionIcon(false)}  />
+          <ChartNoAxesCombined aria-hidden="true" className={actionIcon(false)} />
           <span className={ACTION_LABEL_CLASS}>Wyniki</span>
         </Link>
-          <button
-            type="button"
-            onClick={onToggle}
-            className={actionButton({ color: "blue", size: "default" })}
-          >
-            {open ? (
-              <Clock aria-hidden="true" className={actionIcon(false)} />
-            ) : (
-              <Hourglass aria-hidden="true" className={actionIcon(false)} />
-            )}
-            <span className={ACTION_LABEL_CLASS}>{open ? "Zamknij" : "Otwórz"}</span>
-          </button>
-          <DeleteButton onClick={onDelete} />
+        <button type="button" onClick={onToggle} className={actionButton({ color: "info", size: "default" })}>
+          {open ? (
+            <Clock aria-hidden="true" className={actionIcon(false)} />
+          ) : (
+            <Hourglass aria-hidden="true" className={actionIcon(false)} />
+          )}
+          <span className={ACTION_LABEL_CLASS}>{open ? "Zamknij" : "Otwórz ponownie"}</span>
+        </button>
+        <DeleteButton onClick={onDelete} />
       </div>
     </li>
   );
@@ -171,19 +176,19 @@ function PollSection({
 export default function MeetingPollList({ refreshToken, onCreate }: Readonly<MeetingPollListProps>) {
   const { polls, deletePoll, setPollStatus, fetchPolls } = useMeetingPolls();
   const { supabase } = useAuth();
-  const [origin, setOrigin] = useState("");
+  const origin = useOrigin();
   const [counts, setCounts] = useState<Record<string, PollCounts>>({});
 
   useEffect(() => {
     if (refreshToken !== undefined) void fetchPolls();
   }, [refreshToken, fetchPolls]);
 
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
   const idsKey = useMemo(
-    () => polls.map((p) => p.id).sort((a, b) => a.localeCompare(b)).join(","),
+    () =>
+      polls
+        .map((p) => p.id)
+        .sort((a, b) => a.localeCompare(b))
+        .join(","),
     [polls]
   );
   useEffect(() => {

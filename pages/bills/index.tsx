@@ -4,13 +4,11 @@
 // z wyborem profilu i miesiąca.
 
 import React, { useCallback, useMemo, useState } from "react";
-import Link from "next/link";
 import { addMonths, format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Calculator, ChartColumnBig, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Seo from "@/components/ui/SEO";
 import { SkeletonList } from "@/components/ui/Skeleton";
-import DailySpendingForm from "@/components/widgets/DailySpendingForm";
 import ProfileSwitcher from "@/components/finance/ProfileSwitcher";
 import RecurringBillsSection from "@/components/finance/RecurringBillsSection";
 import TransactionsSection from "@/components/finance/TransactionsSection";
@@ -40,7 +38,10 @@ export default function FinancePage() {
   useQuickAction({ onActionAdd: () => setQuickAdd((n) => n + 1) });
 
   // Filtr profilu: „Wszystkie” pokazuje wszystko, profil – tylko swoje pozycje.
-  const inProfile = useCallback(<T extends { profile_id: string | null }>(x: T) => !profileId || x.profile_id === profileId, [profileId]);
+  const inProfile = useCallback(
+    <T extends { profile_id: string | null }>(x: T) => !profileId || x.profile_id === profileId,
+    [profileId]
+  );
   const visibleBills = useMemo(() => bills.filter(inProfile), [bills, inProfile]);
   const visibleTx = useMemo(() => tx.transactions.filter(inProfile), [tx.transactions, inProfile]);
 
@@ -66,29 +67,29 @@ export default function FinancePage() {
           <h1 className="page-title">Finanse</h1>
         </div>
       </div>
-      <div className="flex items-center card rounded-card p-1 shadow-sm w-fit mx-auto mb-4">
+      <div className="card mx-auto mb-4 flex w-fit items-center rounded-card p-1 shadow-sm">
         <button
           onClick={() => shiftMonth(-1)}
-          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
-          type='button'
+          className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
+          type="button"
           title="Poprzedni miesiąc"
           aria-label="Poprzedni miesiąc"
         >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
 
-        <h2 className="text-lg sm:text-xl font-bold text-text mx-4 sm:mx-8 min-w-35 sm:min-w-40 text-center capitalize tracking-wide">
+        <h2 className="mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl">
           {monthLabel(monthKey)}
         </h2>
 
         <button
           onClick={() => shiftMonth(1)}
-          className="p-2 sm:p-2.5 bg-transparent hover:bg-surface rounded-xl text-text-secondary hover:text-text transition-colors"
-          type='button'
+          className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
+          type="button"
           title="Następny miesiąc"
           aria-label="Następny miesiąc"
         >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
       </div>
 
@@ -124,7 +125,11 @@ export default function FinancePage() {
             onUpdate={(id, patch) => void tx.updateTransaction(id, patch)}
             onLink={(id, billId) => void tx.linkToBill(id, billId)}
             onRemove={(id) => void tx.removeTransaction(id)}
-            csv={{ loadHistory: tx.loadHistory, withSuggestions: tx.withSuggestions, importTransactions: tx.importTransactions }}
+            csv={{
+              loadHistory: tx.loadHistory,
+              withSuggestions: tx.withSuggestions,
+              importTransactions: tx.importTransactions,
+            }}
           />
         </div>
       )}

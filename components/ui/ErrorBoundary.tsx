@@ -1,7 +1,7 @@
 // components/ui/ErrorBoundary.tsx
 
-import React, { Component, ReactNode } from 'react';
-import { AlertTriangle, ChevronRight, ChevronDown, Home, RefreshCw } from 'lucide-react';
+import React, { Component, ReactNode } from "react";
+import { AlertTriangle, ChevronRight, ChevronDown, Home, RefreshCw } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -25,7 +25,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("[ErrorBoundary] Nieobsłużony błąd komponentu:", error, errorInfo);
   }
 
   handleReset = () => {
@@ -43,21 +43,19 @@ export default class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div role="alert" className="min-h-screen flex items-center justify-center p-4 bg-background text-text">
-          <div className="max-w-md w-full rounded-(--radius-card) border border-line bg-card shadow-lg p-6 sm:p-8 text-center">
-            <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
-              <AlertTriangle aria-hidden="true" className="w-7 h-7" />
+        <div role="alert" className="flex min-h-screen items-center justify-center bg-background p-4 text-text">
+          <div className="w-full max-w-md rounded-(--radius-card) border border-line bg-card p-6 text-center shadow-lg sm:p-8">
+            <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-danger-soft text-danger">
+              <AlertTriangle aria-hidden="true" className="h-7 w-7" />
             </span>
-            <h1 className="page-title mb-2">
-              Ten widok przestał działać
-            </h1>
-            <p className="text-text-secondary mb-6">
+            <h1 className="page-title mb-2">Ten widok przestał działać</h1>
+            <p className="mb-6 text-text-secondary">
               Spróbuj załadować widok ponownie. Jeśli błąd się powtórzy, przejdź na stronę główną.
             </p>
-            
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+
+            {process.env.NODE_ENV === "development" && this.state.error && (
               <details
-                className="text-left mb-6 p-3 bg-surface border border-line rounded-lg text-xs cursor-pointer overflow-hidden"
+                className="mb-6 cursor-pointer overflow-hidden rounded-lg border border-line bg-surface p-3 text-left text-xs"
                 open={this.state.showDetails}
               >
                 <summary
@@ -65,40 +63,36 @@ export default class ErrorBoundary extends Component<Props, State> {
                     e.preventDefault();
                     this.toggleDetails();
                   }}
-                  className="flex items-center gap-2 font-semibold text-text cursor-pointer select-none hover:text-primary transition-colors"
+                  className="flex cursor-pointer items-center gap-2 font-semibold text-text transition-colors select-none hover:text-primary"
                 >
-                  {this.state.showDetails ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
+                  {this.state.showDetails ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   Szczegóły błędu
                 </summary>
                 {this.state.showDetails && (
-                  <pre className="whitespace-pre-wrap overflow-auto mt-3 pt-3 border-t border-line text-text-muted font-mono text-xs">
+                  <pre className="mt-3 overflow-auto border-t border-line pt-3 font-mono text-xs whitespace-pre-wrap text-text-muted">
                     {this.state.error.toString()}
-                    {'\n\n'}
+                    {"\n\n"}
                     {this.state.error.stack}
                   </pre>
                 )}
               </details>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 justify-center">
+            <div className="grid grid-cols-1 justify-center gap-3 sm:grid-cols-2">
               <button
                 onClick={this.handleReset}
-                type='button'
-                className="flex w-full items-center justify-center px-4 py-2 bg-secondary hover:bg-secondary-hover text-white font-medium rounded-lg gap-2 transition-colors shadow-sm"
+                type="button"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2 font-medium text-white shadow-sm transition-colors hover:bg-secondary-hover"
               >
-                <RefreshCw aria-hidden="true" className="w-5 h-5" />
+                <RefreshCw aria-hidden="true" className="h-5 w-5" />
                 Spróbuj ponownie
               </button>
               <button
-                onClick={() => (window.location.href = '/')}
-                type='button'
-                className="flex w-full items-center justify-center px-4 py-2 bg-surface hover:bg-surface-hover text-text-secondary font-medium rounded-lg gap-2 transition-colors border border-line"
+                onClick={() => (window.location.href = "/")}
+                type="button"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-medium text-text-secondary transition-colors hover:bg-surface-hover"
               >
-                <Home aria-hidden="true" className="w-5 h-5" />
+                <Home aria-hidden="true" className="h-5 w-5" />
                 Strona główna
               </button>
             </div>

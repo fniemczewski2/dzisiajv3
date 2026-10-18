@@ -3,6 +3,7 @@
 // Dane Finansów: profile, rachunki stałe i transakcje. Zmiany zapisują się
 // od razu (optymistycznie), a błędy cofają stan i pokazują komunikat.
 
+import { FINANCE_HISTORY_MONTHS } from "@/config/limits";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { addMonths, format, parseISO } from "date-fns";
 import { useAuth } from "@/providers/AuthProvider";
@@ -18,8 +19,8 @@ import {
   type Transaction,
 } from "@/types/finance";
 
-export { BILL_TASK_CATEGORY } from "@/supabase/functions/_shared/bills";
-import { BILL_TASK_CATEGORY, billTaskTitle } from "@/supabase/functions/_shared/bills";
+export { BILL_TASK_CATEGORY } from "@/shared/bills";
+import { BILL_TASK_CATEGORY, billTaskTitle } from "@/shared/bills";
 
 // --- Profile ----------------------------------------------------------------------
 
@@ -88,7 +89,14 @@ export function useFinanceProfiles() {
     [supabase, profiles, toast]
   );
 
-  return { profiles, addProfile, updateProfile, removeProfile, fetchProfiles, maxReached: profiles.length >= MAX_FINANCE_PROFILES };
+  return {
+    profiles,
+    addProfile,
+    updateProfile,
+    removeProfile,
+    fetchProfiles,
+    maxReached: profiles.length >= MAX_FINANCE_PROFILES,
+  };
 }
 
 // --- Rachunki stałe -----------------------------------------------------------------
@@ -159,7 +167,11 @@ export function useRecurringBills() {
       };
       const query = bill.id
         ? supabase.from("recurring_bills").update(row).eq("id", bill.id).select().single()
-        : supabase.from("recurring_bills").insert({ ...row, user_id: userId }).select().single();
+        : supabase
+            .from("recurring_bills")
+            .insert({ ...row, user_id: userId })
+            .select()
+            .single();
       const { data, error } = await query;
       if (error || !data) {
         toast.error("Nie udało się zapisać rachunku.");
@@ -199,8 +211,6 @@ interface TransactionsOptions {
   to: string;
 }
 
-const HISTORY_MONTHS = 12;
-
 function normalizeTx(t: Transaction): Transaction {
   return { ...t, amount: Number(t.amount) };
 }
@@ -238,7 +248,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
   /** Historia do sugestii (D1/D2): transakcje z kategorią lub powiązaniem z 12 miesięcy. */
   const loadHistory = useCallback(async (): Promise<Transaction[]> => {
     if (!userId) return [];
-    const since = format(addMonths(parseISO(getAppDate()), -HISTORY_MONTHS), "yyyy-MM-dd");
+    const since = format(addMonths(parseISO(getAppDate()), -FINANCE_HISTORY_MONTHS), "yyyy-MM-dd");
     const { data } = await supabase
       .from("transactions")
       .select("*")
@@ -265,7 +275,9 @@ export function useTransactions({ from, to }: TransactionsOptions) {
       const next = { ...tx };
       if (!next.category_id) {
         const name = suggestCategoryName(next, history, allCategoryNames);
-        const match = name ? categories.find((c) => c.name.toLocaleLowerCase("pl") === name.toLocaleLowerCase("pl")) : undefined;
+        const match = name
+          ? categories.find((c) => c.name.toLocaleLowerCase("pl") === name.toLocaleLowerCase("pl"))
+          : undefined;
         if (match) next.category_id = match.id;
       }
       if (!next.recurring_bill_id) {

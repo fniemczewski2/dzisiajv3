@@ -84,8 +84,9 @@ function clampInterval(value: unknown): number {
 
 function normalizeWeekdays(value: unknown): number[] | undefined {
   if (!Array.isArray(value)) return undefined;
-  const days = [...new Set(value.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))]
-    .sort((a, b) => a - b);
+  const days = [...new Set(value.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort(
+    (a, b) => a - b
+  );
   return days.length > 0 ? days : undefined;
 }
 
@@ -302,5 +303,10 @@ export function describeRule(rule: RecurrenceRule | null, start?: string): strin
       text = every("co roku", "rok", "lata", "lat");
       break;
   }
-  return text;
+  if (rule.until) {
+    const [y, m, d] = rule.until.slice(0, 10).split("-");
+    text += `, do ${d}.${m}.${y}`;
+  }
+  // Opis stoi zawsze na początku etykiety – wielka litera także dla „codziennie”, „co tydzień”…
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

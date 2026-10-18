@@ -1,4 +1,4 @@
-﻿// components/shopping/ShoppingForm.tsx
+// components/shopping/ShoppingForm.tsx
 
 import { SyntheticEvent, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
@@ -20,7 +20,8 @@ export default function ShoppingForm({ onChange, onCancel, loading, addShoppingL
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     await addShoppingList(name.trim(), share.trim() || null);
-    setName(""); setShare("");
+    setName("");
+    setShare("");
     onChange();
     onCancel?.();
   };
@@ -28,17 +29,37 @@ export default function ShoppingForm({ onChange, onCancel, loading, addShoppingL
   return (
     <form onSubmit={handleSubmit} className="form-card max-w-md">
       <div>
-        <label htmlFor="name" className="form-label">Nazwa listy:</label>
-        <input id="name" type="text" placeholder="np. Zakupy na weekend"
-          value={name} onChange={(e) => setName(e.target.value)}
-          className="input-field" required disabled={loading} />
+        <label htmlFor="name" className="form-label">
+          Nazwa listy:
+        </label>
+        <input
+          id="name"
+          type="text"
+          placeholder="np. Zakupy na weekend"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="input-field"
+          required
+          disabled={loading}
+        />
       </div>
       <div>
-        <label htmlFor="share" className="form-label">Udostępnij listę:</label>
-        <select id="share" value={share} onChange={(e) => setShare(e.target.value)}
-          className="input-field" disabled={loading}>
+        <label htmlFor="share" className="form-label">
+          Udostępnij listę:
+        </label>
+        <select
+          id="share"
+          value={share}
+          onChange={(e) => setShare(e.target.value)}
+          className="input-field"
+          disabled={loading}
+        >
           <option value="">Tylko dla mnie</option>
-          {userOptions.map((email) => <option key={email} value={email}>{email}</option>)}
+          {userOptions.map((email) => (
+            <option key={email} value={email}>
+              {email}
+            </option>
+          ))}
         </select>
       </div>
       <FormButtons onClickClose={onCancel} loading={loading} />

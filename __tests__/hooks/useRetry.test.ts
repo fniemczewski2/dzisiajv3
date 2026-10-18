@@ -1,4 +1,4 @@
-﻿// __tests__/hooks/useRetry.test.ts
+// __tests__/hooks/useRetry.test.ts
 
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
@@ -18,9 +18,7 @@ describe("useRetry", () => {
   it("retries once after a failure and returns the result of the second attempt", async () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useRetry());
-    const operation = vi.fn()
-      .mockRejectedValueOnce(new Error("network blip"))
-      .mockResolvedValueOnce("recovered");
+    const operation = vi.fn().mockRejectedValueOnce(new Error("network blip")).mockResolvedValueOnce("recovered");
 
     const promise = result.current(operation);
     await vi.runAllTimersAsync();
@@ -35,14 +33,15 @@ describe("useRetry", () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useRetry());
     const secondError = new Error("still down");
-    const operation = vi.fn()
-      .mockRejectedValueOnce(new Error("first failure"))
-      .mockRejectedValueOnce(secondError);
+    const operation = vi.fn().mockRejectedValueOnce(new Error("first failure")).mockRejectedValueOnce(secondError);
 
     const promise = result.current(operation);
-    const assertion = expect(promise).rejects.toThrow("still down");
+    const settled = promise.then(
+      () => null,
+      (error: unknown) => error
+    );
     await vi.runAllTimersAsync();
-    await assertion;
+    expect(await settled).toBe(secondError);
     expect(operation).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
   });

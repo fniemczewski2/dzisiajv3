@@ -1,10 +1,11 @@
 // lib/server/cronAuth.ts
 
+import { serverEnv } from "@/config/env";
 import type { NextApiRequest } from "next";
 import { safeEqual } from "@/lib/server/safeEqual";
 
 export function verifyCronRequest(req: NextApiRequest): boolean {
-  const expected = process.env.CRON_SECRET;
+  const expected = serverEnv.cronSecret;
   if (!expected) return false;
 
   const headerSecret = req.headers["x-cron-secret"];

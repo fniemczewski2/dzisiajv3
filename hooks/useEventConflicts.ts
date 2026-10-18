@@ -49,7 +49,7 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
       return;
     }
     let cancelled = false;
-    const timer = setTimeout(async () => {
+    const check = async () => {
       setChecking(true);
       const startTs = dateToTimestamp(new Date(startMs));
       const endTs = dateToTimestamp(new Date(endMs));
@@ -69,7 +69,8 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
       // RLS pokazuje też dane zaufanych osób – kolizje liczymy tylko z własnym kalendarzem.
       const own = ((data ?? []) as Event[]).filter((e) => e.user_id === userId || e.shared_with_id === userId);
       setReport(findConflicts(new Date(startMs), new Date(endMs), own, { ignoreId, candidateAllDay: allDay }));
-    }, 300);
+    };
+    const timer = setTimeout(() => void check(), 300);
     return () => {
       cancelled = true;
       clearTimeout(timer);

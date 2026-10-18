@@ -30,11 +30,14 @@ export default function DaySchemaSwitcher({ schemas, weekday, choice, onChange, 
   else if (typeof choice === "string" && schemas.some((s) => s.id === choice)) value = choice;
 
   return (
-    <div className="flex flex-wrap justify-between items-center gap-2">
-      <h2 className="text-lg font-bold text-text flex items-center gap-2">
-        <Logs className="text-primary w-5 h-5" />Schemat
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+        <Logs className="h-5 w-5 text-primary" />
+        Schemat
       </h2>
-      <label htmlFor={id} className="sr-only">Wybierz schemat dnia:</label>
+      <label htmlFor={id} className="sr-only">
+        Wybierz schemat dnia:
+      </label>
       <select
         id={id}
         value={value}
@@ -43,13 +46,19 @@ export default function DaySchemaSwitcher({ schemas, weekday, choice, onChange, 
         className="input-field w-auto min-w-48 flex-1 sm:flex-none"
       >
         <option value="default">{fallback ? `${fallback.name} (domyślny)` : "Domyślny – brak schematu"}</option>
-        {forDay.filter((s) => s.id !== fallback?.id).map((s) => (
-          <option key={s.id} value={s.id}>{s.name}</option>
-        ))}
+        {forDay
+          .filter((s) => s.id !== fallback?.id)
+          .map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
         {others.length > 0 && (
           <optgroup label="Inne schematy">
             {others.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
             ))}
           </optgroup>
         )}

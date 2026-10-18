@@ -1,4 +1,4 @@
-﻿// __tests__/lib/csvUtils.test.ts
+// __tests__/lib/csvUtils.test.ts
 
 import { describe, it, expect } from "vitest";
 import { processCsvText } from "@/lib/csvUtils";
@@ -42,18 +42,14 @@ describe("processCsvText", () => {
   });
 
   it("includes positive amounts as income rather than dropping them", () => {
-    const csv = buildCsv([
-      `"2024-03-17";"WYNAGRODZENIE MARZEC";"Wpływy";"5000,00 PLN"`,
-    ]);
+    const csv = buildCsv([`"2024-03-17";"WYNAGRODZENIE MARZEC";"Wpływy";"5000,00 PLN"`]);
     const result = processCsvText(csv, [], noCategories);
     expect(result.transactions).toHaveLength(1);
     expect(result.transactions?.[0].is_income).toBe(true);
   });
 
   it("maps a subscription merchant to Rozrywka via the category column", () => {
-    const csv = buildCsv([
-      `"2024-03-18";"NETFLIX.COM 4491";"Rozrywka";"-55,00 PLN"`,
-    ]);
+    const csv = buildCsv([`"2024-03-18";"NETFLIX.COM 4491";"Rozrywka";"-55,00 PLN"`]);
     const result = processCsvText(csv, [], noCategories);
     expect(result.transactions?.[0]).toMatchObject({
       description: "Netflix",
@@ -74,10 +70,10 @@ describe("processCsvText", () => {
   });
 
   it("detects a duplicate income transaction against existing income bills", () => {
-    const csv = buildCsv([
-      `"2026-06-27";"PRZELEW PRZYCHODZĄCY WYNAGRODZENIE";"Wpływy";"5000,00 PLN"`,
-    ]);
-    const existing = [{ amount: 5000, date: "2026-06-27", description: "PRZELEW PRZYCHODZĄCY WYNAGRODZENIE", is_income: true }];
+    const csv = buildCsv([`"2026-06-27";"PRZELEW PRZYCHODZĄCY WYNAGRODZENIE";"Wpływy";"5000,00 PLN"`]);
+    const existing = [
+      { amount: 5000, date: "2026-06-27", description: "PRZELEW PRZYCHODZĄCY WYNAGRODZENIE", is_income: true },
+    ];
     const result = processCsvText(csv, existing, noCategories);
 
     expect(result.transactions).toHaveLength(0);
@@ -85,9 +81,7 @@ describe("processCsvText", () => {
   });
 
   it("does not treat an expense and an income with the same amount/date/description as duplicates of each other", () => {
-    const csv = buildCsv([
-      `"2026-06-27";"ZWROT";"Inne";"-100,00 PLN"`,
-    ]);
+    const csv = buildCsv([`"2026-06-27";"ZWROT";"Inne";"-100,00 PLN"`]);
     const existing = [{ amount: 100, date: "2026-06-27", description: "ZWROT", is_income: true }];
     const result = processCsvText(csv, existing, noCategories);
 
@@ -96,26 +90,20 @@ describe("processCsvText", () => {
   });
 
   it("reports missing required categories that the user has not created yet", () => {
-    const csv = buildCsv([
-      `"2024-03-18";"NETFLIX.COM 4491";"Rozrywka";"-55,00 PLN"`,
-    ]);
+    const csv = buildCsv([`"2024-03-18";"NETFLIX.COM 4491";"Rozrywka";"-55,00 PLN"`]);
     const result = processCsvText(csv, [], noCategories);
     expect(result.missingCategories).toContain("Rozrywka");
   });
 
   it("does not flag a required category that already exists", () => {
-    const csv = buildCsv([
-      `"2024-03-18";"NETFLIX.COM 4491";"Rozrywka";"-55,00 PLN"`,
-    ]);
+    const csv = buildCsv([`"2024-03-18";"NETFLIX.COM 4491";"Rozrywka";"-55,00 PLN"`]);
     const categories: BudgetCategory[] = [{ id: "c1", name: "Rozrywka", user_id: "u1" } as BudgetCategory];
     const result = processCsvText(csv, [], categories);
     expect(result.missingCategories).not.toContain("Rozrywka");
   });
 
   it("accepts amounts with a non-breaking space as the thousands separator", () => {
-    const csv = buildCsv([
-      `"2024-03-19";"RTV EURO AGD";"Elektronika";"-1\u00A0299,99 PLN"`,
-    ]);
+    const csv = buildCsv([`"2024-03-19";"RTV EURO AGD";"Elektronika";"-1\u00A0299,99 PLN"`]);
     const result = processCsvText(csv, [], noCategories);
     expect(result.transactions?.[0].amount).toBeCloseTo(1299.99);
   });

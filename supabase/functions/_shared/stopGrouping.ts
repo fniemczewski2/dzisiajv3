@@ -56,7 +56,10 @@ function mostCommon(values: string[]): string {
   let best = "AUTO";
   let bestCount = 0;
   for (const [v, c] of counts) {
-    if (c > bestCount) { best = v; bestCount = c; }
+    if (c > bestCount) {
+      best = v;
+      bestCount = c;
+    }
   }
   return best;
 }
@@ -77,7 +80,13 @@ function groupByNetworkAndName(posts: readonly StopPost[]): Map<string, StopPost
   return byName;
 }
 
-function floodFill(unique: readonly StopPost[], assigned: number[], seed: number, cluster: number, radiusM: number): void {
+function floodFill(
+  unique: readonly StopPost[],
+  assigned: number[],
+  seed: number,
+  cluster: number,
+  radiusM: number
+): void {
   assigned[seed] = cluster;
   const queue = [seed];
   while (queue.length) {
@@ -93,7 +102,7 @@ function floodFill(unique: readonly StopPost[], assigned: number[], seed: number
 }
 
 function splitByDistance(unique: readonly StopPost[], radiusM: number): StopPost[][] {
-  const assigned = new Array<number>(unique.length).fill(-1);
+  const assigned: number[] = Array.from({ length: unique.length }, () => -1);
   let count = 0;
   for (let i = 0; i < unique.length; i++) {
     if (assigned[i] === -1) floodFill(unique, assigned, i, count++, radiusM);
@@ -154,15 +163,19 @@ export function pickClusterForFavorite(
   if (matching.length === 0) return null;
   if (matching.length === 1) return matching[0];
 
-  const ref = hasPosition(fav) ? { lat: fav.lat, lon: fav.lon } : userPos ?? null;
+  const ref = hasPosition(fav) ? { lat: fav.lat, lon: fav.lon } : (userPos ?? null);
   if (ref) {
-    return [...matching].sort((a, b) => distanceM(ref.lat, ref.lon, a.lat, a.lon) - distanceM(ref.lat, ref.lon, b.lat, b.lon))[0];
+    return [...matching].sort(
+      (a, b) => distanceM(ref.lat, ref.lon, a.lat, a.lon) - distanceM(ref.lat, ref.lon, b.lat, b.lon)
+    )[0];
   }
   return [...matching].sort((a, b) => b.stop_codes.length - a.stop_codes.length)[0];
 }
 
 export function hasPosition(fav: FavoriteStop): fav is FavoriteStop & { lat: number; lon: number } {
-  return typeof fav.lat === "number" && typeof fav.lon === "number" && Number.isFinite(fav.lat) && Number.isFinite(fav.lon);
+  return (
+    typeof fav.lat === "number" && typeof fav.lon === "number" && Number.isFinite(fav.lat) && Number.isFinite(fav.lon)
+  );
 }
 
 export function isSameStopPlace(a: FavoriteStop, b: FavoriteStop): boolean {

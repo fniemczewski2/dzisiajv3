@@ -3,7 +3,7 @@
 // Finanse (od 1.40): profile, rachunki stałe (zaplanowane, z regułą
 // powtarzania) i transakcje (faktyczne wpływy/wydatki).
 
-import type { RecurrenceRule } from "@/supabase/functions/_shared/recurrence";
+import type { RecurrenceRule } from "@/shared/recurrence";
 
 export const MAX_FINANCE_PROFILES = 5;
 

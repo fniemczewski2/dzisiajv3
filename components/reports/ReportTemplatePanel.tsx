@@ -1,11 +1,12 @@
 // components/reports/ReportTemplatePanel.tsx
 
+import { DEFAULT_REPORT_LOGO_WIDTH, DEFAULT_REPORT_HEADING_COLOR } from "@/config/defaults";
 import React, { useEffect, useId, useRef, useState } from "react";
-import { Eye, Star, Trash2, Type, Upload, X } from "lucide-react";
-import { DEFAULT_HEADING_COLOR, derivePalette, isHexColor } from "@/lib/reportColors";
+import { Eye, Star } from "lucide-react";
+import { derivePalette, isHexColor } from "@/lib/reportColors";
 import { CATEGORY_PALETTE } from "@/lib/categoryColors";
 import { useReportTemplates } from "@/hooks/useReportTemplate";
-import { FONT_ROLES, LOGO_WIDTH_RANGE, DEFAULT_LOGO_WIDTH, MAX_TEMPLATE_NAME } from "@/lib/reportTemplate";
+import { FONT_ROLES, LOGO_WIDTH_RANGE, MAX_TEMPLATE_NAME } from "@/lib/reportTemplate";
 import { previewReportTemplate } from "@/lib/reportExport";
 import { useToast } from "@/providers/ToastProvider";
 import { AddButton, DeleteButton, FavButton, UploadButton } from "../ui/CommonButtons";
@@ -35,14 +36,16 @@ function FilePickerButton({
       />
       <UploadButton
         onClick={() => inputRef.current?.click()}
-        fileFormat={accept.split(",").map((x) => x.replace(/.*\//, ".")).join(" ")}
+        fileFormat={accept
+          .split(",")
+          .map((x) => x.replace(/.*\//, "."))
+          .join(" ")}
         aria-label={label}
         small
       />
     </>
   );
 }
-
 
 export default function ReportTemplatePanel() {
   const id = useId();
@@ -60,9 +63,9 @@ export default function ReportTemplatePanel() {
   }, [set.templates, set.default_id, selectedId]);
 
   const template = set.templates.find((x) => x.id === selectedId) ?? null;
-  const width = logoWidth ?? template?.logo?.width ?? DEFAULT_LOGO_WIDTH;
+  const width = logoWidth ?? template?.logo?.width ?? DEFAULT_REPORT_LOGO_WIDTH;
   const isBusy = (key: string) => busy === `${template?.id}:${key}`;
-  const chosenColor = colorDraft ?? template?.heading_color ?? DEFAULT_HEADING_COLOR;
+  const chosenColor = colorDraft ?? template?.heading_color ?? DEFAULT_REPORT_HEADING_COLOR;
   const palette = derivePalette(chosenColor);
   const adjusted = isHexColor(chosenColor) && palette.heading !== chosenColor.toUpperCase();
   const saveColor = (color: string | null) => {
@@ -98,13 +101,15 @@ export default function ReportTemplatePanel() {
   return (
     <section aria-labelledby={`${id}-h`} className="form-card max-w-3xl">
       <div className="flex items-start justify-between gap-3">
-        <h3 id={`${id}-h`} className="text-lg font-bold text-text">Szablony PDF</h3>
+        <h3 id={`${id}-h`} className="text-lg font-bold text-text">
+          Szablony PDF
+        </h3>
       </div>
 
       {/* Lista szablonów */}
       <fieldset className="min-w-0">
         <legend className="sr-only">Wybierz szablon do edycji</legend>
-        <ul className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 scrollbar-thin">
+        <ul className="flex scrollbar-thin gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:px-0">
           {set.templates.map((x) => (
             <li key={x.id}>
               <button
@@ -112,10 +117,12 @@ export default function ReportTemplatePanel() {
                 aria-pressed={selectedId === x.id}
                 onClick={() => setSelectedId(x.id)}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium ${
-                  selectedId === x.id ? "border-text bg-text text-card" : "border-line-strong text-text-secondary hover:text-text"
+                  selectedId === x.id
+                    ? "border-text bg-text text-card"
+                    : "border-line-strong text-text-secondary hover:text-text"
                 }`}
               >
-                {set.default_id === x.id && <Star className="h-3.5 w-3.5" aria-label="domyślny" />}
+                {set.default_id === x.id && <Star className="h-3.5 w-3.5" aria-label="Domyślny" />}
                 {x.name}
               </button>
             </li>
@@ -125,7 +132,9 @@ export default function ReportTemplatePanel() {
 
       {!t.maxReached && (
         <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor={`${id}-new`} className="sr-only">Nazwa szablonu</label>
+          <label htmlFor={`${id}-new`} className="sr-only">
+            Nazwa szablonu
+          </label>
           <input
             id={`${id}-new`}
             value={newName}
@@ -140,118 +149,137 @@ export default function ReportTemplatePanel() {
             placeholder="Nowy szablon, np. Fundacja A"
             className="input-field min-w-48 flex-1"
           />
-          <AddButton onClick={() => void add()} small/>
-
+          <AddButton onClick={() => void add()} small />
         </div>
       )}
 
       {set.templates.length === 0 && (
-        <p className="text-sm text-text-secondary">Nie masz jeszcze szablonów – PDF ma wygląd domyślny. Dodaj pierwszy szablon powyżej.</p>
+        <p className="text-sm text-text-secondary">
+          Nie masz jeszcze szablonów – PDF ma wygląd domyślny. Dodaj pierwszy szablon powyżej.
+        </p>
       )}
 
       {template && (
         <div className="space-y-4 rounded-xl border border-line p-4">
           <div className="flex flex-wrap items-end gap-2">
             <div className="min-w-48 flex-1">
-              <label htmlFor={`${id}-name`} className="form-label">Nazwa szablonu:</label>
+              <label htmlFor={`${id}-name`} className="form-label">
+                Nazwa szablonu:
+              </label>
               <input
                 key={template.id}
                 id={`${id}-name`}
                 defaultValue={template.name}
                 maxLength={MAX_TEMPLATE_NAME}
-                onBlur={(e) => e.target.value.trim() !== template.name && void t.renameTemplate(template.id, e.target.value)}
+                onBlur={(e) =>
+                  e.target.value.trim() !== template.name && void t.renameTemplate(template.id, e.target.value)
+                }
                 className="input-field"
               />
             </div>
-            <div className="flex gap-2 flex-nowrap">
-            {set.default_id !== template.id && (
-              <FavButton onClick={() => void t.setDefault(template.id)} aria-label="Ustaw jako domyślny" small />
-            )}
-            <DeleteButton
-              small
-              onClick={() => void t.removeTemplate(template.id)}
-              aria-label={`Usuń szablon ${template.name}`}
-            />
+            <div className="flex flex-nowrap gap-2">
+              {set.default_id !== template.id && (
+                <FavButton onClick={() => void t.setDefault(template.id)} aria-label="Ustaw jako domyślny" small />
+              )}
+              <DeleteButton
+                small
+                onClick={() => void t.removeTemplate(template.id)}
+                aria-label={`Usuń szablon ${template.name}`}
+              />
             </div>
           </div>
 
           <fieldset className="min-w-0 space-y-3">
             <div className="flex items-center justify-between gap-2">
-            <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-text">
-              Kolor nagłówków:
-            </legend>
-                  <label htmlFor={`${id}-color`} className="sr-only">Własny kolor nagłówków</label>
-                  <input
-                    key={template.id}
-                    id={`${id}-color`}
-                    type="color"
-                    value={isHexColor(chosenColor) ? chosenColor.toLowerCase() : DEFAULT_HEADING_COLOR.toLowerCase()}
-                    onChange={(e) => setColorDraft(e.target.value)}
-                    onBlur={() => colorDraft && saveColor(colorDraft.toUpperCase())}
-                    className="h-7 w-14 cursor-pointer rounded-lg border-0"
-                    style={{ backgroundColor: isHexColor(chosenColor) ? chosenColor : DEFAULT_HEADING_COLOR}}
-                  />
+              <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-text">Kolor nagłówków:</legend>
+              <label htmlFor={`${id}-color`} className="sr-only">
+                Własny kolor nagłówków
+              </label>
+              <input
+                key={template.id}
+                id={`${id}-color`}
+                type="color"
+                value={isHexColor(chosenColor) ? chosenColor.toLowerCase() : DEFAULT_REPORT_HEADING_COLOR.toLowerCase()}
+                onChange={(e) => setColorDraft(e.target.value)}
+                onBlur={() => colorDraft && saveColor(colorDraft.toUpperCase())}
+                className="h-7 w-14 cursor-pointer rounded-lg border-0"
+                style={{ backgroundColor: isHexColor(chosenColor) ? chosenColor : DEFAULT_REPORT_HEADING_COLOR }}
+              />
             </div>
-              
-              <ul className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:px-0 scrollbar-thin" aria-label="Gotowe kolory">
-                {CATEGORY_PALETTE.map((c) => (
-                  <li className="" key={c.value}>
-                    <button
-                      type="button"
-                      onClick={() => saveColor(c.value)}
-                      aria-label={`Kolor nagłówków: ${c.name}`}
-                      aria-pressed={chosenColor.toUpperCase() === c.value.toUpperCase()}
-                      className="flex h-7 w-7 items-center justify-center rounded-full"
-                    >
-                      <span aria-hidden="true" className="h-7 w-7 rounded-full" style={{ backgroundColor: c.value }} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+
+            <ul
+              className="flex scrollbar-thin gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:px-0"
+              aria-label="Gotowe kolory"
+            >
+              {CATEGORY_PALETTE.map((c) => (
+                <li className="" key={c.value}>
+                  <button
+                    type="button"
+                    onClick={() => saveColor(c.value)}
+                    aria-label={`Kolor nagłówków: ${c.name}`}
+                    aria-pressed={chosenColor.toUpperCase() === c.value.toUpperCase()}
+                    className="flex h-7 w-7 items-center justify-center rounded-full"
+                  >
+                    <span aria-hidden="true" className="h-7 w-7 rounded-full" style={{ backgroundColor: c.value }} />
+                  </button>
+                </li>
+              ))}
+            </ul>
             <div className="rounded-lg border border-line bg-white p-4" aria-hidden="true">
-              <p style={{ color: palette.heading }} className="text-lg font-bold">Posiedzenie zarządu</p>
-              <p style={{ color: palette.muted }} className="text-sm">20 kwietnia 2137</p>
-              <p style={{ color: palette.heading }} className="mt-3 text-sm font-bold">Zadania</p>
-              <p style={{ color: palette.ink, borderBottom: `1px solid ${palette.rule}` }} className="py-1 text-sm">1. Przygotować sprawozdanie</p>
+              <p style={{ color: palette.heading }} className="text-lg font-bold">
+                Posiedzenie zarządu
+              </p>
+              <p style={{ color: palette.muted }} className="text-sm">
+                20 kwietnia 2137
+              </p>
+              <p style={{ color: palette.heading }} className="mt-3 text-sm font-bold">
+                Zadania
+              </p>
+              <p style={{ color: palette.ink, borderBottom: `1px solid ${palette.rule}` }} className="py-1 text-sm">
+                1. Przygotować sprawozdanie
+              </p>
             </div>
             {adjusted && (
-              <p role="status" className="text-sm text-text-secondary">
+              <output className="block text-sm text-text-secondary">
                 Ten kolor jest za jasny na białym tle – w dokumencie użyjemy ciemniejszego odcienia ({palette.heading}).
-              </p>
+              </output>
             )}
           </fieldset>
 
           <fieldset className="min-w-0 space-y-3">
-            <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-text">
-              Czcionki:
-            </legend>
+            <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-text">Czcionki:</legend>
             {FONT_ROLES.map(({ role, label, hint }) => {
               const current = template.fonts?.[role];
               return (
-                <div key={role} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line p-3">
-                  <div className="min-w-40 flex flex-wrap gap-2 justify-between w-full">
+                <div
+                  key={role}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line p-3"
+                >
+                  <div className="flex w-full min-w-40 flex-wrap justify-between gap-2">
                     <p className="font-medium text-text">{label}</p>
                     <div className="flex items-center gap-2">
-                    <FilePickerButton
-                      id={`${id}-${template.id}-${role}`}
-                      accept=".ttf,.otf,font/ttf,font/otf"
-                      label={current ? "Zmień" : "Wgraj czcionkę"}
-                      disabled={busy !== null}
-                      onFile={(f) => void t.setFont(template.id, role, f)}
-                    />
-                    {current && (
-                      <DeleteButton
-                        small
-                        onClick={() => void t.clearFont(template.id, role)}
+                      <FilePickerButton
+                        id={`${id}-${template.id}-${role}`}
+                        accept=".ttf,.otf,font/ttf,font/otf"
+                        label={current ? "Zmień" : "Wgraj czcionkę"}
                         disabled={busy !== null}
-                        aria-label={`Usuń czcionkę: ${label}`}
+                        onFile={(f) => void t.setFont(template.id, role, f)}
+                      />
+                      {current && (
+                        <DeleteButton
+                          small
+                          onClick={() => void t.clearFont(template.id, role)}
+                          disabled={busy !== null}
+                          aria-label={`Usuń czcionkę: ${label}`}
                         />
-                    )}
+                      )}
                     </div>
                   </div>
-                  <p className="text-sm text-text-secondary">{current ? <span className="break-all">{current.name}</span> : hint}</p>
+                  <p className="text-sm text-text-secondary">
+                    {current ? <span className="break-all">{current.name}</span> : hint}
+                  </p>
 
-                  {isBusy(role) && <span role="status" className="text-sm text-text-secondary">Zapisuję…</span>}
+                  {isBusy(role) && <output className="text-sm text-text-secondary">Zapisuję…</output>}
                 </div>
               );
             })}
@@ -259,25 +287,23 @@ export default function ReportTemplatePanel() {
 
           <fieldset className="min-w-0 space-y-3">
             <div className="flex items-center justify-between gap-2">
-            <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-text">
-              Logo:
-            </legend>
+              <legend className="mb-1 flex items-center gap-2 text-sm font-semibold text-text">Logo:</legend>
               <div className="flex items-center gap-2">
-              <FilePickerButton
-                id={`${id}-${template.id}-logo`}
-                accept="image/png,image/jpeg"
-                label={template.logo ? "Zmień" : "Wgraj logo"}
-                disabled={busy !== null}
-                onFile={(f) => void t.setLogo(template.id, f)}
-              />
-              {template.logo && (
-                <DeleteButton
-                  small
-                  onClick={() => void t.clearLogo(template.id)}
+                <FilePickerButton
+                  id={`${id}-${template.id}-logo`}
+                  accept="image/png,image/jpeg"
+                  label={template.logo ? "Zmień" : "Wgraj logo"}
                   disabled={busy !== null}
-                  aria-label="Usuń logo"
+                  onFile={(f) => void t.setLogo(template.id, f)}
                 />
-              )}
+                {template.logo && (
+                  <DeleteButton
+                    small
+                    onClick={() => void t.clearLogo(template.id)}
+                    disabled={busy !== null}
+                    aria-label="Usuń logo"
+                  />
+                )}
               </div>
             </div>
             {template.logo && (
@@ -305,7 +331,7 @@ export default function ReportTemplatePanel() {
             type="button"
             onClick={() => void preview()}
             disabled={previewing || busy !== null}
-            className="w-full sm:w-fit inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-secondary px-4 font-semibold text-white hover:bg-secondary-hover disabled:opacity-50"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 font-semibold text-white hover:bg-secondary-hover disabled:opacity-50 sm:w-fit"
           >
             {previewing ? "Przygotowuję…" : `Podgląd PDF`}
             <Eye className="h-4 w-4" aria-hidden="true" />

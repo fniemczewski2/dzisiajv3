@@ -1,17 +1,17 @@
-﻿// types/bills.ts
+// types/bills.ts
 
 export interface Bill {
   id: string;
   user_id: string;
   amount: number;
   description: string | null;
-  date: string;                   
+  date: string;
   is_income: boolean;
   done: boolean | null;
-  category_id: string | null;        
+  category_id: string | null;
   is_recurring?: boolean;
-  recurring_until?: string | null;     
-  parent_bill_id?: string | null;      
+  recurring_until?: string | null;
+  parent_bill_id?: string | null;
   category?: BudgetCategory | null;
 }
 
@@ -24,7 +24,7 @@ export interface RawBillRow {
 }
 
 export interface ParsedTransaction {
-  date: string; 
+  date: string;
   description: string;
   is_income: boolean;
   amount: number;
@@ -36,8 +36,8 @@ export interface BudgetCategory {
   user_id: string;
   year: number;
   name: string;
-  monthly_amounts: number[];        
-  is_monthly: boolean;   
+  monthly_amounts: number[];
+  is_monthly: boolean;
   sort_order: number;
   created_at?: string;
   updated_at?: string;
@@ -47,16 +47,16 @@ export type BudgetCategoryInsert = Omit<BudgetCategory, "id" | "user_id" | "crea
 
 export interface CategorySpending {
   category: BudgetCategory;
-  spent: number;         
-  limit: number;         
-  remaining: number;     
+  spent: number;
+  limit: number;
+  remaining: number;
   thisMonthSpent: number;
   thisMonthLimit: number;
   thisMonthRemaining: number;
 }
 
 export interface UncategorisedSummary {
-  spent: number;        
+  spent: number;
 }
 
 export interface BudgetRow {
@@ -77,13 +77,13 @@ export interface BudgetRow {
 
 export interface SummaryItem {
   category: BudgetCategory;
-  spent: number; 
-  planned: number; 
-  limit: number; 
-  remaining: number; 
+  spent: number;
+  planned: number;
+  limit: number;
+  remaining: number;
   thisMonthSpent: number;
   thisMonthPlanned: number;
-  thisMonthLimit: number; 
+  thisMonthLimit: number;
   thisMonthRemaining: number;
 }
 

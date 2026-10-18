@@ -1,32 +1,42 @@
 // __tests__/lib/asyncPool.test.ts
 
 import { describe, it, expect } from "vitest";
-import { mapPool, chunk } from "@/lib/asyncPool";
+import { mapPool, chunk } from "@/shared/asyncPool";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe("mapPool", () => {
   it("zwraca wyniki w kolejności wejścia, nawet gdy kończą się w innej", async () => {
     const delays = [30, 5, 20, 1];
-    const out = await mapPool(delays, 4, async (ms, i) => { await sleep(ms); return i; });
+    const out = await mapPool(delays, 4, async (ms, i) => {
+      await sleep(ms);
+      return i;
+    });
     expect(out).toEqual([0, 1, 2, 3]);
   });
 
   it("nigdy nie przekracza limitu równoległych zadań", async () => {
     let running = 0;
     let peak = 0;
-    await mapPool(Array.from({ length: 20 }, (_, i) => i), 3, async () => {
-      running++;
-      peak = Math.max(peak, running);
-      await sleep(2);
-      running--;
-    });
+    await mapPool(
+      Array.from({ length: 20 }, (_, i) => i),
+      3,
+      async () => {
+        running++;
+        peak = Math.max(peak, running);
+        await sleep(2);
+        running--;
+      }
+    );
     expect(peak).toBe(3);
   });
 
   it("limit 1 przetwarza elementy po kolei", async () => {
     const order: number[] = [];
-    await mapPool([3, 1, 2], 1, async (ms) => { await sleep(ms); order.push(ms); });
+    await mapPool([3, 1, 2], 1, async (ms) => {
+      await sleep(ms);
+      order.push(ms);
+    });
     expect(order).toEqual([3, 1, 2]);
   });
 
@@ -35,7 +45,10 @@ describe("mapPool", () => {
   });
 
   it("przyjmuje dowolny iterowalny obiekt, np. Map", async () => {
-    const m = new Map([["a", 1], ["b", 2]]);
+    const m = new Map([
+      ["a", 1],
+      ["b", 2],
+    ]);
     expect(await mapPool(m, 2, ([k, v]) => Promise.resolve(`${k}${v}`))).toEqual(["a1", "b2"]);
   });
 

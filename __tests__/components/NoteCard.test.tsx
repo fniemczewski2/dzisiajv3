@@ -5,8 +5,6 @@ import { render, screen } from "@testing-library/react";
 import NoteCard from "@/components/notes/NoteCard";
 import type { Note } from "@/types/notes";
 
-const colorMap = { "zinc-50": "bg-zinc-50" };
-
 function makeNote(items: string[]): Note {
   return {
     id: "note-1",
@@ -28,7 +26,6 @@ describe("NoteCard formatting", () => {
         onDelete={noop}
         onTogglePin={noop}
         onToggleArchive={noop}
-        colorMap={colorMap}
       />
     );
     expect(document.querySelector("ul")).not.toBeNull();
@@ -44,7 +41,6 @@ describe("NoteCard formatting", () => {
         onDelete={noop}
         onTogglePin={noop}
         onToggleArchive={noop}
-        colorMap={colorMap}
       />
     );
     expect(document.querySelector("ol")).not.toBeNull();
@@ -58,7 +54,6 @@ describe("NoteCard formatting", () => {
         onDelete={noop}
         onTogglePin={noop}
         onToggleArchive={noop}
-        colorMap={colorMap}
       />
     );
     const strong = document.querySelector("strong");
@@ -74,7 +69,6 @@ describe("NoteCard formatting", () => {
         onDelete={noop}
         onTogglePin={noop}
         onToggleArchive={noop}
-        colorMap={colorMap}
       />
     );
     const link = screen.getByRole("link", { name: "google.pl" });
@@ -84,16 +78,7 @@ describe("NoteCard formatting", () => {
   it("does not render archived note content", () => {
     const note = makeNote(["- milk"]);
     note.archived = true;
-    render(
-      <NoteCard
-        note={note}
-        onEdit={noop}
-        onDelete={noop}
-        onTogglePin={noop}
-        onToggleArchive={noop}
-        colorMap={colorMap}
-      />
-    );
+    render(<NoteCard note={note} onEdit={noop} onDelete={noop} onTogglePin={noop} onToggleArchive={noop} />);
     expect(document.querySelector("ul")).toBeNull();
   });
 });

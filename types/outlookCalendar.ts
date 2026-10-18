@@ -1,4 +1,4 @@
-﻿// types/outlookCalendar.ts
+// types/outlookCalendar.ts
 
 export interface OutlookTokenResponse {
   access_token?: string;

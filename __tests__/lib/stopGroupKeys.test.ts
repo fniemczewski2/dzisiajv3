@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { withFavoriteKeys, withNearbyKeys } from "@/lib/stopGroupKeys";
-import { favoriteKey } from "@/supabase/functions/_shared/stopGrouping";
+import { favoriteKey } from "@/shared/stopGrouping";
 import type { StopGroup } from "@/types/transport";
 
 const group = (over: Partial<StopGroup>): StopGroup =>

@@ -9,7 +9,7 @@ import {
   warsawWallClockNow,
   wallClockDayBounds,
   REMINDER_TOLERANCE_MS,
-} from "@/supabase/functions/_shared/notificationTime";
+} from "@/shared/notificationTime";
 
 const none = new Set<string>();
 const at = (iso: string) => Date.parse(iso);
@@ -22,7 +22,10 @@ describe("czas ścienny w Polsce", () => {
     expect(warsawWallClockNow(at("2026-07-15T12:00:00Z"))).toBe("2026-07-15T14:00:00+00:00");
   });
   it("granice dnia w zapisie wydarzeń", () => {
-    expect(wallClockDayBounds("2026-10-31")).toEqual({ start: "2026-10-31T00:00:00+00:00", end: "2026-11-01T00:00:00+00:00" });
+    expect(wallClockDayBounds("2026-10-31")).toEqual({
+      start: "2026-10-31T00:00:00+00:00",
+      end: "2026-11-01T00:00:00+00:00",
+    });
   });
 });
 

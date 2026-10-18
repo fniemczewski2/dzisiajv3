@@ -1,21 +1,20 @@
 // lib/locationUtils.ts
 
-export type GpsPermission = 'granted' | 'denied' | null;
+import { USER_LOCAL_STORAGE_KEYS, GPS_PERMISSION_COOKIE, GPS_PERMISSION_COOKIE_DAYS } from "@/config/storage";
+export type GpsPermission = "granted" | "denied" | null;
 
-const POSITION_STORAGE_KEY = 'dzisiaj:last_position';
-const PERMISSION_COOKIE = 'gps_permission';
-const PERMISSION_COOKIE_DAYS = 365;
+const POSITION_STORAGE_KEY = USER_LOCAL_STORAGE_KEYS.lastPosition;
 
 export const getGpsCookie = (): GpsPermission => {
-  if (typeof document === 'undefined') return null;
-  const match = new RegExp(`(^| )${PERMISSION_COOKIE}=([^;]+)`).exec(document.cookie);
+  if (typeof document === "undefined") return null;
+  const match = new RegExp(`(^| )${GPS_PERMISSION_COOKIE}=([^;]+)`).exec(document.cookie);
   return match ? (match[2] as GpsPermission) : null;
 };
 
-export const setGpsCookie = (value: 'granted' | 'denied') => {
+export const setGpsCookie = (value: "granted" | "denied") => {
   const d = new Date();
-  d.setTime(d.getTime() + PERMISSION_COOKIE_DAYS * 24 * 60 * 60 * 1000);
-  document.cookie = `${PERMISSION_COOKIE}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+  d.setTime(d.getTime() + GPS_PERMISSION_COOKIE_DAYS * 24 * 60 * 60 * 1000);
+  document.cookie = `${GPS_PERMISSION_COOKIE}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
 };
 
 interface StoredPosition {
@@ -77,16 +76,16 @@ const toPosition = (stored: StoredPosition): GeolocationPosition =>
  * początkowego potrafi zwracać „prompt” mimo wcześniejszej zgody, dlatego
  * zapamiętana decyzja użytkownika ma pierwszeństwo przed tym odczytem.
  */
-export const getGeolocationPermission = async (): Promise<PermissionState | 'unsupported'> => {
-  if (typeof navigator === 'undefined' || !navigator.geolocation) return 'unsupported';
+export const getGeolocationPermission = async (): Promise<PermissionState | "unsupported"> => {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return "unsupported";
   const remembered = getGpsCookie();
   try {
-    const status = await navigator.permissions?.query({ name: 'geolocation' });
-    if (status?.state === 'granted' || status?.state === 'denied') return status.state;
+    const status = await navigator.permissions?.query({ name: "geolocation" });
+    if (status?.state === "granted" || status?.state === "denied") return status.state;
   } catch {
     /* Permissions API niedostępne */
   }
-  return remembered === 'granted' ? 'granted' : 'prompt';
+  return remembered === "granted" ? "granted" : "prompt";
 };
 
 interface SmartLocationOptions {
@@ -106,8 +105,8 @@ export const requestSmartLocation = ({
   onSuccess,
   onError,
 }: SmartLocationOptions) => {
-  if (typeof window === 'undefined' || !navigator?.geolocation) {
-    onError({ code: 0, message: 'Twoja przeglądarka nie obsługuje geolokalizacji.' });
+  if (typeof window === "undefined" || !navigator?.geolocation) {
+    onError({ code: 0, message: "Twoja przeglądarka nie obsługuje geolokalizacji." });
     return;
   }
 
@@ -117,21 +116,21 @@ export const requestSmartLocation = ({
       onSuccess(toPosition(stored));
       return;
     }
-    if (getGpsCookie() === 'denied') {
-      onError({ code: 1, message: 'Lokalizacja wyłączona. Włączysz ją w Ustawieniach.' });
+    if (getGpsCookie() === "denied") {
+      onError({ code: 1, message: "Lokalizacja wyłączona. Włączysz ją w Ustawieniach." });
       return;
     }
   }
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
-      setGpsCookie('granted');
+      setGpsCookie("granted");
       storePosition(position);
       onSuccess(position);
     },
     (err) => {
       if (err.code === 1) {
-        setGpsCookie('denied');
+        setGpsCookie("denied");
         clearStoredPosition();
       } else {
         const stored = readStoredPosition();

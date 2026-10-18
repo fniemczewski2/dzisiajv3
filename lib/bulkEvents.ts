@@ -7,6 +7,7 @@
 // Lata wpisane w osobnych liniach (np. „Semestr zimowy 2026/2027”) działają
 // jak w imporcie zjazdów.
 
+import { MAX_EVENT_SPAN_DAYS } from "@/config/limits";
 import { findDateMatches } from "./zjazdyParser";
 
 export interface BulkEvent {
@@ -23,9 +24,9 @@ export interface BulkEvent {
 }
 
 /** Najdłuższe wydarzenie z zakresu dat (np. urlop, konferencja). */
-export const MAX_EVENT_SPAN_DAYS = 31;
 
-const TIME_RANGE = /(?:\bgodz\.?\s*|\bod\s+)?\b([01]?\d|2[0-3]):([0-5]\d)(?:\s*(?:[-–—]|do)\s*([01]?\d|2[0-3]):([0-5]\d))?\b/i;
+const TIME_RANGE =
+  /(?:\bgodz\.?\s*|\bod\s+)?\b([01]?\d|2[0-3]):([0-5]\d)(?:\s*(?:[-–—]|do)\s*([01]?\d|2[0-3]):([0-5]\d))?\b/i;
 const pad = (h: string) => h.padStart(2, "0");
 
 /** Nazwa po usunięciu dat, godzin i znaków oddzielających na brzegach. */
@@ -64,7 +65,15 @@ export function parseBulkEvents(text: string, now: Date = new Date()): BulkEvent
     const title = cleanTitle(rest);
 
     inLine.forEach((m, i) => {
-      events.push({ key: `${lineNo}-${i}-${m.start}`, start: m.start, end: m.end, startTime, endTime, title, line: lineNo + 1 });
+      events.push({
+        key: `${lineNo}-${i}-${m.start}`,
+        start: m.start,
+        end: m.end,
+        startTime,
+        endTime,
+        title,
+        line: lineNo + 1,
+      });
     });
   });
   return events;

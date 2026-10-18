@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2024",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
@@ -20,19 +16,10 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/shared/*": ["./supabase/functions/_shared/*"],
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-, "vitest.config.mts"  ],
-  "exclude": [
-    "node_modules",
-    "supabase",
-    "**/*.deno.ts"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "vitest.config.mts"],
+  "exclude": ["node_modules", "supabase", "**/*.deno.ts"]
 }

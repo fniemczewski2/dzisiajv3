@@ -1,12 +1,9 @@
-﻿// hooks/usePublicMeetingPoll.ts
+// hooks/usePublicMeetingPoll.ts
 
+import { pollEditTokenKey } from "@/config/storage";
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/providers/ToastProvider";
 import type { PublicMeetingPoll, MeetingPollSlot } from "@/types/meetingPolls";
-
-function editTokenStorageKey(token: string): string {
-  return `meeting-poll-edit-token:${token}`;
-}
 
 export interface ExistingResponse {
   respondent_name: string;
@@ -46,7 +43,7 @@ export function usePublicMeetingPoll(token: string | undefined) {
       }
     })();
 
-    const storedEditToken = localStorage.getItem(editTokenStorageKey(token));
+    const storedEditToken = localStorage.getItem(pollEditTokenKey(token));
     setHasExistingResponse(!!storedEditToken);
 
     if (storedEditToken) {
@@ -59,7 +56,6 @@ export function usePublicMeetingPoll(token: string | undefined) {
             setExistingResponse((await res.json()) as ExistingResponse);
           }
         } catch {}
-
       })();
     }
 
@@ -82,7 +78,7 @@ export function usePublicMeetingPoll(token: string | undefined) {
 
       setSubmitting(true);
       try {
-        const existingEditToken = localStorage.getItem(editTokenStorageKey(token)) ?? undefined;
+        const existingEditToken = localStorage.getItem(pollEditTokenKey(token)) ?? undefined;
         const res = await fetch(`/api/meeting-polls/public/${token}/respond`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -98,7 +94,7 @@ export function usePublicMeetingPoll(token: string | undefined) {
           toast.error(data.error ?? "Błąd zapisu odpowiedzi.");
           return false;
         }
-        localStorage.setItem(editTokenStorageKey(token), data.edit_token);
+        localStorage.setItem(pollEditTokenKey(token), data.edit_token);
         setHasExistingResponse(true);
         setSubmitted(true);
         toast.success("Zapisano Twoją dostępność. Dziękujemy!");

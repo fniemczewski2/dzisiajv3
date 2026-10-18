@@ -1,5 +1,6 @@
 // hooks/db/useDailyHabits.ts
 
+import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { DailyHabitsRow } from "@/types/habits";
@@ -40,8 +41,7 @@ export function useDailyHabits(date?: string) {
 
   const fetchHabits = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
 
     const signal = getSignal();
@@ -49,17 +49,19 @@ export function useDailyHabits(date?: string) {
     try {
       const { data, error } = await withRetry(
         () =>
-          supabase.from("daily_habits").select("*").eq("date", targetDate).eq("user_id", userId).abortSignal(signal).maybeSingle(),
+          supabase
+            .from("daily_habits")
+            .select("*")
+            .eq("date", targetDate)
+            .eq("user_id", userId)
+            .abortSignal(signal)
+            .maybeSingle(),
         signal
       );
 
       if (error) throw error;
 
-      setHabits(
-        data
-          ? { ...data, water_amount: data.water_amount ?? 0 }
-          : getDefaultHabits(targetDate, userId)
-      );
+      setHabits(data ? { ...data, water_amount: data.water_amount ?? 0 } : getDefaultHabits(targetDate, userId));
     } catch (err) {
       if (isAbortError(err)) return;
       setHabits(getDefaultHabits(targetDate, userId));
@@ -74,7 +76,7 @@ export function useDailyHabits(date?: string) {
     async (id: string) => {
       if (!habits) return;
       if (!userId) {
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const prevRow = habits;
@@ -114,8 +116,7 @@ export function useDailyHabits(date?: string) {
     async (amount: number) => {
       if (!habits) return;
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const validAmount = Number.isNaN(amount) ? 0 : amount;
@@ -130,7 +131,7 @@ export function useDailyHabits(date?: string) {
               date: targetDate,
               user_id: userId,
               water_amount: validAmount,
-                  },
+            },
             { onConflict: "date,user_id" }
           )
         );

@@ -1,5 +1,8 @@
 import { eventReminderType, plDayBoundsUTC, weekdayIndexPL } from "./notificationTime.ts";
-function eq(a: unknown, b: unknown) { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`oczekiwano ${JSON.stringify(b)}, jest ${JSON.stringify(a)}`); }
+function eq(a: unknown, b: unknown) {
+  if (JSON.stringify(a) !== JSON.stringify(b))
+    throw new Error(`oczekiwano ${JSON.stringify(b)}, jest ${JSON.stringify(a)}`);
+}
 
 const NOW = Date.parse("2026-10-08T12:00:00Z"); // 14:00 w Polsce
 const none = new Set<string>();

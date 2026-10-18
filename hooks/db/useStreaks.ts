@@ -1,18 +1,20 @@
-﻿// hooks/db/useStreaks.ts
+// hooks/db/useStreaks.ts
 
 import { useCallback } from "react";
 import { Streak } from "@/types/streaks";
 import { useCrudResource } from "./useCrudResource";
 
 const getMonthsLabel = (m: number) => {
-  const d = m % 10, td = m % 100;
+  const d = m % 10,
+    td = m % 100;
   if (d >= 2 && d <= 4 && (td < 10 || td >= 20)) return `${m} miesiące`;
   return `${m} miesięcy`;
 };
 
 const getYearsLabel = (y: number) => {
   if (y === 1) return "ROK";
-  const d = y % 10, td = y % 100;
+  const d = y % 10,
+    td = y % 100;
   if (d >= 2 && d <= 4 && (td < 10 || td >= 20)) return `${y} lata`;
   return `${y} lat`;
 };
@@ -42,8 +44,7 @@ const DAY_MESSAGES: Record<number, string> = {
 
 const checkAnniversaryMilestone = (start: Date, current: Date, days: number): string | null => {
   const isAnniversary =
-    start.getDate() === current.getDate() ||
-    (start.getDate() > current.getDate() && isLastDayOfMonth(current));
+    start.getDate() === current.getDate() || (start.getDate() > current.getDate() && isLastDayOfMonth(current));
 
   if (!isAnniversary || days < 28) return null;
 

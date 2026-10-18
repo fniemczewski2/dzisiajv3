@@ -42,10 +42,7 @@ export function pollAutoCloseAt(createdAt: Date = new Date()): Date {
   return addWorkingHours(createdAt, POLL_AUTO_CLOSE_WORKING_HOURS);
 }
 
-export function isPollExpired(
-  closesAt: string | Date | null | undefined,
-  now: Date = new Date()
-): boolean {
+export function isPollExpired(closesAt: string | Date | null | undefined, now: Date = new Date()): boolean {
   if (!closesAt) return false;
   const deadline = closesAt instanceof Date ? closesAt : new Date(closesAt);
   if (Number.isNaN(deadline.getTime())) return false;

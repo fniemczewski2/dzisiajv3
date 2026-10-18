@@ -6,7 +6,6 @@
 // Ponowny import tego samego pliku niczego nie dubluje.
 
 import React, { useRef, useState } from "react";
-import { Upload } from "lucide-react";
 import { processCsvText, readFileAsText } from "@/lib/csvUtils";
 import { useToast } from "@/providers/ToastProvider";
 import type { BudgetCategory } from "@/types/bills";
@@ -29,7 +28,15 @@ interface Props {
   importTransactions: (rows: NewTransaction[]) => Promise<{ added: number; skipped: number }>;
 }
 
-export default function CsvImport({ categories, categoryNames, bills, profileId, loadHistory, withSuggestions, importTransactions }: Readonly<Props>) {
+export default function CsvImport({
+  categories,
+  categoryNames,
+  bills,
+  profileId,
+  loadHistory,
+  withSuggestions,
+  importTransactions,
+}: Readonly<Props>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
@@ -93,11 +100,7 @@ export default function CsvImport({ categories, categoryNames, bills, profileId,
           if (f) void onFile(f);
         }}
       />
-      <UploadButton
-        onClick={() => inputRef.current?.click()}
-        fileFormat=".csv"
-        small
-      />
+      <UploadButton onClick={() => inputRef.current?.click()} fileFormat=".csv" small busy={busy} />
       {result && <output className="text-sm text-text-secondary">{result}</output>}
     </div>
   );

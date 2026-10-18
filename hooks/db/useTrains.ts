@@ -1,14 +1,16 @@
 // hooks/db/useTrains.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import { currentTrainStop, type TrainLiveDetails } from '@/lib/trainPlan';
-import { useAuth } from '@/providers/AuthProvider';
-import { getAppDateTime } from '@/lib/dateUtils';
-import { useToast } from '@/providers/ToastProvider';
-import { useRetry } from '@/hooks/useRetry';
-import { useAbortController } from '@/hooks/useAbortController';
-import { isAbortError } from '@/lib/abortUtils';
-import { TrackedTrain, TrainInput } from '@/types/transport';
+import { NotSignedInError } from "@/lib/errors";
+import { TRAIN_ACTIVE_WINDOW_MS } from "@/config/timing";
+import { useState, useEffect, useCallback } from "react";
+import { currentTrainStop, type TrainLiveDetails } from "@/lib/trainPlan";
+import { useAuth } from "@/providers/AuthProvider";
+import { getAppDateTime } from "@/lib/dateUtils";
+import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/hooks/useRetry";
+import { useAbortController } from "@/hooks/useAbortController";
+import { isAbortError } from "@/lib/abortUtils";
+import { TrackedTrain, TrainInput } from "@/types/transport";
 
 export function mapDbRowToTrain(row: {
   id: string;
@@ -41,7 +43,6 @@ export function mapDbRowToTrain(row: {
 /** Ile dni wstecz pokazujemy odbyte podróże. */
 export const PAST_TRAINS_DAYS = 365;
 /** Okno „bieżących” pociągów (dla nich pytamy PKP PLK o status). */
-const ACTIVE_WINDOW_MS = 6 * 60 * 60 * 1000;
 
 export function departureTimestamp(train: Pick<TrackedTrain, "date" | "departureTime">): number {
   const [year, month, day] = train.date.split("-").map(Number);
@@ -53,22 +54,23 @@ export function departureTimestamp(train: Pick<TrackedTrain, "date" | "departure
  * Podział na bieżące (±6 h od teraz – z odpytywaniem statusu, jak dotąd)
  * i odbyte (odjazd ponad 6 h temu – bez odpytywania API, najnowsze na górze).
  */
-export function splitTrains(all: readonly TrackedTrain[], nowMs: number): { active: TrackedTrain[]; past: TrackedTrain[] } {
+export function splitTrains(
+  all: readonly TrackedTrain[],
+  nowMs: number
+): { active: TrackedTrain[]; past: TrackedTrain[] } {
   const active: TrackedTrain[] = [];
   const past: TrackedTrain[] = [];
   for (const t of all) {
     const ts = departureTimestamp(t);
-    if (ts < nowMs - ACTIVE_WINDOW_MS) past.push(t);
-    else if (ts <= nowMs + ACTIVE_WINDOW_MS) active.push(t);
+    if (ts < nowMs - TRAIN_ACTIVE_WINDOW_MS) past.push(t);
+    else if (ts <= nowMs + TRAIN_ACTIVE_WINDOW_MS) active.push(t);
   }
   past.sort((a, b) => departureTimestamp(b) - departureTimestamp(a));
   return { active, past };
 }
 
 const sortByDepartureAsc = (a: TrackedTrain, b: TrackedTrain): number =>
-  a.date !== b.date
-    ? a.date.localeCompare(b.date)
-    : a.departureTime.localeCompare(b.departureTime);
+  a.date !== b.date ? a.date.localeCompare(b.date) : a.departureTime.localeCompare(b.departureTime);
 
 export function useTrains() {
   const { supabase, user } = useAuth();
@@ -83,8 +85,7 @@ export function useTrains() {
 
   const fetchTrains = useCallback(async () => {
     if (!userId) {
-
-      throw new Error("Unauthorized");
+      throw new NotSignedInError();
     }
 
     const signal = getSignal();
@@ -92,17 +93,17 @@ export function useTrains() {
     try {
       const now = getAppDateTime();
       const cutoff = new Date(now.getTime() - PAST_TRAINS_DAYS * 24 * 60 * 60 * 1000);
-      const cutoffStr = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      const cutoffStr = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
       const { data, error } = await withRetry(
         () =>
           supabase
-            .from('user_trains')
-            .select('*')
-            .eq('user_id', userId)
-            .gte('date', cutoffStr)
-            .order('date', { ascending: true })
-            .order('departure_time', { ascending: true })
+            .from("user_trains")
+            .select("*")
+            .eq("user_id", userId)
+            .gte("date", cutoffStr)
+            .order("date", { ascending: true })
+            .order("departure_time", { ascending: true })
             .abortSignal(signal),
         signal
       );
@@ -123,8 +124,7 @@ export function useTrains() {
   const addTrain = useCallback(
     async (trainData: TrainInput) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
@@ -146,31 +146,31 @@ export function useTrains() {
       try {
         const { data, error } = await withRetry(() =>
           supabase
-            .from('user_trains')
-            .insert([{
-              user_id: userId,
-              train_number: trainData.trainNumber,
-              train_name: trainData.trainName,
-              date: trainData.date,
-              departure_time: trainData.departureTime,
-              from_station: trainData.from,
-              to_station: trainData.to,
-              wagon: trainData.wagon,
-              seat: trainData.seat,
-            }])
+            .from("user_trains")
+            .insert([
+              {
+                user_id: userId,
+                train_number: trainData.trainNumber,
+                train_name: trainData.trainName,
+                date: trainData.date,
+                departure_time: trainData.departureTime,
+                from_station: trainData.from,
+                to_station: trainData.to,
+                wagon: trainData.wagon,
+                seat: trainData.seat,
+              },
+            ])
             .select()
             .single()
         );
         if (error) throw error;
 
-        setTrains((prev) =>
-          prev.map((t) => (t.id === tempId ? mapDbRowToTrain(data) : t)).sort(sortByDepartureAsc)
-        );
+        setTrains((prev) => prev.map((t) => (t.id === tempId ? mapDbRowToTrain(data) : t)).sort(sortByDepartureAsc));
         toast.success("Dodano pociąg");
         return true;
       } catch {
         setTrains((prev) => prev.filter((t) => t.id !== tempId));
-        toast.error('Błąd zapisywania pociągu.');
+        toast.error("Błąd zapisywania pociągu.");
         return false;
       } finally {
         setLoading(false);
@@ -182,8 +182,7 @@ export function useTrains() {
   const deleteTrain = useCallback(
     async (id: string) => {
       if (!userId) {
-  
-        throw new Error("Unauthorized");
+        throw new NotSignedInError();
       }
       const ok = await toast.confirm(`Czy chcesz usunąć pociąg?`);
       if (!ok) return;
@@ -195,7 +194,7 @@ export function useTrains() {
 
       try {
         const { error } = await withRetry(() =>
-          supabase.from('user_trains').delete().eq('id', id).eq('user_id', userId)
+          supabase.from("user_trains").delete().eq("id", id).eq("user_id", userId)
         );
         if (error) throw error;
         toast.success("Usunięto pociąg");
@@ -239,11 +238,11 @@ export function useTrainsForDate(dateStr: string) {
     const signal = getSignal();
     try {
       const { data, error } = await supabase
-        .from('user_trains')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('date', dateStr)
-        .order('departure_time', { ascending: true })
+        .from("user_trains")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("date", dateStr)
+        .order("departure_time", { ascending: true })
         .abortSignal(signal);
       if (error) throw error;
       setTrains((data || []).map(mapDbRowToTrain).sort(sortByDepartureAsc));
@@ -265,21 +264,24 @@ export interface TrainStatusOptions {
   enabled?: boolean;
 }
 
-export function useTrainStatus(train: {
-  trainNumber: string;
-  date: string;
-  from: string;
-  to: string;
-  departureTime: string;
-  trainName: string;
-}, options: TrainStatusOptions = {}) {
+export function useTrainStatus(
+  train: {
+    trainNumber: string;
+    date: string;
+    from: string;
+    to: string;
+    departureTime: string;
+    trainName: string;
+  },
+  options: TrainStatusOptions = {}
+) {
   const { refreshMs = 0, enabled = true } = options;
   const [data, setData] = useState({
     delay: 0,
-    platform: '...',
-    status: '',
+    platform: "...",
+    status: "",
     loading: true,
-    estimatedArrival: '',
+    estimatedArrival: "",
     hide: false,
     live: {} as TrainLiveDetails,
   });
@@ -307,27 +309,27 @@ export function useTrainStatus(train: {
           signal: controller.signal,
         });
         if (response.status === 429) {
-          setData((prev) => ({ ...prev, status: 'Zbyt wiele zapytań', loading: false }));
+          setData((prev) => ({ ...prev, status: "Zbyt wiele zapytań", loading: false }));
           return;
         }
 
-        if (!response.ok) throw new Error('Błąd pobierania statusu');
+        if (!response.ok) throw new Error("Błąd pobierania statusu");
 
         const result = await response.json();
         setData({
           delay: result.delay || 0,
-          platform: result.platform || '-',
-          status: result.status || '',
+          platform: result.platform || "-",
+          status: result.status || "",
           loading: false,
-          estimatedArrival: result.estimatedArrival || '',
+          estimatedArrival: result.estimatedArrival || "",
           hide: result.hide || false,
           live: {
             departurePlatform: result.departurePlatform ?? result.platform,
-            departureDelay: result.departureDelay ?? (result.status === 'W trasie' ? 0 : result.delay),
+            departureDelay: result.departureDelay ?? (result.status === "W trasie" ? 0 : result.delay),
             actualDeparture: result.actualDeparture,
-            departed: result.departed ?? result.status === 'W trasie',
+            departed: result.departed ?? result.status === "W trasie",
             arrivalPlatform: result.arrivalPlatform,
-            arrivalDelay: result.arrivalDelay ?? (result.status === 'W trasie' ? result.delay : 0),
+            arrivalDelay: result.arrivalDelay ?? (result.status === "W trasie" ? result.delay : 0),
             plannedArrival: result.plannedArrival,
             actualArrival: result.actualArrival,
             arrivalStation: result.arrivalStation,
@@ -335,7 +337,11 @@ export function useTrainStatus(train: {
         });
       } catch (err) {
         if (isAbortError(err)) return;
-        setData((prev) => ({ ...prev, status: prev.status && prev.status !== 'Błąd połączenia' ? prev.status : 'Błąd połączenia', loading: false }));
+        setData((prev) => ({
+          ...prev,
+          status: prev.status && prev.status !== "Błąd połączenia" ? prev.status : "Błąd połączenia",
+          loading: false,
+        }));
       }
     };
 
@@ -349,7 +355,7 @@ export function useTrainStatus(train: {
     let intervalId: ReturnType<typeof setInterval> | undefined;
     if (refreshMs > 0) {
       intervalId = setInterval(() => {
-        if (typeof document === 'undefined' || document.visibilityState === 'visible') void fetchStatus();
+        if (typeof document === "undefined" || document.visibilityState === "visible") void fetchStatus();
       }, refreshMs);
     }
     return () => {
@@ -366,10 +372,7 @@ export function useTrainStatus(train: {
  * i `delay` dotyczą stacji wyjazdu do faktycznego odjazdu (z opóźnieniem),
  * a potem stacji przyjazdu. Pełny opis bieżącej stacji jest w `stop`.
  */
-export function useTrainPlanStatus(
-  train: Parameters<typeof useTrainStatus>[0],
-  options: TrainStatusOptions = {}
-) {
+export function useTrainPlanStatus(train: Parameters<typeof useTrainStatus>[0], options: TrainStatusOptions = {}) {
   const status = useTrainStatus(train, options);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -381,7 +384,7 @@ export function useTrainPlanStatus(
   return {
     ...status,
     delay: stop.delay,
-    platform: status.loading && !stop.platform ? status.platform : stop.platform ?? '-',
+    platform: status.loading && !stop.platform ? status.platform : (stop.platform ?? "-"),
     stop,
   };
 }

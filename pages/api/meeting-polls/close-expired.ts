@@ -1,7 +1,7 @@
 // pages/api/meeting-polls/close-expired.ts
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { verifyCronRequest } from "@/lib/server/cronAuth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,10 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Brak autoryzacji." });
   }
 
-  const admin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!
-  );
+  const admin = supabaseAdmin();
 
   const now = new Date().toISOString();
 

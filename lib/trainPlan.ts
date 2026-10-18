@@ -1,7 +1,7 @@
 // lib/trainPlan.ts
 
 export interface TrainTimeInput {
-  date: string;          // "YYYY-MM-DD"
+  date: string; // "YYYY-MM-DD"
   departureTime: string; // "HH:MM" (albo "HH:MM:SS")
 }
 

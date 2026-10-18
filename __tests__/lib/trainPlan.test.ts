@@ -1,7 +1,15 @@
 // __tests__/lib/trainPlan.test.ts
 
 import { describe, it, expect } from "vitest";
-import { cleanValue, expectedDeparture, formatHm, isStatusRelevant, planHourKey, plannedDeparture, relativeDeparture } from "@/lib/trainPlan";
+import {
+  cleanValue,
+  expectedDeparture,
+  formatHm,
+  isStatusRelevant,
+  planHourKey,
+  plannedDeparture,
+  relativeDeparture,
+} from "@/lib/trainPlan";
 
 const t = { date: "2026-09-30", departureTime: "14:32" };
 

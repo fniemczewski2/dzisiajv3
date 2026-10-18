@@ -1,16 +1,12 @@
 // pages/api/quick-notes.ts
 
+import { MAX_QUICK_NOTE_LENGTH, MAX_QUICK_NOTES_PER_SUBMIT } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { looksLikeShortcutToken } from "@/lib/server/shortcutTokens";
 import { extractShortcutToken, resolveShortcutUser } from "@/lib/server/shortcutAuth";
-import { checkRateLimit, clientIp } from "@/lib/server/rateLimit";
-import { MAX_QUICK_NOTE_LENGTH, MAX_QUICK_NOTES_PER_SUBMIT, readQuickNoteText, splitQuickNoteText } from "@/lib/quickNotes";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
+import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
+import { readQuickNoteText, splitQuickNoteText, QUICK_NOTES_LIMIT_MESSAGE } from "@/lib/quickNotes";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -18,10 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Metoda niedozwolona." });
   }
 
-  if (!checkRateLimit(`quick-notes:${clientIp(req)}`, 30, 60_000)) {
-    res.setHeader("Retry-After", "60");
-    return res.status(429).json({ error: "Zbyt wiele żądań. Spróbuj ponownie za chwilę." });
-  }
+  if (!(await enforceRateLimit(res, "quickNotes", clientIp(req)))) return;
 
   const token = extractShortcutToken(req);
   if (!looksLikeShortcutToken(token)) return res.status(401).json({ error: "Brak autoryzacji." });
@@ -36,15 +29,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (items.length === 0) return res.status(400).json({ error: "Notatka jest pusta." });
 
   try {
-    const userId = await resolveShortcutUser(supabaseAdmin, token);
+    const userId = await resolveShortcutUser(supabaseAdmin(), token);
     if (!userId) return res.status(401).json({ error: "Brak autoryzacji." });
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabaseAdmin()
       .from("quick_notes")
       .insert(items.map((content) => ({ user_id: userId, content, source: "shortcut" })));
 
     if (error) {
-      if (error.code === "23514") return res.status(409).json({ error: error.message });
+      if (error.code === "23514") return res.status(409).json({ error: QUICK_NOTES_LIMIT_MESSAGE });
       throw error;
     }
 
@@ -52,6 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json({ success: true, count: items.length, message });
   } catch (error) {
     console.error("Błąd quick-notes:", error);
-    return res.status(500).json({ error: "Błąd serwera." });
+    return res.status(500).json({ error: "Nie udało się zapisać notatki. Spróbuj ponownie." });
   }
 }

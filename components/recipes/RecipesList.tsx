@@ -20,7 +20,13 @@ interface RecipesListProps {
 
 const isTemp = (id: string) => id.startsWith("temp-");
 
-export default function RecipesList({ recipes, products, loading = false, onEdit, onDelete }: Readonly<RecipesListProps>) {
+export default function RecipesList({
+  recipes,
+  products,
+  loading = false,
+  onEdit,
+  onDelete,
+}: Readonly<RecipesListProps>) {
   const [qText, setQText] = useState("");
   const [prodFilter, setProdFilter] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -30,7 +36,11 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
   const filtered = useMemo(() => filterRecipes(recipes, qText, prodFilter), [recipes, qText, prodFilter]);
 
   const recipeSuggestions = useMemo(
-    () => recipes.map((r) => r.name).filter(Boolean).slice(0, 20),
+    () =>
+      recipes
+        .map((r) => r.name)
+        .filter(Boolean)
+        .slice(0, 20),
     [recipes]
   );
 
@@ -53,8 +63,8 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center max-w-2xl mx-auto w-full">
-        <div className="flex-1 w-full">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="w-full flex-1">
           <SearchBar
             value={qText}
             onChange={setQText}
@@ -69,18 +79,18 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
           onClick={() => setShowFilters((s) => !s)}
           aria-expanded={showFilters}
           disabled={products.length === 0}
-          className="rounded-xl px-4 py-2.5 font-bold transition-colors shadow-sm flex items-center justify-center gap-2 h-10.5 sm:min-w-35 shrink-0 card text-text-secondary hover:text-text hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
+          className="card flex h-10.5 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-text-secondary shadow-sm transition-colors hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-35"
         >
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
           {prodFilter.length > 0 && (
-            <span className="ml-1 rounded-full bg-secondary text-white text-xs px-2 py-0.5">{prodFilter.length}</span>
+            <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-white">{prodFilter.length}</span>
           )}
         </button>
       </div>
 
       {showFilters && products.length > 0 && (
-        <div className="max-w-2xl mx-auto card p-4 rounded-xl shadow-sm">
-          <span className="text-xs font-bold text-text-muted mb-3 block">
+        <div className="card mx-auto max-w-2xl rounded-xl p-4 shadow-sm">
+          <span className="mb-3 block text-xs font-bold text-text-muted">
             Pokaż przepisy zawierające wszystkie zaznaczone składniki:
           </span>
           <div className="flex flex-wrap gap-2">
@@ -91,7 +101,7 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
           {prodFilter.length > 0 && (
             <button
               type="button"
-              className="mt-4 w-full py-2 bg-surface hover:bg-surface-hover text-text-secondary hover:text-text text-sm font-bold rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+              className="mt-4 w-full rounded-lg border border-line bg-surface py-2 text-sm font-bold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
               onClick={() => setProdFilter([])}
             >
               Wyczyść filtry składników
@@ -100,18 +110,23 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
         </div>
       )}
 
-      <ul className="space-y-4 max-w-2xl mx-auto w-full">
+      <ul className="mx-auto w-full max-w-2xl space-y-4">
         {filtered.map((r) => {
           const open = openId === r.id;
 
           if (editingId === r.id) {
             return (
-              <li key={r.id} className="bg-card border border-primary dark:border-primary rounded-card shadow-lg p-5">
+              <li key={r.id} className="rounded-card border border-primary bg-card p-5 shadow-lg dark:border-primary">
                 <RecipeForm
                   className="space-y-4"
                   products={products}
                   loading={loading}
-                  initial={{ name: r.name, category: r.category, products: r.products ?? [], description: r.description ?? "" }}
+                  initial={{
+                    name: r.name,
+                    category: r.category,
+                    products: r.products ?? [],
+                    description: r.description ?? "",
+                  }}
                   onSubmit={(data) => handleSaveEdit(r, data)}
                   onCancel={() => setEditingId(null)}
                   focusNameOnOpen
@@ -122,7 +137,10 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
 
           const panelId = `recipe-panel-${r.id}`;
           return (
-            <li key={r.id} className="card rounded-card shadow-sm overflow-hidden transition-all duration-200 hover:border-primary group">
+            <li
+              key={r.id}
+              className="card group overflow-hidden rounded-card shadow-sm transition-all duration-200 hover:border-primary"
+            >
               <button
                 type="button"
                 className="flex w-full items-center justify-between p-4 text-left"
@@ -131,10 +149,10 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
                 aria-controls={panelId}
               >
                 <div className="flex-1 pr-3">
-                  <h3 className="font-bold text-lg text-text leading-tight">{r.name}</h3>
+                  <h3 className="text-lg leading-tight font-bold text-text">{r.name}</h3>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {r.category && (
-                      <span className="inline-block px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-primary border border-primary rounded-lg text-xs font-semibold">
+                      <span className="inline-block rounded-lg border border-primary bg-info-soft px-2 py-0.5 text-xs font-semibold text-primary">
                         {r.category}
                       </span>
                     )}
@@ -145,29 +163,31 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
                     )}
                   </div>
                 </div>
-                <span className="p-2 bg-surface text-text-secondary rounded-lg shrink-0" aria-hidden="true">
-                  <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+                <span className="shrink-0 rounded-lg bg-surface p-2 text-text-secondary" aria-hidden="true">
+                  <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
                 </span>
               </button>
               {open && (
-                <div id={panelId} className="px-4 pb-4 pt-1 bg-card border-t border-gray-100 dark:border-gray-800 space-y-4">
+                <div id={panelId} className="space-y-4 border-t border-line bg-card px-4 pt-1 pb-4">
                   {r.products && r.products.length > 0 && (
                     <div className="pt-3">
-                      <span className="text-xs font-bold text-text-muted block mb-2">Składniki:</span>
+                      <span className="mb-2 block text-xs font-bold text-text-muted">Składniki:</span>
                       <ul className="flex flex-wrap gap-1.5">
                         {r.products.map((p) => (
-                          <li key={p} className="text-xs px-2 py-1 rounded-lg card text-text font-medium">{p}</li>
+                          <li key={p} className="card rounded-lg px-2 py-1 text-xs font-medium text-text">
+                            {p}
+                          </li>
                         ))}
                       </ul>
                     </div>
                   )}
                   {r.description && (
                     <div>
-                      <span className="text-xs font-bold text-text-muted block mb-2">Przygotowanie:</span>
-                      <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{r.description}</p>
+                      <span className="mb-2 block text-xs font-bold text-text-muted">Przygotowanie:</span>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">{r.description}</p>
                     </div>
                   )}
-                  <div className="flex justify-end w-full gap-1.5 pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">
+                  <div className="mt-2 flex w-full justify-end gap-1.5 border-t border-line pt-4">
                     <EditButton onClick={() => setEditingId(r.id)} disabled={isTemp(r.id) || loading} />
                     <DeleteButton onClick={() => handleDelete(r.id)} disabled={isTemp(r.id) || loading} />
                   </div>
@@ -176,9 +196,7 @@ export default function RecipesList({ recipes, products, loading = false, onEdit
             </li>
           );
         })}
-        {filtered.length === 0 && (
-          <NoResultsState text="przepisów" isSearch={hasActiveFilters} />
-        )}
+        {filtered.length === 0 && <NoResultsState text="przepisów" isSearch={hasActiveFilters} />}
       </ul>
     </div>
   );

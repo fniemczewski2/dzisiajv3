@@ -1,4 +1,4 @@
-﻿// __tests__/components/CommonButtons.test.tsx
+// __tests__/components/CommonButtons.test.tsx
 
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -16,14 +16,14 @@ import { Trash2 } from "lucide-react";
 describe("SaveButton", () => {
   it("shows the Save icon and is enabled when not loading", () => {
     render(<SaveButton />);
-    const button = screen.getByRole("button", { name: "zapisz" });
+    const button = screen.getByRole("button", { name: "Zapisz" });
     expect(button).not.toBeDisabled();
     expect(button.querySelector(".animate-spin")).toBeNull();
   });
 
   it("shows a spinner and is disabled while loading", () => {
     render(<SaveButton loading />);
-    const button = screen.getByRole("button", { name: "zapisz" });
+    const button = screen.getByRole("button", { name: "Zapisz" });
     expect(button).toBeDisabled();
     expect(button.querySelector(".animate-spin")).not.toBeNull();
   });
@@ -31,7 +31,7 @@ describe("SaveButton", () => {
   it("calls onClick when clicked", async () => {
     const onClick = vi.fn();
     render(<SaveButton onClick={onClick} />);
-    await userEvent.click(screen.getByRole("button", { name: "zapisz" }));
+    await userEvent.click(screen.getByRole("button", { name: "Zapisz" }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
@@ -39,52 +39,46 @@ describe("SaveButton", () => {
 describe("FormButtons", () => {
   it("propagates the loading state down to the inner SaveButton", () => {
     render(<FormButtons loading onClickSave={() => {}} onClickClose={() => {}} />);
-    const saveButton = screen.getByRole("button", { name: "zapisz" });
+    const saveButton = screen.getByRole("button", { name: "Zapisz" });
     expect(saveButton).toBeDisabled();
     expect(saveButton.querySelector(".animate-spin")).not.toBeNull();
   });
 
   it("renders an AddAnotherButton instead of SaveButton when addMany is set", () => {
-    render(
-      <FormButtons
-        addMany
-        onAddAnother={() => {}}
-        onClickClose={() => {}}
-      />
-    );
-    expect(screen.queryByRole("button", { name: "zapisz" })).toBeNull();
-    expect(screen.getByRole("button", { name: "dodaj kolejny" })).toBeInTheDocument();
+    render(<FormButtons addMany onAddAnother={() => {}} onClickClose={() => {}} />);
+    expect(screen.queryByRole("button", { name: "Zapisz" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Dodaj kolejny" })).toBeInTheDocument();
   });
 
   it("keeps the close button enabled when only saving is disabled (invalid form)", () => {
     render(<FormButtons disabled onClickSave={() => {}} onClickClose={() => {}} />);
-    expect(screen.getByRole("button", { name: "zapisz" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "zamknij" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Zapisz" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Zamknij" })).toBeEnabled();
   });
 
   it("disables both buttons while loading, even without addMany", () => {
     render(<FormButtons loading onClickClose={() => {}} />);
-    expect(screen.getByRole("button", { name: "zapisz" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "zamknij" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Zapisz" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Zamknij" })).toBeInTheDocument();
   });
 });
 
 describe("ToggleSwitch", () => {
   it("reflects the checked state via aria-checked", () => {
-    render(<ToggleSwitch checked onChange={() => {}} />);
+    render(<ToggleSwitch label="Przełącznik" checked onChange={() => {}} />);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
   });
 
   it("calls onChange with the inverted value when clicked", async () => {
     const onChange = vi.fn();
-    render(<ToggleSwitch checked={false} onChange={onChange} />);
+    render(<ToggleSwitch label="Przełącznik" checked={false} onChange={onChange} />);
     await userEvent.click(screen.getByRole("switch"));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
   it("does not fire onChange when disabled", async () => {
     const onChange = vi.fn();
-    render(<ToggleSwitch checked={false} onChange={onChange} disabled />);
+    render(<ToggleSwitch label="Przełącznik" checked={false} onChange={onChange} disabled />);
     await userEvent.click(screen.getByRole("switch"));
     expect(onChange).not.toHaveBeenCalled();
   });

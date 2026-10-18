@@ -30,7 +30,15 @@ const DAY = new Date(2030, 4, 15);
 
 async function setup() {
   const addEvent = vi.fn(() => Promise.resolve({ id: "ev-123" }));
-  render(<EventForm addEvent={addEvent as never} onEventsChange={vi.fn()} currentDate={DAY} selectedDate={DAY} loading={false} />);
+  render(
+    <EventForm
+      addEvent={addEvent as never}
+      onEventsChange={vi.fn()}
+      currentDate={DAY}
+      selectedDate={DAY}
+      loading={false}
+    />
+  );
   fireEvent.change(screen.getByLabelText("Tytuł wydarzenia:"), { target: { value: "Spotkanie" } });
   await screen.findByRole("option", { name: "Google: Praca" });
   const select = screen.getByLabelText("Dodaj do:") as HTMLSelectElement;

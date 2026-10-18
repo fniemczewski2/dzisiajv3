@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 
-
 export default function LoveButton() {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
@@ -16,19 +15,19 @@ export default function LoveButton() {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Nie można pobrać tokena dostępu");
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
       const body = (await response.json().catch(() => ({}))) as { success?: boolean; message?: string; error?: string };
       if (!response.ok || !body.success) {
         toast.error(body.message ?? body.error ?? "Nie udało się wysłać serduszka.");
@@ -47,16 +46,17 @@ export default function LoveButton() {
   return (
     <button
       onClick={sendLove}
-      type='button'
+      type="button"
       disabled={loading || sent}
-      className={`p-2.5 rounded-xl transition-colors border shadow-sm ${
+      className={`rounded-xl border p-2.5 shadow-sm transition-colors ${
         sent || loading
-          ? "bg-pink-600 border-pink-500 text-white shadow-pink-500/20"
-          : "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-900/50 hover:bg-pink-100 dark:hover:bg-pink-900/40 text-pink-600 dark:text-pink-400"
+          ? "border-deco-pink bg-deco-pink-solid text-white"
+          : "border-deco-pink-line bg-deco-pink-soft text-deco-pink hover:bg-deco-pink-line"
       }`}
-      title="Wyślij serduszko" aria-label="Wyślij serduszko"
+      title="Wyślij serduszko"
+      aria-label="Wyślij serduszko"
     >
-      <Heart className={`w-5 h-5 ${sent ? "animate-pulse" : ""}`} fill={sent ? "#fff" : "none"} />
+      <Heart className={`h-5 w-5 ${sent ? "animate-pulse" : ""}`} fill={sent ? "#fff" : "none"} />
     </button>
   );
 }

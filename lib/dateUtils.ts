@@ -1,13 +1,16 @@
-﻿// lib/dateUtils.ts
+// lib/dateUtils.ts
 
 import { Event } from "@/types/events";
 
 export const formatTime = (timestamp: string, includeDate = false): string => {
-  const cleanTimestamp = timestamp.replace(/\+\d{2}$/, "").replace("T", " ").slice(0, 19);
+  const cleanTimestamp = timestamp
+    .replace(/\+\d{2}$/, "")
+    .replace("T", " ")
+    .slice(0, 19);
   const [datePart, timePart] = cleanTimestamp.split(" ");
   const [, month, day] = datePart.split("-");
   const [hours, minutes] = timePart.split(":");
-  
+
   if (includeDate) {
     return `${day}.${month} ${hours}:${minutes}`;
   }
@@ -15,28 +18,26 @@ export const formatTime = (timestamp: string, includeDate = false): string => {
 };
 
 export const localDateTimeToISO = (localDateTime: string): string => {
-  
   let cleanDateTime = localDateTime;
-  
+
   const parts = cleanDateTime.split(":");
   if (parts.length === 2) {
     cleanDateTime += ":00";
   }
-  
+
   return `${cleanDateTime}+00`;
 };
-
 
 export const parseEventDate = (timestamp: string): Date => {
   const cleanTimestamp = timestamp
     .replace(" ", "T")
     .replace(/\+\d{2}$/, "")
     .split(".")[0];
-  
+
   const [datePart, timePart] = cleanTimestamp.split("T");
   const [year, month, day] = datePart.split("-");
   const [hours, minutes, seconds] = (timePart || "00:00:00").split(":");
-  
+
   return new Date(
     Number.parseInt(year, 10),
     Number.parseInt(month, 10) - 1,
@@ -49,28 +50,28 @@ export const parseEventDate = (timestamp: string): Date => {
 
 export const dateToTimestamp = (date: Date): string => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+00`;
 };
 
 export const eventSpansDate = (event: Event, selectedDate: Date): boolean => {
   const eventStart = parseEventDate(event.start_time);
   const eventEnd = parseEventDate(event.end_time);
-  
+
   const selectedDateOnly = new Date(selectedDate);
   selectedDateOnly.setHours(0, 0, 0, 0);
-  
+
   const eventStartDateOnly = new Date(eventStart);
   eventStartDateOnly.setHours(0, 0, 0, 0);
-  
+
   const eventEndDateOnly = new Date(eventEnd);
   eventEndDateOnly.setHours(0, 0, 0, 0);
-  
+
   return selectedDateOnly >= eventStartDateOnly && selectedDateOnly <= eventEndDateOnly;
 };
 
@@ -121,13 +122,18 @@ const appOffsetMinutes = (dateStr: string): number => {
   return Math.round((asWarsaw.getTime() - asUtc.getTime()) / 60000);
 };
 
+/**
+ * Granice doby `dateStr` w strefie aplikacji (Europe/Warsaw) jako czasy UTC –
+ * niezależnie od strefy przeglądarki lub serwera.
+ */
 export const getAppDayRangeUtc = (dateStr: string): { start: string; end: string } => {
   const [y, m, d] = dateStr.split("-").map(Number);
-  const start = new Date(y, m - 1, d, 0, 0, 0);
-  const end = new Date(y, m - 1, d + 1, 0, 0, 0);
-  
-  return { 
-    start: start.toISOString(), 
-    end: end.toISOString() 
+  const nextDay = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+  const start = Date.UTC(y, m - 1, d) - appOffsetMinutes(dateStr) * 60_000;
+  const end = Date.UTC(y, m - 1, d + 1) - appOffsetMinutes(nextDay) * 60_000;
+
+  return {
+    start: new Date(start).toISOString(),
+    end: new Date(end).toISOString(),
   };
 };

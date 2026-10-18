@@ -1,5 +1,6 @@
-﻿// lib/server/oauthCallback.ts
+// lib/server/oauthCallback.ts
 
+import { publicEnv } from "@/config/env";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { encryptToken } from "@/lib/server/tokenCrypto";
@@ -16,11 +17,7 @@ export interface OAuthProviderConfig {
   extractEmail: (profile: Record<string, unknown>) => string | undefined;
 }
 
-export async function handleOAuthCallback(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  config: OAuthProviderConfig
-) {
+export async function handleOAuthCallback(req: NextApiRequest, res: NextApiResponse, config: OAuthProviderConfig) {
   const { code, state } = req.query;
 
   if (req.method !== "GET") return res.status(405).json({ error: "Metoda niedozwolona." });
@@ -33,12 +30,15 @@ export async function handleOAuthCallback(
   }
 
   const supabase = createServerSupabase(req, res);
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) return res.redirect("/calendar?error=auth_failed");
 
   try {
     const { client_id, client_secret } = config.buildClientCredentials();
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+    const appUrl = publicEnv.appUrl;
 
     const tokenResponse = await fetch(config.tokenUrl, {
       method: "POST",
@@ -55,7 +55,10 @@ export async function handleOAuthCallback(
     const tokens = await tokenResponse.json();
 
     if (!tokenResponse.ok || !tokens.access_token) {
-      console.error(`[${config.provider}] Token exchange failed:`, tokens.error_description ?? tokens.error ?? tokenResponse.status);
+      console.error(
+        `[${config.provider}] Wymiana kodu na token nie powiodła się:`,
+        tokens.error_description ?? tokens.error ?? tokenResponse.status
+      );
       return res.redirect("/calendar?error=token_exchange_failed");
     }
 
@@ -63,14 +66,14 @@ export async function handleOAuthCallback(
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
     if (!profileResponse.ok) {
-      console.error(`[${config.provider}] Profile fetch failed:`, profileResponse.status);
+      console.error(`[${config.provider}] Nie udało się pobrać profilu:`, profileResponse.status);
       return res.redirect("/calendar?error=profile_fetch_failed");
     }
 
     const profile = await profileResponse.json();
     const email = config.extractEmail(profile);
     if (!email) {
-      console.error(`[${config.provider}] Profile response without email.`);
+      console.error(`[${config.provider}] Profil bez adresu e-mail.`);
       return res.redirect("/calendar?error=profile_fetch_failed");
     }
 
@@ -94,13 +97,13 @@ export async function handleOAuthCallback(
       onConflict: "user_id, account_email, google_calendar_id",
     });
     if (error) {
-      console.error(`[${config.provider}] DB upsert error:`, error);
+      console.error(`[${config.provider}] Zapis do bazy nie powiódł się:`, error);
       return res.redirect("/calendar?error=save_failed");
     }
 
     return res.redirect("/calendar?sync=success");
   } catch (error) {
-    console.error(`[${config.provider}] Callback error:`, error);
+    console.error(`[${config.provider}] Błąd powrotu z logowania:`, error);
     return res.redirect("/calendar?error=auth_failed");
   }
 }

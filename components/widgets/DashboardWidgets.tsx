@@ -1,14 +1,14 @@
-﻿// components/widgets/DashboardWidgets.tsx
+// components/widgets/DashboardWidgets.tsx
 
-import React from 'react';
+import React from "react";
 import TaskIcons from "./HabitIcons";
 import WaterTracker from "./WaterTracker";
 import DailySpendingForm from "./DailySpendingForm";
-import MoodWidget from './MoodTracker';
-import { getAppDate } from '@/lib/dateUtils';
-import { Settings } from '@/types/settings';
-import LoadingState from '../ui/LoadingState';
-import { isPathEnabled } from '@/config/modules';
+import MoodWidget from "./MoodTracker";
+import { getAppDate } from "@/lib/dateUtils";
+import { Settings } from "@/types/settings";
+import LoadingState from "../ui/LoadingState";
+import { isPathEnabled } from "@/config/modules";
 
 interface DashboardWidgetsProps {
   settings: Settings;
@@ -18,15 +18,15 @@ interface DashboardWidgetsProps {
 
 export const DashboardWidgets = React.memo(({ settings, loading, date }: Readonly<DashboardWidgetsProps>) => {
   const today = getAppDate();
-  if (!settings) return null; 
+  if (!settings) return null;
   if (loading) return <LoadingState />;
   return (
     <div className="flex flex-col">
-      {settings?.show_habits && <TaskIcons date={date}/>}
-      {settings?.show_water_tracker && <WaterTracker date={date}/>}
-      {settings?.show_mood_tracker && <MoodWidget date={date || today}/>}
-      {isPathEnabled('/bills', settings.disabled_modules) && <DailySpendingForm date={date} />}
+      {settings?.show_habits && <TaskIcons date={date} />}
+      {settings?.show_water_tracker && <WaterTracker date={date} />}
+      {settings?.show_mood_tracker && <MoodWidget date={date || today} />}
+      {isPathEnabled("/bills", settings.disabled_modules) && <DailySpendingForm date={date} />}
     </div>
   );
 });
-DashboardWidgets.displayName = 'DashboardWidgets';
+DashboardWidgets.displayName = "DashboardWidgets";

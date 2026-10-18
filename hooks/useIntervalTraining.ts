@@ -1,4 +1,4 @@
-﻿// hooks/useIntervalTraining.ts
+// hooks/useIntervalTraining.ts
 
 import { useMemo } from "react";
 import { useTimerEngine } from "./useTimer";
@@ -19,7 +19,7 @@ export function useIntervalTraining(cfg: IntervalConfig) {
     for (let s = 0; s < cfg.sets; s++) {
       p.push(
         { label: `Ćwiczenia ${s + 1}`, seconds: cfg.workSeconds },
-        { label: `Przerwa ${s + 1}`,   seconds: cfg.restSeconds }
+        { label: `Przerwa ${s + 1}`, seconds: cfg.restSeconds }
       );
     }
     if (cfg.longRestSeconds && cfg.longRestAfterCycles) {

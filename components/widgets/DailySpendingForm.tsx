@@ -5,7 +5,6 @@
 // transakcję, więc kwota trafia też do budżetu i podsumowania miesiąca.
 
 import React, { useId, useMemo, useState } from "react";
-import Link from "next/link";
 import { Coins, Plus } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -72,11 +71,11 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
     <section aria-labelledby={`${id}-h`} className="widget px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <h3 id={`${id}-h`} className="flex items-center gap-3 font-medium text-text">
-          <Coins className="h-5 w-5 text-amber-700 dark:text-amber-400" aria-hidden="true" />
+          <Coins className="h-5 w-5 text-warning" aria-hidden="true" />
           Wydatki <span className="text-sm font-normal text-text-secondary">{dayLabel}</span>
         </h3>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold tabular-nums text-text">{formatPln(total)}</span>
+          <span className="text-lg font-semibold text-text tabular-nums">{formatPln(total)}</span>
           {selectedCategories.length > 0 && !adding && (
             <button
               type="button"
@@ -98,7 +97,9 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
           }}
           className="mt-3 grid gap-2 sm:grid-cols-[8rem_1fr_auto_auto]"
         >
-          <label htmlFor={`${id}-amount`} className="sr-only">Kwota</label>
+          <label htmlFor={`${id}-amount`} className="sr-only">
+            Kwota
+          </label>
           <input
             id={`${id}-amount`}
             inputMode="decimal"
@@ -108,7 +109,9 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
             className="input-field"
             required
           />
-          <label htmlFor={`${id}-desc`} className="sr-only">Opis</label>
+          <label htmlFor={`${id}-desc`} className="sr-only">
+            Opis
+          </label>
           <input
             id={`${id}-desc`}
             placeholder="Opis (opcjonalnie)"
@@ -116,7 +119,9 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
             onChange={(e) => setDescription(e.target.value)}
             className="input-field"
           />
-          <label htmlFor={`${id}-cat`} className="sr-only">Kategoria</label>
+          <label htmlFor={`${id}-cat`} className="sr-only">
+            Kategoria
+          </label>
           <select
             id={`${id}-cat`}
             value={categoryId || selectedCategories[0]?.id || ""}
@@ -124,14 +129,24 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
             className="input-field w-auto"
           >
             {selectedCategories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
           <div className="flex gap-2">
-            <button type="submit" disabled={saving} className="min-h-11 rounded-lg bg-secondary px-4 font-semibold text-white hover:bg-secondary-hover disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={saving}
+              className="min-h-11 rounded-lg bg-secondary px-4 font-semibold text-white hover:bg-secondary-hover disabled:opacity-50"
+            >
               Dodaj
             </button>
-            <button type="button" onClick={() => setAdding(false)} className="min-h-11 rounded-lg px-3 text-text-secondary hover:bg-surface">
+            <button
+              type="button"
+              onClick={() => setAdding(false)}
+              className="min-h-11 rounded-lg px-3 text-text-secondary hover:bg-surface"
+            >
               Anuluj
             </button>
           </div>

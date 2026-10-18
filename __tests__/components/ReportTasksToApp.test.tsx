@@ -22,26 +22,44 @@ import { toAppTask, reportTaskChoices } from "@/lib/reportToTasks";
 import type { Report } from "@/types/reports";
 
 const report = {
-  id: "r1", user_id: "u1", topic: "Zarząd", date: "2026-10-15", agenda: [], participants: [], notes: "",
+  id: "r1",
+  user_id: "u1",
+  topic: "Zarząd",
+  date: "2026-10-15",
+  agenda: [],
+  participants: [],
+  notes: "",
   tasks: [
     { zadanie: "Sprawozdanie dla NIW", data: "2026-10-31", osoba: "Anna" },
     { zadanie: "Polityka RODO", data: "", osoba: "" },
     { zadanie: "Już dodane", data: "", osoba: "", app_task_id: "55" },
     { zadanie: "  ", data: "", osoba: "" },
   ],
-  inserted_at: "", updated_at: "",
+  inserted_at: "",
+  updated_at: "",
 } as Report;
 
 describe("zadania z protokołu", () => {
   it("lista: pomija puste, oznacza dodane", () => {
-    expect(reportTaskChoices(report).map((c) => [c.index, c.added])).toEqual([[0, false], [1, false], [2, true]]);
+    expect(reportTaskChoices(report).map((c) => [c.index, c.added])).toEqual([
+      [0, false],
+      [1, false],
+      [2, true],
+    ]);
   });
 
   it("zadanie: termin z protokołu albo zastępczy, opis ze źródłem i osobą", () => {
     const t = toAppTask(report, report.tasks[0], { userId: "u1", category: "praca", fallbackDue: "2026-10-20" });
-    expect(t).toMatchObject({ title: "Sprawozdanie dla NIW", due_date: "2026-10-31", category: "praca", for_user_id: "u1" });
+    expect(t).toMatchObject({
+      title: "Sprawozdanie dla NIW",
+      due_date: "2026-10-31",
+      category: "praca",
+      for_user_id: "u1",
+    });
     expect(t.description).toBe("Z protokołu „Zarząd” z 15.10.2026. Odpowiada: Anna.");
-    expect(toAppTask(report, report.tasks[1], { userId: "u1", category: "inne", fallbackDue: "2026-10-20" }).due_date).toBe("2026-10-20");
+    expect(
+      toAppTask(report, report.tasks[1], { userId: "u1", category: "inne", fallbackDue: "2026-10-20" }).due_date
+    ).toBe("2026-10-20");
   });
 
   it("każde zadanie dodaje się osobno i zapisuje swoje id w protokole", async () => {

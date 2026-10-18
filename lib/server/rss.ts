@@ -7,6 +7,7 @@
 // Własne kanały użytkownika przechodzą kontrolę SSRF: tylko http(s), standardowe
 // porty i adresy publiczne (sprawdzane po rozwiązaniu DNS, także po przekierowaniu).
 
+import { RSS_LIMITS, TIMEOUTS_MS, SERVER_TTL_MS } from "@/config/server";
 import { XMLParser } from "fast-xml-parser";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
@@ -23,12 +24,6 @@ export interface FeedResult {
   error: string | null;
 }
 
-const MAX_BYTES = 3 * 1024 * 1024;
-const TIMEOUT_MS = 8_000;
-const OK_TTL_MS = 15 * 60_000;
-const ERROR_TTL_MS = 5 * 60_000;
-const MAX_ITEMS_PER_FEED = 30;
-const MAX_REDIRECTS = 3;
 const USER_AGENT = "Dzisiaj.fun RSS reader (+https://dzisiaj.fun)";
 
 const parser = new XMLParser({
@@ -123,29 +118,42 @@ export function parseFeed(xml: string, baseUrl: string): FeedItem[] {
   let raw: Array<Record<string, unknown>> = [];
   let kind: "rss" | "atom" = "rss";
   if (doc.rss?.channel) raw = asArray(doc.rss.channel.item);
-  else if (doc.feed) { raw = asArray(doc.feed.entry); kind = "atom"; }
-  else if (doc["rdf:RDF"]) raw = asArray(doc["rdf:RDF"].item);
+  else if (doc.feed) {
+    raw = asArray(doc.feed.entry);
+    kind = "atom";
+  } else if (doc["rdf:RDF"]) raw = asArray(doc["rdf:RDF"].item);
   else throw new Error("To nie jest kanał RSS ani Atom.");
 
-  return raw.slice(0, MAX_ITEMS_PER_FEED).map((item) => {
-    const link = kind === "atom" ? atomLink(item.link) : text(item.link) || text(item.guid);
-    const published = toIso(text(item.pubDate ?? item.published ?? item.updated ?? item["dc:date"]));
-    const summaryRaw = text(item.description ?? item.summary ?? item.content ?? item["content:encoded"]);
-    return {
-      title: stripHtml(text(item.title)).slice(0, 300) || "(bez tytułu)",
-      link: safeLink(link, baseUrl),
-      published,
-      summary: stripHtml(summaryRaw).slice(0, 320),
-    };
-  }).filter((i) => i.link);
+  return raw
+    .slice(0, RSS_LIMITS.maxItemsPerFeed)
+    .map((item) => {
+      const link = kind === "atom" ? atomLink(item.link) : text(item.link) || text(item.guid);
+      const published = toIso(text(item.pubDate ?? item.published ?? item.updated ?? item["dc:date"]));
+      const summaryRaw = text(item.description ?? item.summary ?? item.content ?? item["content:encoded"]);
+      return {
+        title: stripHtml(text(item.title)).slice(0, 300) || "(bez tytułu)",
+        link: safeLink(link, baseUrl),
+        published,
+        summary: stripHtml(summaryRaw).slice(0, 320),
+      };
+    })
+    .filter((i) => i.link);
 }
 
 // --- SSRF ---------------------------------------------------------------------
 
 function isPrivateIPv4(ip: string): boolean {
   const [a, b] = ip.split(".").map(Number);
-  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+  return (
+    a === 10 ||
+    a === 127 ||
+    a === 0 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    a >= 224
+  );
 }
 
 function isPrivateIp(ip: string): boolean {
@@ -179,15 +187,18 @@ export async function checkPublicUrl(raw: string): Promise<string | null> {
 
 async function fetchText(url: string, guard: boolean): Promise<string> {
   let current = url;
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+  for (let hop = 0; hop <= RSS_LIMITS.maxRedirects; hop++) {
     if (guard) {
       const problem = await checkPublicUrl(current);
       if (problem) throw new Error(problem);
     }
     const res = await fetch(current, {
       redirect: "manual",
-      headers: { "User-Agent": USER_AGENT, Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5" },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5",
+      },
+      signal: AbortSignal.timeout(TIMEOUTS_MS.rss),
     });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       current = new URL(res.headers.get("location")!, current).toString();
@@ -195,9 +206,9 @@ async function fetchText(url: string, guard: boolean): Promise<string> {
     }
     if (!res.ok) throw new Error(`Serwer odpowiedział kodem ${res.status}.`);
     const length = Number(res.headers.get("content-length") ?? 0);
-    if (length > MAX_BYTES) throw new Error("Kanał jest za duży.");
+    if (length > RSS_LIMITS.maxBytes) throw new Error("Kanał jest za duży.");
     const body = await res.text();
-    if (body.length > MAX_BYTES) throw new Error("Kanał jest za duży.");
+    if (body.length > RSS_LIMITS.maxBytes) throw new Error("Kanał jest za duży.");
     return body;
   }
   throw new Error("Za dużo przekierowań.");
@@ -209,13 +220,14 @@ const cache = new Map<string, { at: number; result: FeedResult }>();
 export async function getFeed(url: string, guard: boolean): Promise<FeedResult> {
   const hit = cache.get(url);
   const now = Date.now();
-  if (hit && now - hit.at < (hit.result.error ? ERROR_TTL_MS : OK_TTL_MS)) return hit.result;
+  if (hit && now - hit.at < (hit.result.error ? SERVER_TTL_MS.rssError : SERVER_TTL_MS.rssOk)) return hit.result;
 
   let result: FeedResult;
   try {
     result = { items: parseFeed(await fetchText(url, guard), url), error: null };
   } catch (err) {
-    const message = err instanceof Error && err.name !== "TimeoutError" ? err.message : "Przekroczono czas oczekiwania.";
+    const message =
+      err instanceof Error && err.name !== "TimeoutError" ? err.message : "Przekroczono czas oczekiwania.";
     result = { items: hit?.result.items ?? [], error: message };
   }
   if (cache.size > 500) cache.clear();

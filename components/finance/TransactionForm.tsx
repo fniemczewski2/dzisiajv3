@@ -16,7 +16,15 @@ interface Props {
   onCancel: () => void;
 }
 
-export default function TransactionForm({ categories, bills, profiles, defaultProfileId, defaultDate, onSave, onCancel }: Readonly<Props>) {
+export default function TransactionForm({
+  categories,
+  bills,
+  profiles,
+  defaultProfileId,
+  defaultDate,
+  onSave,
+  onCancel,
+}: Readonly<Props>) {
   const id = useId();
   const [kind, setKind] = useState<"expense" | "income">("expense");
   const [amount, setAmount] = useState("");
@@ -70,41 +78,104 @@ export default function TransactionForm({ categories, bills, profiles, defaultPr
       </fieldset>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${id}-amount`} className="form-label">Kwota (zł):</label>
-          <input id={`${id}-amount`} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="input-field" placeholder="0,00" required />
+          <label htmlFor={`${id}-amount`} className="form-label">
+            Kwota (zł):
+          </label>
+          <input
+            id={`${id}-amount`}
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="input-field"
+            placeholder="0,00"
+            required
+          />
         </div>
         <div>
-          <label htmlFor={`${id}-date`} className="form-label">Data:</label>
-          <input id={`${id}-date`} type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-field" required />
+          <label htmlFor={`${id}-date`} className="form-label">
+            Data:
+          </label>
+          <input
+            id={`${id}-date`}
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="input-field"
+            required
+          />
         </div>
       </div>
       <div>
-        <label htmlFor={`${id}-desc`} className="form-label">Opis:</label>
-        <input id={`${id}-desc`} value={description} onChange={(e) => setDescription(e.target.value)} className="input-field" maxLength={300} placeholder="np. Biedronka, Apple" />
+        <label htmlFor={`${id}-desc`} className="form-label">
+          Opis:
+        </label>
+        <input
+          id={`${id}-desc`}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="input-field"
+          maxLength={300}
+          placeholder="np. Biedronka, Apple"
+        />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${id}-cat`} className="form-label">Kategoria:</label>
-          <select id={`${id}-cat`} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="input-field">
+          <label htmlFor={`${id}-cat`} className="form-label">
+            Kategoria:
+          </label>
+          <select
+            id={`${id}-cat`}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="input-field"
+          >
             <option value="">{kind === "expense" ? "Dobierz automatycznie" : "Bez kategorii"}</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
         </div>
         {kind === "expense" && (
           <div>
-            <label htmlFor={`${id}-bill`} className="form-label">Rachunek stały:</label>
-            <select id={`${id}-bill`} value={billId} onChange={(e) => setBillId(e.target.value)} className="input-field">
+            <label htmlFor={`${id}-bill`} className="form-label">
+              Rachunek stały:
+            </label>
+            <select
+              id={`${id}-bill`}
+              value={billId}
+              onChange={(e) => setBillId(e.target.value)}
+              className="input-field"
+            >
               <option value="">Dobierz automatycznie</option>
-              {bills.filter((b) => b.active).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              {bills
+                .filter((b) => b.active)
+                .map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
             </select>
           </div>
         )}
         {profiles.length > 0 && (
           <div>
-            <label htmlFor={`${id}-profile`} className="form-label">Profil:</label>
-            <select id={`${id}-profile`} value={profileId} onChange={(e) => setProfileId(e.target.value)} className="input-field">
+            <label htmlFor={`${id}-profile`} className="form-label">
+              Profil:
+            </label>
+            <select
+              id={`${id}-profile`}
+              value={profileId}
+              onChange={(e) => setProfileId(e.target.value)}
+              className="input-field"
+            >
               <option value="">Bez profilu</option>
-              {profiles.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {profiles.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
             </select>
           </div>
         )}

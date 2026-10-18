@@ -30,7 +30,11 @@ describe("normalizeReportTemplate", () => {
   it("przyjmuje tylko pliki z folderu użytkownika i przycina szerokość logo", () => {
     const t = normalizeReportTemplate(
       {
-        fonts: { title: { path: "u1/font-title.ttf", name: "Lora.ttf" }, body: { path: "u2/font-body.ttf", name: "x" }, nope: {} },
+        fonts: {
+          title: { path: "u1/font-title.ttf", name: "Lora.ttf" },
+          body: { path: "u2/font-body.ttf", name: "x" },
+          nope: {},
+        },
         logo: { path: "u1/logo.png", name: "logo.png", width: 9999 },
       },
       "u1"
@@ -47,19 +51,27 @@ describe("PDF z szablonem", () => {
   it("kaskada czcionek: nagłówki ← treść, tytuł ← nagłówki", () => {
     expect(resolveReportFonts({})).toEqual({ title: "Roboto", heading: "Roboto", body: "Roboto" });
     expect(resolveReportFonts({ body: true })).toEqual({
-      title: TEMPLATE_FONT_NAMES.body, heading: TEMPLATE_FONT_NAMES.body, body: TEMPLATE_FONT_NAMES.body,
+      title: TEMPLATE_FONT_NAMES.body,
+      heading: TEMPLATE_FONT_NAMES.body,
+      body: TEMPLATE_FONT_NAMES.body,
     });
-    expect(resolveReportFonts({ title: true })).toEqual({ title: TEMPLATE_FONT_NAMES.title, heading: "Roboto", body: "Roboto" });
+    expect(resolveReportFonts({ title: true })).toEqual({
+      title: TEMPLATE_FONT_NAMES.title,
+      heading: "Roboto",
+      body: "Roboto",
+    });
   });
 
   it("logo w jednej linii z tytułem (dwie kolumny), bez nagłówka strony", () => {
     const def = buildReportDocDefinition(SAMPLE_REPORT, { logo: { dataUrl: "data:image/png;base64,AAA", width: 120 } });
-    const first = def.content[0] as { columns: Array<{ image?: string; fit?: number[]; alignment?: string; stack?: unknown[] }> };
+    const first = def.content[0] as {
+      columns: Array<{ image?: string; fit?: number[]; alignment?: string; stack?: unknown[] }>;
+    };
     expect(first.columns).toHaveLength(2);
     expect(first.columns[0].stack).toHaveLength(2); // tytuł + data
-    expect(first.columns[1]).toMatchObject({ image: "data:image/png;base64,AAA", fit: [120, 56], alignment: "right" });
+    expect(first.columns[1]).toMatchObject({ image: "data:image/png;base64,AAA", fit: [120, 150], alignment: "right" });
     expect((def as { header?: unknown }).header).toBeUndefined();
-    expect(def.pageMargins[1]).toBe(64);
+    expect(def.pageMargins[1]).toBe(50);
     const noLogo = buildReportDocDefinition(SAMPLE_REPORT).content[0] as { columns?: unknown; stack?: unknown[] };
     expect(noLogo.columns).toBeUndefined();
     expect(noLogo.stack).toHaveLength(2);
@@ -77,7 +89,10 @@ import { normalizeTemplateSet, pickTemplate, templateAssetPaths, MAX_REPORT_TEMP
 
 describe("zestaw szablonów (do 5)", () => {
   it("dawny pojedynczy szablon staje się „Szablonem podstawowym”", () => {
-    const set = normalizeTemplateSet({ fonts: { body: { path: "u1/font-body.ttf", name: "Lora.ttf" } }, logo: null }, "u1");
+    const set = normalizeTemplateSet(
+      { fonts: { body: { path: "u1/font-body.ttf", name: "Lora.ttf" } }, logo: null },
+      "u1"
+    );
     expect(set.templates).toHaveLength(1);
     expect(set.templates[0]).toMatchObject({ id: "default", name: "Szablon podstawowy" });
     expect(set.default_id).toBe("default");
@@ -97,7 +112,10 @@ describe("zestaw szablonów (do 5)", () => {
 
   it("protokół: wybrany szablon, a gdy usunięty – domyślny", () => {
     const set = normalizeTemplateSet({
-      templates: [{ id: "a", name: "Fundacja A" }, { id: "b", name: "Fundacja B" }],
+      templates: [
+        { id: "a", name: "Fundacja A" },
+        { id: "b", name: "Fundacja B" },
+      ],
       default_id: "b",
     });
     expect(pickTemplate(set, "a")?.name).toBe("Fundacja A");
@@ -108,7 +126,10 @@ describe("zestaw szablonów (do 5)", () => {
 
   it("pliki do usunięcia razem z szablonem", () => {
     expect(
-      templateAssetPaths({ fonts: { title: { path: "u/t1/font-title.ttf", name: "x" } }, logo: { path: "u/t1/logo.png", name: "l" } })
+      templateAssetPaths({
+        fonts: { title: { path: "u/t1/font-title.ttf", name: "x" } },
+        logo: { path: "u/t1/logo.png", name: "l" },
+      })
     ).toEqual(["u/t1/font-title.ttf", "u/t1/logo.png"]);
   });
 });

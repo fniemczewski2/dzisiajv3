@@ -1,9 +1,9 @@
-﻿// components/dashboard/DayTasks.tsx
+// components/dashboard/DayTasks.tsx
 
 import React from "react";
 import NoResultsState from "../ui/NoResultsState";
 import { DraggablePlanItem } from "./DraggablePlanItem";
-import TaskItem from "../tasks/TaskItem"; 
+import TaskItem from "../tasks/TaskItem";
 import { Task } from "@/types/tasks";
 import { SkeletonTaskList } from "@/components/ui/Skeleton";
 
@@ -14,55 +14,56 @@ interface DayTasksProps {
   acceptTask: (id: string) => void;
   setDoneTask: (id: string, done?: boolean) => void;
   deleteTask: (id: string) => void;
-  fetchTasks: () => void; 
+  fetchTasks: () => void;
   editTask: (task: Task) => void;
   userId: string;
   userOptions: string[];
 }
 
-export const DayTasks = React.memo(({
-  loadingTasks,
-  fetchingTasks,
-  tasks,
-  acceptTask,
-  setDoneTask,
-  deleteTask,
-  fetchTasks,
-  editTask,
-  userId,
-  userOptions
-}: Readonly<DayTasksProps>) => {
+export const DayTasks = React.memo(
+  ({
+    loadingTasks,
+    fetchingTasks,
+    tasks,
+    acceptTask,
+    setDoneTask,
+    deleteTask,
+    fetchTasks,
+    editTask,
+    userId,
+    userOptions,
+  }: Readonly<DayTasksProps>) => {
+    if (fetchingTasks) {
+      return <SkeletonTaskList count={3} />;
+    }
 
-  if (fetchingTasks) {
-    return <SkeletonTaskList count={3} />;
-  }
-
-  return (
-    <div className="mb-6">
-      <div className="space-y-3">
-        {tasks.map((task) => {
-          return (
-            <DraggablePlanItem key={`task-${task.id}`} id={`task-${task.id}`} type="task">
-               <div className="w-full list-none">
-                    <TaskItem
-                      task={task}
-                      acceptTask={acceptTask}
-                      setDoneTask={setDoneTask}
-                      editTask={editTask}
-                      deleteTask={deleteTask}
-                      onTasksChange={fetchTasks}
-                      userId={userId}
-                      userOptions={userOptions}
-                      loading={loadingTasks}
-                    />
+    return (
+      <div className="mb-6">
+        <div className="space-y-3">
+          {tasks.map((task) => {
+            return (
+              <DraggablePlanItem key={`task-${task.id}`} id={`task-${task.id}`} type="task">
+                <div className="w-full list-none">
+                  <TaskItem
+                    task={task}
+                    acceptTask={acceptTask}
+                    setDoneTask={setDoneTask}
+                    editTask={editTask}
+                    deleteTask={deleteTask}
+                    onTasksChange={fetchTasks}
+                    userId={userId}
+                    userOptions={userOptions}
+                    loading={loadingTasks}
+                  />
                 </div>
-            </DraggablePlanItem>
-          );
-        })}
-        {tasks.length === 0 && <NoResultsState text="zadań" />}
+              </DraggablePlanItem>
+            );
+          })}
+          {tasks.length === 0 && <NoResultsState text="zadań" />}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 DayTasks.displayName = "DayTasks";
