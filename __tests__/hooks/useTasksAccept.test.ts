@@ -3,6 +3,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 
+// Identyfikatory użytkowników w Supabase są UUID – filtry je walidują.
+const { ME } = vi.hoisted(() => ({ ME: "00000000-0000-4000-8000-0000000000aa" }));
+
 const toast = {
   success: vi.fn(),
   error: vi.fn(),
@@ -20,7 +23,8 @@ const task = {
   title: "Zlecone",
   status: "waiting_for_acceptance",
   user_id: "boss",
-  for_user_id: "me",
+
+  for_user_id: ME,
   due_date: "2026-09-30",
   priority: 3,
 };
@@ -54,7 +58,7 @@ const supabase = {
   from: () => ({ select: () => selectBuilder(), update: (p: unknown) => updateBuilder(p) }),
 };
 
-const auth = { user: { id: "me" }, supabase };
+const auth = { user: { id: ME }, supabase };
 const settingsValue = { settings: { show_completed: true, sort_order: "priority" } };
 const toastValue = { toast };
 const retry = (fn: () => unknown) => fn();
@@ -103,7 +107,7 @@ describe("useTasks.acceptTask", () => {
     await act(async () => {
       await result.current.acceptTask("42");
     });
-    expect(updates[0].filters).toContainEqual(["for_user_id", "me"]);
+    expect(updates[0].filters).toContainEqual(["for_user_id", ME]);
   });
 
   it("reports an error when no row was updated (RLS / already accepted) instead of a false success", async () => {

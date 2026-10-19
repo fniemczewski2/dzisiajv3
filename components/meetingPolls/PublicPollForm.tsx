@@ -1,7 +1,7 @@
 // components/meetingPolls/PublicPollForm.tsx
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Check, CheckCircle2 } from "lucide-react";
 import { usePublicMeetingPoll } from "@/hooks/usePublicMeetingPoll";
 import { generateTimeSlots, slotKey } from "@/lib/meetingPollGrid";
@@ -23,12 +23,14 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const dragModeRef = React.useRef<"select" | "deselect">("select");
 
-  useEffect(() => {
-    if (!existingResponse) return;
+  // Wczytana wcześniejsza odpowiedź uczestnika – wypełnienie formularza w trakcie renderu.
+  const [loadedResponse, setLoadedResponse] = useState<typeof existingResponse>(null);
+  if (existingResponse && existingResponse !== loadedResponse) {
+    setLoadedResponse(existingResponse);
     setName(existingResponse.respondent_name);
     setEmail(existingResponse.respondent_email ?? "");
     setSelected(new Set(existingResponse.slots.map((s) => slotKey(s.date, s.start_time))));
-  }, [existingResponse]);
+  }
 
   const times = useMemo(
     () => (poll ? generateTimeSlots(poll.time_start, poll.time_end, poll.slot_duration_minutes) : []),

@@ -4,55 +4,61 @@
 // Zmiana schematu czyści przesunięcia/ukrycia rutyn z tego dnia
 // (daily_overrides), bo dotyczyły punktów poprzedniego schematu.
 
-import { useCallback, useEffect, useState } from "react";
+import { useQueryState } from "@/hooks/useQueryState";
+import { useCallback, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import type { SchemaChoice } from "@/lib/daySchemas";
 
 /** „default” = schemat domyślny, „none” = bez schematu, inna wartość = id schematu. */
-export type SchemaChoiceInput = string;
-
-function toChoice(input: SchemaChoiceInput): SchemaChoice {
+function toChoice(input: string): SchemaChoice {
   if (input === "default") return undefined;
   if (input === "none") return null;
   return input;
 }
 
+interface ChoiceState {
+  choice: SchemaChoice;
+  available: boolean;
+}
+
+const INITIAL_CHOICE: ChoiceState = { choice: undefined, available: true };
+
 export function useDaySchemaChoice(dateStr: string, onOverridesCleared?: () => void) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
-  const [choice, setChoice] = useState<SchemaChoice>(undefined);
-  const [available, setAvailable] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!userId || !supabase) return;
-    let cancelled = false;
-    setChoice(undefined);
-    void (async () => {
+  // Brak tabeli (przed migracją bazy) – przełącznik schematu jest ukryty.
+  const queryChoice = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<ChoiceState> => {
       const { data, error } = await supabase
         .from("day_schema_choices")
         .select("schema_id")
-        .eq("user_id", userId)
+        .eq("user_id", userId as string)
         .eq("date", dateStr)
+        .abortSignal(signal)
         .maybeSingle();
-      if (cancelled) return;
-      if (error) {
-        // Tabela jeszcze nie istnieje (przed migracją) – przełącznik ukryty.
-        setAvailable(false);
-        return;
-      }
-      setAvailable(true);
-      setChoice(data ? ((data as { schema_id: string | null }).schema_id ?? null) : undefined);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, userId, dateStr]);
+      if (error) return { choice: undefined, available: false };
+      return { choice: data ? ((data as { schema_id: string | null }).schema_id ?? null) : undefined, available: true };
+    },
+    [supabase, userId, dateStr]
+  );
+  const { data: choiceState, setData: setChoiceState } = useQueryState<ChoiceState>({
+    queryKey: ["day-schema-choice", userId ?? null, dateStr],
+    queryFn: queryChoice,
+    initial: INITIAL_CHOICE,
+    enabled: Boolean(userId && supabase),
+  });
+  const { choice, available } = choiceState;
+  const setChoice = useCallback(
+    (next: SchemaChoice) => setChoiceState((prev) => ({ ...prev, choice: next })),
+    [setChoiceState]
+  );
 
   const chooseSchema = useCallback(
-    async (input: SchemaChoiceInput) => {
+    async (input: string) => {
       if (!userId) return;
       const previous = choice;
       const next = toChoice(input);
@@ -75,7 +81,7 @@ export function useDaySchemaChoice(dateStr: string, onOverridesCleared?: () => v
         setSaving(false);
       }
     },
-    [supabase, userId, dateStr, choice, toast, onOverridesCleared]
+    [supabase, userId, dateStr, choice, toast, onOverridesCleared, setChoice]
   );
 
   return { choice, setChoice: chooseSchema, available, saving };

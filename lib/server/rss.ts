@@ -59,10 +59,28 @@ function removeBlocks(html: string, tag: string): string {
   }
 }
 
+/** Zamienia znaczniki <…> na spacje – liniowo, bez regexu z nawracaniem. */
+function removeTags(html: string): string {
+  let out = "";
+  let pos = 0;
+  for (;;) {
+    const start = html.indexOf("<", pos);
+    if (start === -1) return out + html.slice(pos);
+    const end = html.indexOf(">", start + 1);
+    if (end === -1) return out + html.slice(pos);
+    if (end === start + 1) {
+      // Puste „<>” nie jest znacznikiem – zostaje w tekście (jak w poprzedniej wersji).
+      out += html.slice(pos, end + 1);
+    } else {
+      out += `${html.slice(pos, start)} `;
+    }
+    pos = end + 1;
+  }
+}
+
 export function stripHtml(html: string): string {
-  return removeBlocks(removeBlocks(html, "script"), "style")
-    .replaceAll(/<[^>]+>/g, " ")
-    .replaceAll(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (m, code: string) => {
+  return removeTags(removeBlocks(removeBlocks(html, "script"), "style"))
+    .replaceAll(/&(#x[\da-f]{1,6}|#\d{1,7}|[a-z]{1,12});/gi, (m, code: string) => {
       if (code.startsWith("#x")) return String.fromCodePoint(Number.parseInt(code.slice(2), 16));
       if (code.startsWith("#")) return String.fromCodePoint(Number(code.slice(1)));
       return ENTITY[code.toLowerCase()] ?? m;
@@ -82,7 +100,7 @@ function text(value: unknown): string {
   return "";
 }
 
-function asArray<T>(v: T | T[] | undefined): T[] {
+function asArray<T>(v: T | T[] | null | undefined): T[] {
   if (v === undefined || v === null) return [];
   return Array.isArray(v) ? v : [v];
 }
@@ -110,12 +128,22 @@ function safeLink(link: string, base: string): string {
   }
 }
 
+/** Węzeł elementu kanału z fast-xml-parser (pola zależne od formatu). */
+type FeedItemNode = Record<string, unknown>;
+
+/** Korzeń dokumentu RSS 2.0, Atom albo RSS 1.0 (RDF) – tylko pola, których używamy. */
+interface FeedDocument {
+  rss?: { channel?: { item?: FeedItemNode | FeedItemNode[] } };
+  feed?: { entry?: FeedItemNode | FeedItemNode[] };
+  "rdf:RDF"?: { item?: FeedItemNode | FeedItemNode[] };
+}
+
 /** Parsuje treść kanału. Rzuca błąd, gdy to nie jest RSS/Atom. */
 export function parseFeed(xml: string, baseUrl: string): FeedItem[] {
   if (/<!ENTITY/i.test(xml)) throw new Error("Kanał zawiera niedozwolone deklaracje encji.");
-  const doc = parser.parse(xml) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const doc = parser.parse(xml) as FeedDocument;
 
-  let raw: Array<Record<string, unknown>> = [];
+  let raw: FeedItemNode[] = [];
   let kind: "rss" | "atom" = "rss";
   if (doc.rss?.channel) raw = asArray(doc.rss.channel.item);
   else if (doc.feed) {

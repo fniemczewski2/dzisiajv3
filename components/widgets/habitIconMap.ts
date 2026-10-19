@@ -28,7 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export const HABIT_ICONS: Record<string, LucideIcon> = {
+const HABIT_ICONS: Record<string, LucideIcon> = {
   Pill,
   Bath,
   Dumbbell,

@@ -6,6 +6,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 
+// Identyfikatory użytkowników w Supabase są UUID – filtry je walidują.
+const { ME } = vi.hoisted(() => ({ ME: "00000000-0000-4000-8000-0000000000aa" }));
+
 const writes: unknown[] = [];
 let selects = 0;
 let failNext = false;
@@ -13,7 +16,8 @@ let release: (() => void) | null = null;
 
 const list = {
   id: "L1",
-  user_id: "me",
+
+  user_id: ME,
   name: "Zakupy",
   shared_with_id: null,
   elements: [
@@ -51,7 +55,9 @@ const supabase = {
   }),
 };
 const toast = { success: vi.fn(), error: vi.fn(), confirm: vi.fn() };
-vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => ({ user: { id: "me" }, supabase }) }));
+vi.mock("@/providers/AuthProvider", () => ({
+  useAuth: () => ({ user: { id: "00000000-0000-4000-8000-0000000000aa" }, supabase }),
+}));
 const toastValue = { toast };
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => toastValue }));
 // Stabilne referencje – jak w prawdziwych hookach (inaczej efekt pobierania odpalałby się co render).

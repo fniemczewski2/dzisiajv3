@@ -22,7 +22,7 @@ export const MAX_TASK_CATEGORY_LENGTH = 30;
 
 const sameName = (a: string, b: string) => a.localeCompare(b, "pl", { sensitivity: "base" }) === 0;
 
-export function isSystemTaskCategory(name: string): boolean {
+function isSystemTaskCategory(name: string): boolean {
   return SYSTEM_TASK_CATEGORIES.some((c) => sameName(c, name));
 }
 

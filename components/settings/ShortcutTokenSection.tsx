@@ -1,6 +1,7 @@
 // components/settings/ShortcutTokenSection.tsx
 
-import React, { useCallback, useEffect, useState } from "react";
+import { useQueryState } from "@/hooks/useQueryState";
+import React, { useCallback, useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -21,23 +22,34 @@ function formatDateTime(iso: string): string {
 export default function ShortcutTokenSection() {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
-  const [status, setStatus] = useState<TokenStatus | null>(null);
+
   const [freshToken, setFreshToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const loadStatus = useCallback(async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("shortcut_tokens")
-      .select("created_at, last_used_at")
-      .eq("user_id", user.id)
-      .maybeSingle<TokenStatus>();
-    if (!error) setStatus(data ?? null);
-  }, [user, supabase]);
-
-  useEffect(() => {
-    void loadStatus();
-  }, [loadStatus]);
+  // Stan tokenu (data utworzenia, ostatnie użycie) – sam token nigdy nie wraca z bazy.
+  const queryStatus = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<TokenStatus | null> => {
+      const { data, error } = await supabase
+        .from("shortcut_tokens")
+        .select("created_at, last_used_at")
+        .eq("user_id", user?.id as string)
+        .abortSignal(signal)
+        .maybeSingle<TokenStatus>();
+      if (error) throw error;
+      return data ?? null;
+    },
+    [user, supabase]
+  );
+  const {
+    data: status,
+    setData: setStatus,
+    refetch: loadStatus,
+  } = useQueryState<TokenStatus | null>({
+    queryKey: ["shortcut-token", user?.id ?? null],
+    queryFn: queryStatus,
+    initial: null,
+    enabled: Boolean(user),
+  });
 
   const generate = async () => {
     if (status) {

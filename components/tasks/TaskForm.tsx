@@ -1,6 +1,6 @@
 // components/tasks/TaskForm.tsx
 
-import React, { useEffect, useRef, useState, SyntheticEvent } from "react";
+import React, { useRef, useState, SyntheticEvent } from "react";
 import { Task } from "@/types/tasks";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
@@ -56,12 +56,10 @@ export default function TaskForm({
   const categoryOptions = taskCategoryOptions(userCategories);
   const defaultCategory = defaultTaskCategory(userCategories);
   const optionsKey = categoryOptions.join("|");
-  const [category, setCategory] = useState<string>(DEFAULT_TASK_CATEGORY);
+  const [chosenCategory, setCategory] = useState<string>(DEFAULT_TASK_CATEGORY);
   // Po wczytaniu kategorii użytkownika: jeśli wybrana nie istnieje na jego
-  // liście (np. usunął „inne”), przełącz na jego domyślną.
-  useEffect(() => {
-    setCategory((prev) => (optionsKey.split("|").includes(prev) ? prev : defaultCategory));
-  }, [defaultCategory, optionsKey]);
+  // liście (np. usunął „inne”), obowiązuje jego domyślna – wyliczane w renderze.
+  const category = optionsKey.split("|").includes(chosenCategory) ? chosenCategory : defaultCategory;
   const [slackListId, setSlackListId] = useState("");
   const [reminders, setReminders] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState(selectedDate || todayIso);

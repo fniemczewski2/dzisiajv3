@@ -1,5 +1,7 @@
 // pages/_app.tsx
 
+import { QueryProvider } from "@/providers/QueryProvider";
+import { THEME_PROVIDER_PROPS } from "@/config/theme.mjs";
 import { checkForServiceWorkerUpdate, registerServiceWorker } from "@/lib/serviceWorker";
 import OfflineSync from "@/components/OfflineSync";
 import { SettingsProvider } from "@/providers/SettingsProvider";
@@ -28,26 +30,28 @@ export default function MyApp({ Component, pageProps }: Readonly<AppProps>) {
   }, []);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider {...THEME_PROVIDER_PROPS}>
       <ErrorBoundary>
-        <AuthProvider>
-          <ToastProvider>
-            <SettingsProvider>
-              <OfflineSync />
-              <style jsx global>{`
-                :root {
-                  --font-atkinson: ${atkinson.style.fontFamily};
-                }
-              `}</style>
-              <div className="contents">
-                <Layout>
-                  <Component {...pageProps} />
-                  <CookieBanner />
-                </Layout>
-              </div>
-            </SettingsProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <SettingsProvider>
+                <OfflineSync />
+                <style jsx global>{`
+                  :root {
+                    --font-atkinson: ${atkinson.style.fontFamily};
+                  }
+                `}</style>
+                <div className="contents">
+                  <Layout>
+                    <Component {...pageProps} />
+                    <CookieBanner />
+                  </Layout>
+                </div>
+              </SettingsProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </QueryProvider>
       </ErrorBoundary>
     </ThemeProvider>
   );

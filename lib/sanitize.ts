@@ -18,16 +18,6 @@ export function sanitizeHref(raw: string): string | null {
   }
 }
 
-export function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;")
-    .replaceAll("`", "&#96;");
-}
-
 export function sanitizeJsonLd(data: Record<string, unknown>): string {
   return JSON.stringify(data)
     .replaceAll("<", String.raw`\u003C`)
@@ -35,13 +25,6 @@ export function sanitizeJsonLd(data: Record<string, unknown>): string {
     .replaceAll("&", String.raw`\u0026`)
     .replaceAll("\u2028", String.raw`\u2028`)
     .replaceAll("\u2029", String.raw`\u2029`);
-}
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-export function validateUuid(id: unknown): string | null {
-  if (typeof id !== "string") return null;
-  return UUID_REGEX.test(id) ? id : null;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;

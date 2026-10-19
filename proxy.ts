@@ -6,6 +6,7 @@
 // Supabase Auth przy każdym wejściu). Endpointy /api i pliki statyczne nie
 // przechodzą przez proxy – API samo sprawdza sesję.
 
+import { publicEnv } from "@/config/env";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeRedirectPath } from "@/lib/redirect";
@@ -26,11 +27,10 @@ function redirectWithCookies(target: URL, source: NextResponse): NextResponse {
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return response;
+  const connection = publicEnv.supabaseConnection;
+  if (!connection) return response;
 
-  const supabase = createServerClient(url, key, {
+  const supabase = createServerClient(connection.url, connection.key, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

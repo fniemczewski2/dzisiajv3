@@ -4,6 +4,7 @@
 // czekające na przesunięcie terminu też) i ich przyszłe wystąpienia w zakresie
 // dat. `refreshKey` – zmiana (np. lista zadań po zapisie) pobiera dane ponownie.
 
+import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { Task } from "@/types/tasks";
@@ -22,7 +23,7 @@ export function useRecurringTaskPreviews(from: string, to: string, refreshKey?: 
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .or(`user_id.eq.${userId},for_user_id.eq.${userId}`)
+        .or(ownedOrSharedFilter("user_id", "for_user_id", userId))
         .eq("is_recurring", true);
       if (!cancelled && !error) setTasks((data ?? []) as Task[]);
     })();

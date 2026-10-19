@@ -30,6 +30,9 @@ export const RATE_LIMIT_REDIS_TIMEOUT_MS = 1_000;
 /** Limit kluczy limitera w pamięci (tryb bez Redisa). */
 export const RATE_LIMIT_MEMORY_MAX_KEYS = 10_000;
 
+/** Nagłówek z tokenem edycji odpowiedzi w ankiecie – zamiast parametru w adresie URL (logi, historia). */
+export const POLL_EDIT_TOKEN_HEADER = "x-edit-token";
+
 /** Nagłówki Cache-Control dla publicznych odpowiedzi. */
 export const CACHE_CONTROL = {
   /** Publiczna wizytówka .vcf – zmienia się rzadko. */
@@ -55,6 +58,13 @@ export const SERVER_TTL_MS = {
   rssOk: 15 * 60_000,
   rssError: 5 * 60_000,
 } as const;
+
+/**
+ * Eksport danych: odpowiedź funkcji na Vercelu ma limit 4,5 MB. Większy plik
+ * trafia do prywatnego bucketu i użytkownik dostaje link ważny przez chwilę.
+ */
+export const EXPORT_INLINE_MAX_BYTES = 4 * 1024 * 1024;
+export const EXPORT_SIGNED_URL_SECONDS = 600;
 
 /** Paginacja i porcjowanie operacji na bazie i Storage. */
 export const PAGING = {

@@ -63,10 +63,7 @@ const checkDaysMilestone = (days: number): string | null => {
   return null;
 };
 
-export const getMilestoneMessage = (
-  startDateInput: string | Date,
-  currentDateInput: string | Date = new Date()
-): string => {
+const getMilestoneMessage = (startDateInput: string | Date, currentDateInput: string | Date = new Date()): string => {
   const start = new Date(startDateInput);
   const current = new Date(currentDateInput);
   start.setHours(0, 0, 0, 0);

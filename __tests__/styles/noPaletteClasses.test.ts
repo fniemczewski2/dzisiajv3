@@ -9,8 +9,58 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const DIRS = ["components", "pages", "config", "lib", "providers", "hooks"];
-const PALETTE =
-  /(?<![\w-])(?:[\w[\]&:-]+:)?(?:text|bg|border(?:-[trblxyse])?|ring|from|to|via|fill|stroke|outline|divide|decoration|accent|shadow)-(?:gray|slate|zinc|neutral|stone|red|rose|pink|orange|amber|yellow|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|lime|fuchsia)-\d{2,3}\b/g;
+const PROPERTIES = new Set([
+  "text",
+  "bg",
+  "border",
+  "ring",
+  "from",
+  "to",
+  "via",
+  "fill",
+  "stroke",
+  "outline",
+  "divide",
+  "decoration",
+  "accent",
+  "shadow",
+]);
+const FAMILIES = new Set([
+  "gray",
+  "slate",
+  "zinc",
+  "neutral",
+  "stone",
+  "red",
+  "rose",
+  "pink",
+  "orange",
+  "amber",
+  "yellow",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "lime",
+  "fuchsia",
+]);
+/** Kandydaci: ciągi bez spacji, cudzysłowów i nawiasów (klasa znaków + kwantyfikator – liniowo). */
+const TOKEN = /[^\s"'`{}()<>,;]+/g;
+
+function isPaletteClass(token: string): boolean {
+  const utility = token.slice(token.lastIndexOf(":") + 1).split("-");
+  if (utility.length < 3) return false;
+  const shade = utility.pop() ?? "";
+  const family = utility.pop() ?? "";
+  // „border-t-red-500” → właściwość „border” z kierunkiem.
+  const property = utility[0];
+  return /^\d{2,3}$/.test(shade.replace(/\/\d+$/, "")) && FAMILIES.has(family) && PROPERTIES.has(property);
+}
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -25,8 +75,9 @@ describe("klasy kolorów", () => {
     const found: string[] = [];
     for (const dir of DIRS) {
       for (const file of files(join(process.cwd(), dir))) {
-        for (const match of readFileSync(file, "utf8").matchAll(PALETTE))
-          found.push(`${file.replace(process.cwd() + "/", "")}: ${match[0]}`);
+        for (const match of readFileSync(file, "utf8").matchAll(TOKEN)) {
+          if (isPaletteClass(match[0])) found.push(`${file.replace(process.cwd() + "/", "")}: ${match[0]}`);
+        }
       }
     }
     expect(found).toEqual([]);

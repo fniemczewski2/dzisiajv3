@@ -1,55 +1,57 @@
 // hooks/db/useDailyOverrides.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { DailyOverride } from "@/types/schemas";
+
+const NO_OVERRIDES: DailyOverride[] = [];
 
 export function useDailyOverrides(dateStr: string) {
   const { supabase, user } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
-  const [overrides, setOverrides] = useState<DailyOverride[]>([]);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const fetchOverrides = useCallback(async () => {
-    if (!userId) {
-      throw new NotSignedInError();
-    }
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("daily_overrides")
-            .select("schema_id, new_time, is_hidden")
-            .eq("user_id", userId)
-            .eq("date", dateStr)
-            .abortSignal(signal),
-        signal
-      );
-
-      if (error) throw error;
-      setOverrides(data || []);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania rutyn dnia.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [supabase, userId, dateStr, toast, withRetry, getSignal]);
-
-  useEffect(() => {
-    if (userId) void fetchOverrides();
-  }, [fetchOverrides, userId]);
+  const queryOverrides = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<DailyOverride[]> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("daily_overrides")
+              .select("schema_id, new_time, is_hidden")
+              .eq("user_id", userId)
+              .eq("date", dateStr)
+              .abortSignal(signal),
+          signal
+        );
+        if (error) throw error;
+        return (data || []) as DailyOverride[];
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania rutyn dnia.");
+        throw err;
+      }
+    },
+    [supabase, userId, dateStr, toast, withRetry]
+  );
+  const {
+    data: overrides,
+    setData: setOverrides,
+    fetching,
+    refetch: fetchOverrides,
+  } = useQueryState<DailyOverride[]>({
+    queryKey: ["daily-overrides", userId ?? null, dateStr],
+    queryFn: queryOverrides,
+    initial: NO_OVERRIDES,
+    enabled: Boolean(userId),
+  });
 
   const hideSchema = useCallback(
     async (schemaId: string) => {
@@ -98,7 +100,7 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast, withRetry]
+    [supabase, userId, dateStr, overrides, toast, withRetry, setOverrides]
   );
 
   const moveSchema = useCallback(
@@ -151,7 +153,7 @@ export function useDailyOverrides(dateStr: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, dateStr, overrides, toast, withRetry]
+    [supabase, userId, dateStr, overrides, toast, withRetry, setOverrides]
   );
 
   return { overrides, loading, fetching, hideSchema, moveSchema, fetchOverrides };

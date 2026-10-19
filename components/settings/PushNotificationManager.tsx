@@ -1,5 +1,6 @@
 // components/settings/PushNotificationManager.tsx
 
+import { invokeEdgeFunction } from "@/lib/edgeFunctions";
 import { useIsClient } from "@/hooks/useIsClient";
 import React, { useState } from "react";
 import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
@@ -176,40 +177,25 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
 
   const handleTestNotification = async () => {
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      if (!supabaseUrl) throw new Error("Błąd konfiguracji Supabase");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) throw new Error("Brak aktywnej sesji");
+      const result = await invokeEdgeFunction(supabase, "send-push", {
+        title: "Dzisiaj.Fun | Test",
+        message: "To jest powiadomienie testowe z aplikacji Dzisiaj!",
+        url: "/",
+      });
 
-      let response: Response;
-      try {
-        response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: "Dzisiaj.Fun | Test",
-            message: "To jest powiadomienie testowe z aplikacji Dzisiaj!",
-            url: "/",
-          }),
-        });
-      } catch {
+      if (!result.ok && result.networkError) {
         // Błąd sieci lub CORS – zwykle niewdrożona funkcja albo brak połączenia.
         toast.error("Brak połączenia z funkcją send-push. Sprawdź internet i czy funkcja jest wdrożona w Supabase.");
         return;
       }
-
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
-        toast.error(describePushHttpError(response.status, body));
+      if (!result.ok) {
+        toast.error(
+          describePushHttpError(result.status ?? 0, result.data as { error?: string; message?: string } | null)
+        );
         return;
       }
 
-      const outcome = describePushTestResult(await response.json());
+      const outcome = describePushTestResult(result.data);
       if (outcome.ok) toast.success(outcome.message);
       else toast.error(outcome.message);
     } catch (error) {

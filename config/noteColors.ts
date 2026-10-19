@@ -25,7 +25,3 @@ const BY_KEY = new Map(NOTE_COLORS.map((c) => [c.key, c]));
 export function noteColorClass(key: string | null | undefined): string {
   return (BY_KEY.get(key ?? "") ?? NOTE_COLORS[0]).className;
 }
-
-export function noteColorLabel(key: string | null | undefined): string {
-  return (BY_KEY.get(key ?? "") ?? NOTE_COLORS[0]).label;
-}

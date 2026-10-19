@@ -1,6 +1,9 @@
 // hooks/db/useTransport.ts
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { NEARBY_REFRESH_MS, FAVORITES_MIN_INTERVAL_MS, SUGGESTIONS_DEBOUNCE_MS } from "@/config/timing";
+import { useQuery } from "@tanstack/react-query";
+import { containsPattern } from "@/lib/postgrestFilters";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useSettings } from "./useSettings";
 import { TRANSPORT_DEPARTURES_LIMIT, TRANSPORT_STOP_SEARCH_LIMIT, TRANSPORT_SUGGESTIONS_LIMIT } from "@/config/limits";
@@ -24,7 +27,7 @@ import {
 const localityCache = new Map<string, string | null>();
 
 /** Miejscowość z /api/transport/locality (Photon/OSM), z cache w pamięci karty. */
-export async function fetchLocality(lat: number, lon: number, signal?: AbortSignal): Promise<string | null> {
+async function fetchLocality(lat: number, lon: number, signal?: AbortSignal): Promise<string | null> {
   const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
   if (localityCache.has(key)) return localityCache.get(key) ?? null;
   try {
@@ -43,9 +46,12 @@ function zoneLabel(cluster: StopCluster): string {
   return cluster.zone_id && cluster.zone_id !== "AUTO" ? `strefa ${cluster.zone_id}` : "Poznań i okolice";
 }
 
-export function describeCluster(cluster: StopCluster, locality: string | null): string {
+function describeCluster(cluster: StopCluster, locality: string | null): string {
   return `${cluster.name} (${locality ?? zoneLabel(cluster)})`;
 }
+
+const NO_GROUPS: StopGroup[] = [];
+const NO_RESULTS: LocalSearchResult[] = [];
 
 export function useTransport(autoRefresh = false) {
   const { supabase } = useAuth();
@@ -57,220 +63,160 @@ export function useTransport(autoRefresh = false) {
     loading: settingsLoading,
   } = useSettings();
 
-  const [nearbyGroups, setNearbyGroups] = useState<StopGroup[]>([]);
-  const [favoritesGroups, setFavoritesGroups] = useState<StopGroup[]>([]);
-  const [loadingNearby, setLoadingNearby] = useState(false);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [transportError, setTransportError] = useState<string | null>(null);
-
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<LocalSearchResult[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   /** Miejscowości dla grup o niejednoznacznych nazwach (klucz: StopGroup.key). */
   const [localities, setLocalities] = useState<Record<string, string | null>>({});
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-
-  const lastFetchTime = useRef<Record<string, number>>({});
-  const lastCoords = useRef<{ lat: number; lng: number } | null>(null);
-
-  const nearbyAbortRef = useRef<AbortController | null>(null);
-  const favoritesAbortRef = useRef<AbortController | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(true);
+  const [geoError, setGeoError] = useState<string | null>(null);
   const withRetry = useRetry();
 
-  const fetchNearbyData = useCallback(async () => {
-    if (!lastCoords.current) {
-      setLoadingNearby(false);
-      return;
-    }
-
-    nearbyAbortRef.current?.abort();
-    const controller = new AbortController();
-    nearbyAbortRef.current = controller;
-
-    setLoadingNearby(true);
-
-    try {
-      const { data, error: invokeError } = await supabase.functions.invoke("transport-departures", {
-        body: { lat: lastCoords.current.lat, lon: lastCoords.current.lng },
-        signal: controller.signal,
+  // --- Odjazdy w pobliżu (TanStack Query; odświeżanie co 30 s przy autoRefresh) -------------
+  const nearbyQuery = useQuery({
+    queryKey: ["nearby-departures", coords ? coords.lat.toFixed(4) : null, coords ? coords.lng.toFixed(4) : null],
+    enabled: coords !== null,
+    staleTime: 0,
+    refetchInterval: autoRefresh ? NEARBY_REFRESH_MS : false,
+    refetchIntervalInBackground: false,
+    queryFn: async ({ signal }): Promise<{ groups: StopGroup[]; locationRequired: boolean }> => {
+      const { data, error } = await supabase.functions.invoke("transport-departures", {
+        body: { lat: coords?.lat, lon: coords?.lng },
+        signal,
       });
-
-      if (controller.signal.aborted) return;
-      if (invokeError) throw new Error("Błąd sieciowy podczas łączenia z funkcją.");
-
+      if (error) throw new Error("Błąd sieciowy podczas łączenia z funkcją.");
       const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      if (parsed?.error === "LOCATION_REQUIRED") return { groups: [], locationRequired: true };
+      return { groups: withNearbyKeys((parsed?.success ?? []) as StopGroup[]), locationRequired: false };
+    },
+  });
+  const nearbyGroups = nearbyQuery.data?.groups ?? NO_GROUPS;
+  let locationError = geoError;
+  if (!locationError && nearbyQuery.data?.locationRequired) {
+    locationError = "Lokalizacja jest wymagana, aby pokazać przystanki w pobliżu.";
+  } else if (!locationError && nearbyQuery.error) {
+    locationError = "Problem z pobieraniem odjazdów w pobliżu.";
+  }
+  const loadingNearby = locating || (coords !== null && nearbyQuery.isFetching);
 
-      if (parsed?.error === "LOCATION_REQUIRED") {
-        setLocationError("Lokalizacja jest wymagana, aby pokazać przystanki w pobliżu.");
-        setNearbyGroups([]);
-      } else if (parsed?.success) {
-        setNearbyGroups(withNearbyKeys(parsed.success as StopGroup[]));
-        setLocationError(null);
-      }
-    } catch {
-      if (controller.signal.aborted) return;
-      setLocationError("Problem z pobieraniem odjazdów w pobliżu.");
-    } finally {
-      setLoadingNearby(false);
-    }
-  }, [supabase]);
+  /** Ustalenie położenia (przy wejściu na stronę albo po kliknięciu „Pokaż w pobliżu”). */
+  const requestLocation = useCallback((forcePrompt = false) => {
+    requestSmartLocation({
+      forcePrompt,
+      maxAgeMs: 2 * 60 * 1000,
+      onSuccess: (position) => {
+        setGeoError(null);
+        setLocating(false);
+        setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+      },
+      onError: (err) => {
+        setLocating(false);
+        setCoords(null);
+        setGeoError(
+          err.code === 1
+            ? "Brak zgody na lokalizację. Odblokuj w ustawieniach przeglądarki."
+            : "Nie udało się pobrać lokalizacji GPS."
+        );
+      },
+    });
+  }, []);
 
   const initLocationAndFetch = useCallback(
     (forcePrompt = false) => {
-      setLoadingNearby(true);
-      setLocationError(null);
-
-      requestSmartLocation({
-        forcePrompt,
-        maxAgeMs: 2 * 60 * 1000,
-        onSuccess: (position) => {
-          lastCoords.current = { lat: position.coords.latitude, lng: position.coords.longitude };
-          void fetchNearbyData();
-        },
-        onError: (err) => {
-          setLoadingNearby(false);
-          lastCoords.current = null;
-          setLocationError(
-            err.code === 1
-              ? "Brak zgody na lokalizację. Odblokuj w ustawieniach przeglądarki."
-              : "Nie udało się pobrać lokalizacji GPS."
-          );
-        },
-      });
+      setLocating(true);
+      setGeoError(null);
+      requestLocation(forcePrompt);
     },
-    [fetchNearbyData]
+    [requestLocation]
   );
 
-  const fetchFavorites = useCallback(
-    async (stops: FavoriteStop[]) => {
-      if (!stops?.length) {
-        setFavoritesGroups([]);
-        return;
-      }
-      const now = Date.now();
-      const cacheKey = JSON.stringify(stops);
-      if (lastFetchTime.current[cacheKey] && now - lastFetchTime.current[cacheKey] < 5000) return;
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
 
-      favoritesAbortRef.current?.abort();
-      const controller = new AbortController();
-      favoritesAbortRef.current = controller;
-
-      setLoadingFavorites(true);
-      setTransportError(null);
-      try {
-        const { data, error } = await supabase.functions.invoke("transport-departures", {
-          body: {
-            stopNames: stops.map(({ name, zone_id, lat, lon }) => ({ name, zone_id, lat, lon })),
-            lat: lastCoords.current?.lat,
-            lon: lastCoords.current?.lng,
-          },
-          signal: controller.signal,
-        });
-
-        if (error) throw error;
-        const parsed = typeof data === "string" ? JSON.parse(data) : data;
-        const groups = withFavoriteKeys((parsed?.success ?? []) as StopGroup[], stops);
-        setFavoritesGroups(groups);
-        lastFetchTime.current[cacheKey] = now;
-
-        const upgrades = new Map<string, FavoriteStop>();
-        for (const g of groups) if (g.resolved) upgrades.set(g.key, g.resolved);
-        if (upgrades.size > 0) void upgradeFavoriteStops(upgrades);
-      } catch {
-        if (controller.signal.aborted) return;
-        setTransportError(`Błąd pobierania ulubionych odjazdów.`);
-      } finally {
-        setLoadingFavorites(false);
-      }
-    },
-    [supabase, upgradeFavoriteStops]
-  );
-
+  // --- Odjazdy z ulubionych przystanków --------------------------------------------------
   const favoriteStops = useMemo(
     () => (Array.isArray(settings.favorite_stops) ? settings.favorite_stops : []),
     [settings.favorite_stops]
   );
   const favoritesJSON = useMemo(() => JSON.stringify(favoriteStops), [favoriteStops]);
 
+  const favoritesQuery = useQuery({
+    queryKey: ["favorite-departures", favoritesJSON],
+    enabled: !settingsLoading && favoriteStops.length > 0,
+    // Ponowne wejście w ciągu 5 s nie odpytuje serwera (wcześniej ręczny licznik czasu).
+    staleTime: FAVORITES_MIN_INTERVAL_MS,
+    queryFn: async ({ signal }): Promise<StopGroup[]> => {
+      const stops = JSON.parse(favoritesJSON) as FavoriteStop[];
+      const { data, error } = await supabase.functions.invoke("transport-departures", {
+        body: {
+          stopNames: stops.map(({ name, zone_id, lat, lon }) => ({ name, zone_id, lat, lon })),
+          lat: coords?.lat,
+          lon: coords?.lng,
+        },
+        signal,
+      });
+      if (error) throw error;
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      const groups = withFavoriteKeys((parsed?.success ?? []) as StopGroup[], stops);
+      const upgrades = new Map<string, FavoriteStop>();
+      for (const g of groups) if (g.resolved) upgrades.set(g.key, g.resolved);
+      if (upgrades.size > 0) void upgradeFavoriteStops(upgrades);
+      return groups;
+    },
+  });
+  const favoritesGroups = favoriteStops.length > 0 ? (favoritesQuery.data ?? NO_GROUPS) : NO_GROUPS;
+  const loadingFavorites = favoritesQuery.isFetching;
+  const transportError = favoritesQuery.error ? "Błąd pobierania ulubionych odjazdów." : null;
+
+  // --- Podpowiedzi przystanków (opóźnienie 300 ms, potem zapytanie z pamięcią) ------------
   useEffect(() => {
-    if (settingsLoading) return;
-    try {
-      const stops = JSON.parse(favoritesJSON);
-      void fetchFavorites(stops);
-    } catch {
-      setTransportError("Wystąpił błąd parsowania przystanków.");
-    }
-  }, [favoritesJSON, fetchFavorites, settingsLoading]);
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), SUGGESTIONS_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  useEffect(() => {
-    const loadSuggestions = async () => {
-      if (!searchQuery || searchQuery.trim().length < 2) {
-        setSuggestions([]);
-        setSearchResults((prev) => (prev.length > 0 ? [] : prev));
-        return;
-      }
+  const suggestionsQuery = useQuery({
+    queryKey: ["stop-suggestions", debouncedQuery.trim()],
+    enabled: debouncedQuery.trim().length >= 2,
+    queryFn: async (): Promise<LocalSearchResult[]> => {
+      const { data, error } = await withRetry(() =>
+        supabase
+          .from("stops")
+          .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
+          .ilike("stop_name", containsPattern(debouncedQuery))
+          .limit(TRANSPORT_STOP_SEARCH_LIMIT)
+      );
+      if (error || !data) return [];
 
-      try {
-        const q = searchQuery.trim().replaceAll(/[%_\\]/g, (m) => `\\${m}`);
-        const { data, error } = await withRetry(() =>
-          supabase
-            .from("stops")
-            .select("stop_code, stop_name, stop_lat, stop_lon, zone_id")
-            .ilike("stop_name", `%${q}%`)
-            .limit(TRANSPORT_STOP_SEARCH_LIMIT)
-        );
-
-        if (error || !data) {
-          setSuggestions([]);
-          setSearchResults([]);
-          return;
-        }
-
-        const clusters = clusterStops(data as StopPost[])
-          .sort((a, b) => a.name.localeCompare(b.name, "pl") || a.lat - b.lat)
-          .slice(0, Math.max(TRANSPORT_SUGGESTIONS_LIMIT, TRANSPORT_DEPARTURES_LIMIT / 3));
-        const ambiguous = ambiguousNames(clusters);
-
-        const withLocality = await Promise.all(
-          clusters.slice(0, TRANSPORT_SUGGESTIONS_LIMIT).map(async (cluster) => {
-            const locality = isAmbiguous(cluster, ambiguous) ? await fetchLocality(cluster.lat, cluster.lon) : null;
-            return { cluster, locality };
-          })
-        );
-        if (cancelled) return;
-        const seen = new Map<string, number>();
-        const resultsArray: LocalSearchResult[] = withLocality.map(({ cluster, locality }) => {
-          let displayString = describeCluster(cluster, locality);
-          const n = (seen.get(displayString) ?? 0) + 1;
-          seen.set(displayString, n);
-          if (n > 1) displayString = `${displayString.slice(0, -1)}, ${n})`;
-          return { cluster, locality, displayString };
-        });
-
-        setSearchResults(resultsArray);
-        setSuggestions(resultsArray.map((r) => r.displayString));
-      } catch {
-        if (cancelled) return;
-        setSuggestions([]);
-        setSearchResults([]);
-      }
-    };
-
-    let cancelled = false;
-    const debounce = setTimeout(() => void loadSuggestions(), 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(debounce);
-    };
-  }, [searchQuery, supabase, withRetry]);
+      const clusters = clusterStops(data as StopPost[])
+        .sort((a, b) => a.name.localeCompare(b.name, "pl") || a.lat - b.lat)
+        .slice(0, Math.max(TRANSPORT_SUGGESTIONS_LIMIT, TRANSPORT_DEPARTURES_LIMIT / 3));
+      const ambiguous = ambiguousNames(clusters);
+      const withLocality = await Promise.all(
+        clusters.slice(0, TRANSPORT_SUGGESTIONS_LIMIT).map(async (cluster) => {
+          const locality = isAmbiguous(cluster, ambiguous) ? await fetchLocality(cluster.lat, cluster.lon) : null;
+          return { cluster, locality };
+        })
+      );
+      const seen = new Map<string, number>();
+      return withLocality.map(({ cluster, locality }) => {
+        let displayString = describeCluster(cluster, locality);
+        const n = (seen.get(displayString) ?? 0) + 1;
+        seen.set(displayString, n);
+        if (n > 1) displayString = `${displayString.slice(0, -1)}, ${n})`;
+        return { cluster, locality, displayString };
+      });
+    },
+  });
+  // Pole wyczyszczone lub za krótkie – podpowiedzi znikają od razu, bez czekania na opóźnienie.
+  const searchResults = searchQuery.trim().length >= 2 ? (suggestionsQuery.data ?? NO_RESULTS) : NO_RESULTS;
+  const suggestions = useMemo(() => searchResults.map((r) => r.displayString), [searchResults]);
 
   const handleSuggestionClick = useCallback(
     (value: string) => {
       const selected = searchResults.find((s) => s.displayString === value);
       if (selected) void addFavoriteStop(favoriteFromCluster(selected.cluster, selected.locality));
       setSearchQuery("");
-      setSuggestions([]);
-      setSearchResults([]);
     },
     [searchResults, addFavoriteStop]
   );
@@ -316,23 +262,6 @@ export function useTransport(autoRefresh = false) {
     },
     [favoriteStops, localities]
   );
-
-  useEffect(() => {
-    initLocationAndFetch();
-
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-    if (autoRefresh) {
-      intervalId = setInterval(() => {
-        if (lastCoords.current) void fetchNearbyData();
-      }, 30_000);
-    }
-
-    return () => {
-      nearbyAbortRef.current?.abort();
-      favoritesAbortRef.current?.abort();
-      if (intervalId !== null) clearInterval(intervalId);
-    };
-  }, [initLocationAndFetch, autoRefresh, fetchNearbyData]);
 
   return {
     nearbyGroups,

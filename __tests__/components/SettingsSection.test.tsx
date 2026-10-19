@@ -9,7 +9,10 @@ import type { Settings } from "@/types/settings";
 const base = { sort_order: "priority", sort_notes: "updated_desc", show_completed: true } as unknown as Settings;
 const defaults = { ...base, sort_order: "priority", sort_notes: "updated_desc" } as Settings;
 
-function Section({ settings, onSave }: { settings: Settings; onSave: (p: Partial<Settings>) => Promise<boolean> }) {
+function Section({
+  settings,
+  onSave,
+}: Readonly<{ settings: Settings; onSave: (p: Partial<Settings>) => Promise<boolean> }>) {
   return (
     <SettingsSection
       id="s"

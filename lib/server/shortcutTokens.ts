@@ -2,7 +2,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 
-export const SHORTCUT_TOKEN_PREFIX = "dzs_";
+const SHORTCUT_TOKEN_PREFIX = "dzs_";
 
 /** Nowy token: 32 losowe bajty. Jawna wartość trafia do użytkownika tylko raz. */
 export function generateShortcutToken(): string {

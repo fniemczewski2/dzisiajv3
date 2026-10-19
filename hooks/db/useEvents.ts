@@ -1,5 +1,7 @@
 // hooks/db/useEvents.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
+import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
 import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
@@ -9,71 +11,73 @@ import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 
 import { omit } from "@/lib/objectUtils";
+const NO_EVENTS: Event[] = [];
+
 export function useVirtualBirthdayEvents(): Event[] {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const withRetry = useRetry();
   const { toast } = useToast();
-  const { getSignal } = useAbortController();
 
-  const [virtualEvents, setVirtualEvents] = useState<Event[]>([]);
+  const queryVirtualEvents = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<Event[]> => {
+      if (!userId) return [];
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("people")
+              .select("id, first_name, last_name, birthday, nameday, priority")
+              .eq("user_id", userId)
+              .in("priority", [0, 1, 2])
+              .abortSignal(signal),
+          signal
+        );
+        if (error) throw error;
 
-  const fetchVirtualEvents = useCallback(async () => {
-    if (!userId) return;
+        const generated: Event[] = [];
+        (data as Pick<Person, "id" | "first_name" | "last_name" | "birthday" | "nameday">[]).forEach((person) => {
+          const fullName = `${person.first_name} ${person.last_name || ""}`.trim();
+          if (person.birthday) {
+            generated.push({
+              id: `bday_${person.id}`,
+              title: `🎂 Urodziny: ${fullName}`,
+              start_time: `${person.birthday}T00:00:00`,
+              end_time: `${person.birthday}T23:59:59`,
+              user_id: userId,
+              repeat: "yearly",
+            });
+          }
+          if (person.nameday) {
+            generated.push({
+              id: `nday_${person.id}`,
+              title: `🎉 Imieniny: ${fullName}`,
+              start_time: `${person.nameday}T00:00:00`,
+              end_time: `${person.nameday}T23:59:59`,
+              user_id: userId,
+              repeat: "yearly",
+            });
+          }
+        });
 
-    const signal = getSignal();
-    try {
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("people")
-            .select("id, first_name, last_name, birthday, nameday, priority")
-            .eq("user_id", userId)
-            .in("priority", [0, 1, 2])
-            .abortSignal(signal),
-        signal
-      );
-      if (error) throw error;
+        return generated;
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania dat urodzin/imienin.");
+        throw err;
+      }
+    },
+    [userId, supabase, toast, withRetry]
+  );
 
-      const generated: Event[] = [];
-      (data as Pick<Person, "id" | "first_name" | "last_name" | "birthday" | "nameday">[]).forEach((person) => {
-        const fullName = `${person.first_name} ${person.last_name || ""}`.trim();
-        if (person.birthday) {
-          generated.push({
-            id: `bday_${person.id}`,
-            title: `🎂 Urodziny: ${fullName}`,
-            start_time: `${person.birthday}T00:00:00`,
-            end_time: `${person.birthday}T23:59:59`,
-            user_id: userId,
-            repeat: "yearly",
-          });
-        }
-        if (person.nameday) {
-          generated.push({
-            id: `nday_${person.id}`,
-            title: `🎉 Imieniny: ${fullName}`,
-            start_time: `${person.nameday}T00:00:00`,
-            end_time: `${person.nameday}T23:59:59`,
-            user_id: userId,
-            repeat: "yearly",
-          });
-        }
-      });
-
-      setVirtualEvents(generated);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania dat urodzin/imienin.");
-    }
-  }, [userId, supabase, toast, withRetry, getSignal]);
-
-  useEffect(() => {
-    void fetchVirtualEvents();
-  }, [fetchVirtualEvents]);
+  const { data: virtualEvents, refetch: fetchVirtualEvents } = useQueryState<Event[]>({
+    queryKey: ["people-dates", userId ?? null],
+    queryFn: queryVirtualEvents,
+    initial: NO_EVENTS,
+    enabled: Boolean(userId),
+  });
 
   useEffect(() => {
     const handler = () => {
@@ -89,13 +93,52 @@ export function useVirtualBirthdayEvents(): Event[] {
 export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: Event[] = []) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
-  const [rawEvents, setRawEvents] = useState<Event[]>([]);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const userEmailsRef = useRef<Record<string, string>>({});
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
+  const hasRange = Boolean(rangeStart && rangeEnd);
+
+  // Zapytanie nie zależy od zakresu (zakres rozwija powtarzalne wydarzenia w pamięci),
+  // więc wszystkie widoki dzielą jedno pobranie wydarzeń.
+  const queryEvents = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<Event[]> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("events")
+              .select("*")
+              .or(ownedOrSharedFilter("user_id", "shared_with_id", userId))
+              .abortSignal(signal),
+          signal
+        );
+        if (error) throw error;
+        const fetchedEvents = (data || []) as Event[];
+        return await resolveSharedEmails(fetchedEvents, userId, supabase, userEmailsRef);
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania wydarzeń.");
+        throw err;
+      }
+    },
+    [supabase, userId, toast, withRetry]
+  );
+
+  const {
+    data: rawEvents,
+    setData: setRawEvents,
+    fetching,
+    refetch: refetchEvents,
+  } = useQueryState<Event[]>({
+    queryKey: ["events", userId ?? null],
+    queryFn: queryEvents,
+    initial: NO_EVENTS,
+    enabled: Boolean(userId) && hasRange,
+  });
+  const fetchEvents = useCallback(async () => {
+    if (hasRange) await refetchEvents();
+  }, [hasRange, refetchEvents]);
 
   const events = useMemo(() => {
     if (!rangeStart || !rangeEnd) return rawEvents;
@@ -103,40 +146,6 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
     const end = new Date(`${rangeEnd}T23:59:59`);
     return expandRepeatingEvents([...rawEvents, ...virtualEvents], start, end);
   }, [rawEvents, virtualEvents, rangeStart, rangeEnd]);
-
-  const fetchEvents = useCallback(async () => {
-    if (!rangeStart || !rangeEnd) return;
-    if (!userId) {
-      throw new NotSignedInError();
-    }
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("events")
-            .select("*")
-            .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
-            .abortSignal(signal),
-        signal
-      );
-      if (error) throw error;
-
-      const fetchedEvents = (data || []) as Event[];
-      const eventsWithDisplayInfo = await resolveSharedEmails(fetchedEvents, userId, supabase, userEmailsRef);
-      if (!signal.aborted) setRawEvents(eventsWithDisplayInfo);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania wydarzeń.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [supabase, userId, rangeStart, rangeEnd, toast, withRetry, getSignal]);
-
-  useEffect(() => {
-    if (userId) void fetchEvents();
-  }, [fetchEvents, userId]);
 
   useEffect(() => {
     const handleRefresh = () => {
@@ -183,7 +192,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast, withRetry, setRawEvents]
   );
 
   const editEvent = useCallback(
@@ -225,7 +234,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         setLoading(false);
       }
     },
-    [supabase, userId, rawEvents, toast, withRetry]
+    [supabase, userId, rawEvents, toast, withRetry, setRawEvents]
   );
 
   const deleteEvent = useCallback(
@@ -255,7 +264,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         setLoading(false);
       }
     },
-    [supabase, userId, rawEvents, toast, withRetry]
+    [supabase, userId, rawEvents, toast, withRetry, setRawEvents]
   );
 
   return { events, loading, fetching, addEvent, editEvent, deleteEvent, fetchEvents };

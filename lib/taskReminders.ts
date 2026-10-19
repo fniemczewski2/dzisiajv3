@@ -23,7 +23,7 @@ export function toLocalInput(date: Date): string {
 }
 
 /** Wartość pola datetime-local → ISO (UTC). null, gdy wartość jest niepoprawna. */
-export function localInputToISO(value: string): string | null {
+function localInputToISO(value: string): string | null {
   const d = new Date(value);
   return value && !Number.isNaN(d.getTime()) ? d.toISOString() : null;
 }

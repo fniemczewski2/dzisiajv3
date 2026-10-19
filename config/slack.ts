@@ -58,31 +58,9 @@ export function formatAssigneeEmails(emails: string[] | null | undefined): strin
   return (emails ?? []).join(", ");
 }
 
-export const SLACK_IMPORTED_TASK_PRIORITY = 3;
-
-export const SLACK_EXTRA_FIELDS_SEPARATOR = "--- Slack ---";
-
-export function stripExtraFieldsBlock(description: string | null | undefined): string {
-  if (!description) return "";
-  const index = description.indexOf(SLACK_EXTRA_FIELDS_SEPARATOR);
-  return (index === -1 ? description : description.slice(0, index)).trimEnd();
-}
-
-export function withExtraFieldsBlock(
-  baseDescription: string | null | undefined,
-  extras: { name: string; value: string }[]
-): string {
-  const base = stripExtraFieldsBlock(baseDescription);
-  if (extras.length === 0) return base;
-
-  const block = [SLACK_EXTRA_FIELDS_SEPARATOR, ...extras.map((extra) => `${extra.name}: ${extra.value}`)].join("\n");
-
-  return base ? `${base}\n\n${block}` : block;
-}
-
 export const SLACK_PULL_EXCLUDED_FIELDS: readonly SlackMappableTaskField[] = [];
 
-export const TASK_STATUSES = ["pending", "done", "waiting_for_acceptance"] as const;
+const TASK_STATUSES = ["pending", "done", "waiting_for_acceptance"] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const DEFAULT_TASK_STATUS: TaskStatus = "pending";
 
@@ -119,10 +97,6 @@ export function normalizeTaskStatus(raw: string | null | undefined): TaskStatus 
 export function statusSynonyms(status: string): string[] {
   const known = TASK_STATUSES.find((s) => s === status);
   return known ? STATUS_SYNONYMS[known] : [status];
-}
-
-export function isDoneStatus(status: string | null | undefined): boolean {
-  return normalizeTaskStatus(status) === "done";
 }
 
 export const SLACK_ASSIGNEE_COLUMN_TYPES = ["todo_assignee", "assignee", "user"] as const;

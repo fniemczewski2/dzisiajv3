@@ -8,7 +8,7 @@
 // powiadomień lokalnie ustaw NEXT_PUBLIC_SW_DEV=1.
 
 /** Czy rejestrować service worker (odczyt przy wywołaniu – testy mogą ustawić NEXT_PUBLIC_SW_DEV). */
-export function isServiceWorkerEnabled(): boolean {
+function isServiceWorkerEnabled(): boolean {
   return process.env.NODE_ENV !== "development" || process.env.NEXT_PUBLIC_SW_DEV === "1";
 }
 

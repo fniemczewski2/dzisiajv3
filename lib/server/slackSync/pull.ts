@@ -81,12 +81,12 @@ export async function applyAppDeletions(admin: SupabaseClient, target: SyncTarge
   let removed = 0;
   for (const tombstone of (data ?? []) as { id: string; item_id: string }[]) {
     try {
-      await deleteItem(target.token, target.listId, tombstone.item_id); // NOSONAR
+      await deleteItem(target.token, target.listId, tombstone.item_id);
       removed += 1;
     } catch (err) {
       if (!isMissingItemError(err)) throw err;
     }
-    await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id); // NOSONAR
+    await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id);
   }
   return removed;
 }

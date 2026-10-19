@@ -1,14 +1,14 @@
 // hooks/db/useDailyHabits.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { getAppDate } from "@/lib/dateUtils";
 import { DailyHabitsRow } from "@/types/habits";
 import { isHabitDone, isLegacyHabitId } from "@/lib/habits";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 
 const getDefaultHabits = (date: string, userId: string): DailyHabitsRow => ({
@@ -30,46 +30,47 @@ export function useDailyHabits(date?: string) {
   const userId = user?.id;
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
-
   const today = getAppDate();
   const targetDate = date ?? today;
-
-  const [habits, setHabits] = useState<DailyHabitsRow | null>(null);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const fetchHabits = useCallback(async () => {
-    if (!userId) {
-      throw new NotSignedInError();
-    }
-
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("daily_habits")
-            .select("*")
-            .eq("date", targetDate)
-            .eq("user_id", userId)
-            .abortSignal(signal)
-            .maybeSingle(),
-        signal
-      );
-
-      if (error) throw error;
-
-      setHabits(data ? { ...data, water_amount: data.water_amount ?? 0 } : getDefaultHabits(targetDate, userId));
-    } catch (err) {
-      if (isAbortError(err)) return;
-      setHabits(getDefaultHabits(targetDate, userId));
-      toast.error("Błąd ładowania nawyków.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [userId, targetDate, supabase, toast, withRetry, getSignal]);
+  const queryHabits = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<DailyHabitsRow | null> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("daily_habits")
+              .select("*")
+              .eq("date", targetDate)
+              .eq("user_id", userId)
+              .abortSignal(signal)
+              .maybeSingle(),
+          signal
+        );
+        if (error) throw error;
+        return data ? { ...data, water_amount: data.water_amount ?? 0 } : getDefaultHabits(targetDate, userId);
+      } catch (err) {
+        if (isAbortError(err)) throw err;
+        toast.error("Błąd ładowania nawyków.");
+        // Pusty dzień zamiast blokady – odhaczenie i tak zapisze wiersz w bazie.
+        return getDefaultHabits(targetDate, userId);
+      }
+    },
+    [userId, targetDate, supabase, toast, withRetry]
+  );
+  const {
+    data: habits,
+    setData: setHabits,
+    fetching,
+    refetch: fetchHabits,
+  } = useQueryState<DailyHabitsRow | null>({
+    queryKey: ["daily-habits", userId ?? null, targetDate],
+    queryFn: queryHabits,
+    initial: null,
+    enabled: Boolean(userId),
+  });
 
   /** Odhacza/odznacza nawyk o danym id (własny albo jeden z dawnych). */
   const toggleHabit = useCallback(
@@ -109,7 +110,7 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast, withRetry]
+    [habits, userId, targetDate, supabase, toast, withRetry, setHabits]
   );
 
   const updateWater = useCallback(
@@ -143,12 +144,8 @@ export function useDailyHabits(date?: string) {
         setLoading(false);
       }
     },
-    [habits, userId, targetDate, supabase, toast, withRetry]
+    [habits, userId, targetDate, supabase, toast, withRetry, setHabits]
   );
-
-  useEffect(() => {
-    if (userId) void fetchHabits();
-  }, [fetchHabits, userId]);
 
   return { habits, fetching, loading, fetchHabits, toggleHabit, updateWater };
 }

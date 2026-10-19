@@ -42,8 +42,9 @@ describe("parseFeed", () => {
 });
 
 describe("kontrola adresów własnych kanałów", () => {
+  // Adresy http:// i ftp:// są tu celowo – test sprawdza, że aplikacja je odrzuca.
   it("blokuje adresy prywatne i nie-http", async () => {
-    expect(await checkPublicUrl("http://127.0.0.1/feed")).toMatch(/Niedozwolony/);
+    expect(await checkPublicUrl("http://127.0.0.1/feed")).toMatch(/Niedozwolony/); // NOSONAR – test odrzucenia http
     expect(await checkPublicUrl("http://192.168.1.10/feed")).toMatch(/Niedozwolony/);
     expect(await checkPublicUrl("http://[::1]/feed")).toMatch(/Niedozwolony/);
     expect(await checkPublicUrl("http://localhost/feed")).toMatch(/Niedozwolony/);
@@ -66,7 +67,7 @@ describe("źródła", () => {
     expect(resolveEnabledSources(null)).toEqual(defaultEnabledSources());
     expect(
       normalizeCustomFeeds([
-        { id: "c_1", name: "X", url: "ftp://x" },
+        { id: "c_1", name: "X", url: "ftp://x" }, // NOSONAR – test odrzucenia ftp
         { id: "c_2", name: "Y", url: "https://y.example/feed" },
       ])
     ).toHaveLength(1);

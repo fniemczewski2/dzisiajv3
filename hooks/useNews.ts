@@ -1,37 +1,43 @@
 // hooks/useNews.ts
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { NewsItem, NewsResponse } from "@/pages/api/news";
 
+interface NewsState {
+  items: NewsItem[];
+  status: Record<string, string | null>;
+  updatedAt: Date;
+}
+
+const NO_ITEMS: NewsItem[] = [];
+const NO_STATUS: Record<string, string | null> = {};
+
+async function fetchNews({ signal }: { signal: AbortSignal }): Promise<NewsState> {
+  const res = await fetch("/api/news", { signal });
+  const body = (await res.json().catch(() => ({}))) as Partial<NewsResponse> & { error?: string };
+  if (!res.ok) throw new Error(body.error ?? "Nie udało się pobrać wiadomości.");
+  return { items: body.items ?? [], status: body.status ?? {}, updatedAt: new Date() };
+}
+
+/** Wiadomości z kanałów RSS (TanStack Query – powrót na stronę nie pobiera ich od nowa). */
 export function useNews() {
-  const [items, setItems] = useState<NewsItem[]>([]);
-  const [status, setStatus] = useState<Record<string, string | null>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const query = useQuery({ queryKey: ["news"], queryFn: fetchNews });
+  const refetch = query.refetch;
+  const reload = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+  let error: string | null = null;
+  if (query.error) error = query.error instanceof Error ? query.error.message : "Nie udało się pobrać wiadomości.";
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/news");
-      const body = (await res.json().catch(() => ({}))) as Partial<NewsResponse> & { error?: string };
-      if (!res.ok) throw new Error(body.error ?? "Nie udało się pobrać wiadomości.");
-      setItems(body.items ?? []);
-      setStatus(body.status ?? {});
-      setUpdatedAt(new Date());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się pobrać wiadomości.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  return { items, status, loading, error, updatedAt, reload: load };
+  return {
+    items: query.data?.items ?? NO_ITEMS,
+    status: query.data?.status ?? NO_STATUS,
+    loading: query.isFetching,
+    error,
+    updatedAt: query.data?.updatedAt ?? null,
+    reload,
+  };
 }
 
 export async function checkCustomFeed(url: string): Promise<{ ok: boolean; message: string }> {

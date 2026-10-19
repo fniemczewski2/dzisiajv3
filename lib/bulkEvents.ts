@@ -23,17 +23,69 @@ export interface BulkEvent {
   line: number;
 }
 
-/** Najdłuższe wydarzenie z zakresu dat (np. urlop, konferencja). */
-
-const TIME_RANGE =
-  /(?:\bgodz\.?\s*|\bod\s+)?\b([01]?\d|2[0-3]):([0-5]\d)(?:\s*(?:[-–—]|do)\s*([01]?\d|2[0-3]):([0-5]\d))?\b/i;
 const pad = (h: string) => h.padStart(2, "0");
+
+const CLOCK = /\b([01]?\d|2[0-3]):([0-5]\d)/g;
+const CLOCK_AT_START = /^([01]?\d|2[0-3]):([0-5]\d)/;
+const LEAD_IN = /(?:\bgodz\.?\s*|\bod\s+)$/i;
+const RANGE_JOIN = /^\s*(?:[-–—]|do)\s*/i;
+const WORD_CHAR = /\w/;
+
+interface TimeRange {
+  /** Dokładny fragment tekstu z godzinami (do wycięcia z tytułu). */
+  text: string;
+  start: string;
+  end: string | null;
+}
+
+/** Granica słowa za pozycją `index` (koniec tekstu albo znak spoza \w). */
+function boundaryAt(text: string, index: number): boolean {
+  return index >= text.length || !WORD_CHAR.test(text[index]);
+}
+
+/**
+ * Pierwsza godzina albo przedział godzin („10:00”, „godz. 9:30–11:00”,
+ * „od 8:00 do 9:15”, „8:00do9:00”). Złożone z prostych wyrażeń zamiast
+ * jednego długiego regexu – bez ryzyka wykładniczego nawracania.
+ */
+function findTimeRange(text: string): TimeRange | null {
+  for (const first of text.matchAll(CLOCK)) {
+    const firstEnd = first.index + first[0].length;
+    let end = -1;
+    let endTime: string | null = null;
+
+    const join = RANGE_JOIN.exec(text.slice(firstEnd));
+    const second = join ? CLOCK_AT_START.exec(text.slice(firstEnd + join[0].length)) : null;
+    if (join && second && boundaryAt(text, firstEnd + join[0].length + second[0].length)) {
+      end = firstEnd + join[0].length + second[0].length;
+      endTime = `${pad(second[1])}:${second[2]}`;
+    } else if (boundaryAt(text, firstEnd)) {
+      end = firstEnd;
+    }
+    if (end === -1) continue;
+
+    const leadIn = LEAD_IN.exec(text.slice(0, first.index));
+    const begin = leadIn ? first.index - leadIn[0].length : first.index;
+    return { text: text.slice(begin, end), start: `${pad(first[1])}:${first[2]}`, end: endTime };
+  }
+  return null;
+}
+
+const EDGE_CHARS = new Set([" ", "\t", ",", ";", ":", "|", "–", "—", "-", "•", "*", "·", ".", "(", ")"]);
+
+/** Obcina znaki oddzielające z obu końców (bez regexu z kotwicami po obu stronach). */
+function trimEdges(text: string): string {
+  let start = 0;
+  let end = text.length;
+  while (start < end && EDGE_CHARS.has(text[start])) start++;
+  // Na końcu zostawiamy zamykający nawias – może należeć do tytułu.
+  while (end > start && EDGE_CHARS.has(text[end - 1]) && text[end - 1] !== ")") end--;
+  return text.slice(start, end);
+}
 
 /** Nazwa po usunięciu dat, godzin i znaków oddzielających na brzegach. */
 function cleanTitle(text: string): string {
-  return text
-    .replaceAll(/\s{2,}|\t/g, " ")
-    .replaceAll(/^[\s,;:|–—\-•*·.()]+|[\s,;:|–—\-•*·.(]+$/g, "")
+  return trimEdges(text.replaceAll("\t", " ").replaceAll(/ {2,}/g, " "))
     .replaceAll(/\(\s*\)/g, "")
     .trim();
 }
@@ -57,11 +109,11 @@ export function parseBulkEvents(text: string, now: Date = new Date()): BulkEvent
       const from = m.index - lineStart;
       rest = `${rest.slice(0, from)} ${rest.slice(from + m.length)}`;
     }
-    const time = TIME_RANGE.exec(rest);
-    if (time) rest = rest.replace(time[0], " ");
+    const time = findTimeRange(rest);
+    if (time) rest = rest.replace(time.text, " ");
 
-    const startTime = time ? `${pad(time[1])}:${time[2]}` : null;
-    const endTime = time?.[3] ? `${pad(time[3])}:${time[4]}` : null;
+    const startTime = time?.start ?? null;
+    const endTime = time?.end ?? null;
     const title = cleanTitle(rest);
 
     inLine.forEach((m, i) => {

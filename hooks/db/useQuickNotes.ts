@@ -3,38 +3,59 @@
 // Szybkie notatki użytkownika. Notatki dodane Skrótem pojawiają się po
 // powrocie do aplikacji: odświeżamy listę, gdy karta znów staje się widoczna.
 
-import { useCallback, useEffect, useState } from "react";
+import { useQueryState } from "@/hooks/useQueryState";
+import { useCallback, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { QuickNote, splitQuickNoteText, QUICK_NOTES_LIMIT_MESSAGE } from "@/lib/quickNotes";
+
+const INITIAL_STATE: { notes: QuickNote[]; available: boolean } = { notes: [], available: true };
 
 export function useQuickNotes() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
-  const [notes, setNotes] = useState<QuickNote[]>([]);
-  const [fetching, setFetching] = useState(true);
-  const [available, setAvailable] = useState(true);
+  // Brak tabeli (kod przed migracją bazy) – widżet jest ukrywany zamiast pokazywać błąd.
+  const queryNotes = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<{ notes: QuickNote[]; available: boolean }> => {
+      const { data, error } = await supabase
+        .from("quick_notes")
+        .select("id, user_id, content, source, created_at")
+        .eq("user_id", userId as string)
+        .order("created_at", { ascending: true })
+        .abortSignal(signal);
+      if (error) {
+        if (error.code === "42P01" || error.code === "PGRST205") return { notes: [], available: false };
+        throw error;
+      }
+      return { notes: (data ?? []) as QuickNote[], available: true };
+    },
+    [supabase, userId]
+  );
+  const {
+    data: state,
+    setData: setState,
+    fetching,
+    refetch: fetchNotes,
+  } = useQueryState<{ notes: QuickNote[]; available: boolean }>({
+    queryKey: ["quick-notes", userId ?? null],
+    queryFn: queryNotes,
+    initial: INITIAL_STATE,
+    enabled: Boolean(userId),
+  });
+  const notes = state.notes;
+  const available = state.available;
+  const setNotes = useCallback(
+    (updater: QuickNote[] | ((prev: QuickNote[]) => QuickNote[])) =>
+      setState((prev) => ({
+        ...prev,
+        notes: typeof updater === "function" ? updater(prev.notes) : updater,
+      })),
+    [setState]
+  );
 
-  const fetchNotes = useCallback(async () => {
-    if (!userId) return;
-    const { data, error } = await supabase
-      .from("quick_notes")
-      .select("id, user_id, content, source, created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true });
-    setFetching(false);
-    if (error) {
-      // Tabela jeszcze nie istnieje (kod przed migracją) – ukrywamy widżet zamiast straszyć błędem.
-      if (error.code === "42P01" || error.code === "PGRST205") setAvailable(false);
-      return;
-    }
-    setAvailable(true);
-    setNotes((data ?? []) as QuickNote[]);
-  }, [supabase, userId]);
-
+  // Notatki dodane ze Skrótów Siri na telefonie – odświeżenie po powrocie do karty.
   useEffect(() => {
-    void fetchNotes();
     const onVisible = () => {
       if (document.visibilityState === "visible") void fetchNotes();
     };
@@ -72,7 +93,7 @@ export function useQuickNotes() {
       setNotes((prev) => [...prev.filter((n) => !tempIds.has(n.id)), ...((data ?? []) as QuickNote[])]);
       return items.length;
     },
-    [supabase, userId, toast]
+    [supabase, userId, toast, setNotes]
   );
 
   /** Usuwa punkt. `quiet` – bez komunikatu (np. po zamianie w zadanie). */
@@ -89,7 +110,7 @@ export function useQuickNotes() {
       if (!quiet) toast.success("Usunięto punkt.");
       return true;
     },
-    [supabase, notes, toast]
+    [supabase, notes, toast, setNotes]
   );
 
   return { notes, fetching, available, addNotes, removeNote, fetchNotes };

@@ -11,6 +11,40 @@ import Seo from "@/components/ui/SEO";
 import { favoriteKey } from "@/shared/stopGrouping";
 import type { StopGroup } from "@/types/transport";
 
+/** Odjazdy ze słupków jednego przystanku (ulubione i w pobliżu – ten sam układ). */
+function BollardDepartures({
+  bollards,
+  highlighted = false,
+}: Readonly<{ bollards: StopGroup["bollards"]; highlighted?: boolean }>) {
+  return (
+    <div className="grid min-w-0 gap-3">
+      {bollards?.map((bollard) => (
+        <div key={bollard.bollard_code} className={highlighted ? "min-w-0 rounded-lg bg-surface/60 p-2" : "min-w-0"}>
+          <span className="text-xs font-medium text-text-secondary">{bollard.bollard_code}</span>
+          <div className="mt-1 min-w-0">
+            {bollard.departures.map((dep) => (
+              <div
+                key={`${dep.line}-${dep.direction}-${dep.time}`}
+                className="grid w-full min-w-0 grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-line py-1 text-sm last:border-0"
+              >
+                <span className="truncate font-medium">{dep.line}</span>
+                <span className="truncate text-text-secondary" title={dep.direction}>
+                  {dep.direction}
+                </span>
+                <span
+                  className={`text-right whitespace-nowrap tabular-nums ${dep.is_realtime ? "font-bold text-primary" : ""}`}
+                >
+                  {dep.minutes} min
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function TransportPage() {
   const { toast } = useToast();
 
@@ -75,31 +109,7 @@ export default function TransportPage() {
           <DeleteButton onClick={() => removeFavoriteStop(group.key)} small />
         </div>
 
-        <div className="grid min-w-0 gap-3">
-          {group.bollards?.map((bollard) => (
-            <div key={bollard.bollard_code} className="min-w-0">
-              <span className="text-xs font-medium text-text-secondary">{bollard.bollard_code}</span>
-              <div className="mt-1 min-w-0">
-                {bollard.departures.map((dep) => (
-                  <div
-                    key={`${dep.line}-${dep.direction}-${dep.time}`}
-                    className="grid w-full min-w-0 grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-line py-1 text-sm last:border-0"
-                  >
-                    <span className="truncate font-medium">{dep.line}</span>
-                    <span className="truncate text-text-secondary" title={dep.direction}>
-                      {dep.direction}
-                    </span>
-                    <span
-                      className={`text-right whitespace-nowrap tabular-nums ${dep.is_realtime ? "font-bold text-primary" : ""}`}
-                    >
-                      {dep.minutes} min
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <BollardDepartures bollards={group.bollards} />
       </div>
     ));
   }
@@ -137,36 +147,13 @@ export default function TransportPage() {
               onClick={() => {
                 void addNearbyToFavorites(group);
               }}
+              label={`Dodaj do ulubionych: ${group.stop_name}`}
               small
             />
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-3">
-          {group.bollards?.map((bollard) => (
-            <div key={`nearby_${bollard.bollard_code}`} className="min-w-0 rounded-lg bg-surface/60 p-2">
-              <span className="text-xs font-medium text-text-secondary">{bollard.bollard_code}</span>
-              <div className="mt-1 min-w-0">
-                {bollard.departures.map((dep) => (
-                  <div
-                    key={`${dep.line}-${dep.direction}-${dep.time}`}
-                    className="grid w-full min-w-0 grid-cols-[2rem_1fr_auto] items-center gap-2 border-b border-line py-1 text-sm last:border-0"
-                  >
-                    <span className="truncate font-medium">{dep.line}</span>
-                    <span className="truncate text-text-secondary" title={dep.direction}>
-                      {dep.direction}
-                    </span>
-                    <span
-                      className={`text-right whitespace-nowrap tabular-nums ${dep.is_realtime ? "font-bold text-primary" : ""}`}
-                    >
-                      {dep.minutes} min
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <BollardDepartures bollards={group.bollards} highlighted />
       </div>
     ));
   }

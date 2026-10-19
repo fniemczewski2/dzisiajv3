@@ -1,15 +1,16 @@
 // hooks/db/useShoppingLists.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
+import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
 import { NotSignedInError } from "@/lib/errors";
 import { useLatestRef } from "@/hooks/useLatestRef";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ShoppingElement, ShoppingList } from "@/types/shopping";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { MAX_SHOPPING_LISTS } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 
 import { omit } from "@/lib/objectUtils";
@@ -22,62 +23,69 @@ function deleteQuestion(isOwner: boolean, isShared: boolean): string {
     : "Czy chcesz usunąć listę zakupów?";
 }
 
+const NO_LISTS: ShoppingList[] = [];
+
 export function useShoppingLists() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
-  const [lists, setLists] = useState<ShoppingList[]>([]);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const userEmailsRef = useRef<Record<string, string>>({});
-  const listsRef = useLatestRef(lists);
   /** Ostatni stan pozycji potwierdzony przez bazę – do cofnięcia po błędzie. */
   const confirmedElementsRef = useRef<Record<string, ShoppingElement[]>>({});
   /** Kolejka zapisów pozycji per lista – szybkie kliknięcia zapisują się po kolei. */
   const writeQueueRef = useRef<Record<string, Promise<void>>>({});
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
 
-  /**
-   * `background` – odświeżenie bez szkieletu wczytywania (np. po zmianie
-   * udostępnienia). Szkielet pokazujemy tylko przy pierwszym wczytaniu.
-   */
-  const fetchShoppingLists = useCallback(
-    async (options: { background?: boolean } = {}) => {
-      if (!userId) {
-        throw new NotSignedInError();
-      }
-      const signal = getSignal();
-      if (!options.background) setFetching(true);
+  const queryLists = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<ShoppingList[]> => {
+      if (!userId) throw new NotSignedInError();
       try {
         const { data, error } = await withRetry(
           () =>
             supabase
               .from("shopping_lists")
               .select("*")
-              .or(`user_id.eq.${userId},shared_with_id.eq.${userId}`)
+              .or(ownedOrSharedFilter("user_id", "shared_with_id", userId))
               .limit(MAX_SHOPPING_LISTS)
               .abortSignal(signal),
           signal
         );
-
         if (error) throw error;
-
         const fetchedLists = (data || []) as ShoppingList[];
         const listsWithDisplayInfo = await resolveSharedEmails(fetchedLists, userId, supabase, userEmailsRef);
-        if (!signal.aborted) {
-          confirmedElementsRef.current = Object.fromEntries(listsWithDisplayInfo.map((l) => [l.id ?? "", l.elements]));
-          setLists(listsWithDisplayInfo);
-        }
+        confirmedElementsRef.current = Object.fromEntries(listsWithDisplayInfo.map((l) => [l.id ?? "", l.elements]));
+        return listsWithDisplayInfo;
       } catch (err) {
-        if (isAbortError(err)) return;
-        toast.error("Błąd pobierania list zakupów.");
-      } finally {
-        if (!signal.aborted) setFetching(false);
+        if (!isAbortError(err)) toast.error("Błąd pobierania list zakupów.");
+        throw err;
       }
     },
-    [userId, supabase, toast, withRetry, getSignal]
+    [supabase, userId, toast, withRetry]
+  );
+  const {
+    data: lists,
+    setData: setLists,
+    fetching,
+    refetch,
+  } = useQueryState<ShoppingList[]>({
+    queryKey: ["shopping-lists", userId ?? null],
+    queryFn: queryLists,
+    initial: NO_LISTS,
+    enabled: Boolean(userId),
+  });
+  const listsRef = useLatestRef(lists);
+
+  /**
+   * Odświeżenie list. Szkielet wczytywania pokazujemy tylko przy pierwszym
+   * wczytaniu, więc opcja `background` zostaje dla zgodności wywołań.
+   */
+  const fetchShoppingLists = useCallback(
+    async (_options: { background?: boolean } = {}) => {
+      await refetch();
+    },
+    [refetch]
   );
 
   const addShoppingList = useCallback(
@@ -147,7 +155,7 @@ export function useShoppingLists() {
         setLoading(false);
       }
     },
-    [userId, supabase, lists, fetchShoppingLists, toast, withRetry]
+    [userId, supabase, lists, fetchShoppingLists, toast, withRetry, setLists]
   );
 
   /**
@@ -180,7 +188,7 @@ export function useShoppingLists() {
       });
       writeQueueRef.current[id] = queued;
     },
-    [supabase, toast, listsRef]
+    [supabase, toast, listsRef, setLists]
   );
 
   const deleteOwnList = useCallback(
@@ -235,12 +243,8 @@ export function useShoppingLists() {
         setLoading(false);
       }
     },
-    [userId, lists, toast, deleteOwnList, leaveSharedList]
+    [userId, lists, toast, deleteOwnList, leaveSharedList, setLists]
   );
-
-  useEffect(() => {
-    if (userId) void fetchShoppingLists();
-  }, [fetchShoppingLists, userId]);
 
   return {
     lists,

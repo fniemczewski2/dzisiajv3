@@ -27,7 +27,6 @@
     "coverage/**",
     "public/sw.js",
     "public/auth-callback.js",
-    "supabase/functions/*/index.ts",
     "supabase/functions/**/*_test.ts",
     "next-env.d.ts"
   ],
@@ -65,7 +64,7 @@
     "typescript/consistent-type-imports": "off",
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "error",
-    "react/set-state-in-effect": "warn",
+    "react/set-state-in-effect": "error",
     "react/refs": "warn",
     "react/globals": "error",
     "react/immutability": "error",
@@ -130,12 +129,14 @@
       }
     },
     {
-      "files": ["supabase/functions/_shared/**"],
+      "files": ["supabase/functions/**"],
       "globals": {
         "Deno": "readonly"
       },
       "rules": {
-        "no-console": "off"
+        "no-console": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-misused-promises": "off"
       }
     },
     {

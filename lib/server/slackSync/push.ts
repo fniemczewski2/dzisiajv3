@@ -35,7 +35,7 @@ const FIELD_REJECTION_ERRORS = new Set([
   "invalid_date",
 ]);
 
-export function isFieldRejection(err: unknown): boolean {
+function isFieldRejection(err: unknown): boolean {
   const code = (err as { slackError?: string }).slackError;
   return code !== undefined && FIELD_REJECTION_ERRORS.has(code);
 }
@@ -52,7 +52,7 @@ async function updateFieldsIndividually(
 ): Promise<void> {
   for (const field of fields) {
     try {
-      await updateItem(target.token, target.listId, itemId, [field]); // NOSONAR
+      await updateItem(target.token, target.listId, itemId, [field]);
     } catch (err) {
       if (!isFieldRejection(err)) throw err;
       console.warn(

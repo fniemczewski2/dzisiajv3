@@ -1,6 +1,6 @@
 // lib/meetingPollGrid.ts
 
-export function normalizeTime(time: string): string {
+function normalizeTime(time: string): string {
   return time.slice(0, 5);
 }
 
@@ -17,14 +17,6 @@ export function generateTimeSlots(timeStart: string, timeEnd: string, durationMi
     slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
   }
   return slots;
-}
-
-export function addMinutesToTime(time: string, minutes: number): string {
-  const [h, m] = normalizeTime(time).split(":").map(Number);
-  const total = (((h * 60 + m + minutes) % 1440) + 1440) % 1440;
-  const nh = Math.floor(total / 60);
-  const nm = total % 60;
-  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
 export function slotKey(date: string, startTime: string): string {

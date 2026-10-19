@@ -46,7 +46,7 @@ async function deleteStaleEvents(
   const staleIds: string[] = [];
 
   for (let from = 0; ; from += PAGING.calendarSyncPage) {
-    const { data, error } = await supabaseAdmin() // NOSONAR
+    const { data, error } = await supabaseAdmin()
       .from("events")
       .select("id, google_event_id")
       .eq("calendar_id", calendarId)
@@ -73,7 +73,7 @@ async function deleteStaleEvents(
 async function loadAllConnectedCalendars(): Promise<ConnectedCalendarRow[]> {
   const all: ConnectedCalendarRow[] = [];
   for (let from = 0; ; from += PAGING.calendarSyncPage) {
-    const { data, error } = await supabaseAdmin() // NOSONAR
+    const { data, error } = await supabaseAdmin()
       .from("connected_calendars")
       .select("*")
       .order("id")
@@ -185,19 +185,18 @@ async function syncGoogleCalendar(
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
     const googleRes = await fetchWithTimeout(fetchUrl.toString(), {
-      // NOSONAR
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (!googleRes.ok) {
       throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
-    const data: GoogleEventsListResponse = await googleRes.json(); // NOSONAR
+    const data: GoogleEventsListResponse = await googleRes.json();
     pageToken = data.nextPageToken;
 
     const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows); // NOSONAR
+    imported += await upsertImportedEvents(rows);
   } while (pageToken);
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
@@ -217,14 +216,13 @@ async function syncOutlookCalendar(
 
   while (fetchUrl) {
     const msRes: Response = await fetchWithTimeout(fetchUrl, {
-      // NOSONAR
       headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' },
     });
 
     if (!msRes.ok) {
       throw new Error(`Outlook fetch failed for calendar ${acc.id}: ${msRes.status}`);
     }
-    const data: OutlookEventsResponse = await msRes.json(); // NOSONAR
+    const data: OutlookEventsResponse = await msRes.json();
 
     const rows: ImportedEventRow[] = [];
     for (const ev of data.value || []) {
@@ -243,7 +241,7 @@ async function syncOutlookCalendar(
       });
     }
     rows.forEach((r) => seenIds.add(r.google_event_id));
-    imported += await upsertImportedEvents(rows); // NOSONAR
+    imported += await upsertImportedEvents(rows);
     fetchUrl = data["@odata.nextLink"];
   }
 

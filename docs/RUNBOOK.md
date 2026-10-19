@@ -31,29 +31,90 @@ Dlatego **nie używaj `supabase db push`**.
    tylko pozycje świadomie zaakceptowane (publiczny odczyt `stops`, tabele obsługiwane wyłącznie przez `service_role`).
 5. Zachowaj skrypt (np. w `supabase/sql/`), żeby dało się odtworzyć schemat.
 
+**Skrypty w repozytorium – kolejność uruchomienia** (każdy można powtórzyć bez szkody):
+
+| Skrypt                                           | Co robi                                                                                                                           | Uwagi                                                                                                                 |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `supabase/sql/2026-10-17_errors_retention.sql`   | pg_cron: usuwanie logów błędów po 30 dniach                                                                                       | wymaga rozszerzenia `pg_cron`                                                                                         |
+| `supabase/sql/2026-10-18_audit_hardening.sql`    | indeksy, uprawnienia `anon`, `NOT NULL` na `user_id`, unikalne subskrypcje push, kolumna `mood_consent_at`, bucket `user-exports` | tabele z wierszami bez właściciela są wypisane w NOTICE i pominięte – przypisz lub usuń te wiersze i uruchom ponownie |
+| `supabase/sql/2026-10-18_drop_legacy_tables.sql` | usuwa nieużywane `bills`, `places`, `google_calendar_tokens`                                                                      | **nieodwracalne** – najpierw kopia (`pg_dump`, instrukcja w pliku)                                                    |
+
+**Wersjonowanie schematu (zalecane):** `supabase link` → `supabase db pull` zapisze bieżący schemat do
+`supabase/migrations/`. Po usunięciu wpisu `supabase/migrations` z `.gitignore` CI zacznie uruchamiać
+test uprawnień `supabase/tests/rls_enabled.test.sql` (pgTAP).
+
 **Wycofanie:** skrypt odwrotny przygotowany przed wdrożeniem; zmiany niszczące dane (usuwanie kolumn) rób
 dopiero po wdrożeniu kodu, który ich nie używa.
 
 ## Zadania cykliczne (cron)
 
-Harmonogram wywołań HTTP **nie jest zapisany w repozytorium** (brak `vercel.json`). Zapisz tutaj, gdzie jest skonfigurowany.
-W bazie działa `pg_cron` z jednym zadaniem: `purge-old-error-logs` (03:15 UTC, usuwa wpisy `errors`
+Harmonogram wywołań HTTP działa w **[cron-job.org](https://cron-job.org)** (konto właściciela projektu).
+W bazie działa dodatkowo `pg_cron` z zadaniem `purge-old-error-logs` (03:15 UTC, usuwa wpisy `errors`
 starsze niż 30 dni) – skrypt `supabase/sql/2026-10-17_errors_retention.sql`.
 
-| Zadanie                   | Wywołanie                                                                                        | Sugerowana częstotliwość |
-| ------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------ |
-| Synchronizacja kalendarzy | `GET /api/calendar/sync-calendars` z `Authorization: Bearer <CRON_SECRET>` (lub `x-cron-secret`) | co 15–30 min             |
-| Zamykanie ankiet          | `GET /api/meeting-polls/close-expired`                                                           | co godzinę               |
-| Synchronizacja Slacka     | `GET /api/slack/sync`                                                                            | co 5–15 min              |
-| Powiadomienia             | Edge `process-notifications` z `x-cron-secret`                                                   | co minutę                |
-| Przypomnienia o zadaniach | Edge `process-notifications?type=task_reminder` z `x-cron-secret`                                | co minutę                |
-| Zadania cykliczne         | Edge `process-reminders`                                                                         | raz na dobę              |
+### Konfiguracja zadania w cron-job.org
+
+Dla każdego wiersza z tabeli poniżej: **Dashboard → Create cronjob**, potem:
+
+1. **Common → Title**: nazwa z kolumny „Zadanie”.
+2. **Common → URL**: adres z kolumny „Adres”. `<projekt>` = identyfikator projektu Supabase
+   (z `NEXT_PUBLIC_SUPABASE_URL`, np. `abcdefgh` dla `https://abcdefgh.supabase.co`).
+3. **Common → Execution schedule**: „Custom” i wyrażenie z kolumny „Harmonogram”.
+4. **Advanced → Time zone**: `Europe/Warsaw` – godziny w tabeli są czasem polskim.
+5. **Advanced → Request method**: `GET`.
+6. **Advanced → Headers**: nagłówek z kolumny „Nagłówek”, wartość = `CRON_SECRET`
+   (ten sam w Vercelu i w sekretach Edge Functions).
+7. **Advanced → Timeout**: najwyższy dostępny w planie – synchronizacja kalendarzy i Slacka może trwać dłużej niż kilka sekund.
+8. **Notifications**: włącz powiadomienie e-mail o niepowodzeniu (np. po 2 kolejnych błędach).
+9. **Save**, potem **Test run** – oczekiwany status `200`.
+
+### Zadania
+
+| Zadanie                          | Adres                                                                                 | Nagłówek                              | Harmonogram (czas polski) |
+| -------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------- |
+| Synchronizacja kalendarzy        | `https://dzisiaj.fun/api/calendar/sync-calendars`                                     | `Authorization: Bearer <CRON_SECRET>` | `*/15 * * * *`            |
+| Zamykanie ankiet                 | `https://dzisiaj.fun/api/meeting-polls/close-expired`                                 | `Authorization: Bearer <CRON_SECRET>` | `5 * * * *`               |
+| Synchronizacja Slacka            | `https://dzisiaj.fun/api/slack/sync`                                                  | `Authorization: Bearer <CRON_SECRET>` | `*/10 * * * *`            |
+| Przypomnienia o zadaniach        | `https://<projekt>.supabase.co/functions/v1/process-notifications?type=task_reminder` | `x-cron-secret: <CRON_SECRET>`        | `* * * * *`               |
+| Przypomnienia o wydarzeniach     | `…/process-notifications?type=upcoming_event`                                         | `x-cron-secret`                       | `* * * * *`               |
+| Schemat dnia                     | `…/process-notifications?type=day_schema`                                             | `x-cron-secret`                       | `* * * * *`               |
+| Zadania z godziną                | `…/process-notifications?type=upcoming_task`                                          | `x-cron-secret`                       | `*/15 * * * *`            |
+| Nawodnienie                      | `…/process-notifications?type=hydration`                                              | `x-cron-secret`                       | `0 9-21 * * *`            |
+| Poranne podsumowanie             | `…/process-notifications?type=morning_brief`                                          | `x-cron-secret`                       | `0 7 * * *`               |
+| Rachunki                         | `…/process-notifications?type=bill_due`                                               | `x-cron-secret`                       | `0 8 * * *`               |
+| Terminy pism                     | `…/process-notifications?type=letters_deadline`                                       | `x-cron-secret`                       | `0 9 * * *`               |
+| Zamykanie ankiet – przypomnienie | `…/process-notifications?type=poll_closing`                                           | `x-cron-secret`                       | `0 10 * * *`              |
+| Urodziny, imieniny, kontakt      | `…/process-notifications?type=people`                                                 | `x-cron-secret`                       | `0 9 * * *`               |
+| Nawyki                           | `…/process-notifications?type=daily_habits`                                           | `x-cron-secret`                       | `0 20 * * *`              |
+| Wieczorne podsumowanie           | `…/process-notifications?type=evening_audit`                                          | `x-cron-secret`                       | `0 21 * * *`              |
+| Zadania cykliczne                | `https://<projekt>.supabase.co/functions/v1/process-reminders`                        | `x-cron-secret: <CRON_SECRET>`        | `0 3 * * *`               |
+
+**Skąd te częstotliwości (z kodu):**
+
+- `task_reminder`, `upcoming_event` – okno wysyłki to 15 minut, a przypomnienie „za 5 minut” ma okno
+  5 minut; rzadsze wywołania gubią przypomnienia.
+- `day_schema` – porównuje bieżącą godzinę i minutę z punktami schematu, więc wymaga wywołania co minutę.
+- `upcoming_task` – zadania zaplanowane w bieżącej godzinie, z ochroną przed duplikatem w ciągu dnia.
+- `hydration` – jedno przypomnienie na godzinę.
+- `bill_due` – nic nie wysyła przed 8:00 (`BILL_PUSH_HOUR`).
+- Typy dzienne (`morning_brief`, `daily_habits`, `evening_audit`, `letters_deadline`, `poll_closing`,
+  `people`) mają ochronę przed ponowną wysyłką tego samego dnia, więc dodatkowe wywołanie nie zdubluje powiadomień.
+- Parametru `type` nie pomijaj: bez niego funkcja wykonuje tylko typ domyślny `daily_habits`.
+
+Funkcje `process-notifications` i `process-reminders` mają w `supabase/config.toml` wyłączone
+`verify_jwt` – uwierzytelnia je wyłącznie nagłówek `x-cron-secret`. Bez niego odpowiadają `401`.
+
+**Nie przenoś harmonogramu do `vercel.json`, dopóki zadania działają w cron-job.org** – każde wywołanie
+wykonałoby się dwa razy.
 
 **Sprawdzenie ręczne:**
 
 ```bash
 curl -i -H "Authorization: Bearer $CRON_SECRET" https://dzisiaj.fun/api/calendar/sync-calendars
 # 200 {"success":true,"imported":…,"removed":…,"failedAccounts":[]}
+
+curl -i -H "x-cron-secret: $CRON_SECRET" "https://<projekt>.supabase.co/functions/v1/process-notifications?type=task_reminder"
+# 200; bez nagłówka – 401
 ```
 
 ## Awaria: kalendarze się nie synchronizują
@@ -113,3 +174,23 @@ lokalnie (`getClaims()`), bez zapytania do Auth przy każdej stronie. Bez nich `
 1. Tymczasowo: `CSP_REPORT_ONLY=1` w Vercel i ponowne wdrożenie (polityka tylko raportuje).
 2. Dopisz domenę do właściwej dyrektywy w `next.config.mjs` (np. `connect-src` dla nowego API).
 3. Usuń `CSP_REPORT_ONLY` i wdroż ponownie.
+
+## Build produkcyjny i CSP
+
+`npm run build` = `next build --webpack` + `scripts/check-inline-scripts.mjs`. Webpack wstawia w strony
+tylko skrypt motywu (dopuszczony w CSP skrótem). Turbopack (`next dev`) wstawia skrypt startowy
+zmieniający się z każdym buildem – w produkcji zostałby zablokowany. Jeśli kontrola po buildzie zgłosi
+nowy skrypt: dodaj jego skrót do `script-src` albo przenieś kod do pliku w `public/`.
+
+## Eksport danych użytkownika
+
+Plik do 4 MB wraca w odpowiedzi. Większy trafia do prywatnego bucketu `user-exports`
+(`<user_id>/dzisiaj_moje_dane_<data>.json`), a użytkownik dostaje link ważny 10 minut. Poprzedni plik
+tej osoby jest usuwany przy kolejnym eksporcie, wszystkie – przy usunięciu konta.
+
+## SonarQube / SonarCloud
+
+1. Utwórz projekt w SonarCloud (organizacja `fniemczewski2`) albo na własnym serwerze SonarQube.
+2. W repozytorium GitHub: sekret `SONAR_TOKEN`; dla własnego serwera zmienna `SONAR_HOST_URL`.
+3. Sprawdź `sonar.projectKey` i `sonar.organization` w `sonar-project.properties`.
+4. Analiza uruchamia się w CI po testach (raport pokrycia: `coverage/lcov.info`).

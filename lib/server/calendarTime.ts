@@ -13,7 +13,7 @@ const WARSAW_FORMATTER = new Intl.DateTimeFormat("en-US", {
   hour12: false,
 });
 
-export function instantToWarsawNaive(instant: Date): string {
+function instantToWarsawNaive(instant: Date): string {
   const parts = WARSAW_FORMATTER.formatToParts(instant);
   const p: Record<string, string> = {};
   for (const part of parts) p[part.type] = part.value;

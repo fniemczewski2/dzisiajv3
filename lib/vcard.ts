@@ -14,7 +14,7 @@ export function escVCardValue(raw: string): string {
 }
 
 /** Usuwa polskie znaki diakrytyczne (ł nie rozkłada się w NFD, więc osobno). */
-export function transliterate(text: string): string {
+function transliterate(text: string): string {
   return text
     .replaceAll("ł", "l")
     .replaceAll("Ł", "L")

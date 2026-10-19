@@ -77,7 +77,7 @@ async function syncUserTargets(
 
   const results: SyncResult[] = [];
   for (const target of userTargets) {
-    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask)); // NOSONAR
+    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask));
   }
   return results;
 }
@@ -107,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: SyncResult[] = [];
     for (const [userId, userTargets] of byUser) {
       if (scopedUserId && userId !== scopedUserId) continue;
-      results.push(...(await syncUserTargets(admin, userId, userTargets))); // NOSONAR
+      results.push(...(await syncUserTargets(admin, userId, userTargets)));
     }
 
     const failed = results.filter((r) => "error" in r).length;

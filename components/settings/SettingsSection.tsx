@@ -4,7 +4,7 @@
 // więc „Zapisz” w jednej sekcji nie rusza niezapisanych zmian w innej.
 // Przycisk jest aktywny, gdy w sekcji coś się zmieniło.
 
-import React, { ReactNode, useEffect, useId, useMemo, useState } from "react";
+import React, { ReactNode, useId, useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import type { Settings } from "@/types/settings";
 import { SaveButton } from "@/components/ui/CommonButtons";
@@ -56,15 +56,17 @@ export default function SettingsSection<K extends keyof Settings>({
 
   // Nowe wartości z bazy (np. zapis tej sekcji albo zmiana w innej karcie) –
   // tylko dla pól tej sekcji, więc inne sekcje nie tracą swoich zmian.
-  useEffect(() => {
+  // Aktualizacja w trakcie renderu (wzorzec React „stan zależny od propsów”) zamiast efektu.
+  const [syncedKey, setSyncedKey] = useState(savedKey);
+  if (syncedKey !== savedKey) {
+    setSyncedKey(savedKey);
     setDraft(saved);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedKey]);
+  }
 
   const dirty = keys.some((k) => !same(draft[k], saved[k]));
   const set: SetField<K> = (field, value) => setDraft((d) => ({ ...d, [field]: value }));
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!dirty) return;
     setSaving(true);

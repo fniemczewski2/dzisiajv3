@@ -9,7 +9,7 @@
 //   leniwy (getter), więc brak zmiennej przerywa tylko endpoint, który jej
 //   potrzebuje, a nie cały moduł przy imporcie.
 
-export class MissingEnvError extends Error {
+class MissingEnvError extends Error {
   constructor(public readonly variable: string) {
     super(`Brak zmiennej środowiskowej ${variable}. Uzupełnij ją w .env.local lub w ustawieniach projektu na Vercelu.`);
     this.name = "MissingEnvError";
@@ -52,6 +52,12 @@ function oauthCredentials(idName: string, secretName: string, read: () => [strin
 const DEFAULT_APP_URL = "http://localhost:3000";
 
 export const publicEnv = {
+  /** Adres i klucz Supabase albo null, gdy nie są ustawione (proxy działa wtedy bez sprawdzania sesji). */
+  get supabaseConnection(): { url: string; key: string } | null {
+    const url = optional(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const key = optional(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    return url && key ? { url, key } : null;
+  },
   get supabaseUrl(): string {
     return required("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
   },

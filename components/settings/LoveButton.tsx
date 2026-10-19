@@ -1,5 +1,7 @@
 // components/settings/LoveButton.tsx
 
+import { LOVE_COOLDOWN_MS } from "@/config/timing";
+import { invokeEdgeFunction } from "@/lib/edgeFunctions";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -15,27 +17,15 @@ export default function LoveButton() {
     if (!user) return;
     setLoading(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Nie można pobrać tokena dostępu");
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-love`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      });
-      const body = (await response.json().catch(() => ({}))) as { success?: boolean; message?: string; error?: string };
-      if (!response.ok || !body.success) {
-        toast.error(body.message ?? body.error ?? "Nie udało się wysłać serduszka.");
+      const result = await invokeEdgeFunction<{ success?: boolean; message?: string }>(supabase, "send-love", {});
+      const body = result.data as { success?: boolean; message?: string; error?: string } | null;
+      if (!result.ok || !body?.success) {
+        toast.error(body?.message ?? body?.error ?? "Nie udało się wysłać serduszka.");
         return;
       }
 
       setSent(true);
-      setTimeout(() => setSent(false), 60000);
+      setTimeout(() => setSent(false), LOVE_COOLDOWN_MS);
     } catch {
       toast.error("Nie udało się wysłać serduszka.");
     } finally {

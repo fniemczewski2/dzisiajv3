@@ -6,7 +6,7 @@
 // Kategorię i powiązanie z płatnością zmienia się po „Edytuj”; sugestie
 // automatyczne mają w karcie przyciski „Zatwierdź” i „Odrzuć”.
 
-import React, { useEffect, useId, useMemo, useState } from "react";
+import React, { useId, useMemo, useState } from "react";
 import { Check, Link2, Sparkles, X } from "lucide-react";
 import { formatPln, summarizeMonth } from "@/lib/finance";
 import TransactionForm from "./TransactionForm";
@@ -276,9 +276,12 @@ export default function TransactionsSection(props: Readonly<Props>) {
   } = props;
   const id = useId();
   const [adding, setAdding] = useState(false);
-  useEffect(() => {
+  // Każdy nowy sygnał „dodaj” z nagłówka strony otwiera formularz (w trakcie renderu, bez efektu).
+  const [seenAddSignal, setSeenAddSignal] = useState(0);
+  if (addSignal !== seenAddSignal) {
+    setSeenAddSignal(addSignal);
     if (addSignal > 0) setAdding(true);
-  }, [addSignal]);
+  }
   const summary = useMemo(() => summarizeMonth(transactions, categories), [transactions, categories]);
   const billName = useMemo(() => new Map(bills.map((b) => [b.id, b.name])), [bills]);
   const suggestions = transactions.filter((t) => t.link_status === "suggested").length;

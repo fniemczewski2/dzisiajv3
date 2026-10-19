@@ -1,5 +1,12 @@
 // components/meetingPolls/MeetingPollResults.tsx
 
+import { useQuery } from "@tanstack/react-query";
+import {
+  useMeetingPollStats,
+  type ConnectedCalendarOption,
+  useCalendarOptions,
+  type Person,
+} from "@/hooks/useMeetingPollStats";
 import { useOrigin } from "@/hooks/useIsClient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,16 +25,7 @@ import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { IconActionButton, CancelButton, CopyButtonSmall, FormButtons, SaveButton } from "../ui/CommonButtons";
-import {
-  bestRanges,
-  contiguousRanges,
-  formatDurationMinutes,
-  formatPollDay,
-  generateTimeSlots,
-  slotEndTime,
-  slotKey,
-  type SlotRange,
-} from "@/lib/meetingPollGrid";
+import { formatDurationMinutes, formatPollDay, slotEndTime, type SlotRange } from "@/lib/meetingPollGrid";
 import { effectivePollStatus } from "@/lib/meetingPollDeadline";
 import { formatTime } from "@/lib/dateUtils";
 import type {
@@ -46,29 +44,6 @@ interface MeetingPollResultsProps {
   pollId: string;
 }
 
-/** Imiona osób dostępnych w każdym terminie (klucz: slotKey). */
-function respondentNamesBySlot(
-  data:
-    | {
-        responses: readonly { id: string; respondent_name: string }[];
-        availabilities: readonly { response_id: string; date: string; start_time: string }[];
-      }
-    | null
-    | undefined
-): Record<string, string[]> {
-  const map: Record<string, string[]> = {};
-  if (!data) return map;
-  const nameByResponseId = new Map(data.responses.map((r) => [r.id, r.respondent_name]));
-  for (const a of data.availabilities) {
-    const name = nameByResponseId.get(a.response_id);
-    if (!name) continue;
-    const key = slotKey(a.date, a.start_time);
-    map[key] ??= [];
-    map[key].push(name);
-  }
-  return map;
-}
-
 /** Publiczny link do ankiety (pusty, dopóki nie znamy adresu strony). */
 function shareLink(origin: string, token: string): string {
   return origin ? `${origin}/meet/${token}` : "";
@@ -83,20 +58,8 @@ function calendarChoiceLabel(options: readonly ConnectedCalendarOption[], choice
   return option ? calendarTargetLabel(option) : "kalendarz aplikacji";
 }
 
-interface ConnectedCalendarOption {
-  id: string;
-  calendar_name: string | null;
-  google_calendar_id: string;
-  provider: "google" | "outlook";
-}
-
 interface PendingSlot extends FinalizeSlotInput {
   calendarChoice: string;
-}
-
-interface Person {
-  id: string;
-  name: string;
 }
 
 function prefersReducedMotion(): boolean {
@@ -292,13 +255,54 @@ function PeopleChips({ label, people, tone }: Readonly<{ label: string; people: 
   );
 }
 
+function PollResultsHeader({
+  data,
+  isOpen,
+  totalResponses,
+}: Readonly<{ data: MeetingPollResultsData; isOpen: boolean; totalResponses: number }>) {
+  return (
+    <header className="space-y-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h1 className="page-title text-xl sm:text-2xl">{data.poll.title}</h1>
+        <span
+          className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+            isOpen ? "border-success-line bg-success-soft text-success" : "border-line bg-surface text-text-secondary"
+          }`}
+        >
+          {isOpen ? "Przyjmuje odpowiedzi" : "Zamknięta"}
+        </span>
+      </div>
+      {data.poll.description && <p className="max-w-2xl text-sm text-text-secondary">{data.poll.description}</p>}
+      <ul className="flex flex-wrap gap-2">
+        <MetaChip icon={Users}>
+          {totalResponses} {totalResponses === 1 ? "odpowiedź" : "odpowiedzi"}
+        </MetaChip>
+        <MetaChip icon={Calendar}>
+          {data.dates.length} {data.dates.length === 1 ? "dzień" : "dni"}
+        </MetaChip>
+        <MetaChip icon={Clock}>
+          {data.poll.time_start.slice(0, 5)}–{data.poll.time_end.slice(0, 5)}
+        </MetaChip>
+        <MetaChip icon={Timer}>{data.poll.slot_duration_minutes} min / slot</MetaChip>
+        {isOpen && data.poll.closes_at && (
+          <MetaChip icon={Hourglass}>Zamknie się: {formatTime(data.poll.closes_at, true)}</MetaChip>
+        )}
+      </ul>
+    </header>
+  );
+}
+
 export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResultsProps>) {
   const { getPollResults, finalizePoll } = useMeetingPolls();
-  const { user, supabase } = useAuth();
+  const { supabase } = useAuth();
   const { toast } = useToast();
 
-  const [data, setData] = useState<MeetingPollResultsData | null>(null);
-  const [loadingResults, setLoadingResults] = useState(true);
+  const resultsQuery = useQuery({
+    queryKey: ["poll-results", pollId],
+    queryFn: () => getPollResults(pollId),
+  });
+  const data: MeetingPollResultsData | null = resultsQuery.data ?? null;
+  const loadingResults = resultsQuery.isPending;
   const [selection, setSelection] = useState<GridSelection | null>(null);
   const [rangeAnchor, setRangeAnchor] = useState<{ date: string; index: number } | null>(null);
   const [pendingSlots, setPendingSlots] = useState<PendingSlot[]>([]);
@@ -307,7 +311,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const origin = useOrigin();
 
-  const [calendarOptions, setCalendarOptions] = useState<ConnectedCalendarOption[]>([]);
+  const calendarOptions = useCalendarOptions();
 
   const [slotTitle, setSlotTitle] = useState("");
   const [slotPlace, setSlotPlace] = useState("");
@@ -351,105 +355,22 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoadingResults(true);
-    void getPollResults(pollId).then((res) => {
-      if (!cancelled) {
-        setData(res);
-        setLoadingResults(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [pollId, getPollResults]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-    void supabase
-      .from("connected_calendars")
-      .select("id, calendar_name, google_calendar_id, provider")
-      .eq("user_id", user.id)
-      .neq("google_calendar_id", "@account_connection")
-      .then(({ data: rows }) => {
-        if (!cancelled && rows) setCalendarOptions(rows as ConnectedCalendarOption[]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id, supabase]);
-
-  useEffect(() => {
     if (selection)
       panelRef.current?.scrollIntoView?.({ block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [selection]);
 
-  const times = useMemo(
-    () => (data ? generateTimeSlots(data.poll.time_start, data.poll.time_end, data.poll.slot_duration_minutes) : []),
-    [data]
-  );
-
-  const countsByKey = useMemo(() => {
-    const map: Record<string, number> = {};
-    if (!data) return map;
-    for (const a of data.availabilities) {
-      const key = slotKey(a.date, a.start_time);
-      map[key] = (map[key] ?? 0) + 1;
-    }
-    return map;
-  }, [data]);
-
-  const respondentsByKey = useMemo(() => respondentNamesBySlot(data), [data]);
-
-  const slotsByResponse = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    if (!data) return map;
-    for (const a of data.availabilities) {
-      const set = map.get(a.response_id) ?? new Set<string>();
-      set.add(slotKey(a.date, a.start_time));
-      map.set(a.response_id, set);
-    }
-    return map;
-  }, [data]);
-
-  const totalResponses = data?.responses.length ?? 0;
-  const duration = data?.poll.slot_duration_minutes ?? 30;
-
-  const focused = useMemo(() => data?.responses.find((r) => r.id === focusedId) ?? null, [data, focusedId]);
-  const personSlots = useMemo(
-    () => (focused ? (slotsByResponse.get(focused.id) ?? new Set<string>()) : null),
-    [focused, slotsByResponse]
-  );
-  const personRanges = useMemo(
-    () =>
-      data && personSlots
-        ? contiguousRanges(data.dates, times, duration, (d, t) => personSlots.has(slotKey(d, t)))
-        : [],
-    [data, personSlots, times, duration]
-  );
-
-  const best = useMemo(
-    () => (data ? bestRanges(data.dates, times, duration, countsByKey) : { count: 0, ranges: [] }),
-    [data, times, duration, countsByKey]
-  );
-
-  const selectionAvailability = useMemo(() => {
-    const available: Person[] = [];
-    const unavailable: Person[] = [];
-    if (!selection || !data) return { available, unavailable };
-
-    const requiredKeys = times
-      .slice(selection.startIndex, selection.endIndex + 1)
-      .map((t) => slotKey(selection.date, t));
-
-    for (const r of data.responses) {
-      const slots = slotsByResponse.get(r.id);
-      const isFree = requiredKeys.every((k) => slots?.has(k));
-      (isFree ? available : unavailable).push({ id: r.id, name: r.respondent_name });
-    }
-    return { available, unavailable };
-  }, [selection, data, times, slotsByResponse]);
+  const {
+    times,
+    countsByKey,
+    respondentsByKey,
+    totalResponses,
+    duration,
+    focused,
+    personSlots,
+    personRanges,
+    best,
+    selectionAvailability,
+  } = useMeetingPollStats(data, focusedId, selection);
 
   const addSelectionToPending = () => {
     if (!selection || !data || !slotTitle.trim()) return;
@@ -532,34 +453,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
 
   return (
     <div className="space-y-6">
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h1 className="page-title text-xl sm:text-2xl">{data.poll.title}</h1>
-          <span
-            className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-              isOpen ? "border-success-line bg-success-soft text-success" : "border-line bg-surface text-text-secondary"
-            }`}
-          >
-            {isOpen ? "Przyjmuje odpowiedzi" : "Zamknięta"}
-          </span>
-        </div>
-        {data.poll.description && <p className="max-w-2xl text-sm text-text-secondary">{data.poll.description}</p>}
-        <ul className="flex flex-wrap gap-2">
-          <MetaChip icon={Users}>
-            {totalResponses} {totalResponses === 1 ? "odpowiedź" : "odpowiedzi"}
-          </MetaChip>
-          <MetaChip icon={Calendar}>
-            {data.dates.length} {data.dates.length === 1 ? "dzień" : "dni"}
-          </MetaChip>
-          <MetaChip icon={Clock}>
-            {data.poll.time_start.slice(0, 5)}–{data.poll.time_end.slice(0, 5)}
-          </MetaChip>
-          <MetaChip icon={Timer}>{data.poll.slot_duration_minutes} min / slot</MetaChip>
-          {isOpen && data.poll.closes_at && (
-            <MetaChip icon={Hourglass}>Zamknie się: {formatTime(data.poll.closes_at, true)}</MetaChip>
-          )}
-        </ul>
-      </header>
+      <PollResultsHeader data={data} isOpen={isOpen} totalResponses={totalResponses} />
 
       {totalResponses === 0 ? (
         <NoResultsState

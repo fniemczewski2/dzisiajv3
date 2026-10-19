@@ -32,7 +32,7 @@ export function isAllDayEvent(event: Pick<Event, "start_time" | "end_time">): bo
 }
 
 /** Wirtualne wydarzenia (urodziny/imieniny) i instancje cykliczne mają id „<id>_<data>”. */
-export function baseEventId(id: string): string {
+function baseEventId(id: string): string {
   return id.split("_")[0];
 }
 

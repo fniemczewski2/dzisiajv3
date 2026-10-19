@@ -1,6 +1,7 @@
 // pages/tasks/pomodoro.tsx
 
-import { useEffect, useState, useRef } from "react";
+import { pomodoroReducer } from "@/lib/pomodoro";
+import { useEffect, useReducer, useState } from "react";
 import UniversalTimer, { TimerPhase, TimerControls } from "@/components/ui/Timer";
 import { Settings, X } from "lucide-react";
 import Seo from "@/components/ui/SEO";
@@ -13,12 +14,17 @@ export default function PomodoroPage() {
   const [breakSeconds, setBreakSeconds] = useState(DEFAULT_BREAK);
   const [open, setOpen] = useState(false);
 
-  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_FOCUS);
-  const [running, setRunning] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [isBreak, setIsBreak] = useState(false);
-  const [round, setRound] = useState(1);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [state, dispatch] = useReducer(pomodoroReducer, {
+    secondsLeft: DEFAULT_FOCUS,
+    running: false,
+    paused: false,
+    isBreak: false,
+    round: 1,
+  });
+  const { running, paused, isBreak, round } = state;
+  // Zatrzymana faza skupienia pokazuje aktualnie ustawioną długość (zmiana w ustawieniach).
+  const secondsLeft = !running && !isBreak ? focusSeconds : state.secondsLeft;
+  const durations = { focus: focusSeconds, break: breakSeconds };
 
   const toggleOpen = () => setOpen((prev) => !prev);
 
@@ -29,77 +35,20 @@ export default function PomodoroPage() {
 
   const phaseIndex = isBreak ? 1 : 0;
 
+  // Tykanie co sekundę; koniec fazy (zmiana na przerwę/skupienie) liczy reducer.
   useEffect(() => {
-    if (!running && !isBreak) {
-      setSecondsLeft(focusSeconds);
-    }
-  }, [focusSeconds, running, isBreak]);
-
-  useEffect(() => {
-    if (running && !paused) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft((s) => s - 1);
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [running, paused]);
-
-  useEffect(() => {
-    if (secondsLeft <= 0 && running) {
-      setRunning(false);
-      setPaused(false);
-      const nextIsBreak = !isBreak;
-      setIsBreak(nextIsBreak);
-      setSecondsLeft(nextIsBreak ? breakSeconds : focusSeconds);
-      if (!nextIsBreak) setRound((r) => r + 1);
-    }
-  }, [secondsLeft, running, isBreak, focusSeconds, breakSeconds]);
+    if (!running || paused) return;
+    const id = setInterval(() => dispatch({ type: "tick", focus: focusSeconds, break: breakSeconds }), 1000);
+    return () => clearInterval(id);
+  }, [running, paused, focusSeconds, breakSeconds]);
 
   const controls: TimerControls = {
-    start: () => {
-      const defaultSeconds = isBreak ? breakSeconds : focusSeconds;
-      setSecondsLeft((currentSeconds) => {
-        if (currentSeconds > 0) {
-          return currentSeconds;
-        }
-        return defaultSeconds;
-      });
-
-      setRunning(true);
-      setPaused(false);
-    },
-    pause: () => setPaused((prev) => !prev),
-    stop: () => {
-      setRunning(false);
-      setPaused(false);
-      setIsBreak(false);
-      setSecondsLeft(focusSeconds);
-      setRound(1);
-    },
-    next: () => {
-      const nextIsBreak = !isBreak;
-      setIsBreak(nextIsBreak);
-      setSecondsLeft(nextIsBreak ? breakSeconds : focusSeconds);
-      if (!nextIsBreak) setRound((r) => r + 1);
-    },
-    prev: () => {
-      const prevIsBreak = !isBreak;
-      setIsBreak(prevIsBreak);
-      setSecondsLeft(prevIsBreak ? breakSeconds : focusSeconds);
-    },
-    jumpToPhase: (index: number) => {
-      setIsBreak(index === 1);
-      setSecondsLeft(index === 1 ? breakSeconds : focusSeconds);
-    },
+    start: () => dispatch({ type: "start", current: secondsLeft, ...durations }),
+    pause: () => dispatch({ type: "togglePause" }),
+    stop: () => dispatch({ type: "stop", ...durations }),
+    next: () => dispatch({ type: "switch", toBreak: !isBreak, countRound: isBreak, ...durations }),
+    prev: () => dispatch({ type: "switch", toBreak: !isBreak, countRound: false, ...durations }),
+    jumpToPhase: (index: number) => dispatch({ type: "switch", toBreak: index === 1, countRound: false, ...durations }),
   };
 
   const format = (s: number) =>

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["pages/**/*.{ts,tsx}", "scripts/*.mjs", "__tests__/**/*.{ts,tsx}"],
+  "project": ["**/*.{ts,tsx,mjs,js}", "!supabase/functions/**", "!public/**"],
+  "ignoreDependencies": ["tailwindcss", "supabase", "postcss"],
+  "rules": {
+    "types": "off"
+  }
+}

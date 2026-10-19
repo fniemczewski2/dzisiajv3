@@ -29,15 +29,22 @@ export function useDataExport() {
         const body = (await response.json().catch(() => ({}))) as { error?: string };
         throw new Error(body.error ?? "Nie udało się przygotować kopii danych.");
       }
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.download = fileNameFrom(response.headers.get("Content-Disposition"));
+      let objectUrl: string | null = null;
+      if (response.headers.get("Content-Disposition")) {
+        objectUrl = URL.createObjectURL(await response.blob());
+        link.href = objectUrl;
+        link.download = fileNameFrom(response.headers.get("Content-Disposition"));
+      } else {
+        // Duży eksport: serwer zapisał plik w Storage i zwrócił link ważny kilka minut.
+        const { downloadUrl, fileName } = (await response.json()) as { downloadUrl: string; fileName: string };
+        link.href = downloadUrl;
+        link.download = fileName;
+      }
       document.body.appendChild(link);
       link.click();
       link.remove();
-      URL.revokeObjectURL(url);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
       toast.success("Pobrano kopię danych.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Nie udało się przygotować kopii danych.");

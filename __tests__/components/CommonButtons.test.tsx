@@ -10,6 +10,8 @@ import {
   ToggleChip,
   IconActionButton,
   DeleteButton,
+  UploadButton,
+  FavButton,
 } from "@/components/ui/CommonButtons";
 import { Trash2 } from "lucide-react";
 
@@ -118,7 +120,22 @@ describe("DeleteButton", () => {
   it("calls onClick when pressed", async () => {
     const onClick = vi.fn();
     render(<DeleteButton onClick={onClick} />);
-    await userEvent.click(screen.getByRole("button", { name: "usuń" }));
+    await userEvent.click(screen.getByRole("button", { name: "Usuń" }));
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("etykiety przycisków akcji", () => {
+  it("przekazana nazwa dostępna trafia do przycisku (nie jest gubiona)", () => {
+    render(
+      <>
+        <DeleteButton onClick={() => undefined} ariaLabel="Usuń szablon Zarząd" small />
+        <UploadButton onClick={() => undefined} ariaLabel="Prześlij logo" small />
+        <FavButton onClick={() => undefined} label="Ustaw jako domyślny" small />
+      </>
+    );
+    expect(screen.getByRole("button", { name: "Usuń szablon Zarząd" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Prześlij logo" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ustaw jako domyślny" })).toBeInTheDocument();
   });
 });

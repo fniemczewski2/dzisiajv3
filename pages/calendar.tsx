@@ -49,8 +49,8 @@ export default function CalendarPage() {
   useQuickAction({ onActionAdd: () => setShowForm(true) });
   useEffect(() => {
     if (router.query.reset === "true") {
-      setSelectedDate(null);
-      void router.replace("/calendar", undefined, { shallow: true });
+      // Wyczyszczenie parametru w adresie, potem powrót do bieżącego miesiąca.
+      void router.replace("/calendar", undefined, { shallow: true }).then(() => setSelectedDate(null));
     }
   }, [router.query.reset, router]);
 

@@ -2,7 +2,7 @@
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/server/apiGuards";
 import { generateShortcutToken, hashShortcutToken } from "@/lib/server/shortcutTokens";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,11 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Metoda niedozwolona." });
   }
 
-  const supabase = createServerSupabase(req, res);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
+  const session = await requireUser(req, res);
+  if (!session) return;
+  const { user } = session;
 
   const admin = supabaseAdmin();
 

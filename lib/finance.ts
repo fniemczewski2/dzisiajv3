@@ -121,7 +121,7 @@ export function merchantKey(description: string | null | undefined): string {
 }
 
 /** Kwoty „prawie równe”: różnica do 10% (min. 2 zł) – ceny subskrypcji się zmieniają. */
-export function amountsClose(a: number, b: number): boolean {
+function amountsClose(a: number, b: number): boolean {
   const diff = Math.abs(Number(a) - Number(b));
   return diff <= Math.max(2, Math.max(Number(a), Number(b)) * 0.1);
 }

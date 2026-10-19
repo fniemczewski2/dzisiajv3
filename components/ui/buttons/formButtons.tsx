@@ -25,7 +25,7 @@ export const AddButton = ({ onClick, loading, disabled, small = false, ariaLabel
   </button>
 );
 
-export const AddAnotherButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
+const AddAnotherButton = ({ onClick, loading, disabled, small = false }: Readonly<ButtonProps>) => (
   <button
     type="button"
     onClick={onClick}

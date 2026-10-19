@@ -80,7 +80,7 @@ describe("overlappingEventIds", () => {
       ev("c", "2026-10-12T12:00:00", "2026-10-12T13:00:00"),
       ev("d", "2026-10-12T00:00:00", "2026-10-12T23:59:00"),
     ]);
-    expect([...ids].sort()).toEqual(["a", "b"]);
+    expect([...ids].sort((x, y) => x.localeCompare(y))).toEqual(["a", "b"]);
   });
 });
 

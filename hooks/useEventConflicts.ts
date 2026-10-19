@@ -5,6 +5,7 @@
 // sprawdzanego terminu i (kończą się po jego początku albo są cykliczne).
 // Zapytanie idzie z opóźnieniem 300 ms, żeby nie strzelać przy każdym znaku.
 
+import { quotedIsoTimestamp } from "@/lib/postgrestFilters";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { Event } from "@/types/events";
@@ -43,11 +44,10 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
   const startMs = start?.getTime() ?? null;
   const endMs = end?.getTime() ?? null;
 
+  const active = Boolean(enabled && userId && supabase && startMs !== null && endMs !== null && endMs > startMs);
+
   useEffect(() => {
-    if (!enabled || !userId || !supabase || startMs === null || endMs === null || endMs <= startMs) {
-      setReport(EMPTY);
-      return;
-    }
+    if (!active || startMs === null || endMs === null) return;
     let cancelled = false;
     const check = async () => {
       setChecking(true);
@@ -57,7 +57,7 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
         .from("events")
         .select("*")
         .lte("start_time", endTs)
-        .or(`repeat.neq.none,end_time.gte."${startTs}"`)
+        .or(`repeat.neq.none,end_time.gte.${quotedIsoTimestamp(startTs)}`)
         .limit(500);
       if (cancelled) return;
       setChecking(false);
@@ -75,7 +75,9 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [enabled, userId, supabase, startMs, endMs, ignoreId, allDay]);
+  }, [active, userId, supabase, startMs, endMs, ignoreId, allDay]);
 
-  return { report, checking, hasOverlaps: report.overlaps.length > 0 };
+  // Nieaktywne sprawdzanie (brak terminu, formularz zamknięty) – zawsze pusty raport, bez efektu.
+  const current = active ? report : EMPTY;
+  return { report: current, checking: active && checking, hasOverlaps: current.overlaps.length > 0 };
 }

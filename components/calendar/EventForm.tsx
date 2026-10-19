@@ -59,7 +59,6 @@ export default function EventForm({
 
   const [title, setTitle] = useState(initialTitle);
   const [category, setCategory] = useState<string | null>(null);
-  const [conflictAcknowledged, setConflictAcknowledged] = useState(false);
   const conflictRef = useRef<HTMLDivElement>(null);
   const [description, setDescription] = useState("");
   const [allDay, setAllDay] = useState(true);
@@ -91,7 +90,15 @@ export default function EventForm({
 
   const refTime = (selectedDate ?? currentDate)?.getTime() ?? null;
 
-  useEffect(() => {
+  // Domyślny termin z wybranego dnia – ustawiany w trakcie renderu przy zmianie dnia lub trybu „cały dzień”.
+  const defaultsKey = `${refTime}|${allDay}`;
+  const [seenDefaultsKey, setSeenDefaultsKey] = useState<string | null>(null);
+  if (seenDefaultsKey !== defaultsKey) {
+    setSeenDefaultsKey(defaultsKey);
+    applyDefaultTimes();
+  }
+
+  function applyDefaultTimes() {
     if (refTime === null) {
       setStart("");
       setEnd("");
@@ -108,16 +115,16 @@ export default function EventForm({
       setEnd(addMinutesToLocal(first, DEFAULT_EVENT_DURATION_MIN));
       setDurationMin(DEFAULT_EVENT_DURATION_MIN);
     }
-  }, [refTime, allDay]);
+  }
 
   const startDate = useMemo(() => parseLocalInput(start), [start]);
   const endDate = useMemo(() => parseLocalInput(end, allDay), [end, allDay]);
   const { report: conflicts, hasOverlaps } = useEventConflicts(startDate, endDate, { allDay });
 
-  // Nowy termin = nowa decyzja: potwierdzenie „zapisz mimo to” przestaje obowiązywać.
-  useEffect(() => {
-    setConflictAcknowledged(false);
-  }, [start, end, allDay]);
+  // Nowy termin = nowa decyzja: potwierdzenie „zapisz mimo to” dotyczy konkretnego terminu.
+  const conflictKey = `${start}|${end}|${allDay}`;
+  const [acknowledgedKey, setAcknowledgedKey] = useState<string | null>(null);
+  const conflictAcknowledged = acknowledgedKey === conflictKey;
 
   const handleStartChange = (value: string) => {
     setStart(value);
@@ -160,13 +167,13 @@ export default function EventForm({
     setTicketReminder(true);
     setSelectedCalendar("local");
     setCategory(null);
-    setConflictAcknowledged(false);
+    setAcknowledgedKey(null);
   };
 
   /** Pierwsze „Zapisz” przy kolizji tylko pokazuje ostrzeżenie; drugie zapisuje. */
   const stopForConflict = (): boolean => {
     if (!hasOverlaps || conflictAcknowledged) return false;
-    setConflictAcknowledged(true);
+    setAcknowledgedKey(conflictKey);
     conflictRef.current?.focus();
     conflictRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     return true;

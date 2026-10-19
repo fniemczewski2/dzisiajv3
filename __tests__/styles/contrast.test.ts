@@ -12,10 +12,19 @@ import { contrastRatio } from "@/lib/contrast";
 const css = readFileSync(join(process.cwd(), "styles/globals.css"), "utf8");
 
 function block(selector: ":root" | ".dark"): Record<string, string> {
-  const pattern = selector === ":root" ? /\n {2}:root \{([\s\S]*?)\n {2}\}/ : /\n {2}\.dark \{([\s\S]*?)\n {2}\}/;
-  const body = pattern.exec(css)?.[1] ?? "";
+  // Blok selektora w @layer base: od „\n  :root {” do najbliższego „\n  }”.
+  const open = css.indexOf(`\n  ${selector} {`);
+  const close = open === -1 ? -1 : css.indexOf("\n  }", open);
+  const body = open === -1 || close === -1 ? "" : css.slice(open, close);
   const vars: Record<string, string> = {};
-  for (const m of body.matchAll(/--([\w-]+):\s*(#[0-9A-Fa-f]{6})/g)) vars[m[1]] = m[2];
+  // Deklaracje „--nazwa: #RRGGBB;” – podział tekstu zamiast regexu z nawracaniem.
+  for (const declaration of body.split(";")) {
+    const at = declaration.indexOf("--");
+    const colon = declaration.indexOf(":", at);
+    if (at === -1 || colon === -1) continue;
+    const value = declaration.slice(colon + 1).trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) vars[declaration.slice(at + 2, colon).trim()] = value;
+  }
   return vars;
 }
 

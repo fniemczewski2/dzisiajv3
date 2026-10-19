@@ -60,7 +60,7 @@ export function SkeletonRow() {
   );
 }
 
-export function SkeletonStreakCard() {
+function SkeletonStreakCard() {
   return (
     <output
       aria-busy="true"
@@ -77,7 +77,7 @@ export function SkeletonStreakCard() {
   );
 }
 
-export function SkeletonMovieCard() {
+function SkeletonMovieCard() {
   return (
     <output
       aria-busy="true"
@@ -225,34 +225,6 @@ export function SkeletonWeather() {
           </div>
         ))}
       </div>
-    </output>
-  );
-}
-
-export function SkeletonProfile() {
-  const id = useId();
-  const itemIds = useMemo(() => Array.from({ length: 3 }, (_, i) => `${id}-item-${i}`), [id]);
-
-  return (
-    <output
-      aria-busy="true"
-      aria-label="Ładowanie"
-      className="flex flex-col gap-4 rounded-xl border border-line bg-card p-5 shadow-sm"
-    >
-      <div className="flex items-center gap-4">
-        <Bar className="h-16 w-16 shrink-0 rounded-full" />
-        <div className="flex flex-1 flex-col gap-2">
-          <Bar className="h-5 w-2/5" />
-          <Bar className="h-3 w-1/3" />
-        </div>
-      </div>
-      <Bar className="h-px w-full" />
-      {itemIds.map((itemId) => (
-        <div key={itemId} className="flex items-center gap-3">
-          <Bar className="h-4 w-4 shrink-0 rounded-lg" />
-          <Bar className="h-3 w-1/2" />
-        </div>
-      ))}
     </output>
   );
 }

@@ -1,9 +1,11 @@
 // components/profiles/ProfileEditorForm.tsx
 
+import { SLUG_CHECK_DEBOUNCE_MS } from "@/config/timing";
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { FormButtons, DeleteButton, AddButton } from "../ui/CommonButtons";
+import TypedValueList, { type TypedValueItem } from "@/components/profiles/TypedValueList";
 import {
   User,
   Building,
@@ -26,13 +28,28 @@ interface ProfileEditorFormProps {
   onCancel: () => void;
 }
 
+/** Adres publiczny z nazwy: małe litery, bez polskich znaków, słowa rozdzielone myślnikiem. */
+function slugFromName(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replaceAll("ł", "l")
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .replaceAll(/[^a-z0-9]+/g, "-");
+  let start = 0;
+  let end = slug.length;
+  while (start < end && slug[start] === "-") start++;
+  while (end > start && slug[end - 1] === "-") end--;
+  return slug.slice(start, end);
+}
+
 export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: Readonly<ProfileEditorFormProps>) {
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { handleImageUpload, uploading } = useImages();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     profile_name: initialData?.profile_name || "",
     full_name: initialData?.full_name || "",
     avatar_url: initialData?.avatar_url || "",
@@ -40,7 +57,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     color_light: initialData?.color_light || "#ffffff",
     color_dark: initialData?.color_dark || "#171717",
     is_public: initialData?.is_public || false,
-    public_slug: initialData?.public_slug || "",
+    public_slug: initialData?.public_slug || slugFromName(initialData?.full_name || initialData?.profile_name || ""),
 
     phones: (initialData?.phones || []).map((p) => ({ ...p, _id: crypto.randomUUID() })),
     emails: (initialData?.emails || []).map((e) => ({ ...e, _id: crypto.randomUUID() })),
@@ -48,7 +65,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     social_links: (initialData?.social_links || []).map((s) => ({ ...s, _id: crypto.randomUUID() })),
 
     business_data: initialData?.business_data || { nip: "", krs: "", bank_account: "" },
-  });
+  }));
 
   const onAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = await handleImageUpload(e);
@@ -60,19 +77,13 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!initialData?.public_slug);
 
-  useEffect(() => {
-    if (!isSlugManuallyEdited && (formData.full_name || formData.profile_name)) {
-      const baseName = formData.full_name || formData.profile_name;
-      const safeName = baseName
-        .toLowerCase()
-        .normalize("NFD")
-        .replaceAll(/[\u0300-\u036f]/g, "")
-        .replaceAll(/[^a-z0-9]+/g, "-")
-        .replaceAll(/^-|-$/g, "");
-
-      setFormData((prev) => ({ ...prev, public_slug: safeName }));
-    }
-  }, [formData.full_name, formData.profile_name, isSlugManuallyEdited]);
+  /** Zmiana nazwy – dopóki użytkownik nie wpisał adresu sam, adres publiczny powstaje z nazwy. */
+  const updateName = (field: "full_name" | "profile_name", value: string) =>
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (isSlugManuallyEdited) return next;
+      return { ...next, public_slug: slugFromName(next.full_name || next.profile_name) };
+    });
 
   useEffect(() => {
     const checkSlug = async () => {
@@ -97,7 +108,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
       }
     };
 
-    const timeoutId = setTimeout(() => void checkSlug(), 500);
+    const timeoutId = setTimeout(() => void checkSlug(), SLUG_CHECK_DEBOUNCE_MS);
     return () => clearTimeout(timeoutId);
   }, [formData.public_slug, formData.is_public, initialData?.id, supabase]);
 
@@ -110,36 +121,17 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     setFormData((prev) => ({ ...prev, public_slug: formatted }));
   };
 
-  const addPhone = () =>
-    setFormData((p) => ({ ...p, phones: [...p.phones, { type: "Komórka", number: "", _id: crypto.randomUUID() }] }));
-  const updatePhone = (index: number, field: string, value: string) => {
-    const newPhones = [...formData.phones];
-    newPhones[index] = { ...newPhones[index], [field]: value };
-    setFormData((p) => ({ ...p, phones: newPhones }));
-  };
-  const removePhone = (index: number) => setFormData((p) => ({ ...p, phones: p.phones.filter((_, i) => i !== index) }));
-
-  const addEmail = () =>
-    setFormData((p) => ({ ...p, emails: [...p.emails, { type: "Prywatny", email: "", _id: crypto.randomUUID() }] }));
-  const updateEmail = (index: number, field: string, value: string) => {
-    const newEmails = [...formData.emails];
-    newEmails[index] = { ...newEmails[index], [field]: value };
-    setFormData((p) => ({ ...p, emails: newEmails }));
-  };
-  const removeEmail = (index: number) => setFormData((p) => ({ ...p, emails: p.emails.filter((_, i) => i !== index) }));
-
-  const addAddress = () =>
+  // Listy „typ + wartość” – zmiany zawsze na najnowszym stanie (prev), bez kopii formData z domknięcia.
+  type ListKey = "phones" | "emails" | "addresses";
+  const addListItem = (key: ListKey, item: Record<string, string>) =>
+    setFormData((p) => ({ ...p, [key]: [...p[key], { ...item, _id: crypto.randomUUID() }] }));
+  const updateListItem = (key: ListKey, index: number, field: string, value: string) =>
     setFormData((p) => ({
       ...p,
-      addresses: [...p.addresses, { type: "Biuro", address: "", _id: crypto.randomUUID() }],
+      [key]: (p[key] as Record<string, string>[]).map((it, i) => (i === index ? { ...it, [field]: value } : it)),
     }));
-  const updateAddress = (index: number, field: string, value: string) => {
-    const newAddresses = [...formData.addresses];
-    newAddresses[index] = { ...newAddresses[index], [field]: value };
-    setFormData((p) => ({ ...p, addresses: newAddresses }));
-  };
-  const removeAddress = (index: number) =>
-    setFormData((p) => ({ ...p, addresses: p.addresses.filter((_, i) => i !== index) }));
+  const removeListItem = (key: ListKey, index: number) =>
+    setFormData((p) => ({ ...p, [key]: (p[key] as unknown[]).filter((_, i) => i !== index) }));
 
   const addSocialLink = () => {
     setFormData((p) => ({
@@ -271,7 +263,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
             type="text"
             placeholder="np. Służbowa, Prywatna"
             value={formData.profile_name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, profile_name: e.target.value }))}
+            onChange={(e) => updateName("profile_name", e.target.value)}
             className="input-field w-full"
           />
         </label>
@@ -280,7 +272,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
           <input
             type="text"
             value={formData.full_name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
+            onChange={(e) => updateName("full_name", e.target.value)}
             className="input-field w-full"
           />
         </label>
@@ -334,117 +326,38 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
       </h3>
 
       <div className="space-y-2">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="form-label mb-2 block font-medium">Numery telefonu</span>
-          <AddButton onClick={addPhone} small />
-        </div>
-        <div className="space-y-1">
-          {formData.phones.map((phone, idx) => (
-            <div key={phone._id} className="flex items-center gap-2">
-              <label htmlFor={`field-type-${phone._id}`} className="sr-only">
-                Typ numeru
-              </label>
-              <input
-                id={`field-type-${phone._id}`}
-                type="text"
-                placeholder="Typ"
-                value={phone.type}
-                onChange={(e) => updatePhone(idx, "type", e.target.value)}
-                className="input-field w-24 sm:w-32"
-              />
-
-              <label htmlFor={`field-number-${phone._id}`} className="sr-only">
-                Numer telefonu
-              </label>
-              <input
-                id={`field-number-${phone._id}`}
-                type="text"
-                placeholder="Numer"
-                value={phone.number}
-                onChange={(e) => updatePhone(idx, "number", e.target.value)}
-                className="input-field flex-1"
-              />
-
-              <DeleteButton onClick={() => removePhone(idx)} small />
-            </div>
-          ))}
-        </div>
-
-        <div>
-          <div className="mb-1 flex items-center justify-between">
-            <span className="form-label mb-2 block font-medium">Adresy e-mail</span>
-            <AddButton onClick={addEmail} small />
-          </div>
-          <div className="space-y-1">
-            {formData.emails.map((email, idx) => (
-              <div key={email._id} className="flex items-center gap-2">
-                <label htmlFor={`field-type-${email._id}`} className="sr-only">
-                  Typ e-mail
-                </label>
-                <input
-                  id={`field-type-${email._id}`}
-                  type="text"
-                  placeholder="Typ"
-                  value={email.type}
-                  onChange={(e) => updateEmail(idx, "type", e.target.value)}
-                  className="input-field w-24 sm:w-32"
-                />
-
-                <label htmlFor={`field-email-${email._id}`} className="sr-only">
-                  Adres e-mail
-                </label>
-                <input
-                  id={`field-email-${email._id}`}
-                  type="email"
-                  placeholder="Adres e-mail"
-                  value={email.email}
-                  onChange={(e) => updateEmail(idx, "email", e.target.value)}
-                  className="input-field flex-1"
-                />
-
-                <DeleteButton onClick={() => removeEmail(idx)} small />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <div className="mb-1 flex items-center justify-between">
-            <span className="form-label mb-2 block font-medium">Adresy</span>
-            <AddButton onClick={addAddress} small />
-          </div>
-          <div className="space-y-2">
-            {formData.addresses.map((addr, idx) => (
-              <div key={addr._id} className="flex items-center gap-2">
-                <label htmlFor={`field-type-${addr._id}`} className="sr-only">
-                  Typ adresu
-                </label>
-                <input
-                  id={`field-type-${addr._id}`}
-                  type="text"
-                  placeholder="Typ"
-                  value={addr.type}
-                  onChange={(e) => updateAddress(idx, "type", e.target.value)}
-                  className="input-field w-24 sm:w-32"
-                />
-
-                <label htmlFor={`field-address-${addr._id}`} className="sr-only">
-                  Adres fizyczny
-                </label>
-                <input
-                  id={`field-address-${addr._id}`}
-                  type="text"
-                  placeholder="Adres"
-                  value={addr.address}
-                  onChange={(e) => updateAddress(idx, "address", e.target.value)}
-                  className="input-field flex-1"
-                />
-
-                <DeleteButton onClick={() => removeAddress(idx)} small />
-              </div>
-            ))}
-          </div>
-        </div>
+        <TypedValueList
+          title="Numery telefonu"
+          itemLabel="numer telefonu"
+          items={formData.phones as TypedValueItem[]}
+          valueField="number"
+          valuePlaceholder="Numer telefonu"
+          inputType="tel"
+          onAdd={() => addListItem("phones", { type: "Komórka", number: "" })}
+          onChange={(i, field, value) => updateListItem("phones", i, field, value)}
+          onRemove={(i) => removeListItem("phones", i)}
+        />
+        <TypedValueList
+          title="Adresy e-mail"
+          itemLabel="adres e-mail"
+          items={formData.emails as TypedValueItem[]}
+          valueField="email"
+          valuePlaceholder="Adres e-mail"
+          inputType="email"
+          onAdd={() => addListItem("emails", { type: "Prywatny", email: "" })}
+          onChange={(i, field, value) => updateListItem("emails", i, field, value)}
+          onRemove={(i) => removeListItem("emails", i)}
+        />
+        <TypedValueList
+          title="Adresy"
+          itemLabel="adres"
+          items={formData.addresses as TypedValueItem[]}
+          valueField="address"
+          valuePlaceholder="Adres"
+          onAdd={() => addListItem("addresses", { type: "Biuro", address: "" })}
+          onChange={(i, field, value) => updateListItem("addresses", i, field, value)}
+          onRemove={(i) => removeListItem("addresses", i)}
+        />
       </div>
 
       <h3 className="flex items-center justify-between">

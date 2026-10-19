@@ -52,7 +52,7 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): bo
   return true;
 }
 
-export function windowToMs(window: RateLimitWindow): number {
+function windowToMs(window: RateLimitWindow): number {
   const [amount, unit] = window.split(" ");
   const value = Number(amount);
   switch (unit) {
@@ -103,7 +103,7 @@ export interface RateLimitResult {
 }
 
 /** Sprawdza limit `name` dla klucza (IP, id użytkownika, token…). */
-export async function rateLimit(name: RateLimitName, key: string): Promise<RateLimitResult> {
+async function rateLimit(name: RateLimitName, key: string): Promise<RateLimitResult> {
   const rule = RATE_LIMITS[name];
   const windowMs = windowToMs(rule.window);
   const limiter = upstashLimiter(name);

@@ -34,7 +34,7 @@ function plural(n: number, one: string, few: string, many: string) {
   return last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? few : many;
 }
 
-export function sortMovies(movies: readonly Movie[], sortType = "updated_desc"): Movie[] {
+function sortMovies(movies: readonly Movie[], sortType = "updated_desc"): Movie[] {
   const byDate = (a: Movie, b: Movie) =>
     new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime();
   const sortFn = (a: Movie, b: Movie) => {

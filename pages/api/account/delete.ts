@@ -4,7 +4,7 @@
 // w Storage i konto logowania. Wymaga frazy potwierdzającej w treści.
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { allowMethods, requireUser } from "@/lib/server/apiGuards";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { AccountDataError, deleteUserData } from "@/lib/server/accountData";
 import { ACCOUNT_DELETE_CONFIRMATION } from "@/config/userData";
@@ -12,16 +12,10 @@ import { CACHE_CONTROL } from "@/config/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Cache-Control", CACHE_CONTROL.private);
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Metoda niedozwolona." });
-  }
-
-  const supabase = createServerSupabase(req, res);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return res.status(401).json({ error: "Brak autoryzacji." });
+  if (!allowMethods(req, res, ["POST"])) return;
+  const session = await requireUser(req, res);
+  if (!session) return;
+  const { supabase, user } = session;
 
   const raw = (req.body as { confirmation?: unknown } | undefined)?.confirmation;
   const confirmation = typeof raw === "string" ? raw.trim() : "";

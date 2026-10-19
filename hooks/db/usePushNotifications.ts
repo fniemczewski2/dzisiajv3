@@ -1,5 +1,6 @@
 // hooks/db/usePushNotifications.ts
 
+import { publicEnv } from "@/config/env";
 import { registerServiceWorker, SERVICE_WORKER_DISABLED_MESSAGE } from "@/lib/serviceWorker";
 import { NotSignedInError } from "@/lib/errors";
 import { USER_LOCAL_STORAGE_KEYS } from "@/config/storage";
@@ -112,7 +113,7 @@ export function usePushNotifications(userId: string | undefined) {
   const getUsableSubscription = useCallback(
     async (registration: ServiceWorkerRegistration) => {
       const subscription = await registration.pushManager.getSubscription();
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const vapidKey = publicEnv.vapidPublicKey;
       if (!subscription || !vapidKey || subscriptionMatchesVapidKey(subscription, vapidKey)) return subscription;
 
       console.warn("[SW] Subskrypcja push z innym kluczem VAPID – tworzę nową");
@@ -125,7 +126,7 @@ export function usePushNotifications(userId: string | undefined) {
   );
 
   const createSubscription = useCallback(async () => {
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const vapidKey = publicEnv.vapidPublicKey;
     if (!vapidKey) throw new Error("Błąd: Brak klucza VAPID w zmiennych środowiskowych.");
     const registration = await requireRegistration();
     return registration.pushManager.subscribe({

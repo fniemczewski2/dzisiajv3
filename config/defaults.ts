@@ -52,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   habit_plants: true,
   habit_duolingo: true,
   mood_options: DEFAULT_MOODS,
+  mood_consent_at: null,
   task_categories: null,
   category_colors: null,
   disabled_modules: null,

@@ -30,7 +30,7 @@ const safeParseArray = <T = unknown>(data: unknown): T[] => {
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
-export const normalizeFavoriteStops = (data: unknown): FavoriteStop[] => {
+const normalizeFavoriteStops = (data: unknown): FavoriteStop[] => {
   const parsed = safeParseArray<string | Partial<FavoriteStop>>(data);
   return parsed
     .map((item): FavoriteStop => {

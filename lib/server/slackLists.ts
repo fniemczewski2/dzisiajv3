@@ -43,18 +43,18 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 
 async function requestSlack<T>(send: () => Promise<Response>): Promise<T & SlackEnvelope> {
   for (let attempt = 0; ; attempt += 1) {
-    const response = await send(); // NOSONAR
+    const response = await send();
 
     if (response.status === 429) {
       const retryAfter = Number(response.headers.get("Retry-After") ?? "30") || 30;
       if (attempt < SLACK_RATE_LIMIT_RETRIES) {
-        await sleep(Math.min(retryAfter * 1000, SLACK_RATE_LIMIT_MAX_WAIT_MS)); // NOSONAR
+        await sleep(Math.min(retryAfter * 1000, SLACK_RATE_LIMIT_MAX_WAIT_MS));
         continue;
       }
       throw slackError("Przekroczono limit zapytań do Slacka.", "ratelimited", retryAfter);
     }
 
-    const body = (await response.json()) as T & SlackEnvelope; // NOSONAR
+    const body = (await response.json()) as T & SlackEnvelope;
     if (!body.ok) throw slackError(translateSlackError(body.error), body.error);
     return body;
   }
@@ -161,7 +161,7 @@ const COLUMN_FAMILIES: Record<string, ColumnFamily> = {
   todo_completed: "checkbox",
 };
 
-export function columnFamily(type: string): ColumnFamily {
+function columnFamily(type: string): ColumnFamily {
   return COLUMN_FAMILIES[type] ?? (type ? "unsupported" : "text");
 }
 
@@ -306,7 +306,6 @@ async function fetchAllItems(token: string, listId: string): Promise<SlackItem[]
 
   do {
     const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, {
-      // NOSONAR
       list_id: listId,
       limit: SLACK_ITEMS_PAGE_SIZE,
       ...(cursor ? { cursor } : {}),

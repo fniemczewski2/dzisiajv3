@@ -8,7 +8,7 @@
 import { NAVIGATION_CATEGORIES } from "./navigation";
 
 /** Ścieżki, których nie da się wyłączyć. */
-export const CORE_PATHS: readonly string[] = ["/", "/tasks", "/calendar", "/settings", "/guide", "/privacy", "/start"];
+const CORE_PATHS: readonly string[] = ["/", "/tasks", "/calendar", "/settings", "/guide", "/privacy", "/start"];
 
 export interface AppModule {
   path: string;

@@ -73,19 +73,20 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 ## 🏗️ Stack technologiczny
 
-| Warstwa         | Technologia                                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| Framework       | [Next.js 16](https://nextjs.org/) (Pages Router)                                                        |
-| UI              | [React 19](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide](https://lucide.dev/) |
-| Język           | TypeScript (strict)                                                                                     |
-| Backend / DB    | [Supabase](https://supabase.com/) (PostgreSQL, Auth, Realtime)                                          |
-| Drag & drop     | `@dnd-kit`                                                                                              |
-| Daty            | `date-fns`                                                                                              |
-| PDF / kalendarz | `pdfmake`, `ical.js`                                                                                    |
-| QR / vCard      | `qrcode.react`                                                                                          |
-| Logowanie       | Supabase Auth (OAuth Google / Microsoft)                                                                |
-| Testy           | `vitest`, `@testing-library/react`, `jsdom`                                                             |
-| Lint            | [Oxlint](https://oxc.rs/) z regułami zależnymi od typów (`oxlint-tsgolint`, oparty na TypeScript 7)     |
+| Warstwa          | Technologia                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Framework        | [Next.js 16](https://nextjs.org/) (Pages Router)                                                        |
+| UI               | [React 19](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Lucide](https://lucide.dev/) |
+| Język            | TypeScript (strict)                                                                                     |
+| Backend / DB     | [Supabase](https://supabase.com/) (PostgreSQL, Auth, Realtime)                                          |
+| Dane w aplikacji | [TanStack Query](https://tanstack.com/query) – wspólna pamięć zapytań, odświeżanie cykliczne            |
+| Drag & drop      | `@dnd-kit`                                                                                              |
+| Daty             | `date-fns`                                                                                              |
+| PDF / kalendarz  | `pdfmake`, `ical.js`                                                                                    |
+| QR / vCard       | `qrcode.react`                                                                                          |
+| Logowanie        | Supabase Auth (OAuth Google / Microsoft)                                                                |
+| Testy            | `vitest`, `@testing-library/react`, `jsdom`                                                             |
+| Lint             | [Oxlint](https://oxc.rs/) z regułami zależnymi od typów (`oxlint-tsgolint`, oparty na TypeScript 7)     |
 
 ## 🚀 Szybki start
 
@@ -132,12 +133,14 @@ Edge Functions mają własne sekrety (Supabase → Edge Functions → Secrets): 
 
 ```bash
 npm run dev            # serwer deweloperski
-npm run build           # build produkcyjny
+npm run build           # build produkcyjny (webpack) + kontrola skryptów względem CSP
 npm run start            # start builda produkcyjnego
 npm run lint             # Oxlint (z regułami zależnymi od typów)
 npm run lint:fix          # Oxlint z automatycznymi poprawkami
 npm run typecheck        # tsc --noEmit (TypeScript 7)
-npm run check            # typecheck + lint + testy
+npm run check            # typecheck + lint + formatowanie + martwy kod (knip) + testy
+npm run format           # Prettier (formatowanie całego repozytorium)
+npm run knip             # nieużywane pliki, eksporty i zależności
 npm run test              # testy jednorazowo (CI)
 npm run test:watch         # testy w trybie watch
 npm run test:coverage       # testy z raportem pokrycia
@@ -149,10 +152,13 @@ Testy jednostkowe i komponentowe oparte o [Vitest](https://vitest.dev/) + [Testi
 
 ```
 __tests__/
-├── lib/                  # czyste funkcje: daty, CSV, szyfrowanie tokenów
-├── hooks/                # np. useRetry (mechanizm ponawiania używany przez wszystkie hooki bazodanowe)
-├── components/           # komponenty UI (m.in. CommonButtons)
-└── pages/api/            # walidatory/helpery endpointów API (allowlisty, sanityzacja, parsowanie)
+├── a11y/                 # automatyczna kontrola dostępności (axe-core, WCAG 2.x A/AA)
+├── config/               # rejestr danych użytkownika, CSP
+├── components/           # komponenty UI
+├── hooks/                # hooki (m.in. useCrudResource, useRetry, ustawienia)
+├── lib/                  # czyste funkcje: daty, CSV, szyfrowanie tokenów, kolejka offline
+├── pages/api/            # endpointy API
+└── styles/               # kontrast tokenów motywu, zakaz klas palety Tailwinda
 ```
 
 Priorytetem jest logika, w której błąd jest kosztowny lub łatwo go niezauważyć po cichu: parsowanie dat i stref czasowych, szyfrowanie tokenów OAuth kalendarzy, kategoryzacja wyciągów bankowych, mechanizm retry używany przez każdy hook zapisujący dane. Uruchomienie:
@@ -160,6 +166,12 @@ Priorytetem jest logika, w której błąd jest kosztowny lub łatwo go niezauwa�
 ```bash
 npm run test
 ```
+
+Testy Edge Functions (Deno): `cd supabase/functions && deno test --no-lock`. Test uprawnień bazy (pgTAP): `supabase test db` – działa, gdy schemat jest w `supabase/migrations`.
+
+### Ciągła integracja
+
+[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) przy każdym pushu i pull requeście sprawdza typy, lint, formatowanie, martwy kod, testy z pokryciem, build produkcyjny (z kontrolą CSP) oraz Edge Functions. Analiza SonarQube/SonarCloud ([`sonar-project.properties`](./sonar-project.properties)) uruchamia się, gdy repozytorium ma sekret `SONAR_TOKEN` (adres serwera: zmienna `SONAR_HOST_URL`, domyślnie SonarCloud).
 
 ## 📂 Struktura projektu
 
@@ -182,7 +194,7 @@ npm run test
 
 ## 🗄️ Baza danych
 
-PostgreSQL przez Supabase. Wszystkie tabele z danymi użytkownika są wymienione w [`config/userData.ts`](./config/userData.ts) (rejestr używany przy eksporcie i usuwaniu konta). Najważniejsze: `tasks`, `task_reminders`, `events`, `connected_calendars`, `notes`, `quick_notes`, `letters`, `reports`, `meeting_polls` (z `meeting_poll_dates`, `meeting_poll_responses`, `meeting_poll_availabilities`), `day_schemas`, `transactions`, `recurring_bills`, `budget_categories`, `finance_profiles`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `work_logs`, `user_trains`, `slack_*`, `push_subscriptions`, `notifications`, `errors`, `settings`; publiczna `stops` (przystanki). Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych osób, którym jawnie udostępniono dane). Skrypty zmian w bazie: [`supabase/sql/`](./supabase/sql).
+PostgreSQL przez Supabase. Wszystkie tabele z danymi użytkownika są wymienione w [`config/userData.ts`](./config/userData.ts) (rejestr używany przy eksporcie i usuwaniu konta). Najważniejsze: `tasks`, `task_reminders`, `events`, `connected_calendars`, `notes`, `quick_notes`, `letters`, `reports`, `meeting_polls` (z `meeting_poll_dates`, `meeting_poll_responses`, `meeting_poll_availabilities`), `day_schemas`, `transactions`, `recurring_bills`, `budget_categories`, `finance_profiles`, `shopping_lists`, `recipes`, `movies`, `daily_habits`, `mood_entries`, `streaks`, `people`, `vcard_profiles`, `work_logs`, `user_trains`, `slack_*`, `push_subscriptions`, `notifications`, `errors`, `settings`; publiczna `stops` (przystanki). Row Level Security ogranicza dostęp do wierszy właściciela (oraz zaufanych osób, którym jawnie udostępniono dane). Skrypty zmian w bazie: [`supabase/sql/`](./supabase/sql) – uruchamiane ręcznie w SQL Editorze, idempotentne (kolejność i opis w [RUNBOOK](docs/RUNBOOK.md)).
 
 ## 📱 PWA
 
@@ -196,7 +208,8 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 - Endpointy pośredniczące (TMDB, PKP, RSS, geokodowanie) wymagają zalogowania i nie ujawniają kluczy API klientowi.
 - Publiczne endpointy (`/api/vcard`, ankiety) i endpointy narażone na nadużycia mają limity zapytań (Upstash Redis, `config/server.ts`).
 - Proxy (`proxy.ts`) weryfikuje sesję lokalnie (`getClaims()`), bez zapytania do Supabase Auth przy każdej stronie.
-- Nagłówki bezpieczeństwa i egzekwowane CSP w `next.config.mjs` (`'unsafe-inline'` w `script-src` zostaje ze względu na statycznie generowane strony – szczegóły w komentarzu).
+- Nagłówki bezpieczeństwa i egzekwowane CSP w `next.config.mjs`. W produkcji `script-src` nie ma `'unsafe-inline'`: jedyny skrypt w treści strony (motyw z next-themes) jest dopuszczony skrótem SHA-256, a `scripts/check-inline-scripts.mjs` przerywa build, jeśli pojawi się inny. Dlatego build produkcyjny używa webpacka (Turbopack wstawia skrypt startowy zmienny między buildami).
+- Rola `anon` ma dostęp tylko do publicznych wizytówek; dane wejściowe w filtrach PostgREST przechodzą przez `lib/postgrestFilters.ts` (walidacja UUID, escapowanie `LIKE`).
 - Service worker nie zapisuje odpowiedzi API; dane offline są w IndexedDB per konto.
 
 ## 📚 Dokumentacja

@@ -3,7 +3,7 @@
 import { DEFAULT_OTHER_DAY_START_HOUR } from "@/config/defaults";
 import { addMinutes, differenceInMinutes, format, isSameDay, isValid, parse } from "date-fns";
 
-export const LOCAL_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm";
+const LOCAL_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm";
 export const LOCAL_DATE_FORMAT = "yyyy-MM-dd";
 
 export const QUICK_EVENT_DURATIONS = [

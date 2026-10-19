@@ -15,7 +15,7 @@ const db = {
   deleted: [] as string[],
   inserted: [] as unknown[],
 };
-function query(table: string) {
+function query(_table: string) {
   const b: Record<string, unknown> = {};
   b.select = () => b;
   b.eq = (col: string, val: string) => {
@@ -35,7 +35,6 @@ function query(table: string) {
     return Promise.resolve({ error: null });
   };
   b.update = () => ({ eq: () => Promise.resolve({ error: null }) });
-  void table;
   return b;
 }
 const auth = { user: { id: "me" }, supabase: { from: query } };
@@ -57,8 +56,7 @@ function subscription(key: string, endpoint: string) {
 }
 
 let stale: ReturnType<typeof subscription>;
-const subscribe = vi.fn((opts: { applicationServerKey: Uint8Array }) => {
-  void opts;
+const subscribe = vi.fn((_opts: { applicationServerKey: Uint8Array }) => {
   return Promise.resolve(subscription(CURRENT, "https://push/new"));
 });
 

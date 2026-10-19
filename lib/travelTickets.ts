@@ -22,7 +22,7 @@ export function ticketTaskDay(eventStartDay: string, today: Date = new Date()): 
   return format(isBefore(target, startOfDay(today)) ? today : target, "yyyy-MM-dd");
 }
 
-export function ticketReminderTime(taskDay: string, now: Date = new Date()): string {
+function ticketReminderTime(taskDay: string, now: Date = new Date()): string {
   const nine = new Date(`${taskDay}T09:00:00`);
   return toLocalInput(nine > now ? nine : new Date(now.getTime() + 3_600_000));
 }

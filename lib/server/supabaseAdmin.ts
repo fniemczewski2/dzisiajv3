@@ -20,8 +20,3 @@ export function supabaseAdmin(): SupabaseClient {
   });
   return cached;
 }
-
-/** Tylko do testów. */
-export function __resetSupabaseAdmin() {
-  cached = null;
-}

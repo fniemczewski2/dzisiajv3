@@ -1,61 +1,62 @@
 // hooks/db/useBudgetCategories.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory } from "@/types/bills";
 import { MAX_CATEGORIES } from "@/config/limits";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
+
+const NO_CATEGORIES: BudgetCategory[] = [];
 
 export function useBudgetCategories(year: number) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
 
-  const [categories, setCategories] = useState<BudgetCategory[]>([]);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
 
-  const fetchCategories = useCallback(async () => {
-    if (!userId) {
-      throw new NotSignedInError();
-    }
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("budget_categories")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("year", year)
-            .order("sort_order", { ascending: true })
-            .abortSignal(signal),
-        signal
-      );
-
-      if (error) throw error;
-      setCategories((data ?? []) as BudgetCategory[]);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania kategorii.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [supabase, userId, year, toast, withRetry, getSignal]);
-
-  // Bez zalogowanego użytkownika nic nie pobieramy (np. podczas wczytywania sesji
-  // albo po wylogowaniu) – fetch rzuca „Unauthorized”, co kończyło się błędem strony.
-  useEffect(() => {
-    if (userId) void fetchCategories();
-  }, [fetchCategories, userId]);
+  const queryCategories = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<BudgetCategory[]> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("budget_categories")
+              .select("*")
+              .eq("user_id", userId)
+              .eq("year", year)
+              .order("sort_order", { ascending: true })
+              .abortSignal(signal),
+          signal
+        );
+        if (error) throw error;
+        return (data ?? []) as BudgetCategory[];
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania kategorii.");
+        throw err;
+      }
+    },
+    [supabase, userId, year, toast, withRetry]
+  );
+  // Bez zalogowanego użytkownika zapytanie jest wyłączone (wczytywanie sesji, wylogowanie).
+  const {
+    data: categories,
+    setData: setCategories,
+    fetching,
+    refetch: fetchCategories,
+  } = useQueryState<BudgetCategory[]>({
+    queryKey: ["budget-categories", userId ?? null, year],
+    queryFn: queryCategories,
+    initial: NO_CATEGORIES,
+    enabled: Boolean(userId),
+  });
 
   const addCategory = useCallback(
     async (payload: {
@@ -111,7 +112,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, year, categories.length, toast, withRetry]
+    [supabase, userId, year, categories.length, toast, withRetry, setCategories]
   );
 
   const updateCategory = useCallback(
@@ -139,7 +140,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, categories, toast, withRetry]
+    [supabase, userId, categories, toast, withRetry, setCategories]
   );
 
   const deleteCategory = useCallback(
@@ -166,7 +167,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, categories, toast, withRetry]
+    [supabase, userId, categories, toast, withRetry, setCategories]
   );
 
   const reorderCategories = useCallback(
@@ -196,7 +197,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, categories, toast, withRetry]
+    [supabase, userId, categories, toast, withRetry, setCategories]
   );
 
   const seedDefaults = useCallback(
@@ -228,7 +229,7 @@ export function useBudgetCategories(year: number) {
         setLoading(false);
       }
     },
-    [supabase, userId, year, toast, withRetry]
+    [supabase, userId, year, toast, withRetry, setCategories]
   );
 
   /**

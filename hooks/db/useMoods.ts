@@ -1,51 +1,53 @@
 // hooks/db/useMoods.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { MoodEntry } from "@/types/moods";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
+
+const NO_MOODS: MoodEntry[] = [];
 
 export function useMoods(startDate?: string, endDate?: string) {
   const { supabase, user } = useAuth();
   const userId = user?.id;
-  const [moods, setMoods] = useState<MoodEntry[]>([]);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
 
-  const fetchMoods = useCallback(async () => {
-    if (!userId) {
-      throw new NotSignedInError();
-    }
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(() => {
-        let query = supabase.from("mood_entries").select("*").eq("user_id", userId);
-        if (startDate) query = query.gte("date", startDate);
-        if (endDate) query = query.lte("date", endDate);
-        return query.abortSignal(signal);
-      }, signal);
-
-      if (error) throw error;
-      setMoods(data || []);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania nastrojów.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [supabase, userId, startDate, endDate, toast, withRetry, getSignal]);
-
-  useEffect(() => {
-    if (userId) void fetchMoods();
-  }, [fetchMoods, userId]);
+  const queryMoods = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<MoodEntry[]> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const { data, error } = await withRetry(() => {
+          let query = supabase.from("mood_entries").select("*").eq("user_id", userId);
+          if (startDate) query = query.gte("date", startDate);
+          if (endDate) query = query.lte("date", endDate);
+          return query.abortSignal(signal);
+        }, signal);
+        if (error) throw error;
+        return (data || []) as MoodEntry[];
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania nastrojów.");
+        throw err;
+      }
+    },
+    [supabase, userId, startDate, endDate, toast, withRetry]
+  );
+  const {
+    data: moods,
+    setData: setMoods,
+    fetching,
+    refetch: fetchMoods,
+  } = useQueryState<MoodEntry[]>({
+    queryKey: ["moods", userId ?? null, startDate ?? null, endDate ?? null],
+    queryFn: queryMoods,
+    initial: NO_MOODS,
+    enabled: Boolean(userId),
+  });
 
   const logMood = useCallback(
     async (date: string, moodId: string | null) => {
@@ -83,7 +85,7 @@ export function useMoods(startDate?: string, endDate?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, moods, toast, withRetry]
+    [supabase, userId, moods, toast, withRetry, setMoods]
   );
 
   return { moods, loading, fetching, logMood, fetchMoods };

@@ -56,11 +56,18 @@ export function reportFileName(report: Report, ext: "pdf" | "md"): string {
     .replaceAll("ł", "l")
     .replaceAll("Ł", "L")
     .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/^-+|-+$/g, "")
-    .slice(0, 60);
-  const date = report.date ? report.date.slice(0, 10) : "";
-  return `protokol${date ? `-${date}` : ""}${slug ? `-${slug}` : ""}.${ext}`;
+    .replaceAll(/[^a-z0-9]+/g, "-");
+  const parts = ["protokol", report.date?.slice(0, 10), trimDashes(slug).slice(0, 60)].filter(Boolean);
+  return `${parts.join("-")}.${ext}`;
+}
+
+/** Usuwa myślniki z obu końców (liniowo, bez regexu z alternatywą kotwic). */
+function trimDashes(text: string): string {
+  let start = 0;
+  let end = text.length;
+  while (start < end && text[start] === "-") start++;
+  while (end > start && text[end - 1] === "-") end--;
+  return text.slice(start, end);
 }
 
 // --- Markdown -----------------------------------------------------------------
@@ -85,8 +92,12 @@ export function buildReportMarkdown(report: Report): string {
   lines.push("");
 
   lines.push("## Obecni", "");
-  if (people.length) people.forEach((p) => lines.push(`- ${p.role ? `**${p.role}:** ` : ""}${p.name}`));
-  else lines.push("_Brak listy osób._");
+  if (people.length) {
+    for (const p of people) {
+      const role = p.role ? `**${p.role}:** ` : "";
+      lines.push(`- ${role}${p.name}`);
+    }
+  } else lines.push("_Brak listy osób._");
   lines.push("");
 
   lines.push("## Ustalenia i zadania", "");
@@ -119,7 +130,7 @@ type Content = Record<string, unknown> | string | Content[];
 const longDate = new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "long", year: "numeric" });
 
 /** „15 października 2026” – data w nagłówku pisana jak w piśmie. */
-export function formatReportLongDate(value: string | null | undefined): string {
+function formatReportLongDate(value: string | null | undefined): string {
   if (!value) return "";
   const d = new Date(`${value.slice(0, 10)}T12:00:00`);
   return Number.isNaN(d.getTime()) ? formatReportDate(value) : longDate.format(d);
@@ -129,14 +140,18 @@ const sectionTitle = (text: string): Content => ({ text, style: "sectionTitle" }
 
 const empty = (text: string): Content => ({ text, style: "empty" });
 
+// Bloki sekcji zawsze zwracają { stack: [...] } – jeden kształt niezależnie od tego, czy sekcja jest pusta.
 function agendaBlock(agenda: string[]): Content {
-  if (agenda.length === 0) return empty("Brak punktów agendy");
   // Agenda to kolejność obrad – numeracja niesie informację.
-  return { ol: agenda.map((item) => ({ text: item, margin: [0, 1, 0, 1] })), style: "list" };
+  const body: Content =
+    agenda.length === 0
+      ? empty("Brak punktów agendy")
+      : { ol: agenda.map((item) => ({ text: item, margin: [0, 1, 0, 1] })), style: "list" };
+  return { stack: [body] };
 }
 
 function peopleBlock(people: ReportParticipant[]): Content {
-  if (people.length === 0) return empty("Brak listy osób");
+  if (people.length === 0) return { stack: [empty("Brak listy osób")] };
   return {
     stack: people.map((p) =>
       p.role
@@ -147,7 +162,7 @@ function peopleBlock(people: ReportParticipant[]): Content {
 }
 
 function tasksBlock(tasks: ReportTask[], palette: ReportPalette): Content {
-  if (tasks.length === 0) return empty("Brak zadań");
+  if (tasks.length === 0) return { stack: [empty("Brak zadań")] };
   const header = ["", "Zadanie", "Termin", "Odpowiada"].map((t) => ({ text: t, style: "tableHeader" }));
   const rows = tasks.map((t, i) => [
     { text: `${i + 1}.`, alignment: "right", color: palette.muted },

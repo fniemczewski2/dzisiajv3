@@ -137,7 +137,10 @@ export const SHARED_REFERENCES = [
   { table: "shopping_lists", column: "shared_with_id" },
 ] as const;
 
-export const USER_STORAGE_BUCKETS = ["letters", "avatars", "report-templates"] as const;
+/** Prywatny bucket na duże pliki eksportu danych (gdy JSON nie mieści się w odpowiedzi). */
+export const EXPORT_BUCKET = "user-exports";
+
+export const USER_STORAGE_BUCKETS = ["letters", "avatars", "report-templates", EXPORT_BUCKET] as const;
 
 export const ACCOUNT_DELETE_CONFIRMATION = "USUŃ KONTO";
 

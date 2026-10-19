@@ -1,0 +1,96 @@
+# .github/workflows/ci.yml
+#
+# Kontrola każdego pusha i pull requesta: typy, lint, formatowanie, martwy kod,
+# testy z pokryciem, build produkcyjny (z kontrolą CSP) i Edge Functions (Deno).
+# Analiza SonarQube/SonarCloud uruchamia się, gdy repozytorium ma sekret SONAR_TOKEN.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Aplikacja (Next.js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # pełna historia – SonarQube liczy „nowy kod” względem gałęzi głównej
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run knip
+      - run: npm run test:coverage -- --coverage.reporter=lcov --coverage.reporter=text-summary
+
+      - name: Build produkcyjny
+        run: npm run build
+        env:
+          # Build nie łączy się z bazą – wystarczą wartości zastępcze.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Analiza SonarQube
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+
+  edge-functions:
+    name: Edge Functions (Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Sprawdzenie typów
+        run: deno check --no-lock */index.ts _shared/*.ts
+      - name: Testy
+        run: deno test --no-lock
+
+  database:
+    name: Baza (migracje i RLS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      # Kroki bazy działają dopiero, gdy schemat jest w repozytorium (supabase/migrations) –
+      # zob. supabase/README.md, „Wersjonowanie schematu”.
+      - name: Czy schemat jest wersjonowany
+        id: schema
+        run: |
+          if ls supabase/migrations/*.sql >/dev/null 2>&1; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.schema.outputs.present == 'true'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - if: steps.schema.outputs.present == 'true'
+        run: supabase db start
+      - name: Testy RLS (pgTAP)
+        if: steps.schema.outputs.present == 'true'
+        run: supabase test db

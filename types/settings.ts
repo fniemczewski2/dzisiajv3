@@ -42,6 +42,8 @@ export interface Settings {
   habit_duolingo: boolean;
 
   mood_options?: MoodOption[];
+  /** Data wyraźnej zgody na zapis nastroju (art. 9 RODO); null = brak zgody. */
+  mood_consent_at?: string | null;
   /** Własne kategorie zadań; null = kategorie domyślne. */
   task_categories?: string[] | null;
   /** Kolory kategorii: nazwa kategorii → kolor z palety (CATEGORY_PALETTE). */

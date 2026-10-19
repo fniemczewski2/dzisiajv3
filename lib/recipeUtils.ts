@@ -11,7 +11,7 @@ export const RECIPE_DESCRIPTION_MAX_LENGTH = 10000;
 const collator = new Intl.Collator("pl", { sensitivity: "base" });
 
 /** Klucz porównania składników: bez wielkości liter i zbędnych spacji. */
-export function productKey(raw: string): string {
+function productKey(raw: string): string {
   return raw.trim().replaceAll(/\s+/g, " ").toLocaleLowerCase("pl");
 }
 

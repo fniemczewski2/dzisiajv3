@@ -4,7 +4,7 @@
 // do formularza ustawień i zapisują się razem z nim (przycisk „Zapisz”).
 // Kolor jest przypięty do wiersza, więc zmiana nazwy go nie gubi.
 
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useId, useState } from "react";
 import { Lock, PlusCircle, RotateCcw } from "lucide-react";
 import { DeleteButton } from "@/components/ui/CommonButtons";
 import CategoryColorPicker from "./CategoryColorPicker";
@@ -63,25 +63,31 @@ export default function TaskCategoriesEditor({
   const [rows, setRows] = useState<Row[]>(() => toRows(resolveUserTaskCategories(value), colors));
   const [draft, setDraft] = useState("");
   const [draftError, setDraftError] = useState<string | null>(null);
-  const lastEmitted = useRef<string | null>(null);
+  const [lastEmitted, setLastEmitted] = useState<string | null>(null);
 
   // Wartość z zewnątrz (np. wczytane ustawienia) – tylko jeśli to nie nasza własna zmiana.
-  useEffect(() => {
-    const key = JSON.stringify(value ?? null);
-    if (key !== lastEmitted.current) setRows(toRows(resolveUserTaskCategories(value), colors));
-    // Kolory czytamy tylko przy wczytaniu listy z zewnątrz; dalej są w wierszach.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  // Kolory czytamy tylko przy wczytaniu listy z zewnątrz; dalej są w wierszach.
+  // Aktualizacja w trakcie renderu (wzorzec React „stan zależny od propsów”) zamiast efektu.
+  const valueKey = JSON.stringify(value ?? null);
+  const [seenValueKey, setSeenValueKey] = useState(valueKey);
+  if (seenValueKey !== valueKey) {
+    setSeenValueKey(valueKey);
+    if (valueKey !== lastEmitted) setRows(toRows(resolveUserTaskCategories(value), colors));
+  }
 
   // Ustawienia wczytały się później niż komponent – dociągnij kolory do wierszy bez koloru.
   const colorsKey = JSON.stringify(colors ?? null);
-  useEffect(() => {
-    if (!colors) return;
-    setRows((prev) =>
-      prev.map((r) => (r.color === null && r.original && colors[r.original] ? { ...r, color: colors[r.original] } : r))
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colorsKey]);
+  const [seenColorsKey, setSeenColorsKey] = useState(colorsKey);
+  if (seenColorsKey !== colorsKey) {
+    setSeenColorsKey(colorsKey);
+    if (colors) {
+      setRows((prev) =>
+        prev.map((r) =>
+          r.color === null && r.original && colors[r.original] ? { ...r, color: colors[r.original] } : r
+        )
+      );
+    }
+  }
 
   const emit = (next: Row[]) => {
     setRows(next);
@@ -92,7 +98,7 @@ export default function TaskCategoriesEditor({
       names.length === DEFAULT_USER_TASK_CATEGORIES.length &&
       names.every((n, i) => n === DEFAULT_USER_TASK_CATEGORIES[i]);
     const stored = isDefault ? null : names;
-    lastEmitted.current = JSON.stringify(stored);
+    setLastEmitted(JSON.stringify(stored));
     onChange(stored);
     const colorMap: Record<string, string> = {};
     next.forEach((r) => {

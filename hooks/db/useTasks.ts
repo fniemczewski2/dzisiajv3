@@ -1,5 +1,7 @@
 // hooks/db/useTasks.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
+import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
 import { NotSignedInError } from "@/lib/errors";
 import { OFFLINE_SYNCED_EVENT } from "@/config/storage";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
@@ -9,7 +11,6 @@ import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { readCache, writeCache } from "@/lib/offlineCache";
@@ -70,6 +71,8 @@ type TaskInput = Partial<Task> & { shared_with_email?: string };
  */
 const sameId = (a: unknown, b: unknown): boolean => String(a) === String(b);
 
+const NO_TASKS: Task[] = [];
+
 export function useTasks(dateFrom?: string, dateTo?: string) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -77,18 +80,12 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const sortOrder = settings.sort_order;
   const showCompleted = settings.show_completed;
 
-  const [rawTasks, setRawTasks] = useState<Task[]>([]);
-  const rawTasksRef = useLatestRef(rawTasks);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
 
   const userEmailsRef = useRef<Record<string, string>>({});
   const rollbackRef = useRef<Task[]>([]);
-  const fetchSeqRef = useRef(0);
-  const freshDataRef = useRef(false);
   const pendingDeleteIdsRef = useRef<Set<string>>(new Set());
 
   const cacheKey = userId ? `tasks:${userId}:${dateFrom ?? ""}:${dateTo ?? ""}` : null;
@@ -103,70 +100,67 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
     };
   }, [sortOrder]);
 
-  const tasks = useMemo(() => {
-    return rawTasks.toSorted(comparator);
-  }, [rawTasks, comparator]);
-
   const applyPendingDeletes = useCallback((list: Task[]) => {
     if (pendingDeleteIdsRef.current.size === 0) return list;
     return list.filter((t) => !pendingDeleteIdsRef.current.has(String(t.id)));
   }, []);
 
-  const fetchTasks = useCallback(async (): Promise<Task[]> => {
-    if (!userId) return [];
-    const seq = ++fetchSeqRef.current;
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error: queryError } = await withRetry(() => {
-        let query = supabase.from("tasks").select("*").or(`user_id.eq.${userId},for_user_id.eq.${userId}`);
-        if (dateFrom) query = query.gte("due_date", dateFrom);
-        if (dateTo) query = query.lte("due_date", dateTo);
-        if (!showCompleted) query = query.neq("status", "done");
-        return query.abortSignal(signal);
-      }, signal);
+  // Pobranie przez TanStack Query (wspólna pamięć dla widoków z tym samym zakresem dat).
+  // Bez sieci – ostatnia kopia z IndexedDB.
+  const queryTasks = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<Task[]> => {
+      if (!userId) return [];
+      try {
+        const { data, error: queryError } = await withRetry(() => {
+          let query = supabase
+            .from("tasks")
+            .select("*")
+            .or(ownedOrSharedFilter("user_id", "for_user_id", userId));
+          if (dateFrom) query = query.gte("due_date", dateFrom);
+          if (dateTo) query = query.lte("due_date", dateTo);
+          if (!showCompleted) query = query.neq("status", "done");
+          return query.abortSignal(signal);
+        }, signal);
 
-      if (queryError) throw queryError;
+        if (queryError) throw queryError;
 
-      const fetchedTasks = (data ?? []) as Task[];
-      const adaptedTasks = fetchedTasks.map((t) => ({ ...t, shared_with_id: t.for_user_id }));
-      const resolvedTasks = await resolveSharedEmails(adaptedTasks, userId, supabase, userEmailsRef);
-      const tasksWithDisplayInfo = fetchedTasks.map((task, i) => ({
-        ...task,
-        display_share_info: resolvedTasks[i].display_share_info,
-      }));
-      if (seq === fetchSeqRef.current) {
-        freshDataRef.current = true;
+        const fetchedTasks = (data ?? []) as Task[];
+        const adaptedTasks = fetchedTasks.map((t) => ({ ...t, shared_with_id: t.for_user_id }));
+        const resolvedTasks = await resolveSharedEmails(adaptedTasks, userId, supabase, userEmailsRef);
+        const tasksWithDisplayInfo = fetchedTasks.map((task, i) => ({
+          ...task,
+          display_share_info: resolvedTasks[i].display_share_info,
+        }));
         const visibleTasks = applyPendingDeletes(tasksWithDisplayInfo);
-        setRawTasks(visibleTasks);
         if (cacheKey) void writeCache(cacheKey, visibleTasks);
-      }
-      return tasksWithDisplayInfo;
-    } catch (err) {
-      if (isAbortError(err)) return [];
-      if (seq === fetchSeqRef.current) {
+        return visibleTasks;
+      } catch (err) {
+        if (isAbortError(err)) throw err;
+        const cached = cacheKey ? await readCache<Task[]>(cacheKey) : null;
+        if (cached) return applyPendingDeletes(cached);
         toast.error("Błąd pobierania zadań.");
+        throw err;
       }
-      return [];
-    } finally {
-      if (seq === fetchSeqRef.current) {
-        setFetching(false);
-      }
-    }
-  }, [supabase, userId, showCompleted, dateFrom, dateTo, toast, withRetry, cacheKey, getSignal, applyPendingDeletes]);
+    },
+    [supabase, userId, showCompleted, dateFrom, dateTo, toast, withRetry, cacheKey, applyPendingDeletes]
+  );
 
-  useEffect(() => {
-    if (!cacheKey) return;
-    freshDataRef.current = false;
-    let cancelled = false;
-    void readCache<Task[]>(cacheKey).then((cached) => {
-      if (cancelled || !cached || freshDataRef.current) return;
-      setRawTasks(applyPendingDeletes(cached));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [cacheKey, applyPendingDeletes]);
+  const {
+    data: rawTasks,
+    setData: setRawTasks,
+    fetching,
+    refetch: fetchTasks,
+  } = useQueryState<Task[]>({
+    queryKey: ["tasks", userId ?? null, dateFrom ?? null, dateTo ?? null, showCompleted],
+    queryFn: queryTasks,
+    initial: NO_TASKS,
+    enabled: Boolean(userId),
+  });
+  const rawTasksRef = useLatestRef(rawTasks);
+
+  const tasks = useMemo(() => {
+    return rawTasks.toSorted(comparator);
+  }, [rawTasks, comparator]);
 
   const addTask = useCallback(
     async (task: TaskInput): Promise<Task | undefined> => {
@@ -218,7 +212,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast, withRetry, setRawTasks]
   );
 
   const editTask = useCallback(
@@ -269,7 +263,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, rawTasksRef]
+    [supabase, userId, toast, withRetry, rawTasksRef, setRawTasks]
   );
 
   const pendingDeletes = useRef(new Map<string, ReturnType<typeof setTimeout>>());
@@ -296,7 +290,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
       pendingDeleteIdsRef.current.delete(String(id));
       triggerSlackSync();
     },
-    [supabase, withRetry, toast]
+    [supabase, withRetry, toast, setRawTasks]
   );
 
   const deleteTask = useCallback(
@@ -345,7 +339,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         },
       });
     },
-    [userId, toast, commitDelete, rawTasksRef]
+    [userId, toast, commitDelete, rawTasksRef, setRawTasks]
   );
 
   const acceptTask = useCallback(
@@ -378,7 +372,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, rawTasksRef]
+    [supabase, userId, toast, withRetry, rawTasksRef, setRawTasks]
   );
 
   /**
@@ -409,7 +403,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, rawTasksRef]
+    [supabase, userId, toast, withRetry, rawTasksRef, setRawTasks]
   );
 
   const rescheduleTask = useCallback(
@@ -435,12 +429,8 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, rawTasksRef]
+    [supabase, userId, toast, withRetry, rawTasksRef, setRawTasks]
   );
-
-  useEffect(() => {
-    void fetchTasks();
-  }, [fetchTasks]);
 
   // Zapisy wykonane bez sieci zostały wysłane – pobieramy listę z bazy.
   useEffect(() => {

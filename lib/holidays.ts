@@ -1,6 +1,6 @@
 // lib/holidays.ts
 
-export function getEaster(year: number): Date {
+function getEaster(year: number): Date {
   const f = Math.floor;
   const G = year % 19;
   const C = f(year / 100);

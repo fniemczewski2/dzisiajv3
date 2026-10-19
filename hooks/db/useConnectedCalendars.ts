@@ -1,11 +1,11 @@
 // hooks/db/useConnectedCalendars.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { ConnectedAccount, ExternalCalendar } from "@/types/events";
 
@@ -66,27 +66,25 @@ export async function fetchProviderCalendars(
   }
 }
 
+interface CalendarsState {
+  accounts: ConnectedAccount[];
+  calendars: ExternalCalendar[];
+  selected: string[];
+}
+
+const NO_CALENDARS: CalendarsState = { accounts: [], calendars: [], selected: [] };
+
 export function useConnectedCalendars(expanded: boolean) {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
-
-  const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
-  const [calendars, setCalendars] = useState<ExternalCalendar[]>([]);
-  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  const fetchAccountsAndCalendars = useCallback(
-    async (onlyAccounts = false) => {
-      if (!user) {
-        throw new NotSignedInError();
-      }
-      const signal = getSignal();
-      setFetching(true);
-
+  // Konta zawsze; listy kalendarzy u dostawców – dopiero po rozwinięciu sekcji.
+  const queryCalendars = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<CalendarsState> => {
+      if (!user) throw new NotSignedInError();
       try {
         const { data: accountsData, error } = await withRetry(
           () =>
@@ -97,24 +95,19 @@ export function useConnectedCalendars(expanded: boolean) {
               .abortSignal(signal),
           signal
         );
-
         if (error) throw error;
 
-        const fetchedAccounts = accountsData as ConnectedAccount[];
-        setAccounts(fetchedAccounts);
-
-        if (onlyAccounts || fetchedAccounts.length === 0) {
-          return;
-        }
+        const accounts = accountsData as ConnectedAccount[];
+        if (!expanded || accounts.length === 0) return { accounts, calendars: [], selected: [] };
 
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
+        if (!session?.access_token) return { accounts, calendars: [], selected: [] };
 
         const googleCals = await fetchProviderCalendars(
           "google",
-          fetchedAccounts,
+          accounts,
           session.access_token,
           signal,
           withRetry,
@@ -122,33 +115,40 @@ export function useConnectedCalendars(expanded: boolean) {
         );
         const outlookCals = await fetchProviderCalendars(
           "outlook",
-          fetchedAccounts,
+          accounts,
           session.access_token,
           signal,
           withRetry,
           toast
         );
-        const combinedCalendars = [...googleCals, ...outlookCals];
-
-        setCalendars(combinedCalendars);
-
-        const alreadySavedKeys = combinedCalendars
+        const calendars = [...googleCals, ...outlookCals];
+        const selected = calendars
           .filter((c: ExternalCalendar) => c.accountId)
           .map((c: ExternalCalendar) => `${c.primaryAccountId}:::${c.id}`);
-        setSelectedCalendars(alreadySavedKeys);
+        return { accounts, calendars, selected };
       } catch (err) {
-        if (isAbortError(err)) return;
-        toast.error("Błąd podczas pobierania kalendarzy.");
-      } finally {
-        if (!signal.aborted) setFetching(false);
+        if (!isAbortError(err)) toast.error("Błąd podczas pobierania kalendarzy.");
+        throw err;
       }
     },
-    [user, supabase, toast, withRetry, getSignal]
+    [user, supabase, toast, withRetry, expanded]
   );
-
-  useEffect(() => {
-    if (user) void fetchAccountsAndCalendars(!expanded);
-  }, [expanded, fetchAccountsAndCalendars, user]);
+  const {
+    data: { accounts, calendars, selected: selectedCalendars },
+    setData,
+    fetching,
+    refetch: fetchAccountsAndCalendars,
+  } = useQueryState<CalendarsState>({
+    queryKey: ["connected-calendars", user?.id ?? null, expanded],
+    queryFn: queryCalendars,
+    initial: NO_CALENDARS,
+    enabled: Boolean(user),
+  });
+  const setSelectedCalendars = useCallback(
+    (updater: string[] | ((prev: string[]) => string[])) =>
+      setData((prev) => ({ ...prev, selected: typeof updater === "function" ? updater(prev.selected) : updater })),
+    [setData]
+  );
 
   const handleToggleCalendar = useCallback(
     async (primaryAccountForEmail: ConnectedAccount, cal: ExternalCalendar, isCurrentlyOn: boolean) => {
@@ -220,7 +220,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setTogglingId(null);
       }
     },
-    [user, supabase, selectedCalendars, fetchAccountsAndCalendars, toast, withRetry]
+    [user, supabase, selectedCalendars, fetchAccountsAndCalendars, toast, withRetry, setSelectedCalendars]
   );
 
   const handleDisconnect = useCallback(
@@ -262,7 +262,7 @@ export function useConnectedCalendars(expanded: boolean) {
         setLoading(false);
       }
     },
-    [user, supabase, fetchAccountsAndCalendars, toast, withRetry]
+    [user, supabase, fetchAccountsAndCalendars, toast, withRetry, setSelectedCalendars]
   );
 
   const handleConnectGoogle = useCallback(async () => {

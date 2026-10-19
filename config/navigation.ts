@@ -98,22 +98,3 @@ export const NAVIGATION_CATEGORIES: NavigationCategory[] = [
     ],
   },
 ];
-
-export const QUICK_ACTIONS: NavigationButton[] = [
-  { path: "/tasks?action=add", title: "Dodaj zadanie", icon: ListTodo, label: "Zadanie" },
-  { path: "/notes?action=add", title: "Dodaj notatkę", icon: Edit2, label: "Notatka" },
-  { path: "/bills?action=add", title: "Dodaj wydatek", icon: Coins, label: "Wydatek" },
-  { path: "/calendar?action=add", title: "Dodaj wydarzenie", icon: Calendar, label: "Wydarzenie" },
-];
-
-export const getAllNavigationItems = (): NavigationButton[] => {
-  return NAVIGATION_CATEGORIES.flatMap((category) => category.items);
-};
-
-export const getNavigationItemByPath = (path: string): NavigationButton | undefined => {
-  return getAllNavigationItems().find((item) => item.path === path);
-};
-
-export const getCategoryByPath = (path: string): NavigationCategory | undefined => {
-  return NAVIGATION_CATEGORIES.find((category) => category.items.some((item) => item.path === path));
-};

@@ -1,6 +1,6 @@
 // components/daySchema/DaySchemaForm.tsx
 
-import React, { useState, useEffect, SyntheticEvent } from "react";
+import React, { useState, SyntheticEvent } from "react";
 import { useDaySchemas } from "@/hooks/db/useDaySchemas";
 import { AddButton, DeleteButton, FormButtons, NotifyButton } from "../ui/CommonButtons";
 import type { ScheduleItem, Schema } from "@/types/schemas";
@@ -23,14 +23,15 @@ export default function DaySchemaForm({ initialSchema = null, onSchemaSaved, onC
   const [isDefault, setIsDefault] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (initialSchema) {
-      setSchemaName(initialSchema.name);
-      setDays(initialSchema.days);
-      setEntries(initialSchema.entries);
-      setIsDefault(Boolean(initialSchema.is_default));
-    }
-  }, [initialSchema]);
+  // Nowy schemat do edycji – wczytanie pól w trakcie renderu (wzorzec React zamiast efektu).
+  const [loadedSchema, setLoadedSchema] = useState<typeof initialSchema>(null);
+  if (initialSchema && initialSchema !== loadedSchema) {
+    setLoadedSchema(initialSchema);
+    setSchemaName(initialSchema.name);
+    setDays(initialSchema.days);
+    setEntries(initialSchema.entries);
+    setIsDefault(Boolean(initialSchema.is_default));
+  }
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();

@@ -15,7 +15,7 @@ export type StationDetails = Pick<
   | "arrivalStation"
 >;
 
-export function hhmm(value: string | undefined): string {
+function hhmm(value: string | undefined): string {
   const m = /^(\d{1,2}):(\d{2})/.exec(value ?? "");
   return m ? `${m[1].padStart(2, "0")}:${m[2]}` : "";
 }

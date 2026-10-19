@@ -206,7 +206,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const results: FinalizeResultSlot[] = [];
   let failure: string | null = null;
   for (const slot of ctx.slots) {
-    const outcome = await finalizeOneSlot(ctx, slot, created); // NOSONAR
+    const outcome = await finalizeOneSlot(ctx, slot, created);
     if ("error" in outcome) {
       failure = outcome.error;
       break;

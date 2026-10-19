@@ -1,6 +1,8 @@
 // next.config.mjs
 
 import { readFileSync } from "node:fs";
+import { THEME_PROVIDER_PROPS } from "./config/theme.mjs";
+import { themeScriptHash } from "./lib/themeScriptHash.mjs";
 
 const { version } = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
 
@@ -19,7 +21,10 @@ const isDev = process.env.NODE_ENV !== "production";
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // Produkcja: tylko własne pliki i skrypt motywu (skrót). Tryb dev potrzebuje inline i eval (HMR).
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : `script-src 'self' ${themeScriptHash(THEME_PROVIDER_PROPS)}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: https://image.tmdb.org ${supabaseOrigins[0] ?? ""}`.trim(),
   "font-src 'self' data:",
@@ -43,10 +48,13 @@ const csp = [
 
 // CSP jest egzekwowane. CSP_REPORT_ONLY=1 przełącza na tryb raportowania
 // (np. na czas diagnozy po dodaniu nowej usługi zewnętrznej).
-// 'unsafe-inline' w script-src zostaje, bo strony są generowane statycznie
-// (bez nonce na żądanie), a next-themes wstrzykuje skrypt motywu w treść strony;
-// polityka nadal blokuje skrypty z obcych domen, eval, <object>, osadzanie
-// strony w ramkach i wysyłanie formularzy poza listę.
+// W produkcji script-src nie ma 'unsafe-inline': jedyny skrypt w treści strony
+// (motyw z next-themes) jest dopuszczony skrótem SHA-256 liczonym przy buildzie.
+// Bloki JSON (__NEXT_DATA__, JSON-LD) nie są wykonywane, więc CSP ich nie dotyczy.
+// Build produkcyjny używa webpacka (`next build --webpack`): Turbopack wstawia na
+// każdej stronie własny skrypt startowy o treści zależnej od builda, którego
+// nie da się dopuścić stałym skrótem. scripts/check-inline-scripts.mjs po
+// buildzie przerywa wdrożenie, jeśli pojawi się skrypt bez skrótu.
 const cspHeaderName =
   process.env.CSP_REPORT_ONLY === "1" ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
 

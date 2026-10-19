@@ -1,6 +1,7 @@
 // hooks/db/useSlackTasks.ts
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/providers/ToastProvider";
 import type { SlackMappableTaskField } from "@/config/slack";
 
@@ -48,34 +49,31 @@ async function callSlackApi<T>(url: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
+const NO_ACCOUNTS: SlackAccount[] = [];
+const NO_LISTS: SlackListConfig[] = [];
+
 export function useSlackTasks() {
   const { toast } = useToast();
-  const [accounts, setAccounts] = useState<SlackAccount[]>([]);
-  const [lists, setLists] = useState<SlackListConfig[]>([]);
   const [columnsByList, setColumnsByList] = useState<Record<string, SlackColumnOption[]>>({});
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [statusError, setStatusError] = useState<string | null>(null);
 
+  // Stan połączeń ze Slackiem (TanStack Query – wspólny dla sekcji ustawień).
+  const statusQuery = useQuery({
+    queryKey: ["slack-status"],
+    queryFn: () => callSlackApi<StatusResponse>("/api/slack?action=status"),
+  });
+  const accounts = statusQuery.data?.connections ?? NO_ACCOUNTS;
+  const lists = statusQuery.data?.lists ?? NO_LISTS;
+  const loading = statusQuery.isPending;
+  let statusError: string | null = null;
+  if (statusQuery.error) {
+    statusError =
+      statusQuery.error instanceof Error ? statusQuery.error.message : "Nie udało się odczytać połączeń ze Slackiem.";
+  }
+  const refetchStatus = statusQuery.refetch;
   const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await callSlackApi<StatusResponse>("/api/slack?action=status");
-      setAccounts(data.connections ?? []);
-      setLists(data.lists ?? []);
-      setStatusError(null);
-    } catch (err) {
-      setAccounts([]);
-      setLists([]);
-      setStatusError(err instanceof Error ? err.message : "Nie udało się odczytać połączeń ze Slackiem.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    await refetchStatus();
+  }, [refetchStatus]);
 
   const loadColumns = useCallback(async (listRowId: string) => {
     try {

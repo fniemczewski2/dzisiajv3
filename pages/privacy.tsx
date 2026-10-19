@@ -117,7 +117,8 @@ export default function PrivacyPage() {
               <strong>Nastrój (opcjonalny):</strong>{" "}
               <span>
                 Wpisy w module nastroju mogą ujawniać informacje o Twoim samopoczuciu, czyli dane o zdrowiu (art. 9
-                RODO). Moduł jest dobrowolny – możesz go wyłączyć w Ustawieniach → Moduły i usunąć wpisy.
+                RODO). Zapisujemy je dopiero po Twojej wyraźnej zgodzie wyrażonej w module (zapamiętujemy datę zgody).
+                Zgodę cofniesz w Ustawieniach → Nawyki i plan dnia – wszystkie wpisy nastroju zostaną wtedy usunięte.
               </span>
             </Li>
             <Li>
@@ -193,9 +194,11 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-2">
             <strong>Kopia i usunięcie wszystkich danych:</strong> w Ustawieniach → Użytkownik pobierzesz kopię
-            wszystkich swoich danych w pliku JSON (bez tokenów dostępu) i usuniesz konto. Usunięcie konta kasuje
-            wszystkie Twoje dane z bazy, pliki w magazynie, Twoje odpowiedzi w ankietach innych osób oraz konto
-            logowania; dane w przeglądarce są czyszczone przy wylogowaniu.
+            wszystkich swoich danych w pliku JSON (bez tokenów dostępu) i usuniesz konto. Plik większy niż 4 MB
+            przygotowujemy w prywatnym magazynie i udostępniamy przez link ważny 10 minut; usuwamy go przy kolejnym
+            eksporcie albo przy usunięciu konta. Usunięcie konta kasuje wszystkie Twoje dane z bazy, pliki w magazynie,
+            Twoje odpowiedzi w ankietach innych osób oraz konto logowania; dane w przeglądarce są czyszczone przy
+            wylogowaniu.
           </p>
           <p className="mt-2">
             <strong>Skutki odłączenia:</strong> Odłączenie konta powoduje natychmiastowe i bezpowrotne usunięcie z
@@ -221,7 +224,8 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Wyraźna zgoda</strong> (art. 9 ust. 2 lit. a RODO) – wpisy w module nastroju, które mogą stanowić
-              dane o zdrowiu. Zgodę wyrażasz, dodając wpis, a cofasz, usuwając wpisy lub wyłączając moduł.
+              dane o zdrowiu. Zgodę wyrażasz przyciskiem „Wyrażam zgodę na zapis nastroju”, a cofasz w Ustawieniach
+              (wpisy są wtedy usuwane).
             </Li>
             <Li>
               <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – logi błędów i ograniczanie liczby żądań

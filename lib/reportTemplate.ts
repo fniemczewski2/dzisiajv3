@@ -17,11 +17,11 @@ import type {
   ReportTemplateSet,
 } from "@/types/reports";
 
-export const REPORT_TEMPLATE_BUCKET = "report-templates";
+const REPORT_TEMPLATE_BUCKET = "report-templates";
 export const MAX_REPORT_TEMPLATES = 5;
 export const MAX_TEMPLATE_NAME = 40;
 /** Id szablonu przeniesionego z czasów, gdy był tylko jeden. */
-export const LEGACY_TEMPLATE_ID = "default";
+const LEGACY_TEMPLATE_ID = "default";
 export const LOGO_WIDTH_RANGE = { min: 60, max: 220 } as const;
 
 export const FONT_ROLES: ReadonlyArray<{ role: ReportFontRole; label: string; hint: string }> = [

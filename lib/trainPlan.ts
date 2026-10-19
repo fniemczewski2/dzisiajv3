@@ -115,7 +115,7 @@ export interface TrainStop {
   platform: string | null;
 }
 
-export function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefined): Date | null {
+function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefined): Date | null {
   const departure = plannedDeparture(t);
   if (!departure || !arrivalTime) return null;
   const arrival = plannedDeparture({ date: t.date, departureTime: arrivalTime });
@@ -124,7 +124,7 @@ export function plannedArrival(t: TrainTimeInput, arrivalTime: string | undefine
   return arrival;
 }
 
-export function actualDepartureTime(t: TrainTimeInput, live: TrainLiveDetails): Date | null {
+function actualDepartureTime(t: TrainTimeInput, live: TrainLiveDetails): Date | null {
   return parsePlkTime(live.actualDeparture) ?? expectedDeparture(t, live.departureDelay ?? 0);
 }
 

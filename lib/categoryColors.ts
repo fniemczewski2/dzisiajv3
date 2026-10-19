@@ -49,15 +49,6 @@ export function normalizeCategoryColors(raw: unknown): Record<string, string> {
   return result;
 }
 
-/** Kolor kategorii albo null, gdy kategoria nie ma przypisanego koloru. */
-export function categoryColor(
-  colors: Readonly<Record<string, string>> | null | undefined,
-  category: string | null | undefined
-): string | null {
-  if (!category || !colors) return null;
-  return colors[category] ?? null;
-}
-
 /** Po zmianie nazwy kategorii kolor przechodzi na nową nazwę; usunięte kategorie tracą kolor. */
 export function remapCategoryColors(
   colors: Readonly<Record<string, string>>,

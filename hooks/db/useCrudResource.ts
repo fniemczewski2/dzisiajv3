@@ -1,12 +1,12 @@
 // hooks/db/useCrudResource.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { isAbortError } from "@/lib/abortUtils";
 import { readCache, writeCache } from "@/lib/offlineCache";
@@ -50,6 +50,9 @@ export interface PatchOptions {
   errorMessage?: string;
 }
 
+/** Stała pusta lista – stabilna tożsamość dla useQueryState. */
+const EMPTY: never[] = [];
+
 export function useCrudResource<T extends { id: string }, TInsert extends object = Partial<T>>(
   config: CrudResourceConfig<T, TInsert>
 ) {
@@ -57,16 +60,11 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
   const userId = user?.id;
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
 
-  const [items, setItems] = useState<T[]>([]);
-  const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const configRef = useLatestRef(config);
 
   const rollbackRef = useRef<T[]>([]);
-  const fetchSeqRef = useRef(0);
-  const freshDataRef = useRef(false);
 
   const queryKey = config.queryKey ?? "";
   const querySuffix = queryKey ? `:${queryKey}` : "";
@@ -80,63 +78,50 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
     [configRef]
   );
 
-  const refetch = useCallback(async (): Promise<T[]> => {
-    const cfg = configRef.current;
-    if (!userId) return [];
+  // Pobranie przez TanStack Query: komponenty z tym samym kluczem dzielą jedno zapytanie
+  // i pamięć. Bez sieci – ostatnia kopia z IndexedDB (lib/offlineCache.ts).
+  const fetchRows = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<T[]> => {
+      const cfg = configRef.current;
+      if (!userId) return [];
+      try {
+        const { data, error } = await withRetry(() => {
+          const base = supabase.from(cfg.table).select("*");
+          let query = cfg.buildQuery ? cfg.buildQuery(base, userId) : base.eq("user_id", userId);
+          if (!cfg.buildQuery && cfg.order) {
+            query = query.order(cfg.order.column, {
+              ascending: cfg.order.ascending ?? true,
+            });
+          }
+          return query.abortSignal(signal);
+        }, signal);
+        if (error) throw error;
 
-    const seq = ++fetchSeqRef.current;
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const { data, error } = await withRetry(() => {
-        const base = supabase.from(cfg.table).select("*");
-        let query = cfg.buildQuery ? cfg.buildQuery(base, userId) : base.eq("user_id", userId);
-        if (!cfg.buildQuery && cfg.order) {
-          query = query.order(cfg.order.column, {
-            ascending: cfg.order.ascending ?? true,
-          });
-        }
-        return query.abortSignal(signal);
-      }, signal);
-      if (error) throw error;
-
-      const rows = ((data as unknown[]) ?? []).map((row) => transform(row));
-
-      if (seq === fetchSeqRef.current) {
-        freshDataRef.current = true;
-        setItems(rows);
+        const rows = ((data as unknown[]) ?? []).map((row) => transform(row));
         if (cacheKey) void writeCache(cacheKey, rows);
-      }
-      return rows;
-    } catch (err) {
-      if (isAbortError(err)) return [];
-      if (seq === fetchSeqRef.current) {
+        return rows;
+      } catch (err) {
+        if (isAbortError(err)) throw err;
+        const cached = cacheKey ? await readCache<T[]>(cacheKey) : null;
+        if (cached) return cached;
         toast.error(cfg.messages.fetchError);
+        throw err;
       }
-      return [];
-    } finally {
-      if (seq === fetchSeqRef.current) {
-        setFetching(false);
-      }
-    }
-  }, [supabase, userId, toast, withRetry, transform, cacheKey, getSignal, configRef]);
+    },
+    [supabase, userId, toast, withRetry, transform, cacheKey, configRef]
+  );
 
-  useEffect(() => {
-    if (!cacheKey) return;
-    freshDataRef.current = false;
-    let cancelled = false;
-    void readCache<T[]>(cacheKey).then((cached) => {
-      if (cancelled || !cached || freshDataRef.current) return;
-      setItems(cached);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [cacheKey]);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
+  const {
+    data: items,
+    setData: setItems,
+    fetching,
+    refetch,
+  } = useQueryState<T[]>({
+    queryKey: ["crud", config.table, userId ?? null, queryKey],
+    queryFn: fetchRows,
+    initial: EMPTY as T[],
+    enabled: Boolean(userId),
+  });
 
   const add = useCallback(
     async (payload: TInsert): Promise<T | undefined> => {
@@ -170,7 +155,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, transform, configRef]
+    [supabase, userId, toast, withRetry, transform, configRef, setItems]
   );
 
   const patch = useCallback(
@@ -211,7 +196,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, transform, configRef]
+    [supabase, userId, toast, withRetry, transform, configRef, setItems]
   );
 
   const remove = useCallback(
@@ -242,7 +227,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, configRef]
+    [supabase, userId, toast, withRetry, configRef, setItems]
   );
 
   return { items, setItems, fetching, loading, refetch, add, patch, remove };

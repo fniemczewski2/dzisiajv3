@@ -1,5 +1,6 @@
 // pages/api/meeting-polls/public/[token]/respond.ts
 
+import { CACHE_CONTROL, POLL_EDIT_TOKEN_HEADER } from "@/config/server";
 import { MAX_RESPONDENT_NAME_LENGTH, MAX_SLOTS_PER_RESPONSE } from "@/config/limits";
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
@@ -24,7 +25,8 @@ interface PollForResponse {
 }
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse, token: string) {
-  const editToken = req.query.edit_token;
+  res.setHeader("Cache-Control", CACHE_CONTROL.private);
+  const editToken = req.headers[POLL_EDIT_TOKEN_HEADER];
   if (!editToken || typeof editToken !== "string") {
     return res.status(400).json({ error: "Brak tokenu edycji." });
   }

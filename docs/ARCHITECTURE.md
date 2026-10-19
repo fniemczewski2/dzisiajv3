@@ -135,3 +135,21 @@ To najważniejsza część tego dokumentu.
 | `supabase/functions/`            | Edge Functions; `_shared/` – kod wspólny (kopie helperów z `lib/`)   |
 | `supabase/introspect_schema.sql` | Zrzut schematu i audyt bezpieczeństwa bazy                           |
 | `__tests__/`                     | Vitest + Testing Library                                             |
+
+### Wspólne moduły (audyt 2026-10-18)
+
+- `lib/postgrestFilters.ts` – walidacja UUID i dat oraz escapowanie `LIKE` przed wstawieniem do filtrów PostgREST.
+- `lib/edgeFunctions.ts` – jedno wywołanie Edge Functions z przeglądarki (`supabase.functions.invoke`) ze statusem HTTP i treścią błędu.
+- `lib/server/apiGuards.ts` – `allowMethods` i `requireUser` na początku endpointów.
+- `hooks/useNow.ts`, `hooks/useIsClient.ts` – czas i wartości przeglądarki bez `new Date()` i efektów w renderze.
+- `supabase/functions/process-notifications/batch.ts` – zapytania zbiorcze zamiast zapytań w pętli po użytkownikach.
+- Formularze synchronizują stan z propsami w trakcie renderu (wzorzec „stan zależny od propsów”), nie w `useEffect`.
+- Dane z bazy i API pobiera **TanStack Query** (`lib/queryClient.ts`, `providers/QueryProvider.tsx`):
+  komponenty z tym samym kluczem dzielą jedno zapytanie i pamięć, a powrót do odwiedzonego widoku jest
+  natychmiastowy. Hooki z optymistycznymi zmianami używają `hooks/useQueryState.ts` (`setData` zapisuje
+  wprost do pamięci zapytania). Pamięć jest czyszczona przy wylogowaniu (`lib/localUserData.ts`).
+- Domyślnie: `staleTime` 60 s, `gcTime` 5 min, bez automatycznych ponowień (robi je `useRetry`) i bez
+  odświeżania po powrocie do karty; odjazdy w pobliżu i status pociągów odświeżają się cyklicznie
+  (`refetchInterval`) tylko przy widocznej karcie.
+- Liczniki (pomodoro, trening interwałowy) to reducery (`lib/pomodoro.ts`, `hooks/useTimer.ts`) – bez
+  efektów reagujących na stan. Reguła `react/set-state-in-effect` jest błędem lintera.

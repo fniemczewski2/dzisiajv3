@@ -21,6 +21,8 @@ export const USER_LOCAL_STORAGE_KEYS = {
   trackedStationBoards: "tracked_station_boards",
   /** Id ostatnio zalogowanej osoby – zmiana konta bez wylogowania czyści dane poprzedniego. */
   lastUserId: "dzisiaj:last_user",
+  /** Zgoda na moduł nastroju, gdy baza nie ma jeszcze kolumny settings.mood_consent_at. */
+  moodConsent: "dzisiaj:mood_consent",
 } as const;
 
 /** localStorage – klucze niezwiązane z kontem; zostają po wylogowaniu. */

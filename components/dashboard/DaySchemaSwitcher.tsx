@@ -8,13 +8,13 @@ import { Logs } from "lucide-react";
 import type { Schema } from "@/types/schemas";
 import type { SchemaChoice } from "@/lib/daySchemas";
 import { defaultSchemaFor, schemasForWeekday } from "@/lib/daySchemas";
-import type { SchemaChoiceInput } from "@/hooks/db/useDaySchemaChoice";
 
 interface Props {
   schemas: Schema[];
   weekday: number;
   choice: SchemaChoice;
-  onChange: (value: SchemaChoiceInput) => void;
+  /** „default”, „none” albo id schematu. */
+  onChange: (value: string) => void;
   disabled?: boolean;
 }
 

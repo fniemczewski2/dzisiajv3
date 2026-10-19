@@ -9,7 +9,7 @@ function channel(value: number): number {
 }
 
 /** Luminancja względna koloru #RRGGBB (0–1); null dla nieprawidłowego zapisu. */
-export function relativeLuminance(hex: string): number | null {
+function relativeLuminance(hex: string): number | null {
   const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   if (!match) return null;
   const n = Number.parseInt(match[1], 16);

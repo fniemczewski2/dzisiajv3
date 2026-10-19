@@ -5,12 +5,13 @@
 // kategorie zadań, wyłączone moduły) czytają ten sam stan, więc zapis
 // w jednym miejscu jest od razu widoczny wszędzie.
 
-import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useLatestRef } from "@/hooks/useLatestRef";
+import { useQueryState } from "@/hooks/useQueryState";
+import { createContext, useCallback, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { omit } from "@/lib/objectUtils";
 import { requestSmartLocation } from "@/lib/locationUtils";
@@ -31,6 +32,7 @@ const OPTIONAL_SETTINGS_COLUMNS = [
   "report_template",
   "daily_spending_categories",
   "notif_bills",
+  "mood_consent_at",
 ] as const;
 
 type SaveResult = { error: unknown };
@@ -64,18 +66,52 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
   const router = useRouter();
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
-
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
-  const settingsRef = useRef(settings);
 
-  const applySettings = useCallback((next: Settings) => {
-    settingsRef.current = next;
-    setSettings(next);
-  }, []);
+  // Wiersz settings z bazy przez TanStack Query (jedno zapytanie na sesję, wspólna pamięć).
+  const querySettings = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<Settings> => {
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("settings")
+              .select("*")
+              .eq("user_id", userId as string)
+              .abortSignal(signal)
+              .maybeSingle(),
+          signal
+        );
+        if (error) throw error;
+        return data ? settingsFromRow(data) : DEFAULT_SETTINGS;
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Nie udało się pobrać ustawień.");
+        throw err;
+      }
+    },
+    [supabase, userId, toast, withRetry]
+  );
+  const {
+    data: settings,
+    setData: setSettings,
+    fetching: fetchingSettings,
+  } = useQueryState<Settings>({
+    queryKey: ["settings", userId ?? null],
+    queryFn: querySettings,
+    initial: DEFAULT_SETTINGS,
+    enabled: !loadingUser && Boolean(userId),
+  });
+  const fetching = loadingUser || fetchingSettings;
+  const settingsRef = useLatestRef(settings);
+
+  const applySettings = useCallback(
+    (next: Settings) => {
+      settingsRef.current = next;
+      setSettings(next);
+    },
+    [settingsRef, setSettings]
+  );
 
   // Zapis odporny na brak nowszych kolumn (kod wdrożony przed migracją bazy):
   // brakującą kolumnę pomijamy i próbujemy ponownie. Próby są z natury
@@ -93,40 +129,6 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
     },
     [supabase]
   );
-
-  useEffect(() => {
-    if (loadingUser) return;
-    if (!userId) {
-      applySettings(DEFAULT_SETTINGS);
-      setFetching(false);
-      return;
-    }
-    let cancelled = false;
-    const signal = getSignal();
-    setFetching(true);
-
-    const load = async () => {
-      try {
-        const { data, error } = await withRetry(
-          () => supabase.from("settings").select("*").eq("user_id", userId).abortSignal(signal).maybeSingle(),
-          signal
-        );
-        if (cancelled) return;
-        if (error) throw error;
-        applySettings(data ? settingsFromRow(data) : DEFAULT_SETTINGS);
-      } catch (err) {
-        if (isAbortError(err) || cancelled) return;
-        toast.error("Nie udało się pobrać ustawień.");
-      } finally {
-        if (!cancelled) setFetching(false);
-      }
-    };
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [loadingUser, userId, supabase, toast, withRetry, getSignal, applySettings]);
 
   const updateSettings = useCallback(
     async (partial: Partial<Settings>): Promise<SaveResult> => {
@@ -154,7 +156,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
         setLoading(false);
       }
     },
-    [userId, toast, withRetry, upsertSettings, applySettings]
+    [userId, toast, withRetry, upsertSettings, applySettings, settingsRef]
   );
 
   const saveFavoriteStops = useCallback(
@@ -170,7 +172,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
 
   const setFavoriteStops = useCallback(
     (stops: FavoriteStop[]) => applySettings({ ...settingsRef.current, favorite_stops: stops }),
-    [applySettings]
+    [applySettings, settingsRef]
   );
 
   const addFavoriteStop = useCallback(
@@ -196,7 +198,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
         return false;
       }
     },
-    [toast, saveFavoriteStops, setFavoriteStops]
+    [toast, saveFavoriteStops, setFavoriteStops, settingsRef]
   );
 
   /** Usuwa po kluczu favoriteKey() – nie po nazwie, żeby nie zabrać przystanku z innej miejscowości. */
@@ -214,7 +216,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
         toast.error("Nie udało się usunąć przystanku.");
       }
     },
-    [toast, saveFavoriteStops, setFavoriteStops]
+    [toast, saveFavoriteStops, setFavoriteStops, settingsRef]
   );
 
   /**
@@ -240,7 +242,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
         setFavoriteStops(previous);
       }
     },
-    [userId, saveFavoriteStops, setFavoriteStops]
+    [userId, saveFavoriteStops, setFavoriteStops, settingsRef]
   );
 
   const requestGeolocation = useCallback(

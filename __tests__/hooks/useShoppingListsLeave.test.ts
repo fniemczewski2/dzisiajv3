@@ -13,8 +13,12 @@ const toast = {
   batch: vi.fn(),
 };
 
-const ownList = { id: "own", name: "Moja", elements: [], user_id: "me", shared_with_id: "friend" };
-const sharedList = { id: "shared", name: "Od znajomego", elements: [], user_id: "friend", shared_with_id: "me" };
+const { ME, FRIEND } = vi.hoisted(() => ({
+  ME: "00000000-0000-4000-8000-0000000000aa",
+  FRIEND: "00000000-0000-4000-8000-0000000000bb",
+}));
+const ownList = { id: "own", name: "Moja", elements: [], user_id: ME, shared_with_id: FRIEND };
+const sharedList = { id: "shared", name: "Od znajomego", elements: [], user_id: FRIEND, shared_with_id: ME };
 
 const rpcCalls: { fn: string; args: unknown }[] = [];
 const deleteCalls: [string, unknown][][] = [];
@@ -48,7 +52,7 @@ const supabase = {
   },
 };
 
-const auth = { user: { id: "me" }, supabase };
+const auth = { user: { id: ME }, supabase };
 const toastValue = { toast };
 const retry = (fn: () => unknown) => fn();
 
@@ -61,6 +65,8 @@ vi.mock("@/lib/share", () => ({
 }));
 
 import { useShoppingLists } from "@/hooks/db/useShoppingLists";
+
+// Identyfikatory użytkowników w Supabase są UUID – filtry je walidują.
 
 async function setup() {
   const hook = renderHook(() => useShoppingLists());
@@ -100,7 +106,7 @@ describe("useShoppingLists – „Usuń” zależnie od roli", () => {
     expect(deleteCalls).toEqual([
       [
         ["id", "own"],
-        ["user_id", "me"],
+        ["user_id", ME],
       ],
     ]);
     expect(result.current.lists.map((l) => l.id)).toEqual(["shared"]);

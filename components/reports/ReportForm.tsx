@@ -61,7 +61,7 @@ function RowList({
               <DeleteButton
                 small
                 onClick={() => onChange(rows.filter((x) => x.id !== r.id))}
-                aria-label={`Usuń: ${r.value || placeholder(i)}`}
+                ariaLabel={`Usuń: ${r.value || placeholder(i)}`}
                 disabled={disabled}
               />
             )}
@@ -214,7 +214,7 @@ export default function ReportForm({
                 />
                 <DeleteButton
                   onClick={() => setTasks((list) => list.filter((x) => x.id !== t.id))}
-                  aria-label={`Usuń zadanie ${i + 1}`}
+                  ariaLabel={`Usuń zadanie ${i + 1}`}
                   small
                   disabled={loading || tasks.length <= 1}
                 />

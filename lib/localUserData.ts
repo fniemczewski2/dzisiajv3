@@ -5,6 +5,7 @@
 // localStorage z config/storage.ts. Wywoływane przy wylogowaniu i po
 // usunięciu konta – na wspólnym urządzeniu nie zostają cudze dane.
 
+import { clearQueryCache } from "@/lib/queryClient";
 import { USER_LOCAL_STORAGE_KEYS } from "@/config/storage";
 import { clearOfflineCache } from "@/lib/offlineCache";
 import { clearQueue } from "@/lib/offlineQueue";
@@ -15,6 +16,7 @@ export async function clearLocalUserData(): Promise<void> {
   } catch {
     // localStorage niedostępny (tryb prywatny).
   }
+  clearQueryCache();
   await Promise.all([clearOfflineCache(), clearQueue()]);
   try {
     navigator.serviceWorker?.controller?.postMessage({ type: "PURGE_USER_DATA" });

@@ -1,5 +1,7 @@
 // components/ui/GlobalSearch.tsx
 
+import { SEARCH_DEBOUNCE_MS } from "@/config/timing";
+import { containsPattern } from "@/lib/postgrestFilters";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Search, Loader2, X } from "lucide-react";
@@ -34,8 +36,10 @@ export default function GlobalSearch() {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [searching, setSearching] = useState(false);
+  const [failed, setFailed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Numer ostatniego wyszukiwania: wynik starszego zapytania, które wróciło później, jest pomijany.
+  const searchSeq = useRef(0);
   // Wyłączone moduły nie pojawiają się w wynikach (ref – bez przebudowy wyszukiwania).
   const { isEnabled } = useEnabledModules();
   const isEnabledRef = useRef(isEnabled);
@@ -44,9 +48,12 @@ export default function GlobalSearch() {
   }, [isEnabled]);
 
   const close = useCallback(() => {
+    searchSeq.current += 1;
     setOpen(false);
     setQuery("");
     setHits([]);
+    setFailed(false);
+    setSearching(false);
   }, []);
 
   useEffect(() => {
@@ -67,42 +74,49 @@ export default function GlobalSearch() {
 
   const runSearch = useCallback(
     async (term: string) => {
+      const seq = ++searchSeq.current;
       if (!user || term.trim().length < GLOBAL_SEARCH_MIN_CHARS) {
         setHits([]);
+        setFailed(false);
+        setSearching(false);
         return;
       }
       setSearching(true);
-      const escaped = term
-        .trim()
-        .replaceAll("%", String.raw`\%`)
-        .replaceAll("_", String.raw`\_`);
-      const pattern = `%${escaped}%`;
-
-      const results = await Promise.all(
-        GLOBAL_SEARCH_SOURCES.filter((source) => isEnabledRef.current(source.href)).map(async (source) => {
-          const { data } = await supabase
-            .from(source.table)
-            .select(source.select)
-            .ilike(source.searchColumn, pattern)
-            .limit(GLOBAL_SEARCH_LIMIT);
-          return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
-            source,
-            id: stringifyCell(row.id),
-            label: stringifyCell(row[source.labelColumn]),
-            sublabel: source.sublabelColumn ? stringifyCell(row[source.sublabelColumn]) : "",
-          }));
-        })
-      );
-      setHits(results.flat());
-      setSearching(false);
+      setFailed(false);
+      const pattern = containsPattern(term);
+      try {
+        const results = await Promise.all(
+          GLOBAL_SEARCH_SOURCES.filter((source) => isEnabledRef.current(source.href)).map(async (source) => {
+            const { data, error } = await supabase
+              .from(source.table)
+              .select(source.select)
+              .ilike(source.searchColumn, pattern)
+              .limit(GLOBAL_SEARCH_LIMIT);
+            if (error) throw error;
+            return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
+              source,
+              id: stringifyCell(row.id),
+              label: stringifyCell(row[source.labelColumn]),
+              sublabel: source.sublabelColumn ? stringifyCell(row[source.sublabelColumn]) : "",
+            }));
+          })
+        );
+        if (seq === searchSeq.current) setHits(results.flat());
+      } catch (error) {
+        if (seq !== searchSeq.current) return;
+        console.error("[GlobalSearch] Wyszukiwanie nie powiodło się:", error);
+        setHits([]);
+        setFailed(true);
+      } finally {
+        if (seq === searchSeq.current) setSearching(false);
+      }
     },
     [supabase, user]
   );
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => void runSearch(query), 250);
-    return () => clearTimeout(debounceRef.current);
+    const timer = setTimeout(() => void runSearch(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
   }, [query, runSearch]);
 
   const grouped = useMemo(() => {
@@ -112,6 +126,12 @@ export default function GlobalSearch() {
     }
     return [...map.entries()];
   }, [hits]);
+
+  const hasQuery = query.trim().length >= GLOBAL_SEARCH_MIN_CHARS;
+  let statusMessage = "";
+  if (searching) statusMessage = "Wyszukiwanie…";
+  else if (failed) statusMessage = "Wyszukiwanie nie powiodło się.";
+  else if (hasQuery) statusMessage = hits.length === 0 ? "Brak wyników." : `Wyniki: ${hits.length}.`;
 
   const goTo = (hit: SearchHit) => {
     close();
@@ -150,7 +170,15 @@ export default function GlobalSearch() {
           </div>
 
           <div className="max-h-[50vh] overflow-y-auto">
-            {query.trim().length >= GLOBAL_SEARCH_MIN_CHARS && !searching && hits.length === 0 && (
+            <output className="sr-only" aria-live="polite">
+              {statusMessage}
+            </output>
+            {failed && (
+              <p className="px-4 py-6 text-center text-sm text-danger">
+                Nie udało się przeszukać danych. Sprawdź połączenie i spróbuj ponownie.
+              </p>
+            )}
+            {query.trim().length >= GLOBAL_SEARCH_MIN_CHARS && !searching && !failed && hits.length === 0 && (
               <p className="px-4 py-6 text-center text-sm text-text-muted">Brak wyników.</p>
             )}
             {grouped.map(([groupLabel, groupHits]) => (

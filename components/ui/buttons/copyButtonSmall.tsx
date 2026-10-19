@@ -1,5 +1,6 @@
 // components/ui/buttons/copyButtonSmall.tsx
 
+import { COPY_FEEDBACK_MS } from "@/config/timing";
 import React, { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
@@ -15,7 +16,7 @@ export const CopyButtonSmall = ({ text, label }: { text: string; label?: string 
       await navigator.clipboard.writeText(text);
       setCopied(true);
       toast.success("Skopiowano!");
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
     } catch {
       toast.error("Nie udało się skopiować.");
     }

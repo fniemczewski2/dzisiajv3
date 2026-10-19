@@ -1,5 +1,6 @@
 // hooks/db/useTrains.ts
 
+import { useQuery } from "@tanstack/react-query";
 import { NotSignedInError } from "@/lib/errors";
 import { TRAIN_ACTIVE_WINDOW_MS } from "@/config/timing";
 import { useState, useEffect, useCallback } from "react";
@@ -12,7 +13,7 @@ import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { TrackedTrain, TrainInput } from "@/types/transport";
 
-export function mapDbRowToTrain(row: {
+function mapDbRowToTrain(row: {
   id: string;
   user_id: string;
   train_number: string;
@@ -41,10 +42,10 @@ export function mapDbRowToTrain(row: {
 }
 
 /** Ile dni wstecz pokazujemy odbyte podróże. */
-export const PAST_TRAINS_DAYS = 365;
+const PAST_TRAINS_DAYS = 365;
 /** Okno „bieżących” pociągów (dla nich pytamy PKP PLK o status). */
 
-export function departureTimestamp(train: Pick<TrackedTrain, "date" | "departureTime">): number {
+function departureTimestamp(train: Pick<TrackedTrain, "date" | "departureTime">): number {
   const [year, month, day] = train.date.split("-").map(Number);
   const [hours, minutes] = train.departureTime.split(":").map(Number);
   return new Date(year, month - 1, day, hours || 0, minutes || 0).getTime();
@@ -224,44 +225,65 @@ export function useTrains() {
  * Bilety na konkretny dzień – do planu dnia. W odróżnieniu od useTrains()
  * nie tnie do okna ±6 h od teraz, bo plan pokazuje cały wybrany dzień.
  */
+const NO_TRAINS: TrackedTrain[] = [];
+
 export function useTrainsForDate(dateStr: string) {
   const { supabase, user } = useAuth();
   const userId = user?.id;
-  const [trains, setTrains] = useState<TrackedTrain[]>([]);
-  const { getSignal } = useAbortController();
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
 
-  const fetchForDate = useCallback(async () => {
-    if (!userId || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      setTrains([]);
-      return;
-    }
-    const signal = getSignal();
-    try {
+  const query = useQuery({
+    queryKey: ["trains-for-date", userId ?? null, dateStr],
+    enabled: Boolean(userId) && validDate,
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from("user_trains")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userId as string)
         .eq("date", dateStr)
         .order("departure_time", { ascending: true })
         .abortSignal(signal);
       if (error) throw error;
-      setTrains((data || []).map(mapDbRowToTrain).sort(sortByDepartureAsc));
-    } catch (err) {
-      if (isAbortError(err)) return;
-      setTrains([]);
-    }
-  }, [userId, supabase, dateStr, getSignal]);
+      return (data || []).map(mapDbRowToTrain).sort(sortByDepartureAsc);
+    },
+  });
+  const refetch = query.refetch;
+  const refresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
-  useEffect(() => {
-    void fetchForDate();
-  }, [fetchForDate]);
-
-  return { trains, refresh: fetchForDate };
+  return { trains: userId && validDate && !query.error ? (query.data ?? NO_TRAINS) : NO_TRAINS, refresh };
 }
 
 export interface TrainStatusOptions {
   refreshMs?: number;
   enabled?: boolean;
+}
+
+interface TrainStatusData {
+  delay: number;
+  platform: string;
+  status: string;
+  loading: boolean;
+  estimatedArrival: string;
+  hide: boolean;
+  live: TrainLiveDetails;
+}
+
+class TrainStatusError extends Error {}
+
+const INITIAL_STATUS: TrainStatusData = {
+  delay: 0,
+  platform: "...",
+  status: "",
+  loading: true,
+  estimatedArrival: "",
+  hide: false,
+  live: {} as TrainLiveDetails,
+};
+
+function errorText(error: unknown): string {
+  return error instanceof TrainStatusError ? error.message : "Błąd połączenia";
 }
 
 export function useTrainStatus(
@@ -276,95 +298,66 @@ export function useTrainStatus(
   options: TrainStatusOptions = {}
 ) {
   const { refreshMs = 0, enabled = true } = options;
-  const [data, setData] = useState({
-    delay: 0,
-    platform: "...",
-    status: "",
-    loading: true,
-    estimatedArrival: "",
-    hide: false,
-    live: {} as TrainLiveDetails,
+  const complete = Boolean(train.trainNumber && train.date && train.from && train.to);
+
+  // TanStack Query: ten sam pociąg w kilku miejscach = jedno zapytanie; odświeżanie co
+  // `refreshMs` tylko przy widocznej karcie (refetchIntervalInBackground: false).
+  const query = useQuery({
+    queryKey: [
+      "train-status",
+      train.trainNumber,
+      train.trainName,
+      train.date,
+      train.from,
+      train.to,
+      train.departureTime,
+    ],
+    enabled: enabled && complete,
+    refetchInterval: refreshMs > 0 ? refreshMs : false,
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+    queryFn: async ({ signal }): Promise<TrainStatusData> => {
+      const params = new URLSearchParams({
+        trainNumber: train.trainNumber,
+        trainName: train.trainName,
+        date: train.date,
+        from: train.from,
+        to: train.to,
+        departureTime: train.departureTime,
+      });
+      const response = await fetch(`/api/transport/train-status?${params.toString()}`, { signal });
+      if (response.status === 429) throw new TrainStatusError("Zbyt wiele zapytań");
+      if (!response.ok) throw new TrainStatusError("Błąd połączenia");
+      const result = await response.json();
+      return {
+        delay: result.delay || 0,
+        platform: result.platform || "-",
+        status: result.status || "",
+        loading: false,
+        estimatedArrival: result.estimatedArrival || "",
+        hide: result.hide || false,
+        live: {
+          departurePlatform: result.departurePlatform ?? result.platform,
+          departureDelay: result.departureDelay ?? (result.status === "W trasie" ? 0 : result.delay),
+          actualDeparture: result.actualDeparture,
+          departed: result.departed ?? result.status === "W trasie",
+          arrivalPlatform: result.arrivalPlatform,
+          arrivalDelay: result.arrivalDelay ?? (result.status === "W trasie" ? result.delay : 0),
+          plannedArrival: result.plannedArrival,
+          actualArrival: result.actualArrival,
+          arrivalStation: result.arrivalStation,
+        },
+      };
+    },
   });
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchStatus = async () => {
-      if (!train.trainNumber || !train.date || !train.from || !train.to) {
-        setData((prev) => ({ ...prev, loading: false }));
-        return;
-      }
-
-      try {
-        const params = new URLSearchParams({
-          trainNumber: train.trainNumber,
-          trainName: train.trainName,
-          date: train.date,
-          from: train.from,
-          to: train.to,
-          departureTime: train.departureTime,
-        });
-
-        const response = await fetch(`/api/transport/train-status?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (response.status === 429) {
-          setData((prev) => ({ ...prev, status: "Zbyt wiele zapytań", loading: false }));
-          return;
-        }
-
-        if (!response.ok) throw new Error("Błąd pobierania statusu");
-
-        const result = await response.json();
-        setData({
-          delay: result.delay || 0,
-          platform: result.platform || "-",
-          status: result.status || "",
-          loading: false,
-          estimatedArrival: result.estimatedArrival || "",
-          hide: result.hide || false,
-          live: {
-            departurePlatform: result.departurePlatform ?? result.platform,
-            departureDelay: result.departureDelay ?? (result.status === "W trasie" ? 0 : result.delay),
-            actualDeparture: result.actualDeparture,
-            departed: result.departed ?? result.status === "W trasie",
-            arrivalPlatform: result.arrivalPlatform,
-            arrivalDelay: result.arrivalDelay ?? (result.status === "W trasie" ? result.delay : 0),
-            plannedArrival: result.plannedArrival,
-            actualArrival: result.actualArrival,
-            arrivalStation: result.arrivalStation,
-          },
-        });
-      } catch (err) {
-        if (isAbortError(err)) return;
-        setData((prev) => ({
-          ...prev,
-          status: prev.status && prev.status !== "Błąd połączenia" ? prev.status : "Błąd połączenia",
-          loading: false,
-        }));
-      }
-    };
-
-    if (!enabled) {
-      setData((prev) => ({ ...prev, loading: false }));
-      return () => controller.abort();
-    }
-
-    void fetchStatus();
-
-    let intervalId: ReturnType<typeof setInterval> | undefined;
-    if (refreshMs > 0) {
-      intervalId = setInterval(() => {
-        if (typeof document === "undefined" || document.visibilityState === "visible") void fetchStatus();
-      }, refreshMs);
-    }
-    return () => {
-      controller.abort();
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [train.trainNumber, train.date, train.from, train.to, train.departureTime, train.trainName, refreshMs, enabled]);
-
-  return data;
+  if (query.data) {
+    // Błąd kolejnego odświeżenia nie kasuje ostatnich danych – zmienia tylko opis stanu.
+    if (query.error && !query.data.status) return { ...query.data, status: errorText(query.error) };
+    return query.data;
+  }
+  if (query.error) return { ...INITIAL_STATUS, status: errorText(query.error), loading: false };
+  return { ...INITIAL_STATUS, loading: enabled && complete };
 }
 
 /**

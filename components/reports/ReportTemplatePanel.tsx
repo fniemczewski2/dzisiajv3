@@ -1,7 +1,7 @@
 // components/reports/ReportTemplatePanel.tsx
 
 import { DEFAULT_REPORT_LOGO_WIDTH, DEFAULT_REPORT_HEADING_COLOR } from "@/config/defaults";
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useId, useRef, useState } from "react";
 import { Eye, Star } from "lucide-react";
 import { derivePalette, isHexColor } from "@/lib/reportColors";
 import { CATEGORY_PALETTE } from "@/lib/categoryColors";
@@ -38,9 +38,9 @@ function FilePickerButton({
         onClick={() => inputRef.current?.click()}
         fileFormat={accept
           .split(",")
-          .map((x) => x.replace(/.*\//, "."))
+          .map((x) => (x.includes("/") ? `.${x.slice(x.lastIndexOf("/") + 1)}` : x))
           .join(" ")}
-        aria-label={label}
+        ariaLabel={label}
         small
       />
     </>
@@ -52,15 +52,13 @@ export default function ReportTemplatePanel() {
   const { toast } = useToast();
   const t = useReportTemplates();
   const { set, busy } = t;
-  const [selectedId, setSelectedId] = useState<string | null>(set.default_id);
+  const [chosenId, setSelectedId] = useState<string | null>(set.default_id);
+  // Wybrany szablon zniknął (usunięty w innej karcie) – pokazujemy domyślny.
+  const selectedId = chosenId && set.templates.some((x) => x.id === chosenId) ? chosenId : set.default_id;
   const [newName, setNewName] = useState("");
   const [previewing, setPreviewing] = useState(false);
   const [logoWidth, setLogoWidthDraft] = useState<number | null>(null);
   const [colorDraft, setColorDraft] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!selectedId || !set.templates.some((x) => x.id === selectedId)) setSelectedId(set.default_id);
-  }, [set.templates, set.default_id, selectedId]);
 
   const template = set.templates.find((x) => x.id === selectedId) ?? null;
   const width = logoWidth ?? template?.logo?.width ?? DEFAULT_REPORT_LOGO_WIDTH;
@@ -179,12 +177,12 @@ export default function ReportTemplatePanel() {
             </div>
             <div className="flex flex-nowrap gap-2">
               {set.default_id !== template.id && (
-                <FavButton onClick={() => void t.setDefault(template.id)} aria-label="Ustaw jako domyślny" small />
+                <FavButton onClick={() => void t.setDefault(template.id)} label="Ustaw jako domyślny" small />
               )}
               <DeleteButton
                 small
                 onClick={() => void t.removeTemplate(template.id)}
-                aria-label={`Usuń szablon ${template.name}`}
+                ariaLabel={`Usuń szablon ${template.name}`}
               />
             </div>
           </div>
@@ -270,7 +268,7 @@ export default function ReportTemplatePanel() {
                           small
                           onClick={() => void t.clearFont(template.id, role)}
                           disabled={busy !== null}
-                          aria-label={`Usuń czcionkę: ${label}`}
+                          ariaLabel={`Usuń czcionkę: ${label}`}
                         />
                       )}
                     </div>
@@ -301,7 +299,7 @@ export default function ReportTemplatePanel() {
                     small
                     onClick={() => void t.clearLogo(template.id)}
                     disabled={busy !== null}
-                    aria-label="Usuń logo"
+                    ariaLabel="Usuń logo"
                   />
                 )}
               </div>

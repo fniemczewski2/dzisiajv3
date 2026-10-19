@@ -18,7 +18,6 @@ import {
   Bell,
   BellOff,
   Copy,
-  ChartNoAxesCombined,
   ListPlus,
   RefreshCw,
 } from "lucide-react";
@@ -48,7 +47,7 @@ export const DeleteButton = ({
   onClick,
   small = false,
   disabled = false,
-  ariaLabel = "usuń",
+  ariaLabel = "Usuń",
 }: {
   onClick: () => void;
   small?: boolean;
@@ -91,7 +90,7 @@ export const EditButton = ({
   onClick,
   small = false,
   disabled = false,
-  ariaLabel = "edytuj",
+  ariaLabel = "Edytuj",
 }: {
   onClick: () => void;
   small?: boolean;
@@ -113,7 +112,7 @@ export const EditButton = ({
 export const FavButton = ({
   onClick,
   small = false,
-  label = "dodaj do ulubionych",
+  label = "Dodaj do ulubionych",
 }: {
   onClick: () => void;
   small?: boolean;
@@ -169,13 +168,6 @@ export const ShareButton = ({ onClick, small = false }: { onClick: () => void; s
     <Share className={actionIcon(small)} />
     {!small && <span className={ACTION_LABEL_CLASS}>Wyślij</span>}
   </button>
-);
-
-export const ShowResultsButton = ({ href, small = false }: { href: string; small?: boolean }) => (
-  <a href={href} className={actionButton({ color: "info" })} aria-label="Pokaż wyniki" title="Pokaż wyniki">
-    <ChartNoAxesCombined className={actionIcon(small)} />
-    {!small && <span className={ACTION_LABEL_CLASS}>Wyniki</span>}
-  </a>
 );
 
 export const PinButton = ({ onClick, isPinned }: { onClick: () => void; isPinned: boolean }) => (
@@ -269,11 +261,14 @@ export const UploadButton = ({
   fileFormat,
   small,
   busy = false,
+  ariaLabel,
 }: {
   onClick: () => void;
   fileFormat?: string;
   small?: boolean;
   busy?: boolean;
+  /** Nazwa dla czytników ekranu, gdy przycisk dotyczy konkretnego pliku lub pola. */
+  ariaLabel?: string;
 }) => (
   <button
     onClick={onClick}
@@ -281,8 +276,8 @@ export const UploadButton = ({
     disabled={busy}
     aria-busy={busy}
     className={actionButton({ color: "success", size: small ? "small" : "default" })}
-    aria-label={fileFormat ? `Prześlij plik ${fileFormat}` : "Importuj plik"}
-    title={fileFormat ? `Prześlij plik ${fileFormat}` : "Importuj plik"}
+    aria-label={ariaLabel ?? (fileFormat ? `Prześlij plik ${fileFormat}` : "Importuj plik")}
+    title={ariaLabel ?? (fileFormat ? `Prześlij plik ${fileFormat}` : "Importuj plik")}
   >
     <Upload className={actionIcon()} />
     {!small && <span className={ACTION_LABEL_CLASS}>{fileFormat}</span>}

@@ -1,6 +1,8 @@
 // components/Header.tsx
 
-import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useNow } from "@/hooks/useNow";
 import {
   Sun,
   Cloud,
@@ -70,12 +72,16 @@ function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuali
 
 export default function Header() {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState("");
-  const [currentTime, setCurrentTime] = useState("");
-  const [todayDateString, setTodayDateString] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  });
+  // Zegar co sekundę ze wspólnego źródła czasu. Na serwerze i przy hydratacji – puste
+  // napisy (czas zależy od urządzenia), w przeglądarce bieżąca godzina i data.
+  const now = useNow(1000);
+  const isClient = useIsClient();
+  const currentTime = isClient ? now.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "";
+  const currentDate = isClient
+    ? now.toLocaleDateString("pl-PL", { weekday: "long", month: "short", day: "numeric" })
+    : "";
+  // Data do wskaźnika urodzin – zmienia się o północy (wcześniej nie aktualizowała się wcale).
+  const todayDateString = format(now, "yyyy-MM-dd");
 
   const { forecast, air, loading: weatherLoading } = useWeather();
   const streak = useAppStreak();
@@ -92,34 +98,6 @@ export default function Header() {
         ? `${air.hourly.pm2_5[0]} µg/m³ PM2.5`
         : `${air.hourly.pm10[0]} µg/m³ PM10`;
   }
-
-  useEffect(() => {
-    let isMounted = true;
-    const now = new Date();
-
-    setCurrentDate(
-      now.toLocaleDateString("pl-PL", {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-      })
-    );
-    setCurrentTime(now.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }));
-
-    const timer = setInterval(() => {
-      if (!isMounted) return;
-      const tick = new Date();
-      setCurrentTime(tick.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }));
-
-      const newDateStr = `${tick.getFullYear()}-${String(tick.getMonth() + 1).padStart(2, "0")}-${String(tick.getDate()).padStart(2, "0")}`;
-      setTodayDateString((prev) => (prev === newDateStr ? newDateStr : prev));
-    }, 1000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(timer);
-    };
-  }, []);
 
   return (
     <header className="w-full max-w-[1600px] border-b border-line px-1 pt-2 pb-4 text-(--header-fg) sm:px-2 sm:pt-3 sm:pb-5">

@@ -10,7 +10,7 @@ import type {
   TmdbWatchProviders,
 } from "@/types/movies";
 
-export const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 const POSTER_PATH_RE = /^\/[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)$/;
 
 const GENRES: Record<number, string> = {

@@ -1,14 +1,14 @@
 // hooks/db/useBudgetSummary.ts
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { NotSignedInError } from "@/lib/errors";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import type { BudgetCategory, RawBillRow, SummaryItem } from "@/types/bills";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { calculateExpectedYearlyLimit } from "@/lib/budgetUtils";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { billOccurrences } from "@/lib/finance";
 import { getAppDate } from "@/lib/dateUtils";
@@ -95,6 +95,10 @@ export function plannedBillRows(
   return rows;
 }
 
+type YearTx = RawBillRow & { recurring_bill_id: string | null };
+
+const NO_TX: YearTx[] = [];
+
 export function useBudgetSummary(
   year: number,
   monthIndex: number,
@@ -103,77 +107,66 @@ export function useBudgetSummary(
 ) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
-  const [summary, setSummary] = useState<SummaryItem[]>([]);
-  const [uncategorised, setUncategorised] = useState<SpendBucket>({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [loading, setLoading] = useState(false);
-
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
 
-  const compute = useCallback(async () => {
-    if (!userId) {
-      throw new NotSignedInError();
-    }
+  // Transakcje roku z bazy (TanStack Query); podsumowanie liczone w pamięci z kategorii,
+  // rachunków stałych i miesiąca – zmiana miesiąca nie wymaga nowego zapytania.
+  const queryYear = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<YearTx[]> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("transactions")
+              .select("amount, date, category_id, is_income, recurring_bill_id")
+              .eq("user_id", userId)
+              .gte("date", `${year}-01-01`)
+              .lte("date", `${year}-12-31`)
+              .abortSignal(signal),
+          signal
+        );
+        if (error) throw error;
+        return ((data ?? []) as YearTx[]).map((t) => ({ ...t, amount: Number(t.amount) }));
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania statystyk budżetu.");
+        throw err;
+      }
+    },
+    [supabase, userId, year, toast, withRetry]
+  );
+  const {
+    data: txs,
+    fetching: loading,
+    refetch: refresh,
+  } = useQueryState<YearTx[]>({
+    queryKey: ["budget-year", userId ?? null, year],
+    queryFn: queryYear,
+    initial: NO_TX,
+    enabled: Boolean(userId) && categories.length > 0,
+  });
 
-    if (categories.length === 0) {
-      setSummary([]);
-      setUncategorised({ ySpent: 0, yPlan: 0, mSpent: 0, mPlan: 0 });
-      setTotalIncome(0);
-      return;
-    }
+  const { summary, uncategorised, totalIncome } = useMemo(() => {
+    if (categories.length === 0) return { summary: [], uncategorised: EMPTY_BUCKET, totalIncome: 0 };
+    const yearStart = `${year}-01-01`;
+    const yearEnd = `${year}-12-31`;
+    const targetDateForMonth = new Date(year, monthIndex, 1);
+    const monthStart = format(startOfMonth(targetDateForMonth), "yyyy-MM-dd");
+    const monthEnd = format(endOfMonth(targetDateForMonth), "yyyy-MM-dd");
 
-    const signal = getSignal();
-    setLoading(true);
-    try {
-      const yearStart = `${year}-01-01`;
-      const yearEnd = `${year}-12-31`;
+    const income = txs.filter((b) => b.is_income).reduce((sum, b) => sum + b.amount, 0);
+    // Od 1.40: wydane = transakcje; zaplanowane = przyszłe terminy rachunków stałych
+    // (bez tych, które w danym miesiącu już mają powiązaną płatność).
+    const spent: RawBillRow[] = txs.filter((t) => !t.is_income).map((t) => ({ ...t, done: true }));
+    const planned = plannedBillRows(recurringBills, txs, yearStart, yearEnd);
+    const spendMap = buildSpendMap([...spent, ...planned], monthStart, monthEnd);
+    return {
+      summary: buildSummaryItems(categories, spendMap, monthIndex, year),
+      uncategorised: spendMap["__none__"] ?? EMPTY_BUCKET,
+      totalIncome: income,
+    };
+  }, [txs, categories, recurringBills, monthIndex, year]);
 
-      const targetDateForMonth = new Date(year, monthIndex, 1);
-      const monthStart = format(startOfMonth(targetDateForMonth), "yyyy-MM-dd");
-      const monthEnd = format(endOfMonth(targetDateForMonth), "yyyy-MM-dd");
-
-      // Od 1.40: wydane = transakcje; zaplanowane = przyszłe terminy rachunków
-      // stałych (bez tych, które w danym miesiącu już mają powiązaną płatność).
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("transactions")
-            .select("amount, date, category_id, is_income, recurring_bill_id")
-            .eq("user_id", userId)
-            .gte("date", yearStart)
-            .lte("date", yearEnd)
-            .abortSignal(signal),
-        signal
-      );
-
-      if (error) throw error;
-
-      const txs = ((data ?? []) as Array<RawBillRow & { recurring_bill_id: string | null }>).map((t) => ({
-        ...t,
-        amount: Number(t.amount),
-      }));
-      const income = txs.filter((b) => b.is_income).reduce((sum, b) => sum + b.amount, 0);
-      setTotalIncome(income);
-
-      const spent: RawBillRow[] = txs.filter((t) => !t.is_income).map((t) => ({ ...t, done: true }));
-      const planned = plannedBillRows(recurringBills, txs, yearStart, yearEnd);
-      const spendMap = buildSpendMap([...spent, ...planned], monthStart, monthEnd);
-
-      setSummary(buildSummaryItems(categories, spendMap, monthIndex, year));
-      setUncategorised(spendMap["__none__"] ?? EMPTY_BUCKET);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania statystyk budżetu.");
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
-  }, [supabase, userId, year, monthIndex, categories, recurringBills, toast, withRetry, getSignal]);
-
-  useEffect(() => {
-    void compute();
-  }, [compute]);
-
-  return { summary, uncategorised, totalIncome, loading, refresh: compute };
+  return { summary, uncategorised, totalIncome, loading, refresh };
 }

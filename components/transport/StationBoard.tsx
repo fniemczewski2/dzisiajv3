@@ -1,9 +1,10 @@
 // components/transport/StationBoard.tsx
 
 import { USER_LOCAL_STORAGE_KEYS } from "@/config/storage";
-import { STATION_BOARD_CLIENT_TIMEOUT_MS } from "@/config/timing";
+import { STATION_BOARD_CLIENT_TIMEOUT_MS, STATION_BOARD_STALE_MS } from "@/config/timing";
 import { MAX_TRACKED_STATIONS } from "@/config/limits";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useSyncExternalStore } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { Trash2, RefreshCw, Plus, AlertCircle } from "lucide-react";
 import { useTrains } from "@/hooks/db/useTrains";
 import { AddButton } from "../ui/CommonButtons";
@@ -60,6 +61,75 @@ const EMPTY_BOARD: BoardState = { items: [], loading: false, error: "" };
 const formatClock = (timestamp: number) =>
   new Date(timestamp).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
 
+// --- Obserwowane stacje: localStorage jako zewnętrzny magazyn (useSyncExternalStore) ---
+const stationListeners = new Set<() => void>();
+let cachedRaw: string | null = null;
+let cachedStations: string[] = [];
+const NO_STATIONS: string[] = [];
+
+function readStations(): string[] {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(USER_LOCAL_STORAGE_KEYS.trackedStationBoards);
+  } catch {
+    return NO_STATIONS;
+  }
+  if (raw === cachedRaw) return cachedStations;
+  cachedRaw = raw;
+  try {
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    cachedStations = Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    cachedStations = [];
+  }
+  return cachedStations;
+}
+
+const readNoStations = () => NO_STATIONS;
+
+function subscribeStations(listener: () => void) {
+  stationListeners.add(listener);
+  return () => stationListeners.delete(listener);
+}
+
+function writeStations(next: string[]) {
+  try {
+    localStorage.setItem(USER_LOCAL_STORAGE_KEYS.trackedStationBoards, JSON.stringify(next));
+  } catch {
+    // Tryb prywatny – lista działa do odświeżenia strony.
+    cachedRaw = JSON.stringify(next);
+    cachedStations = next;
+  }
+  stationListeners.forEach((listener) => listener());
+}
+
+/** Tablica odjazdów jednej stacji; błąd ma komunikat gotowy do pokazania. */
+async function fetchStationBoard(stationName: string, signal: AbortSignal): Promise<StationBoardItem[]> {
+  // Limit czasu – zawieszone API PKP nie może trzymać „ładowania” w nieskończoność.
+  const timeout = AbortSignal.timeout(STATION_BOARD_CLIENT_TIMEOUT_MS);
+  const combined = typeof AbortSignal.any === "function" ? AbortSignal.any([signal, timeout]) : timeout;
+  let res: Response;
+  try {
+    res = await fetch(`/api/transport/station-board?stationName=${encodeURIComponent(stationName)}`, {
+      signal: combined,
+    });
+  } catch (err) {
+    if (signal.aborted) throw err;
+    throw new Error(
+      err instanceof DOMException && err.name === "TimeoutError"
+        ? "PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę."
+        : "Brak połączenia z serwerem. Sprawdź internet i odśwież."
+    );
+  }
+  if (res.status === 429) throw new Error("Zbyt wiele zapytań. Odśwież za minutę.");
+  if (!res.ok) {
+    const errData: { error?: string } = await res.json().catch(() => ({}));
+    throw new Error(errData.error || "Nie udało się pobrać tablicy odjazdów.");
+  }
+  const data: StationBoardResponse = await res.json();
+  return data.items || [];
+}
+
 interface StationBoardWidgetProps {
   onTrainAdded?: ReturnType<typeof useTrains>["addTrain"];
 }
@@ -69,91 +139,37 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
   const addTrain = onTrainAdded ?? addTrainDirectly;
   const isSmallScreen = useResponsive();
 
-  const [selectedStations, setSelectedStations] = useState<string[]>([]);
+  const selectedStations = useSyncExternalStore(subscribeStations, readStations, readNoStations);
   const [searchInput, setSearchInput] = useState("");
-  const [boardsData, setBoardsData] = useState<Record<string, BoardState>>({});
 
-  const fetchBoard = useCallback(async (stationName: string) => {
-    setBoardsData((prev) => ({
-      ...prev,
-      [stationName]: { ...(prev[stationName] ?? EMPTY_BOARD), loading: true, error: "" },
-    }));
+  // Tablice odjazdów – po jednym zapytaniu TanStack Query na stację (wspólna pamięć,
+  // przycisk „Odśwież” = refetch tej jednej stacji).
+  const boardQueries = useQueries({
+    queries: selectedStations.map((station) => ({
+      queryKey: ["station-board", station],
+      queryFn: ({ signal }: { signal: AbortSignal }) => fetchStationBoard(station, signal),
+      staleTime: STATION_BOARD_STALE_MS,
+    })),
+  });
+  const boardFor = (index: number): BoardState => {
+    const q = boardQueries[index];
+    if (!q) return { ...EMPTY_BOARD, loading: true };
+    let error = "";
+    if (q.error) error = q.error instanceof Error ? q.error.message : "Nie udało się pobrać tablicy odjazdów.";
+    return { items: q.data ?? [], loading: q.isFetching, error, updatedAt: q.dataUpdatedAt || undefined };
+  };
 
-    const fail = (error: string) =>
-      setBoardsData((prev) => ({
-        ...prev,
-        [stationName]: { ...(prev[stationName] ?? EMPTY_BOARD), loading: false, error },
-      }));
-
-    try {
-      // Limit czasu – zawieszone API PKP nie może trzymać „ładowania” w nieskończoność.
-      const res = await fetch(`/api/transport/station-board?stationName=${encodeURIComponent(stationName)}`, {
-        signal: AbortSignal.timeout(STATION_BOARD_CLIENT_TIMEOUT_MS),
-      });
-      if (res.status === 429) {
-        fail("Zbyt wiele zapytań. Odśwież za minutę.");
-        return;
-      }
-      if (!res.ok) {
-        const errData: { error?: string } = await res.json().catch(() => ({}));
-        fail(errData.error || "Nie udało się pobrać tablicy odjazdów.");
-        return;
-      }
-      const data: StationBoardResponse = await res.json();
-
-      setBoardsData((prev) => ({
-        ...prev,
-        [stationName]: { items: data.items || [], loading: false, error: "", updatedAt: Date.now() },
-      }));
-    } catch (err) {
-      fail(
-        err instanceof DOMException && err.name === "TimeoutError"
-          ? "PKP PLK nie odpowiada. Spróbuj odświeżyć za chwilę."
-          : "Brak połączenia z serwerem. Sprawdź internet i odśwież."
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(USER_LOCAL_STORAGE_KEYS.trackedStationBoards);
-    if (saved) {
-      try {
-        const parsedStations = JSON.parse(saved);
-        setSelectedStations(parsedStations);
-
-        parsedStations.forEach((station: string) => {
-          void fetchBoard(station);
-        });
-      } catch {
-        setSelectedStations([]);
-      }
-    }
-  }, [fetchBoard]);
-
-  useEffect(() => {
-    localStorage.setItem(USER_LOCAL_STORAGE_KEYS.trackedStationBoards, JSON.stringify(selectedStations));
-  }, [selectedStations]);
-
-  // Dodanie stacji od razu pobiera jej tablicę. Wcześniej pobierała się tylko
-  // przy wczytaniu strony – formularz przeładowywał stronę i to maskowało brak
-  // pobrania; po zablokowaniu przeładowania nowa stacja wisiała na „ładowaniu”.
   const handleAddStation = () => {
     const trimmed = searchInput.trim();
     if (!trimmed || selectedStations.length >= MAX_TRACKED_STATIONS) return;
     setSearchInput("");
     if (selectedStations.some((s) => s.toLocaleLowerCase("pl") === trimmed.toLocaleLowerCase("pl"))) return;
-
-    setSelectedStations((prev) => [...prev, trimmed]);
-    void fetchBoard(trimmed);
+    // Nowa stacja = nowe zapytanie w useQueries, pobierane od razu.
+    writeStations([...selectedStations, trimmed]);
   };
 
   const handleRemoveStation = (stationName: string) => {
-    setSelectedStations((prev) => prev.filter((s) => s !== stationName));
-    setBoardsData((prev) => {
-      const copy = { ...prev };
-      delete copy[stationName];
-      return copy;
-    });
+    writeStations(selectedStations.filter((s) => s !== stationName));
   };
 
   const handleTrackTrain = async (item: StationBoardItem) => {
@@ -302,12 +318,16 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
         className="flex gap-2"
       >
         <SearchBar className="flex-1" placeholder="Poznań Główny" value={searchInput} onChange={setSearchInput} />
-        <AddButton onClick={handleAddStation} disabled={selectedStations.length >= 3 || !searchInput.trim()} small />
+        <AddButton
+          onClick={handleAddStation}
+          disabled={selectedStations.length >= MAX_TRACKED_STATIONS || !searchInput.trim()}
+          small
+        />
       </form>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-1">
-        {selectedStations.map((station) => {
-          const board = boardsData[station] ?? { ...EMPTY_BOARD, loading: true };
+        {selectedStations.map((station, index) => {
+          const board = boardFor(index);
           return (
             <div key={station} className="card flex max-w-none flex-col overflow-hidden rounded-card bg-card shadow-sm">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3">
@@ -321,7 +341,7 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => fetchBoard(station)}
+                    onClick={() => void boardQueries[index]?.refetch()}
                     type="button"
                     className="my-auto flex h-min w-min items-center justify-center gap-2 rounded-lg border border-line bg-surface p-1.5 font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
                     title="Odśwież teraz"

@@ -3,8 +3,9 @@
 // Dane Finansów: profile, rachunki stałe i transakcje. Zmiany zapisują się
 // od razu (optymistycznie), a błędy cofają stan i pokazują komunikat.
 
+import { useQueryState } from "@/hooks/useQueryState";
 import { FINANCE_HISTORY_MONTHS } from "@/config/limits";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { addMonths, format, parseISO } from "date-fns";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -19,30 +20,41 @@ import {
   type Transaction,
 } from "@/types/finance";
 
-export { BILL_TASK_CATEGORY } from "@/shared/bills";
 import { BILL_TASK_CATEGORY, billTaskTitle } from "@/shared/bills";
 
 // --- Profile ----------------------------------------------------------------------
+
+const NO_PROFILES: FinanceProfile[] = [];
+const NO_BILLS: RecurringBill[] = [];
+const NO_TRANSACTIONS: Transaction[] = [];
 
 export function useFinanceProfiles() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
-  const [profiles, setProfiles] = useState<FinanceProfile[]>([]);
-
-  const fetchProfiles = useCallback(async () => {
-    if (!userId) return;
-    const { data, error } = await supabase
-      .from("finance_profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .order("sort_order", { ascending: true });
-    if (!error) setProfiles((data ?? []) as FinanceProfile[]);
-  }, [supabase, userId]);
-
-  useEffect(() => {
-    void fetchProfiles();
-  }, [fetchProfiles]);
+  const queryProfiles = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<FinanceProfile[]> => {
+      const { data, error } = await supabase
+        .from("finance_profiles")
+        .select("*")
+        .eq("user_id", userId as string)
+        .order("sort_order", { ascending: true })
+        .abortSignal(signal);
+      if (error) throw error;
+      return (data ?? []) as FinanceProfile[];
+    },
+    [supabase, userId]
+  );
+  const {
+    data: profiles,
+    setData: setProfiles,
+    refetch: fetchProfiles,
+  } = useQueryState<FinanceProfile[]>({
+    queryKey: ["finance-profiles", userId ?? null],
+    queryFn: queryProfiles,
+    initial: NO_PROFILES,
+    enabled: Boolean(userId),
+  });
 
   const addProfile = useCallback(
     async (name: string, color: string | null = null) => {
@@ -58,7 +70,7 @@ export function useFinanceProfiles() {
       }
       setProfiles((p) => [...p, data as FinanceProfile]);
     },
-    [supabase, userId, profiles.length, toast]
+    [supabase, userId, profiles.length, toast, setProfiles]
   );
 
   const updateProfile = useCallback(
@@ -71,7 +83,7 @@ export function useFinanceProfiles() {
         toast.error("Nie udało się zapisać profilu.");
       }
     },
-    [supabase, profiles, toast]
+    [supabase, profiles, toast, setProfiles]
   );
 
   const removeProfile = useCallback(
@@ -86,7 +98,7 @@ export function useFinanceProfiles() {
         toast.error("Nie udało się usunąć profilu.");
       }
     },
-    [supabase, profiles, toast]
+    [supabase, profiles, toast, setProfiles]
   );
 
   return {
@@ -105,23 +117,30 @@ export function useRecurringBills() {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
-  const [bills, setBills] = useState<RecurringBill[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchBills = useCallback(async () => {
-    if (!userId) return;
-    const { data, error } = await supabase
-      .from("recurring_bills")
-      .select("*")
-      .eq("user_id", userId)
-      .order("name", { ascending: true });
-    setLoading(false);
-    if (!error) setBills(((data ?? []) as RecurringBill[]).map((b) => ({ ...b, amount: Number(b.amount) })));
-  }, [supabase, userId]);
-
-  useEffect(() => {
-    void fetchBills();
-  }, [fetchBills]);
+  const queryBills = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<RecurringBill[]> => {
+      const { data, error } = await supabase
+        .from("recurring_bills")
+        .select("*")
+        .eq("user_id", userId as string)
+        .order("name", { ascending: true })
+        .abortSignal(signal);
+      if (error) throw error;
+      return ((data ?? []) as RecurringBill[]).map((b) => ({ ...b, amount: Number(b.amount) }));
+    },
+    [supabase, userId]
+  );
+  const {
+    data: bills,
+    setData: setBills,
+    fetching: loading,
+    refetch: fetchBills,
+  } = useQueryState<RecurringBill[]>({
+    queryKey: ["recurring-bills", userId ?? null],
+    queryFn: queryBills,
+    initial: NO_BILLS,
+    enabled: Boolean(userId),
+  });
 
   /**
    * Zadanie „Zapłać: …” na dziś, jeśli termin wypada dziś. Zwykle tworzy je
@@ -183,7 +202,7 @@ export function useRecurringBills() {
       toast.success(bill.id ? "Zapisano rachunek." : "Dodano rachunek.");
       return saved;
     },
-    [supabase, userId, toast, ensureTodayTask]
+    [supabase, userId, toast, ensureTodayTask, setBills]
   );
 
   const removeBill = useCallback(
@@ -198,7 +217,7 @@ export function useRecurringBills() {
         toast.error("Nie udało się usunąć rachunku.");
       }
     },
-    [supabase, bills, toast]
+    [supabase, bills, toast, setBills]
   );
 
   return { bills, loading, fetchBills, saveBill, removeBill };
@@ -219,31 +238,36 @@ export function useTransactions({ from, to }: TransactionsOptions) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchTransactions = useCallback(async () => {
-    if (!userId) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", userId)
-      .gte("date", from)
-      .lte("date", to)
-      .order("date", { ascending: false })
-      .order("created_at", { ascending: false });
-    setLoading(false);
-    if (error) {
-      toast.error("Nie udało się pobrać transakcji.");
-      return;
-    }
-    setTransactions(((data ?? []) as Transaction[]).map(normalizeTx));
-  }, [supabase, userId, from, to, toast]);
-
-  useEffect(() => {
-    void fetchTransactions();
-  }, [fetchTransactions]);
+  const queryTransactions = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<Transaction[]> => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", userId as string)
+        .gte("date", from)
+        .lte("date", to)
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .abortSignal(signal);
+      if (error) {
+        toast.error("Nie udało się pobrać transakcji.");
+        throw error;
+      }
+      return ((data ?? []) as Transaction[]).map(normalizeTx);
+    },
+    [supabase, userId, from, to, toast]
+  );
+  const {
+    data: transactions,
+    setData: setTransactions,
+    fetching: loading,
+    refetch: fetchTransactions,
+  } = useQueryState<Transaction[]>({
+    queryKey: ["transactions", userId ?? null, from, to],
+    queryFn: queryTransactions,
+    initial: NO_TRANSACTIONS,
+    enabled: Boolean(userId),
+  });
 
   /** Historia do sugestii (D1/D2): transakcje z kategorią lub powiązaniem z 12 miesięcy. */
   const loadHistory = useCallback(async (): Promise<Transaction[]> => {
@@ -310,7 +334,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
       if (saved.date >= from && saved.date <= to) setTransactions((list) => [saved, ...list]);
       return saved;
     },
-    [supabase, userId, from, to, toast]
+    [supabase, userId, from, to, toast, setTransactions]
   );
 
   const updateTransaction = useCallback(
@@ -323,7 +347,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
         toast.error("Nie udało się zapisać transakcji.");
       }
     },
-    [supabase, transactions, toast]
+    [supabase, transactions, toast, setTransactions]
   );
 
   /** Ręczne powiązanie (lub zatwierdzenie sugestii) – z niego system uczy się na kolejne miesiące. */
@@ -345,7 +369,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
         toast.error("Nie udało się usunąć transakcji.");
       }
     },
-    [supabase, transactions, toast]
+    [supabase, transactions, toast, setTransactions]
   );
 
   /**

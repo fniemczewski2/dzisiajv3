@@ -5,7 +5,7 @@ export type GpsPermission = "granted" | "denied" | null;
 
 const POSITION_STORAGE_KEY = USER_LOCAL_STORAGE_KEYS.lastPosition;
 
-export const getGpsCookie = (): GpsPermission => {
+const getGpsCookie = (): GpsPermission => {
   if (typeof document === "undefined") return null;
   const match = new RegExp(`(^| )${GPS_PERMISSION_COOKIE}=([^;]+)`).exec(document.cookie);
   return match ? (match[2] as GpsPermission) : null;
@@ -49,7 +49,7 @@ const storePosition = (position: GeolocationPosition) => {
   }
 };
 
-export const clearStoredPosition = () => {
+const clearStoredPosition = () => {
   try {
     localStorage.removeItem(POSITION_STORAGE_KEY);
   } catch {
@@ -70,23 +70,6 @@ const toPosition = (stored: StoredPosition): GeolocationPosition =>
       speed: null,
     },
   }) as GeolocationPosition;
-
-/**
- * Stan uprawnienia bez wywoływania okna zgody. Safari w aplikacji z ekranu
- * początkowego potrafi zwracać „prompt” mimo wcześniejszej zgody, dlatego
- * zapamiętana decyzja użytkownika ma pierwszeństwo przed tym odczytem.
- */
-export const getGeolocationPermission = async (): Promise<PermissionState | "unsupported"> => {
-  if (typeof navigator === "undefined" || !navigator.geolocation) return "unsupported";
-  const remembered = getGpsCookie();
-  try {
-    const status = await navigator.permissions?.query({ name: "geolocation" });
-    if (status?.state === "granted" || status?.state === "denied") return status.state;
-  } catch {
-    /* Permissions API niedostępne */
-  }
-  return remembered === "granted" ? "granted" : "prompt";
-};
 
 interface SmartLocationOptions {
   /** Wywołanie z przycisku użytkownika: pomija zapamiętaną odmowę i świeży odczyt z pamięci. */

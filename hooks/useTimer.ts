@@ -1,16 +1,83 @@
 // hooks/useTimer.ts
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import type { TimerPhase } from "@/components/ui/Timer";
 import { useToast } from "@/providers/ToastProvider";
 
+interface EngineState {
+  phaseIndex: number;
+  round: number;
+  secondsLeft: number;
+  running: boolean;
+  paused: boolean;
+  /** Licznik zakończonych faz – zmiana uruchamia dźwięk (efekt bez setState). */
+  chimes: number;
+}
+
+type EngineAction =
+  | { type: "tick"; phases: readonly TimerPhase[]; rounds: number }
+  | { type: "start"; phases: readonly TimerPhase[] }
+  | { type: "togglePause" }
+  | { type: "stop"; phases: readonly TimerPhase[] }
+  | { type: "goTo"; index: number; phases: readonly TimerPhase[] }
+  | { type: "setPhaseIndex"; index: number }
+  | { type: "setRound"; round: number };
+
+export function engineReducer(state: EngineState, action: EngineAction): EngineState {
+  switch (action.type) {
+    case "tick": {
+      if (!state.running || state.paused) return state;
+      if (state.secondsLeft > 1) return { ...state, secondsLeft: state.secondsLeft - 1 };
+      // Koniec fazy: następna faza, następna runda albo koniec.
+      const { phases, rounds } = action;
+      const chimes = state.chimes + 1;
+      const nextPhase = state.phaseIndex + 1;
+      if (nextPhase < phases.length) {
+        return { ...state, phaseIndex: nextPhase, secondsLeft: phases[nextPhase].seconds, chimes };
+      }
+      if (state.round < rounds) {
+        return { ...state, round: state.round + 1, phaseIndex: 0, secondsLeft: phases[0].seconds, chimes };
+      }
+      return { ...state, running: false, paused: false, secondsLeft: 0, chimes };
+    }
+    case "start": {
+      if (action.phases.length === 0) return state;
+      const seconds =
+        state.running && state.secondsLeft > 0 ? state.secondsLeft : action.phases[state.phaseIndex].seconds;
+      return { ...state, secondsLeft: seconds, running: true, paused: false };
+    }
+    case "togglePause":
+      return { ...state, paused: !state.paused };
+    case "stop":
+      return {
+        ...state,
+        running: false,
+        paused: false,
+        phaseIndex: 0,
+        round: 1,
+        secondsLeft: action.phases[0]?.seconds ?? 0,
+      };
+    case "goTo":
+      return { ...state, phaseIndex: action.index, secondsLeft: action.phases[action.index]?.seconds ?? 0 };
+    case "setPhaseIndex":
+      return { ...state, phaseIndex: action.index };
+    case "setRound":
+      return { ...state, round: action.round };
+  }
+}
+
 export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = false) {
-  const [phaseIndex, setPhaseIndex] = useState(0);
-  const [round, setRound] = useState(1);
-  const [secondsLeft, setSecondsLeft] = useState(phases[0]?.seconds ?? 0);
-  const [running, setRunning] = useState(autoStart);
-  const [paused, setPaused] = useState(false);
-  const intervalRef = useRef<number | null>(null);
+  const [state, dispatch] = useReducer(engineReducer, undefined, () => ({
+    phaseIndex: 0,
+    round: 1,
+    secondsLeft: phases[0]?.seconds ?? 0,
+    running: autoStart,
+    paused: false,
+    chimes: 0,
+  }));
+  const { phaseIndex, round, running, paused, chimes } = state;
+  // Zatrzymany licznik pokazuje pełny czas bieżącej fazy (także po zmianie ustawień faz).
+  const secondsLeft = running ? state.secondsLeft : (phases[phaseIndex]?.seconds ?? 0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const { toast } = useToast();
@@ -69,87 +136,33 @@ export function useTimerEngine(phases: TimerPhase[], rounds = 1, autoStart = fal
     };
   }, [running, paused, toast]);
 
-  const playSound = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((err) => {
-        console.warn("[useTimerEngine] Nie udało się odtworzyć dźwięku:", err);
-      });
-    }
-  };
-
+  // Dźwięk przy każdym zakończeniu fazy (zmiana licznika `chimes`).
   useEffect(() => {
-    if (!running) {
-      setSecondsLeft(phases[phaseIndex]?.seconds ?? 0);
-    }
-  }, [phaseIndex, phases, running]);
+    if (chimes === 0 || !audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch((err) => {
+      console.warn("[useTimerEngine] Nie udało się odtworzyć dźwięku:", err);
+    });
+  }, [chimes]);
 
+  // Tykanie co sekundę – przejścia między fazami liczy reducer.
   useEffect(() => {
-    if (running && !paused) {
-      intervalRef.current = globalThis.window.setInterval(() => {
-        setSecondsLeft((s) => s - 1);
-      }, 1000);
-    }
-    return () => {
-      if (intervalRef.current != null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [running, paused]);
+    if (!running || paused) return;
+    const id = globalThis.setInterval(() => dispatch({ type: "tick", phases, rounds }), 1000);
+    return () => clearInterval(id);
+  }, [running, paused, phases, rounds]);
 
-  useEffect(() => {
-    if (secondsLeft <= 0 && running) {
-      playSound();
-      const nextPhase = phaseIndex + 1;
-      if (nextPhase < phases.length) {
-        setPhaseIndex(nextPhase);
-        setSecondsLeft(phases[nextPhase].seconds);
-      } else if (round < rounds) {
-        setRound((r) => r + 1);
-        setPhaseIndex(0);
-        setSecondsLeft(phases[0].seconds);
-      } else {
-        setRunning(false);
-        setPaused(false);
-      }
-    }
-  }, [secondsLeft, running, phaseIndex, phases, round, rounds]);
-
-  const start = () => {
-    if (!phases.length) return;
-    setSecondsLeft((s) => (s > 0 ? s : phases[phaseIndex].seconds));
-    setRunning(true);
-    setPaused(false);
-  };
-
-  const pause = () => setPaused((p) => !p);
-
-  const stop = () => {
-    setRunning(false);
-    setPaused(false);
-    setPhaseIndex(0);
-    setRound(1);
-    setSecondsLeft(phases[0]?.seconds ?? 0);
-  };
-
-  const next = () => {
-    const idx = Math.min(phaseIndex + 1, phases.length - 1);
-    setPhaseIndex(idx);
-    setSecondsLeft(phases[idx].seconds);
-  };
-
-  const prev = () => {
-    const idx = Math.max(phaseIndex - 1, 0);
-    setPhaseIndex(idx);
-    setSecondsLeft(phases[idx].seconds);
-  };
-
+  const start = () => dispatch({ type: "start", phases });
+  const pause = () => dispatch({ type: "togglePause" });
+  const stop = () => dispatch({ type: "stop", phases });
+  const next = () => dispatch({ type: "goTo", index: Math.min(phaseIndex + 1, phases.length - 1), phases });
+  const prev = () => dispatch({ type: "goTo", index: Math.max(phaseIndex - 1, 0), phases });
   const jumpToPhase = (index: number) => {
     if (index < 0 || index >= phases.length) return;
-    setPhaseIndex(index);
-    setSecondsLeft(phases[index].seconds);
+    dispatch({ type: "goTo", index, phases });
   };
+  const setPhaseIndex = (index: number) => dispatch({ type: "setPhaseIndex", index });
+  const setRound = (value: number) => dispatch({ type: "setRound", round: value });
 
   return {
     secondsLeft,

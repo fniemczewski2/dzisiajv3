@@ -44,7 +44,7 @@ async function selectAll(
   for (const ids of chunk(filter.values, PAGING.dataExportPage)) {
     for (let from = 0; ; from += PAGING.dataExportPage) {
       // Strony po kolei – kolejność i limit zapytań bazy.
-      const { data, error } = await admin // NOSONAR
+      const { data, error } = await admin
         .from(table)
         .select(columns)
         .in(filter.column, ids)
@@ -64,11 +64,10 @@ const ids = (rows: Row[]) => rows.map((r) => String(r.id));
 async function listAllPaths(admin: SupabaseClient, bucket: string, prefix: string): Promise<string[]> {
   const paths: string[] = [];
   for (let offset = 0; ; offset += PAGING.storageList) {
-    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: PAGING.storageList, offset }); // NOSONAR
+    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: PAGING.storageList, offset });
     if (error || !data?.length) break;
     // Podkatalogi rekurencyjnie, pliki od razu.
     await mapPool(data, 4, async (entry) => {
-      // NOSONAR
       const fullPath = `${prefix}/${entry.name}`;
       if (entry.id) paths.push(fullPath);
       else paths.push(...(await listAllPaths(admin, bucket, fullPath)));
@@ -154,7 +153,7 @@ async function deleteWhere(
 ): Promise<number> {
   let removed = 0;
   for (const part of chunk(values, PAGING.dataExportPage)) {
-    const { data, error } = await admin.from(table).delete().in(column, part).select(column); // NOSONAR
+    const { data, error } = await admin.from(table).delete().in(column, part).select(column);
     if (isMissingTable(error)) return removed;
     if (error) throw new AccountDataError(error.message, `delete:${table}`);
     removed += data?.length ?? 0;
@@ -180,7 +179,7 @@ export async function deleteUserData(admin: SupabaseClient, userId: string): Pro
     const { error } = await admin
       .from(ref.table)
       .update({ [ref.column]: null })
-      .eq(ref.column, userId); // NOSONAR
+      .eq(ref.column, userId);
     if (error && !isMissingTable(error)) throw new AccountDataError(error.message, `unshare:${ref.table}`);
   }
 
@@ -207,7 +206,6 @@ export async function deleteUserData(admin: SupabaseClient, userId: string): Pro
     const tables = USER_TABLES.filter((t) => t.stage === stage);
     // W obrębie etapu tabele są niezależne – równolegle.
     await mapPool(tables, 4, async (entry) => {
-      // NOSONAR
       report.tables[entry.table] = await deleteWhere(admin, entry.table, entry.owner, [userId]);
     });
   }
@@ -215,7 +213,7 @@ export async function deleteUserData(admin: SupabaseClient, userId: string): Pro
   await mapPool(USER_STORAGE_BUCKETS, USER_STORAGE_BUCKETS.length, async (bucket) => {
     const paths = await listAllPaths(admin, bucket, userId);
     for (const part of chunk(paths, PAGING.storageList)) {
-      const { error } = await admin.storage.from(bucket).remove(part); // NOSONAR
+      const { error } = await admin.storage.from(bucket).remove(part);
       if (error) throw new AccountDataError(error.message, `storage:${bucket}`);
       report.files_removed += part.length;
     }

@@ -1,6 +1,6 @@
 // components/settings/SlackListEditor.tsx
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { SaveButton } from "../ui/CommonButtons";
 import {
   SLACK_MAPPABLE_TASK_FIELDS,
@@ -45,12 +45,16 @@ export default function SlackListEditor({
   const [syncEnabled, setSyncEnabled] = useState(list.sync_enabled);
   const [assigneeEmails, setAssigneeEmails] = useState(formatAssigneeEmails(list.assignee_emails));
 
-  useEffect(() => {
+  // Lista zmieniła się w bazie (zapis, synchronizacja) – odświeżenie pól w trakcie renderu.
+  const listKey = JSON.stringify([list.column_map, list.is_default, list.sync_enabled, list.assignee_emails]);
+  const [seenListKey, setSeenListKey] = useState(listKey);
+  if (listKey !== seenListKey) {
+    setSeenListKey(listKey);
     setDraftMap(list.column_map ?? {});
     setIsDefault(list.is_default);
     setSyncEnabled(list.sync_enabled);
     setAssigneeEmails(formatAssigneeEmails(list.assignee_emails));
-  }, [list.column_map, list.is_default, list.sync_enabled, list.assignee_emails]);
+  }
 
   const handleToggle = () => {
     const next = !expanded;

@@ -14,7 +14,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["lib/**", "hooks/**", "components/**", "pages/api/**"],
+      include: ["lib/**", "hooks/**", "components/**", "pages/**", "providers/**", "config/**", "proxy.ts"],
       exclude: ["**/*.d.ts", "**/*.config.*"],
     },
   },

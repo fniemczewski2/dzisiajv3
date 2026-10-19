@@ -20,7 +20,7 @@ export interface QueuedInsert {
 }
 
 /** Po tylu odrzuceniach przez bazę wpis jest usuwany i zgłaszany jako utracony. */
-export const MAX_QUEUE_ATTEMPTS = 3;
+const MAX_QUEUE_ATTEMPTS = 3;
 
 function isSupported(): boolean {
   return typeof indexedDB !== "undefined";
@@ -77,10 +77,6 @@ async function allEntries(): Promise<QueuedInsert[]> {
   }
 }
 
-export async function pendingCount(ownerId: string): Promise<number> {
-  return (await allEntries()).filter((entry) => entry.ownerId === ownerId).length;
-}
-
 export interface FlushResult {
   sent: number;
   /** Wpisy, które zostały w kolejce (np. ponowny brak sieci). */
@@ -103,18 +99,18 @@ export async function flushQueue(supabase: SupabaseClient, ownerId: string): Pro
       break;
     }
     // Kolejne zapisy celowo jeden po drugim – kolejność dodania ma znaczenie.
-    const { error } = await supabase.from(entry.table).insert(entry.payload); // NOSONAR
+    const { error } = await supabase.from(entry.table).insert(entry.payload);
     if (!error) {
-      await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
+      await withStore("readwrite", (store) => store.delete(entry.id));
       result.sent += 1;
       continue;
     }
     const attempts = entry.attempts + 1;
     if (attempts >= MAX_QUEUE_ATTEMPTS) {
-      await withStore("readwrite", (store) => store.delete(entry.id)); // NOSONAR
+      await withStore("readwrite", (store) => store.delete(entry.id));
       result.dropped += 1;
     } else {
-      await withStore("readwrite", (store) => store.put({ ...entry, attempts })); // NOSONAR
+      await withStore("readwrite", (store) => store.put({ ...entry, attempts }));
       result.pending += 1;
     }
   }

@@ -11,6 +11,7 @@ import {
   weekdayIndexPL,
 } from "../_shared/notificationTime.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
+import { usersNotifiedToday, rowsByUser } from "./batch.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
 
 interface ScheduleEntry {
@@ -172,29 +173,29 @@ interface NotifCtx {
 }
 
 async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
-  const { supabase, today, wasAlreadySentToday, sendPushAndLog } = ctx;
+  const { supabase, today, sendPushAndLog } = ctx;
   const { data: users } = await supabase
     .from("settings")
     .select("user_id")
     .eq("notif_morning_brief", true)
     .not("user_id", "is", null);
+  const ids = (users ?? []).map((u) => u.user_id as string);
+  // Zbiorczo: kto już dostał powiadomienie, zadania i wydarzenia wszystkich osób naraz.
+  const notified = await usersNotifiedToday(supabase, "morning_brief", ctx.startOfDayUTC, ids);
+  const tasksByUser = await rowsByUser<{ user_id: string }>(supabase, "tasks", "user_id", ids, {
+    eq: { due_date: today },
+    neq: { status: "done" },
+  });
+  // start_time to czas ścienny w Polsce zapisany z „+00” – granice dnia w tym samym zapisie.
+  const day = wallClockDayBounds(today);
+  const eventsByUser = await rowsByUser<{ user_id: string }>(supabase, "events", "user_id", ids, {
+    gte: { start_time: day.start },
+    lt: { start_time: day.end },
+  });
   await mapPool(users || [], 5, async (user) => {
-    if (await wasAlreadySentToday(user.user_id, "morning_brief")) return;
-
-    const { count: tasksCount } = await supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.user_id)
-      .eq("due_date", today)
-      .neq("status", "done");
-    // start_time to czas ścienny w Polsce zapisany z „+00” – granice dnia w tym samym zapisie.
-    const day = wallClockDayBounds(today);
-    const { count: eventsCount } = await supabase
-      .from("events")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.user_id)
-      .gte("start_time", day.start)
-      .lt("start_time", day.end);
+    if (notified.has(user.user_id)) return;
+    const tasksCount = tasksByUser.get(user.user_id)?.length ?? 0;
+    const eventsCount = eventsByUser.get(user.user_id)?.length ?? 0;
 
     if ((tasksCount && tasksCount > 0) || (eventsCount && eventsCount > 0)) {
       const msgParts = [];
@@ -424,24 +425,18 @@ async function processHydrationType(ctx: NotifCtx): Promise<void> {
     .select("user_id")
     .eq("show_water_tracker", true)
     .eq("notif_water", true);
+  const ids = (users ?? []).map((u) => u.user_id as string);
+  const notified = await usersNotifiedToday(supabase, "hydration", startOfDayUTC, ids, currentHour);
+  const habitsByUser = await rowsByUser<{ user_id: string; water_amount: number | null }>(
+    supabase,
+    "daily_habits",
+    "user_id, water_amount",
+    ids,
+    { eq: { date: today } }
+  );
   await mapPool(users || [], 5, async (user) => {
-    const { data: alreadySent } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("user_id", user.user_id)
-      .eq("type", "hydration")
-      .gte("created_at", startOfDayUTC)
-      .contains("data", { slot: currentHour })
-      .maybeSingle();
-    if (alreadySent) return;
-
-    const { data: habit } = await supabase
-      .from("daily_habits")
-      .select("water_amount")
-      .eq("user_id", user.user_id)
-      .eq("date", today)
-      .maybeSingle();
-    const amount = habit?.water_amount || 0;
+    if (notified.has(user.user_id)) return;
+    const amount = habitsByUser.get(user.user_id)?.[0]?.water_amount || 0;
     let remind = false;
     if (currentHour <= 10 && amount <= 0) remind = true;
     if (currentHour > 10 && currentHour <= 14 && amount < 1.0) remind = true;
@@ -492,18 +487,16 @@ function buildIncompleteHabitsList(s: HabitSettingsRow, habit: DailyHabitRow | n
 }
 
 async function processDailyHabitsType(ctx: NotifCtx): Promise<void> {
-  const { supabase, today, wasAlreadySentToday, sendPushAndLog } = ctx;
+  const { supabase, today, startOfDayUTC, sendPushAndLog } = ctx;
   const { data: usersSettings } = await supabase.from("settings").select("*").eq("notif_habits", true);
+  const ids = (usersSettings ?? []).map((s) => s.user_id as string);
+  const notified = await usersNotifiedToday(supabase, "daily_habits", startOfDayUTC, ids);
+  const habitsByUser = await rowsByUser<DailyHabitRow & { user_id: string }>(supabase, "daily_habits", "*", ids, {
+    eq: { date: today },
+  });
   await mapPool(usersSettings || [], 5, async (s) => {
-    if (await wasAlreadySentToday(s.user_id, "daily_habits")) return;
-
-    const { data: habit } = await supabase
-      .from("daily_habits")
-      .select("*")
-      .eq("date", today)
-      .eq("user_id", s.user_id)
-      .maybeSingle();
-    const incomplete = buildIncompleteHabitsList(s, habit);
+    if (notified.has(s.user_id)) return;
+    const incomplete = buildIncompleteHabitsList(s, habitsByUser.get(s.user_id)?.[0] ?? null);
 
     if (incomplete.length > 0) {
       const actStr = pluralize(incomplete.length, "aktywność", "aktywności", "aktywności");
@@ -620,30 +613,22 @@ async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
 }
 
 async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
-  const { supabase, today, wasAlreadySentToday, sendPushAndLog } = ctx;
+  const { supabase, today, startOfDayUTC, sendPushAndLog } = ctx;
   const { data: users } = await supabase
     .from("settings")
     .select("user_id")
     .eq("notif_evening", true)
     .not("user_id", "is", null);
+  const ids = (users ?? []).map((u) => u.user_id as string);
+  const notified = await usersNotifiedToday(supabase, "evening_audit", startOfDayUTC, ids);
+  const tasksByUser = await rowsByUser<{ user_id: string; status: string }>(supabase, "tasks", "user_id, status", ids, {
+    eq: { due_date: today },
+  });
   await mapPool(users || [], 5, async (user) => {
-    if (await wasAlreadySentToday(user.user_id, "evening_audit")) return;
-
-    const { count: doneCount } = await supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.user_id)
-      .eq("due_date", today)
-      .eq("status", "done");
-    const { count: pendingCount } = await supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.user_id)
-      .eq("due_date", today)
-      .neq("status", "done");
-
-    const done = doneCount ?? 0;
-    const pending = pendingCount ?? 0;
+    if (notified.has(user.user_id)) return;
+    const tasks = tasksByUser.get(user.user_id) ?? [];
+    const done = tasks.filter((t) => t.status === "done").length;
+    const pending = tasks.length - done;
     if (pending > 0 || done > 0) {
       let msg = `Zrealizowano dziś ${done} ${pluralize(done, "zadanie", "zadania", "zadań")}.`;
       if (pending > 0) msg += ` Do zrobienia zostało ${pending}.`;

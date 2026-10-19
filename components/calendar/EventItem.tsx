@@ -39,7 +39,6 @@ export default function EventItem({
   const [sharedEmail, setSharedEmail] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
   const conflictRef = useRef<HTMLDivElement>(null);
-  const [conflictAcknowledged, setConflictAcknowledged] = useState(false);
   const categoryColors = useCategoryColors();
 
   const editStart = useMemo(() => (editedEvent ? parseEventDate(editedEvent.start_time) : null), [editedEvent]);
@@ -51,11 +50,10 @@ export default function EventItem({
     enabled: isEditing,
   });
 
-  const startKey = editedEvent?.start_time;
-  const endKey = editedEvent?.end_time;
-  useEffect(() => {
-    setConflictAcknowledged(false);
-  }, [startKey, endKey]);
+  // Potwierdzenie „zapisz mimo kolizji” dotyczy konkretnego terminu – po zmianie terminu wygasa.
+  const conflictKey = `${editedEvent?.start_time ?? ""}|${editedEvent?.end_time ?? ""}`;
+  const [acknowledgedKey, setAcknowledgedKey] = useState<string | null>(null);
+  const conflictAcknowledged = acknowledgedKey === conflictKey;
 
   useEffect(() => {
     if (isEditing && titleRef.current) titleRef.current.focus();
@@ -77,7 +75,7 @@ export default function EventItem({
   const handleSaveEdit = async () => {
     if (!editedEvent) return;
     if (hasOverlaps && !conflictAcknowledged) {
-      setConflictAcknowledged(true);
+      setAcknowledgedKey(conflictKey);
       conflictRef.current?.focus();
       return;
     }

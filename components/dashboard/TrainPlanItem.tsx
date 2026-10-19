@@ -1,7 +1,8 @@
 // components/dashboard/TrainPlanItem.tsx
 
-import { TRAIN_STATUS_REFRESH_MS } from "@/config/timing";
-import React, { useEffect, useState } from "react";
+import { useNow } from "@/hooks/useNow";
+import { TRAIN_STATUS_REFRESH_MS, TRAIN_PLAN_TICK_MS } from "@/config/timing";
+import React from "react";
 import Link from "next/link";
 import { ArrowRight, Loader2, TrainFront } from "lucide-react";
 import { useTrainPlanStatus } from "@/hooks/db/useTrains";
@@ -50,11 +51,7 @@ function TimeValue({
 }
 
 export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTrain }>) => {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useNow(TRAIN_PLAN_TICK_MS);
 
   const relevant = isStatusRelevant(train, now);
   const { delay, platform, status, loading, hide, stop } = useTrainPlanStatus(train, {

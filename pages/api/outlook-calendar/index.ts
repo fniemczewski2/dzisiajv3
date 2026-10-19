@@ -157,16 +157,15 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
 
     while (fetchUrl) {
       const msRes: Response = await fetch(fetchUrl, {
-        // NOSONAR
         headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' },
       });
 
       if (!msRes.ok) break;
-      const data: OutlookEventsResponse = await msRes.json(); // NOSONAR
+      const data: OutlookEventsResponse = await msRes.json();
       const rows = buildOutlookEventRows(data.value, user.id, accountId);
 
       if (rows.length > 0) {
-        const { error: upsertError } = await supabase // NOSONAR
+        const { error: upsertError } = await supabase
           .from("events")
           .upsert(rows, { onConflict: "calendar_id,google_event_id" });
         if (upsertError) {

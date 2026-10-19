@@ -1,19 +1,6 @@
 // lib/notesUtils.ts
 
 import { Note } from "@/types/notes";
-export function sortNotes(notes: Note[]): Note[] {
-  const pinned = notes.filter((n) => n.pinned && !n.archived);
-  const regular = notes.filter((n) => !n.pinned && !n.archived);
-  const archived = notes.filter((n) => n.archived);
-
-  const sortByDate = (a: Note, b: Note) => {
-    const dateA = new Date(a.updated_at || 0).getTime();
-    const dateB = new Date(b.updated_at || 0).getTime();
-    return dateB - dateA;
-  };
-
-  return [...pinned.sort(sortByDate), ...regular.sort(sortByDate), ...archived.sort(sortByDate)];
-}
 
 export function filterNotes(notes: Note[], query: string): Note[] {
   if (!query.trim()) return notes;

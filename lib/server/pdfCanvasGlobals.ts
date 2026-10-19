@@ -89,5 +89,3 @@ export function ensurePdfCanvasGlobals(): Promise<void> {
   ready ??= install();
   return ready;
 }
-
-export { FallbackDOMMatrix };

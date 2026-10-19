@@ -1,7 +1,7 @@
 // components/dashboard/DayView.tsx
 
 import { useNow } from "@/hooks/useNow";
-import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { Calendar, ListTodo, SaveAll, Trophy } from "lucide-react";
@@ -114,19 +114,13 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
   const { workLogs } = useWorkLogs(dateStr);
   const { trains } = useTrainsForDate(dateStr);
 
-  const loadedDatesRef = useRef<Set<string>>(new Set());
-  const [isFirstLoadForDate, setIsFirstLoadForDate] = useState(true);
-
-  useEffect(() => {
-    setIsFirstLoadForDate(!loadedDatesRef.current.has(dateStr));
-  }, [dateStr]);
-
-  useEffect(() => {
-    if (!fetchingTasks && !fetchingEvents) {
-      loadedDatesRef.current.add(dateStr);
-      setIsFirstLoadForDate(false);
-    }
-  }, [fetchingTasks, fetchingEvents, dateStr]);
+  // Szkielety tylko przy pierwszym wczytaniu danego dnia; powrót do odwiedzonego dnia
+  // pokazuje dotychczasowe dane od razu. Zbiór aktualizowany w trakcie renderu.
+  const [loadedDates, setLoadedDates] = useState<ReadonlySet<string>>(() => new Set());
+  if (!fetchingTasks && !fetchingEvents && !loadedDates.has(dateStr)) {
+    setLoadedDates((prev) => new Set(prev).add(dateStr));
+  }
+  const isFirstLoadForDate = !loadedDates.has(dateStr);
 
   const { overrides, hideSchema, moveSchema, fetchOverrides } = useDailyOverrides(dateStr);
   const {

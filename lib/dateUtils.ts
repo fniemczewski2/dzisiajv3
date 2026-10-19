@@ -96,25 +96,6 @@ export const getAppDateTime = () => {
   return new Date(formatter.format(new Date()).replace(" ", "T"));
 };
 
-export const getCurrentInstantIso = (): string => new Date().toISOString();
-export const getAppHour = (value: string | null | undefined): string | undefined => {
-  if (!value) return undefined;
-  const normalized = value.replaceAll(" ", "T");
-
-  if (!/(Z|[+-]\d{2}:?\d{2})$/.test(normalized)) {
-    const hour = normalized.split("T")[1]?.slice(0, 2);
-    return hour && !Number.isNaN(Number(hour)) ? hour : undefined;
-  }
-
-  const date = new Date(normalized);
-  if (Number.isNaN(date.getTime())) return undefined;
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: APP_TIME_ZONE,
-    hour: "2-digit",
-    hour12: false,
-  }).format(date);
-};
-
 const appOffsetMinutes = (dateStr: string): number => {
   const noonUtc = new Date(`${dateStr}T12:00:00Z`);
   const asWarsaw = new Date(noonUtc.toLocaleString("en-US", { timeZone: APP_TIME_ZONE }));

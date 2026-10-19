@@ -350,8 +350,6 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
   },
 ];
 
-export const features: Feature[] = FEATURE_GROUPS.flatMap((group) => group.features);
-
 export const getFeaturesWithStatus = (): (Feature & { category: FeatureCategory })[] =>
   FEATURE_GROUPS.flatMap((group) =>
     group.features.filter((f) => f.status).map((f) => ({ ...f, category: group.category }))

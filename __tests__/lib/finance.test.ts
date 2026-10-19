@@ -61,7 +61,7 @@ describe("terminy i prognoza", () => {
       [bill({}), bill({ id: "b2", name: "Czynsz", amount: 1500, start_date: "2026-01-10" })],
       "2026-02"
     );
-    expect(f.total).toBe(1519.99);
+    expect(f.total).toBeCloseTo(1519.99, 2);
     expect(f.items.map((i) => i.bill.id)).toEqual(["b2", "b1"]);
   });
   it("najbliższy termin", () => {

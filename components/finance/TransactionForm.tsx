@@ -4,6 +4,7 @@ import React, { useId, useState } from "react";
 import { FormButtons } from "@/components/ui/CommonButtons";
 import { getAppDate } from "@/lib/dateUtils";
 import type { BudgetCategory } from "@/types/bills";
+import { AmountField, CategorySelect, ProfileSelect } from "@/components/finance/FinanceFields";
 import type { FinanceProfile, NewTransaction, RecurringBill } from "@/types/finance";
 
 interface Props {
@@ -35,7 +36,7 @@ export default function TransactionForm({
   const [profileId, setProfileId] = useState(defaultProfileId ?? "");
   const [saving, setSaving] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const value = Number.parseFloat(amount.replace(",", "."));
     if (!Number.isFinite(value) || value <= 0) return;
@@ -77,20 +78,7 @@ export default function TransactionForm({
         </div>
       </fieldset>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor={`${id}-amount`} className="form-label">
-            Kwota (zł):
-          </label>
-          <input
-            id={`${id}-amount`}
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="input-field"
-            placeholder="0,00"
-            required
-          />
-        </div>
+        <AmountField id={id} value={amount} onChange={setAmount} />
         <div>
           <label htmlFor={`${id}-date`} className="form-label">
             Data:
@@ -119,24 +107,13 @@ export default function TransactionForm({
         />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor={`${id}-cat`} className="form-label">
-            Kategoria:
-          </label>
-          <select
-            id={`${id}-cat`}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="input-field"
-          >
-            <option value="">{kind === "expense" ? "Dobierz automatycznie" : "Bez kategorii"}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <CategorySelect
+          id={id}
+          value={categoryId}
+          onChange={setCategoryId}
+          categories={categories}
+          emptyLabel={kind === "expense" ? "Dobierz automatycznie" : "Bez kategorii"}
+        />
         {kind === "expense" && (
           <div>
             <label htmlFor={`${id}-bill`} className="form-label">
@@ -159,26 +136,7 @@ export default function TransactionForm({
             </select>
           </div>
         )}
-        {profiles.length > 0 && (
-          <div>
-            <label htmlFor={`${id}-profile`} className="form-label">
-              Profil:
-            </label>
-            <select
-              id={`${id}-profile`}
-              value={profileId}
-              onChange={(e) => setProfileId(e.target.value)}
-              className="input-field"
-            >
-              <option value="">Bez profilu</option>
-              {profiles.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <ProfileSelect id={id} value={profileId} onChange={setProfileId} profiles={profiles} />
       </div>
       <FormButtons onClickClose={onCancel} loading={saving} />
     </form>

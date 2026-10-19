@@ -2,9 +2,9 @@
 
 import { APP_TIME_ZONE } from "@/lib/dateUtils";
 
-export const POLL_AUTO_CLOSE_WORKING_HOURS = 72;
+const POLL_AUTO_CLOSE_WORKING_HOURS = 72;
 
-export const POLL_WORKING_WEEKDAYS = [1, 2, 3, 4] as const;
+const POLL_WORKING_WEEKDAYS = [1, 2, 3, 4] as const;
 
 function weekdayInAppZone(date: Date): number {
   const label = date.toLocaleDateString("en-US", {
@@ -14,13 +14,13 @@ function weekdayInAppZone(date: Date): number {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(label);
 }
 
-export function isWorkingDay(date: Date): boolean {
+function isWorkingDay(date: Date): boolean {
   return (POLL_WORKING_WEEKDAYS as readonly number[]).includes(weekdayInAppZone(date));
 }
 
 const HOUR_MS = 60 * 60 * 1000;
 
-export function addWorkingHours(from: Date, hours: number): Date {
+function addWorkingHours(from: Date, hours: number): Date {
   if (hours <= 0) return new Date(from);
 
   let cursor = new Date(from);
@@ -42,7 +42,7 @@ export function pollAutoCloseAt(createdAt: Date = new Date()): Date {
   return addWorkingHours(createdAt, POLL_AUTO_CLOSE_WORKING_HOURS);
 }
 
-export function isPollExpired(closesAt: string | Date | null | undefined, now: Date = new Date()): boolean {
+function isPollExpired(closesAt: string | Date | null | undefined, now: Date = new Date()): boolean {
   if (!closesAt) return false;
   const deadline = closesAt instanceof Date ? closesAt : new Date(closesAt);
   if (Number.isNaN(deadline.getTime())) return false;

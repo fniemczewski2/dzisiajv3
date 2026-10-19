@@ -5,6 +5,8 @@
 // Sekcje, które zapisują się od razu (powiadomienia, szablony, profile
 // finansowe, Slack…), są na stronie Ustawień poniżej tych formularzy.
 
+import { useMoodConsent } from "@/hooks/useMoodConsent";
+import { MAX_TRUSTED_USERS } from "@/config/limits";
 import { CATEGORY_PALETTE, isPaletteColor } from "@/lib/categoryColors";
 import { DEFAULT_MOODS } from "@/config/defaults";
 import React, { useState } from "react";
@@ -130,6 +132,25 @@ function MoodsEditor({ value, onChange }: Readonly<{ value: MoodOption[]; onChan
         </button>
       )}
     </fieldset>
+  );
+}
+
+/** Stan zgody na moduł nastroju i jej cofnięcie (usuwa wpisy). */
+function MoodConsentControl() {
+  const { hasConsent, consentAt, revoke } = useMoodConsent();
+  if (!hasConsent) return null;
+  const since = consentAt ? new Date(consentAt).toLocaleDateString("pl-PL") : null;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm">
+      <span className="text-text-secondary">Zgoda na zapis nastroju{since ? ` od ${since}` : ""}.</span>
+      <button
+        type="button"
+        onClick={() => void revoke()}
+        className="min-h-11 font-semibold text-danger hover:underline"
+      >
+        Cofnij zgodę i usuń wpisy
+      </button>
+    </div>
   );
 }
 
@@ -272,6 +293,7 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
             {d.show_mood_tracker && (
               <MoodsEditor value={d.mood_options ?? DEFAULT_MOODS} onChange={(next) => set("mood_options", next)} />
             )}
+            <MoodConsentControl />
           </>
         )}
       </SettingsSection>
@@ -431,7 +453,7 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                   />
                   <DeleteButton
                     small
-                    ariaLabel={`Usuń ${u || `osobę ${idx + 1}`}`}
+                    ariaLabel={"Usuń " + (u || "osobę " + (idx + 1))}
                     onClick={() =>
                       set(
                         "users",
@@ -441,7 +463,7 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                   />
                 </div>
               ))}
-              {users.length < 10 && (
+              {users.length < MAX_TRUSTED_USERS ? (
                 <button
                   type="button"
                   onClick={() => set("users", [...users, ""])}
@@ -449,6 +471,10 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                 >
                   <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj osobę
                 </button>
+              ) : (
+                <p className="text-sm text-text-secondary">
+                  Osiągnięto limit {MAX_TRUSTED_USERS} zaufanych osób. Usuń kogoś z listy, aby dodać nową osobę.
+                </p>
               )}
             </fieldset>
           );

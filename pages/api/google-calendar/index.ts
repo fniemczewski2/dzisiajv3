@@ -165,10 +165,10 @@ async function fetchAllGoogleEvents(
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
-    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } }); // NOSONAR
+    const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
     if (!r.ok) return { items: allItems, failedStatus: r.status };
 
-    const data: GoogleEventsListResponse = await r.json(); // NOSONAR
+    const data: GoogleEventsListResponse = await r.json();
     allItems.push(...(data.items || []));
     pageToken = data.nextPageToken;
   } while (pageToken);
