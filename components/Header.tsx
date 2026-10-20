@@ -134,21 +134,21 @@ export default function Header() {
         </div>
 
         <div className="flex items-center justify-end">
-          {isClient && (
-            weatherLoading ? (
-            <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
-              <span className="block h-7 w-20 animate-pulse rounded-lg bg-(--header-hover)" />
-              <span className="block h-3 w-14 animate-pulse rounded-lg bg-(--header-hover)" />
-            </output>
-          ) : (
-            <WeatherDetails
-              currentTemp={currentTemp}
-              dailyMin={dailyMin}
-              dailyMax={dailyMax}
-              weatherCode={weatherCode}
-              airQuality={airQuality}
-            />
-          ))}
+          {isClient &&
+            (weatherLoading ? (
+              <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
+                <span className="block h-7 w-20 animate-pulse rounded-lg bg-(--header-hover)" />
+                <span className="block h-3 w-14 animate-pulse rounded-lg bg-(--header-hover)" />
+              </output>
+            ) : (
+              <WeatherDetails
+                currentTemp={currentTemp}
+                dailyMin={dailyMin}
+                dailyMax={dailyMax}
+                weatherCode={weatherCode}
+                airQuality={airQuality}
+              />
+            ))}
         </div>
       </div>
     </header>

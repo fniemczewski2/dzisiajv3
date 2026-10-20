@@ -12,7 +12,7 @@ import { cleanValue, expectedDeparture, formatHm, isStatusRelevant, plannedDepar
 
 function Detail({ label, value }: Readonly<{ label: string; value: string | null }>) {
   return (
-    <div className="flex flex- 1 min-w-0 items-end justify-center">
+    <div className="flex- 1 flex min-w-0 items-end justify-center">
       <span className="text-xs text-text-muted">{label}:&nbsp;</span>
       <span className={`truncate text-sm font-bold tabular-nums ${value ? "text-text" : "text-text-muted"}`}>
         {value ?? "–"}
@@ -100,7 +100,7 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
       </div>
 
       <div className="flex justify-between gap-2">
-        <div className="flex flex-1 min-w-0 flex-col" title={timeLabel}>
+        <div className="flex min-w-0 flex-1 flex-col" title={timeLabel}>
           <span className="sr-only">{timeLabel}</span>
           <span className="text-sm font-bold tabular-nums">
             <TimeValue
