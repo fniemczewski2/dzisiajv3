@@ -1,7 +1,10 @@
 // hooks/db/useEvents.ts
 
+import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { syncLinkedEventChange } from "@/lib/calendarExport";
 import { useQueryState } from "@/hooks/useQueryState";
-import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
+import { ownedOrSharedFilter, quotedIsoTimestamp } from "@/lib/postgrestFilters";
 import { NotSignedInError } from "@/lib/errors";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Event } from "@/types/events";
@@ -90,6 +93,12 @@ export function useVirtualBirthdayEvents(): Event[] {
   return virtualEvents;
 }
 
+/** Data „yyyy-MM-dd” przesunięta o `days` dni. */
+function shiftDay(day: string, days: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return format(new Date(y, m - 1, d + days), "yyyy-MM-dd");
+}
+
 export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: Event[] = []) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
@@ -99,8 +108,10 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
   const withRetry = useRetry();
   const hasRange = Boolean(rangeStart && rangeEnd);
 
-  // Zapytanie nie zależy od zakresu (zakres rozwija powtarzalne wydarzenia w pamięci),
-  // więc wszystkie widoki dzielą jedno pobranie wydarzeń.
+  // Zakres zapytania: widok ±1 dzień. Każdy zakres ma własny wpis w pamięci TanStack Query
+  // (np. kolejne miesiące kalendarza), a powrót do odwiedzonego zakresu nie pyta bazy.
+  const rangeQueryStart = rangeStart ? `${shiftDay(rangeStart, -1)}T00:00:00` : "";
+  const rangeQueryEnd = rangeEnd ? `${shiftDay(rangeEnd, 1)}T23:59:59` : "";
   const queryEvents = useCallback(
     async ({ signal }: { signal: AbortSignal }): Promise<Event[]> => {
       if (!userId) throw new NotSignedInError();
@@ -111,6 +122,11 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
               .from("events")
               .select("*")
               .or(ownedOrSharedFilter("user_id", "shared_with_id", userId))
+              // Tylko wydarzenia nachodzące na widok (±1 dzień zapasu na strefy czasowe)
+              // oraz powtarzalne – te rozwijamy w pamięci, więc potrzebny jest ich początek.
+              .or(
+                `repeat.neq.none,and(start_time.lte.${quotedIsoTimestamp(rangeQueryEnd)},end_time.gte.${quotedIsoTimestamp(rangeQueryStart)})`
+              )
               .abortSignal(signal),
           signal
         );
@@ -122,7 +138,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         throw err;
       }
     },
-    [supabase, userId, toast, withRetry]
+    [supabase, userId, toast, withRetry, rangeQueryStart, rangeQueryEnd]
   );
 
   const {
@@ -131,11 +147,18 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
     fetching,
     refetch: refetchEvents,
   } = useQueryState<Event[]>({
-    queryKey: ["events", userId ?? null],
+    queryKey: ["events", userId ?? null, rangeStart, rangeEnd],
     queryFn: queryEvents,
     initial: NO_EVENTS,
     enabled: Boolean(userId) && hasRange,
   });
+  const queryClient = useQueryClient();
+  // Po zmianie wydarzenia inne zakresy w pamięci (np. sąsiednie miesiące) są nieaktualne –
+  // pobiorą się od nowa przy następnym wejściu. Bieżący widok ma już zmianę optymistyczną.
+  const markOtherRangesStale = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["events", userId ?? null], refetchType: "none" });
+  }, [queryClient, userId]);
+
   const fetchEvents = useCallback(async () => {
     if (hasRange) await refetchEvents();
   }, [hasRange, refetchEvents]);
@@ -184,6 +207,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
 
         setRawEvents((prev) => prev.map((e) => (e.id === tempId ? (data as Event) : e)));
         toast.success("Dodano wydarzenie");
+        markOtherRangesStale();
         return data;
       } catch {
         setRawEvents((prev) => prev.filter((e) => e.id !== tempId));
@@ -192,7 +216,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         setLoading(false);
       }
     },
-    [supabase, userId, toast, withRetry, setRawEvents]
+    [supabase, userId, toast, withRetry, setRawEvents, markOtherRangesStale]
   );
 
   const editEvent = useCallback(
@@ -226,7 +250,21 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         );
         if (error) throw error;
 
-        toast.success("Zaktualizowano wydarzenie");
+        // Wydarzenie powiązane z Google/Outlookiem – zmiana trafia też do kalendarza zewnętrznego.
+        const original = previous.find((e) => e.id === originalId);
+        const remote = await syncLinkedEventChange(
+          supabase,
+          { ...original, ...event, id: originalId },
+          "update",
+          userId
+        );
+        if (remote.linked && !remote.ok) {
+          const where = remote.label ? ` ${remote.label}` : "";
+          toast.error(`Zapisano w aplikacji, ale nie w kalendarzu${where}. Spróbuj ponownie później.`);
+        } else {
+          toast.success("Zaktualizowano wydarzenie");
+          markOtherRangesStale();
+        }
       } catch {
         setRawEvents(previous);
         toast.error("Błąd edycji wydarzenia.");
@@ -234,7 +272,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         setLoading(false);
       }
     },
-    [supabase, userId, rawEvents, toast, withRetry, setRawEvents]
+    [supabase, userId, rawEvents, toast, withRetry, setRawEvents, markOtherRangesStale]
   );
 
   const deleteEvent = useCallback(
@@ -254,9 +292,21 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
       setRawEvents((prev) => prev.filter((e) => e.id !== originalId));
 
       try {
+        // Najpierw w kalendarzu zewnętrznym: gdyby tam zostało, synchronizacja przywróciłaby je w aplikacji.
+        const original = previous.find((e) => e.id === originalId);
+        if (original) {
+          const remote = await syncLinkedEventChange(supabase, original, "delete", userId);
+          if (remote.linked && !remote.ok) {
+            setRawEvents(previous);
+            const where = remote.label ? ` ${remote.label}` : "";
+            toast.error(`Nie udało się usunąć wydarzenia z kalendarza${where}. Wydarzenie zostało w aplikacji.`);
+            return;
+          }
+        }
         const { error } = await withRetry(() => supabase.from("events").delete().eq("id", originalId));
         if (error) throw error;
         toast.success("Usunięto wydarzenie");
+        markOtherRangesStale();
       } catch {
         setRawEvents(previous);
         toast.error("Błąd usuwania wydarzenia.");
@@ -264,7 +314,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         setLoading(false);
       }
     },
-    [supabase, userId, rawEvents, toast, withRetry, setRawEvents]
+    [supabase, userId, rawEvents, toast, withRetry, setRawEvents, markOtherRangesStale]
   );
 
   return { events, loading, fetching, addEvent, editEvent, deleteEvent, fetchEvents };

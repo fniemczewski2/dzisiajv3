@@ -151,7 +151,7 @@ export default function TaskForm({
             >
               <Minus size={18} />
             </button>
-            <div className="input-field card flex flex-1 items-center justify-center rounded-lg text-text shadow-inner">
+            <div className="input-field card flex flex-1 items-center justify-center text-text shadow-inner">
               {priority}
             </div>
             <button

@@ -8,7 +8,7 @@ export default function DataExportSection() {
   const { exportData, exporting } = useDataExport();
 
   return (
-    <section className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+    <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center gap-3 text-text">
         <Download className="h-5 w-5 shrink-0 text-primary" />
         <h3 className="text-lg font-bold">Kopia moich danych</h3>

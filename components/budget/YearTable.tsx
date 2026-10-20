@@ -35,8 +35,8 @@ export default function YearTable({ year }: Readonly<{ year: number }>) {
   if (loading) return null;
 
   return (
-    <section className="card max-w-2xl rounded-card p-4 sm:p-5" aria-labelledby="year-table-h">
-      <h2 id="year-table-h" className="mb-3 font-bold text-text">
+    <section className="card max-w-2xl p-4 sm:p-5" aria-labelledby="year-table-h">
+      <h2 id="year-table-h" className="section-title mb-3">
         Rok {year} w liczbach
       </h2>
       <div className="overflow-x-auto">

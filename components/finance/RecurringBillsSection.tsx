@@ -65,7 +65,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
   return (
     <section aria-labelledby={`${id}-h`}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 id={`${id}-h`} className="flex items-center gap-2 text-lg font-bold text-text">
+        <h2 id={`${id}-h`} className="section-title flex items-center gap-2">
           Płatności cykliczne
         </h2>
         <AddButton onClick={() => setEditing("new")} />
@@ -89,7 +89,7 @@ export default function RecurringBillsSection(props: Readonly<Props>) {
       ) : (
         <div className="flex flex-col gap-4 overflow-x-auto">
           {rows.map(({ bill, status, paid }) => (
-            <div key={bill.id} className="card rounded-card p-4 sm:p-5">
+            <div key={bill.id} className="card p-4 sm:p-5">
               <div className="mb-2 flex items-start justify-between pb-2">
                 <div className="flex flex-col gap-1">
                   <p className="font-medium text-text">{bill.name}</p>

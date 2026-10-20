@@ -178,8 +178,8 @@ export default function BillCalculator() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            <section className="card rounded-card p-5 shadow-sm sm:p-6">
-              <h2 className="mb-5 flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-text">
+            <section className="card p-5 shadow-sm sm:p-6">
+              <h2 className="section-title mb-5 flex items-center gap-2 border-b border-line pb-3">
                 Miesięczne Opłaty
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
@@ -212,8 +212,8 @@ export default function BillCalculator() {
               </div>
             </section>
 
-            <section className="card rounded-card p-5 shadow-sm sm:p-6">
-              <h2 className="mb-4 flex items-center gap-2 border-b border-line pb-3 text-lg font-bold text-text">
+            <section className="card p-5 shadow-sm sm:p-6">
+              <h2 className="section-title mb-4 flex items-center gap-2 border-b border-line pb-3">
                 Dochody i Podatki
               </h2>
 
@@ -245,7 +245,7 @@ export default function BillCalculator() {
                       aria-label="Waluta – osoba 1"
                       value={currency1}
                       onChange={(e) => setCurrency1(e.target.value as "PLN" | "EUR")}
-                      className="card rounded-lg px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
+                      className="card px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="PLN">PLN</option>
                       <option value="EUR">EUR</option>
@@ -304,7 +304,7 @@ export default function BillCalculator() {
                       aria-label="Waluta – osoba 2"
                       value={currency2}
                       onChange={(e) => setCurrency2(e.target.value as "PLN" | "EUR")}
-                      className="card rounded-lg px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
+                      className="card px-2 py-1 text-xs font-bold text-text outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="PLN">PLN</option>
                       <option value="EUR">EUR</option>
@@ -359,8 +359,8 @@ export default function BillCalculator() {
             </section>
           </div>
           <div className="lg:col-span-1">
-            <section className="card sticky top-6 rounded-card p-5 shadow-sm sm:p-6">
-              <h2 className="mb-6 border-b border-line pb-3 text-center text-lg font-bold text-text">Podsumowanie</h2>
+            <section className="card sticky top-6 p-5 shadow-sm sm:p-6">
+              <h2 className="section-title mb-6 border-b border-line pb-3 text-center">Podsumowanie</h2>
 
               <div className="space-y-4">
                 <div className="rounded-xl border border-line bg-surface p-4">

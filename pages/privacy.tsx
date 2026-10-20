@@ -117,8 +117,9 @@ export default function PrivacyPage() {
               <strong>Nastrój (opcjonalny):</strong>{" "}
               <span>
                 Wpisy w module nastroju mogą ujawniać informacje o Twoim samopoczuciu, czyli dane o zdrowiu (art. 9
-                RODO). Zapisujemy je dopiero po Twojej wyraźnej zgodzie wyrażonej w module (zapamiętujemy datę zgody).
-                Zgodę cofniesz w Ustawieniach → Nawyki i plan dnia – wszystkie wpisy nastroju zostaną wtedy usunięte.
+                RODO). Zapisujemy je dopiero po Twojej wyraźnej zgodzie wyrażonej w module – zapamiętujemy datę zgody i
+                wersję treści, na którą się zgodziłeś; po zmianie treści poprosimy o zgodę ponownie. Zgodę cofniesz w
+                Ustawieniach → Nawyki i plan dnia – wszystkie wpisy nastroju zostaną wtedy usunięte.
               </span>
             </Li>
             <Li>
@@ -394,7 +395,7 @@ export default function PrivacyPage() {
         </Section>
 
         <section id="ankiety" className="mb-10 scroll-mt-6">
-          <h2 className="mb-4 text-xl font-bold text-text">11. Informacja dla uczestników ankiet terminów</h2>
+          <h2 className="section-title mb-4">11. Informacja dla uczestników ankiet terminów</h2>
           <div className="space-y-2 text-sm leading-relaxed text-text-secondary">
             <p>
               Jeśli odpowiadasz na ankietę terminów (adres <code>dzisiaj.fun/meet/…</code>), Twoje dane – imię,
@@ -424,7 +425,7 @@ export default function PrivacyPage() {
 function Section({ title, children }: { readonly title: string; readonly children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="mb-4 text-xl font-bold text-text">{title}</h2>
+      <h2 className="section-title mb-4">{title}</h2>
       <div className="space-y-2 text-sm leading-relaxed text-text-secondary">{children}</div>
     </section>
   );

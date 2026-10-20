@@ -137,12 +137,14 @@ function MoodsEditor({ value, onChange }: Readonly<{ value: MoodOption[]; onChan
 
 /** Stan zgody na moduł nastroju i jej cofnięcie (usuwa wpisy). */
 function MoodConsentControl() {
-  const { hasConsent, consentAt, revoke } = useMoodConsent();
+  const { hasConsent, consentAt, consentVersion, revoke } = useMoodConsent();
   if (!hasConsent) return null;
   const since = consentAt ? new Date(consentAt).toLocaleDateString("pl-PL") : null;
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm">
-      <span className="text-text-secondary">Zgoda na zapis nastroju{since ? ` od ${since}` : ""}.</span>
+      <span className="text-text-secondary">
+        Zgoda na zapis nastroju{since ? ` od ${since}` : ""} (wersja treści: {consentVersion}).
+      </span>
       <button
         type="button"
         onClick={() => void revoke()}

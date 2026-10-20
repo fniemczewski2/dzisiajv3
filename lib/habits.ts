@@ -5,10 +5,10 @@
 // domyślna lista – ich identyfikatory zostają te same, więc historia
 // odhaczeń przechodzi bez utraty danych.
 
+import { MAX_HABITS } from "@/config/limits";
 import type { DailyHabitsRow, HabitDef, HabitKey } from "@/types/habits";
 import type { Settings } from "@/types/settings";
 
-export const MAX_HABITS = 8;
 export const MAX_HABIT_LABEL = 24;
 
 /** Ikony do wyboru (nazwy komponentów lucide-react) z polskimi nazwami dla czytników. */

@@ -82,7 +82,7 @@ export default function SettingsSection<K extends keyof Settings>({
     <section id={id} aria-labelledby={headingId} className="scroll-mt-20">
       <form onSubmit={(e) => void submit(e)} className="form-card mb-6 max-w-3xl">
         <div>
-          <h2 id={headingId} className="flex items-center gap-2 text-lg font-bold text-text">
+          <h2 id={headingId} className="section-title flex items-center gap-2">
             {icon}
             {title}
           </h2>

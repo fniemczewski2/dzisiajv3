@@ -79,7 +79,7 @@ export default function RecipesList({
           onClick={() => setShowFilters((s) => !s)}
           aria-expanded={showFilters}
           disabled={products.length === 0}
-          className="card flex h-10.5 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-text-secondary shadow-sm transition-colors hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-35"
+          className="card flex h-10.5 shrink-0 items-center justify-center gap-2 px-4 py-2.5 font-bold text-text-secondary shadow-sm transition-colors hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-35"
         >
           {showFilters ? "Ukryj filtry" : "Pokaż filtry"}
           {prodFilter.length > 0 && (
@@ -89,7 +89,7 @@ export default function RecipesList({
       </div>
 
       {showFilters && products.length > 0 && (
-        <div className="card mx-auto max-w-2xl rounded-xl p-4 shadow-sm">
+        <div className="card mx-auto max-w-2xl p-4 shadow-sm">
           <span className="mb-3 block text-xs font-bold text-text-muted">
             Pokaż przepisy zawierające wszystkie zaznaczone składniki:
           </span>
@@ -139,7 +139,7 @@ export default function RecipesList({
           return (
             <li
               key={r.id}
-              className="card group overflow-hidden rounded-card shadow-sm transition-all duration-200 hover:border-primary"
+              className="card group overflow-hidden shadow-sm transition-all duration-200 hover:border-primary"
             >
               <button
                 type="button"
@@ -174,7 +174,7 @@ export default function RecipesList({
                       <span className="mb-2 block text-xs font-bold text-text-muted">Składniki:</span>
                       <ul className="flex flex-wrap gap-1.5">
                         {r.products.map((p) => (
-                          <li key={p} className="card rounded-lg px-2 py-1 text-xs font-medium text-text">
+                          <li key={p} className="card px-2 py-1 text-xs font-medium text-text">
                             {p}
                           </li>
                         ))}

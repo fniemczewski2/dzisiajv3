@@ -130,7 +130,8 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         title: "Kalendarz",
-        description: "Wydarzenia z dwukierunkową synchronizacją z Google Calendar i Outlookiem (Microsoft 365).",
+        description:
+          "Wydarzenia z Google Calendar i Outlooka (Microsoft 365); edycja i usunięcie wydarzeń powiązanych trafia też do kalendarza zewnętrznego.",
         icon: Calendar,
         path: "/calendar",
         guideId: "calendar",
@@ -187,7 +188,7 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
       },
       {
         title: "Listy zakupów",
-        description: "Do pięciu list jednocześnie. Udostępniona lista zmienia się u wszystkich w czasie rzeczywistym.",
+        description: "Do pięciu list jednocześnie. Zmiany na udostępnionej liście widać u drugiej osoby na żywo.",
         icon: ShoppingCart,
         path: "/notes/shopping",
         guideId: "shopping",

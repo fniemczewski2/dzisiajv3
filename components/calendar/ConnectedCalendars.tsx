@@ -32,7 +32,7 @@ export default function ConnectedCalendars() {
   const mainAccounts = accounts.filter((a) => a.google_calendar_id === "@account_connection");
 
   return (
-    <div className="card mt-2 overflow-hidden rounded-xl shadow-sm transition-all">
+    <div className="card mt-2 overflow-hidden shadow-sm transition-all">
       <button
         onClick={() => setExpanded((p) => !p)}
         type="button"

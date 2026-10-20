@@ -34,7 +34,7 @@ export default function PackingMenuPage() {
               key={list.id}
               onClick={() => router.push(`/packing/${list.id}`)}
               type="button"
-              className="card flex flex-col items-center justify-center gap-4 rounded-card border border-transparent p-6 transition-all hover:scale-[1.02] hover:border-primary/20 hover:bg-surface-hover"
+              className="card flex flex-col items-center justify-center gap-4 border border-transparent p-6 transition-all hover:scale-[1.02] hover:border-primary/20 hover:bg-surface-hover"
             >
               <div className={`rounded-full bg-info-soft p-4 text-primary`}>
                 <Icon className="h-8 w-8" />

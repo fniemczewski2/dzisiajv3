@@ -74,7 +74,7 @@ export default function ProfilesList() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => (
-            <div key={profile.id} className="card rounded-xl p-4">
+            <div key={profile.id} className="card p-4">
               <div className="mb-4 flex items-center gap-4">
                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-surface-hover">
                   {profile.avatar_url ? (

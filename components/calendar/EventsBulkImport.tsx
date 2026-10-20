@@ -129,7 +129,7 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
   return (
     <section aria-labelledby={`${id}-title`} className="form-card max-w-2xl">
       <div className="flex items-start justify-between gap-3">
-        <h2 id={`${id}-title`} className="flex items-center gap-2 text-lg font-bold text-text">
+        <h2 id={`${id}-title`} className="section-title flex items-center gap-2">
           <CalendarPlus className="h-5 w-5 text-primary" aria-hidden="true" />
           Dodaj wiele wydarzeń
         </h2>

@@ -31,8 +31,9 @@ describe("trainPlan", () => {
     const dep = plannedDeparture(t)!;
     expect(isStatusRelevant(t, new Date(dep.getTime() - 4 * 3600_000))).toBe(false);
     expect(isStatusRelevant(t, new Date(dep.getTime() - 2 * 3600_000))).toBe(true);
-    expect(isStatusRelevant(t, new Date(dep.getTime() + 5 * 3600_000))).toBe(true);
-    expect(isStatusRelevant(t, new Date(dep.getTime() + 13 * 3600_000))).toBe(false);
+    // Bez znanego przyjazdu okno kończy się 3 h po odjeździe (szczegóły: pastTrains.test.tsx).
+    expect(isStatusRelevant(t, new Date(dep.getTime() + 2 * 3600_000))).toBe(true);
+    expect(isStatusRelevant(t, new Date(dep.getTime() + 4 * 3600_000))).toBe(false);
   });
 
   it("formats relative time", () => {

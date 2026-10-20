@@ -49,7 +49,7 @@ export default function TaskEditForm({
   const editPrefix = `edit-task-${task.id}`;
 
   return (
-    <div className="card w-full rounded-xl p-4">
+    <div className="card w-full p-4">
       <div className="space-y-3">
         <div>
           <label htmlFor={`${editPrefix}-title`} className="form-label">
@@ -79,7 +79,7 @@ export default function TaskEditForm({
               <output
                 aria-live="polite"
                 aria-label={`Priorytet ${editedTask.priority}`}
-                className="card flex flex-1 items-center justify-center rounded-lg text-lg text-text"
+                className="card flex flex-1 items-center justify-center text-lg text-text"
               >
                 {editedTask.priority}
               </output>

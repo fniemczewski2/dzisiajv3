@@ -86,7 +86,7 @@ export default function QuickNotes({
   return (
     <section aria-labelledby={`${inputId}-title`} className="rounded-card border border-line bg-card p-4 sm:p-5">
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 id={`${inputId}-title`} className="flex items-center gap-2 text-lg font-bold text-text">
+        <h2 id={`${inputId}-title`} className="section-title flex items-center gap-2">
           <NotebookPen className="h-5 w-5 text-primary" aria-hidden="true" />
           Szybkie notatki
         </h2>

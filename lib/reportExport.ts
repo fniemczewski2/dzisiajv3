@@ -7,6 +7,7 @@
 // Puste wiersze z dawnego formularza (12 punktów agendy, 8 zadań) nie są już
 // drukowane – dokument pokazuje tylko to, co zostało wpisane.
 
+import { DOWNLOAD_URL_REVOKE_MS } from "@/config/timing";
 import { REPORT_LOGO_MAX_HEIGHT } from "@/config/limits";
 import type { Report, ReportFontRole, ReportTask } from "@/types/reports";
 import type { LoadedReportTemplate } from "./reportTemplate";
@@ -292,7 +293,7 @@ function downloadBlob(blob: Blob, fileName: string): void {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_REVOKE_MS);
 }
 
 export function downloadReportMarkdown(report: Report): void {

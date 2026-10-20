@@ -144,8 +144,11 @@ export function useTransport(autoRefresh = false) {
   const favoritesQuery = useQuery({
     queryKey: ["favorite-departures", favoritesJSON],
     enabled: !settingsLoading && favoriteStops.length > 0,
-    // Ponowne wejście w ciągu 5 s nie odpytuje serwera (wcześniej ręczny licznik czasu).
+    // Ponowne wejście w ciągu 5 s nie odpytuje serwera; przy autoRefresh odjazdy z ulubionych
+    // odświeżają się co 30 s, tak jak przystanki w pobliżu (tylko przy widocznej karcie).
     staleTime: FAVORITES_MIN_INTERVAL_MS,
+    refetchInterval: autoRefresh ? NEARBY_REFRESH_MS : false,
+    refetchIntervalInBackground: false,
     queryFn: async ({ signal }): Promise<StopGroup[]> => {
       const stops = JSON.parse(favoritesJSON) as FavoriteStop[];
       const { data, error } = await supabase.functions.invoke("transport-departures", {

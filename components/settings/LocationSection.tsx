@@ -13,7 +13,7 @@ export default function LocationSection({ onRequestLocation, locationStatus }: R
   const [showDetails, setShowDetails] = useState(false);
 
   return (
-    <div className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+    <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <div>
@@ -34,9 +34,7 @@ export default function LocationSection({ onRequestLocation, locationStatus }: R
         <div className="mb-5 rounded-lg border border-line bg-surface p-4">
           <div className="flex flex-col justify-between gap-2 text-xs sm:flex-row sm:items-center sm:text-sm">
             <span className="font-semibold text-text-secondary">Aktualne współrzędne:</span>
-            <span className="card rounded-lg px-2.5 py-1 font-mono font-medium text-text">
-              {locationStatus || "Brak danych"}
-            </span>
+            <span className="card px-2.5 py-1 font-mono font-medium text-text">{locationStatus || "Brak danych"}</span>
           </div>
         </div>
       )}

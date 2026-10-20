@@ -16,10 +16,10 @@ interface MoodWidgetProps {
 export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
   const { settings } = useSettings();
   const { moods, logMood, loading } = useMoods(date, date);
-  const { hasConsent, grant } = useMoodConsent();
+  const { status: consentStatus, grant } = useMoodConsent();
   const todayMood = moods.find((m) => m.date === date);
 
-  if (!settings?.show_mood_tracker || loading) return null;
+  if (!settings?.show_mood_tracker || loading || consentStatus === "loading") return null;
 
   const options = settings?.mood_options?.length ? settings.mood_options : DEFAULT_MOODS;
 
@@ -28,7 +28,7 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
     logMood(date, next).catch(console.error);
   };
 
-  if (!hasConsent) {
+  if (consentStatus === "missing") {
     return (
       <section className="widget space-y-3 px-4 py-3" aria-labelledby="mood-consent-heading">
         <h3 id="mood-consent-heading" className="flex items-center font-medium text-text">

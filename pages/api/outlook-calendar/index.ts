@@ -314,6 +314,53 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, supabase:
   }
 }
 
+/**
+ * Usunięcie w Outlooku wydarzenia powiązanego z wpisem w aplikacji (przed
+ * usunięciem wpisu). Brak wydarzenia w Microsoft Graph (404) = sukces.
+ */
+async function handleDeleteRemote(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient, user: User) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Metoda niedozwolona." });
+  try {
+    const { eventId } = req.body ?? {};
+    if (typeof eventId !== "string" || !eventId)
+      return res.status(400).json({ error: "Brak identyfikatora wydarzenia." });
+
+    const { data: ev } = await supabase
+      .from("events")
+      .select("id, google_event_id, calendar_id")
+      .eq("id", eventId)
+      .eq("user_id", user.id)
+      .maybeSingle<{ id: string; google_event_id: string | null; calendar_id: string | null }>();
+    if (!ev) return res.status(404).json({ error: "Nie znaleziono wydarzenia." });
+    if (!ev.google_event_id || !ev.calendar_id) return res.json({ deleted: false, linked: false });
+
+    const target = await resolveExportTarget(supabase, user.id, "outlook", ev.calendar_id);
+    if (!target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
+    const { data: mainAcc } = await supabase
+      .from("connected_calendars")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("provider", "outlook")
+      .eq("google_calendar_id", "@account_connection")
+      .eq("account_email", target.accountEmail)
+      .limit(1)
+      .maybeSingle<ConnectedCalendarRow>();
+    if (!mainAcc) return res.status(400).json({ error: "Brak podłączonego konta Microsoft" });
+
+    const accessToken = await ensureFreshOutlookToken(supabase, mainAcc);
+    const r = await fetch(`https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(ev.google_event_id)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!r.ok && r.status !== 404) {
+      return res.status(502).json({ error: "Outlook odrzucił usunięcie wydarzenia." });
+    }
+    return res.json({ deleted: true, linked: true });
+  } catch {
+    return res.status(500).json({ error: "Błąd usuwania wydarzenia w kalendarzu Outlook" });
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabase = createServerSupabase(req, res);
   const {
@@ -335,6 +382,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (action === "import") return handleImport(req, res, supabase, user);
   if (action === "export") return handleExport(req, res, supabase, user);
   if (action === "disconnect") return handleDisconnect(req, res, supabase, user);
+  if (action === "delete-remote") return handleDeleteRemote(req, res, supabase, user);
 
   return res.status(404).json({ error: "Nieznana akcja." });
 }

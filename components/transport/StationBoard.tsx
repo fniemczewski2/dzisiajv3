@@ -308,7 +308,7 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
 
   return (
     <div className="mt-6 space-y-6">
-      <h2 className="mb-3 text-lg font-semibold">Twoje stacje</h2>
+      <h2 className="section-title mb-3">Twoje stacje</h2>
 
       <form
         onSubmit={(e) => {
@@ -329,7 +329,7 @@ export default function StationBoardWidget({ onTrainAdded }: Readonly<StationBoa
         {selectedStations.map((station, index) => {
           const board = boardFor(index);
           return (
-            <div key={station} className="card flex max-w-none flex-col overflow-hidden rounded-card bg-card shadow-sm">
+            <div key={station} className="card flex max-w-none flex-col overflow-hidden bg-card shadow-sm">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3">
                 <div className="flex min-w-0 flex-col">
                   <h3 className="truncate text-base font-semibold text-text first-letter:uppercase">{station}</h3>

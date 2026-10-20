@@ -5,6 +5,7 @@
 // sprawdzanego terminu i (kończą się po jego początku albo są cykliczne).
 // Zapytanie idzie z opóźnieniem 300 ms, żeby nie strzelać przy każdym znaku.
 
+import { CONFLICT_CHECK_DEBOUNCE_MS } from "@/config/timing";
 import { quotedIsoTimestamp } from "@/lib/postgrestFilters";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -70,7 +71,7 @@ export function useEventConflicts(start: Date | null, end: Date | null, options:
       const own = ((data ?? []) as Event[]).filter((e) => e.user_id === userId || e.shared_with_id === userId);
       setReport(findConflicts(new Date(startMs), new Date(endMs), own, { ignoreId, candidateAllDay: allDay }));
     };
-    const timer = setTimeout(() => void check(), 300);
+    const timer = setTimeout(() => void check(), CONFLICT_CHECK_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       clearTimeout(timer);

@@ -1,5 +1,6 @@
 // components/profiles/VCardPreview.tsx
 
+import { VCARD_DEFAULT_COLOR_DARK, VCARD_DEFAULT_COLOR_LIGHT } from "@/config/defaults";
 import React from "react";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
@@ -212,7 +213,9 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
   const { resolvedTheme } = useTheme();
 
   const isDarkMode = resolvedTheme === "dark";
-  const activeColor = isDarkMode ? profile.color_dark || "#171717" : profile.color_light || "#3b82f6";
+  const activeColor = isDarkMode
+    ? profile.color_dark || VCARD_DEFAULT_COLOR_DARK
+    : profile.color_light || VCARD_DEFAULT_COLOR_LIGHT;
 
   const organizations: string[] = profile.organization?.split(",") || [""];
 
@@ -230,7 +233,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
         </button>
       )}
 
-      <div className="card overflow-hidden rounded-xl">
+      <div className="card overflow-hidden">
         <div
           className={`relative h-24 border-b border-line transition-colors duration-300`}
           style={{ backgroundColor: activeColor }}
@@ -238,7 +241,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
           {profile.avatar_url && (
             <Image
               src={profile.avatar_url}
-              alt="Avatar"
+              alt={profile.full_name ? `Zdjęcie: ${profile.full_name}` : "Zdjęcie profilowe"}
               width={80}
               height={80}
               className="absolute -bottom-10 left-6 h-20 w-20 rounded-full border-4 border-card bg-card object-cover transition-colors duration-300"
@@ -376,7 +379,7 @@ export default function VCardPreview({ profile, onBack }: Readonly<VCardPreviewP
         </div>
       </div>
 
-      <div className="card flex flex-col items-center gap-4 rounded-xl p-4 text-center">
+      <div className="card flex flex-col items-center gap-4 p-4 text-center">
         <h3 className="font-semibold text-text">Udostępnij profil</h3>
 
         {profile.is_public ? (

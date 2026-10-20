@@ -103,7 +103,7 @@ function TechDetailsInfo({
       <div className="flex items-center justify-between text-xs sm:text-sm">
         <span className="font-semibold text-text-secondary">Platforma:</span>
         <div className="flex gap-2">
-          <span className="card rounded-lg px-2 py-1 font-medium text-text">{platformLabel}</span>
+          <span className="card px-2 py-1 font-medium text-text">{platformLabel}</span>
           {isStandalone && (
             <span className="rounded-lg border border-success-line bg-success-soft px-2 py-1 font-bold text-success">
               PWA
@@ -222,7 +222,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
   }
 
   return (
-    <div className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+    <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <div>

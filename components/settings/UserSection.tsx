@@ -50,7 +50,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
   };
 
   return (
-    <div className="card mb-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+    <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <div>
@@ -72,7 +72,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
           <CircleUser className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           Zalogowano jako
         </h4>
-        <span className="card max-w-full truncate rounded-lg px-2.5 py-1 font-mono font-medium text-text">
+        <span className="card max-w-full truncate px-2.5 py-1 font-mono font-medium text-text">
           {email || "Brak danych"}
         </span>
       </div>

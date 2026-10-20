@@ -21,7 +21,6 @@ export function useProfiles() {
     table: "vcard_profiles",
     order: { column: "created_at", ascending: true },
     insertPosition: "end",
-    cachePrefix: "vcard_profiles",
     applyServerRowOnEdit: true,
     describeError: (error) => (getPostgresErrorCode(error) === "23505" ? SLUG_TAKEN : undefined),
     messages: {

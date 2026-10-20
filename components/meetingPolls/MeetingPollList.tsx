@@ -61,7 +61,7 @@ function PollCard({
   const resultsHref = `/meetings/${poll.id}`;
 
   return (
-    <li className="card max-w-none space-y-4 rounded-card p-4 sm:p-5">
+    <li className="card max-w-none space-y-4 p-4 sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-2">
           <Link

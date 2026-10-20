@@ -39,7 +39,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 ### 🗓️ Organizacja
 
-- **Kalendarz** - wydarzenia z dwukierunkową synchronizacją Google Calendar i Outlook/Microsoft Graph
+- **Kalendarz** - wydarzenia z Google Calendar i Outlooka (import co 15 min); nowe wydarzenia można dodać do kalendarza zewnętrznego, a edycja i usunięcie powiązanych zmieniają je także tam (bez wydarzeń powtarzalnych)
 - **Terminy zespołowe** - ankiety terminu spotkania (siatka dostępności, publiczny link dla osób bez konta), finalizacja tworzy wydarzenia w kalendarzach uczestników
 - **Notatki**, **Protokoły** (agenda, uczestnicy, zadania → eksport PDF), **przypomnienia o zadaniach** (push) i **zadania cykliczne**
 - **Listy pakowania** - plecak, walizka podróżna, plecak bezpieczeństwa (ICE)
@@ -50,7 +50,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 
 - **Rachunki** i **Budżet roczny** - kategoryzacja, import wyciągów CSV (mBank, PKO BP) z automatycznym rozpoznawaniem sprzedawców
 - **Kalkulator rachunków** - sprawiedliwy podział kosztów wg dochodów (algorytm hybrydowy)
-- **Listy zakupów** (współdzielone w czasie rzeczywistym) i **Przepisy** (filtrowanie po składnikach)
+- **Listy zakupów** (współdzielone, zmiany na żywo przez Supabase Realtime) i **Przepisy** (filtrowanie po składnikach)
 
 ### 🏃 Styl życia
 
@@ -58,7 +58,7 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Postępy (streaks)** z kamieniami milowymi
 - **Trening interwałowy** (HIIT/Tabata) z Wake Lock
 - **Pogoda** - prognoza godzinowa/5-dniowa, autorski wskaźnik biometeorologiczny, jakość powietrza (Open-Meteo)
-- **Transport miejski** - tablice odjazdów na żywo (GPS lub ulubione przystanki) + śledzenie pociągów PKP
+- **Transport miejski** - tablice odjazdów na żywo (GPS lub ulubione przystanki, odświeżanie co 30 s) + śledzenie pociągów PKP (status od 3 h przed odjazdem do 3 h po przyjeździe)
 
 ### 🎬 Rozrywka
 

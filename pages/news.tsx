@@ -193,7 +193,7 @@ export default function NewsPage() {
                     </>
                   )}
                 </p>
-                <h2 className="text-lg leading-snug font-bold text-text">
+                <h2 className="section-title leading-snug">
                   <a
                     href={item.link}
                     target="_blank"

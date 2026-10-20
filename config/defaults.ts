@@ -53,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   habit_duolingo: true,
   mood_options: DEFAULT_MOODS,
   mood_consent_at: null,
+  mood_consent_version: null,
   task_categories: null,
   category_colors: null,
   disabled_modules: null,
@@ -92,3 +93,19 @@ export const RECURRING_PREVIEW_DAYS = 14;
 /** Protokoły (PDF): domyślna szerokość logo i kolor nagłówków. */
 export const DEFAULT_REPORT_LOGO_WIDTH = 140;
 export const DEFAULT_REPORT_HEADING_COLOR = "#0A2947";
+
+/** Pomodoro: domyślna długość skupienia i przerwy (s). */
+export const POMODORO_DEFAULT_FOCUS_SECONDS = 25 * 60;
+export const POMODORO_DEFAULT_BREAK_SECONDS = 5 * 60;
+
+/** Wizytówka: domyślny kolor nagłówka w jasnym i ciemnym motywie (ten sam w edytorze i podglądzie). */
+export const VCARD_DEFAULT_COLOR_LIGHT = "#1D5FB0";
+export const VCARD_DEFAULT_COLOR_DARK = "#0A2947";
+
+/**
+ * Wersja treści zgody na moduł nastroju (art. 9 RODO). Zmiana treści klauzuli
+ * w MoodTracker = nowa wersja, a użytkownicy zostaną poproszeni o zgodę ponownie.
+ * Zgody zapisane przed wprowadzeniem wersji (pusta kolumna) dotyczą wersji pierwszej.
+ */
+export const MOOD_CONSENT_VERSION = "2026-10-18";
+export const MOOD_CONSENT_LEGACY_VERSION = "2026-10-18";

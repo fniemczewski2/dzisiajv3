@@ -14,7 +14,8 @@ vi.mock("@/components/ui/SEO", () => ({ default: () => null }));
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { error: vi.fn(), success: vi.fn() } }) }));
 vi.mock("@/hooks/db/useTrains", () => ({
   useTrains: () => ({
-    trains: [{ id: "t1", trainNumber: "IC 3806" }],
+    currentTrains: [{ id: "t1", trainNumber: "IC 3806" }],
+    upcomingTrains: [{ id: "t2", trainNumber: "EIC 1500" }],
     pastTrains: [{ id: "t0", trainNumber: "TLK 1234" }],
     addTrain,
     deleteTrain: vi.fn(),
@@ -61,6 +62,8 @@ describe("strona /trains", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Twoje pociągi" })).toBeTruthy();
     expect(screen.getByText("Formularz biletu")).toBeTruthy();
     expect(screen.getByText("IC 3806")).toBeTruthy();
+    // Nadchodzące pociągi są na liście razem z bieżącymi.
+    expect(screen.getByText("EIC 1500")).toBeTruthy();
     expect(screen.getByText("Tablice stacji")).toBeTruthy();
   });
 

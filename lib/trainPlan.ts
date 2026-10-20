@@ -30,11 +30,42 @@ export function expectedDeparture(t: TrainTimeInput, delayMinutes: number): Date
   return new Date(planned.getTime() + Math.max(0, delayMinutes) * 60_000);
 }
 
-export function isStatusRelevant(t: TrainTimeInput, now: Date = new Date()): boolean {
-  const planned = plannedDeparture(t);
-  if (!planned) return false;
-  const diff = planned.getTime() - now.getTime();
-  return diff <= 3 * 3_600_000 && diff >= -12 * 3_600_000;
+/** Ile przed planowym odjazdem i po planowym przyjeździe pytamy PKP PLK o status. */
+const TRAIN_STATUS_MARGIN_MS = 3 * 3_600_000;
+
+export interface TrainWindowInput extends TrainTimeInput {
+  /** Planowy przyjazd do stacji docelowej „HH:MM” (zapisany po pierwszej odpowiedzi PKP PLK). */
+  plannedArrival?: string | null;
+}
+
+/**
+ * Okno odpytywania PKP PLK: od 3 h przed planowym odjazdem ze stacji początkowej
+ * do 3 h po planowym przyjeździe do stacji docelowej. Gdy przyjazd nie jest
+ * jeszcze znany, okno kończy się 3 h po odjeździe (przyjazd poznajemy przy
+ * pierwszym zapytaniu w oknie).
+ */
+export function trainStatusWindow(t: TrainWindowInput): { start: number; end: number } | null {
+  const departure = plannedDeparture(t);
+  if (!departure) return null;
+  const arrival = t.plannedArrival ? plannedArrival(t, t.plannedArrival) : null;
+  const last = arrival ?? departure;
+  return { start: departure.getTime() - TRAIN_STATUS_MARGIN_MS, end: last.getTime() + TRAIN_STATUS_MARGIN_MS };
+}
+
+export type TrainTimePhase = "upcoming" | "current" | "past";
+
+/** Gdzie jest pociąg względem okna odpytywania. */
+export function trainTimePhase(t: TrainWindowInput, now: Date = new Date()): TrainTimePhase {
+  const window = trainStatusWindow(t);
+  if (!window) return "past";
+  if (now.getTime() < window.start) return "upcoming";
+  if (now.getTime() > window.end) return "past";
+  return "current";
+}
+
+/** Czy wolno teraz pytać PKP PLK o status tego pociągu. */
+export function isStatusRelevant(t: TrainWindowInput, now: Date = new Date()): boolean {
+  return trainTimePhase(t, now) === "current";
 }
 
 export function relativeDeparture(expected: Date, now: Date = new Date()): string {

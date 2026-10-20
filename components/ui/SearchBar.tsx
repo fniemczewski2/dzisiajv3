@@ -115,7 +115,7 @@ export default function SearchBar({
           aria-label={placeholder || "Szukaj"}
           autoComplete="off"
           spellCheck={false}
-          className="card w-full rounded-xl py-2.5 pr-10 pl-11 text-text shadow-sm transition-all focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
+          className="card w-full py-2.5 pr-10 pl-11 text-text shadow-sm transition-all focus:border-transparent focus:ring-2 focus:ring-primary focus:outline-none"
         />
         {value && (
           <button
@@ -138,7 +138,7 @@ export default function SearchBar({
       {showDropdown && (
         <div
           ref={dropdownRef}
-          className="card absolute z-50 mt-2 max-h-64 w-full scrollbar-thin overflow-y-auto rounded-xl shadow-lg"
+          className="card absolute z-50 mt-2 max-h-64 w-full scrollbar-thin overflow-y-auto shadow-lg"
         >
           {!value && history.length > 0 && (
             <div className="p-2">

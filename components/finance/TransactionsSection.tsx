@@ -198,7 +198,7 @@ function TransactionCard({
           onCancel={() => setEditing(false)}
         />
       ) : (
-        <li className="card rounded-card p-4 sm:p-5">
+        <li className="card p-4 sm:p-5">
           <div className="mb-2 flex items-start justify-between gap-3 pb-2">
             <div className="flex min-w-0 flex-col gap-1">
               <p className="font-medium wrap-break-word text-text">{title}</p>
@@ -289,7 +289,7 @@ export default function TransactionsSection(props: Readonly<Props>) {
   return (
     <section aria-labelledby={`${id}-h`}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 id={`${id}-h`} className="flex items-center gap-2 text-lg font-bold text-text">
+        <h2 id={`${id}-h`} className="section-title flex items-center gap-2">
           Wydatki i wpływy
         </h2>
         <CsvImport {...csv} categories={categories} categoryNames={categoryNames} bills={bills} profileId={profileId} />
@@ -310,7 +310,7 @@ export default function TransactionsSection(props: Readonly<Props>) {
       )}
 
       {/* Podsumowanie miesiąca */}
-      <div className="card mb-4 rounded-card p-4 sm:p-5">
+      <div className="card mb-4 p-4 sm:p-5">
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: "Wpływy", value: summary.income, cls: "text-success " },

@@ -170,7 +170,7 @@ export default function UniversalTimer({
 
   return (
     <div
-      className={`card mx-auto flex w-full max-w-md flex-col items-center rounded-card shadow-md transition-colors ${
+      className={`card mx-auto flex w-full max-w-md flex-col items-center shadow-md transition-colors ${
         compact ? "gap-3 p-4 sm:gap-4" : "gap-6 p-6"
       }`}
     >

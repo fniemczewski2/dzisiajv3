@@ -102,7 +102,7 @@ export default function MovieCard({
 
   if (isEditing) {
     return (
-      <div className="card rounded-xl border p-4 shadow-sm">
+      <div className="card border p-4 shadow-sm">
         <div className="space-y-4">
           <div>
             <label htmlFor={`${editPrefix}-title`} className="form-label">

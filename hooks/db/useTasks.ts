@@ -13,7 +13,6 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
 import { useLatestRef } from "@/hooks/useLatestRef";
-import { readCache, writeCache } from "@/lib/offlineCache";
 import { triggerSlackSync } from "@/hooks/db/useSlackTasks";
 import { UNDO_WINDOW_MS } from "@/config/timing";
 import { enqueueInsert, isOffline } from "@/lib/offlineQueue";
@@ -88,8 +87,6 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
   const rollbackRef = useRef<Task[]>([]);
   const pendingDeleteIdsRef = useRef<Set<string>>(new Set());
 
-  const cacheKey = userId ? `tasks:${userId}:${dateFrom ?? ""}:${dateTo ?? ""}` : null;
-
   const comparator = useMemo(() => {
     const sortFn = createSortFunction(sortOrder, getPriority);
     return (a: Task, b: Task) => {
@@ -132,17 +129,14 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
           display_share_info: resolvedTasks[i].display_share_info,
         }));
         const visibleTasks = applyPendingDeletes(tasksWithDisplayInfo);
-        if (cacheKey) void writeCache(cacheKey, visibleTasks);
         return visibleTasks;
       } catch (err) {
-        if (isAbortError(err)) throw err;
-        const cached = cacheKey ? await readCache<Task[]>(cacheKey) : null;
-        if (cached) return applyPendingDeletes(cached);
-        toast.error("Błąd pobierania zadań.");
+        // Bez sieci widok zostaje przy danych z pamięci (także odtworzonych z IndexedDB).
+        if (!isAbortError(err)) toast.error("Błąd pobierania zadań.");
         throw err;
       }
     },
-    [supabase, userId, showCompleted, dateFrom, dateTo, toast, withRetry, cacheKey, applyPendingDeletes]
+    [supabase, userId, showCompleted, dateFrom, dateTo, toast, withRetry, applyPendingDeletes]
   );
 
   const {

@@ -15,7 +15,7 @@ interface CalendarHeaderProps {
 export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly<CalendarHeaderProps>) {
   return (
     <div className={clsx("my-2 flex items-center justify-center px-4 pb-4 sm:my-4 sm:pb-6")}>
-      <div className="card flex items-center rounded-card p-1 shadow-sm">
+      <div className="card flex items-center p-1 shadow-sm">
         <button
           onClick={onPrev}
           className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
@@ -26,9 +26,7 @@ export default function CalendarHeader({ currentDate, onPrev, onNext }: Readonly
           <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
 
-        <h2 className="mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl">
-          {format(currentDate, "LLLL yyyy", { locale: pl })}
-        </h2>
+        <h2 className="period-title">{format(currentDate, "LLLL yyyy", { locale: pl })}</h2>
 
         <button
           onClick={onNext}

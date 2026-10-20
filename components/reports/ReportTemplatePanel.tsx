@@ -27,6 +27,9 @@ function FilePickerButton({
         type="file"
         accept={accept}
         className="sr-only"
+        // Pole uruchamia przycisk obok – poza kolejnością tabulacji, z tą samą nazwą co przycisk.
+        tabIndex={-1}
+        aria-label={label}
         disabled={disabled}
         onChange={(e) => {
           const file = e.target.files?.[0];

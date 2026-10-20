@@ -36,7 +36,19 @@ function selectChain() {
   };
   return c;
 }
+// Kanał Realtime: zapamiętujemy nasłuchy, żeby test mógł zasymulować zmianę u drugiej osoby.
+const realtimeHandlers: Array<() => void> = [];
+const channelStub = {
+  on: (_type: string, _filter: unknown, handler: () => void) => {
+    realtimeHandlers.push(handler);
+    return channelStub;
+  },
+  subscribe: () => channelStub,
+};
+
 const supabase = {
+  channel: () => channelStub,
+  removeChannel: () => Promise.resolve("ok"),
   from: () => ({
     select: () => selectChain(),
     update: (patch: unknown) => ({
@@ -109,5 +121,17 @@ describe("pozycje listy zakupów", () => {
     expect(result.current.lists[0].elements).toHaveLength(1);
     await waitFor(() => expect(result.current.lists[0].elements).toHaveLength(2));
     expect(toast.error).toHaveBeenCalled();
+  });
+
+  it("zmiana listy u drugiej osoby (Realtime) odświeża dane, po zakończeniu własnych zapisów", async () => {
+    realtimeHandlers.length = 0;
+    const { result } = renderHook(() => useShoppingLists());
+    await waitFor(() => expect(result.current.lists).toHaveLength(1));
+    expect(realtimeHandlers).toHaveLength(2); // własne listy i udostępnione mi
+    const before = selects;
+    await act(async () => {
+      realtimeHandlers[0]();
+    });
+    await waitFor(() => expect(selects).toBe(before + 1));
   });
 });

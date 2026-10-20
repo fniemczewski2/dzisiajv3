@@ -100,7 +100,7 @@ export default function StreakCard({
   const dayLabel = days === 1 ? "dzień" : "dni";
 
   return (
-    <div className="card flex h-full flex-col rounded-card p-4 shadow-sm transition-all hover:shadow-md">
+    <div className="card flex h-full flex-col p-4 shadow-sm transition-all hover:shadow-md">
       <div className="mb-4 flex items-start justify-between">
         <div className="relative flex flex-1 items-start gap-3">
           <button
@@ -113,7 +113,7 @@ export default function StreakCard({
           </button>
 
           {showIconPicker && (
-            <div className="card absolute top-14 left-0 z-50 mt-2 grid w-55 grid-cols-5 gap-2 rounded-xl p-2 shadow-lg">
+            <div className="card absolute top-14 left-0 z-50 mt-2 grid w-55 grid-cols-5 gap-2 p-2 shadow-lg">
               {ICONS.map((item) => {
                 const IconComponent = item.icon;
                 return (

@@ -142,7 +142,7 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
           Zaznacz pasujące terminy, przeciągając po komórkach. Siatkę przewiniesz, przesuwając nagłówek z datami lub
           kolumnę godzin.
         </p>
-        <div className="card overflow-x-auto rounded-card p-4 shadow-sm">
+        <div className="card overflow-x-auto p-4 shadow-sm">
           <table ref={gridRef} className="border-collapse select-none">
             <thead>
               <tr>

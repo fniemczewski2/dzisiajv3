@@ -14,6 +14,7 @@ vi.mock("@/hooks/db/useSettings", () => ({ useSettings: () => ({ settings: { use
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast: { success: vi.fn(), error: vi.fn() } }) }));
 
 import EventForm from "@/components/calendar/EventForm";
+import { a11yViolations } from "../a11y/axeHelper";
 
 const DAY = new Date(2030, 4, 15);
 
@@ -87,5 +88,12 @@ describe("EventForm – godziny wydarzenia", () => {
     expect(screen.queryByRole("button", { name: "1 h" })).toBeNull();
     fireEvent.change(start(), { target: { value: "2030-05-20" } });
     expect(end().value).toBe("2030-05-20");
+  });
+
+  it("formularz wydarzenia nie ma naruszeń WCAG wykrywalnych przez axe", async () => {
+    const { container } = render(
+      <EventForm addEvent={vi.fn()} onEventsChange={vi.fn()} currentDate={DAY} selectedDate={DAY} loading={false} />
+    );
+    expect(await a11yViolations(container)).toEqual([]);
   });
 });

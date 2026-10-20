@@ -95,6 +95,9 @@ export default function CsvImport({
         accept=".csv,text/csv"
         className="sr-only"
         id="finance-csv"
+        // Pole uruchamia przycisk obok – pomijamy je w kolejności tabulacji, ale zostawiamy nazwę.
+        tabIndex={-1}
+        aria-label="Plik CSV z wyciągiem z banku"
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) void onFile(f);

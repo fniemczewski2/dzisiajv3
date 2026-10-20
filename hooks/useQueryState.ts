@@ -36,10 +36,13 @@ export function useQueryState<T>({ queryKey, queryFn, initial, enabled = true }:
     [queryClient, stableKey, initial]
   );
 
+  // `query.refetch` jest stałe dla obserwatora – funkcja nie zmienia tożsamości między renderami,
+  // więc efekty zależne od niej nie podpinają nasłuchów od nowa.
+  const queryRefetch = query.refetch;
   const refetch = useCallback(async () => {
-    const result = await query.refetch();
+    const result = await queryRefetch();
     return result.data ?? initial;
-  }, [query, initial]);
+  }, [queryRefetch, initial]);
 
   return {
     data: query.data ?? initial,

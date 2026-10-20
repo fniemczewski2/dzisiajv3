@@ -176,7 +176,7 @@ export default function RecipeForm({
           </button>
         </div>
         {suggestions.length > 0 && (
-          <div className="card mt-1 max-h-48 divide-y divide-line overflow-hidden overflow-y-auto rounded-lg shadow-lg">
+          <div className="card mt-1 max-h-48 divide-y divide-line overflow-hidden overflow-y-auto shadow-lg">
             {suggestions.map((s) => (
               <button
                 key={s}

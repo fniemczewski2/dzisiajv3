@@ -153,3 +153,23 @@ To najważniejsza część tego dokumentu.
   (`refetchInterval`) tylko przy widocznej karcie.
 - Liczniki (pomodoro, trening interwałowy) to reducery (`lib/pomodoro.ts`, `hooks/useTimer.ts`) – bez
   efektów reagujących na stan. Reguła `react/set-state-in-effect` jest błędem lintera.
+
+### Zmiany z audytu 3 (2026-10-19)
+
+- **Pamięć zapytań w IndexedDB** (`lib/queryPersister.ts`, `PersistQueryClientProvider`): jedna warstwa pamięci
+  podręcznej – po ponownym otwarciu (także bez sieci) widoki mają ostatnie dane. Zapis najwyżej raz na sekundę,
+  ważny 24 h, unieważniany nową wersją aplikacji; dane na żywo (odjazdy, statusy pociągów) nie są zapisywane.
+- **Wydarzenia**: zapytanie ograniczone do zakresu widoku (±1 dzień) plus powtarzalne; każdy zakres to osobny
+  wpis w pamięci, zmiana wydarzenia oznacza pozostałe zakresy jako nieaktualne.
+- **Kalendarze zewnętrzne**: edycja i usunięcie wydarzenia powiązanego (`google_event_id` + `calendar_id`) idą do
+  Google/Outlooka (`lib/calendarExport.ts` → `syncLinkedEventChange`). Usunięcie najpierw u dostawcy – gdyby się
+  nie udało, wpis zostaje w aplikacji (inaczej import przywróciłby wydarzenie).
+- **Listy zakupów**: Supabase Realtime (`postgres_changes` z filtrem na `user_id` i `shared_with_id`). Zdarzenia
+  `DELETE` nie są filtrowane po kolumnach, więc usunięcie listy przez właściciela odbiorca zobaczy po odświeżeniu.
+- **Pociągi**: okno odpytywania PKP PLK (`lib/trainPlan.ts`, `trainStatusWindow`) – od 3 h przed planowym odjazdem
+  do 3 h po planowym przyjeździe (`user_trains.planned_arrival`, zapisywany po pierwszej odpowiedzi). Okno pilnuje
+  `useTrainStatus`, więc obowiązuje na liście pociągów i w planie dnia.
+- **Zgoda na moduł nastroju**: data i wersja treści (`MOOD_CONSENT_VERSION`); podczas wczytywania ustawień prośba
+  o zgodę nie jest pokazywana.
+- **Style**: `.card` ma zaokrąglenie `rounded-card`; nagłówki sekcji `section-title`, nazwy okresów `period-title`
+  (pilnuje `__tests__/styles/headings.test.ts`).

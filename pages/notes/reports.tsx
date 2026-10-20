@@ -64,7 +64,7 @@ function ReportCard({
 
   return (
     <li>
-      <article aria-labelledby={`${id}-t`} className="card flex gap-4 rounded-card p-4 sm:p-5">
+      <article aria-labelledby={`${id}-t`} className="card flex gap-4 p-4 sm:p-5">
         <div className="min-w-0 flex-1">
           <button
             type="button"

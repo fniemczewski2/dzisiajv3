@@ -5,6 +5,12 @@ import { render, screen } from "@testing-library/react";
 import { TrainPlanItem } from "@/components/dashboard/TrainPlanItem";
 import type { TrackedTrain } from "@/types/transport";
 
+// Zapis planowego przyjazdu (update … is) – w testach zawsze bez błędu.
+const { trainsSupabase } = vi.hoisted(() => {
+  const chain = { update: () => chain, eq: () => chain, is: () => Promise.resolve({ error: null }) };
+  return { trainsSupabase: { from: () => chain } };
+});
+vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => ({ supabase: trainsSupabase }) }));
 vi.mock("next/link", () => ({
   default: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => (
     <a href={href} {...rest}>

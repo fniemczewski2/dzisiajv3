@@ -69,7 +69,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
   return (
     <div className="form-card max-w-2xl space-y-5">
       <div>
-        <h2 className="font-display text-lg font-bold text-text">Nowa ankieta terminu</h2>
+        <h2 className="section-title">Nowa ankieta terminu</h2>
         <p className="text-sm text-text-secondary">
           Wybierz dni i godziny, wyślij link uczestnikom, a odpowiedzi zobaczysz na jednej siatce.
         </p>

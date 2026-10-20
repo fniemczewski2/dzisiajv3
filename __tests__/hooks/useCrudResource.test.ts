@@ -30,7 +30,6 @@ function from() {
 const auth = { supabase: { from }, user: { id: "00000000-0000-4000-8000-0000000000aa" } };
 vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => auth }));
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => ({ toast }) }));
-vi.mock("@/lib/offlineCache", () => ({ readCache: () => Promise.resolve(null), writeCache: () => Promise.resolve() }));
 
 import { useCrudResource } from "@/hooks/db/useCrudResource";
 

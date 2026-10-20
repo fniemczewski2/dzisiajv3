@@ -30,6 +30,7 @@ vi.mock("@/hooks/usePublicMeetingPoll", () => ({
 }));
 
 import PublicPollForm from "@/components/meetingPolls/PublicPollForm";
+import { a11yViolations } from "../a11y/axeHelper";
 
 describe("PublicPollForm – dostęp z klawiatury", () => {
   it("każdy termin to przycisk z czytelną etykietą", () => {
@@ -57,5 +58,10 @@ describe("PublicPollForm – dostęp z klawiatury", () => {
     const slot = screen.getByRole("button", { name: "15.05, 09:00" });
     fireEvent.click(slot, { detail: 1 });
     expect(slot.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("formularz uczestnika ankiety nie ma naruszeń WCAG wykrywalnych przez axe", async () => {
+    const { container } = render(<PublicPollForm token="t" />);
+    expect(await a11yViolations(container)).toEqual([]);
   });
 });

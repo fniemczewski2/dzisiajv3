@@ -36,7 +36,7 @@ const OTHER_SECTIONS = [
 function Group({ id, title, children }: Readonly<{ id: string; title: string; children: React.ReactNode }>) {
   return (
     <section id={id} aria-labelledby={`${id}-h`} className="mb-6 max-w-3xl scroll-mt-20">
-      <h2 id={`${id}-h`} className="mb-3 text-lg font-bold text-text">
+      <h2 id={`${id}-h`} className="section-title mb-3">
         {title}
       </h2>
       {children}

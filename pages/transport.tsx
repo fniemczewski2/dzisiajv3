@@ -103,7 +103,7 @@ export default function TransportPage() {
     favoritesContent = <NoResultsState text="kursów dla wskazanych przystanków" />;
   } else {
     favoritesContent = visibleFavorites.map((group) => (
-      <div key={`group_${group.key}`} className="card min-w-0 overflow-hidden rounded-xl p-4">
+      <div key={`group_${group.key}`} className="card min-w-0 overflow-hidden p-4">
         <div className="mb-2 flex items-center justify-between border-b pb-2">
           {renderStopTitle(group)}
           <DeleteButton onClick={() => removeFavoriteStop(group.key)} small />
@@ -135,7 +135,7 @@ export default function TransportPage() {
     nearbyContent = <NoResultsState text="przystanków w pobliżu" />;
   } else {
     nearbyContent = nearbyGroups.map((group) => (
-      <div key={`nearby_group_${group.key}`} className="card min-w-0 overflow-hidden rounded-xl p-4">
+      <div key={`nearby_group_${group.key}`} className="card min-w-0 overflow-hidden p-4">
         <div className="mb-2 flex flex-wrap items-center justify-between border-b pb-2">
           {renderStopTitle(group)}
           <div className="flex shrink-0 items-center gap-3">
@@ -180,12 +180,12 @@ export default function TransportPage() {
         />
 
         <section className="min-w-0">
-          <h2 className="mb-3 text-lg font-semibold">Ulubione</h2>
+          <h2 className="section-title mb-3">Ulubione</h2>
           <div className="min-w-0 space-y-4">{favoritesContent}</div>
         </section>
 
         <section className="min-w-0">
-          <h2 className="mb-3 text-lg font-semibold">Najbliżej (GPS)</h2>
+          <h2 className="section-title mb-3">Najbliżej (GPS)</h2>
           <div className="min-w-0 space-y-4">{nearbyContent}</div>
         </section>
       </div>

@@ -142,7 +142,7 @@ function TaskView({
 }>) {
   const categoryColors = useCategoryColors();
   return (
-    <div className="card flex w-full min-w-0 flex-col rounded-card p-4 text-left transition-all">
+    <div className="card flex w-full min-w-0 flex-col p-4 text-left transition-all">
       <div className="flex-1 space-y-3">
         <button
           type="button"

@@ -1,10 +1,10 @@
 // hooks/db/useShoppingLists.ts
 
 import { useQueryState } from "@/hooks/useQueryState";
-import { ownedOrSharedFilter } from "@/lib/postgrestFilters";
+import { ownedOrSharedFilter, assertUuid } from "@/lib/postgrestFilters";
 import { NotSignedInError } from "@/lib/errors";
 import { useLatestRef } from "@/hooks/useLatestRef";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { ShoppingElement, ShoppingList } from "@/types/shopping";
 import { useAuth } from "@/providers/AuthProvider";
 import { resolveSharedEmails, getUserIdByEmail } from "@/lib/share";
@@ -76,6 +76,32 @@ export function useShoppingLists() {
     enabled: Boolean(userId),
   });
   const listsRef = useLatestRef(lists);
+
+  // Wspólne listy na żywo (Supabase Realtime): zmiana u drugiej osoby – własnej albo
+  // udostępnionej listy – odświeża dane. Najpierw czekamy na własne zapisy w toku,
+  // żeby odświeżenie nie cofnęło ich na ekranie. RLS obowiązuje także w Realtime.
+  useEffect(() => {
+    if (!userId) return;
+    const refresh = () => {
+      void Promise.allSettled(Object.values(writeQueueRef.current)).then(() => refetch());
+    };
+    const channel = supabase
+      .channel(`shopping_lists_${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shopping_lists", filter: `user_id=eq.${assertUuid(userId)}` },
+        refresh
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shopping_lists", filter: `shared_with_id=eq.${assertUuid(userId)}` },
+        refresh
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, userId, refetch]);
 
   /**
    * Odświeżenie list. Szkielet wczytywania pokazujemy tylko przy pierwszym

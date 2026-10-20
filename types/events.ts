@@ -18,6 +18,10 @@ export interface Event {
   recurrence?: RecurrenceRule | null;
   /** Opcjonalna kategoria (ta sama lista co w zadaniach) – nadaje kolor w kalendarzu. */
   category?: string | null;
+  /** Identyfikator wydarzenia u dostawcy (Google lub Outlook), gdy wydarzenie jest powiązane. */
+  google_event_id?: string | null;
+  /** connected_calendars.id kalendarza zewnętrznego, z którym wydarzenie jest powiązane. */
+  calendar_id?: string | null;
 }
 
 export interface ConnectedAccount {

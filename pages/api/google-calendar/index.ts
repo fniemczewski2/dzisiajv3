@@ -333,6 +333,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action === "import" && req.method === "POST") return await handleImport(req, res, auth);
     if (action === "export" && req.method === "POST") return await handleExport(req, res, auth);
     if (action === "disconnect" && req.method === "DELETE") return await handleDisconnect(req, res, auth);
+    if (action === "delete-remote" && req.method === "POST") return await handleDeleteRemote(req, res, auth);
     return res.status(404).json({ error: "Nieznana akcja." });
   } catch (error) {
     console.error("[google-calendar] Nieoczekiwany błąd:", error);
@@ -403,4 +404,38 @@ async function handleExport(req: NextApiRequest, res: NextApiResponse, auth: Aut
   const results = await mapPool(events, EXPORT_CONCURRENCY, (ev) => exportOne(ev).catch(() => false));
   results.forEach((ok) => (ok ? exported++ : skipped++));
   return res.json({ exported, skipped });
+}
+
+/**
+ * Usunięcie w Kalendarzu Google wydarzenia powiązanego z wpisem w aplikacji
+ * (przed usunięciem wpisu). Brak wydarzenia u Google (404/410) = sukces.
+ */
+async function handleDeleteRemote(req: NextApiRequest, res: NextApiResponse, auth: AuthContext) {
+  const { eventId } = req.body ?? {};
+  if (typeof eventId !== "string" || !eventId)
+    return res.status(400).json({ error: "Brak identyfikatora wydarzenia." });
+
+  const sb = userSupabase(auth.token);
+  const { data: ev } = await sb
+    .from("events")
+    .select("id, google_event_id, calendar_id")
+    .eq("id", eventId)
+    .eq("user_id", auth.user.id)
+    .maybeSingle<{ id: string; google_event_id: string | null; calendar_id: string | null }>();
+  if (!ev) return res.status(404).json({ error: "Nie znaleziono wydarzenia." });
+  if (!ev.google_event_id || !ev.calendar_id) return res.json({ deleted: false, linked: false });
+
+  const target = await resolveExportTarget(sb, auth.user.id, "google", ev.calendar_id);
+  if (!target) return res.status(404).json({ error: "Nie znaleziono kalendarza." });
+  const accessToken = await getValidGoogleToken(auth, target.rowId);
+  if (!accessToken) return res.status(400).json({ error: "Brak połączenia z Kalendarzem Google." });
+
+  const r = await fetch(buildGoogleEventsUrl(target.calendarId, ev.google_event_id), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!r.ok && r.status !== 404 && r.status !== 410) {
+    return res.status(502).json({ error: "Kalendarz Google odrzucił usunięcie wydarzenia." });
+  }
+  return res.json({ deleted: true, linked: true });
 }

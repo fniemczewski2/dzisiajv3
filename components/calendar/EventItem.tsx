@@ -231,7 +231,7 @@ export default function EventItem({
   }
 
   return (
-    <div className="card flex w-full max-w-md flex-col rounded-card p-4 transition-all">
+    <div className="card flex w-full max-w-md flex-col p-4 transition-all">
       <div className="mb-4 flex items-start justify-between border-b border-line pb-3">
         <h3 className="text-lg leading-tight font-bold text-text">{event.title}</h3>
         {event.category && (

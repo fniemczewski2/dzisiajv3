@@ -73,7 +73,7 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
   return (
     <section aria-labelledby={`${id}-h`} className="form-card max-w-3xl">
       <div className="flex items-start justify-between gap-3">
-        <h2 id={`${id}-h`} className="text-lg font-bold text-text">
+        <h2 id={`${id}-h`} className="section-title">
           Źródła wiadomości
         </h2>
         <button

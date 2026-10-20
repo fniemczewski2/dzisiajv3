@@ -73,7 +73,7 @@ export default function BudgetPage() {
         <div className="flex items-center gap-2">
           <h1 className="page-title sr-only mx-auto text-center first-letter:uppercase sm:not-sr-only">Budżet</h1>
 
-          <div className="card flex items-center rounded-card p-1 shadow-sm">
+          <div className="card flex items-center p-1 shadow-sm">
             <button
               onClick={handlePrevMonth}
               className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
@@ -84,9 +84,7 @@ export default function BudgetPage() {
               <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            <h2 className="mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl">
-              {format(displayDate, "LLLL yyyy", { locale: pl })}
-            </h2>
+            <h2 className="period-title">{format(displayDate, "LLLL yyyy", { locale: pl })}</h2>
 
             <button
               onClick={handleNextMonth}

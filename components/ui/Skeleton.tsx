@@ -32,7 +32,7 @@ export function SkeletonSlotGrid({ columns = 5, rows = 8 }: { readonly columns?:
   const colIds = useMemo(() => Array.from({ length: columns }, (_, i) => `${id}-col-${i}`), [columns, id]);
 
   return (
-    <output aria-busy="true" aria-label="Ładowanie" className="card block space-y-1 rounded-card p-4 shadow-sm">
+    <output aria-busy="true" aria-label="Ładowanie" className="card block space-y-1 p-4 shadow-sm">
       {rowIds.map((rowId) => (
         <div key={rowId} className="flex gap-1">
           {colIds.map((colId) => (
@@ -271,7 +271,7 @@ export function SkeletonSettings() {
 
   return (
     <output aria-busy="true" aria-label="Ładowanie" className="flex flex-col gap-4">
-      <div className="card rounded-card p-3 shadow-sm">
+      <div className="card p-3 shadow-sm">
         <Bar className="mb-3 h-3 w-16" />
         <div className="grid grid-cols-4 gap-2">
           {gridIds.map((gridId) => (
@@ -279,7 +279,7 @@ export function SkeletonSettings() {
           ))}
         </div>
       </div>
-      <div className="card flex flex-col gap-4 rounded-xl p-4 shadow-sm">
+      <div className="card flex flex-col gap-4 p-4 shadow-sm">
         <Bar className="h-5 w-2/5" />
         {listIds.map((listId) => (
           <div key={listId} className="flex items-center justify-between">
@@ -288,11 +288,11 @@ export function SkeletonSettings() {
           </div>
         ))}
       </div>
-      <div className="card flex items-center gap-4 rounded-xl p-4 shadow-sm">
+      <div className="card flex items-center gap-4 p-4 shadow-sm">
         <Bar className="h-10 w-10 shrink-0 rounded-lg" />
         <Bar className="h-4 flex-1" />
       </div>
-      <div className="card flex items-center gap-4 rounded-xl p-4 shadow-sm">
+      <div className="card flex items-center gap-4 p-4 shadow-sm">
         <Bar className="h-10 w-10 shrink-0 rounded-lg" />
         <Bar className="h-4 flex-1" />
       </div>
@@ -302,11 +302,7 @@ export function SkeletonSettings() {
 
 export function SkeletonTrainCard() {
   return (
-    <output
-      aria-busy="true"
-      aria-label="Ładowanie"
-      className="card relative block w-full overflow-hidden rounded-xl p-4 pt-10"
-    >
+    <output aria-busy="true" aria-label="Ładowanie" className="card relative block w-full overflow-hidden p-4 pt-10">
       <Bar className="absolute top-0 left-0 h-6 w-full rounded-none" />
       <div className="mb-4 flex items-start justify-between">
         <div className="flex flex-col gap-2">

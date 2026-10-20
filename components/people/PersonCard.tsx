@@ -30,7 +30,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
 
   return (
     <>
-      <div className="card relative flex flex-col rounded-xl p-4 shadow-sm transition-all">
+      <div className="card relative flex flex-col p-4 shadow-sm transition-all">
         <div className="flex cursor-pointer items-center justify-between select-none">
           <div className="flex flex-col">
             <h3 className="text-lg font-bold text-text">

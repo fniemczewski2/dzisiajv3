@@ -10,6 +10,7 @@ import TransactionsSection from "@/components/finance/TransactionsSection";
 import { plannedBillRows } from "@/hooks/db/useBudgetSummary";
 import type { RecurringBill, Transaction } from "@/types/finance";
 import type { BudgetCategory } from "@/types/bills";
+import { a11yViolations } from "../a11y/axeHelper";
 
 const bill: RecurringBill = {
   id: "b1",
@@ -139,5 +140,26 @@ describe("plannedBillRows (budżet)", () => {
       "2026-10-20"
     );
     expect(rows.map((r) => r.date)).toEqual(["2026-12-15"]); // 15.11 opłacony 3.11, 15.10 już minął
+  });
+
+  it("sekcja transakcji nie ma naruszeń WCAG wykrywalnych przez axe", async () => {
+    const { container } = render(
+      <TransactionsSection
+        monthLabel="luty 2026"
+        monthFrom="2026-02-01"
+        transactions={[tx]}
+        categories={cats}
+        categoryNames={new Map([["c1", "Subskrypcje"]])}
+        bills={[bill]}
+        profiles={[]}
+        profileId={null}
+        onAdd={vi.fn()}
+        onUpdate={vi.fn()}
+        onLink={vi.fn()}
+        onRemove={vi.fn()}
+        csv={{ loadHistory: vi.fn(), withSuggestions: vi.fn(), importTransactions: vi.fn() }}
+      />
+    );
+    expect(await a11yViolations(container)).toEqual([]);
   });
 });

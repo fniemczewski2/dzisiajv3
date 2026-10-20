@@ -67,7 +67,7 @@ export default function FinancePage() {
           <h1 className="page-title">Finanse</h1>
         </div>
       </div>
-      <div className="card mx-auto mb-4 flex w-fit items-center rounded-card p-1 shadow-sm">
+      <div className="card mx-auto mb-4 flex w-fit items-center p-1 shadow-sm">
         <button
           onClick={() => shiftMonth(-1)}
           className="rounded-xl bg-transparent p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text sm:p-2.5"
@@ -78,9 +78,7 @@ export default function FinancePage() {
           <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
 
-        <h2 className="mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl">
-          {monthLabel(monthKey)}
-        </h2>
+        <h2 className="period-title">{monthLabel(monthKey)}</h2>
 
         <button
           onClick={() => shiftMonth(1)}

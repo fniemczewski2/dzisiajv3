@@ -67,7 +67,6 @@ vi.mock("@/providers/AuthProvider", () => ({ useAuth: () => auth }));
 vi.mock("@/hooks/db/useSettings", () => ({ useSettings: () => settingsValue }));
 vi.mock("@/providers/ToastProvider", () => ({ useToast: () => toastValue }));
 vi.mock("@/hooks/useRetry", () => ({ useRetry: () => retry }));
-vi.mock("@/lib/offlineCache", () => ({ readCache: () => Promise.resolve(null), writeCache: () => Promise.resolve() }));
 vi.mock("@/hooks/db/useSlackTasks", () => ({ triggerSlackSync: () => {} }));
 vi.mock("@/lib/share", () => ({
   resolveSharedEmails: (list: unknown[]) => Promise.resolve(list.map(() => ({ display_share_info: null }))),

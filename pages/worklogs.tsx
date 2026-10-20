@@ -167,7 +167,7 @@ export default function WorkLogsPage() {
           {workLogs.map((log) => (
             <li
               key={log.id}
-              className="card group relative flex flex-col justify-between rounded-card p-5 transition-all hover:shadow-md"
+              className="card group relative flex flex-col justify-between p-5 transition-all hover:shadow-md"
             >
               <div className="mb-4 space-y-2">
                 <p className="mb-3 text-lg leading-tight font-bold text-text">{log.description}</p>
@@ -211,7 +211,7 @@ export default function WorkLogsPage() {
           {!isFormOpen && <AddButton onClick={() => setIsFormOpen(true)} />}
         </div>
         <div className="flex items-center justify-center">
-          <div className="card flex w-fit items-center justify-between rounded-card p-1 shadow-sm sm:flex-none">
+          <div className="card flex w-fit items-center justify-between p-1 shadow-sm sm:flex-none">
             <button
               onClick={onPrev}
               type="button"
@@ -221,9 +221,7 @@ export default function WorkLogsPage() {
               <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            <h2 className="min-w-35 px-4 text-center text-base font-bold tracking-wide text-text capitalize sm:text-lg">
-              {format(currentDate, "LLLL yyyy", { locale: pl })}
-            </h2>
+            <h2 className="period-title">{format(currentDate, "LLLL yyyy", { locale: pl })}</h2>
 
             <button
               onClick={onNext}

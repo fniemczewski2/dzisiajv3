@@ -1,5 +1,6 @@
 // components/transport/TrackedTrainCard.tsx
 
+import { trainStatusWindow } from "@/lib/trainPlan";
 import React from "react";
 import { MapPin, Loader2, AlertTriangle, Clock, TrainFront, History } from "lucide-react";
 import { useTrainStatus } from "@/hooks/db/useTrains";
@@ -16,11 +17,22 @@ interface TrackedTrainProps {
     date: string;
     wagon: string;
     seat: string;
+    plannedArrival?: string | null;
   };
   onDelete: (id: string) => void;
   /** Odbyta podróż: bez zapytań o status do PKP PLK, z datą przejazdu. */
   historical?: boolean;
+  /** Nadchodząca podróż (przed oknem odpytywania): bez zapytań do PKP PLK. */
+  upcoming?: boolean;
 }
+
+const upcomingFmt = new Intl.DateTimeFormat("pl-PL", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 const pastDateFmt = new Intl.DateTimeFormat("pl-PL", {
   weekday: "short",
@@ -29,10 +41,10 @@ const pastDateFmt = new Intl.DateTimeFormat("pl-PL", {
   year: "numeric",
 });
 
-export const TrackedTrainCard = ({ train, onDelete, historical = false }: TrackedTrainProps) => {
-  // Dla odbytych podróży status jest zbędny – nie odpytujemy API (limit zapytań).
-  const { delay, platform, status, loading, hide } = useTrainStatus(train, { enabled: !historical });
-  if (hide && !historical) return null;
+export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming = false }: TrackedTrainProps) => {
+  // Odbyte i nadchodzące: bez zapytań do PKP PLK (useTrainStatus pilnuje też okna czasowego).
+  const { delay, platform, status, loading, hide } = useTrainStatus(train, { enabled: !historical && !upcoming });
+  if (hide && !historical && !upcoming) return null;
   const isRateLimited = status === "Zbyt wiele zapytań";
   let platformLabel = "Brak peronu";
   if (historical) platformLabel = `Odjazd ${train.date.split("-").reverse().join(".")}`;
@@ -42,6 +54,16 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false }: Tracke
   const isDelayed = delay > 0;
 
   const renderStatusBanner = () => {
+    if (upcoming) {
+      const window = trainStatusWindow(train);
+      return (
+        <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-1.5 bg-surface py-1.5 text-center text-xs font-bold text-text-secondary">
+          <Clock className="h-3 w-3" aria-hidden="true" />
+          Nadchodzący · status od {window ? upcomingFmt.format(new Date(window.start)) : "3 h przed odjazdem"}
+        </div>
+      );
+    }
+
     if (historical) {
       return (
         <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-1.5 bg-surface py-1.5 text-center text-xs font-bold text-text-secondary">
@@ -99,7 +121,7 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false }: Tracke
   };
 
   return (
-    <div className="card relative w-full overflow-hidden rounded-xl p-4 pt-10 transition-all">
+    <div className="card relative w-full overflow-hidden p-4 pt-10 transition-all">
       {renderStatusBanner()}
       <div className="mb-4 flex items-start justify-between">
         <div className="flex flex-col gap-2">

@@ -1,5 +1,6 @@
 // components/profiles/ProfileEditorForm.tsx
 
+import { VCARD_DEFAULT_COLOR_DARK, VCARD_DEFAULT_COLOR_LIGHT } from "@/config/defaults";
 import { SLUG_CHECK_DEBOUNCE_MS } from "@/config/timing";
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
@@ -54,8 +55,8 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
     full_name: initialData?.full_name || "",
     avatar_url: initialData?.avatar_url || "",
     organization: initialData?.organization || "",
-    color_light: initialData?.color_light || "#ffffff",
-    color_dark: initialData?.color_dark || "#171717",
+    color_light: initialData?.color_light || VCARD_DEFAULT_COLOR_LIGHT,
+    color_dark: initialData?.color_dark || VCARD_DEFAULT_COLOR_DARK,
     is_public: initialData?.is_public || false,
     public_slug: initialData?.public_slug || slugFromName(initialData?.full_name || initialData?.profile_name || ""),
 
@@ -223,7 +224,7 @@ export default function ProfileEditorForm({ initialData, onSubmit, onCancel }: R
         <div className="rounded-lg bg-primary/10 p-2 text-primary">
           <User size={24} />
         </div>
-        <h2 className="text-xl font-bold text-text">{initialData ? "Edytuj wizytówkę" : "Nowa wizytówka"}</h2>
+        <h2 className="section-title">{initialData ? "Edytuj wizytówkę" : "Nowa wizytówka"}</h2>
       </div>
 
       <div className="flex flex-col items-center gap-4">

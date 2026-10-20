@@ -482,7 +482,17 @@
   .card {
     /* Karta to powierzchnia, nie przycisk: bez reakcji na hover (sugerowała
        klikalność) i bez animacji wejścia przy każdym renderze listy. */
-    @apply max-w-md border border-line bg-card transition-colors md:max-w-3xl;
+    @apply max-w-md rounded-card border border-line bg-card transition-colors md:max-w-3xl;
+  }
+
+  /* Nagłówek sekcji (h2) – jeden rozmiar i grubość w całej aplikacji. */
+  .section-title {
+    @apply font-display text-lg font-bold text-text;
+  }
+
+  /* Nazwa okresu w nawigacji „poprzedni / następny” (miesiąc kalendarza, budżetu, godzin pracy). */
+  .period-title {
+    @apply mx-4 min-w-35 text-center text-lg font-bold tracking-wide text-text capitalize sm:mx-8 sm:min-w-40 sm:text-xl;
   }
 
   .page-title {

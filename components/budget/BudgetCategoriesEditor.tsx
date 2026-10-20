@@ -193,7 +193,7 @@ export default function BudgetCategoriesEditor({
   };
 
   return (
-    <div className="card mb-4 rounded-xl p-4 shadow-sm sm:p-6">
+    <div className="card mb-4 p-4 shadow-sm sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-bold text-text">
           Kategorie budżetu <span className="font-normal text-text-muted">{year}</span>

@@ -265,7 +265,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
           return (
             <li
               key={l.id}
-              className="card group overflow-hidden rounded-card shadow-sm transition-all duration-200 hover:border-primary"
+              className="card group overflow-hidden shadow-sm transition-all duration-200 hover:border-primary"
             >
               <div className="flex items-center justify-between gap-2 p-4">
                 <div className="min-w-0 flex-1">

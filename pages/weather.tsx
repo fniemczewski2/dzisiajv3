@@ -103,7 +103,7 @@ export default function WeatherPage() {
     content = (
       <>
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <ThermometerSnowflake className="h-5 w-5 text-info" />
             <span className="text-base font-medium text-text">
               {"Min "}
@@ -111,7 +111,7 @@ export default function WeatherPage() {
             </span>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <ThermometerSun className="h-5 w-5 text-danger" />
             <span className="text-base font-medium text-text">
               {"Max "}
@@ -119,7 +119,7 @@ export default function WeatherPage() {
             </span>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <CloudRain className="h-5 w-5 text-info" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Opady</span>
@@ -127,7 +127,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Wind
               className="h-5 w-5 text-info"
               style={{ transform: `rotate(${forecast.hourly.winddirection_10m?.[0] ?? 0}deg)` }}
@@ -140,7 +140,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Cloud className={`h-5 w-5 ${airQualityColor(air.hourly.pm10?.[0] ?? 0)}`} />
             <div className="flex flex-col text-text">
               <span className="font-medium">PM10</span>
@@ -148,7 +148,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Cloud className={`h-5 w-5 ${airQualityColor(air.hourly.pm2_5?.[0] ?? 0)}`} />
             <div className="flex flex-col text-text">
               <span className="font-medium">PM2.5</span>
@@ -156,7 +156,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Gauge className="h-5 w-5 text-info" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Ciśnienie</span>
@@ -166,7 +166,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Droplet className="h-5 w-5 text-deco-violet" />
             <div className="flex flex-col text-text">
               <span className="font-medium">Wilgotność</span>
@@ -176,7 +176,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Sun className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="font-medium">UV max</span>
@@ -185,7 +185,7 @@ export default function WeatherPage() {
           </div>
 
           {biomet && (
-            <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+            <div className="card flex items-center space-x-3 p-3 shadow">
               <Gauge className={`h-5 w-5 ${biomet.color}`} />
               <div className="flex flex-col text-text">
                 <span className="text-base font-medium">Biomet</span>
@@ -194,7 +194,7 @@ export default function WeatherPage() {
             </div>
           )}
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Sunrise className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Wschód</span>
@@ -207,7 +207,7 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          <div className="card flex items-center space-x-3 rounded-xl p-3 shadow">
+          <div className="card flex items-center space-x-3 p-3 shadow">
             <Sunset className="h-5 w-5 text-warning" />
             <div className="flex flex-col text-text">
               <span className="text-base font-medium">Zachód</span>
@@ -265,7 +265,7 @@ export default function WeatherPage() {
         <h3 className="mb-2 text-lg font-semibold text-text">Prognoza na kolejne dni</h3>
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-7">
           {forecast.daily.time.slice(1).map((date: string, i: number) => (
-            <div key={date} className="card rounded-xl p-4 text-center shadow">
+            <div key={date} className="card p-4 text-center shadow">
               <p className="text-sm text-text-secondary">
                 {new Date(date).toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short" })}
               </p>

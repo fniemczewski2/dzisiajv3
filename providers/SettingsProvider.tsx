@@ -33,6 +33,7 @@ const OPTIONAL_SETTINGS_COLUMNS = [
   "daily_spending_categories",
   "notif_bills",
   "mood_consent_at",
+  "mood_consent_version",
 ] as const;
 
 type SaveResult = { error: unknown };

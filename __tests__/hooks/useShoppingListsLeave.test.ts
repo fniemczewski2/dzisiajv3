@@ -44,7 +44,15 @@ function deleteBuilder() {
   return b;
 }
 
+// Kanał Realtime – w tych testach bez zdarzeń.
+const channelStub = {
+  on: () => channelStub,
+  subscribe: () => channelStub,
+};
+
 const supabase = {
+  channel: () => channelStub,
+  removeChannel: () => Promise.resolve("ok"),
   from: () => ({ select: () => selectBuilder(), delete: () => deleteBuilder() }),
   rpc: (fn: string, args: unknown) => {
     rpcCalls.push({ fn, args });

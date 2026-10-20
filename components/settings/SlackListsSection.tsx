@@ -61,7 +61,7 @@ export default function SlackListsSection() {
 
   if (slack.loading) {
     return (
-      <section className="card mb-4 rounded-xl p-4 shadow-sm sm:p-6">
+      <section className="card mb-4 p-4 shadow-sm sm:p-6">
         <p className="flex items-center gap-2 text-sm text-text-secondary">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           Sprawdzam połączenia ze Slackiem…
@@ -72,7 +72,7 @@ export default function SlackListsSection() {
 
   if (slack.statusError) {
     return (
-      <section className="card mb-4 rounded-xl p-4 shadow-sm sm:p-6">
+      <section className="card mb-4 p-4 shadow-sm sm:p-6">
         <div role="alert" className="flex items-start gap-3 text-sm text-danger">
           <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
           <div className="space-y-2">
@@ -96,7 +96,7 @@ export default function SlackListsSection() {
     slack.lists.filter((list) => list.connection_id === accountId);
 
   return (
-    <section className="card mb-4 space-y-4 rounded-xl p-4 shadow-sm transition-colors sm:p-6">
+    <section className="card mb-4 space-y-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3 text-text">
           <Hash className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />

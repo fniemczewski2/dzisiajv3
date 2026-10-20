@@ -31,7 +31,7 @@ export default function DaySchemaSwitcher({ schemas, weekday, choice, onChange, 
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+      <h2 className="section-title flex items-center gap-2">
         <Logs className="h-5 w-5 text-primary" />
         Schemat
       </h2>

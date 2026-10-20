@@ -112,12 +112,12 @@ function PersonSummary({
   }, [ranges]);
 
   return (
-    <section className="card max-w-none rounded-card p-4 sm:p-5" aria-labelledby="person-summary-heading">
+    <section className="card max-w-none p-4 sm:p-5" aria-labelledby="person-summary-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
           <PersonAvatar name={person.name} />
           <div className="min-w-0">
-            <h2 id="person-summary-heading" className="truncate font-display text-lg font-bold text-text">
+            <h2 id="person-summary-heading" className="section-title truncate">
               {person.name}
             </h2>
             {email && <p className="truncate text-xs text-text-secondary">{email}</p>}
@@ -201,7 +201,7 @@ function BestRangesCard({
       aria-labelledby="best-ranges-heading"
       className="rounded-card border border-primary/30 bg-primary/5 p-4 sm:p-5"
     >
-      <h2 id="best-ranges-heading" className="flex items-center gap-2 font-display text-lg font-bold text-text">
+      <h2 id="best-ranges-heading" className="section-title flex items-center gap-2">
         <Sparkles aria-hidden="true" className="h-5 w-5 text-primary" />
         Najlepsze terminy
       </h2>
@@ -498,13 +498,9 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
             )
           )}
 
-          <section
-            ref={gridRef}
-            aria-labelledby="grid-heading"
-            className="card max-w-none space-y-3 rounded-card p-4 sm:p-5"
-          >
+          <section ref={gridRef} aria-labelledby="grid-heading" className="card max-w-none space-y-3 p-4 sm:p-5">
             <div className="space-y-1">
-              <h2 id="grid-heading" className="font-display text-lg font-bold text-text">
+              <h2 id="grid-heading" className="section-title">
                 {focused ? `Dostępność: ${focused.respondent_name}` : "Dostępność zespołu"}
               </h2>
               <p className="text-sm text-text-secondary">
@@ -531,7 +527,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       {selection && selectionDay && (
         <section ref={panelRef} aria-labelledby="selection-heading" className="form-card max-w-none space-y-4">
           <div>
-            <h2 id="selection-heading" className="font-display text-lg font-bold text-text">
+            <h2 id="selection-heading" className="section-title">
               Wybrany termin
             </h2>
             <p className="text-sm text-text-secondary tabular-nums">
@@ -622,7 +618,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
 
       {pendingSlots.length > 0 && (
         <section aria-labelledby="pending-heading" className="form-card max-w-none space-y-3">
-          <h2 id="pending-heading" className="font-display text-lg font-bold text-text">
+          <h2 id="pending-heading" className="section-title">
             Ustalone terminy
           </h2>
           <ul className="space-y-1.5">
@@ -651,7 +647,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
 
       {finalizedResults && finalizedResults.length > 0 && (
         <section aria-labelledby="finalized-heading" className="form-card max-w-none space-y-2">
-          <h2 id="finalized-heading" className="flex items-center gap-2 text-sm font-bold text-text">
+          <h2 id="finalized-heading" className="section-title flex items-center gap-2">
             <CalendarCheck2 aria-hidden="true" className="h-4 w-4 text-primary" /> Zapisano w kalendarzu:
           </h2>
           <ul className="space-y-1 text-sm">

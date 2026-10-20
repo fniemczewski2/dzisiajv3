@@ -74,10 +74,7 @@ export default function DaySchemaPage() {
       ) : (
         <ul className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {schemas.map((schema) => (
-            <li
-              key={schema.id}
-              className="card flex items-center justify-between rounded-card border border-line p-3 shadow-sm"
-            >
+            <li key={schema.id} className="card flex items-center justify-between border border-line p-3 shadow-sm">
               <span className="ml-1 flex flex-wrap items-center gap-2">
                 <span className="font-bold text-text">{schema.name}</span>
                 {schema.is_default && (
@@ -96,7 +93,7 @@ export default function DaySchemaPage() {
         </ul>
       )}
 
-      <div className="card mb-6 rounded-card p-5 shadow-sm">
+      <div className="card mb-6 p-5 shadow-sm">
         {sortedEntries.length > 0 ? (
           <div className="relative border-line py-2">
             <CurrentTimeLine entries={sortedEntries} currentTime={currentTime} />

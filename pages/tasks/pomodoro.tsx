@@ -1,5 +1,6 @@
 // pages/tasks/pomodoro.tsx
 
+import { POMODORO_DEFAULT_FOCUS_SECONDS, POMODORO_DEFAULT_BREAK_SECONDS } from "@/config/defaults";
 import { pomodoroReducer } from "@/lib/pomodoro";
 import { useEffect, useReducer, useState } from "react";
 import UniversalTimer, { TimerPhase, TimerControls } from "@/components/ui/Timer";
@@ -7,15 +8,12 @@ import { Settings, X } from "lucide-react";
 import Seo from "@/components/ui/SEO";
 
 export default function PomodoroPage() {
-  const DEFAULT_FOCUS = 25 * 60;
-  const DEFAULT_BREAK = 5 * 60;
-
-  const [focusSeconds, setFocusSeconds] = useState(DEFAULT_FOCUS);
-  const [breakSeconds, setBreakSeconds] = useState(DEFAULT_BREAK);
+  const [focusSeconds, setFocusSeconds] = useState(POMODORO_DEFAULT_FOCUS_SECONDS);
+  const [breakSeconds, setBreakSeconds] = useState(POMODORO_DEFAULT_BREAK_SECONDS);
   const [open, setOpen] = useState(false);
 
   const [state, dispatch] = useReducer(pomodoroReducer, {
-    secondsLeft: DEFAULT_FOCUS,
+    secondsLeft: POMODORO_DEFAULT_FOCUS_SECONDS,
     running: false,
     paused: false,
     isBreak: false,
@@ -29,7 +27,7 @@ export default function PomodoroPage() {
   const toggleOpen = () => setOpen((prev) => !prev);
 
   const phases: TimerPhase[] = [
-    { label: "Focus", seconds: focusSeconds },
+    { label: "Skupienie", seconds: focusSeconds },
     { label: "Przerwa", seconds: breakSeconds },
   ];
 
@@ -88,7 +86,7 @@ export default function PomodoroPage() {
       {open && (
         <div className="mx-auto mt-2 max-w-md overflow-hidden transition-all duration-300">
           <label className="flex items-center justify-between px-4 py-2">
-            <span>Focus (min):</span>
+            <span>Skupienie (min):</span>
             <input
               type="number"
               value={focusSeconds / 60}

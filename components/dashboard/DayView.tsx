@@ -378,7 +378,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
               <div className="space-y-6 lg:col-span-1">
                 <section>
                   <div className="mb-6 flex flex-nowrap items-center justify-between border-b border-line pb-4">
-                    <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+                    <h2 className="section-title flex items-center gap-2">
                       <ListTodo className="h-5 w-5 text-primary" />
                       Zadania
                     </h2>
@@ -417,7 +417,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
 
                 <section>
                   <div className="mb-6 flex flex-nowrap items-center justify-between border-b border-line pb-4">
-                    <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+                    <h2 className="section-title flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-primary" /> Wydarzenia
                     </h2>
                     {!showEventForm && <AddButton onClick={() => setShowEventForm(true)} />}
@@ -453,7 +453,7 @@ export default function DayView({ date, onDateChange }: Readonly<DayViewProps>) 
                 {streaksWithMilestones.length > 0 && (
                   <section>
                     <div className="mb-6 flex flex-nowrap items-center justify-between border-b border-line pb-4">
-                      <h2 className="flex items-center gap-2 text-lg font-bold text-text">
+                      <h2 className="section-title flex items-center gap-2">
                         <Trophy className="h-5 w-5 text-primary" /> Postępy
                       </h2>
                     </div>

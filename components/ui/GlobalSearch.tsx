@@ -151,7 +151,7 @@ export default function GlobalSearch() {
       </button>
 
       <Modal open={open} onClose={close} label="Wyszukiwarka globalna" className="mt-[12vh]">
-        <div className="card w-full max-w-lg overflow-hidden rounded-card shadow-xl">
+        <div className="card w-full max-w-lg overflow-hidden shadow-xl">
           <div className="flex items-center gap-2 border-b border-line px-4 py-3">
             <Search className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
             <input

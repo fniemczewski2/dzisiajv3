@@ -73,7 +73,7 @@ export default function BudgetOverview({
   }
 
   return (
-    <div className="card mb-6 rounded-xl p-4 shadow-sm sm:p-6">
+    <div className="card mb-6 p-4 shadow-sm sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-bold text-text">Budżet</h3>
         <div className="flex gap-1 rounded-xl bg-surface p-1">

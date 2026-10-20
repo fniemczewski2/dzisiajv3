@@ -1,12 +1,11 @@
 // pages/trains.tsx
 
 import { PAST_TRAINS_PAGE_SIZE } from "@/config/limits";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Seo from "@/components/ui/SEO";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonTrainCard } from "@/components/ui/Skeleton";
 import { AddButton } from "@/components/ui/CommonButtons";
-import { useToast } from "@/providers/ToastProvider";
 import { useTrains } from "@/hooks/db/useTrains";
 import AddTrainForm from "@/components/transport/AddTrainWidget";
 import { TrackedTrainCard } from "@/components/transport/TrackedTrainCard";
@@ -15,21 +14,9 @@ import StationBoardWidget from "@/components/transport/StationBoard";
 /** Ile odbytych podróży pokazujemy naraz. */
 
 export default function TrainsPage() {
-  const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
-  const { trains, pastTrains, addTrain, deleteTrain, refresh, fetching } = useTrains();
+  const { currentTrains, upcomingTrains, pastTrains, addTrain, deleteTrain, fetching } = useTrains();
   const [pastLimit, setPastLimit] = useState(PAST_TRAINS_PAGE_SIZE);
-
-  useEffect(() => {
-    const fetchTrains = async () => {
-      try {
-        await refresh();
-      } catch {
-        toast.error("Błąd pobierania pociągów");
-      }
-    };
-    void fetchTrains();
-  }, [refresh, toast]);
 
   let trainsContent;
   if (fetching) {
@@ -39,10 +26,20 @@ export default function TrainsPage() {
         <SkeletonTrainCard />
       </>
     );
-  } else if (trains.length === 0) {
+  } else if (currentTrains.length === 0 && upcomingTrains.length === 0) {
     trainsContent = <NoResultsState text="zaplanowanych podróży kolejowych" />;
   } else {
-    trainsContent = trains.map((train) => <TrackedTrainCard key={train.id} train={train} onDelete={deleteTrain} />);
+    // Bieżące (status z PKP PLK na żywo), potem nadchodzące (status od 3 h przed odjazdem).
+    trainsContent = (
+      <>
+        {currentTrains.map((train) => (
+          <TrackedTrainCard key={train.id} train={train} onDelete={deleteTrain} />
+        ))}
+        {upcomingTrains.map((train) => (
+          <TrackedTrainCard key={train.id} train={train} onDelete={deleteTrain} upcoming />
+        ))}
+      </>
+    );
   }
 
   return (
@@ -60,7 +57,7 @@ export default function TrainsPage() {
       <div className="space-y-6">
         <section className="min-w-0" aria-labelledby="your-trains-heading">
           <div className="mb-3 flex items-center justify-between">
-            <h2 id="your-trains-heading" className="text-lg font-semibold">
+            <h2 id="your-trains-heading" className="section-title">
               Twoje pociągi
             </h2>
             {!expanded && <AddButton onClick={() => setExpanded(true)} />}
@@ -80,7 +77,8 @@ export default function TrainsPage() {
                 </h2>
               </summary>
               <p className="mb-3 text-sm text-text-secondary">
-                Ostatnie 12 miesięcy, od najnowszych. Dla odbytych podróży nie pobieramy statusu z PKP PLK.
+                Ostatnie 12 miesięcy, od najnowszych. Status z PKP PLK pobieramy tylko od 3 h przed planowym odjazdem do
+                3 h po planowym przyjeździe – dla odbytych podróży już nie.
               </p>
               <div className="grid min-w-0 items-start gap-4 md:grid-cols-2">
                 {pastTrains.slice(0, pastLimit).map((train) => (

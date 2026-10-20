@@ -159,7 +159,7 @@ export default function TasksPage() {
         {!showForm && <AddButton onClick={openNew} />}
       </div>
 
-      <fieldset className="card mb-4 flex max-w-md items-center justify-between gap-1 rounded-xl p-1.5">
+      <fieldset className="card mb-4 flex max-w-md items-center justify-between gap-1 p-1.5">
         <legend className="sr-only">Filtruj po dniu</legend>
         {FILTER_OPTIONS.map((opt) => {
           const Icon = opt.icon;

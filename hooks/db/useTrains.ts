@@ -1,15 +1,22 @@
 // hooks/db/useTrains.ts
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { NotSignedInError } from "@/lib/errors";
-import { TRAIN_ACTIVE_WINDOW_MS } from "@/config/timing";
-import { useState, useEffect, useCallback } from "react";
-import { currentTrainStop, type TrainLiveDetails } from "@/lib/trainPlan";
+import { useState, useCallback, useMemo } from "react";
+import { format } from "date-fns";
+import { useQueryState } from "@/hooks/useQueryState";
+import { TRAIN_PLAN_TICK_MS } from "@/config/timing";
+import { useNow } from "@/hooks/useNow";
+import {
+  currentTrainStop,
+  isStatusRelevant,
+  plannedDeparture,
+  trainTimePhase,
+  type TrainLiveDetails,
+} from "@/lib/trainPlan";
 import { useAuth } from "@/providers/AuthProvider";
-import { getAppDateTime } from "@/lib/dateUtils";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
-import { useAbortController } from "@/hooks/useAbortController";
 import { isAbortError } from "@/lib/abortUtils";
 import { TrackedTrain, TrainInput } from "@/types/transport";
 
@@ -25,6 +32,7 @@ function mapDbRowToTrain(row: {
   wagon: string;
   seat: string;
   created_at: string;
+  planned_arrival?: string | null;
 }): TrackedTrain {
   return {
     id: row.id,
@@ -38,111 +46,113 @@ function mapDbRowToTrain(row: {
     wagon: row.wagon,
     seat: row.seat,
     createdAt: row.created_at,
+    plannedArrival: row.planned_arrival ?? null,
   };
 }
 
 /** Ile dni wstecz pokazujemy odbyte podróże. */
 const PAST_TRAINS_DAYS = 365;
-/** Okno „bieżących” pociągów (dla nich pytamy PKP PLK o status). */
 
 function departureTimestamp(train: Pick<TrackedTrain, "date" | "departureTime">): number {
-  const [year, month, day] = train.date.split("-").map(Number);
-  const [hours, minutes] = train.departureTime.split(":").map(Number);
-  return new Date(year, month - 1, day, hours || 0, minutes || 0).getTime();
+  return plannedDeparture(train)?.getTime() ?? 0;
 }
 
 /**
- * Podział na bieżące (±6 h od teraz – z odpytywaniem statusu, jak dotąd)
- * i odbyte (odjazd ponad 6 h temu – bez odpytywania API, najnowsze na górze).
+ * Podział na pociągi bieżące (w oknie odpytywania PKP PLK), nadchodzące (przed oknem)
+ * i odbyte (po oknie). Bieżące i nadchodzące rosnąco, odbyte – najnowsze na górze.
  */
 export function splitTrains(
   all: readonly TrackedTrain[],
   nowMs: number
-): { active: TrackedTrain[]; past: TrackedTrain[] } {
-  const active: TrackedTrain[] = [];
+): { current: TrackedTrain[]; upcoming: TrackedTrain[]; past: TrackedTrain[] } {
+  const now = new Date(nowMs);
+  const current: TrackedTrain[] = [];
+  const upcoming: TrackedTrain[] = [];
   const past: TrackedTrain[] = [];
   for (const t of all) {
-    const ts = departureTimestamp(t);
-    if (ts < nowMs - TRAIN_ACTIVE_WINDOW_MS) past.push(t);
-    else if (ts <= nowMs + TRAIN_ACTIVE_WINDOW_MS) active.push(t);
+    const phase = trainTimePhase(t, now);
+    if (phase === "current") current.push(t);
+    else if (phase === "upcoming") upcoming.push(t);
+    else past.push(t);
   }
+  current.sort(sortByDepartureAsc);
+  upcoming.sort(sortByDepartureAsc);
   past.sort((a, b) => departureTimestamp(b) - departureTimestamp(a));
-  return { active, past };
+  return { current, upcoming, past };
 }
 
 const sortByDepartureAsc = (a: TrackedTrain, b: TrackedTrain): number =>
   a.date !== b.date ? a.date.localeCompare(b.date) : a.departureTime.localeCompare(b.departureTime);
 
+const NO_TRAINS: TrackedTrain[] = [];
+
 export function useTrains() {
   const { supabase, user } = useAuth();
   const userId = user?.id;
-  const [trains, setTrains] = useState<TrackedTrain[]>([]);
-  const [pastTrains, setPastTrains] = useState<TrackedTrain[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [fetching, setFetching] = useState<boolean>(false);
   const { toast } = useToast();
   const withRetry = useRetry();
-  const { getSignal } = useAbortController();
+  // Podział odświeżany co minutę – pociąg przechodzi z „nadchodzących” do „bieżących” bez przeładowania.
+  const now = useNow(60_000);
 
-  const fetchTrains = useCallback(async () => {
-    if (!userId) {
-      throw new NotSignedInError();
-    }
+  const queryTrains = useCallback(
+    async ({ signal }: { signal: AbortSignal }): Promise<TrackedTrain[]> => {
+      if (!userId) throw new NotSignedInError();
+      try {
+        const cutoff = new Date(Date.now() - PAST_TRAINS_DAYS * 24 * 60 * 60 * 1000);
+        const cutoffStr = format(cutoff, "yyyy-MM-dd");
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("user_trains")
+              .select("*")
+              .eq("user_id", userId)
+              .gte("date", cutoffStr)
+              .order("date", { ascending: true })
+              .order("departure_time", { ascending: true })
+              .abortSignal(signal),
+          signal
+        );
+        if (error) throw error;
+        return (data || []).map(mapDbRowToTrain);
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Błąd pobierania pociągów.");
+        throw err;
+      }
+    },
+    [userId, supabase, toast, withRetry]
+  );
 
-    const signal = getSignal();
-    setFetching(true);
-    try {
-      const now = getAppDateTime();
-      const cutoff = new Date(now.getTime() - PAST_TRAINS_DAYS * 24 * 60 * 60 * 1000);
-      const cutoffStr = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+  const {
+    data: allTrains,
+    setData: setAllTrains,
+    fetching,
+    refetch,
+  } = useQueryState<TrackedTrain[]>({
+    queryKey: ["trains", userId ?? null],
+    queryFn: queryTrains,
+    initial: NO_TRAINS,
+    enabled: Boolean(userId),
+  });
 
-      const { data, error } = await withRetry(
-        () =>
-          supabase
-            .from("user_trains")
-            .select("*")
-            .eq("user_id", userId)
-            .gte("date", cutoffStr)
-            .order("date", { ascending: true })
-            .order("departure_time", { ascending: true })
-            .abortSignal(signal),
-        signal
-      );
-
-      if (error) throw error;
-
-      const { active, past } = splitTrains((data || []).map(mapDbRowToTrain), now.getTime());
-      setTrains(active);
-      setPastTrains(past);
-    } catch (err) {
-      if (isAbortError(err)) return;
-      toast.error("Błąd pobierania pociągów.");
-    } finally {
-      if (!signal.aborted) setFetching(false);
-    }
-  }, [userId, supabase, toast, withRetry, getSignal]);
+  const { current, upcoming, past } = useMemo(() => splitTrains(allTrains, now.getTime()), [allTrains, now]);
+  const refresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const addTrain = useCallback(
     async (trainData: TrainInput) => {
-      if (!userId) {
-        throw new NotSignedInError();
-      }
+      if (!userId) throw new NotSignedInError();
       setLoading(true);
       const tempId = `temp-${Date.now()}`;
       const optimisticTrain: TrackedTrain = {
         id: tempId,
         userId,
-        trainNumber: trainData.trainNumber,
-        trainName: trainData.trainName,
-        date: trainData.date,
-        departureTime: trainData.departureTime,
-        from: trainData.from,
-        to: trainData.to,
-        wagon: trainData.wagon,
-        seat: trainData.seat,
+        ...trainData,
         createdAt: new Date().toISOString(),
+        plannedArrival: null,
       };
-      setTrains((prev) => [...prev, optimisticTrain].sort(sortByDepartureAsc));
+      setAllTrains((prev) => [...prev, optimisticTrain]);
 
       try {
         const { data, error } = await withRetry(() =>
@@ -166,32 +176,28 @@ export function useTrains() {
         );
         if (error) throw error;
 
-        setTrains((prev) => prev.map((t) => (t.id === tempId ? mapDbRowToTrain(data) : t)).sort(sortByDepartureAsc));
+        setAllTrains((prev) => prev.map((t) => (t.id === tempId ? mapDbRowToTrain(data) : t)));
         toast.success("Dodano pociąg");
         return true;
       } catch {
-        setTrains((prev) => prev.filter((t) => t.id !== tempId));
+        setAllTrains((prev) => prev.filter((t) => t.id !== tempId));
         toast.error("Błąd zapisywania pociągu.");
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [userId, supabase, toast, withRetry]
+    [userId, supabase, toast, withRetry, setAllTrains]
   );
 
   const deleteTrain = useCallback(
     async (id: string) => {
-      if (!userId) {
-        throw new NotSignedInError();
-      }
+      if (!userId) throw new NotSignedInError();
       const ok = await toast.confirm(`Czy chcesz usunąć pociąg?`);
       if (!ok) return;
       setLoading(true);
-      const previous = trains;
-      const previousPast = pastTrains;
-      setTrains((prev) => prev.filter((t) => t.id !== id));
-      setPastTrains((prev) => prev.filter((t) => t.id !== id));
+      const previous = allTrains;
+      setAllTrains((prev) => prev.filter((t) => t.id !== id));
 
       try {
         const { error } = await withRetry(() =>
@@ -200,20 +206,23 @@ export function useTrains() {
         if (error) throw error;
         toast.success("Usunięto pociąg");
       } catch {
-        setTrains(previous);
-        setPastTrains(previousPast);
+        setAllTrains(previous);
         toast.error("Błąd usuwania pociągu.");
       } finally {
         setLoading(false);
       }
     },
-    [userId, supabase, trains, pastTrains, toast, withRetry]
+    [userId, supabase, allTrains, toast, withRetry, setAllTrains]
   );
 
   return {
-    trains,
-    pastTrains,
-    refresh: fetchTrains,
+    /** W oknie odpytywania PKP PLK (status na żywo). */
+    currentTrains: current,
+    /** Przed oknem – bez zapytań do PKP PLK. */
+    upcomingTrains: upcoming,
+    /** Po oknie – bez zapytań do PKP PLK, najnowsze na górze. */
+    pastTrains: past,
+    refresh,
     addTrain,
     deleteTrain,
     fetching,
@@ -222,10 +231,8 @@ export function useTrains() {
 }
 
 /**
- * Bilety na konkretny dzień – do planu dnia. W odróżnieniu od useTrains()
- * nie tnie do okna ±6 h od teraz, bo plan pokazuje cały wybrany dzień.
+ * Bilety na konkretny dzień – do planu dnia (cały wybrany dzień, bez podziału na okna).
  */
-const NO_TRAINS: TrackedTrain[] = [];
 
 export function useTrainsForDate(dateStr: string) {
   const { supabase, user } = useAuth();
@@ -288,17 +295,25 @@ function errorText(error: unknown): string {
 
 export function useTrainStatus(
   train: {
+    id?: string;
     trainNumber: string;
     date: string;
     from: string;
     to: string;
     departureTime: string;
     trainName: string;
+    plannedArrival?: string | null;
   },
   options: TrainStatusOptions = {}
 ) {
   const { refreshMs = 0, enabled = true } = options;
+  const { supabase } = useAuth();
+  const queryClient = useQueryClient();
   const complete = Boolean(train.trainNumber && train.date && train.from && train.to);
+  // PKP PLK pytamy wyłącznie w oknie: 3 h przed planowym odjazdem – 3 h po planowym przyjeździe.
+  const now = useNow(60_000);
+  const inWindow = isStatusRelevant(train, now);
+  const active = enabled && complete && inWindow;
 
   // TanStack Query: ten sam pociąg w kilku miejscach = jedno zapytanie; odświeżanie co
   // `refreshMs` tylko przy widocznej karcie (refetchIntervalInBackground: false).
@@ -312,8 +327,8 @@ export function useTrainStatus(
       train.to,
       train.departureTime,
     ],
-    enabled: enabled && complete,
-    refetchInterval: refreshMs > 0 ? refreshMs : false,
+    enabled: active,
+    refetchInterval: active && refreshMs > 0 ? refreshMs : false,
     refetchIntervalInBackground: false,
     staleTime: 0,
     queryFn: async ({ signal }): Promise<TrainStatusData> => {
@@ -329,6 +344,9 @@ export function useTrainStatus(
       if (response.status === 429) throw new TrainStatusError("Zbyt wiele zapytań");
       if (!response.ok) throw new TrainStatusError("Błąd połączenia");
       const result = await response.json();
+      if (train.id && !train.plannedArrival && typeof result.plannedArrival === "string" && result.plannedArrival) {
+        void savePlannedArrival(train.id, result.plannedArrival);
+      }
       return {
         delay: result.delay || 0,
         platform: result.platform || "-",
@@ -351,13 +369,27 @@ export function useTrainStatus(
     },
   });
 
+  async function savePlannedArrival(id: string, plannedArrival: string) {
+    // Zapamiętany przyjazd wyznacza koniec okna odpytywania (także po ponownym uruchomieniu).
+    const { error } = await supabase
+      .from("user_trains")
+      .update({ planned_arrival: plannedArrival })
+      .eq("id", id)
+      .is("planned_arrival", null);
+    if (!error) {
+      void queryClient.invalidateQueries({ queryKey: ["trains"] });
+      void queryClient.invalidateQueries({ queryKey: ["trains-for-date"] });
+    }
+  }
+
+  if (!active && !query.data) return { ...INITIAL_STATUS, loading: false };
   if (query.data) {
     // Błąd kolejnego odświeżenia nie kasuje ostatnich danych – zmienia tylko opis stanu.
     if (query.error && !query.data.status) return { ...query.data, status: errorText(query.error) };
     return query.data;
   }
   if (query.error) return { ...INITIAL_STATUS, status: errorText(query.error), loading: false };
-  return { ...INITIAL_STATUS, loading: enabled && complete };
+  return { ...INITIAL_STATUS, loading: active };
 }
 
 /**
@@ -367,11 +399,7 @@ export function useTrainStatus(
  */
 export function useTrainPlanStatus(train: Parameters<typeof useTrainStatus>[0], options: TrainStatusOptions = {}) {
   const status = useTrainStatus(train, options);
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useNow(TRAIN_PLAN_TICK_MS);
 
   const stop = currentTrainStop(train, status.live, now);
   return {

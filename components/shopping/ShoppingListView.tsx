@@ -113,10 +113,7 @@ export default function ShoppingListView({
 
         if (isEditing && editedList) {
           return (
-            <li
-              key={list.id}
-              className="card animate-in break-inside-avoid space-y-4 rounded-card p-5 shadow-lg fade-in"
-            >
+            <li key={list.id} className="card animate-in break-inside-avoid space-y-4 p-5 shadow-lg fade-in">
               <div className="space-y-4">
                 <div>
                   <label htmlFor="name" className="form-label">
@@ -164,7 +161,7 @@ export default function ShoppingListView({
                         type="checkbox"
                         checked={el.completed}
                         readOnly
-                        className="card h-5 w-5 cursor-not-allowed rounded-lg text-primary accent-primary focus:ring-primary"
+                        className="card h-5 w-5 cursor-not-allowed text-primary accent-primary focus:ring-primary"
                       />
                       <span className="flex-1 font-medium">{el.text}</span>
                     </div>
@@ -178,7 +175,7 @@ export default function ShoppingListView({
         return (
           <li
             key={list.id}
-            className="card group flex h-full break-inside-avoid flex-col rounded-card p-5 shadow-sm transition-shadow hover:shadow-md"
+            className="card group flex h-full break-inside-avoid flex-col p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="mb-4 flex items-start justify-between">
               <div className="mr-4 min-w-0 flex-1">
@@ -209,7 +206,7 @@ export default function ShoppingListView({
                       type="checkbox"
                       checked={el.completed}
                       onChange={() => toggleElement(list, el.id)}
-                      className="card h-5 w-5 shrink-0 cursor-pointer rounded-lg text-primary accent-primary transition-colors focus:ring-primary"
+                      className="card h-5 w-5 shrink-0 cursor-pointer text-primary accent-primary transition-colors focus:ring-primary"
                     />
                     <span className="flex-1 truncate font-medium">{el.text}</span>
                   </div>

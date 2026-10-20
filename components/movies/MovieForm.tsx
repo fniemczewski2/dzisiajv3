@@ -248,7 +248,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
                     type="button"
                     onClick={() => selectResult(r)}
                     disabled={fetching}
-                    className="card w-full rounded-lg p-3 text-left transition-colors hover:bg-surface-hover focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-60"
+                    className="card w-full p-3 text-left transition-colors hover:bg-surface-hover focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-60"
                   >
                     <div className="flex gap-3">
                       {img ? (

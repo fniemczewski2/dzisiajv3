@@ -9,7 +9,6 @@ import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { useLatestRef } from "@/hooks/useLatestRef";
 import { isAbortError } from "@/lib/abortUtils";
-import { readCache, writeCache } from "@/lib/offlineCache";
 
 type SelectBuilder = ReturnType<ReturnType<SupabaseClient["from"]>["select"]>;
 
@@ -30,7 +29,6 @@ export interface CrudResourceConfig<T extends { id: string }, TInsert> {
   buildQuery?: (q: SelectBuilder, userId: string) => SelectBuilder;
   order?: { column: string; ascending?: boolean };
   insertPosition?: "start" | "end";
-  cachePrefix?: string;
   transformRow?: (row: unknown) => T;
   prepareInsert?: (payload: TInsert, userId: string) => Record<string, unknown>;
   buildOptimistic?: (payload: TInsert, tempId: string, userId: string) => T;
@@ -67,8 +65,6 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
   const rollbackRef = useRef<T[]>([]);
 
   const queryKey = config.queryKey ?? "";
-  const querySuffix = queryKey ? `:${queryKey}` : "";
-  const cacheKey = config.cachePrefix && userId ? `${config.cachePrefix}:${userId}${querySuffix}` : null;
 
   const transform = useCallback(
     (row: unknown): T => {
@@ -98,17 +94,14 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         if (error) throw error;
 
         const rows = ((data as unknown[]) ?? []).map((row) => transform(row));
-        if (cacheKey) void writeCache(cacheKey, rows);
         return rows;
       } catch (err) {
-        if (isAbortError(err)) throw err;
-        const cached = cacheKey ? await readCache<T[]>(cacheKey) : null;
-        if (cached) return cached;
-        toast.error(cfg.messages.fetchError);
+        // Bez sieci widok zostaje przy danych z pamięci (także odtworzonych z IndexedDB).
+        if (!isAbortError(err)) toast.error(cfg.messages.fetchError);
         throw err;
       }
     },
-    [supabase, userId, toast, withRetry, transform, cacheKey, configRef]
+    [supabase, userId, toast, withRetry, transform, configRef]
   );
 
   const {

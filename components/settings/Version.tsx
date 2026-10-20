@@ -13,7 +13,7 @@ export default function VersionInfo() {
   const commit = publicEnv.commitSha;
 
   return (
-    <section className="card mb-4 rounded-xl p-4 sm:p-6" aria-labelledby="version-heading">
+    <section className="card mb-4 p-4 sm:p-6" aria-labelledby="version-heading">
       <div className="mb-4 flex items-center gap-3 text-text">
         <Info className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
         <h3 id="version-heading" className="text-lg font-bold">

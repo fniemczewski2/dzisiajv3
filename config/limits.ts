@@ -15,6 +15,8 @@ export const MAX_TRUSTED_USERS = 10;
 /** Kategorie budżetu na rok. */
 export const MAX_CATEGORIES = 20;
 export const MAX_RECIPE_PRODUCTS = 100;
+/** Własne nawyki dzienne. */
+export const MAX_HABITS = 8;
 /** [baza] Wizytówki na konto. */
 export const MAX_VCARD_PROFILES = 5;
 

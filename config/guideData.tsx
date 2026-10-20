@@ -448,8 +448,10 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Synchronizacja z Google i Outlookiem.</K> W sekcji <em>Połączone kalendarze</em> podłączysz konto Google lub
-        Microsoft 365 – wydarzenia synchronizują się dwukierunkowo, a tokeny dostępu są przechowywane w formie
-        zaszyfrowanej.
+        Microsoft 365. Wydarzenia z wybranych kalendarzy trafiają do aplikacji automatycznie (co 15 minut). Nowe
+        wydarzenie możesz od razu dodać do wybranego kalendarza zewnętrznego, a edycja i usunięcie wydarzenia
+        powiązanego z Google lub Outlookiem zmieniają je także tam (poza wydarzeniami powtarzalnymi). Tokeny dostępu są
+        przechowywane w formie zaszyfrowanej.
       </>,
     ],
   },
@@ -613,8 +615,9 @@ export const guideSections: GuideSection[] = [
         na liście (możesz odkliknąć), dzięki czemu lista jest wielokrotnego użytku.
       </>,
       <>
-        <K>Udostępnianie w czasie rzeczywistym.</K> Udostępnij listę innemu użytkownikowi – oboje widzicie te same
-        zmiany natychmiast, bez ręcznego odświeżania.
+        <K>Udostępnianie na żywo.</K> Udostępnij listę innemu użytkownikowi – dodanie, odhaczenie i edycja pozycji
+        pojawiają się u drugiej osoby po chwili, bez ręcznego odświeżania. Usunięcie całej listy przez właściciela
+        zobaczysz po ponownym wejściu na stronę.
       </>,
       <>
         <K>Sortowanie.</K> W Ustawieniach możesz wybrać sortowanie list zakupów po dacie modyfikacji (domyślnie) lub
@@ -712,7 +715,9 @@ export const guideSections: GuideSection[] = [
         automatycznie, a których nie. Uzupełnij brakujące i sprawdź resztę przed zapisem.
       </>,
       <>
-        <K>Status na żywo.</K> Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK.
+        <K>Status na żywo.</K> Karta pociągu pokazuje aktualny status i opóźnienie na podstawie danych PKP PLK – od 3
+        godzin przed planowym odjazdem do 3 godzin po planowym przyjeździe. Poza tym czasem aplikacja nie pyta PKP PLK o
+        pociąg (także w <em>Planie dnia</em>). Lista pokazuje pociągi bieżące, nadchodzące i odbyte.
       </>,
       <>
         <K>W planie dnia.</K> Pociąg pojawia się w <em>Planie dnia</em> o godzinie odjazdu, z peronem, wagonem, miejscem
