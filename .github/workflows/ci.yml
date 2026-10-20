@@ -68,10 +68,13 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      # --node-modules-dir=none: w katalogu nadrzędnym jest package.json aplikacji, więc bez tej
+      # flagi Deno szuka paczek npm: w node_modules (którego ten job nie instaluje).
+      # Zależności npm: (np. web-push) Deno pobiera wtedy do własnej pamięci podręcznej.
       - name: Sprawdzenie typów
-        run: deno check --no-lock */index.ts _shared/*.ts
+        run: deno check --no-lock --node-modules-dir=none */index.ts _shared/*.ts
       - name: Testy
-        run: deno test --no-lock
+        run: deno test --no-lock --node-modules-dir=none
 
   database:
     name: Baza (migracje i RLS)

@@ -167,7 +167,7 @@ Priorytetem jest logika, w której błąd jest kosztowny lub łatwo go niezauwa�
 npm run test
 ```
 
-Testy Edge Functions (Deno): `cd supabase/functions && deno test --no-lock`. Test uprawnień bazy (pgTAP): `supabase test db` – działa, gdy schemat jest w `supabase/migrations`.
+Testy Edge Functions (Deno): `cd supabase/functions && deno test --no-lock --node-modules-dir=none` (flaga jest potrzebna, bo w katalogu nadrzędnym jest `package.json` aplikacji). Test uprawnień bazy (pgTAP): `supabase test db` – działa, gdy schemat jest w `supabase/migrations`.
 
 ### Ciągła integracja
 
