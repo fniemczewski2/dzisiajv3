@@ -266,7 +266,8 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Synchronizacja w obie strony.</K> Zadania dodane lub zmienione w aplikacji trafiają na listę Slack, a zmiany
-        ze Slacka wracają do Twoich zadań.
+        ze Slacka wracają do Twoich zadań. Nowe pozycje ze Slacka importujemy tylko z terminem od dziś do miesiąca
+        naprzód; zadania już połączone synchronizują się niezależnie od terminu.
       </>,
       <>
         <K>Lista domyślna.</K> Wskaż listę, na którą trafiają nowe zadania, jeśli masz ich kilka.

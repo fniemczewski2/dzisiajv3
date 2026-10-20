@@ -1,5 +1,6 @@
 // components/dashboard/QuickNotes.tsx
 
+import { DEFAULT_TASK_PRIORITY } from "@/config/defaults";
 import { MAX_QUICK_NOTE_LENGTH } from "@/config/limits";
 import React, { useId, useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -65,7 +66,7 @@ export default function QuickNotes({
       const created = await addTask({
         title: note.content,
         category: defaultTaskCategory(categories),
-        priority: 3,
+        priority: DEFAULT_TASK_PRIORITY,
         description: "",
         due_date: dateStr,
         for_user_id: user.id,

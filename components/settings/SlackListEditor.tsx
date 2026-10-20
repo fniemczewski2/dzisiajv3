@@ -122,7 +122,8 @@ export default function SlackListEditor({
                 <span>
                   Pobieraj zadania z tej listy{" "}
                   <span className="block text-text-muted">
-                    Odznaczone: zadania jadą tylko z aplikacji do Slacka, nic nie wraca.
+                    Nowe zadania pobieramy tylko z terminem na najbliższy miesiąc. Odznaczone: zadania jadą tylko z
+                    aplikacji do Slacka, nic nie wraca.
                   </span>
                 </span>
               </label>

@@ -109,3 +109,6 @@ export const VCARD_DEFAULT_COLOR_DARK = "#0A2947";
  */
 export const MOOD_CONSENT_VERSION = "2026-10-18";
 export const MOOD_CONSENT_LEGACY_VERSION = "2026-10-18";
+
+/** Priorytet zadania, gdy źródło go nie podaje (import ze Slacka, protokoły, szybkie notatki). */
+export const DEFAULT_TASK_PRIORITY = 3;

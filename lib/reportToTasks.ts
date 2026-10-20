@@ -4,6 +4,7 @@
 // swój identyfikator w protokole (tasks[i].app_task_id), więc nie da się go
 // dodać drugi raz, a lista pokazuje, co już jest w Zadaniach.
 
+import { DEFAULT_TASK_PRIORITY } from "@/config/defaults";
 import type { Report, ReportTask } from "@/types/reports";
 import { formatReportDate } from "./reportExport";
 
@@ -46,7 +47,7 @@ export function toAppTask(
     title: task.zadanie.trim().slice(0, 200),
     description: `${source}${owner}`,
     category: opts.category,
-    priority: 3,
+    priority: DEFAULT_TASK_PRIORITY,
     due_date: task.data?.slice(0, 10) || opts.fallbackDue,
     status: "pending",
     user_id: opts.userId,

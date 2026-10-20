@@ -117,3 +117,10 @@ export const SLACK_MISSING_ITEM_ERRORS = new Set([
   "invalid_row_id",
   "item_not_found",
 ]);
+
+/**
+ * Nowe zadania ze Slacka importujemy tylko z terminem od dziś do tylu miesięcy
+ * naprzód (bez terminu i przeterminowane – pomijane). Zadania już powiązane
+ * synchronizują się dalej niezależnie od terminu.
+ */
+export const SLACK_IMPORT_HORIZON_MONTHS = 1;

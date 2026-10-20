@@ -11,12 +11,85 @@ import {
   type SlackFieldValue,
 } from "@/lib/server/slackLists";
 import {
+  SLACK_IMPORT_HORIZON_MONTHS,
   SLACK_MAPPABLE_TASK_FIELDS,
   SLACK_PULL_EXCLUDED_FIELDS,
   normalizeTaskStatus,
   type SlackMappableTaskField,
 } from "@/config/slack";
 import type { ColumnMap, SyncTarget, TaskRow } from "./types";
+
+/**
+ * Wbudowane kolumny list zadań Slacka („Due Date” – todo_due_date, „Completed” –
+ * todo_completed) są mapowane automatycznie, gdy użytkownik nie przypisał
+ * tych pól ręcznie. Wcześniej bez ręcznego mapowania daty w ogóle się nie kopiowały.
+ */
+const BUILT_IN_COLUMNS: Partial<Record<SlackMappableTaskField, string>> = {
+  due_date: "todo_due_date",
+  status: "todo_completed",
+};
+
+export function withBuiltInColumns(columnMap: ColumnMap, columns: SlackColumn[]): ColumnMap {
+  const result: ColumnMap = { ...columnMap };
+  for (const [field, type] of Object.entries(BUILT_IN_COLUMNS) as [SlackMappableTaskField, string][]) {
+    if (result[field]) continue;
+    const column = columns.find((c) => c.type === type || c.key === type);
+    if (column) result[field] = column.id;
+  }
+  return result;
+}
+
+/**
+ * Pola puste w aplikacji, a wypełnione w Slacku (np. termin dodany do mapowania
+ * po pierwszym imporcie). Uzupełniamy je także wtedy, gdy pozycja w Slacku się
+ * nie zmieniła – nie nadpisuje to niczego, co jest już w aplikacji.
+ */
+export function missingFieldsFromItem(
+  task: TaskRow,
+  item: SlackItem,
+  columnMap: ColumnMap,
+  columns: SlackColumn[]
+): Partial<TaskRow> {
+  const patch = itemToTaskPatch(item, columnMap, columns) as Record<string, unknown>;
+  const missing: Record<string, unknown> = {};
+  for (const [field, value] of Object.entries(patch)) {
+    const current = (task as unknown as Record<string, unknown>)[field];
+    if ((current === null || current === undefined || current === "") && value !== null && value !== "") {
+      missing[field] = value;
+    }
+  }
+  return missing as Partial<TaskRow>;
+}
+
+/** „YYYY-MM-DD” + n miesięcy; 31 stycznia + 1 miesiąc = ostatni dzień lutego. */
+function addMonthsClamped(day: string, months: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  const target = new Date(Date.UTC(y, m - 1 + months, 1));
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(d, lastDay));
+  return target.toISOString().slice(0, 10);
+}
+
+/** Dzisiejsza data w Polsce („YYYY-MM-DD”) – serwer działa w UTC. */
+export function todayInPoland(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Warsaw" }).format(now);
+}
+
+/**
+ * Czy pozycję ze Slacka importować jako nowe zadanie: termin od `today` do
+ * `today` + SLACK_IMPORT_HORIZON_MONTHS (włącznie). Bez terminu – nie.
+ */
+export function isWithinImportHorizon(
+  item: SlackItem,
+  columnMap: ColumnMap,
+  columns: SlackColumn[],
+  today: string
+): boolean {
+  const due = itemToTaskPatch(item, columnMap, columns).due_date;
+  if (typeof due !== "string" || !/^\d{4}-\d{2}-\d{2}/.test(due)) return false;
+  const day = due.slice(0, 10);
+  return day >= today && day <= addMonthsClamped(today, SLACK_IMPORT_HORIZON_MONTHS);
+}
 
 export function fingerprint(task: TaskRow): string {
   return SLACK_MAPPABLE_TASK_FIELDS.map((field) => String(task[field] ?? "")).join("\u0001");

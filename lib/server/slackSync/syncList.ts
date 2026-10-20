@@ -13,9 +13,18 @@ import {
 } from "@/lib/server/slackLists";
 import { LEGACY_SLACK_TASK_CATEGORY } from "@/config/slack";
 import type { LinkRow, SyncCounters, SyncTarget, TaskRow } from "./types";
-import { fingerprint, itemChangedSince, itemUpdatedAt, resolveDirection, taskUpdatedAt } from "./taskMapping";
+import {
+  fingerprint,
+  itemChangedSince,
+  itemUpdatedAt,
+  resolveDirection,
+  isWithinImportHorizon,
+  taskUpdatedAt,
+  todayInPoland,
+  withBuiltInColumns,
+} from "./taskMapping";
 import { pushTask } from "./push";
-import { applyAppDeletions, createTaskFromItem, pullItem } from "./pull";
+import { applyAppDeletions, backfillFromItem, createTaskFromItem, pullItem } from "./pull";
 
 const FATAL_SYNC_ERRORS = new Set([
   "invalid_auth",
@@ -123,6 +132,9 @@ async function syncOneTask(ctx: SyncTaskContext, task: TaskRow): Promise<void> {
   } else if (effective === "pull") {
     await pullItem(admin, target, item, task, columns);
     counters.pulled += 1;
+  } else if (target.pullEnabled && (await backfillFromItem(admin, target, item, task, columns))) {
+    // Bez zmian po obu stronach, ale w aplikacji brakuje pól wypełnionych w Slacku (np. terminu).
+    counters.pulled += 1;
   }
 }
 
@@ -183,14 +195,14 @@ export async function buildAssigneeFilter(
 
 export async function syncList(
   admin: SupabaseClient,
-  target: SyncTarget,
+  configuredTarget: SyncTarget,
   tasks: TaskRow[],
   linkedAnywhere: Set<number>,
   targetListByTask: Map<number, string>
 ): Promise<SyncCounters> {
   const counters: SyncCounters = {
-    list_id: target.listId,
-    list_title: target.listTitle,
+    list_id: configuredTarget.listId,
+    list_title: configuredTarget.listTitle,
     pushed: 0,
     pulled: 0,
     created_in_slack: 0,
@@ -202,7 +214,12 @@ export async function syncList(
     first_error: null,
   };
 
-  const { items, columns } = await listItems(target.token, target.listId);
+  const { items, columns } = await listItems(configuredTarget.token, configuredTarget.listId);
+  // Termin i ukończenie z wbudowanych kolumn Slacka, gdy nie są zmapowane ręcznie.
+  const target: SyncTarget = {
+    ...configuredTarget,
+    columnMap: withBuiltInColumns(configuredTarget.columnMap, columns),
+  };
   counters.deleted_in_slack = await applyAppDeletions(admin, target);
 
   const { data: linkRows, error: linkError } = await admin
@@ -240,7 +257,12 @@ export async function syncList(
   if (!target.pullEnabled) return counters;
 
   const accepts = await buildAssigneeFilter(target, columns);
-  await mapPool(items.filter(accepts), 1, (item) =>
+  // Nowe zadania tylko z terminem na najbliższy miesiąc (powiązane synchronizują się wyżej).
+  const today = todayInPoland();
+  const toImport = items.filter(
+    (item) => accepts(item) && isWithinImportHorizon(item, target.columnMap, columns, today)
+  );
+  await mapPool(toImport, 1, (item) =>
     processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters)
   );
 
