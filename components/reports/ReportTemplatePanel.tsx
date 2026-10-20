@@ -55,16 +55,16 @@ export default function ReportTemplatePanel() {
   const { toast } = useToast();
   const t = useReportTemplates();
   const { set, busy } = t;
-  const [chosenId, setSelectedId] = useState<string | null>(set.default_id);
+  const [chosenId, setChosenId] = useState<string | null>(set.default_id);
   // Wybrany szablon zniknął (usunięty w innej karcie) – pokazujemy domyślny.
   const selectedId = chosenId && set.templates.some((x) => x.id === chosenId) ? chosenId : set.default_id;
   const [newName, setNewName] = useState("");
   const [previewing, setPreviewing] = useState(false);
-  const [logoWidth, setLogoWidthDraft] = useState<number | null>(null);
+  const [logoWidthDraft, setLogoWidthDraft] = useState<number | null>(null);
   const [colorDraft, setColorDraft] = useState<string | null>(null);
 
   const template = set.templates.find((x) => x.id === selectedId) ?? null;
-  const width = logoWidth ?? template?.logo?.width ?? DEFAULT_REPORT_LOGO_WIDTH;
+  const width = logoWidthDraft ?? template?.logo?.width ?? DEFAULT_REPORT_LOGO_WIDTH;
   const isBusy = (key: string) => busy === `${template?.id}:${key}`;
   const chosenColor = colorDraft ?? template?.heading_color ?? DEFAULT_REPORT_HEADING_COLOR;
   const palette = derivePalette(chosenColor);
@@ -78,7 +78,7 @@ export default function ReportTemplatePanel() {
   const add = async () => {
     const newId = await t.addTemplate(newName || `Szablon ${set.templates.length + 1}`);
     if (newId) {
-      setSelectedId(newId);
+      setChosenId(newId);
       setNewName("");
     }
   };
@@ -116,7 +116,7 @@ export default function ReportTemplatePanel() {
               <button
                 type="button"
                 aria-pressed={selectedId === x.id}
-                onClick={() => setSelectedId(x.id)}
+                onClick={() => setChosenId(x.id)}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium ${
                   selectedId === x.id
                     ? "border-text bg-text text-card"
@@ -320,8 +320,8 @@ export default function ReportTemplatePanel() {
                   step={10}
                   value={width}
                   onChange={(e) => setLogoWidthDraft(Number(e.target.value))}
-                  onPointerUp={() => logoWidth !== null && void t.setLogoWidth(template.id, logoWidth)}
-                  onKeyUp={() => logoWidth !== null && void t.setLogoWidth(template.id, logoWidth)}
+                  onPointerUp={() => logoWidthDraft !== null && void t.setLogoWidth(template.id, logoWidthDraft)}
+                  onKeyUp={() => logoWidthDraft !== null && void t.setLogoWidth(template.id, logoWidthDraft)}
                   className="w-full"
                 />
               </div>

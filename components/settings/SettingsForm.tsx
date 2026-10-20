@@ -6,7 +6,6 @@
 // finansowe, Slack…), są na stronie Ustawień poniżej tych formularzy.
 
 import { useMoodConsent } from "@/hooks/useMoodConsent";
-import { MAX_TRUSTED_USERS } from "@/config/limits";
 import { CATEGORY_PALETTE, isPaletteColor } from "@/lib/categoryColors";
 import { DEFAULT_MOODS } from "@/config/defaults";
 import React, { useState } from "react";
@@ -20,6 +19,8 @@ import TaskCategoriesEditor from "@/components/settings/TaskCategoriesEditor";
 import CategoryColorPicker from "@/components/settings/CategoryColorPicker";
 import HabitsEditor from "@/components/settings/HabitsEditor";
 import ModulesEditor from "@/components/settings/ModulesEditor";
+import TrustedUsersField from "@/components/settings/TrustedUsersField";
+import { MAX_TRUSTED_USERS } from "@/config/limits";
 import FinanceSettings from "@/components/settings/FinanceSettings";
 import { resolveHabits } from "@/lib/habits";
 import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
@@ -426,60 +427,13 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         {...common}
         id="udostepnianie"
         title="Udostępnianie"
-        description="Zaufane osoby, którym możesz udostępniać zadania i wydarzenia (do 10)."
+        description={`Zaufane osoby, którym możesz udostępniać zadania i wydarzenia (do ${MAX_TRUSTED_USERS}).`}
         icon={<Users className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={["users"] as const}
       >
         {(d, set) => {
           const users = d.users ?? [];
-          return (
-            <fieldset className="max-w-md min-w-0 space-y-2">
-              <legend className="sr-only">Zaufani użytkownicy</legend>
-              {users.map((u, idx) => (
-                <div key={`user-${idx}`} className="flex items-center gap-2">
-                  <label htmlFor={`trusted-user-${idx}`} className="sr-only">
-                    Adres e-mail zaufanej osoby {idx + 1}
-                  </label>
-                  <input
-                    id={`trusted-user-${idx}`}
-                    type="email"
-                    value={u}
-                    placeholder="E-mail"
-                    onChange={(e) =>
-                      set(
-                        "users",
-                        users.map((x, i) => (i === idx ? e.target.value : x))
-                      )
-                    }
-                    className="input-field"
-                  />
-                  <DeleteButton
-                    small
-                    ariaLabel={"Usuń " + (u || "osobę " + (idx + 1))}
-                    onClick={() =>
-                      set(
-                        "users",
-                        users.filter((_, i) => i !== idx)
-                      )
-                    }
-                  />
-                </div>
-              ))}
-              {users.length < MAX_TRUSTED_USERS ? (
-                <button
-                  type="button"
-                  onClick={() => set("users", [...users, ""])}
-                  className="flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                >
-                  <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj osobę
-                </button>
-              ) : (
-                <p className="text-sm text-text-secondary">
-                  Osiągnięto limit {MAX_TRUSTED_USERS} zaufanych osób. Usuń kogoś z listy, aby dodać nową osobę.
-                </p>
-              )}
-            </fieldset>
-          );
+          return <TrustedUsersField users={users} onChange={(next) => set("users", next)} />;
         }}
       </SettingsSection>
     </>

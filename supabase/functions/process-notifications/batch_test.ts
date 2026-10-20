@@ -15,22 +15,27 @@ type Call = { table: string; ids: string[]; filters: string[] };
 function fakeClient(rows: Record<string, { user_id: string }[]>, calls: Call[]): SupabaseClient {
   const builder = (table: string) => {
     const call: Call = { table, ids: [], filters: [] };
-    const q = {
+    const filter = (op: string) => (c: string, v: unknown) => {
+      call.filters.push(`${op}:${c}=${typeof v === "string" ? v : JSON.stringify(v)}`);
+      return q;
+    };
+    // Prawdziwa obietnica (bez własnego `then`): wynik powstaje po zapisaniu filtrów w łańcuchu.
+    const result = Promise.resolve().then(() => {
+      calls.push(call);
+      return { data: (rows[table] ?? []).filter((r) => call.ids.includes(r.user_id)), error: null };
+    });
+    const q = Object.assign(result, {
       select: () => q,
       in: (_c: string, ids: string[]) => {
         call.ids = ids;
         return q;
       },
-      eq: (c: string, v: unknown) => (call.filters.push(`eq:${c}=${v}`), q),
-      neq: (c: string, v: unknown) => (call.filters.push(`neq:${c}=${v}`), q),
-      gte: (c: string, v: unknown) => (call.filters.push(`gte:${c}=${v}`), q),
-      lt: (c: string, v: unknown) => (call.filters.push(`lt:${c}=${v}`), q),
-      contains: (c: string, v: unknown) => (call.filters.push(`contains:${c}=${JSON.stringify(v)}`), q),
-      then: (resolve: (r: unknown) => void) => {
-        calls.push(call);
-        resolve({ data: (rows[table] ?? []).filter((r) => call.ids.includes(r.user_id)), error: null });
-      },
-    };
+      eq: filter("eq"),
+      neq: filter("neq"),
+      gte: filter("gte"),
+      lt: filter("lt"),
+      contains: filter("contains"),
+    });
     return q;
   };
   return { from: builder } as unknown as SupabaseClient;

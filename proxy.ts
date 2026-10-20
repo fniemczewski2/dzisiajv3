@@ -67,6 +67,7 @@ export const config = {
   matcher: [
     // Wszystko poza: API, zasobami Next.js, service workerem, manifestem,
     // plikami w /public (rozszerzenia) i plikami weryfikacyjnymi.
-    "/((?!api/|_next/static|_next/image|sw\\.js|manifest\\.json|robots\\.txt|sitemap\\.xml|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|mp3|txt|html|json|js|css|woff2?)$).*)",
+    // Kropka jako [.] (bez ukośnika) – ciąg musi być zwykłym literałem, Next analizuje go statycznie.
+    "/((?!api/|_next/static|_next/image|sw[.]js|manifest[.]json|robots[.]txt|sitemap[.]xml|.*[.](?:ico|png|jpg|jpeg|gif|webp|svg|mp3|txt|html|json|js|css|woff2?)$).*)",
   ],
 };

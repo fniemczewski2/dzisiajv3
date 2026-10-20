@@ -56,7 +56,7 @@ export default function TaskForm({
   const categoryOptions = taskCategoryOptions(userCategories);
   const defaultCategory = defaultTaskCategory(userCategories);
   const optionsKey = categoryOptions.join("|");
-  const [chosenCategory, setCategory] = useState<string>(DEFAULT_TASK_CATEGORY);
+  const [chosenCategory, setChosenCategory] = useState<string>(DEFAULT_TASK_CATEGORY);
   // Po wczytaniu kategorii użytkownika: jeśli wybrana nie istnieje na jego
   // liście (np. usunął „inne”), obowiązuje jego domyślna – wyliczane w renderze.
   const category = optionsKey.split("|").includes(chosenCategory) ? chosenCategory : defaultCategory;
@@ -174,7 +174,7 @@ export default function TaskForm({
             ref={categoryRef}
             className="input-field h-min sm:h-12"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => setChosenCategory(e.target.value)}
           >
             {categoryOptions.map((cat) => (
               <option key={cat} value={cat}>

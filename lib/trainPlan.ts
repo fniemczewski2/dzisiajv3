@@ -32,6 +32,8 @@ export function expectedDeparture(t: TrainTimeInput, delayMinutes: number): Date
 
 /** Ile przed planowym odjazdem i po planowym przyjeździe pytamy PKP PLK o status. */
 const TRAIN_STATUS_MARGIN_MS = 3 * 3_600_000;
+/** Okno po odjeździe, gdy planowy przyjazd nie jest jeszcze znany (najdłuższe przejazdy w Polsce ~12 h). */
+const TRAIN_UNKNOWN_ARRIVAL_MS = 12 * 3_600_000;
 
 export interface TrainWindowInput extends TrainTimeInput {
   /** Planowy przyjazd do stacji docelowej „HH:MM” (zapisany po pierwszej odpowiedzi PKP PLK). */
@@ -41,15 +43,18 @@ export interface TrainWindowInput extends TrainTimeInput {
 /**
  * Okno odpytywania PKP PLK: od 3 h przed planowym odjazdem ze stacji początkowej
  * do 3 h po planowym przyjeździe do stacji docelowej. Gdy przyjazd nie jest
- * jeszcze znany, okno kończy się 3 h po odjeździe (przyjazd poznajemy przy
- * pierwszym zapytaniu w oknie).
+ * jeszcze znany, okno kończy się 12 h po odjeździe – pierwsze zapytanie w oknie
+ * podaje przyjazd i okno zawęża się do „3 h po przyjeździe”.
  */
 export function trainStatusWindow(t: TrainWindowInput): { start: number; end: number } | null {
   const departure = plannedDeparture(t);
   if (!departure) return null;
+  const start = departure.getTime() - TRAIN_STATUS_MARGIN_MS;
   const arrival = t.plannedArrival ? plannedArrival(t, t.plannedArrival) : null;
-  const last = arrival ?? departure;
-  return { start: departure.getTime() - TRAIN_STATUS_MARGIN_MS, end: last.getTime() + TRAIN_STATUS_MARGIN_MS };
+  if (arrival) return { start, end: arrival.getTime() + TRAIN_STATUS_MARGIN_MS };
+  // Przyjazd jeszcze nieznany (pierwsza odpowiedź PKP PLK go poda): okno do
+  // najdłuższego przejazdu w kraju, żeby pociąg w trasie nie trafił do „odbytych”.
+  return { start, end: departure.getTime() + TRAIN_UNKNOWN_ARRIVAL_MS };
 }
 
 export type TrainTimePhase = "upcoming" | "current" | "past";

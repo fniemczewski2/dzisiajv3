@@ -1,5 +1,6 @@
 // lib/server/slackSync/syncList.ts
 
+import { mapPool } from "@/shared/asyncPool";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   findAssigneeColumn,
@@ -167,11 +168,9 @@ export async function buildAssigneeFilter(
   const column = findAssigneeColumn(columns);
   if (!column) return () => false;
 
-  const ids = new Set<string>();
-  for (const email of target.assigneeEmails) {
-    const id = await lookup(target.token, email);
-    if (id) ids.add(id);
-  }
+  // Kolejno (limit 1) – limit zapytań Slack API (users.lookupByEmail).
+  const found = await mapPool(target.assigneeEmails, 1, (email) => lookup(target.token, email));
+  const ids = new Set(found.filter((id): id is string => Boolean(id)));
   if (ids.size === 0) return () => false;
 
   return (item) => {
@@ -228,9 +227,8 @@ export async function syncList(
     targetListByTask,
     counters,
   };
-  for (const task of tasks) {
-    await processTaskSync(taskCtx, task);
-  }
+  // Zadania kolejno (limit 1): wspólne liczniki i mapy powiązań oraz limit Slack API.
+  await mapPool(tasks, 1, (task) => processTaskSync(taskCtx, task));
 
   const { data: pendingRows } = await admin
     .from("slack_deleted_tasks")
@@ -242,10 +240,9 @@ export async function syncList(
   if (!target.pullEnabled) return counters;
 
   const accepts = await buildAssigneeFilter(target, columns);
-  for (const item of items) {
-    if (!accepts(item)) continue;
-    await processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters);
-  }
+  await mapPool(items.filter(accepts), 1, (item) =>
+    processIncomingItem(admin, target, item, columns, linkedItemIds, pendingDeletion, counters)
+  );
 
   return counters;
 }

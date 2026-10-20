@@ -310,23 +310,27 @@ export function useTrainStatus(
   const { supabase } = useAuth();
   const queryClient = useQueryClient();
   const complete = Boolean(train.trainNumber && train.date && train.from && train.to);
+  const statusKey = [
+    "train-status",
+    train.trainNumber,
+    train.trainName,
+    train.date,
+    train.from,
+    train.to,
+    train.departureTime,
+  ];
   // PKP PLK pytamy wyłącznie w oknie: 3 h przed planowym odjazdem – 3 h po planowym przyjeździe.
+  // Przyjazd: zapisany w bazie albo z ostatniej odpowiedzi PKP PLK w pamięci.
   const now = useNow(60_000);
-  const inWindow = isStatusRelevant(train, now);
+  const knownArrival =
+    train.plannedArrival ?? queryClient.getQueryData<TrainStatusData>(statusKey)?.live.plannedArrival ?? null;
+  const inWindow = isStatusRelevant({ ...train, plannedArrival: knownArrival }, now);
   const active = enabled && complete && inWindow;
 
   // TanStack Query: ten sam pociąg w kilku miejscach = jedno zapytanie; odświeżanie co
   // `refreshMs` tylko przy widocznej karcie (refetchIntervalInBackground: false).
   const query = useQuery({
-    queryKey: [
-      "train-status",
-      train.trainNumber,
-      train.trainName,
-      train.date,
-      train.from,
-      train.to,
-      train.departureTime,
-    ],
+    queryKey: statusKey,
     enabled: active,
     refetchInterval: active && refreshMs > 0 ? refreshMs : false,
     refetchIntervalInBackground: false,
@@ -370,16 +374,18 @@ export function useTrainStatus(
   });
 
   async function savePlannedArrival(id: string, plannedArrival: string) {
-    // Zapamiętany przyjazd wyznacza koniec okna odpytywania (także po ponownym uruchomieniu).
-    const { error } = await supabase
+    // Przyjazd wyznacza koniec okna odpytywania. Najpierw w pamięci list pociągów (działa także
+    // bez kolumny w bazie i przetrwa ponowne uruchomienie dzięki zapisowi pamięci w IndexedDB),
+    // potem w bazie.
+    const withArrival = (list: TrackedTrain[] | undefined) =>
+      list?.map((t) => (t.id === id && !t.plannedArrival ? { ...t, plannedArrival } : t));
+    queryClient.setQueriesData<TrackedTrain[]>({ queryKey: ["trains"] }, withArrival);
+    queryClient.setQueriesData<TrackedTrain[]>({ queryKey: ["trains-for-date"] }, withArrival);
+    await supabase
       .from("user_trains")
       .update({ planned_arrival: plannedArrival })
       .eq("id", id)
       .is("planned_arrival", null);
-    if (!error) {
-      void queryClient.invalidateQueries({ queryKey: ["trains"] });
-      void queryClient.invalidateQueries({ queryKey: ["trains-for-date"] });
-    }
   }
 
   if (!active && !query.data) return { ...INITIAL_STATUS, loading: false };

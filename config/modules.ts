@@ -8,7 +8,15 @@
 import { NAVIGATION_CATEGORIES } from "./navigation";
 
 /** Ścieżki, których nie da się wyłączyć. */
-const CORE_PATHS: readonly string[] = ["/", "/tasks", "/calendar", "/settings", "/guide", "/privacy", "/start"];
+const CORE_PATHS: ReadonlySet<string> = new Set([
+  "/",
+  "/tasks",
+  "/calendar",
+  "/settings",
+  "/guide",
+  "/privacy",
+  "/start",
+]);
 
 export interface AppModule {
   path: string;
@@ -19,7 +27,7 @@ export interface AppModule {
 /** Wszystkie wyłączalne moduły – z menu, bez rdzenia. */
 export const TOGGLEABLE_MODULES: readonly AppModule[] = NAVIGATION_CATEGORIES.flatMap((category) =>
   category.items
-    .filter((item) => !CORE_PATHS.includes(item.path))
+    .filter((item) => !CORE_PATHS.has(item.path))
     .map((item) => ({ path: item.path, title: item.title, group: category.name }))
 );
 

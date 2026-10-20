@@ -1,5 +1,6 @@
 // lib/server/slackSync/push.ts
 
+import { mapPool } from "@/shared/asyncPool";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   createItem,
@@ -50,7 +51,8 @@ async function updateFieldsIndividually(
   fields: SlackFieldValue[],
   context: string
 ): Promise<void> {
-  for (const field of fields) {
+  // Kolumna po kolumnie, kolejno (limit 1) – limit zapytań Slack API.
+  await mapPool(fields, 1, async (field) => {
     try {
       await updateItem(target.token, target.listId, itemId, [field]);
     } catch (err) {
@@ -63,7 +65,7 @@ async function updateFieldsIndividually(
           `${(err as Error).message}`
       );
     }
-  }
+  });
 }
 
 export async function pushTask(

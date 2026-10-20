@@ -55,8 +55,9 @@ describe("okno odpytywania PKP PLK", () => {
     expect(isStatusRelevant(train, at(16, 31))).toBe(false);
   });
 
-  it("bez znanego przyjazdu kończy się 3 h po odjeździe", () => {
-    expect(trainStatusWindow(t("2", "2026-10-15", "10:00"))?.end).toBe(at(13).getTime());
+  it("bez znanego przyjazdu trwa do 12 h po odjeździe (pociąg w trasie nie znika z bieżących)", () => {
+    expect(trainStatusWindow(t("2", "2026-10-15", "10:00"))?.end).toBe(at(22).getTime());
+    expect(trainTimePhase(t("2", "2026-10-15", "10:00"), at(15))).toBe("current");
   });
 
   it("przyjazd po północy liczy się na następny dzień", () => {
@@ -112,5 +113,16 @@ describe("karta pociągu", () => {
     render(<TrackedTrainCard train={t("5", "2026-10-15", "10:00")} onDelete={vi.fn()} />);
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
     expect(String(fetchSpy.mock.calls[0][0])).toContain("/api/transport/train-status");
+  });
+
+  it("pociąg, który dojechał, zostaje na liście ze statusem „Dojechał”", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 15, 14, 0));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response(JSON.stringify({ hide: true, status: "" }), { status: 200 })))
+    );
+    render(<TrackedTrainCard train={t("8", "2026-10-15", "10:00", "13:30")} onDelete={vi.fn()} />);
+    expect(await screen.findByText("Dojechał")).toBeTruthy();
   });
 });

@@ -3,6 +3,7 @@
 # Kontrola każdego pusha i pull requesta: typy, lint, formatowanie, martwy kod,
 # testy z pokryciem, build produkcyjny (z kontrolą CSP) i Edge Functions (Deno).
 # Analiza SonarQube/SonarCloud uruchamia się, gdy repozytorium ma sekret SONAR_TOKEN.
+# Akcje są przypięte do pełnego SHA commita (komentarz = wersja) – tag można przesunąć, SHA nie.
 
 name: CI
 
@@ -26,16 +27,18 @@ jobs:
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # pełna historia – SonarQube liczy „nowy kod” względem gałęzi głównej
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      # --ignore-scripts: skrypty instalacyjne paczek się nie wykonują (jedyna paczka ze skryptem,
+      # fsevents, jest tylko dla macOS i opcjonalna).
+      - run: npm ci --ignore-scripts
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
@@ -52,7 +55,7 @@ jobs:
 
       - name: Analiza SonarQube
         if: ${{ env.SONAR_TOKEN != '' }}
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@2f77a1ec69fb1d595b06f35ab27e97605bdef703 # v5.3.2
         env:
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
 
@@ -64,15 +67,15 @@ jobs:
       run:
         working-directory: supabase/functions
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.x
       # --node-modules-dir=none: w katalogu nadrzędnym jest package.json aplikacji, więc bez tej
       # flagi Deno szuka paczek npm: w node_modules (którego ten job nie instaluje).
       # Zależności npm: (np. web-push) Deno pobiera wtedy do własnej pamięci podręcznej.
       - name: Sprawdzenie typów
-        run: deno check --no-lock --node-modules-dir=none */index.ts _shared/*.ts
+        run: deno check --no-lock --node-modules-dir=none ./*/index.ts ./_shared/*.ts
       - name: Testy
         run: deno test --no-lock --node-modules-dir=none
 
@@ -81,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       # Kroki bazy działają dopiero, gdy schemat jest w repozytorium (supabase/migrations) –
       # zob. supabase/README.md, „Wersjonowanie schematu”.
       - name: Czy schemat jest wersjonowany
@@ -89,7 +92,7 @@ jobs:
         run: |
           if ls supabase/migrations/*.sql >/dev/null 2>&1; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
       - if: steps.schema.outputs.present == 'true'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
         with:
           version: latest
       - if: steps.schema.outputs.present == 'true'

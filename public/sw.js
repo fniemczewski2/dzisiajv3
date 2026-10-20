@@ -79,13 +79,18 @@ async function networkFirst(request, cacheName) {
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
   const hit = await cache.match(request);
-  const refresh = fetch(request)
-    .then((response) => {
-      // Zapis do cache nie blokuje odpowiedzi; błąd (np. brak miejsca) pomijamy.
-    if (response.ok) cache.put(request, response.clone()).catch(() => undefined);
+  const refresh = (async () => {
+    try {
+      const response = await fetch(request);
+      if (response.ok) {
+        // Zapis do cache nie blokuje odpowiedzi; błąd (np. brak miejsca) pomijamy.
+        void cache.put(request, response.clone()).catch(() => undefined);
+      }
       return response;
-    })
-    .catch(() => undefined);
+    } catch {
+      return undefined;
+    }
+  })();
   return hit || (await refresh) || Response.error();
 }
 

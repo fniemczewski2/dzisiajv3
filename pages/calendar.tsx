@@ -7,7 +7,7 @@ import { SkeletonCalendar } from "@/components/ui/Skeleton";
 import { useEvents } from "@/hooks/db/useEvents";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
-import { AddButton } from "@/components/ui/CommonButtons";
+import { AddButton, UploadButton } from "@/components/ui/CommonButtons";
 import { useQuickAction } from "@/hooks/useQuickAction";
 import { useMoods } from "@/hooks/db/useMoods";
 import { useSettings } from "@/hooks/db/useSettings";
@@ -15,7 +15,6 @@ import { DEFAULT_MOODS } from "@/config/defaults";
 import ConnectedCalendars from "@/components/calendar/ConnectedCalendars";
 import Seo from "@/components/ui/SEO";
 import { useRouter } from "next/router";
-import { UploadButton } from "@/components/ui/CommonButtons";
 
 const EventForm = dynamic(() => import("../components/calendar/EventForm"), { ssr: false });
 const DayView = dynamic(() => import("../components/dashboard/DayView"), { ssr: false });

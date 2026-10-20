@@ -159,14 +159,14 @@ export default function ConnectedCalendars() {
                     onClick={handleConnectGoogle}
                     className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-bold text-text shadow-sm transition-colors hover:bg-surface-hover"
                   >
-                    <GoogleIcon /> Google
+                    <GoogleIcon decorative /> Google
                   </button>
                   <button
                     type="button"
                     onClick={handleConnectOutlook}
                     className="flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-bold text-text shadow-sm transition-colors hover:bg-surface-hover"
                   >
-                    <MicrosoftIcon /> Outlook
+                    <MicrosoftIcon decorative /> Outlook
                   </button>
                 </div>
               </div>
@@ -178,9 +178,17 @@ export default function ConnectedCalendars() {
   );
 }
 
-function GoogleIcon() {
+/** Logo dostawcy: z nazwą, gdy stoi samo; ukryte, gdy obok jest napis (`decorative`). */
+function GoogleIcon({ decorative = false }: Readonly<{ decorative?: boolean }>) {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": "Google" })}
+    >
       <path
         d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
         fill="#4285F4"
@@ -201,9 +209,16 @@ function GoogleIcon() {
   );
 }
 
-function MicrosoftIcon() {
+function MicrosoftIcon({ decorative = false }: Readonly<{ decorative?: boolean }>) {
   return (
-    <svg width="18" height="18" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 21 21"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": "Microsoft" })}
+    >
       <rect x="1" y="1" width="9" height="9" fill="#f25022" />
       <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
       <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />

@@ -76,7 +76,7 @@ export function weekdayPosition(day: string): { nth: number; isLast: boolean; we
   };
 }
 
-const FREQS: readonly RecurrenceFreq[] = ["daily", "weekly", "monthly", "yearly"];
+const FREQS: ReadonlySet<string> = new Set<RecurrenceFreq>(["daily", "weekly", "monthly", "yearly"]);
 
 function clampInterval(value: unknown): number {
   return Math.min(MAX_INTERVAL, Math.max(1, Math.floor(Number(value) || 1)));
@@ -116,7 +116,7 @@ function applyEnd(rule: RecurrenceRule, r: Partial<RecurrenceRule>): void {
 export function normalizeRule(raw: unknown): RecurrenceRule | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<RecurrenceRule>;
-  if (!r.freq || !FREQS.includes(r.freq)) return null;
+  if (!r.freq || !FREQS.has(r.freq)) return null;
   const rule: RecurrenceRule = { freq: r.freq, interval: clampInterval(r.interval) };
   if (r.freq === "weekly") {
     const days = normalizeWeekdays(r.byWeekday);

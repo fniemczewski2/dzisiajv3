@@ -12,7 +12,7 @@ import { ConnectedCalendarRow, TokenCache, MainAccountsCache } from "@/types/con
 import { GoogleEventsListResponse } from "@/types/googleCalendar";
 import { OutlookEventsResponse } from "@/types/outlookCalendar";
 
-import { mapPool, chunk } from "@/shared/asyncPool";
+import { mapPool, chunk, forEachPage } from "@/shared/asyncPool";
 
 interface ImportedEventRow {
   user_id: string;
@@ -178,9 +178,7 @@ async function syncGoogleCalendar(
   url.searchParams.set("maxResults", "2500");
   if (isBirthdayVirtual) url.searchParams.set("eventTypes", "birthday");
 
-  let pageToken: string | undefined = undefined;
-
-  do {
+  await forEachPage(async (pageToken) => {
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
@@ -192,12 +190,12 @@ async function syncGoogleCalendar(
       throw new Error(`Google fetch failed for calendar ${acc.id}: ${googleRes.status}`);
     }
     const data: GoogleEventsListResponse = await googleRes.json();
-    pageToken = data.nextPageToken;
 
     const rows = buildGoogleEventRows(data.items, acc, isBirthdayVirtual);
     rows.forEach((r) => seenIds.add(r.google_event_id));
     imported += await upsertImportedEvents(rows);
-  } while (pageToken);
+    return data.nextPageToken;
+  });
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
   return { imported, removed };
@@ -211,10 +209,11 @@ async function syncOutlookCalendar(
 ): Promise<CalendarSyncResult> {
   let imported = 0;
   const seenIds = new Set<string>();
-  let fetchUrl: string | undefined =
-    `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
+  const firstUrl = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(acc.google_calendar_id)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
 
-  while (fetchUrl) {
+  // Kolejne strony Microsoft Graph: kursorem jest pełny adres następnej strony (@odata.nextLink).
+  await forEachPage(async (nextLink) => {
+    const fetchUrl = nextLink ?? firstUrl;
     const msRes: Response = await fetchWithTimeout(fetchUrl, {
       headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' },
     });
@@ -242,8 +241,8 @@ async function syncOutlookCalendar(
     }
     rows.forEach((r) => seenIds.add(r.google_event_id));
     imported += await upsertImportedEvents(rows);
-    fetchUrl = data["@odata.nextLink"];
-  }
+    return data["@odata.nextLink"];
+  });
 
   const removed = await deleteStaleEvents(acc.id, seenIds, timeMin, timeMax);
   return { imported, removed };

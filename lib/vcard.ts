@@ -90,9 +90,12 @@ export interface VCardInput {
 
 /** Plik .vcf z liniami zakończonymi CRLF, zgodnie ze specyfikacją. */
 export function buildVCard(input: VCardInput): string {
-  const lines: string[] = ["BEGIN:VCARD", "VERSION:3.0"];
-  lines.push(`N:${structuredName(input.fullName, input.familyName, input.givenName)}`);
-  lines.push(`FN:${escVCardValue(input.fullName.trim())}`);
+  const lines: string[] = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `N:${structuredName(input.fullName, input.familyName, input.givenName)}`,
+    `FN:${escVCardValue(input.fullName.trim())}`,
+  ];
   if (input.organization?.trim()) lines.push(`ORG:${escVCardValue(input.organization.trim())}`);
 
   for (const phone of input.phones ?? []) {

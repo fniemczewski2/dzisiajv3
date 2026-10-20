@@ -18,6 +18,7 @@ import { useRouter } from "next/router";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
 import { useWeather } from "../hooks/useWeather";
 import { useAppStreak } from "../hooks/useAppStreak";
+import { useEffect, useState } from "react";
 
 interface WeatherdetailsProps {
   currentTemp: number | null;
@@ -71,16 +72,14 @@ function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuali
 }
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  // Zegar co sekundę ze wspólnego źródła czasu. Na serwerze i przy hydratacji – puste
-  // napisy (czas zależy od urządzenia), w przeglądarce bieżąca godzina i data.
   const now = useNow(1000);
   const isClient = useIsClient();
   const currentTime = isClient ? now.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "";
   const currentDate = isClient
     ? now.toLocaleDateString("pl-PL", { weekday: "long", month: "short", day: "numeric" })
     : "";
-  // Data do wskaźnika urodzin – zmienia się o północy (wcześniej nie aktualizowała się wcale).
   const todayDateString = format(now, "yyyy-MM-dd");
 
   const { forecast, air, loading: weatherLoading } = useWeather();
@@ -98,6 +97,10 @@ export default function Header() {
         ? `${air.hourly.pm2_5[0]} µg/m³ PM2.5`
         : `${air.hourly.pm10[0]} µg/m³ PM10`;
   }
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="w-full max-w-[1600px] border-b border-line px-1 pt-2 pb-4 text-(--header-fg) sm:px-2 sm:pt-3 sm:pb-5">
@@ -137,7 +140,8 @@ export default function Header() {
         </div>
 
         <div className="flex items-center justify-end">
-          {weatherLoading ? (
+          {mounted && (
+            weatherLoading ? (
             <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
               <span className="block h-7 w-20 animate-pulse rounded-lg bg-(--header-hover)" />
               <span className="block h-3 w-14 animate-pulse rounded-lg bg-(--header-hover)" />
@@ -150,7 +154,7 @@ export default function Header() {
               weatherCode={weatherCode}
               airQuality={airQuality}
             />
-          )}
+          ))}
         </div>
       </div>
     </header>

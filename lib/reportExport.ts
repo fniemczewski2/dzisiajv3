@@ -75,7 +75,13 @@ function trimDashes(text: string): string {
 
 /** Komórka tabeli Markdown: bez znaków łamiących tabelę. */
 function mdCell(value: string): string {
-  return value.replaceAll("\\", "\\\\").replaceAll("|", "\\|").replaceAll(/\r?\n/g, " ").trim() || "—";
+  return (
+    value
+      .replaceAll("\\", String.raw`\\`)
+      .replaceAll("|", String.raw`\|`)
+      .replaceAll(/\r?\n/g, " ")
+      .trim() || "—"
+  );
 }
 
 export function buildReportMarkdown(report: Report): string {
@@ -90,18 +96,14 @@ export function buildReportMarkdown(report: Report): string {
   lines.push("## Agenda", "");
   if (agenda.length) agenda.forEach((item, i) => lines.push(`${i + 1}. ${item}`));
   else lines.push("_Brak punktów agendy._");
-  lines.push("");
-
-  lines.push("## Obecni", "");
+  lines.push("", "## Obecni", "");
   if (people.length) {
     for (const p of people) {
       const role = p.role ? `**${p.role}:** ` : "";
       lines.push(`- ${role}${p.name}`);
     }
   } else lines.push("_Brak listy osób._");
-  lines.push("");
-
-  lines.push("## Ustalenia i zadania", "");
+  lines.push("", "## Ustalenia i zadania", "");
   if (tasks.length) {
     lines.push("| Lp. | Zadanie | Termin | Odpowiada |", "| ---: | --- | --- | --- |");
     tasks.forEach((t, i) =>
@@ -110,9 +112,7 @@ export function buildReportMarkdown(report: Report): string {
   } else {
     lines.push("_Brak zadań._");
   }
-  lines.push("");
-
-  lines.push("## Notatki", "");
+  lines.push("", "## Notatki", "");
   // Pojedyncze złamania linii jako twarde (dwie spacje), żeby Markdown ich nie sklejał.
   const notes = report.notes?.trim().replaceAll(/([^\n])\n(?!\n)/g, "$1  \n");
   lines.push(notes || "_Brak notatek._", "");
@@ -220,7 +220,7 @@ function titleBlock(title: string, date: string, logo?: { dataUrl: string; width
   const text = {
     stack: [
       { text: title, style: "title" },
-      { text: date ? date : "Protokół ze spotkania", style: "date" },
+      { text: date || "Protokół ze spotkania", style: "date" },
     ],
   };
   if (!logo) return text;

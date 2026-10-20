@@ -5,11 +5,14 @@
 // Powiadamia inne karty i okno, które otworzyło logowanie, a potem przechodzi
 // pod bezpieczny adres z atrybutu data-next (sprawdzony na serwerze).
 (function () {
-  var target = document.documentElement.getAttribute("data-next") || "/";
-  if (target.charAt(0) !== "/" || target.charAt(1) === "/" || target.charAt(1) === "\\") target = "/";
+  const requested = document.documentElement.dataset.next || "/";
+  // Tylko ścieżka w tej domenie: „/…”, ale nie „//…” ani „/\…” (adres innej domeny).
+  const BACKSLASH = 92;
+  const safe = requested.startsWith("/") && !requested.startsWith("//") && requested.charCodeAt(1) !== BACKSLASH;
+  const target = safe ? requested : "/";
 
   try {
-    var channel = new BroadcastChannel("supabase-auth-channel");
+    const channel = new BroadcastChannel("supabase-auth-channel");
     channel.postMessage("auth-success");
     channel.close();
   } catch (e) {

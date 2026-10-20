@@ -1,5 +1,6 @@
 // pages/api/slack/sync.ts
 
+import { mapPool } from "@/shared/asyncPool";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { translateSlackError } from "@/lib/server/slackLists";
@@ -75,11 +76,10 @@ async function syncUserTargets(
   const linkedAnywhere = await loadLinkedAnywhere(admin, listIds);
   const targetListByTask = await loadTargetListByTask(admin, userId);
 
-  const results: SyncResult[] = [];
-  for (const target of userTargets) {
-    results.push(await syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask));
-  }
-  return results;
+  // Listy kolejno (limit 1) – wspólne zadania i limit zapytań Slack API.
+  return mapPool(userTargets, 1, (target) =>
+    syncOneTargetSafely(admin, target, tasks, linkedAnywhere, targetListByTask)
+  );
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -104,11 +104,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const targets = await loadTargets(admin, scopedUserId);
     const byUser = groupTargetsByUser(targets);
 
-    const results: SyncResult[] = [];
-    for (const [userId, userTargets] of byUser) {
-      if (scopedUserId && userId !== scopedUserId) continue;
-      results.push(...(await syncUserTargets(admin, userId, userTargets)));
-    }
+    // Użytkownicy kolejno (limit 1) – limit zapytań Slack API przy jednym kluczu aplikacji.
+    const users = [...byUser].filter(([userId]) => !scopedUserId || userId === scopedUserId);
+    const perUser = await mapPool(users, 1, ([userId, userTargets]) => syncUserTargets(admin, userId, userTargets));
+    const results: SyncResult[] = perUser.flat();
 
     const failed = results.filter((r) => "error" in r).length;
     return res

@@ -5,6 +5,7 @@
 // odzyskaniu połączenia (OfflineSync w _app). Przy wylogowaniu kolejka jest
 // czyszczona, więc na wspólnym urządzeniu nie zostają cudze dane.
 
+import { mapPool } from "@/shared/asyncPool";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { OFFLINE_QUEUE_DB, OFFLINE_QUEUE_DB_VERSION, OFFLINE_QUEUE_STORE } from "@/config/storage";
 
@@ -93,17 +94,20 @@ export async function flushQueue(supabase: SupabaseClient, ownerId: string): Pro
   const entries = (await allEntries()).filter((entry) => entry.ownerId === ownerId);
   const result: FlushResult = { sent: 0, pending: 0, dropped: 0 };
 
-  for (const [index, entry] of entries.entries()) {
-    if (isOffline()) {
-      result.pending = entries.length - index;
-      break;
+  let stopped = false;
+  // Zapisy jeden po drugim (limit 1) – kolejność dodania ma znaczenie.
+  await mapPool(entries, 1, async (entry) => {
+    // Utrata sieci w trakcie: reszta zostaje w kolejce na następną próbę.
+    if (stopped || isOffline()) {
+      stopped = true;
+      result.pending += 1;
+      return;
     }
-    // Kolejne zapisy celowo jeden po drugim – kolejność dodania ma znaczenie.
     const { error } = await supabase.from(entry.table).insert(entry.payload);
     if (!error) {
       await withStore("readwrite", (store) => store.delete(entry.id));
       result.sent += 1;
-      continue;
+      return;
     }
     const attempts = entry.attempts + 1;
     if (attempts >= MAX_QUEUE_ATTEMPTS) {
@@ -113,7 +117,7 @@ export async function flushQueue(supabase: SupabaseClient, ownerId: string): Pro
       await withStore("readwrite", (store) => store.put({ ...entry, attempts }));
       result.pending += 1;
     }
-  }
+  });
   return result;
 }
 

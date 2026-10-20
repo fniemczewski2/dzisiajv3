@@ -389,16 +389,6 @@
     outline-offset: 2px;
   }
 
-  /* iOS powiększa stronę po dotknięciu pola z czcionką < 16 px – na ekranach
-     dotykowych pola formularzy zawsze mają co najmniej 16 px. */
-  @media (pointer: coarse) {
-    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-    select,
-    textarea {
-      font-size: max(1rem, 16px) !important;
-    }
-  }
-
   input[type="time"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-inner-spin-button {
     display: none;
@@ -440,16 +430,32 @@
   h3 {
     text-wrap: balance;
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
+/*
+ * Reguły poza warstwami (@layer): w kaskadzie CSS deklaracje spoza warstw wygrywają
+ * z każdą warstwą (także z utilities Tailwinda), więc nie potrzebują !important.
+ */
+
+/* iOS powiększa stronę po dotknięciu pola z czcionką < 16 px – na ekranach
+   dotykowych pola formularzy zawsze mają co najmniej 16 px. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/* Ograniczenie ruchu (WCAG 2.3.3): animacje i przejścia praktycznie wyłączone. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
   }
 }
 

@@ -65,3 +65,16 @@ describe("chunk", () => {
     expect(chunk([], 3)).toEqual([]);
   });
 });
+
+describe("forEachPage", () => {
+  it("pobiera kolejne strony aż do braku kursora, po kolei", async () => {
+    const { forEachPage } = await import("@/shared/asyncPool");
+    const pages: Record<string, string | undefined> = { start: "b", b: "c", c: undefined };
+    const seen: (string | undefined)[] = [];
+    await forEachPage(async (cursor) => {
+      seen.push(cursor);
+      return pages[cursor ?? "start"];
+    });
+    expect(seen).toEqual([undefined, "b", "c"]);
+  });
+});

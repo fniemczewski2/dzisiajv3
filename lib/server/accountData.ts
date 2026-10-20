@@ -175,13 +175,16 @@ export async function deleteUserData(admin: SupabaseClient, userId: string): Pro
   const report: DeletionReport = { tables: {}, files_removed: 0 };
 
   // Odwołania w cudzych wierszach (udostępnione zadania, wydarzenia, listy).
-  for (const ref of SHARED_REFERENCES) {
-    const { error } = await admin
-      .from(ref.table)
-      .update({ [ref.column]: null })
-      .eq(ref.column, userId);
-    if (error && !isMissingTable(error)) throw new AccountDataError(error.message, `unshare:${ref.table}`);
-  }
+  // Niezależne tabele – równolegle.
+  await Promise.all(
+    SHARED_REFERENCES.map(async (ref) => {
+      const { error } = await admin
+        .from(ref.table)
+        .update({ [ref.column]: null })
+        .eq(ref.column, userId);
+      if (error && !isMissingTable(error)) throw new AccountDataError(error.message, `unshare:${ref.table}`);
+    })
+  );
 
   // Ankiety: dostępność → odpowiedzi → dni → ankiety. Także odpowiedzi tej osoby w cudzych ankietach.
   const polls = await selectAll(admin, "meeting_polls", "id", { column: "user_id", values: [userId] });
@@ -202,21 +205,23 @@ export async function deleteUserData(admin: SupabaseClient, userId: string): Pro
   report.tables.meeting_polls = await deleteWhere(admin, "meeting_polls", "id", ids(polls));
 
   const stages = [...new Set(USER_TABLES.map((t) => t.stage))].sort((a, b) => a - b);
-  for (const stage of stages) {
+  // Etapy kolejno (dzieci przed rodzicami – klucze obce), w obrębie etapu tabele równolegle.
+  await mapPool(stages, 1, async (stage) => {
     const tables = USER_TABLES.filter((t) => t.stage === stage);
-    // W obrębie etapu tabele są niezależne – równolegle.
     await mapPool(tables, 4, async (entry) => {
       report.tables[entry.table] = await deleteWhere(admin, entry.table, entry.owner, [userId]);
     });
-  }
+  });
 
   await mapPool(USER_STORAGE_BUCKETS, USER_STORAGE_BUCKETS.length, async (bucket) => {
     const paths = await listAllPaths(admin, bucket, userId);
-    for (const part of chunk(paths, PAGING.storageList)) {
-      const { error } = await admin.storage.from(bucket).remove(part);
-      if (error) throw new AccountDataError(error.message, `storage:${bucket}`);
-      report.files_removed += part.length;
-    }
+    await Promise.all(
+      chunk(paths, PAGING.storageList).map(async (part) => {
+        const { error } = await admin.storage.from(bucket).remove(part);
+        if (error) throw new AccountDataError(error.message, `storage:${bucket}`);
+        report.files_removed += part.length;
+      })
+    );
   });
 
   return report;

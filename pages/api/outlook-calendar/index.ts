@@ -10,7 +10,7 @@ import { ConnectedCalendarRow } from "@/types/connectedCalendars";
 import { OutlookEventsResponse, OutlookCalendarsResponse } from "@/types/outlookCalendar";
 import { refreshOutlookToken } from "@/lib/server/oauthTokens";
 import { outlookToSupabaseTime, warsawNaiveToRFC3339 } from "@/lib/server/calendarTime";
-import { mapPool } from "@/shared/asyncPool";
+import { mapPool, forEachPage } from "@/shared/asyncPool";
 import { resolveExportTarget, canAttachToTarget, type ExportTarget } from "@/lib/server/exportTarget";
 async function ensureFreshOutlookToken(supabase: SupabaseClient, mainAcc: ConnectedCalendarRow): Promise<string> {
   let accessToken = decryptToken(mainAcc.access_token);
@@ -151,16 +151,16 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
     const timeMax = new Date();
     timeMax.setFullYear(timeMax.getFullYear() + 1);
 
-    let fetchUrl: string | undefined =
-      `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
+    const firstUrl = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calendarId)}/calendarView?startDateTime=${timeMin.toISOString()}&endDateTime=${timeMax.toISOString()}&$top=100`;
     let imported = 0;
 
-    while (fetchUrl) {
-      const msRes: Response = await fetch(fetchUrl, {
+    // Kolejne strony Microsoft Graph (kursor = @odata.nextLink); błąd strony kończy import.
+    await forEachPage(async (nextLink) => {
+      const msRes: Response = await fetch(nextLink ?? firstUrl, {
         headers: { Authorization: `Bearer ${accessToken}`, Prefer: 'outlook.timezone="UTC"' },
       });
 
-      if (!msRes.ok) break;
+      if (!msRes.ok) return undefined;
       const data: OutlookEventsResponse = await msRes.json();
       const rows = buildOutlookEventRows(data.value, user.id, accountId);
 
@@ -175,8 +175,8 @@ async function handleImport(req: NextApiRequest, res: NextApiResponse, supabase:
         }
       }
 
-      fetchUrl = data["@odata.nextLink"];
-    }
+      return data["@odata.nextLink"];
+    });
 
     return res.status(200).json({ success: true, imported });
   } catch {

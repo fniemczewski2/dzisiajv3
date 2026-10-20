@@ -12,7 +12,7 @@ import { ConnectedCalendarRow } from "@/types/connectedCalendars";
 import { GoogleEventsListResponse, GoogleCalendarListResponse, GoogleCalendarEvent } from "@/types/googleCalendar";
 import { ExternalCalendar } from "@/types/events";
 
-import { mapPool, chunk } from "@/shared/asyncPool";
+import { mapPool, chunk, forEachPage } from "@/shared/asyncPool";
 import { resolveExportTarget, canAttachToTarget } from "@/lib/server/exportTarget";
 import { publicEnv, serverEnv } from "@/config/env";
 
@@ -159,21 +159,23 @@ async function fetchAllGoogleEvents(
   accessToken: string
 ): Promise<{ items: GoogleCalendarEvent[]; failedStatus?: number }> {
   const allItems: GoogleCalendarEvent[] = [];
-  let pageToken: string | undefined = undefined;
+  let failedStatus: number | undefined;
 
-  do {
+  await forEachPage(async (pageToken) => {
     const fetchUrl = new URL(url.toString());
     if (pageToken) fetchUrl.searchParams.set("pageToken", pageToken);
 
     const r = await fetch(fetchUrl.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
-    if (!r.ok) return { items: allItems, failedStatus: r.status };
-
+    if (!r.ok) {
+      failedStatus = r.status;
+      return undefined;
+    }
     const data: GoogleEventsListResponse = await r.json();
     allItems.push(...(data.items || []));
-    pageToken = data.nextPageToken;
-  } while (pageToken);
+    return data.nextPageToken;
+  });
 
-  return { items: allItems };
+  return failedStatus === undefined ? { items: allItems } : { items: allItems, failedStatus };
 }
 
 interface ImportRowsResult {

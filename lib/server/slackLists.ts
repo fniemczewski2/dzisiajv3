@@ -1,5 +1,6 @@
 // lib/server/slackLists.ts
 
+import { forEachPage } from "@/shared/asyncPool";
 import { fetchWithTimeout } from "@/lib/server/fetchWithTimeout";
 import {
   SLACK_API_BASE,
@@ -302,19 +303,15 @@ export interface SlackItem {
 
 async function fetchAllItems(token: string, listId: string): Promise<SlackItem[]> {
   const items: SlackItem[] = [];
-  let cursor: string | undefined;
-
-  do {
+  await forEachPage(async (cursor) => {
     const body = await callSlack<{ items?: SlackItem[] }>("slackLists.items.list", token, {
       list_id: listId,
       limit: SLACK_ITEMS_PAGE_SIZE,
       ...(cursor ? { cursor } : {}),
     });
-
     items.push(...(body.items ?? []));
-    cursor = body.response_metadata?.next_cursor || undefined;
-  } while (cursor);
-
+    return body.response_metadata?.next_cursor || undefined;
+  });
   return items;
 }
 

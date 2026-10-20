@@ -1,3 +1,4 @@
+import { mapPool } from "@/shared/asyncPool";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { deleteItem, isMissingItemError, type SlackColumn, type SlackItem } from "@/lib/server/slackLists";
 import { DEFAULT_TASK_STATUS } from "@/config/slack";
@@ -79,7 +80,8 @@ export async function applyAppDeletions(admin: SupabaseClient, target: SyncTarge
     .eq("list_id", target.listId);
 
   let removed = 0;
-  for (const tombstone of (data ?? []) as { id: string; item_id: string }[]) {
+  // Jeden po drugim (limit 1) – limit zapytań Slack API.
+  await mapPool((data ?? []) as { id: string; item_id: string }[], 1, async (tombstone) => {
     try {
       await deleteItem(target.token, target.listId, tombstone.item_id);
       removed += 1;
@@ -87,6 +89,6 @@ export async function applyAppDeletions(admin: SupabaseClient, target: SyncTarge
       if (!isMissingItemError(err)) throw err;
     }
     await admin.from("slack_deleted_tasks").delete().eq("id", tombstone.id);
-  }
+  });
   return removed;
 }

@@ -24,14 +24,15 @@ export default function PrivacyPage() {
             <a href="https://dzisiaj.fun" className="text-primary hover:underline">
               dzisiaj.fun
             </a>
-            ) jest <strong>Franciszek Niemczewski - Usługi IT</strong> z siedzibą w Baranówku, NIP: 7773460003.
+            {") jest "}
+            <strong>Franciszek Niemczewski - Usługi IT</strong> z siedzibą w Baranówku, NIP: 7773460003.
           </p>
           <p className="mt-2">
             W sprawach związanych z prywatnością i ochroną danych możesz kontaktować się pod adresem e-mail:{" "}
             <a href="mailto:f.niemczewski@dzisiaj.fun" className="text-primary hover:underline">
               f.niemczewski@dzisiaj.fun
             </a>
-            .
+            {"."}
           </p>
         </Section>
 
@@ -75,7 +76,7 @@ export default function PrivacyPage() {
               <span>
                 Jeśli połączysz konto Slack, przechowujemy identyfikator i nazwę przestrzeni roboczej, Twój
                 identyfikator użytkownika Slack oraz zaszyfrowany token dostępu. Aplikacja prosi o uprawnienia do
-                odczytu i zapisu list Slacka (<em>lists:read</em>, <em>lists:write</em>), odczytu plików (
+                odczytu i zapisu list Slacka (<em>lists:read</em>, <em>lists:write</em>), odczytu plików{" ("}
                 <em>files:read</em>) oraz odczytu użytkowników i ich adresów e-mail (<em>users:read</em>,{" "}
                 <em>users:read.email</em>) – te ostatnie służą do dopasowania osób przypisanych do elementów listy. Z
                 wybranymi przez Ciebie listami synchronizowane są tytuł, opis, termin, priorytet i status zadań, w obie
@@ -168,7 +169,7 @@ export default function PrivacyPage() {
               >
                 Zasadami dotyczącymi danych użytkownika usług interfejsu API Google
               </a>
-              , w tym z wymogami ograniczonego użytkowania (Limited Use requirements).
+              {", w tym"} z wymogami ograniczonego użytkowania (Limited Use requirements).
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-4 text-sm">
               <li>

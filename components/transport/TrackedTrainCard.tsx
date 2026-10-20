@@ -44,7 +44,9 @@ const pastDateFmt = new Intl.DateTimeFormat("pl-PL", {
 export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming = false }: TrackedTrainProps) => {
   // Odbyte i nadchodzące: bez zapytań do PKP PLK (useTrainStatus pilnuje też okna czasowego).
   const { delay, platform, status, loading, hide } = useTrainStatus(train, { enabled: !historical && !upcoming });
-  if (hide && !historical && !upcoming) return null;
+  // Pociąg już dojechał (PKP PLK nie podaje dalszych zdarzeń): zostaje na liście z tym statusem
+  // do końca okna (3 h po przyjeździe), potem trafia do „odbytych”.
+  const arrived = hide && !historical && !upcoming;
   const isRateLimited = status === "Zbyt wiele zapytań";
   let platformLabel = "Brak peronu";
   if (historical) platformLabel = `Odjazd ${train.date.split("-").reverse().join(".")}`;
@@ -77,6 +79,14 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
       return (
         <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-2 bg-surface py-1.5 text-center text-xs font-bold text-text-muted shadow-sm">
           <Loader2 className="h-3 w-3 animate-spin" /> Aktualizacja...
+        </div>
+      );
+    }
+
+    if (arrived) {
+      return (
+        <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-1.5 bg-surface py-1.5 text-center text-xs font-bold text-text-secondary">
+          <MapPin className="h-3 w-3" aria-hidden="true" /> Dojechał
         </div>
       );
     }

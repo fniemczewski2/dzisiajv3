@@ -228,8 +228,8 @@ export default function EventsBulkImport({ onImported, onClose }: Readonly<Props
                         disabled={past}
                         onChange={() => toggle(e.key)}
                       />
+                      <span className="sr-only">Importuj wydarzenie: </span>
                       <span className="min-w-0 flex-1">
-                        <span className="sr-only">Importuj wydarzenie: </span>
                         <span className={`block font-medium ${e.title ? "text-text" : "text-text-secondary"}`}>
                           {titleOf(e)}
                         </span>

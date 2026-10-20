@@ -110,14 +110,14 @@ const STOP_WORDS = new Set([
  * „Apple” i „APPLE.COM/BILL” → „APPLE”; „Płatność kartą ORLEN 123” → „ORLEN”.
  */
 export function merchantKey(description: string | null | undefined): string {
-  const words = (description ?? "")
+  const firstWord = (description ?? "")
     .toUpperCase()
     .normalize("NFD")
     .replaceAll(/[\u0300-\u036f]/g, "")
     .replaceAll("Ł", "L")
     .split(/[^A-Z0-9]+/)
-    .filter((w) => w.length >= 2 && !/^\d+$/.test(w) && !STOP_WORDS.has(w));
-  return words[0] ?? "";
+    .find((w) => w.length >= 2 && !/^\d+$/.test(w) && !STOP_WORDS.has(w));
+  return firstWord ?? "";
 }
 
 /** Kwoty „prawie równe”: różnica do 10% (min. 2 zł) – ceny subskrypcji się zmieniają. */
