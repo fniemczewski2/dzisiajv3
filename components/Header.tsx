@@ -18,7 +18,6 @@ import { useRouter } from "next/router";
 import BirthdayIndicator from "./calendar/BirthdayIndicator";
 import { useWeather } from "../hooks/useWeather";
 import { useAppStreak } from "../hooks/useAppStreak";
-import { useEffect, useState } from "react";
 
 interface WeatherdetailsProps {
   currentTemp: number | null;
