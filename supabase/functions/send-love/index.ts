@@ -1,7 +1,7 @@
 // supabase/functions/send-love/index.ts
 
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
-import { json, preflight } from "../_shared/auth.ts";
+import { json, preflight, withCors } from "../_shared/auth.ts";
 
 const LOVE_LIMIT = 5;
 const LOVE_WINDOW_MINUTES = 10;
@@ -62,79 +62,81 @@ async function resolveRecipient(
   return { ok: true, userId: targetUserId as string };
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return preflight();
-  if (req.method !== "POST") return respond({ error: "Metoda niedozwolona." }, 405);
+Deno.serve(
+  withCors(async (req) => {
+    if (req.method === "OPTIONS") return preflight();
+    if (req.method !== "POST") return respond({ error: "Metoda niedozwolona." }, 405);
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
-  const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) return respond({ error: "Brak autoryzacji." }, 401);
-  const jwt = authHeader.slice("Bearer ".length);
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) return respond({ error: "Brak autoryzacji." }, 401);
+    const jwt = authHeader.slice("Bearer ".length);
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+    const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await admin.auth.getUser(jwt);
-    if (userError || !user?.email) return respond({ error: "Brak autoryzacji." }, 401);
-    const senderEmail = user.email.toLowerCase();
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await admin.auth.getUser(jwt);
+      if (userError || !user?.email) return respond({ error: "Brak autoryzacji." }, 401);
+      const senderEmail = user.email.toLowerCase();
 
-    if (await isRateLimited(admin, user.id)) {
-      return respond({ success: false, message: "Za dużo serduszek naraz – spróbuj za kilka minut." }, 429);
-    }
+      if (await isRateLimited(admin, user.id)) {
+        return respond({ success: false, message: "Za dużo serduszek naraz – spróbuj za kilka minut." }, 429);
+      }
 
-    const asSender = createClient(supabaseUrl, anonKey, {
-      auth: { persistSession: false },
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
-    });
-    const recipient = await resolveRecipient(admin, asSender, user.id, senderEmail);
-    if (!recipient.ok) return respond(recipient.body);
-    const targetUserId = recipient.userId;
+      const asSender = createClient(supabaseUrl, anonKey, {
+        auth: { persistSession: false },
+        global: { headers: { Authorization: `Bearer ${jwt}` } },
+      });
+      const recipient = await resolveRecipient(admin, asSender, user.id, senderEmail);
+      if (!recipient.ok) return respond(recipient.body);
+      const targetUserId = recipient.userId;
 
-    const title = "Kocham Cię!";
-    const message = "Ktoś przesyła Ci dużo miłości!";
+      const title = "Kocham Cię!";
+      const message = "Ktoś przesyła Ci dużo miłości!";
 
-    const { error: insertError } = await admin.from("notifications").insert({
-      user_id: targetUserId,
-      type: "love_message",
-      title,
-      message,
-      data: { sender_id: user.id },
-    });
-    if (insertError) throw insertError;
-
-    const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${serviceRoleKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: targetUserId,
+      const { error: insertError } = await admin.from("notifications").insert({
+        user_id: targetUserId,
+        type: "love_message",
         title,
         message,
-        url: "/",
-        data: { type: "love_message", from: user.id },
-      }),
-    });
-    if (!pushRes.ok) {
-      console.error("[send-love] send-push failed:", await pushRes.text());
+        data: { sender_id: user.id },
+      });
+      if (insertError) throw insertError;
+
+      const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: targetUserId,
+          title,
+          message,
+          url: "/",
+          data: { type: "love_message", from: user.id },
+        }),
+      });
+      if (!pushRes.ok) {
+        console.error("[send-love] send-push failed:", await pushRes.text());
+      }
+
+      await admin.channel(`love_channel_${targetUserId}`).send({
+        type: "broadcast",
+        event: "love_received",
+        payload: { message: "Ktoś przesłał Ci serduszko!" },
+      });
+
+      return respond({ success: true, message: "Wysłano serduszko" });
+    } catch (error) {
+      console.error("[send-love]:", error instanceof Error ? error.message : error);
+      return respond({ error: "Nie udało się wysłać serduszka." }, 500);
     }
-
-    await admin.channel(`love_channel_${targetUserId}`).send({
-      type: "broadcast",
-      event: "love_received",
-      payload: { message: "Ktoś przesłał Ci serduszko!" },
-    });
-
-    return respond({ success: true, message: "Wysłano serduszko" });
-  } catch (error) {
-    console.error("[send-love]:", error instanceof Error ? error.message : error);
-    return respond({ error: "Nie udało się wysłać serduszka." }, 500);
-  }
-});
+  })
+);

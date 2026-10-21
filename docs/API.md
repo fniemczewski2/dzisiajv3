@@ -80,7 +80,7 @@ await fetch("/api/google-calendar?action=export", {
 
 ## Edge Functions (Supabase)
 
-Wszystkie funkcje importują klienta z `_shared/supabase.ts` (jedna przypięta wersja) i nagłówki z `_shared/auth.ts`. CORS przepuszcza tylko adres z sekretu `ALLOWED_ORIGIN`.
+Wszystkie funkcje importują klienta z `_shared/supabase.ts` (jedna przypięta wersja) i nagłówki z `_shared/auth.ts`. CORS przepuszcza adresy `https://dzisiaj.fun`, `https://www.dzisiaj.fun` oraz adresy z sekretu `ALLOWED_ORIGIN` (po przecinku); nagłówek dobiera `withCors` do `Origin` żądania.
 
 | Funkcja                 | Dostęp                                  | Opis                                                                                                           |
 | ----------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |

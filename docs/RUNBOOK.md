@@ -162,8 +162,9 @@ trafiających w różne instancje. Bez Redisa limiter działa w pamięci instanc
 **Asymetryczne klucze JWT (Supabase → Settings → JWT Keys).** Włączone = `proxy.ts` weryfikuje sesję
 lokalnie (`getClaims()`), bez zapytania do Auth przy każdej stronie. Bez nich `getClaims()` pyta serwer.
 
-**Edge Functions – sekret `ALLOWED_ORIGIN`.** Produkcja: `https://dzisiaj.fun`; lokalnie
-`http://localhost:3000`. Inny adres = przeglądarka zablokuje wywołania funkcji (CORS).
+**Edge Functions – sekret `ALLOWED_ORIGIN`.** Opcjonalny; lista adresów po przecinku, dodawana do domyślnych
+`https://dzisiaj.fun` i `https://www.dzisiaj.fun` (lokalnie np. `http://localhost:3000`). Adres spoza listy = przeglądarka
+zablokuje odpowiedź funkcji (CORS, w UI „Brak połączenia z funkcją…”). Po zmianie wdróż funkcje ponownie.
 
 **pg_cron.** Dashboard → Database → Extensions → `pg_cron`, potem uruchom
 `supabase/sql/2026-10-17_errors_retention.sql`. Sprawdzenie: `select * from cron.job_run_details order by start_time desc limit 5;`.

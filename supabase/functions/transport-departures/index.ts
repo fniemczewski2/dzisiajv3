@@ -14,7 +14,7 @@ import {
   type StopCluster,
   type StopPost,
 } from "../_shared/stopGrouping.ts";
-import { jsonHeaders, preflight } from "../_shared/auth.ts";
+import { jsonHeaders, preflight, withCors } from "../_shared/auth.ts";
 
 const PEKA_URL = "https://www.peka.poznan.pl/vm/method.vm";
 const ZDITM_URL = "https://www.zditm.szczecin.pl/api/v1/displays";
@@ -332,45 +332,47 @@ async function handleNearbyRequest(supabase: Db, lat: number, lon: number): Prom
   );
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return preflight();
+Deno.serve(
+  withCors(async (req) => {
+    if (req.method === "OPTIONS") return preflight();
 
-  const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
-  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const {
-    data: { user },
-    error: authError,
-  } = await supabaseAuth.auth.getUser(jwt);
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
-      status: 401,
-      headers: jsonHeaders,
-    });
-  }
-
-  try {
-    const { lat, lon, stopNames } = (await req.json()) as RequestBody;
-
-    if (!stopNames && (!lat || !lon)) {
-      return new Response(JSON.stringify({ error: "LOCATION_REQUIRED", message: "Brak współrzędnych GPS." }), {
+    const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser(jwt);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Brak autoryzacji." }), {
+        status: 401,
         headers: jsonHeaders,
       });
     }
 
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    try {
+      const { lat, lon, stopNames } = (await req.json()) as RequestBody;
 
-    if (stopNames && Array.isArray(stopNames)) {
-      const userPos = typeof lat === "number" && typeof lon === "number" ? { lat, lon } : null;
-      return await handleStopNamesRequest(supabase, stopNames, userPos);
+      if (!stopNames && (!lat || !lon)) {
+        return new Response(JSON.stringify({ error: "LOCATION_REQUIRED", message: "Brak współrzędnych GPS." }), {
+          headers: jsonHeaders,
+        });
+      }
+
+      const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+      if (stopNames && Array.isArray(stopNames)) {
+        const userPos = typeof lat === "number" && typeof lon === "number" ? { lat, lon } : null;
+        return await handleStopNamesRequest(supabase, stopNames, userPos);
+      }
+
+      if (lat && lon) {
+        return await handleNearbyRequest(supabase, lat, lon);
+      }
+
+      return new Response(JSON.stringify({ success: [] }), { headers: jsonHeaders });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Błąd serwera.";
+      return new Response(JSON.stringify({ error: msg }), { status: 400, headers: jsonHeaders });
     }
-
-    if (lat && lon) {
-      return await handleNearbyRequest(supabase, lat, lon);
-    }
-
-    return new Response(JSON.stringify({ success: [] }), { headers: jsonHeaders });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : "Błąd serwera.";
-    return new Response(JSON.stringify({ error: msg }), { status: 400, headers: jsonHeaders });
-  }
-});
+  })
+);

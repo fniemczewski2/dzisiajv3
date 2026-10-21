@@ -2,7 +2,7 @@
 
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import webpush from "npm:web-push@3.6.6";
-import { safeEqual, jsonHeaders, preflight, unauthorized } from "../_shared/auth.ts";
+import { safeEqual, jsonHeaders, preflight, unauthorized, withCors } from "../_shared/auth.ts";
 
 interface PushRequest {
   userId?: string;
@@ -88,51 +88,58 @@ async function sendToSubscription(
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return preflight();
-  }
-
-  try {
-    const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceRoleKey);
-
-    const { userId: requestedUserId, title, message, url, data } = (await req.json()) as PushRequest;
-
-    const userId = await resolveUserId(supabase, bearer, serviceRoleKey, requestedUserId);
-    if (userId instanceof Response) return userId;
-
-    const vapidProblem = configureVapid();
-    if (vapidProblem) return vapidProblem;
-
-    const { data: subscriptions, error } = await supabase
-      .from("push_subscriptions")
-      .select("id, subscription")
-      .eq("user_id", userId);
-    if (error) throw error;
-
-    if (!subscriptions || subscriptions.length === 0) {
-      console.log(`Brak subskrypcji push dla użytkownika: ${userId}`);
-      return json({ success: true, sent: 0, total: 0, message: "Brak subskrypcji powiadomień dla tego użytkownika." });
+Deno.serve(
+  withCors(async (req) => {
+    if (req.method === "OPTIONS") {
+      return preflight();
     }
 
-    const payload = JSON.stringify({ title, message, url: url || "/", data: data || {}, id: crypto.randomUUID() });
-    const results = await Promise.all(
-      (subscriptions as StoredSubscription[]).map((sub) => sendToSubscription(supabase, sub, payload))
-    );
+    try {
+      const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+      const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceRoleKey);
 
-    // Same kody HTTP (bez treści błędów) – pozwalają przyciskowi testu wskazać przyczynę.
-    const failedStatusCodes = results.map((r) => r.statusCode).filter((c): c is number => typeof c === "number");
+      const { userId: requestedUserId, title, message, url, data } = (await req.json()) as PushRequest;
 
-    return json({
-      success: true,
-      sent: results.filter((r) => r.success).length,
-      total: subscriptions.length,
-      failedStatusCodes,
-    });
-  } catch (error) {
-    console.error("Critical error in send-push:", error instanceof Error ? error.message : error);
-    return json({ error: "Nie udało się wysłać powiadomienia." }, 400);
-  }
-});
+      const userId = await resolveUserId(supabase, bearer, serviceRoleKey, requestedUserId);
+      if (userId instanceof Response) return userId;
+
+      const vapidProblem = configureVapid();
+      if (vapidProblem) return vapidProblem;
+
+      const { data: subscriptions, error } = await supabase
+        .from("push_subscriptions")
+        .select("id, subscription")
+        .eq("user_id", userId);
+      if (error) throw error;
+
+      if (!subscriptions || subscriptions.length === 0) {
+        console.log(`Brak subskrypcji push dla użytkownika: ${userId}`);
+        return json({
+          success: true,
+          sent: 0,
+          total: 0,
+          message: "Brak subskrypcji powiadomień dla tego użytkownika.",
+        });
+      }
+
+      const payload = JSON.stringify({ title, message, url: url || "/", data: data || {}, id: crypto.randomUUID() });
+      const results = await Promise.all(
+        (subscriptions as StoredSubscription[]).map((sub) => sendToSubscription(supabase, sub, payload))
+      );
+
+      // Same kody HTTP (bez treści błędów) – pozwalają przyciskowi testu wskazać przyczynę.
+      const failedStatusCodes = results.map((r) => r.statusCode).filter((c): c is number => typeof c === "number");
+
+      return json({
+        success: true,
+        sent: results.filter((r) => r.success).length,
+        total: subscriptions.length,
+        failedStatusCodes,
+      });
+    } catch (error) {
+      console.error("Critical error in send-push:", error instanceof Error ? error.message : error);
+      return json({ error: "Nie udało się wysłać powiadomienia." }, 400);
+    }
+  })
+);
