@@ -2,7 +2,7 @@
 
 import { buildVCard } from "@/lib/vcard";
 import React, { useState } from "react";
-import { Phone, Mail, CheckCircle2, Clock, ChevronDown, ChevronUp, Cake, Gift } from "lucide-react";
+import { Phone, Mail, Clock, ChevronDown, ChevronUp, Cake, Gift } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Person } from "@/types/people";
 import { EditButton, DeleteButton, ShareButton, CloseButton, ConfirmButton } from "../ui/CommonButtons";
