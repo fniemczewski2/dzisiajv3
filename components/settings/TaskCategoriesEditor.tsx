@@ -6,7 +6,7 @@
 
 import React, { useId, useState } from "react";
 import { Lock, PlusCircle, RotateCcw } from "lucide-react";
-import { DeleteButton } from "@/components/ui/CommonButtons";
+import { AddButton, DeleteButton } from "@/components/ui/CommonButtons";
 import CategoryColorPicker from "./CategoryColorPicker";
 import {
   DEFAULT_USER_TASK_CATEGORIES,
@@ -17,6 +17,7 @@ import {
   resolveUserTaskCategories,
   validateTaskCategoryName,
 } from "@/lib/taskCategories";
+import AddItemInput from "./AddItemInput";
 
 interface Row {
   id: number;
@@ -126,19 +127,13 @@ export default function TaskCategoriesEditor({
     setDraftError(null);
   };
 
-  const atLimit = rows.length >= MAX_TASK_CATEGORIES;
-
   return (
-    <div className="mt-2 rounded-xl border border-line bg-surface p-4">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-text">Kategorie i kolory</h4>
-        <span className="text-xs text-text-muted">
-          {rows.length}/{MAX_TASK_CATEGORIES}
-        </span>
-      </div>
+    <fieldset className="min-w-0 rounded-xl border border-line p-4">
+      <legend className="px-1 text-sm font-semibold text-text">
+        Kategorie&nbsp;{rows.length}/{MAX_TASK_CATEGORIES}
+      </legend>
       <p className="mb-3 text-xs text-text-secondary">
-        Kategorie są wspólne dla zadań i wydarzeń. Kolor oznacza wydarzenia w widoku miesiąca. Zmiana nazwy przenosi
-        istniejące zadania i wydarzenia; z usuniętej kategorii zachowują ją.
+        Zmiana nazwy przenosi istniejące, zadania i wydarzenia z usuniętej kategorii zachowują ją.
       </p>
 
       <ul className="space-y-2">
@@ -179,44 +174,13 @@ export default function TaskCategoriesEditor({
           );
         })}
       </ul>
-
-      <div className="mt-3 flex items-start gap-2">
-        <div className="flex-1">
-          <input
-            type="text"
-            value={draft}
-            placeholder={atLimit ? `Limit ${MAX_TASK_CATEGORIES} kategorii` : "Nowa kategoria"}
-            aria-label="Nowa kategoria"
-            aria-invalid={draftError !== null}
-            aria-describedby={draftError ? `${baseId}-draft-err` : undefined}
-            disabled={atLimit}
-            onChange={(e) => {
-              setDraft(e.target.value);
-              setDraftError(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault(); // nie wysyłaj całego formularza ustawień
-                addCategory();
-              }
-            }}
-            className="input-field w-full"
-          />
-          {draftError && (
-            <p id={`${baseId}-draft-err`} className="mt-1 text-xs text-danger">
-              {draftError}
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={addCategory}
-          disabled={atLimit || !draft.trim()}
-          className="flex items-center gap-2 p-2 text-sm font-semibold text-primary transition-colors hover:text-primary-strong disabled:opacity-50"
-        >
-          <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj
-        </button>
-      </div>
+      <AddItemInput
+        count={rows.length}
+        max={MAX_TASK_CATEGORIES}
+        label="Nowa kategoria"
+        validate={(name) => validateTaskCategoryName(name, rows.map((r) => r.name))}
+        onAdd={(name) => emit([...rows, { id: nextId++, original: null, name, color: null }])}
+      />
 
       <div className="mt-4 border-t border-line pt-3">
         <p className="mb-2 text-xs font-semibold text-text-secondary">Kategorie systemowe – zawsze dostępne</p>
@@ -245,6 +209,6 @@ export default function TaskCategoriesEditor({
       >
         <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Przywróć domyślne
       </button>
-    </div>
+    </fieldset>
   );
 }

@@ -38,12 +38,12 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
   };
 
   return (
-    <div className="widget flex items-center justify-between px-4 py-3">
-      <div className="mr-3 text-primary">
+    <div className="widget flex flex-1 items-center justify-between px-3 py-3">
+      <div className="mr-1 text-primary">
         <Droplet className="h-5 w-5 sm:h-6 sm:w-6" />
       </div>
 
-      <div className="relative mx-4 h-3 flex-1 rounded-full border border-line bg-surface shadow-inner">
+      <div className="relative mx-2 h-3 flex-1 rounded-full border border-line bg-surface shadow-inner">
         <div
           className="absolute top-0 left-0 h-full rounded-full bg-secondary transition-all duration-75 ease-linear"
           style={{ width: `${Math.min(100, fillPercent)}%` }}
@@ -69,8 +69,8 @@ export default function WaterTracker({ date }: Readonly<WaterTrackerProps>) {
         />
       </div>
 
-      <div className="w-17.5 text-right text-sm font-bold text-text-secondary tabular-nums sm:text-base">
-        {displayWater.toFixed(1)} <span className="text-textSubtle text-xs font-medium sm:text-sm">/ 2.0L</span>
+      <div className="ml-2 text-right text-sm font-bold text-text-secondary tabular-nums sm:text-base">
+        {displayWater.toFixed(1)}&nbsp;L
       </div>
     </div>
   );

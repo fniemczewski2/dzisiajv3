@@ -11,6 +11,8 @@ import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { CATEGORY_PALETTE } from "@/lib/categoryColors";
 import { MAX_FINANCE_PROFILES } from "@/types/finance";
 import { getAppDate } from "@/lib/dateUtils";
+import { AddButton } from "../ui/CommonButtons";
+import AddItemInput from "./AddItemInput";
 
 interface Props {
   dailyCategories: string[];
@@ -32,14 +34,10 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
   };
 
   return (
-    <section id="finance" aria-labelledby={`${id}-h`} className="mt-2 space-y-5 rounded-xl border border-line p-4">
-      <h4 id={`${id}-h`} className="flex items-center gap-2 text-sm font-semibold text-text">
-        <Wallet className="h-4 w-4" aria-hidden="true" /> Finanse
-      </h4>
-
-      <fieldset className="min-w-0 space-y-2">
+    <section id="finance" aria-labelledby={`${id}-h`}>
+      <fieldset className="min-w-0 space-y-2 mt-2 rounded-xl border border-line p-4">
         <legend className="mb-1 text-sm font-medium text-text">
-          Profile finansowe ({profiles.length}/{MAX_FINANCE_PROFILES})
+          Profile&nbsp;{profiles.length}/{MAX_FINANCE_PROFILES}
         </legend>
         <p className="text-sm text-text-secondary">
           Np. konto osobiste, firmowe, wspólne. Zmiany zapisują się od razu.
@@ -86,39 +84,18 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
             </button>
           </div>
         ))}
-        {!maxReached && (
-          <div className="flex items-center gap-2">
-            <label htmlFor={`${id}-new`} className="sr-only">
-              Nowy profil
-            </label>
-            <input
-              id={`${id}-new`}
-              value={draft}
-              maxLength={40}
-              placeholder="Nowy profil, np. Firma"
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (draft.trim()) void addProfile(draft).then(() => setDraft(""));
-                }
-              }}
-              className="input-field flex-1"
-            />
-            <button
-              type="button"
-              disabled={!draft.trim()}
-              onClick={() => void addProfile(draft).then(() => setDraft(""))}
-              className="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold text-primary disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" /> Dodaj
-            </button>
-          </div>
-        )}
+        <AddItemInput
+          count={profiles.length}
+          max={MAX_FINANCE_PROFILES}
+          maxLength={40}
+          label="Nowy profil"
+          placeholder="Nowy profil, np. Firma"
+          onAdd={(name) => addProfile(name)}
+        />
       </fieldset>
 
-      <fieldset className="min-w-0">
-        <legend className="mb-1 text-sm font-medium text-text">Kategorie liczone jako „Wydatki dnia”</legend>
+      <fieldset className="min-w-0 space-y-2 mt-2 rounded-xl border border-line p-4">
+        <legend className="mb-1 text-sm font-medium text-text">Wydatki dnia</legend>
         <p className="mb-2 text-sm text-text-secondary">
           Kwota na planie dnia to suma transakcji z dnia w zaznaczonych kategoriach.
         </p>

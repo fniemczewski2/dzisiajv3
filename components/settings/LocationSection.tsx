@@ -16,9 +16,6 @@ export default function LocationSection({ onRequestLocation, locationStatus }: R
     <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
-          <div>
-            <MapPin className="h-5 w-5 shrink-0 text-primary" />
-          </div>
           <h3 className="text-lg font-bold">Lokalizacja</h3>
         </div>
         <button

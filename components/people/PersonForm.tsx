@@ -143,7 +143,7 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
             type="date"
             value={formData.birthday || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, birthday: e.target.value }))}
-            className="input-field"
+            className="input-field w-full"
           />
         </div>
         <div>
@@ -155,7 +155,7 @@ export const PersonForm = ({ initialData, onSave, onCancel, loading }: Readonly<
             type="date"
             value={formData.nameday || ""}
             onChange={(e) => setFormData((prev) => ({ ...prev, nameday: e.target.value }))}
-            className="input-field"
+            className="input-field w-full"
           />
         </div>
       </div>

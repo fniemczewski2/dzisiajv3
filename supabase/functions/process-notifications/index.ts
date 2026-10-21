@@ -172,6 +172,15 @@ interface NotifCtx {
   incrementProcessed: () => void;
 }
 
+async function optedOutUsers(supabase: SupabaseClient, column: string): Promise<Set<string>> {
+  const { data, error } = await supabase.from("settings").select("user_id").eq(column, false);
+  if (error) {
+    console.error(`Nie udało się odczytać ustawienia ${column}:`, error.message);
+    return new Set();
+  }
+  return new Set((data ?? []).map((r: { user_id: string }) => r.user_id));
+}
+
 async function processMorningBriefType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, sendPushAndLog } = ctx;
   const { data: users } = await supabase
@@ -606,7 +615,11 @@ async function processDaySchemaType(ctx: NotifCtx): Promise<void> {
   const currentMinutes = timeToMinutes(currentTime);
   const currentDayIndex = weekdayIndexPL(plNow.dateStr);
 
-  const active = activeSchemasForToday((daySchemas || []) as DaySchemaRow[], choices || [], currentDayIndex);
+  const optedOut = await optedOutUsers(supabase, "notif_day_schema");
+  const active = activeSchemasForToday((daySchemas || []) as DaySchemaRow[], choices || [], currentDayIndex).filter(
+    (schema) => !optedOut.has(schema.user_id)
+  );
+
   await mapPool(active, 5, async (schema) => {
     await processOneDaySchema(ctx, schema, currentDayIndex, currentMinutes, currentTime);
   });
@@ -648,7 +661,8 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
     .gte("response_date", today)
     .lte("response_date", tomorrowStr);
 
-  await mapPool(letters || [], 5, async (letter) => {
+  const optedOutLetters = await optedOutUsers(supabase, "notif_letters");
+  await mapPool((letters || []).filter((l) => !optedOutLetters.has(l.user_id)), 5, async (letter) => {
     const { data: alreadySent } = await supabase
       .from("notifications")
       .select("id")
@@ -690,7 +704,8 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
     .eq("status", "open")
     .in("id", closingIds);
 
-  await mapPool(polls || [], 5, async (poll) => {
+  const optedOutPolls = await optedOutUsers(supabase, "notif_polls");
+  await mapPool((polls || []).filter((p) => !optedOutPolls.has(p.user_id)), 5, async (poll) => { 
     const { data: alreadySent } = await supabase
       .from("notifications")
       .select("id")

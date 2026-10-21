@@ -17,6 +17,8 @@ export const MAX_CATEGORIES = 20;
 export const MAX_RECIPE_PRODUCTS = 100;
 /** Własne nawyki dzienne. */
 export const MAX_HABITS = 8;
+/** Własne nastroje (moduł nastroju). */
+export const MAX_MOODS = 10;
 /** [baza] Wizytówki na konto. */
 export const MAX_VCARD_PROFILES = 5;
 

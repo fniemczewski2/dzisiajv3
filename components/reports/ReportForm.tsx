@@ -162,7 +162,7 @@ export default function ReportForm({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="input-field"
+            className="input-field w-full"
             required
             disabled={loading}
           />
@@ -221,7 +221,7 @@ export default function ReportForm({
               </div>
               <input
                 type="date"
-                className="input-field"
+                className="input-field w-full"
                 value={t.data}
                 onChange={(e) => updateTask(t.id, "data", e.target.value)}
                 aria-label={`Termin zadania ${i + 1}`}

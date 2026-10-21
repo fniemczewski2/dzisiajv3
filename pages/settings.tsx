@@ -1,8 +1,4 @@
 // pages/settings.tsx
-//
-// Ustawienia w sekcjach tematycznych. Sekcje-formularze (Ogólne, Zadania,
-// Nawyki, Finanse, Sortowanie, Udostępnianie) zapisują się osobno; pozostałe
-// (powiadomienia, szablony, integracje, konto) zapisują zmiany od razu.
 
 import { DEFAULT_SETTINGS } from "@/config/defaults";
 import React from "react";
@@ -25,13 +21,6 @@ import Seo from "@/components/ui/SEO";
 import SlackListsSection from "@/components/settings/SlackListsSection";
 import DataExportSection from "@/components/settings/DataExportSection";
 import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
-
-const OTHER_SECTIONS = [
-  { id: "powiadomienia", title: "Powiadomienia" },
-  { id: "szablony", title: "Szablony protokołów" },
-  { id: "integracje", title: "Integracje" },
-  { id: "konto", title: "Konto" },
-];
 
 function Group({ id, title, children }: Readonly<{ id: string; title: string; children: React.ReactNode }>) {
   return (
@@ -90,7 +79,7 @@ export default function SettingsPage() {
           {/* Spis sekcji – skok do wybranej części ustawień */}
           <nav aria-label="Sekcje ustawień" className="-mx-3 mb-6 sm:mx-0">
             <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:px-0">
-              {[...SETTINGS_SECTIONS, ...OTHER_SECTIONS].map((s) => (
+              {[...SETTINGS_SECTIONS].map((s) => (
                 <li key={s.id} className="shrink-0">
                   <a
                     href={`#${s.id}`}
@@ -104,23 +93,12 @@ export default function SettingsPage() {
           </nav>
 
           <SettingsForm settings={settings} defaults={DEFAULT_SETTINGS} onSavePartial={savePartial} />
-
-          <Group id="powiadomienia" title="Powiadomienia">
-            <PushNotificationManager userId={user?.id} />
-          </Group>
-
-          <Group id="szablony" title="Szablony protokołów">
-            <ReportTemplatePanel />
-          </Group>
-
-          <Group id="integracje" title="Integracje">
-            <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
-            <SlackListsSection />
-            <ShortcutTokenSection />
-          </Group>
-
-          <Group id="konto" title="Konto">
-            <UserSection email={user?.email} onSignOut={handleSignOut} />
+          <PushNotificationManager userId={user?.id} />
+          <ReportTemplatePanel />
+          <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
+          <SlackListsSection />
+          <ShortcutTokenSection />
+          <UserSection email={user?.email} onSignOut={handleSignOut} />
             <DataExportSection />
             <div className="mb-6 flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
               <button
@@ -139,7 +117,6 @@ export default function SettingsPage() {
                 Instrukcja <Info className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-          </Group>
 
           <VersionInfo />
         </>

@@ -152,7 +152,7 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
             type="date"
             value={issueDate}
             onChange={(e) => applyIssueDate(e.target.value)}
-            className="input-field"
+            className="input-field w-full"
             disabled={loading}
             required
           />
@@ -163,7 +163,7 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
           </label>
           <input
             id="lf-response-date"
-            type="date"
+            type="date w-full"
             value={responseDate}
             onChange={(e) => {
               setResponseDate(e.target.value);
@@ -231,7 +231,7 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
             type="date"
             value={incidentDate}
             onChange={(e) => setIncidentDate(e.target.value)}
-            className="input-field"
+            className="input-field w-full"
             disabled={loading}
           />
         </div>

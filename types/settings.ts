@@ -31,15 +31,11 @@ export interface Settings {
   notif_evening: boolean;
   notif_birthdays: boolean;
   notif_contact: boolean;
-
-  habit_pills: boolean;
-  habit_bath: boolean;
-  habit_workout: boolean;
-  habit_friends: boolean;
-  habit_work: boolean;
-  habit_housework: boolean;
-  habit_plants: boolean;
-  habit_duolingo: boolean;
+  notif_day_schema?: boolean;
+  notif_reminders?: boolean;
+  notif_letters?: boolean;
+  notif_polls?: boolean;
+  notif_love?: boolean
 
   mood_options?: MoodOption[];
   /** Data wyraźnej zgody na zapis nastroju (art. 9 RODO); null = brak zgody. */

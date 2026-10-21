@@ -20,7 +20,28 @@ describe("TrustedUsersField", () => {
     render(<TrustedUsersField users={["a@x.pl"]} onChange={onChange} />);
     fireEvent.change(screen.getByLabelText("Adres e-mail zaufanej osoby 1"), { target: { value: "z@x.pl" } });
     expect(onChange).toHaveBeenLastCalledWith(["z@x.pl"]);
-    fireEvent.click(screen.getByRole("button", { name: /Dodaj osobę/ }));
-    expect(onChange).toHaveBeenLastCalledWith(["z@x.pl", ""]);
+    fireEvent.change(screen.getByLabelText("Adres e-mail nowej zaufanej osoby"), { target: { value: " N@X.pl " } });
+    fireEvent.click(screen.getByRole("button", { name: "Dodaj osobę" }));
+    expect(onChange).toHaveBeenLastCalledWith(["z@x.pl", "n@x.pl"]);
+  });
+
+  it("odrzuca niepoprawny i zduplikowany adres", () => {
+    const onChange = vi.fn();
+    render(<TrustedUsersField users={["a@x.pl"]} onChange={onChange} />);
+    const input = screen.getByLabelText("Adres e-mail nowej zaufanej osoby");
+    fireEvent.change(input, { target: { value: "bez-malpy" } });
+    fireEvent.click(screen.getByRole("button", { name: "Dodaj osobę" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Podaj poprawny adres e-mail.");
+    fireEvent.change(input, { target: { value: "A@x.pl" } });
+    fireEvent.click(screen.getByRole("button", { name: "Dodaj osobę" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Ta osoba jest już na liście.");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("ukrywa pole dodawania po osiągnięciu limitu", () => {
+    const users = Array.from({ length: 10 }, (_, i) => `u${i}@x.pl`);
+    render(<TrustedUsersField users={users} onChange={vi.fn()} />);
+    expect(screen.queryByLabelText("Adres e-mail nowej zaufanej osoby")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Osiągnięto limit 10");
   });
 });

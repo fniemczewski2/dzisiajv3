@@ -9,7 +9,6 @@ import { useMoodConsent } from "@/hooks/useMoodConsent";
 import { CATEGORY_PALETTE, isPaletteColor } from "@/lib/categoryColors";
 import { DEFAULT_MOODS } from "@/config/defaults";
 import React, { useState } from "react";
-import { ArrowDownUp, CheckSquare, Coins, LayoutGrid, PlusCircle, Smile, Users } from "lucide-react";
 import ThemeToggle from "./ThemeButton";
 import { DeleteButton, ToggleSwitch } from "../ui/CommonButtons";
 import { MoodOption } from "@/types/moods";
@@ -20,12 +19,13 @@ import CategoryColorPicker from "@/components/settings/CategoryColorPicker";
 import HabitsEditor from "@/components/settings/HabitsEditor";
 import ModulesEditor from "@/components/settings/ModulesEditor";
 import TrustedUsersField from "@/components/settings/TrustedUsersField";
-import { MAX_TRUSTED_USERS } from "@/config/limits";
+import { MAX_MOODS, MAX_TRUSTED_USERS } from "@/config/limits";
 import FinanceSettings from "@/components/settings/FinanceSettings";
 import { resolveHabits } from "@/lib/habits";
 import { applyTaskCategoryRenames } from "@/hooks/useTaskCategories";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import AddItemInput from "./AddItemInput";
 
 /** Spis sekcji – do nawigacji na górze strony. */
 export const SETTINGS_SECTIONS = [
@@ -106,32 +106,31 @@ function MoodsEditor({ value, onChange }: Readonly<{ value: MoodOption[]; onChan
               className="input-field flex-1"
               placeholder="Nazwa nastroju..."
             />
+            <CategoryColorPicker
+              categoryName={opt.label}
+              subject="nastroju"
+              allowNone={false}
+              value={isPaletteColor(opt.color) ? opt.color : null}
+              onChange={(color) => patch(index, { color: color ?? DEFAULT_MOODS[0].color })}
+            />
             <DeleteButton
               small
               ariaLabel={`Usuń nastrój ${opt.label}`}
               onClick={() => onChange(value.filter((m) => m.id !== opt.id))}
             />
           </div>
-          <CategoryColorPicker
-            categoryName={opt.label}
-            subject="nastroju"
-            allowNone={false}
-            value={isPaletteColor(opt.color) ? opt.color : null}
-            onChange={(color) => patch(index, { color: color ?? DEFAULT_MOODS[0].color })}
-          />
+
         </div>
       ))}
-      {value.length < 10 && (
-        <button
-          type="button"
-          onClick={() =>
-            onChange([...value, { id: crypto.randomUUID(), label: "Nowy nastrój", color: CATEGORY_PALETTE[0].value }])
-          }
-          className="flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
-        >
-          <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj nastrój
-        </button>
-      )}
+      <AddItemInput
+        count={value.length}
+        max={MAX_MOODS}
+        label="Nowy nastrój"
+        addLabel="Dodaj nastrój"
+        placeholder="Nowy nastrój, np. Spokojny"
+        limitMessage={`Osiągnięto limit ${MAX_MOODS} nastrojów. Usuń któryś, aby dodać nowy.`}
+        onAdd={(label) => onChange([...value, { id: crypto.randomUUID(), label, color: CATEGORY_PALETTE[0].value }])}
+      />
     </fieldset>
   );
 }
@@ -180,7 +179,6 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="ogolne"
         title="Ogólne"
         description="Ekran startowy, motyw i moduły widoczne w menu."
-        icon={<LayoutGrid className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={["main_view", "disabled_modules"] as const}
       >
         {(d, set: SetField<"main_view" | "disabled_modules">) => (
@@ -218,7 +216,6 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="zadania"
         title="Zadania"
         description="Co widać na liście zadań oraz kategorie z kolorami."
-        icon={<CheckSquare className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={
           ["show_completed", "show_notifications", "hide_priority_5", "task_categories", "category_colors"] as const
         }
@@ -262,7 +259,6 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="nawyki"
         title="Nawyki i plan dnia"
         description="Nawyki, woda i nastrój na planie dnia."
-        icon={<Smile className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={["show_habits", "custom_habits", "show_water_tracker", "show_mood_tracker", "mood_options"] as const}
       >
         {(d, set) => (
@@ -306,7 +302,6 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="finanse"
         title="Finanse"
         description="Profile finansowe zapisują się od razu; pozostałe pola – przyciskiem „Zapisz”."
-        icon={<Coins className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={["show_budget_items", "daily_spending_categories"] as const}
       >
         {(d, set) => (
@@ -330,7 +325,6 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="sortowanie"
         title="Sortowanie"
         description="Domyślna kolejność na listach."
-        icon={<ArrowDownUp className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={
           [
             "sort_order",
@@ -428,7 +422,6 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="udostepnianie"
         title="Udostępnianie"
         description={`Zaufane osoby, którym możesz udostępniać zadania i wydarzenia (do ${MAX_TRUSTED_USERS}).`}
-        icon={<Users className="h-5 w-5 text-text-secondary" aria-hidden="true" />}
         keys={["users"] as const}
       >
         {(d, set) => {

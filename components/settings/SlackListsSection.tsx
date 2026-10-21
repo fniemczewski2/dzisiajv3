@@ -99,7 +99,6 @@ export default function SlackListsSection() {
     <section className="card mb-4 space-y-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3 text-text">
-          <Hash className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           <h3 className="text-lg font-bold">Zadania w Slack Lists</h3>
         </div>
         {slack.lists.length > 0 && (
@@ -118,25 +117,23 @@ export default function SlackListsSection() {
 
       <div className="space-y-4">
         {slack.accounts.map((account) => (
-          <div key={account.id} className="rounded-lg border border-line bg-surface p-2">
+          <div key={account.id} className="rounded-lg border border-line bg-surface p-4">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
+
+                <p className="px-2 font-medium text-text">{account.team_name ?? account.team_id}</p>
+                <DeleteButton
+                  small
                   onClick={() => void slack.disconnectAccount(account.id)}
                   disabled={slack.busy}
-                  className="text-xs font-bold text-danger hover:underline disabled:opacity-50"
-                >
-                  <Link2Off className="h-4 w-4" />
-                </button>
-                <p className="font-medium text-text">{account.team_name ?? account.team_id}</p>
+                />
               </div>
               <AddButton onClick={() => setShowFrom((prev) => !prev)} small />
             </div>
 
-            <ul className="my-3 space-y-3">
+            <ul className="m-3 space-y-3">
               {listsForAccount(account.id).map((list) => (
-                <li key={list.id}>
+                <li key={list.id} className="border-t border-line pt-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="flex min-w-0 items-center gap-1.5 text-sm text-text">
                       {list.is_default && (

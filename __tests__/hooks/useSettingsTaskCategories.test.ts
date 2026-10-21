@@ -67,19 +67,19 @@ describe("useSettings – task_categories", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
-  it("bez kolumny w bazie zapisuje resztę ustawień zamiast zgłaszać błąd", async () => {
+  it("bez kolumny w bazie zgłasza błąd i cofa zmianę zamiast pomijać pole", async () => {
     missingColumn = true;
     const { result } = renderHook(() => useSettings(), { wrapper });
     await waitFor(() => expect(result.current.settings.task_categories).toEqual(["Dom"]));
-    // Zapis kategorii na bazie bez kolumny: kolumna pominięta, reszta zapisana.
+    let outcome: { error: unknown } | undefined;
     await act(async () => {
-      await result.current.updateSettings({ task_categories: ["Dom", "Ogród"], show_completed: false });
+      outcome = await result.current.updateSettings({ task_categories: ["Dom", "Ogród"], show_completed: false });
     });
-    expect(upserts).toHaveLength(2);
-    expect("task_categories" in upserts[1]).toBe(false);
-    expect(upserts[1].show_completed).toBe(false);
-    expect(toast.error).not.toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalled();
+    expect(upserts).toHaveLength(1);
+    expect(outcome?.error).toBeTruthy();
+    expect(toast.error).toHaveBeenCalledWith("Nie udało się zapisać ustawień.");
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(result.current.settings.task_categories).toEqual(["Dom"]);
   });
 
   it("zapisuje tylko zmienione pola (inne sekcje i karty nie są nadpisywane)", async () => {

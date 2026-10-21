@@ -97,6 +97,14 @@ Deno.serve(
       if (!recipient.ok) return respond(recipient.body);
       const targetUserId = recipient.userId;
 
+      const { data: recipientPrefs, error: prefsError } = await admin
+        .from("settings")
+        .select("notif_love")
+        .eq("user_id", targetUserId)
+        .maybeSingle();
+      if (prefsError) console.error("[send-love] odczyt notif_love:", prefsError.message);
+      if (recipientPrefs?.notif_love === false) return respond({ success: true, message: "Wysłano serduszko" });
+
       const title = "Kocham Cię!";
       const message = "Ktoś przesyła Ci dużo miłości!";
 

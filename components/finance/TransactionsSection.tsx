@@ -121,7 +121,7 @@ function TransactionEditor({ t, categories, categoryLabel, bills, onSave, onCanc
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="input-field"
+          className="input-field w-full"
         />
       </div>
       <div>

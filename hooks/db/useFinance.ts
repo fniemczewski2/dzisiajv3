@@ -9,6 +9,8 @@ import { useCallback, useMemo } from "react";
 import { addMonths, format, parseISO } from "date-fns";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
+import { useRetry } from "@/hooks/useRetry";
+import { createAbortError, isAbortError } from "@/lib/abortUtils";
 import { getAppDate } from "@/lib/dateUtils";
 import { billOccurrences, importKey, suggestBillLink, suggestCategoryName } from "@/lib/finance";
 import type { BudgetCategory } from "@/types/bills";
@@ -238,24 +240,38 @@ export function useTransactions({ from, to }: TransactionsOptions) {
   const { user, supabase } = useAuth();
   const userId = user?.id;
   const { toast } = useToast();
+  const withRetry = useRetry();
+
   const queryTransactions = useCallback(
     async ({ signal }: { signal: AbortSignal }): Promise<Transaction[]> => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", userId as string)
-        .gte("date", from)
-        .lte("date", to)
-        .order("date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .abortSignal(signal);
-      if (error) {
-        toast.error("Nie udało się pobrać transakcji.");
-        throw error;
+      try {
+        const { data, error } = await withRetry(
+          () =>
+            supabase
+              .from("transactions")
+              .select("*")
+              .eq("user_id", userId as string)
+              .gte("date", from)
+              .lte("date", to)
+              .order("date", { ascending: false })
+              .order("created_at", { ascending: false })
+              .abortSignal(signal),
+          signal
+        );
+        if (error) {
+          // Przerwane żądanie (zmiana dnia, odmontowanie widżetu) PostgREST zgłasza jako błąd w wyniku,
+          // a nie wyjątek – to nie awaria, więc bez komunikatu.
+          if (signal.aborted) throw createAbortError();
+          throw error;
+        }
+        // Dzień bez transakcji to pusta lista, nie błąd.
+        return ((data ?? []) as Transaction[]).map(normalizeTx);
+      } catch (err) {
+        if (!isAbortError(err)) toast.error("Nie udało się pobrać transakcji.");
+        throw err;
       }
-      return ((data ?? []) as Transaction[]).map(normalizeTx);
     },
-    [supabase, userId, from, to, toast]
+    [supabase, userId, from, to, toast, withRetry]
   );
   const {
     data: transactions,

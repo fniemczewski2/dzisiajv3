@@ -5,14 +5,16 @@
 // tekstu do sąsiedniego pola.
 
 import { useState } from "react";
-import { PlusCircle } from "lucide-react";
-import { DeleteButton } from "@/components/ui/CommonButtons";
+import { AddButton, DeleteButton } from "@/components/ui/CommonButtons";
 import { MAX_TRUSTED_USERS } from "@/config/limits";
+import AddItemInput from "./AddItemInput";
 
 interface Row {
   id: string;
   email: string;
 }
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const toRows = (emails: readonly string[]): Row[] => emails.map((email) => ({ id: crypto.randomUUID(), email }));
 
@@ -57,19 +59,23 @@ export default function TrustedUsersField({
           />
         </div>
       ))}
-      {rows.length < MAX_TRUSTED_USERS ? (
-        <button
-          type="button"
-          onClick={() => commit([...rows, { id: crypto.randomUUID(), email: "" }])}
-          className="flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-        >
-          <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj osobę
-        </button>
-      ) : (
-        <p className="text-sm text-text-secondary">
-          Osiągnięto limit {MAX_TRUSTED_USERS} zaufanych osób. Usuń kogoś z listy, aby dodać nową osobę.
-        </p>
-      )}
+      <AddItemInput
+        className="pt-1"
+        type="email"
+        count={rows.length}
+        max={MAX_TRUSTED_USERS}
+        label="Adres e-mail nowej zaufanej osoby"
+        addLabel="Dodaj osobę"
+        placeholder="E-mail nowej osoby"
+        normalize={(raw) => raw.trim().toLowerCase()}
+        validate={(email) => {
+          if (!EMAIL_RE.test(email)) return "Podaj poprawny adres e-mail.";
+          if (rows.some((r) => r.email.trim().toLowerCase() === email)) return "Ta osoba jest już na liście.";
+          return null;
+        }}
+        limitMessage={`Osiągnięto limit ${MAX_TRUSTED_USERS} zaufanych osób. Usuń kogoś z listy, aby dodać nową osobę.`}
+        onAdd={(email) => commit([...rows, { id: crypto.randomUUID(), email }])}
+      />
     </fieldset>
   );
 }

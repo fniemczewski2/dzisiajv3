@@ -92,8 +92,7 @@ export default function ShortcutTokenSection() {
   return (
     <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center gap-3 text-text">
-        <KeyRound className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-        <h3 className="text-lg font-bold">Skróty Siri</h3>
+        <h3 className="text-lg font-bold">API Skróty</h3>
       </div>
 
       <p className="mb-3 text-sm text-text-secondary">
@@ -105,8 +104,7 @@ export default function ShortcutTokenSection() {
           <dt className="font-semibold text-text">Szybka notatka</dt>
           <dd className="text-text-secondary">
             <code className="font-mono break-all">POST /api/quick-notes</code> z treścią{" "}
-            <code className="font-mono">{`{"text":"…"}`}</code>. Wstaw tam wynik akcji „Podyktuj tekst” albo „Poproś o
-            dane wejściowe”. Każda linia to osobny punkt na górze planu dnia.
+            <code className="font-mono">{`{"text":"…"}`}</code>. 
           </dd>
         </div>
         <div>

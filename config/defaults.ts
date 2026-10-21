@@ -12,12 +12,12 @@ import type { Settings } from "@/types/settings";
  * Identyfikatory są zapisane we wpisach nastroju w bazie – nie zmieniaj ich.
  */
 export const DEFAULT_MOODS: MoodOption[] = [
-  { id: "m1", label: "Spokojnie", color: "#0F7B6C" },
-  { id: "m2", label: "Męcząco", color: "#1D5FB0" },
-  { id: "m3", label: "Neutralnie", color: "#4A5A6D" },
-  { id: "m4", label: "Radośnie", color: "#A74B07" },
-  { id: "m5", label: "Nerwowo", color: "#B83232" },
-  { id: "m6", label: "Smutno", color: "#644CAA" },
+  { id: "m1", label: "Nerwowo", color: "#B83232" },
+  { id: "m2", label: "Męcząco", color: "#A74B07" },
+  { id: "m3", label: "Neutralnie", color: "#8A530C" },
+  { id: "m4", label: "Radośnie", color: "#0F7B6C" },
+  { id: "m5", label: "Smutno", color: "#1D5FB0" },
+  { id: "m6", label: "Spokojnie", color: "#644CAA" },
 ];
 
 /** Ustawienia nowego konta; brakujące kolumny w wierszu `settings` biorą te wartości. */
@@ -39,18 +39,15 @@ export const DEFAULT_SETTINGS: Settings = {
   notif_evening: true,
   notif_birthdays: true,
   notif_contact: true,
+  notif_day_schema: true,
+  notif_reminders: true,
+  notif_letters: true,
+  notif_polls: true,
+  notif_love: true,
   sort_notes: "updated_desc",
   sort_shopping: "updated_desc",
   sort_movies: "updated_desc",
   sort_recipes: "category",
-  habit_pills: true,
-  habit_bath: true,
-  habit_workout: true,
-  habit_friends: true,
-  habit_work: true,
-  habit_housework: true,
-  habit_plants: true,
-  habit_duolingo: true,
   mood_options: DEFAULT_MOODS,
   mood_consent_at: null,
   mood_consent_version: null,

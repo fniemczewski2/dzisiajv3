@@ -179,7 +179,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                         type="date"
                         value={edited.issue_date}
                         onChange={(e) => setEdited({ ...edited, issue_date: e.target.value })}
-                        className="input-field"
+                        className="input-field w-full"
                       />
                     </div>
                     <div>
@@ -191,7 +191,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                         type="date"
                         value={edited.response_date ?? ""}
                         onChange={(e) => setEdited({ ...edited, response_date: e.target.value || null })}
-                        className="input-field"
+                        className="input-field w-full"
                       />
                     </div>
                   </div>
@@ -241,7 +241,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                         type="date"
                         value={edited.incident_date ?? ""}
                         onChange={(e) => setEdited({ ...edited, incident_date: e.target.value || null })}
-                        className="input-field"
+                        className="input-field w-full"
                       />
                     </div>
                     <div>

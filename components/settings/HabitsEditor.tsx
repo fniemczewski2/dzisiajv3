@@ -7,11 +7,12 @@
 
 import React, { useId, useState } from "react";
 import { ArrowDown, ArrowUp, PlusCircle, RotateCcw } from "lucide-react";
-import { DeleteButton } from "@/components/ui/CommonButtons";
+import { AddButton, DeleteButton } from "@/components/ui/CommonButtons";
 import type { HabitDef } from "@/types/habits";
 import { HABIT_ICON_NAMES, LEGACY_HABITS, MAX_HABIT_LABEL, newHabitId } from "@/lib/habits";
 import { MAX_HABITS } from "@/config/limits";
 import { habitIcon } from "@/components/widgets/habitIconMap";
+import AddItemInput from "./AddItemInput";
 
 interface Props {
   value: HabitDef[];
@@ -42,13 +43,10 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
   };
 
   return (
-    <div className="mt-2 rounded-xl border border-line p-4">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-text">Twoje nawyki</h4>
-        <span className="text-sm text-text-secondary tabular-nums">
-          {value.length}/{MAX_HABITS}
-        </span>
-      </div>
+    <fieldset className="mt-2 rounded-xl border border-line p-4">
+      <legend className="px-1 text-sm font-semibold text-text">
+        Twoje nawyki&nbsp;{value.length}/{MAX_HABITS}
+      </legend>
       <p className="mb-3 text-sm text-text-secondary">
         Nazwa i ikona pojawią się na planie dnia. Usunięcie nawyku nie kasuje historii.
       </p>
@@ -119,35 +117,15 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
         })}
       </ul>
 
-      <div className="mt-3 flex items-center gap-2">
-        <label htmlFor={`${baseId}-new`} className="sr-only">
-          Nowy nawyk
-        </label>
-        <input
-          id={`${baseId}-new`}
-          type="text"
-          value={draft}
-          maxLength={MAX_HABIT_LABEL}
-          disabled={atLimit}
-          placeholder={atLimit ? `Limit ${MAX_HABITS} nawyków` : "Nowy nawyk, np. Spacer"}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault(); // nie wysyłaj całego formularza ustawień
-              add();
-            }
-          }}
-          className="input-field flex-1"
-        />
-        <button
-          type="button"
-          onClick={add}
-          disabled={atLimit || !draft.trim()}
-          className="flex min-h-11 items-center gap-2 px-3 text-sm font-semibold text-primary hover:text-primary-strong disabled:opacity-50"
-        >
-          <PlusCircle className="h-4 w-4" aria-hidden="true" /> Dodaj
-        </button>
-      </div>
+      <AddItemInput
+        count={value.length}
+        max={MAX_HABITS}
+        maxLength={MAX_HABIT_LABEL}
+        label="Nowy nawyk"
+        addLabel="Dodaj nawyk"
+        placeholder="Nowy nawyk, np. Spacer"
+        onAdd={(label) => onChange([...value, { id: newHabitId(), label, icon: "Sparkles" }])}
+      />
 
       <button
         type="button"
@@ -156,6 +134,6 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
       >
         <RotateCcw className="h-4 w-4" aria-hidden="true" /> Przywróć domyślne nawyki
       </button>
-    </div>
+    </fieldset>
   );
 }

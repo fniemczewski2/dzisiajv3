@@ -23,9 +23,13 @@ export const DashboardWidgets = React.memo(({ settings, loading, date }: Readonl
   return (
     <div className="flex flex-col">
       {settings?.show_habits && <TaskIcons date={date} />}
-      {settings?.show_water_tracker && <WaterTracker date={date} />}
+
+      <div className="flex flex-row justify-between gap-2 items-center"> 
+        {settings?.show_water_tracker && <WaterTracker date={date} />}
+        {isPathEnabled("/bills", settings.disabled_modules) && <DailySpendingForm date={date} />}
+      </div>
       {settings?.show_mood_tracker && <MoodWidget date={date || today} />}
-      {isPathEnabled("/bills", settings.disabled_modules) && <DailySpendingForm date={date} />}
+      
     </div>
   );
 });

@@ -66,7 +66,7 @@ export default function ReportTasksToApp({ report, onTasksLinked, onClose }: Rea
     <section aria-labelledby={`${id}-h`} className="space-y-3 rounded-lg border border-line p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 id={`${id}-h`} className="text-sm font-semibold text-text">
-          Dodaj do Zadań
+          Dodaj do zadań
         </h4>
         {pendingCount > 0 && (
           <div className="min-w-40">
@@ -103,7 +103,7 @@ export default function ReportTasksToApp({ report, onTasksLinked, onClose }: Rea
 
             {c.added ? (
               <span className="inline-flex min-h-11 items-center gap-1.5 text-sm text-success">
-                W Zadaniach <Check className="h-4 w-4" aria-hidden="true" />
+                Dodane <Check className="h-4 w-4" aria-hidden="true" />
               </span>
             ) : (
               <div className="flex items-center gap-2">

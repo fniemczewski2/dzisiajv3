@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { NAVIGATION_CATEGORIES } from "@/config/navigation";
+import { NAVIGATION_BUTTONS } from "@/config/navigation";
 import GlobalSearch from "./ui/GlobalSearch";
 import { useEnabledModules } from "@/hooks/useEnabledModules";
 
@@ -113,14 +113,8 @@ export default function Navbar() {
         >
           <div className="overflow-hidden">
             <div className="max-h-[80vh] space-y-2 overflow-y-auto overscroll-contain pr-0.5">
-              {NAVIGATION_CATEGORIES.map((category) => ({
-                ...category,
-                items: category.items.filter((i) => isEnabled(i.path)),
-              }))
-                .filter((category) => category.items.length > 0)
-                .map((category) => (
-                  <div className="flex gap-1.5 border-b border-line pb-1.5" key={category.name}>
-                    {category.items.map((item) => (
+              <div className="grid grid-cols-4 gap-1.5 border-b border-line pb-1.5">
+                    {NAVIGATION_BUTTONS.map((item) => (
                       <MenuItemLink
                         key={item.path}
                         href={item.path}
@@ -133,7 +127,6 @@ export default function Navbar() {
                       />
                     ))}
                   </div>
-                ))}
               <div className="flex w-full items-center gap-2 border-b border-line pb-1.5">
                 <Link
                   href="/settings"

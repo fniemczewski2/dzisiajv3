@@ -6,10 +6,11 @@ import { Eye, Star } from "lucide-react";
 import { derivePalette, isHexColor } from "@/lib/reportColors";
 import { CATEGORY_PALETTE } from "@/lib/categoryColors";
 import { useReportTemplates } from "@/hooks/useReportTemplate";
-import { FONT_ROLES, LOGO_WIDTH_RANGE, MAX_TEMPLATE_NAME } from "@/lib/reportTemplate";
+import { FONT_ROLES, LOGO_WIDTH_RANGE, MAX_REPORT_TEMPLATES, MAX_TEMPLATE_NAME } from "@/lib/reportTemplate";
 import { previewReportTemplate } from "@/lib/reportExport";
 import { useToast } from "@/providers/ToastProvider";
-import { AddButton, DeleteButton, FavButton, UploadButton } from "../ui/CommonButtons";
+import { AddButton, DeleteButton, FavButton, SecondaryFullButton, UploadButton } from "../ui/CommonButtons";
+import AddItemInput from "../settings/AddItemInput";
 
 function FilePickerButton({
   id,
@@ -58,7 +59,6 @@ export default function ReportTemplatePanel() {
   const [chosenId, setChosenId] = useState<string | null>(set.default_id);
   // Wybrany szablon zniknął (usunięty w innej karcie) – pokazujemy domyślny.
   const selectedId = chosenId && set.templates.some((x) => x.id === chosenId) ? chosenId : set.default_id;
-  const [newName, setNewName] = useState("");
   const [previewing, setPreviewing] = useState(false);
   const [logoWidthDraft, setLogoWidthDraft] = useState<number | null>(null);
   const [colorDraft, setColorDraft] = useState<string | null>(null);
@@ -75,12 +75,10 @@ export default function ReportTemplatePanel() {
     void t.setHeadingColor(template.id, color);
   };
 
-  const add = async () => {
-    const newId = await t.addTemplate(newName || `Szablon ${set.templates.length + 1}`);
-    if (newId) {
-      setChosenId(newId);
-      setNewName("");
-    }
+  const add = async (name: string) => {
+    const newId = await t.addTemplate(name);
+    if (!newId) return false; // zostaw wpisaną nazwę
+    setChosenId(newId);
   };
 
   const preview = async () => {
@@ -131,28 +129,17 @@ export default function ReportTemplatePanel() {
         </ul>
       </fieldset>
 
-      {!t.maxReached && (
-        <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor={`${id}-new`} className="sr-only">
-            Nazwa szablonu
-          </label>
-          <input
-            id={`${id}-new`}
-            value={newName}
-            maxLength={MAX_TEMPLATE_NAME}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void add();
-              }
-            }}
-            placeholder="Nowy szablon, np. Fundacja A"
-            className="input-field min-w-48 flex-1"
-          />
-          <AddButton onClick={() => void add()} small />
-        </div>
-      )}
+      <AddItemInput
+        className=""
+        count={set.templates.length}
+        max={MAX_REPORT_TEMPLATES}
+        maxLength={MAX_TEMPLATE_NAME}
+        label="Nazwa szablonu"
+        addLabel="Dodaj szablon"
+        placeholder="Nowy szablon, np. Fundacja A"
+        limitMessage={`Osiągnięto limit ${MAX_REPORT_TEMPLATES} szablonów. Usuń któryś, aby dodać nowy.`}
+        onAdd={add}
+      />
 
       {set.templates.length === 0 && (
         <p className="text-sm text-text-secondary">
@@ -328,15 +315,13 @@ export default function ReportTemplatePanel() {
             )}
           </fieldset>
 
-          <button
-            type="button"
+          <SecondaryFullButton
             onClick={() => void preview()}
             disabled={previewing || busy !== null}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary px-4 font-semibold text-white hover:bg-secondary-hover disabled:opacity-50 sm:w-fit"
+            Icon={Eye}
           >
             {previewing ? "Przygotowuję…" : `Podgląd PDF`}
-            <Eye className="h-4 w-4" aria-hidden="true" />
-          </button>
+          </SecondaryFullButton>
         </div>
       )}
     </section>

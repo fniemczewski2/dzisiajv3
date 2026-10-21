@@ -88,7 +88,7 @@ export default function TransactionForm({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="input-field"
+            className="input-field w-full"
             required
           />
         </div>

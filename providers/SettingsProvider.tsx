@@ -21,28 +21,11 @@ import { MAX_FAVORITE_STOPS } from "@/config/limits";
 import { favoriteKey, isSameStopPlace, type FavoriteStop } from "@/shared/stopGrouping";
 import type { Settings } from "@/types/settings";
 
-/** Kolumny dodane migracjami – zapis ustawień działa także bez nich. */
-const OPTIONAL_SETTINGS_COLUMNS = [
-  "task_categories",
-  "category_colors",
-  "disabled_modules",
-  "custom_habits",
-  "rss_sources",
-  "rss_custom",
-  "report_template",
-  "daily_spending_categories",
-  "notif_bills",
-  "mood_consent_at",
-  "mood_consent_version",
-] as const;
-
 type SaveResult = { error: unknown };
 
 export interface SettingsContextValue {
   settings: Settings;
-  /** Pierwsze wczytanie z bazy (skeleton). */
   fetching: boolean;
-  /** Trwa zapis. */
   loading: boolean;
   locationStatus: string | null;
   updateSettings: (partial: Partial<Settings>) => Promise<SaveResult>;
@@ -114,20 +97,8 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
     [settingsRef, setSettings]
   );
 
-  // Zapis odporny na brak nowszych kolumn (kod wdrożony przed migracją bazy):
-  // brakującą kolumnę pomijamy i próbujemy ponownie. Próby są z natury
-  // sekwencyjne (każda zależy od błędu poprzedniej), stąd rekurencja z limitem.
   const upsertSettings = useCallback(
-    async (row: Record<string, unknown>) => {
-      const attempt = async (current: Record<string, unknown>, remaining: number) => {
-        const result = await supabase.from("settings").upsert(current, { onConflict: "user_id" });
-        const message = result.error?.code === "PGRST204" ? result.error.message : "";
-        const missing = OPTIONAL_SETTINGS_COLUMNS.find((c) => message.includes(`'${c}'`) && c in current);
-        if (!missing || remaining === 0) return result;
-        return attempt(omit(current, [missing]), remaining - 1);
-      };
-      return attempt(row, OPTIONAL_SETTINGS_COLUMNS.length);
-    },
+    (row: Record<string, unknown>) => supabase.from("settings").upsert(row, { onConflict: "user_id" }),
     [supabase]
   );
 

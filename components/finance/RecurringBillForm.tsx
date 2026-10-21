@@ -84,7 +84,7 @@ export default function RecurringBillForm({
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="input-field"
+            className="input-field w-full"
             required
           />
         </div>

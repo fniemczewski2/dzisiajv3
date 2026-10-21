@@ -4,7 +4,7 @@ import React, { useId, useState } from "react";
 import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
 import { MAX_CUSTOM_FEEDS, RSS_GROUPS, RSS_SOURCES, type CustomFeed } from "@/config/rssSources";
 import { checkCustomFeed } from "@/hooks/useNews";
-import { FormButtons } from "../ui/CommonButtons";
+import { AddButton, FormButtons } from "../ui/CommonButtons";
 
 interface Props {
   enabled: string[];
@@ -175,15 +175,10 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
                 Nazwa (opcjonalnie):
               </label>
               <input id={`${id}-name`} value={name} onChange={(e) => setName(e.target.value)} className="input-field" />
-              <button
-                type="button"
+              <AddButton
                 onClick={() => void addFeed()}
                 disabled={checking || !/^https?:\/\//i.test(url.trim())}
-                className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-3 font-medium text-text hover:bg-surface disabled:opacity-50"
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                {checking ? "Sprawdzam…" : "Sprawdź i dodaj"}
-              </button>
+              />
               {checkMsg && (
                 <output className={`block text-sm ${checkMsg.ok ? "text-success" : "text-danger"}`}>
                   {checkMsg.message}

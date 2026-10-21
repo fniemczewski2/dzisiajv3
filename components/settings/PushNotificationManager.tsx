@@ -10,6 +10,7 @@ import { useToast } from "@/providers/ToastProvider";
 import NotificationPreferences from "./NotificationPreferencesForm";
 
 import { describePushTestResult, describePushHttpError } from "@/lib/pushTestResult";
+import { SecondaryFullButton } from "../ui/CommonButtons";
 interface NavigatorWithStandalone extends Navigator {
   standalone?: boolean;
 }
@@ -202,32 +203,11 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
       toast.error(error instanceof Error ? error.message : "Nie udało się wysłać powiadomienia testowego.");
     }
   };
-  let buttonContent;
-  if (loading) {
-    buttonContent = "Czekaj...";
-  } else if (isSubscribed) {
-    buttonContent = (
-      <>
-        <span>Wyłącz</span>
-        <BellOff className="h-5 w-5" />
-      </>
-    );
-  } else {
-    buttonContent = (
-      <>
-        <span>Aktywuj</span>
-        <Bell className="h-5 w-5" />
-      </>
-    );
-  }
 
   return (
     <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
-          <div>
-            <Bell className="h-5 w-5 shrink-0 text-primary" />
-          </div>
           <h3 className="text-lg font-bold">Powiadomienia</h3>
         </div>
         <button
@@ -251,39 +231,33 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
 
       <NotificationPreferences />
 
-      <div className="flex flex-wrap gap-3 pt-2 md:grid md:grid-cols-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         {isSupported && permission === "default" && (
-          <button
+          <SecondaryFullButton
             onClick={handleRequestPermission}
-            type="button"
             disabled={loading}
-            className="flex min-w-35 flex-1 items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 font-bold text-white transition-colors hover:bg-secondary-hover disabled:opacity-50"
+            Icon={AlertCircle}
           >
-            {loading ? "Czekaj..." : "Nadaj Uprawnienia"}
-            <AlertCircle className="h-5 w-5" />
-          </button>
+            {loading ? "Czekaj..." : "Aktywuj"}
+          </SecondaryFullButton>
         )}
         {isSupported && permission === "granted" && (
-          <button
+          <SecondaryFullButton
             onClick={handleToggleNotifications}
-            type="button"
             disabled={loading}
-            className={`flex w-full flex-1 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-semibold text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60 ${
-              isSubscribed ? "border border-danger-line bg-danger-soft" : "bg-surface hover:bg-surface-hover"
-            }`}
+            Icon={isSubscribed ? BellOff : Bell}
           >
-            {buttonContent}
-          </button>
+            {isSubscribed ? "Wyłącz" : "Włącz" }
+          </SecondaryFullButton>
         )}
         {isSubscribed && (
-          <button
+          <SecondaryFullButton
             onClick={handleTestNotification}
-            type="button"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 font-semibold text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
+            Icon={CheckCircle}
           >
             Wyślij Test <CheckCircle className="h-5 w-5" />
-          </button>
+          </SecondaryFullButton>
         )}
       </div>
     </div>
