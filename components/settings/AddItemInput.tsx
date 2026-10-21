@@ -67,9 +67,11 @@ export default function AddItemInput({
   const busy = useRef(false); // blokada podwójnego dodania (Enter + kliknięcie)
 
   if (count >= max) {
-    return limitMessage ? <p className={`${className} text-sm text-text-secondary`}>{limitMessage}</p> : null;
+    return limitMessage ? (
+      <output className={`block ${className} text-sm text-text-secondary`}>{limitMessage}</output>
+    ) : null;
   }
-
+  
   const value = (normalize ?? ((raw: string) => defaultNormalize(raw, maxLength)))(draft);
   const canAdd = !disabled && !pending && value.length > 0;
 
