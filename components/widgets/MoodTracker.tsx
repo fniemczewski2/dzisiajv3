@@ -6,7 +6,7 @@ import { DEFAULT_MOODS } from "@/config/defaults";
 import React from "react";
 import Link from "next/link";
 import { useMoods } from "@/hooks/db/useMoods";
-import { Check, CheckCircle, Smile } from "lucide-react";
+import { Check, CheckCircle2, Smile } from "lucide-react";
 import { useSettings } from "@/hooks/db/useSettings";
 import { SecondaryFullButton } from "../ui/CommonButtons";
 
@@ -44,7 +44,7 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
             Polityka prywatności
           </Link>
         </p>
-        <SecondaryFullButton onClick={() => void grant()} Icon={CheckCircle}>
+        <SecondaryFullButton onClick={() => void grant()} Icon={CheckCircle2}>
           {"Wyrażam zgodę"}
         </SecondaryFullButton>
       </section>

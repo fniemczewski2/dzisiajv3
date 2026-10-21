@@ -3,7 +3,7 @@
 import { invokeEdgeFunction } from "@/lib/edgeFunctions";
 import { useIsClient } from "@/hooks/useIsClient";
 import React, { useState } from "react";
-import { Bell, BellOff, CheckCircle, AlertCircle } from "lucide-react";
+import { Bell, BellOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { usePushNotifications } from "@/hooks/db/usePushNotifications";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -247,8 +247,8 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
           </SecondaryFullButton>
         )}
         {isSubscribed && (
-          <SecondaryFullButton onClick={handleTestNotification} disabled={loading} Icon={CheckCircle}>
-            Wyślij Test <CheckCircle className="h-5 w-5" />
+          <SecondaryFullButton onClick={handleTestNotification} disabled={loading} Icon={CheckCircle2}>
+            Wyślij Test
           </SecondaryFullButton>
         )}
       </div>

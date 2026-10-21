@@ -23,7 +23,6 @@ function StatusIcon({ state }: Readonly<{ state: string | null | undefined }>) {
   return (
     <span className="inline-flex items-center gap-1 text-sm text-danger" title={state}>
       <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-      nie udało się pobrać
     </span>
   );
 }

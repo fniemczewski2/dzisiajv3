@@ -1,7 +1,7 @@
 // components/finance/RecurringBillsSection.tsx
 
 import React, { useId, useMemo, useState } from "react";
-import { CheckCircle, Clock, Repeat, TriangleAlert, type LucideIcon } from "lucide-react";
+import { CheckCircle2, Clock, Repeat, TriangleAlert, type LucideIcon } from "lucide-react";
 import { describeRule } from "@/shared/recurrence";
 import { billMonthStatus, forecastMonth, formatPln, nextMonthKey, type BillStatus } from "@/lib/finance";
 import { getAppDate } from "@/lib/dateUtils";
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const STATUS: Record<BillStatus, { icon: LucideIcon | null; label: string; className: string }> = {
-  paid: { icon: CheckCircle, label: "zapłacony", className: "bg-success-soft text-success border-success/30 " },
+  paid: { icon: CheckCircle2, label: "zapłacony", className: "bg-success-soft text-success border-success/30 " },
   pending: { icon: Clock, label: "do zapłaty", className: "bg-surface text-text-secondary border-line-strong" },
   none: { icon: null, label: "brak terminu", className: "bg-surface text-text-secondary border-line-strong" },
   overdue: { icon: TriangleAlert, label: "zaległy", className: "bg-danger-soft text-danger border-danger/30 " },

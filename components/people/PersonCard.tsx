@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Phone, Mail, CheckCircle2, Clock, ChevronDown, ChevronUp, Cake, Gift } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Person } from "@/types/people";
-import { EditButton, DeleteButton, ShareButton, CloseButton } from "../ui/CommonButtons";
+import { EditButton, DeleteButton, ShareButton, CloseButton, ConfirmButton } from "../ui/CommonButtons";
 import Modal from "../ui/Modal";
 
 interface PersonCardProps {
@@ -65,13 +65,7 @@ export const PersonCard = ({ person, onEdit, onDelete, onLogContact }: PersonCar
                 </span>
               )}
               <div className="flex gap-1">
-                <button
-                  onClick={onLogContact}
-                  type="button"
-                  className="flex-1 flex-col items-center justify-center rounded-lg border border-success-line bg-success-soft p-1.5 text-success transition-colors hover:bg-success-soft sm:p-2"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                </button>
+                <ConfirmButton onClick={onLogContact} small label="Kontakt" />
                 <ShareButton onClick={() => setShowQR(true)} small />
                 <EditButton onClick={onEdit} small />
                 <DeleteButton onClick={onDelete} small />

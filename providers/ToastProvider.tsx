@@ -1,7 +1,7 @@
 // providers/ToastProvider.tsx
 
 import React, { createContext, useCallback, useContext, useEffect, useReducer, useRef, useMemo } from "react";
-import { CheckCircle, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 import {
   ToastItem,
   ToastAction,
@@ -48,7 +48,7 @@ const VARIANT_STYLES: Record<ToastVariant, string> = {
 function ToastIcon({ variant }: Readonly<{ variant: ToastVariant }>) {
   switch (variant) {
     case "success":
-      return <CheckCircle aria-hidden="true" className="mt-px h-4.5 w-4.5 shrink-0 text-(--toast-icon)" />;
+      return <CheckCircle2 aria-hidden="true" className="mt-px h-4.5 w-4.5 shrink-0 text-(--toast-icon)" />;
     case "error":
       return <XCircle aria-hidden="true" className="mt-px h-4.5 w-4.5 shrink-0 text-(--toast-icon)" />;
     case "info":

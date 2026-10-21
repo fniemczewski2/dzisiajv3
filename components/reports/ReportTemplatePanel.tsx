@@ -98,7 +98,7 @@ export default function ReportTemplatePanel() {
   };
 
   return (
-    <section aria-labelledby={`${id}-h`} className="form-card max-w-3xl">
+    <section aria-labelledby={`${id}-h`} className="form-card mb-4 max-w-3xl">
       <div className="flex items-start justify-between gap-3">
         <h3 id={`${id}-h`} className="text-lg font-bold text-text">
           Szablony PDF
