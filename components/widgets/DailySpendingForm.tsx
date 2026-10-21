@@ -4,10 +4,8 @@
 // (Finanse → kategorie wydatków dnia). Szybkie dodanie wydatku tworzy
 // transakcję, więc kwota trafia też do budżetu i podsumowania miesiąca.
 
-import React, { useId, useMemo, useState } from "react";
-import { Coins, Plus } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { pl } from "date-fns/locale";
+import React, { useId, useMemo } from "react";
+import { Coins } from "lucide-react";
 import { getAppDate } from "@/lib/dateUtils";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
@@ -34,10 +32,10 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
   return (
     <section aria-labelledby={`${id}-h`} className="widget px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-          <Coins className="h-5 w-5 sm:h-6 sm:w-6" />
-          <div className="text-right text-sm font-bold text-text-secondary tabular-nums sm:text-base">
-            {formatPln(total)}
-          </div>
+        <Coins className="h-5 w-5 sm:h-6 sm:w-6" />
+        <div className="text-right text-sm font-bold text-text-secondary tabular-nums sm:text-base">
+          {formatPln(total)}
+        </div>
       </div>
     </section>
   );

@@ -66,7 +66,7 @@ describe("zadania z protokołu", () => {
     const onTasksLinked = vi.fn().mockResolvedValue(undefined);
     render(<ReportTasksToApp report={report} onTasksLinked={onTasksLinked} onClose={vi.fn()} />);
 
-    expect(screen.getByText("W Zadaniach")).toBeTruthy(); // trzecie było już dodane
+    expect(screen.getByText("Dodane")).toBeTruthy(); // trzecie było już dodane
     expect(screen.queryByRole("button", { name: /Dodaj do Zadań: Już dodane/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /zaznaczone/ })).toBeNull(); // brak dodawania hurtem
 

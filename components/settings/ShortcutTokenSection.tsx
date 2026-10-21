@@ -2,7 +2,7 @@
 
 import { useQueryState } from "@/hooks/useQueryState";
 import React, { useCallback, useState } from "react";
-import { KeyRound, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { CopyButtonSmall } from "@/components/ui/buttons/copyButtonSmall";
@@ -104,7 +104,7 @@ export default function ShortcutTokenSection() {
           <dt className="font-semibold text-text">Szybka notatka</dt>
           <dd className="text-text-secondary">
             <code className="font-mono break-all">POST /api/quick-notes</code> z treścią{" "}
-            <code className="font-mono">{`{"text":"…"}`}</code>. 
+            <code className="font-mono">{`{"text":"…"}`}</code>.
           </dd>
         </div>
         <div>

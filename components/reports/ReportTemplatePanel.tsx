@@ -9,7 +9,7 @@ import { useReportTemplates } from "@/hooks/useReportTemplate";
 import { FONT_ROLES, LOGO_WIDTH_RANGE, MAX_REPORT_TEMPLATES, MAX_TEMPLATE_NAME } from "@/lib/reportTemplate";
 import { previewReportTemplate } from "@/lib/reportExport";
 import { useToast } from "@/providers/ToastProvider";
-import { AddButton, DeleteButton, FavButton, SecondaryFullButton, UploadButton } from "../ui/CommonButtons";
+import { DeleteButton, FavButton, SecondaryFullButton, UploadButton } from "../ui/CommonButtons";
 import AddItemInput from "../settings/AddItemInput";
 
 function FilePickerButton({
@@ -315,11 +315,7 @@ export default function ReportTemplatePanel() {
             )}
           </fieldset>
 
-          <SecondaryFullButton
-            onClick={() => void preview()}
-            disabled={previewing || busy !== null}
-            Icon={Eye}
-          >
+          <SecondaryFullButton onClick={() => void preview()} disabled={previewing || busy !== null} Icon={Eye}>
             {previewing ? "Przygotowuję…" : `Podgląd PDF`}
           </SecondaryFullButton>
         </div>

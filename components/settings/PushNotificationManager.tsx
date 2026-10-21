@@ -233,11 +233,7 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
 
       <div className="flex flex-wrap gap-3 pt-2">
         {isSupported && permission === "default" && (
-          <SecondaryFullButton
-            onClick={handleRequestPermission}
-            disabled={loading}
-            Icon={AlertCircle}
-          >
+          <SecondaryFullButton onClick={handleRequestPermission} disabled={loading} Icon={AlertCircle}>
             {loading ? "Czekaj..." : "Aktywuj"}
           </SecondaryFullButton>
         )}
@@ -247,15 +243,11 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
             disabled={loading}
             Icon={isSubscribed ? BellOff : Bell}
           >
-            {isSubscribed ? "Wyłącz" : "Włącz" }
+            {isSubscribed ? "Wyłącz" : "Włącz"}
           </SecondaryFullButton>
         )}
         {isSubscribed && (
-          <SecondaryFullButton
-            onClick={handleTestNotification}
-            disabled={loading}
-            Icon={CheckCircle}
-          >
+          <SecondaryFullButton onClick={handleTestNotification} disabled={loading} Icon={CheckCircle}>
             Wyślij Test <CheckCircle className="h-5 w-5" />
           </SecondaryFullButton>
         )}

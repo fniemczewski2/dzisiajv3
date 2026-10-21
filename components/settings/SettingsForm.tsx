@@ -119,7 +119,6 @@ function MoodsEditor({ value, onChange }: Readonly<{ value: MoodOption[]; onChan
               onClick={() => onChange(value.filter((m) => m.id !== opt.id))}
             />
           </div>
-
         </div>
       ))}
       <AddItemInput

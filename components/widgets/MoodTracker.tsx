@@ -44,10 +44,7 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
             Polityka prywatności
           </Link>
         </p>
-        <SecondaryFullButton
-          onClick={() => void grant()}
-          Icon={CheckCircle}
-        >
+        <SecondaryFullButton onClick={() => void grant()} Icon={CheckCircle}>
           {"Wyrażam zgodę"}
         </SecondaryFullButton>
       </section>
@@ -69,16 +66,16 @@ export default function MoodWidget({ date }: Readonly<MoodWidgetProps>) {
               type="button"
               aria-pressed={isSelected}
               aria-label={`Nastrój: ${opt.label}`}
-              className={`${!isSelected && "opacity-60"} flex min-h-6 min-w-6 px-2 py-1 items-center justify-center rounded-full text-xs font-semibold transition md:px-3`}
+              className={`${!isSelected && "opacity-60"} flex min-h-6 min-w-6 items-center justify-center rounded-full px-2 py-1 text-xs font-semibold transition md:px-3`}
               style={{ backgroundColor: opt.color, color: readableTextColor(opt.color) }}
               title={opt.label}
             >
-              {isSelected && 
+              {isSelected && (
                 <>
                   <span className="mr-1">{opt.label}</span>
                   <Check className="h-4 w-4" aria-hidden="true" />
                 </>
-              }
+              )}
             </button>
           );
         })}

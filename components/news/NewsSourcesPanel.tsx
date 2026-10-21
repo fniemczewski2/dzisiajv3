@@ -1,7 +1,7 @@
 // components/news/NewsSourcesPanel.tsx
 
 import React, { useId, useState } from "react";
-import { AlertCircle, CheckCircle2, Plus, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, X } from "lucide-react";
 import { MAX_CUSTOM_FEEDS, RSS_GROUPS, RSS_SOURCES, type CustomFeed } from "@/config/rssSources";
 import { checkCustomFeed } from "@/hooks/useNews";
 import { AddButton, FormButtons } from "../ui/CommonButtons";
@@ -175,10 +175,7 @@ export default function NewsSourcesPanel({ enabled, custom, status, saving, onSa
                 Nazwa (opcjonalnie):
               </label>
               <input id={`${id}-name`} value={name} onChange={(e) => setName(e.target.value)} className="input-field" />
-              <AddButton
-                onClick={() => void addFeed()}
-                disabled={checking || !/^https?:\/\//i.test(url.trim())}
-              />
+              <AddButton onClick={() => void addFeed()} disabled={checking || !/^https?:\/\//i.test(url.trim())} />
               {checkMsg && (
                 <output className={`block text-sm ${checkMsg.ok ? "text-success" : "text-danger"}`}>
                   {checkMsg.message}

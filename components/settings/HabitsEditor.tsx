@@ -5,9 +5,9 @@
 // nie kasuje historii – po ponownym dodaniu tego samego (domyślnego) nawyku
 // odhaczenia wracają.
 
-import React, { useId, useState } from "react";
-import { ArrowDown, ArrowUp, PlusCircle, RotateCcw } from "lucide-react";
-import { AddButton, DeleteButton } from "@/components/ui/CommonButtons";
+import React, { useId } from "react";
+import { ArrowDown, ArrowUp, RotateCcw } from "lucide-react";
+import { DeleteButton } from "@/components/ui/CommonButtons";
 import type { HabitDef } from "@/types/habits";
 import { HABIT_ICON_NAMES, LEGACY_HABITS, MAX_HABIT_LABEL, newHabitId } from "@/lib/habits";
 import { MAX_HABITS } from "@/config/limits";
@@ -21,8 +21,6 @@ interface Props {
 
 export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
   const baseId = useId();
-  const [draft, setDraft] = useState("");
-  const atLimit = value.length >= MAX_HABITS;
 
   const update = (id: string, patch: Partial<HabitDef>) =>
     onChange(value.map((h) => (h.id === id ? { ...h, ...patch } : h)));
@@ -33,13 +31,6 @@ export default function HabitsEditor({ value, onChange }: Readonly<Props>) {
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
     onChange(next);
-  };
-
-  const add = () => {
-    const label = draft.replaceAll(/\s+/g, " ").trim().slice(0, MAX_HABIT_LABEL);
-    if (!label || atLimit) return;
-    onChange([...value, { id: newHabitId(), label, icon: "Sparkles" }]);
-    setDraft("");
   };
 
   return (

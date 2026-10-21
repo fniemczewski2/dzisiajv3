@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { NAVIGATION_BUTTONS } from "@/config/navigation";
+import { NAVIGATION_BUTTONS } from "@/config/modules";
 import GlobalSearch from "./ui/GlobalSearch";
 import { useEnabledModules } from "@/hooks/useEnabledModules";
 
@@ -71,7 +71,6 @@ export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isEnabled } = useEnabledModules();
 
   useEffect(() => {
     const handleRouteChange = () => setIsMenuOpen(false);
@@ -114,19 +113,19 @@ export default function Navbar() {
           <div className="overflow-hidden">
             <div className="max-h-[80vh] space-y-2 overflow-y-auto overscroll-contain pr-0.5">
               <div className="grid grid-cols-4 gap-1.5 border-b border-line pb-1.5">
-                    {NAVIGATION_BUTTONS.map((item) => (
-                      <MenuItemLink
-                        key={item.path}
-                        href={item.path}
-                        title={item.title}
-                        Icon={item.icon}
-                        label={item.label}
-                        badge={item.badge}
-                        isActive={router.pathname === item.path}
-                        onNavigate={() => setIsMenuOpen(false)}
-                      />
-                    ))}
-                  </div>
+                {NAVIGATION_BUTTONS.map((item) => (
+                  <MenuItemLink
+                    key={item.path}
+                    href={item.path}
+                    title={item.title}
+                    Icon={item.icon}
+                    label={item.label}
+                    badge={item.badge}
+                    isActive={router.pathname === item.path}
+                    onNavigate={() => setIsMenuOpen(false)}
+                  />
+                ))}
+              </div>
               <div className="flex w-full items-center gap-2 border-b border-line pb-1.5">
                 <Link
                   href="/settings"

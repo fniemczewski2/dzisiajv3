@@ -662,27 +662,31 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
     .lte("response_date", tomorrowStr);
 
   const optedOutLetters = await optedOutUsers(supabase, "notif_letters");
-  await mapPool((letters || []).filter((l) => !optedOutLetters.has(l.user_id)), 5, async (letter) => {
-    const { data: alreadySent } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("user_id", letter.user_id)
-      .eq("type", "letters_deadline")
-      .gte("created_at", startOfDayUTC)
-      .contains("data", { letter_id: letter.id })
-      .maybeSingle();
-    if (alreadySent) return;
+  await mapPool(
+    (letters || []).filter((l) => !optedOutLetters.has(l.user_id)),
+    5,
+    async (letter) => {
+      const { data: alreadySent } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", letter.user_id)
+        .eq("type", "letters_deadline")
+        .gte("created_at", startOfDayUTC)
+        .contains("data", { letter_id: letter.id })
+        .maybeSingle();
+      if (alreadySent) return;
 
-    const dueLabel = letter.response_date === today ? "dziś" : "jutro";
-    await sendPushAndLog(
-      letter.user_id,
-      `Termin odpowiedzi ${dueLabel}: ${letter.signature}`,
-      `Pismo do: ${letter.recipient}. Odpowiedź nie została jeszcze załączona.`,
-      "/notes/letters",
-      { letter_id: letter.id, due: letter.response_date }
-    );
-    incrementProcessed();
-  });
+      const dueLabel = letter.response_date === today ? "dziś" : "jutro";
+      await sendPushAndLog(
+        letter.user_id,
+        `Termin odpowiedzi ${dueLabel}: ${letter.signature}`,
+        `Pismo do: ${letter.recipient}. Odpowiedź nie została jeszcze załączona.`,
+        "/notes/letters",
+        { letter_id: letter.id, due: letter.response_date }
+      );
+      incrementProcessed();
+    }
+  );
 }
 
 async function processPollClosingType(ctx: NotifCtx): Promise<void> {
@@ -705,31 +709,35 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
     .in("id", closingIds);
 
   const optedOutPolls = await optedOutUsers(supabase, "notif_polls");
-  await mapPool((polls || []).filter((p) => !optedOutPolls.has(p.user_id)), 5, async (poll) => { 
-    const { data: alreadySent } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("user_id", poll.user_id)
-      .eq("type", "poll_closing")
-      .gte("created_at", startOfDayUTC)
-      .contains("data", { poll_id: poll.id })
-      .maybeSingle();
-    if (alreadySent) return;
+  await mapPool(
+    (polls || []).filter((p) => !optedOutPolls.has(p.user_id)),
+    5,
+    async (poll) => {
+      const { data: alreadySent } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", poll.user_id)
+        .eq("type", "poll_closing")
+        .gte("created_at", startOfDayUTC)
+        .contains("data", { poll_id: poll.id })
+        .maybeSingle();
+      if (alreadySent) return;
 
-    const { count } = await supabase
-      .from("meeting_poll_responses")
-      .select("id", { count: "exact", head: true })
-      .eq("poll_id", poll.id);
+      const { count } = await supabase
+        .from("meeting_poll_responses")
+        .select("id", { count: "exact", head: true })
+        .eq("poll_id", poll.id);
 
-    await sendPushAndLog(
-      poll.user_id,
-      `Ankieta „${poll.title}" zamyka się jutro`,
-      `Pierwszy proponowany termin jest jutro. Odpowiedzi: ${count ?? 0}. Sfinalizuj termin.`,
-      "/meetings",
-      { poll_id: poll.id }
-    );
-    incrementProcessed();
-  });
+      await sendPushAndLog(
+        poll.user_id,
+        `Ankieta „${poll.title}" zamyka się jutro`,
+        `Pierwszy proponowany termin jest jutro. Odpowiedzi: ${count ?? 0}. Sfinalizuj termin.`,
+        "/meetings",
+        { poll_id: poll.id }
+      );
+      incrementProcessed();
+    }
+  );
 }
 
 function getMMDD(d: Date): string {

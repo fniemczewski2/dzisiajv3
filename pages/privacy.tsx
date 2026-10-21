@@ -226,7 +226,7 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Wyraźna zgoda</strong> (art. 9 ust. 2 lit. a RODO) – wpisy w module nastroju, które mogą stanowić
-              dane o zdrowiu. Zgodę wyrażasz przyciskiem „Wyrażam zgodę na zapis nastroju”, a cofasz w Ustawieniach
+              dane o zdrowiu. Zgodę wyrażasz przyciskiem, a cofasz w Ustawieniach
               (wpisy są wtedy usuwane).
             </Li>
             <Li>

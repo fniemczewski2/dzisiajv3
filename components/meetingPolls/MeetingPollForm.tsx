@@ -2,7 +2,7 @@
 
 import { MEETING_POLL_QUICK_WORKING_DAYS } from "@/config/defaults";
 import React, { useMemo, useState } from "react";
-import { CalendarPlus, CalendarRange, X } from "lucide-react";
+import { CalendarRange, X } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
 import { AddButton, FormButtons } from "../ui/CommonButtons";
 import { getAppDate } from "@/lib/dateUtils";
@@ -142,10 +142,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
             onChange={(e) => setDateToAdd(e.target.value)}
             className="input-field w-auto min-w-40 flex-1"
           />
-          <AddButton
-            small
-            onClick={addDate}
-          />
+          <AddButton small onClick={addDate} />
           <button
             type="button"
             onClick={addWorkingDays}

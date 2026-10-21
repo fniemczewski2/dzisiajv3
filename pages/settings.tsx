@@ -22,17 +22,6 @@ import SlackListsSection from "@/components/settings/SlackListsSection";
 import DataExportSection from "@/components/settings/DataExportSection";
 import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
 
-function Group({ id, title, children }: Readonly<{ id: string; title: string; children: React.ReactNode }>) {
-  return (
-    <section id={id} aria-labelledby={`${id}-h`} className="mb-6 max-w-3xl scroll-mt-20">
-      <h2 id={`${id}-h`} className="section-title mb-3">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
 export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -99,24 +88,24 @@ export default function SettingsPage() {
           <SlackListsSection />
           <ShortcutTokenSection />
           <UserSection email={user?.email} onSignOut={handleSignOut} />
-            <DataExportSection />
-            <div className="mb-6 flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => void handleRestoreDefaults()}
-                disabled={loading}
-                className="flex min-h-11 items-center gap-2 px-2 text-sm font-medium text-text-secondary hover:underline disabled:opacity-50"
-              >
-                <RotateCcw className="h-4 w-4" aria-hidden="true" /> Przywróć wszystkie ustawienia domyślne
-              </button>
-              <button
-                type="button"
-                onClick={() => void router.push("/guide")}
-                className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-medium text-text-secondary hover:text-text"
-              >
-                Instrukcja <Info className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
+          <DataExportSection />
+          <div className="mb-6 flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => void handleRestoreDefaults()}
+              disabled={loading}
+              className="flex min-h-11 items-center gap-2 px-2 text-sm font-medium text-text-secondary hover:underline disabled:opacity-50"
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" /> Przywróć wszystkie ustawienia domyślne
+            </button>
+            <button
+              type="button"
+              onClick={() => void router.push("/guide")}
+              className="flex min-h-11 items-center gap-2 rounded-lg border border-line-strong px-4 text-sm font-medium text-text-secondary hover:text-text"
+            >
+              Instrukcja <Info className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
 
           <VersionInfo />
         </>

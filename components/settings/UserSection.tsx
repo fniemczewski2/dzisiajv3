@@ -3,7 +3,7 @@
 import { clearLocalUserData } from "@/lib/localUserData";
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { CircleUser, LogOut, TriangleAlert, Loader2, Trash2 } from "lucide-react";
+import { LogOut, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/providers/ToastProvider";
 import { ACCOUNT_DELETE_CONFIRMATION } from "@/config/userData";
 import { SecondaryFullButton } from "@/components/ui/CommonButtons";
@@ -65,9 +65,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       </div>
 
       <div className="flex flex-col gap-2 py-4 text-xs sm:text-sm">
-        <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-text">
-          Zalogowano jako
-        </h4>
+        <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-text">Zalogowano jako</h4>
         <span className="card max-w-full truncate px-2.5 py-1 font-mono font-medium text-text">
           {email || "Brak danych"}
         </span>
@@ -78,9 +76,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
       </SecondaryFullButton>
 
       <div className="flex flex-col gap-2 py-4 text-xs sm:text-sm">
-        <h4 className="my-2 flex items-center gap-2 text-sm font-bold text-text">
-          Usunięcie konta
-        </h4>
+        <h4 className="my-2 flex items-center gap-2 text-sm font-bold text-text">Usunięcie konta</h4>
         <p className="mb-3 text-sm text-text-secondary">
           Usuwa konto wraz ze wszystkimi danymi. Operacji nie da się cofnąć.
         </p>

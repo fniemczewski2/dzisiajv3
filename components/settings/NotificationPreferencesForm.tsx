@@ -3,8 +3,20 @@
 import React, { useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
 import {
-  Sun, Clock, Calendar, Droplet, CheckSquare, Moon, Users, Gift, Coins,
-  ListChecks, BellRing, Mail, CalendarCheck, Heart,
+  Sun,
+  Clock,
+  Calendar,
+  Droplet,
+  CheckSquare,
+  Moon,
+  Users,
+  Gift,
+  Coins,
+  ListChecks,
+  BellRing,
+  Mail,
+  CalendarCheck,
+  Heart,
 } from "lucide-react";
 
 export default function NotificationPreferences() {
@@ -49,10 +61,30 @@ export default function NotificationPreferences() {
       icon: Users,
     },
     { key: "notif_bills", label: "Płatności rachunków", description: "W dniu oraz 1 i 7 dni wcześniej", icon: Coins },
-    { key: "notif_day_schema", label: "Schemat dnia", description: "Dla wpisów schematu z włączonym powiadomieniem", icon: ListChecks },
-    { key: "notif_reminders", label: "Przypomnienia przy zadaniach", description: "O godzinach ustawionych ręcznie przy zadaniu", icon: BellRing },
-    { key: "notif_letters", label: "Terminy odpowiedzi na pisma", description: "Dzień przed terminem i w dniu terminu", icon: Mail },
-    { key: "notif_polls", label: "Ankiety terminów", description: "Dzień przed pierwszym proponowanym terminem", icon: CalendarCheck },
+    {
+      key: "notif_day_schema",
+      label: "Schemat dnia",
+      description: "Dla wpisów schematu z włączonym powiadomieniem",
+      icon: ListChecks,
+    },
+    {
+      key: "notif_reminders",
+      label: "Przypomnienia przy zadaniach",
+      description: "O godzinach ustawionych ręcznie przy zadaniu",
+      icon: BellRing,
+    },
+    {
+      key: "notif_letters",
+      label: "Terminy odpowiedzi na pisma",
+      description: "Dzień przed terminem i w dniu terminu",
+      icon: Mail,
+    },
+    {
+      key: "notif_polls",
+      label: "Ankiety terminów",
+      description: "Dzień przed pierwszym proponowanym terminem",
+      icon: CalendarCheck,
+    },
     { key: "notif_love", label: "Serduszka", description: "Wiadomości od osób zaufanych", icon: Heart },
   ];
 

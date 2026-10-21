@@ -5,8 +5,8 @@
 // Kolor jest przypięty do wiersza, więc zmiana nazwy go nie gubi.
 
 import React, { useId, useState } from "react";
-import { Lock, PlusCircle, RotateCcw } from "lucide-react";
-import { AddButton, DeleteButton } from "@/components/ui/CommonButtons";
+import { Lock, RotateCcw } from "lucide-react";
+import { DeleteButton } from "@/components/ui/CommonButtons";
 import CategoryColorPicker from "./CategoryColorPicker";
 import {
   DEFAULT_USER_TASK_CATEGORIES,
@@ -62,8 +62,6 @@ export default function TaskCategoriesEditor({
 }: Readonly<Props>) {
   const baseId = useId();
   const [rows, setRows] = useState<Row[]>(() => toRows(resolveUserTaskCategories(value), colors));
-  const [draft, setDraft] = useState("");
-  const [draftError, setDraftError] = useState<string | null>(null);
   const [lastEmitted, setLastEmitted] = useState<string | null>(null);
 
   // Wartość z zewnątrz (np. wczytane ustawienia) – tylko jeśli to nie nasza własna zmiana.
@@ -111,20 +109,6 @@ export default function TaskCategoriesEditor({
         .filter((r) => r.original !== null && r.original !== normalizeTaskCategoryName(r.name))
         .map((r) => [r.original as string, normalizeTaskCategoryName(r.name)])
     );
-  };
-
-  const addCategory = () => {
-    const error = validateTaskCategoryName(
-      draft,
-      rows.map((r) => r.name)
-    );
-    if (error) {
-      setDraftError(error);
-      return;
-    }
-    emit([...rows, { id: nextId++, original: null, name: normalizeTaskCategoryName(draft), color: null }]);
-    setDraft("");
-    setDraftError(null);
   };
 
   return (
@@ -178,7 +162,12 @@ export default function TaskCategoriesEditor({
         count={rows.length}
         max={MAX_TASK_CATEGORIES}
         label="Nowa kategoria"
-        validate={(name) => validateTaskCategoryName(name, rows.map((r) => r.name))}
+        validate={(name) =>
+          validateTaskCategoryName(
+            name,
+            rows.map((r) => r.name)
+          )
+        }
         onAdd={(name) => emit([...rows, { id: nextId++, original: null, name, color: null }])}
       />
 
@@ -201,8 +190,6 @@ export default function TaskCategoriesEditor({
       <button
         type="button"
         onClick={() => {
-          setDraft("");
-          setDraftError(null);
           emit(toRows(DEFAULT_USER_TASK_CATEGORIES, null));
         }}
         className="mt-3 flex items-center gap-2 p-2 text-xs font-semibold text-text-secondary transition-colors hover:text-text"

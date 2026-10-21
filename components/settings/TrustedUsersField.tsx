@@ -5,7 +5,7 @@
 // tekstu do sąsiedniego pola.
 
 import { useState } from "react";
-import { AddButton, DeleteButton } from "@/components/ui/CommonButtons";
+import { DeleteButton } from "@/components/ui/CommonButtons";
 import { MAX_TRUSTED_USERS } from "@/config/limits";
 import AddItemInput from "./AddItemInput";
 

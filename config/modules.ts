@@ -43,16 +43,21 @@ export interface AppModule {
   title: string;
 }
 
-const EXCLUDED_PATHS = new Set([
-  "/",
-  "/tasks",
-  "/calendar",
-  "/tasks/daySchema",
-  "/settings",
-  "/guide",
-  "/privacy",
-  "/start",
-]);
+export interface NavigationButton {
+  path: string;
+  title: string;
+  icon: LucideIcon;
+  label: string;
+  badge?: string;
+  external?: boolean;
+}
+
+export interface AppModule {
+  path: string;
+  title: string;
+}
+
+const EXCLUDED_PATHS = new Set(["/", "/tasks", "/calendar", "/settings", "/guide", "/privacy", "/start"]);
 
 export const NAVIGATION_BUTTONS: NavigationButton[] = [
   { path: "/tasks/daySchema", title: "Plan dnia", icon: Logs, label: "Plan\u00a0dnia", group: "Zadania" },
@@ -80,17 +85,6 @@ export const NAVIGATION_BUTTONS: NavigationButton[] = [
   { path: "/notes/movies", title: "Filmy", icon: Clapperboard, label: "Filmy", group: "Rozrywka" },
   { path: "/training", title: "Trening", icon: Dumbbell, label: "Trening", group: "Zdrowie" },
 ];
-
-export const TOGGLEABLE_MODULES: readonly AppModule[] = NAVIGATION_BUTTONS
-  .filter((item) => !EXCLUDED_PATHS.has(item.path))
-  .map(({ path, title, group }) => ({
-    path,
-    title,
-    group: group ?? "Inne",
-  }));
-
-export const TOGGLEABLE_PATHS: readonly string[] = TOGGLEABLE_MODULES.map((m) => m.path);
-const TOGGLEABLE_PATHS_SET = new Set(TOGGLEABLE_PATHS);
 
 /**
  * Znajduje najlepiej pasujący (najdłuższy) wyłączalny moduł dla danej ścieżki.
@@ -121,10 +115,17 @@ export function isPathEnabled(pathname: string, disabled: readonly string[] | nu
   return !mod || !disabled.includes(mod);
 }
 
-/** 
+/**
  * Czyści listę z bazy: zostawia tylko unikalne, rzeczywiście wyłączalne ścieżki.
  */
 export function normalizeDisabledModules(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return [...new Set(raw.filter((p): p is string => typeof p === "string" && TOGGLEABLE_PATHS_SET.has(p)))];
 }
+
+export const TOGGLEABLE_MODULES: readonly AppModule[] = NAVIGATION_BUTTONS.filter(
+  (item) => !EXCLUDED_PATHS.has(item.path)
+).map(({ path, title }) => ({ path, title }));
+
+const TOGGLEABLE_PATHS: readonly string[] = TOGGLEABLE_MODULES.map((m) => m.path);
+const TOGGLEABLE_PATHS_SET = new Set(TOGGLEABLE_PATHS);

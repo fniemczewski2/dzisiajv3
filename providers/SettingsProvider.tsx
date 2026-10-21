@@ -13,7 +13,6 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useRetry } from "@/hooks/useRetry";
 import { isAbortError } from "@/lib/abortUtils";
-import { omit } from "@/lib/objectUtils";
 import { requestSmartLocation } from "@/lib/locationUtils";
 import { settingsFromRow } from "@/lib/settings";
 import { DEFAULT_SETTINGS } from "@/config/defaults";

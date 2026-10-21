@@ -35,7 +35,7 @@ export interface Settings {
   notif_reminders?: boolean;
   notif_letters?: boolean;
   notif_polls?: boolean;
-  notif_love?: boolean
+  notif_love?: boolean;
 
   mood_options?: MoodOption[];
   /** Data wyraźnej zgody na zapis nastroju (art. 9 RODO); null = brak zgody. */

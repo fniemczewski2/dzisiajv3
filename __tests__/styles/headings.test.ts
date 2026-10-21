@@ -5,7 +5,7 @@
 // Wyjątki: strony marketingowe (start, przewodnik) i nazwa osoby w wizytówce.
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ALLOWED_FILES = new Set(["pages/start.tsx", "pages/guide.tsx", "components/profiles/VCardPreview.tsx"]);
@@ -24,7 +24,7 @@ describe("nagłówki sekcji", () => {
     const found: string[] = [];
     for (const dir of ["components", "pages"]) {
       for (const file of files(join(process.cwd(), dir))) {
-        const rel = file.replace(`${process.cwd()}/`, "");
+        const rel = relative(process.cwd(), file).replaceAll("\\", "/");
         if (ALLOWED_FILES.has(rel)) continue;
         for (const match of readFileSync(file, "utf8").matchAll(/<h2\b[^>]*className="([^"]*)"/g)) {
           if (SIZE.test(match[1])) found.push(`${rel}: ${match[1]}`);
@@ -42,7 +42,7 @@ describe("nagłówki sekcji", () => {
           const tokens = (match[1] ?? match[2]).split(/\s+/);
           const isCard = tokens.some((t) => t === "card" || t === "form-card" || t === "widget");
           if (isCard && tokens.some((t) => t === "rounded-lg" || t === "rounded-xl")) {
-            const rel = file.replace(`${process.cwd()}/`, "");
+            const rel = relative(process.cwd(), file).replaceAll("\\", "/");
             found.push(`${rel}: ${tokens.join(" ")}`);
           }
         }

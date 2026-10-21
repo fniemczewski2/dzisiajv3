@@ -48,7 +48,7 @@ describe("zgoda na moduł nastroju", () => {
 
   it("wyrażenie zgody zapisuje jej datę i odblokowuje zapis nastroju", () => {
     const { rerender } = render(<MoodWidget date="2026-10-18" />);
-    fireEvent.click(screen.getByRole("button", { name: "Wyrażam zgodę na zapis nastroju" }));
+    fireEvent.click(screen.getByRole("button", { name: "Wyrażam zgodę" }));
     expect(updateSettings).toHaveBeenCalledWith({
       mood_consent_at: expect.any(String),
       mood_consent_version: "2026-10-18",

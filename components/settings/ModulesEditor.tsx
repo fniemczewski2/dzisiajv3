@@ -4,7 +4,7 @@
 // jego dane zostają w bazie i wracają po ponownym włączeniu.
 
 import React from "react";
-import { TOGGLEABLE_MODULES } from "@/config/navigation";
+import { TOGGLEABLE_MODULES } from "@/config/modules";
 import { ToggleSwitch } from "@/components/ui/CommonButtons";
 
 interface Props {

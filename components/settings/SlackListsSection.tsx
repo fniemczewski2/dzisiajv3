@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useToast } from "@/providers/ToastProvider";
-import { AlertCircle, Hash, Link2, RefreshCw, Loader2, Star, Link2Off } from "lucide-react";
+import { AlertCircle, Link2, RefreshCw, Loader2, Star } from "lucide-react";
 import { useSlackTasks, type SlackListConfig } from "@/hooks/db/useSlackTasks";
 import SlackListEditor from "./SlackListEditor";
 import { AddButton, DeleteButton, FormButtons, SecondaryFullButton } from "../ui/CommonButtons";
@@ -120,13 +120,8 @@ export default function SlackListsSection() {
           <div key={account.id} className="rounded-lg border border-line bg-surface p-4">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2">
-
                 <p className="px-2 font-medium text-text">{account.team_name ?? account.team_id}</p>
-                <DeleteButton
-                  small
-                  onClick={() => void slack.disconnectAccount(account.id)}
-                  disabled={slack.busy}
-                />
+                <DeleteButton small onClick={() => void slack.disconnectAccount(account.id)} disabled={slack.busy} />
               </div>
               <AddButton onClick={() => setShowFrom((prev) => !prev)} small />
             </div>

@@ -4,14 +4,13 @@
 // liczone jako „Wydatki dnia” i push w dniu terminu płatności (zapis z resztą
 // formularza ustawień).
 
-import React, { useId, useState } from "react";
-import { Plus, Trash2, Wallet } from "lucide-react";
+import React, { useId } from "react";
+import { Trash2 } from "lucide-react";
 import { useFinanceProfiles } from "@/hooks/db/useFinance";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
 import { CATEGORY_PALETTE } from "@/lib/categoryColors";
 import { MAX_FINANCE_PROFILES } from "@/types/finance";
 import { getAppDate } from "@/lib/dateUtils";
-import { AddButton } from "../ui/CommonButtons";
 import AddItemInput from "./AddItemInput";
 
 interface Props {
@@ -21,9 +20,8 @@ interface Props {
 
 export default function FinanceSettings({ dailyCategories, onDailyCategoriesChange }: Readonly<Props>) {
   const id = useId();
-  const { profiles, addProfile, updateProfile, removeProfile, maxReached } = useFinanceProfiles();
+  const { profiles, addProfile, updateProfile, removeProfile } = useFinanceProfiles();
   const { categories } = useBudgetCategories(Number(getAppDate().slice(0, 4)));
-  const [draft, setDraft] = useState("");
   const selected = new Set(dailyCategories.map((n) => n.toLocaleLowerCase("pl")));
 
   const toggleCategory = (name: string) => {
@@ -35,7 +33,7 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
 
   return (
     <section id="finance" aria-labelledby={`${id}-h`}>
-      <fieldset className="min-w-0 space-y-2 mt-2 rounded-xl border border-line p-4">
+      <fieldset className="mt-2 min-w-0 space-y-2 rounded-xl border border-line p-4">
         <legend className="mb-1 text-sm font-medium text-text">
           Profile&nbsp;{profiles.length}/{MAX_FINANCE_PROFILES}
         </legend>
@@ -94,7 +92,7 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
         />
       </fieldset>
 
-      <fieldset className="min-w-0 space-y-2 mt-2 rounded-xl border border-line p-4">
+      <fieldset className="mt-2 min-w-0 space-y-2 rounded-xl border border-line p-4">
         <legend className="mb-1 text-sm font-medium text-text">Wydatki dnia</legend>
         <p className="mb-2 text-sm text-text-secondary">
           Kwota na planie dnia to suma transakcji z dnia w zaznaczonych kategoriach.
