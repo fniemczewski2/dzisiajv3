@@ -226,8 +226,7 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Wyraźna zgoda</strong> (art. 9 ust. 2 lit. a RODO) – wpisy w module nastroju, które mogą stanowić
-              dane o zdrowiu. Zgodę wyrażasz przyciskiem, a cofasz w Ustawieniach
-              (wpisy są wtedy usuwane).
+              dane o zdrowiu. Zgodę wyrażasz przyciskiem, a cofasz w Ustawieniach (wpisy są wtedy usuwane).
             </Li>
             <Li>
               <strong>Uzasadniony interes</strong> (art. 6 ust. 1 lit. f RODO) – logi błędów i ograniczanie liczby żądań
