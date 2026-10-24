@@ -1,6 +1,6 @@
 // proxy.ts
 //
-// Strażnik stron: niezalogowanych przekierowuje na /start, zalogowanych
+// Strażnik stron: niezalogowanych przekierowuje na /start (poza PUBLIC_PATHS, np. /demo), zalogowanych
 // z /start – na stronę docelową. Sesję weryfikuje lokalnie `getClaims()`
 // (podpis JWT sprawdzany kluczem publicznym z JWKS projektu, bez zapytania do
 // Supabase Auth przy każdym wejściu). Endpointy /api i pliki statyczne nie
@@ -11,7 +11,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeRedirectPath } from "@/lib/redirect";
 
-const PUBLIC_PATHS = new Set(["/start", "/privacy", "/guide"]);
+const PUBLIC_PATHS = new Set(["/start", "/privacy", "/guide", "/demo"]);
 const PUBLIC_PREFIXES = ["/v/", "/meet/", "/.well-known/"];
 
 function isPublic(path: string): boolean {

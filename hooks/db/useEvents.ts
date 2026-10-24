@@ -47,7 +47,7 @@ export function useVirtualBirthdayEvents(): Event[] {
           if (person.birthday) {
             generated.push({
               id: `bday_${person.id}`,
-              title: `🎂 Urodziny: ${fullName}`,
+              title: `${fullName}`,
               start_time: `${person.birthday}T00:00:00`,
               end_time: `${person.birthday}T23:59:59`,
               user_id: userId,
@@ -57,7 +57,7 @@ export function useVirtualBirthdayEvents(): Event[] {
           if (person.nameday) {
             generated.push({
               id: `nday_${person.id}`,
-              title: `🎉 Imieniny: ${fullName}`,
+              title: `${fullName}`,
               start_time: `${person.nameday}T00:00:00`,
               end_time: `${person.nameday}T23:59:59`,
               user_id: userId,

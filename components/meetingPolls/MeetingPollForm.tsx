@@ -2,9 +2,9 @@
 
 import { MEETING_POLL_QUICK_WORKING_DAYS } from "@/config/defaults";
 import React, { useMemo, useState } from "react";
-import { CalendarRange, X } from "lucide-react";
+import { CalendarPlus, CalendarRange, X } from "lucide-react";
 import { useMeetingPolls } from "@/hooks/db/useMeetingPolls";
-import { AddButton, FormButtons } from "../ui/CommonButtons";
+import { FormButtons } from "../ui/CommonButtons";
 import { getAppDate } from "@/lib/dateUtils";
 import { formatPollDay, generateTimeSlots, nextWorkingDays, pluralPl } from "@/lib/meetingPollGrid";
 import { MEETING_POLL_SLOT_DURATIONS, type MeetingPollSlotDuration } from "@/types/meetingPolls";
@@ -35,9 +35,11 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
   const [timeEnd, setTimeEnd] = useState("22:00");
   const [dates, setDates] = useState<string[]>([]);
   const [dateToAdd, setDateToAdd] = useState(today);
+  const [showResults, setShowResults] = useState(false);
 
   const addDate = () => {
-    if (dateToAdd) setDates((prev) => mergeDates(prev, [dateToAdd]));
+    if (!dateToAdd || dateToAdd < today) return;
+    setDates((prev) => mergeDates(prev, [dateToAdd]));
   };
 
   const addWorkingDays = () =>
@@ -62,6 +64,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
       time_start: timeStart,
       time_end: timeEnd,
       dates,
+      show_results_to_respondents: showResults,
     });
     if (created) onChange();
   };
@@ -142,7 +145,14 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
             onChange={(e) => setDateToAdd(e.target.value)}
             className="input-field w-auto min-w-40 flex-1"
           />
-          <AddButton small onClick={addDate} />
+          <button
+            type="button"
+            onClick={addDate}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line-strong bg-card px-3 py-2 text-sm font-semibold text-text transition-colors hover:bg-surface"
+          >
+            <CalendarPlus aria-hidden="true" className="h-4 w-4" />
+            Dodaj dzień
+          </button>
           <button
             type="button"
             onClick={addWorkingDays}
@@ -167,7 +177,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
               type="time"
               value={timeStart}
               onChange={(e) => setTimeStart(e.target.value)}
-              className="input-field w-full"
+              className="input-field"
             />
           </div>
           <div>
@@ -181,7 +191,7 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
               onChange={(e) => setTimeEnd(e.target.value)}
               aria-invalid={!timesValid}
               aria-describedby={timesValid ? undefined : "mp-time-error"}
-              className="input-field w-full"
+              className="input-field"
             />
           </div>
         </div>
@@ -222,6 +232,21 @@ export default function MeetingPollForm({ onChange, onCancel }: Readonly<Meeting
           {pluralPl(slotsPerDay, "slot", "sloty", "slotów")} dziennie.
         </output>
       )}
+
+      <label className="flex items-start gap-3 text-sm text-text">
+        <input
+          type="checkbox"
+          className="mt-0.5 h-4 w-4 accent-primary"
+          checked={showResults}
+          onChange={(e) => setShowResults(e.target.checked)}
+        />
+        <span>
+          Pokaż wyniki osobom, które odpowiedziały
+          <span className="block text-xs text-text-secondary">
+            Po wysłaniu odpowiedzi zobaczą, ile osób zaznaczyło każdy termin. Imion ani adresów nie zobaczą.
+          </span>
+        </span>
+      </label>
 
       <FormButtons onClickSave={handleSave} onClickClose={onCancel} loading={loading} disabled={!canSave} />
     </div>

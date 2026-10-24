@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: poll, error: pollError } = await supabaseAdmin()
     .from("meeting_polls")
-    .select("id, title, description, slot_duration_minutes, time_start, time_end, status")
+    .select("id, title, description, slot_duration_minutes, time_start, time_end, status, show_results_to_respondents")
     .eq("share_token", token)
     .maybeSingle();
 
@@ -47,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     time_end: poll.time_end,
     dates: (dateRows ?? []).map((d) => d.date as string),
     status: poll.status,
+    show_results_to_respondents: poll.show_results_to_respondents,
   };
 
   res.setHeader("Cache-Control", CACHE_CONTROL.publicPoll);

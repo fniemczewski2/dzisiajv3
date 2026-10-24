@@ -13,6 +13,7 @@ import {
   ConfirmOptions,
   BatchLabel,
 } from "@/types/toasts";
+import { reportError } from "@/lib/errorReport";
 
 function toastReducer(state: ToastItem[], action: ToastAction): ToastItem[] {
   switch (action.type) {
@@ -230,7 +231,8 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
         success: (m: string, options?: NotificationOptions) => {
           addNotification(m, "success", true, options);
         },
-        error: (m: string) => {
+        error: (m: string, options?: { cause?: unknown }) => {
+          if (options?.cause !== undefined) void reportError(`toast: ${m}`, options.cause);
           addNotification(m, "error");
         },
         info: (m: string, options?: NotificationOptions) => {

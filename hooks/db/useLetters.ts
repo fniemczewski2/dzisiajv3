@@ -1,7 +1,7 @@
 // hooks/db/useLetters.ts
 
 import { NotSignedInError } from "@/lib/errors";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { useCrudResource } from "./useCrudResource";
@@ -9,12 +9,13 @@ import {
   CATEGORY_CODE_MAP,
   RESPONSE_DAYS_MAP,
   type Letter,
+  type LetterAttachment,
   type LetterCategory,
   type LetterFileKind,
   type LetterInsert,
   type LetterUpdate,
 } from "@/types/letters";
-import { MAX_LETTER_PDF_SIZE_MB } from "@/config/limits";
+import { MAX_LETTER_ATTACHMENTS, MAX_LETTER_PDF_SIZE_MB } from "@/config/limits";
 
 const MESSAGES = {
   fetchError: "Błąd pobierania pism.",
@@ -36,31 +37,9 @@ export function suggestResponseDate(category: LetterCategory, issueDate: string)
   return d.toISOString().slice(0, 10);
 }
 
-function getLetterType(category: LetterCategory, kind: LetterFileKind): string {
-  if (kind === "letter") {
-    switch (category) {
-      case "Wykroczenie":
-      case "Wykroczenie drogowe":
-      case "Przestępstwo":
-        return "zawiadomienie";
-      case "Wniosek":
-      case "UDIP":
-        return "wniosek";
-      case "Skarga":
-        return "skarga";
-      case "Inne":
-      default:
-        return "pismo";
-    }
-  }
-  if (kind === "response") {
-    return "odpowiedz";
-  }
-  return "inne";
-}
-
-function storagePath(userId: string, letterId: string, category: LetterCategory, kind: LetterFileKind): string {
-  return `${userId}/${letterId}.${getLetterType(category, kind)}.pdf`;
+/** Każdy plik ma unikalną ścieżkę, więc kilka załączników tej samej sekcji nie nadpisuje się. */
+function attachmentPath(userId: string, letterId: string, kind: LetterFileKind): string {
+  return `${userId}/${letterId}/${kind}-${crypto.randomUUID()}.pdf`;
 }
 
 export function useLetters() {
@@ -108,8 +87,6 @@ export function useLetters() {
           payload.category === "Wykroczenie drogowe" ? (payload.license_plate_number ?? null) : null,
         incident_date: payload.incident_date ?? null,
         incident_place: payload.incident_place ?? null,
-        letter_file_path: null,
-        response_file_path: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -117,60 +94,148 @@ export function useLetters() {
     messages: MESSAGES,
   });
 
+  const [attachments, setAttachments] = useState<LetterAttachment[]>([]);
+  const letterKey = crud.items.map((l) => l.id).join(",");
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from("letter_attachments")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        console.error("[useLetters] pobieranie załączników:", error.message);
+        toast.error("Nie udało się pobrać załączników.");
+        return;
+      }
+      setAttachments((data ?? []) as LetterAttachment[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, letterKey, supabase, toast]);
+
+  const getAttachments = useCallback(
+    (letterId: string, kind: LetterFileKind) => attachments.filter((a) => a.letter_id === letterId && a.kind === kind),
+    [attachments]
+  );
+
   const editLetter = useCallback((id: string, updates: LetterUpdate) => crud.patch(id, updates), [crud]);
+
   const deleteLetter = useCallback(
     async (id: string): Promise<void> => {
-      const letter = crud.items.find((l) => l.id === id);
-      const paths = [letter?.letter_file_path, letter?.response_file_path].filter((p): p is string => Boolean(p));
+      // Ścieżki czytamy z bazy, nie ze stanu: stan może być niepełny (np. przed zakończeniem wczytywania).
+      // Wiersze załączników znikają kaskadowo razem z pismem, pliki w Storage trzeba usunąć jawnie.
+      const { data: rows, error: rowsError } = await supabase
+        .from("letter_attachments")
+        .select("storage_path")
+        .eq("letter_id", id);
+      if (rowsError) {
+        console.error("[useLetters] odczyt załączników przed usunięciem:", rowsError.message);
+        toast.error("Nie udało się odczytać załączników. Pismo nie zostało usunięte.");
+        return;
+      }
+      const paths = (rows ?? []).map((r) => r.storage_path as string);
 
       const removed = await crud.remove(id);
       if (!removed) return;
+      setAttachments((prev) => prev.filter((a) => a.letter_id !== id));
 
       if (paths.length > 0) {
         const { error } = await supabase.storage.from("letters").remove(paths);
-        if (error) {
-          console.warn("[useLetters] Nie udało się usunąć załączników:", error.message);
-        }
+        if (error) console.warn("[useLetters] Nie udało się usunąć plików pisma:", error.message);
       }
     },
-    [crud, supabase]
+    [crud, supabase, toast]
   );
 
-  const uploadLetterFile = useCallback(
-    async (letterId: string, category: LetterCategory, kind: LetterFileKind, file: File): Promise<void> => {
+  /** Dodaje pliki PDF do sekcji pisma lub odpowiedzi, nie przekraczając limitu. Zwraca liczbę dodanych. */
+  const addLetterAttachments = useCallback(
+    async (letterId: string, kind: LetterFileKind, files: File[]): Promise<number> => {
       if (!userId) throw new NotSignedInError();
 
-      if (file.type !== "application/pdf") {
-        toast.error("Załącznik musi być plikiem PDF.");
-        return;
-      }
-      if (file.size > MAX_LETTER_PDF_SIZE_MB * 1024 * 1024) {
-        toast.error(`Plik jest za duży (limit ${MAX_LETTER_PDF_SIZE_MB} MB).`);
-        return;
+      const current = attachments.filter((a) => a.letter_id === letterId && a.kind === kind).length;
+      const room = MAX_LETTER_ATTACHMENTS - current;
+      if (room <= 0) {
+        toast.error(`Osiągnięto limit ${MAX_LETTER_ATTACHMENTS} plików w tej sekcji.`);
+        return 0;
       }
 
-      const path = storagePath(userId, letterId, category, kind);
-      const { error: uploadError } = await supabase.storage
-        .from("letters")
-        .upload(path, file, { upsert: true, contentType: "application/pdf" });
+      let added = 0;
+      for (const file of files) {
+        if (added >= room) {
+          toast.error(`Dodano ${added} z ${files.length} plików. Limit to ${MAX_LETTER_ATTACHMENTS} plików w sekcji.`);
+          break;
+        }
+        if (file.type !== "application/pdf") {
+          toast.error(`„${file.name}” nie jest plikiem PDF.`);
+          continue;
+        }
+        if (file.size > MAX_LETTER_PDF_SIZE_MB * 1024 * 1024) {
+          toast.error(`„${file.name}” jest za duży (limit ${MAX_LETTER_PDF_SIZE_MB} MB).`);
+          continue;
+        }
 
-      if (uploadError) {
-        console.error("[useLetters] upload do bucketu 'letters' nie powiodło się:", uploadError.message);
-        toast.error("Błąd przesyłania pliku.");
-        return;
+        const path = attachmentPath(userId, letterId, kind);
+        const { error: uploadError } = await supabase.storage
+          .from("letters")
+          .upload(path, file, { contentType: "application/pdf" });
+        if (uploadError) {
+          console.error("[useLetters] upload do bucketu 'letters' nie powiódł się:", uploadError.message);
+          toast.error(`Błąd przesyłania pliku „${file.name}”.`);
+          continue;
+        }
+
+        const { data, error } = await supabase
+          .from("letter_attachments")
+          .insert({
+            letter_id: letterId,
+            user_id: userId,
+            kind,
+            storage_path: path,
+            file_name: file.name.slice(0, 200),
+            size_bytes: file.size,
+          })
+          .select()
+          .single();
+        if (error || !data) {
+          console.error("[useLetters] zapis załącznika w bazie nie powiódł się:", error?.message);
+          await supabase.storage.from("letters").remove([path]);
+          toast.error(`Plik „${file.name}” nie został zapisany.`);
+          continue;
+        }
+
+        setAttachments((prev) => [...prev, data as LetterAttachment]);
+        added++;
       }
 
-      const update: Partial<Letter> = kind === "letter" ? { letter_file_path: path } : { response_file_path: path };
-      const result = await crud.patch(letterId, update, {
-        successMessage: kind === "letter" ? "Wgrano pismo" : "Wgrano odpowiedź",
-        errorMessage: "Plik wgrany, ale nie udało się zapisać w bazie.",
-      });
-      if (!result) {
-        await supabase.storage.from("letters").remove([path]);
-      }
+      if (added > 0) toast.success(added === 1 ? "Dodano załącznik" : `Dodano załączniki: ${added}`);
+      return added;
     },
-    [userId, supabase, toast, crud]
+    [userId, attachments, supabase, toast]
   );
+
+  const removeLetterAttachment = useCallback(
+    async (attachment: LetterAttachment): Promise<void> => {
+      const { error } = await supabase.from("letter_attachments").delete().eq("id", attachment.id);
+      if (error) {
+        console.error("[useLetters] usuwanie załącznika:", error.message);
+        toast.error("Błąd usuwania załącznika.");
+        return;
+      }
+      setAttachments((prev) => prev.filter((a) => a.id !== attachment.id));
+
+      const { error: storageError } = await supabase.storage.from("letters").remove([attachment.storage_path]);
+      if (storageError) console.warn("[useLetters] Nie udało się usunąć pliku:", storageError.message);
+      toast.success("Usunięto załącznik");
+    },
+    [supabase, toast]
+  );
+
   const getLetterFileUrl = useCallback(
     async (path: string): Promise<string | null> => {
       const { data, error } = await supabase.storage.from("letters").createSignedUrl(path, 300);
@@ -191,7 +256,9 @@ export function useLetters() {
     addLetter: crud.add,
     editLetter,
     deleteLetter,
-    uploadLetterFile,
+    getAttachments,
+    addLetterAttachments,
+    removeLetterAttachment,
     getLetterFileUrl,
   };
 }

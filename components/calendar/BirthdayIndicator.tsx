@@ -8,7 +8,7 @@ import { Cake, Star, Gift, Heart } from "lucide-react";
 import { getPolishHolidays } from "@/lib/holidays";
 import { useAuth } from "@/providers/AuthProvider";
 
-const SPECIAL_KEYWORDS = ["birthday", "urodziny", "imieniny", "rocznica"];
+const SPECIAL_KEYWORDS = ["nday_", "bday_", "birthday", "urodziny", "imieniny", "rocznica"];
 
 function HolidayIndicator({ dateStr, dateObj }: { readonly dateStr: string; readonly dateObj: Date }) {
   const holiday = useMemo(() => {
@@ -48,7 +48,7 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
     return events.filter((event) => {
       if (!eventSpansDate(event, dateObj)) return false;
 
-      const searchText = `${event.title} ${event.description || ""}`.toLowerCase();
+      const searchText = `${event.id} ${event.title} ${event.description || ""}`.toLowerCase();
       return SPECIAL_KEYWORDS.some((keyword) => searchText.includes(keyword));
     });
   }, [events, dateObj]);
@@ -71,7 +71,7 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
     <div className="space-y-1">
       {holiday && (
         <span
-          className="flex items-center justify-start py-0.5 text-xs font-semibold text-(--header-warn) sm:text-sm"
+          className="flex items-center justify-start py-0.5 text-xs font-semibold text-warning sm:text-sm"
           title={holiday}
         >
           <Star aria-hidden="true" className="mr-1.5 h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
@@ -82,7 +82,7 @@ function AuthenticatedBirthdayIndicator({ dateStr, dateObj }: { readonly dateStr
       {specialEvents.map((event) => (
         <span
           key={event.id}
-          className="flex items-center justify-start py-0.5 text-xs font-semibold text-(--header-warn) sm:text-sm"
+          className="flex items-center justify-start py-0.5 text-xs font-semibold text-warning sm:text-sm"
           title={event.description || event.title}
         >
           {getEventIcon(event.title, event.description)}

@@ -1,42 +1,48 @@
 // components/letters/LetterList.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { ChevronDown, Upload, Eye } from "lucide-react";
+import { ChevronDown, Upload, Eye, Trash2 } from "lucide-react";
 import { useLetters } from "@/hooks/db/useLetters";
 import { EditButton, DeleteButton, FormButtons, CopyButtonSmall } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
 import SearchBar from "../ui/SearchBar";
 import { generateLetterBody } from "@/lib/letterTemplates";
-import type { Letter, LetterCategory, LetterFileKind } from "@/types/letters";
+import type { Letter, LetterAttachment, LetterFileKind } from "@/types/letters";
+import { MAX_LETTER_ATTACHMENTS } from "@/config/limits";
 
 interface LetterListProps {
   refreshToken?: number;
 }
-export function FileSlot({
+export function AttachmentSlot({
   label,
-  path,
-  letterId,
-  category,
   kind,
-}: Readonly<{ label: string; path: string | null; letterId: string; category: LetterCategory; kind: LetterFileKind }>) {
-  const { uploadLetterFile, getLetterFileUrl } = useLetters();
+  letterId,
+  attachments,
+}: Readonly<{
+  label: string;
+  kind: LetterFileKind;
+  letterId: string;
+  attachments: LetterAttachment[];
+}>) {
+  const { addLetterAttachments, removeLetterAttachment, getLetterFileUrl } = useLetters();
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const full = attachments.length >= MAX_LETTER_ATTACHMENTS;
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
     setBusy(true);
     try {
-      await uploadLetterFile(letterId, category, kind, file);
+      await addLetterAttachments(letterId, kind, files);
     } finally {
       setBusy(false);
     }
   };
 
-  const handleView = async () => {
-    if (!path) return;
+  const handleView = async (path: string) => {
+    // Kartę otwieramy przed pobraniem linku, bez noopener – inaczej window.open zwróci null.
     const preview = window.open("", "_blank");
     if (preview) preview.opener = null;
     setBusy(true);
@@ -52,45 +58,81 @@ export function FileSlot({
     }
   };
 
+  const handleRemove = async (attachment: LetterAttachment) => {
+    setBusy(true);
+    try {
+      await removeLetterAttachment(attachment);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <div className="flex items-center gap-2">
-      <input ref={inputRef} type="file" accept="application/pdf" className="hidden" onChange={handleFile} />
-      <span className="w-20 shrink-0 text-xs font-bold text-text-muted">{label}:</span>
-      {path ? (
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={handleView}
-            disabled={busy}
-            className="flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-info-soft hover:text-info disabled:opacity-50"
-          >
-            <Eye className="h-3.5 w-3.5" /> Podgląd
-          </button>
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={busy}
-            className="rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-muted transition-colors hover:bg-surface-hover hover:text-text disabled:opacity-50"
-          >
-            Zamień
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          disabled={busy}
-          className="flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-info-soft hover:text-info disabled:opacity-50"
-        >
-          <Upload className="h-3.5 w-3.5" /> Wgraj PDF
-        </button>
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="w-20 shrink-0 text-xs font-bold text-text-muted">{label}:</span>
+        <span className="text-xs text-text-muted">
+          {attachments.length}/{MAX_LETTER_ATTACHMENTS}
+        </span>
+        {!full && (
+          <>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="application/pdf"
+              multiple
+              className="hidden"
+              onChange={handleFiles}
+            />
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={busy}
+              className="flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text disabled:opacity-50"
+            >
+              <Upload className="h-3.5 w-3.5" /> Dodaj PDF
+            </button>
+          </>
+        )}
+      </div>
+
+      {attachments.length > 0 && (
+        <ul className="ml-22 space-y-1">
+          {attachments.map((a) => (
+            <li key={a.id} className="flex items-center gap-2 text-xs">
+              <span className="min-w-0 truncate text-text" title={a.file_name}>
+                {a.file_name}
+              </span>
+              <button
+                type="button"
+                aria-label={`Podgląd: ${a.file_name}`}
+                onClick={() => void handleView(a.storage_path)}
+                disabled={busy}
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-surface px-2 py-0.5 font-semibold text-text-secondary transition-colors hover:bg-info-soft hover:text-info disabled:opacity-50"
+              >
+                <Eye className="h-3.5 w-3.5" aria-hidden="true" /> Podgląd
+              </button>
+              <button
+                type="button"
+                aria-label={`Usuń załącznik: ${a.file_name}`}
+                onClick={() => void handleRemove(a)}
+                disabled={busy}
+                className="flex shrink-0 items-center rounded-lg p-1 text-text-muted transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
+
+      {full && <p className="ml-22 text-xs text-text-muted">Osiągnięto limit {MAX_LETTER_ATTACHMENTS} plików.</p>}
     </div>
   );
 }
 
 export default function LetterList({ refreshToken }: Readonly<LetterListProps>) {
-  const { letters, editLetter, deleteLetter, fetchLetters, loading } = useLetters();
+  const { letters, editLetter, deleteLetter, fetchLetters, loading, getAttachments } = useLetters();
   const [qText, setQText] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -179,7 +221,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                         type="date"
                         value={edited.issue_date}
                         onChange={(e) => setEdited({ ...edited, issue_date: e.target.value })}
-                        className="input-field w-full"
+                        className="input-field"
                       />
                     </div>
                     <div>
@@ -191,7 +233,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                         type="date"
                         value={edited.response_date ?? ""}
                         onChange={(e) => setEdited({ ...edited, response_date: e.target.value || null })}
-                        className="input-field w-full"
+                        className="input-field"
                       />
                     </div>
                   </div>
@@ -241,7 +283,7 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                         type="date"
                         value={edited.incident_date ?? ""}
                         onChange={(e) => setEdited({ ...edited, incident_date: e.target.value || null })}
-                        className="input-field w-full"
+                        className="input-field"
                       />
                     </div>
                     <div>
@@ -334,19 +376,17 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   </div>
 
                   <div className="space-y-2 border-y border-line py-2">
-                    <FileSlot
+                    <AttachmentSlot
                       label="Pismo"
-                      path={l.letter_file_path}
-                      letterId={l.id}
-                      category={l.category}
                       kind="letter"
-                    />
-                    <FileSlot
-                      label="Odpowiedź"
-                      path={l.response_file_path}
                       letterId={l.id}
-                      category={l.category}
+                      attachments={getAttachments(l.id, "letter")}
+                    />
+                    <AttachmentSlot
+                      label="Odpowiedź"
                       kind="response"
+                      letterId={l.id}
+                      attachments={getAttachments(l.id, "response")}
                     />
                   </div>
 

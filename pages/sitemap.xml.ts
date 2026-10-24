@@ -13,6 +13,7 @@ const STATIC_PAGES: Array<{
   { url: "", priority: "1.0", changefreq: "weekly" },
   { url: "/start", priority: "0.9", changefreq: "monthly" },
   { url: "/guide", priority: "0.7", changefreq: "monthly" },
+  { url: "/demo", priority: "0.8", changefreq: "monthly" },
   { url: "/privacy", priority: "0.3", changefreq: "yearly" },
 ];
 

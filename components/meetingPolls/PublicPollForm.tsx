@@ -9,15 +9,27 @@ import type { MeetingPollSlot } from "@/types/meetingPolls";
 import { SaveButton } from "../ui/CommonButtons";
 import { useDragSelectGrid } from "@/hooks/useDragSelectGrid";
 import { SkeletonSlotGrid } from "../ui/Skeleton";
+import RespondentResultsGrid from "./RespondentResultsGrid";
 
 interface PublicPollFormProps {
   token: string;
 }
 
 export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>) {
-  const { poll, loading, notFound, submitting, submitted, hasExistingResponse, existingResponse, submitResponse } =
-    usePublicMeetingPoll(token);
+  const {
+    poll,
+    loading,
+    notFound,
+    submitting,
+    submitted,
+    hasExistingResponse,
+    existingResponse,
+    results,
+    resultsLoading,
+    submitResponse,
+  } = usePublicMeetingPoll(token);
 
+  const [showResults, setShowResults] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -80,10 +92,30 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
 
   if (submitted) {
     return (
-      <div className="space-y-3 py-16 text-center">
+      <div className="mx-auto max-w-3xl space-y-4 py-16 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
         <p className="text-lg font-bold text-text">Dziękujemy!</p>
         <p className="text-sm text-text-secondary">Twoja dostępność została zapisana.</p>
+
+        {poll.show_results_to_respondents && (
+          <div className="pt-2">
+            {!showResults ? (
+              <button
+                type="button"
+                onClick={() => setShowResults(true)}
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line-strong bg-card px-5 py-2.5 font-semibold text-text transition-colors hover:bg-surface"
+              >
+                Zobacz wyniki
+              </button>
+            ) : results ? (
+              <RespondentResultsGrid poll={poll} results={results} />
+            ) : resultsLoading ? (
+              <p className="text-sm text-text-secondary">Ładowanie wyników…</p>
+            ) : (
+              <p className="text-sm text-text-secondary">Nie udało się pobrać wyników. Spróbuj ponownie później.</p>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -177,9 +209,6 @@ export default function PublicPollForm({ token }: Readonly<PublicPollFormProps>)
                           isSelected ? "bg-primary" : "bg-surface hover:bg-surface-hover"
                         }`}
                       >
-                        {/* Przycisk daje dostęp z klawiatury i czytnika ekranu. Mysz, dotyk
-                            i rysik obsługuje przeciąganie (useDragSelectGrid), więc tu
-                            reagujemy tylko na kliknięcie z klawiatury (detail === 0). */}
                         <button
                           type="button"
                           aria-pressed={isSelected}

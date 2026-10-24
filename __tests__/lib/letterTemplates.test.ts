@@ -21,8 +21,6 @@ function makeLetter(overrides: Partial<Letter> = {}): Letter {
     license_plate_number: null,
     incident_date: null,
     incident_place: null,
-    letter_file_path: null,
-    response_file_path: null,
     created_at: "2026-08-19T00:00:00Z",
     updated_at: "2026-08-19T00:00:00Z",
     ...overrides,

@@ -22,6 +22,16 @@ import SlackListsSection from "@/components/settings/SlackListsSection";
 import DataExportSection from "@/components/settings/DataExportSection";
 import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
 
+const OTHER_SECTIONS = [
+  { id: "raporty", title: "Raporty PDF" },
+  { id: "slack", title: "Slack" },
+  { id: "powiadomienia", title: "Powiadomienia" },
+  { id: "lokalizacja", title: "Lokalizacja" },
+  { id: "szablony", title: "Szablony protokołów" },
+  { id: "integracje", title: "Integracje" },
+  { id: "konto", title: "Konto" },
+];
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -82,10 +92,10 @@ export default function SettingsPage() {
           </nav>
 
           <SettingsForm settings={settings} defaults={DEFAULT_SETTINGS} onSavePartial={savePartial} />
-          <PushNotificationManager userId={user?.id} />
           <ReportTemplatePanel />
-          <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
           <SlackListsSection />
+          <PushNotificationManager userId={user?.id} />
+          <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
           <ShortcutTokenSection />
           <UserSection email={user?.email} onSignOut={handleSignOut} />
           <DataExportSection />

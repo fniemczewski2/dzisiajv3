@@ -15,6 +15,8 @@ import { eventRule } from "@/lib/eventUtils";
 import { describeRule, legacyRepeatFor } from "@/shared/recurrence";
 import { generateSingleEventICS } from "@/lib/icsGenerator";
 import { EditButton, DeleteButton, FormButtons, DownloadButton } from "../ui/CommonButtons";
+import { linkifyText } from "@/lib/noteFormatting";
+import { sanitizeHref } from "@/lib/sanitize";
 
 interface EventItemProps {
   event: Event;
@@ -108,17 +110,18 @@ export default function EventItem({
     </>
   );
 
-  const fixedPlace = event?.place?.startsWith("https://") ? (
+  const placeHref = event.place && /^https?:\/\/\S+$/i.test(event.place.trim()) ? sanitizeHref(event.place) : null;
+  const fixedPlace = placeHref ? (
     <div className="flex items-center truncate text-sm font-medium text-text-secondary underline">
       <Globe className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
-      <a href={event.place} rel="noreferrer" target="_blank">
+      <a href={placeHref} rel="noopener noreferrer" target="_blank">
         Link do spotkania<span className="sr-only"> (otwiera się w nowej karcie)</span>
       </a>
     </div>
   ) : (
-    <div className="flex items-center truncate text-sm font-medium text-text-secondary">
-      <MapPin className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
-      {event.place}
+    <div className="flex items-center text-sm font-medium text-text-secondary">
+      <MapPin className="mr-2 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+      <span className="min-w-0 truncate">{linkifyText(event.place ?? "", `place-${event.id}`)}</span>
     </div>
   );
 
@@ -266,7 +269,7 @@ export default function EventItem({
       </div>
       {event.description && (
         <p className="mb-4 rounded-xl border border-line bg-surface p-3 text-sm leading-relaxed wrap-break-word whitespace-pre-wrap text-text-secondary">
-          {event.description}
+          {linkifyText(event.description, `desc-${event.id}`)}
         </p>
       )}
       <div className="mt-auto flex w-full justify-between gap-1 border-t border-line pt-4 sm:gap-1.5">

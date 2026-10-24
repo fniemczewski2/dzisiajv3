@@ -35,6 +35,7 @@ export const SETTINGS_SECTIONS = [
   { id: "finanse", title: "Finanse" },
   { id: "sortowanie", title: "Sortowanie" },
   { id: "udostepnianie", title: "Udostępnianie" },
+  
 ] as const;
 
 interface SettingsFormProps {

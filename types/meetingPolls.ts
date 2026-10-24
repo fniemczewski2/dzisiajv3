@@ -17,6 +17,8 @@ export interface MeetingPoll {
   created_at: string;
   updated_at: string;
   closes_at: string | null;
+  /** Czy osoby, które odpowiedziały, widzą wyniki (ustawia organizator przy tworzeniu). */
+  show_results_to_respondents: boolean;
 }
 
 export interface MeetingPollDate {
@@ -32,6 +34,7 @@ export type MeetingPollInsert = {
   time_start: string;
   time_end: string;
   dates: string[];
+  show_results_to_respondents?: boolean;
 };
 
 export interface PublicMeetingPoll {
@@ -42,6 +45,7 @@ export interface PublicMeetingPoll {
   time_end: string;
   dates: string[];
   status: MeetingPollStatus;
+  show_results_to_respondents: boolean;
 }
 
 export interface MeetingPollSlot {
@@ -103,4 +107,16 @@ export interface FinalizeResultSlot {
 
 export interface FinalizeResponse {
   results: FinalizeResultSlot[];
+}
+
+/** Wyniki widoczne dla osoby, która odpowiedziała: tylko liczby, bez imion i adresów innych osób. */
+export interface RespondentPollSlotCount {
+  date: string;
+  start_time: string;
+  count: number;
+}
+
+export interface RespondentPollResults {
+  respondents: number;
+  slots: RespondentPollSlotCount[];
 }

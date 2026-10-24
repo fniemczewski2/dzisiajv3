@@ -52,9 +52,6 @@ export interface Letter {
   incident_date: string | null;
   incident_place: string | null;
 
-  letter_file_path: string | null;
-  response_file_path: string | null;
-
   created_at: string;
   updated_at: string;
 }
@@ -83,3 +80,14 @@ export type LetterUpdate = Partial<{
 }>;
 
 export type LetterFileKind = "letter" | "response";
+
+export interface LetterAttachment {
+  id: string;
+  letter_id: string;
+  user_id: string;
+  kind: LetterFileKind;
+  storage_path: string;
+  file_name: string;
+  size_bytes: number;
+  created_at: string;
+}

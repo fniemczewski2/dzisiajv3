@@ -120,3 +120,9 @@ export function groupNoteLines(items: string[]): NoteBlock[] {
   }
   return blocks;
 }
+
+export function linkifyText(text: string, keyPrefix: string): React.ReactNode {
+  if (!text) return null;
+  const clipped = text.length > NOTE_FORMATTING_MAX_LENGTH ? `${text.slice(0, NOTE_FORMATTING_MAX_LENGTH)}…` : text;
+  return linkifyPlainText(clipped, keyPrefix);
+}

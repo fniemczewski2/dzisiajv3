@@ -7,7 +7,7 @@
 
 import { FunctionsFetchError, FunctionsHttpError, type SupabaseClient } from "@supabase/supabase-js";
 
-export type EdgeFunctionName = "send-love" | "send-push" | "transport-departures";
+export type EdgeFunctionName = "send-love" | "send-push" | "transport-departures" | "notify-shared" | "log-error";
 
 export type EdgeFunctionResult<T> =
   | { ok: true; status: number; data: T }

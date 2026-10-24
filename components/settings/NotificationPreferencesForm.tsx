@@ -17,6 +17,8 @@ import {
   Mail,
   CalendarCheck,
   Heart,
+  ShoppingCart,
+  ListTodo,
 } from "lucide-react";
 
 export default function NotificationPreferences() {
@@ -76,16 +78,39 @@ export default function NotificationPreferences() {
     {
       key: "notif_letters",
       label: "Terminy odpowiedzi na pisma",
-      description: "Dzień przed terminem i w dniu terminu",
+      description: "W dniu terminu",
       icon: Mail,
     },
     {
       key: "notif_polls",
       label: "Ankiety terminów",
-      description: "Dzień przed pierwszym proponowanym terminem",
+      description: "Po 72h od utworzenia",
       icon: CalendarCheck,
     },
-    { key: "notif_love", label: "Serduszka", description: "Wiadomości od osób zaufanych", icon: Heart },
+    {
+      key: "notif_shared_lists",
+      label: "Wspólne listy zakupów",
+      description: "Gdy ktoś doda pozycję do listy, którą dzielisz",
+      icon: ShoppingCart,
+    },
+    {
+      key: "notif_shared_tasks",
+      label: "Zadania udostępnione mi",
+      description: "Gdy ktoś przydzieli mi zadanie",
+      icon: ListTodo,
+    },
+    {
+      key: "notif_shared_events",
+      label: "Wydarzenia udostępnione mi",
+      description: "Gdy ktoś udostępni mi wydarzenie",
+      icon: Calendar,
+    },
+    {
+      key: "notif_love",
+      label: "Serduszka",
+      description: "Wiadomości od osób zaufanych",
+      icon: Heart,
+    },
   ];
 
   return (

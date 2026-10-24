@@ -38,6 +38,11 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     messages: MESSAGES,
   });
 
+  const editWorkLog = useCallback(
+    (id: string, updates: Partial<WorkLog>): Promise<WorkLog | undefined> => crud.patch(id, updates),
+    [crud]
+  );
+
   const deleteWorkLog = useCallback(
     async (id: string): Promise<void> => {
       await crud.remove(id);
@@ -51,6 +56,7 @@ export function useWorkLogs(dateStr?: string, monthStr?: string) {
     fetching: crud.fetching,
     fetchWorkLogs: crud.refetch,
     addWorkLog: crud.add,
+    editWorkLog,
     deleteWorkLog,
   };
 }

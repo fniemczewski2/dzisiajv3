@@ -652,18 +652,35 @@ async function processEveningAuditType(ctx: NotifCtx): Promise<void> {
 
 async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
   const { supabase, today, startOfDayUTC, sendPushAndLog, incrementProcessed } = ctx;
-  const tomorrowStr = getPLTimeStrings(new Date(Date.now() + 86_400_000)).dateStr;
-  const { data: letters } = await supabase
+  // Tylko w dniu terminu: wcześniejsze przypomnienie nie jest wysyłane.
+  const { data: letters, error: lettersError } = await supabase
     .from("letters")
     .select("id, user_id, signature, recipient, response_date")
-    .is("response_file_path", null)
-    .not("response_date", "is", null)
-    .gte("response_date", today)
-    .lte("response_date", tomorrowStr);
+    .eq("response_date", today);
+  if (lettersError) {
+    console.error("Nie udało się odczytać pism do przypomnienia:", lettersError.message);
+    return;
+  }
+
+  const candidateIds = (letters || []).map((l) => l.id);
+  const answeredIds = new Set<string>();
+  if (candidateIds.length > 0) {
+    const { data: answers, error: answersError } = await supabase
+      .from("letter_attachments")
+      .select("letter_id")
+      .eq("kind", "response")
+      .in("letter_id", candidateIds);
+    if (answersError) {
+      console.error("Nie udało się odczytać odpowiedzi na pisma:", answersError.message);
+      return;
+    }
+    for (const row of answers ?? []) answeredIds.add(row.letter_id);
+  }
+  const pendingLetters = (letters || []).filter((l) => !answeredIds.has(l.id));
 
   const optedOutLetters = await optedOutUsers(supabase, "notif_letters");
   await mapPool(
-    (letters || []).filter((l) => !optedOutLetters.has(l.user_id)),
+    pendingLetters.filter((l) => !optedOutLetters.has(l.user_id)),
     5,
     async (letter) => {
       const { data: alreadySent } = await supabase
@@ -676,10 +693,9 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
         .maybeSingle();
       if (alreadySent) return;
 
-      const dueLabel = letter.response_date === today ? "dziś" : "jutro";
       await sendPushAndLog(
         letter.user_id,
-        `Termin odpowiedzi ${dueLabel}: ${letter.signature}`,
+        `Termin odpowiedzi dziś: ${letter.signature}`,
         `Pismo do: ${letter.recipient}. Odpowiedź nie została jeszcze załączona.`,
         "/notes/letters",
         { letter_id: letter.id, due: letter.response_date }
@@ -688,37 +704,32 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
     }
   );
 }
-
 async function processPollClosingType(ctx: NotifCtx): Promise<void> {
-  const { supabase, startOfDayUTC, sendPushAndLog, incrementProcessed } = ctx;
-  const tomorrowStr = getPLTimeStrings(new Date(Date.now() + 86_400_000)).dateStr;
-  const { data: pollDates } = await supabase.from("meeting_poll_dates").select("poll_id, date");
-
-  const earliestByPoll = new Map<string, string>();
-  for (const row of pollDates || []) {
-    const current = earliestByPoll.get(row.poll_id);
-    if (!current || row.date < current) earliestByPoll.set(row.poll_id, row.date);
-  }
-  const closingIds = [...earliestByPoll.entries()].filter(([, date]) => date === tomorrowStr).map(([pollId]) => pollId);
-  if (closingIds.length === 0) return;
-
-  const { data: polls } = await supabase
+  const { supabase, realNow, sendPushAndLog, incrementProcessed } = ctx;
+  const nowIso = realNow.toISOString();
+  const sinceIso = new Date(realNow.getTime() - 2 * 86_400_000).toISOString();
+  const { data: polls, error: pollsError } = await supabase
     .from("meeting_polls")
-    .select("id, user_id, title")
-    .eq("status", "open")
-    .in("id", closingIds);
+    .select("id, user_id, title, closes_at")
+    .eq("status", "closed")
+    .gte("closes_at", sinceIso)
+    .lte("closes_at", nowIso);
+  if (pollsError) {
+    console.error("Nie udało się odczytać zamkniętych ankiet:", pollsError.message);
+    return;
+  }
 
   const optedOutPolls = await optedOutUsers(supabase, "notif_polls");
   await mapPool(
     (polls || []).filter((p) => !optedOutPolls.has(p.user_id)),
     5,
     async (poll) => {
+      // Raz na ankietę: sprawdzamy całą historię, nie tylko dzisiejszy dzień.
       const { data: alreadySent } = await supabase
         .from("notifications")
         .select("id")
         .eq("user_id", poll.user_id)
         .eq("type", "poll_closing")
-        .gte("created_at", startOfDayUTC)
         .contains("data", { poll_id: poll.id })
         .maybeSingle();
       if (alreadySent) return;
@@ -730,8 +741,8 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
 
       await sendPushAndLog(
         poll.user_id,
-        `Ankieta „${poll.title}" zamyka się jutro`,
-        `Pierwszy proponowany termin jest jutro. Odpowiedzi: ${count ?? 0}. Sfinalizuj termin.`,
+        `Ankieta „${poll.title}” została zamknięta`,
+        `Odpowiedzi: ${count ?? 0}. Sfinalizuj termin spotkania.`,
         "/meetings",
         { poll_id: poll.id }
       );

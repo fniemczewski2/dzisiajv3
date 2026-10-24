@@ -5,7 +5,8 @@ import { pollEditTokenKey } from "@/config/storage";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/providers/ToastProvider";
-import type { PublicMeetingPoll, MeetingPollSlot } from "@/types/meetingPolls";
+import type { PublicMeetingPoll, MeetingPollSlot, RespondentPollResults } from "@/types/meetingPolls";
+import { isRespondentResults } from "@/lib/meetingPollResults";
 
 export interface ExistingResponse {
   respondent_name: string;
@@ -67,6 +68,23 @@ export function usePublicMeetingPoll(token: string | undefined) {
   const notFound = Boolean(token) && !pollQuery.isPending && (pollQuery.isError || pollQuery.data === null);
   const existingResponse = existingQuery.data ?? null;
 
+  // Wyniki tylko dla osoby z tokenem edycji i tylko gdy organizator je udostępnił.
+  const resultsQuery = useQuery({
+    queryKey: ["public-poll-results", token ?? null, editToken],
+    enabled: Boolean(token && editToken && poll?.show_results_to_respondents),
+    queryFn: async ({ signal }): Promise<RespondentPollResults | null> => {
+      const res = await fetch(`/api/meeting-polls/public/${token}/results`, {
+        headers: { [POLL_EDIT_TOKEN_HEADER]: editToken as string },
+        cache: "no-store",
+        signal,
+      });
+      if (!res.ok) return null;
+      const data: unknown = await res.json();
+      return isRespondentResults(data) ? data : null;
+    },
+  });
+  const results = resultsQuery.data ?? null;
+
   const submitResponse = useCallback(
     async (respondentName: string, respondentEmail: string, slots: MeetingPollSlot[]): Promise<boolean> => {
       if (!token) return false;
@@ -112,5 +130,16 @@ export function usePublicMeetingPoll(token: string | undefined) {
     [token, toast]
   );
 
-  return { poll, loading, notFound, submitting, submitted, hasExistingResponse, existingResponse, submitResponse };
+  return {
+    poll,
+    loading,
+    notFound,
+    submitting,
+    submitted,
+    hasExistingResponse,
+    existingResponse,
+    results,
+    resultsLoading: resultsQuery.isFetching,
+    submitResponse,
+  };
 }

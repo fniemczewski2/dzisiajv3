@@ -23,6 +23,7 @@ import { describeRule } from "@/shared/recurrence";
 import { fetchPendingReminders, replacePendingReminders, validateReminders } from "@/lib/taskReminders";
 import { useToast } from "@/providers/ToastProvider";
 import TaskEditForm from "./TaskEditForm";
+import { linkifyText } from "@/lib/noteFormatting";
 
 interface Props {
   task: Task;
@@ -104,7 +105,7 @@ function TaskDetails({ task }: { readonly task: Task }) {
   return (
     <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-3">
       {hasDescription && (
-        <span className="text-xs leading-relaxed whitespace-pre-wrap text-text-secondary">{task.description}</span>
+        <span className="text-xs leading-relaxed whitespace-pre-wrap text-text-secondary">{linkifyText(task.description, `task-desc-${task.id}`)}</span>
       )}
       {showShareInfo && (
         <span className="mt-1 truncate text-xs font-medium text-primary">{task.display_share_info}</span>

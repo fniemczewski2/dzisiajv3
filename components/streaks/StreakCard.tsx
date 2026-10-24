@@ -192,7 +192,7 @@ export default function StreakCard({
         )}
         {milestone && !isEditing && (
           <div className="mb-3 text-center">
-            <div className="inline-block rounded-full border border-warning-line bg-warning-soft px-3 py-1 text-xs font-bold text-accent shadow-sm">
+            <div className="inline-block rounded-full border border-warning-line bg-warning-soft px-3 py-1 text-xs font-bold text-warning shadow-sm">
               {milestone}
             </div>
           </div>

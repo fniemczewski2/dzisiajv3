@@ -163,13 +163,13 @@ export default function LetterForm({ onChange, onCancel }: Readonly<LetterFormPr
           </label>
           <input
             id="lf-response-date"
-            type="date w-full"
+            type="date"
             value={responseDate}
             onChange={(e) => {
               setResponseDate(e.target.value);
               setResponseDateTouched(true);
             }}
-            className="input-field"
+            className="input-field w-full"
             disabled={loading}
           />
         </div>

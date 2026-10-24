@@ -47,7 +47,7 @@ function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuali
       <button
         onClick={() => router.push("/weather")}
         type="button"
-        className="-m-1.5 flex min-h-11 cursor-pointer flex-col items-end rounded-xl px-2.5 py-1.5 transition-colors hover:bg-(--header-hover)"
+        className="-m-1.5 flex h-full min-h-11 cursor-pointer flex-col items-end justify-between rounded-xl pr-2.5 transition-colors hover:bg-(--header-hover)"
         aria-label={`Pogoda: ${currentTemp}°C, odczuwalnie od ${dailyMin}° do ${dailyMax}°. Otwórz pełną prognozę`}
       >
         <div className="mb-1.5 flex items-center gap-1.5 text-2xl leading-none font-semibold tabular-nums sm:text-3xl">
@@ -58,8 +58,7 @@ function WeatherDetails({ currentTemp, dailyMin, dailyMax, weatherCode, airQuali
           {dailyMin}° / {dailyMax}°
         </span>
         {airQuality && (
-          <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-warning">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-warning-line" />
+          <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap text-warning">
             {airQuality}
           </span>
         )}
@@ -98,26 +97,24 @@ export default function Header() {
 
   return (
     <header className="w-full max-w-[1600px] border-b border-line px-1 pt-2 pb-4 text-(--header-fg) sm:px-2 sm:pt-3 sm:pb-5">
-      <div className="flex w-full items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center">
-          <button
-            onClick={() => router.push("/calendar?reset=true")}
-            className="-m-1.5 flex min-w-0 cursor-pointer flex-col items-start rounded-xl px-2.5 py-1.5 transition-colors hover:bg-(--header-hover)"
-            aria-label={`${currentDate}. Otwórz kalendarz`}
-            type="button"
+      <div className="flex w-full items-center justify-between">
+        <button
+          onClick={() => router.push("/calendar?reset=true")}
+          className="-m-1.5 flex min-w-0 cursor-pointer flex-col items-start rounded-xl px-2.5 py-1.5 transition-colors hover:bg-(--header-hover)"
+          aria-label={`${currentDate}. Otwórz kalendarz`}
+          type="button"
+        >
+          <div
+            className="mb-2 text-[2.5rem] leading-none font-bold tracking-tight tabular-nums sm:text-6xl"
+            suppressHydrationWarning
           >
-            <div
-              className="mb-2 text-[2.5rem] leading-none font-bold tracking-tight tabular-nums sm:text-6xl"
-              suppressHydrationWarning
-            >
-              {currentTime}
-            </div>
-            <span className="mb-0.5 truncate text-base font-medium text-(--header-muted) first-letter:uppercase sm:text-lg">
-              {currentDate}
-            </span>
-            <BirthdayIndicator date={todayDateString} />
-          </button>
-        </div>
+            {currentTime}
+          </div>
+          <span className="mb-0.5 truncate text-base font-medium text-(--header-muted) first-letter:uppercase sm:text-lg">
+            {currentDate}
+          </span>
+          <BirthdayIndicator date={todayDateString} />
+        </button>
 
         <div>
           {streak !== null && streak > 0 && (
@@ -125,7 +122,7 @@ export default function Header() {
               className="inline-flex items-center font-semibold text-warning tabular-nums md:text-xl"
               title="Kolejne dni korzystania z aplikacji"
             >
-              <Flame className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />
+              <Flame className="h-5 w-5 sm:h-8 sm:w-8" aria-hidden="true" />
               <span className="sr-only">Seria: </span>
               {streak}
               <span className="sr-only">dni korzystania z rzędu</span>
@@ -133,7 +130,7 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex items-center justify-end">
+        <>
           {isClient &&
             (weatherLoading ? (
               <output aria-label="Ładowanie pogody" className="flex flex-col items-end gap-2">
@@ -149,7 +146,7 @@ export default function Header() {
                 airQuality={airQuality}
               />
             ))}
-        </div>
+        </>
       </div>
     </header>
   );

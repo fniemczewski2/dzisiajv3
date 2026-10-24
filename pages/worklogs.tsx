@@ -6,52 +6,53 @@ import { format, subMonths, addMonths } from "date-fns";
 import { pl } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Clock, Calendar } from "lucide-react";
 import { useWorkLogs } from "@/hooks/db/useWorkLogs";
-import { AddButton, DeleteButton, FormButtons } from "@/components/ui/CommonButtons";
+import { AddButton, DeleteButton, EditButton, FormButtons } from "@/components/ui/CommonButtons";
+import { nowLocalInputValue, toIsoWithLocalOffset, toLocalInputValue, validateWorkLogRange } from "@/lib/workLogTime";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonList } from "@/components/ui/Skeleton";
-import { WorkLog, WorkLogInsert } from "@/types/worklogs";
-import { useAuth } from "@/providers/AuthProvider";
+import { WorkLog } from "@/types/worklogs";
 import { useToast } from "@/providers/ToastProvider";
 import Seo from "@/components/ui/SEO";
 
-const toIsoWithLocalOffset = (localValue: string): string => {
-  const date = new Date(localValue);
-  const offsetMinutes = -date.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? "+" : "-";
-  const abs = Math.abs(offsetMinutes);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${localValue}:00${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
-};
+export interface WorkLogFormData {
+  description: string;
+  start_time: string;
+  end_time: string | null;
+}
 
 const WorkLogForm = ({
-  onAdd,
+  initial,
+  onSubmit,
   onCancel,
   loading,
 }: {
-  onAdd: (log: Omit<WorkLogInsert, "user_id">) => Promise<void>;
+  initial?: WorkLog;
+  onSubmit: (data: WorkLogFormData) => Promise<void>;
   onCancel: () => void;
   loading: boolean;
 }) => {
-  const { user } = useAuth();
-  const [description, setDescription] = useState("");
-  const [startTime, setStartTime] = useState(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-  const [endTime, setEndTime] = useState(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+  const isEdit = Boolean(initial);
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [startTime, setStartTime] = useState(() =>
+    initial ? toLocalInputValue(initial.start_time) : nowLocalInputValue()
+  );
+  // Przy edycji pusty koniec oznacza wpis, który wciąż trwa; przy nowym wpisie koniec jest wymagany.
+  const [endTime, setEndTime] = useState(() => {
+    if (initial) return initial.end_time ? toLocalInputValue(initial.end_time) : "";
+    return nowLocalInputValue();
+  });
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
-    if (!user || !description.trim() || !startTime) return;
-
-    const data: WorkLogInsert = {
-      user_id: user.id,
+    if (!description.trim() || !startTime) return;
+    await onSubmit({
       description: description.trim(),
       start_time: toIsoWithLocalOffset(startTime),
-      end_time: endTime ? toIsoWithLocalOffset(endTime) : undefined,
-    };
-
-    await onAdd(data);
+      end_time: endTime ? toIsoWithLocalOffset(endTime) : null,
+    });
   };
   return (
-    <form onSubmit={handleSubmit} className="form-card">
+    <form onSubmit={handleSubmit} className="form-card" aria-label={isEdit ? "Edycja czasu pracy" : "Nowy czas pracy"}>
       <div className="space-y-4">
         <div>
           <label htmlFor="desc" className="form-label">
@@ -89,7 +90,7 @@ const WorkLogForm = ({
             <input
               id="time-end"
               type="datetime-local"
-              required
+              required={!isEdit}
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className="input-field w-full"
@@ -108,7 +109,8 @@ export default function WorkLogsPage() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
 
   const monthStr = format(currentDate, "yyyy-MM");
-  const { workLogs, loading, addWorkLog, deleteWorkLog } = useWorkLogs(undefined, monthStr);
+  const [editing, setEditing] = useState<WorkLog | null>(null);
+  const { workLogs, loading, addWorkLog, editWorkLog, deleteWorkLog } = useWorkLogs(undefined, monthStr);
   const { toast } = useToast();
   const now = useNow();
 
@@ -137,13 +139,31 @@ export default function WorkLogsPage() {
     return acc + (end - start) / 60000;
   }, 0);
 
-  const handleAddLog = async (log: Omit<WorkLogInsert, "user_id">) => {
-    if (log.end_time && new Date(log.end_time) <= new Date(log.start_time)) {
-      toast.error("Czas zakończenia musi być późniejszy niż rozpoczęcia.");
+  const handleSave = async (data: WorkLogFormData) => {
+    const rangeError = validateWorkLogRange(data.start_time, data.end_time);
+    if (rangeError) {
+      toast.error(rangeError);
       return;
     }
-    const created = await addWorkLog(log);
+    if (editing) {
+      const updated = await editWorkLog(editing.id, {
+        description: data.description,
+        start_time: data.start_time,
+        end_time: data.end_time ?? null,
+      });
+      if (updated) setEditing(null);
+      return;
+    }
+    const created = await addWorkLog({
+      description: data.description,
+      start_time: data.start_time,
+      end_time: data.end_time ?? null,
+    });
     if (created) setIsFormOpen(false);
+  };
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditing(null);
   };
   const handleDelete = async (log: WorkLog) => {
     await deleteWorkLog(log.id);
@@ -187,7 +207,14 @@ export default function WorkLogsPage() {
                 </div>
               </div>
 
-              <div className="mt-2 flex items-center justify-between border-t border-line pt-4">
+              <div className="mt-2 flex w-full items-center justify-between gap-2 border-t border-line pt-4">
+                <EditButton
+                  ariaLabel={`Edytuj wpis: ${log.description}`}
+                  onClick={() => {
+                    setIsFormOpen(false);
+                    setEditing(log);
+                  }}
+                />
                 <DeleteButton onClick={() => handleDelete(log)} />
               </div>
             </li>
@@ -208,7 +235,7 @@ export default function WorkLogsPage() {
         <div className="flex w-full items-center justify-between gap-4">
           <h1 className="page-title flex items-center gap-3">Czas pracy</h1>
 
-          {!isFormOpen && <AddButton onClick={() => setIsFormOpen(true)} />}
+          {!isFormOpen && !editing && <AddButton onClick={() => setIsFormOpen(true)} />}
         </div>
         <div className="flex items-center justify-center">
           <div className="card flex w-fit items-center justify-between p-1 shadow-sm sm:flex-none">
@@ -234,7 +261,15 @@ export default function WorkLogsPage() {
           </div>
         </div>
 
-        {isFormOpen && <WorkLogForm onAdd={handleAddLog} onCancel={() => setIsFormOpen(false)} loading={loading} />}
+        {(isFormOpen || editing) && (
+          <WorkLogForm
+            key={editing?.id ?? "new"}
+            initial={editing ?? undefined}
+            onSubmit={handleSave}
+            onCancel={closeForm}
+            loading={loading}
+          />
+        )}
 
         <section>
           {loading && workLogs.length === 0 ? <SkeletonList count={4} variant="card" /> : renderWorklogs()}

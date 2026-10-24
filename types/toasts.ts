@@ -46,7 +46,7 @@ export type BatchLabel = (count: number) => string;
 export interface ToastContextValue {
   readonly toast: {
     readonly success: (message: string, options?: NotificationOptions) => void;
-    readonly error: (message: string) => void;
+    readonly error: (message: string, options?: { cause?: unknown }) => void;
     readonly info: (message: string, options?: NotificationOptions) => void;
     readonly loading: (message?: string) => string;
     readonly dismiss: (id: string) => void;

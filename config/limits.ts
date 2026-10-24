@@ -12,13 +12,13 @@
 export const MAX_SHOPPING_LISTS = 5;
 export const MAX_FAVORITE_STOPS = 10;
 export const MAX_TRUSTED_USERS = 10;
+/** Własne nastroje (moduł nastroju). */
+export const MAX_MOODS = 10;
 /** Kategorie budżetu na rok. */
 export const MAX_CATEGORIES = 20;
 export const MAX_RECIPE_PRODUCTS = 100;
 /** Własne nawyki dzienne. */
 export const MAX_HABITS = 8;
-/** Własne nastroje (moduł nastroju). */
-export const MAX_MOODS = 10;
 /** [baza] Wizytówki na konto. */
 export const MAX_VCARD_PROFILES = 5;
 
@@ -35,6 +35,8 @@ export const MAX_TRACKED_STATIONS = 3;
 
 // --- Pliki ------------------------------------------------------------------
 export const MAX_LETTER_PDF_SIZE_MB = 10;
+/** Liczba plików PDF w jednej sekcji pisma (osobno: pismo i odpowiedź). */
+export const MAX_LETTER_ATTACHMENTS = 5;
 export const TICKET_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 export const TICKET_ALLOWED_MIME = "application/pdf";
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;

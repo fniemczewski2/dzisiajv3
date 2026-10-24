@@ -24,6 +24,7 @@ const poll = (over: Partial<MeetingPoll>): MeetingPoll => ({
   time_end: "16:00:00",
   share_token: "tok-a",
   status: "open",
+  show_results_to_respondents: false,
   created_at: "2026-10-03T10:00:00Z",
   updated_at: "2026-10-03T10:00:00Z",
   closes_at: "2099-01-01T00:00:00+00:00",
