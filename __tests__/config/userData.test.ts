@@ -44,8 +44,17 @@ describe("rejestr tabel z danymi użytkownika", () => {
       ["slack_lists", "slack_connections"],
       ["day_schema_choices", "day_schemas"],
       ["bills", "budget_categories"],
+      ["letter_attachments", "letters"],
     ];
     for (const [child, parent] of dependencies)
       expect(stage(child), `${child} → ${parent}`).toBeLessThan(stage(parent));
+  });
+
+  it("załączniki pism są w rejestrze i nie eksportują ścieżek w Storage", () => {
+    const entry = USER_TABLES.find((t) => t.table === "letter_attachments");
+    expect(entry, "brak letter_attachments w rejestrze").toBeTruthy();
+    expect(entry?.owner).toBe("user_id");
+    expect(entry?.exportColumns).toBeTruthy();
+    expect(entry?.exportColumns).not.toMatch(/storage_path/);
   });
 });

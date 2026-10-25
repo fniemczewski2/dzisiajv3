@@ -97,7 +97,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         return rows;
       } catch (err) {
         // Bez sieci widok zostaje przy danych z pamięci (także odtworzonych z IndexedDB).
-        if (!isAbortError(err)) toast.error(cfg.messages.fetchError);
+        if (!isAbortError(err)) toast.error(cfg.messages.fetchError, { cause: err });
         throw err;
       }
     },
@@ -142,7 +142,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         return created;
       } catch (error) {
         setItems((prev) => prev.filter((it) => it.id !== tempId));
-        toast.error(cfg.describeError?.(error, "add") ?? cfg.messages.addError);
+        toast.error(cfg.describeError?.(error, "add") ?? cfg.messages.addError, { cause: error });
         return undefined;
       } finally {
         setLoading(false);
@@ -183,7 +183,9 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         return undefined;
       } catch (error) {
         setItems(rollbackRef.current);
-        toast.error(options.errorMessage ?? cfg.describeError?.(error, "edit") ?? cfg.messages.editError);
+        toast.error(options.errorMessage ?? cfg.describeError?.(error, "edit") ?? cfg.messages.editError, {
+          cause: error,
+        });
         return undefined;
       } finally {
         setLoading(false);
@@ -214,7 +216,7 @@ export function useCrudResource<T extends { id: string }, TInsert extends object
         return true;
       } catch (error) {
         setItems(rollbackRef.current);
-        toast.error(cfg.describeError?.(error, "delete") ?? cfg.messages.deleteError);
+        toast.error(cfg.describeError?.(error, "delete") ?? cfg.messages.deleteError, { cause: error });
         return false;
       } finally {
         setLoading(false);

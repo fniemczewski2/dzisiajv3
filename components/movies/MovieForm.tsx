@@ -85,7 +85,7 @@ export default function MovieAddForm({ onSubmit, onCancel, loading = false }: Re
       if (results.length > 0) setOptions(results);
       else setTmdbError(`Nie znaleziono ${NOT_FOUND_LABEL[filter] ?? "filmu ani serialu"}. Spróbuj innego tytułu.`);
     } catch (err) {
-      if (!isAbortError(err)) toast.error("Wystąpił błąd wyszukiwania TMDB");
+      if (!isAbortError(err)) toast.error("Wystąpił błąd wyszukiwania TMDB", { cause: err });
     } finally {
       setFetching(false);
     }

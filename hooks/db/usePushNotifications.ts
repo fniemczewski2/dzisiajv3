@@ -202,7 +202,7 @@ export function usePushNotifications(userId: string | undefined) {
       setIsSubscribed(true);
       toast.success("Włączono powiadomienia push");
     } catch (err) {
-      toast.error(getErrorMessage(err, "Błąd włączania powiadomień."));
+      toast.error(getErrorMessage(err, "Błąd włączania powiadomień."), { cause: err });
     } finally {
       setLoading(false);
     }

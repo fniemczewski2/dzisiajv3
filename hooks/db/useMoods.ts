@@ -31,7 +31,7 @@ export function useMoods(startDate?: string, endDate?: string) {
         if (error) throw error;
         return (data || []) as MoodEntry[];
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania nastrojów.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania nastrojów.", { cause: err });
         throw err;
       }
     },

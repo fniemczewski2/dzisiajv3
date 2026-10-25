@@ -55,3 +55,15 @@ export async function reportError(context: string, value: unknown): Promise<void
     // Celowo bez akcji: raportowanie błędów nie może generować kolejnych błędów.
   }
 }
+
+/** Podpina globalne handlery (zdarzenia i nieobsłużone promisy). Zwraca funkcję sprzątającą. */
+export function installGlobalErrorHandlers(target: Window = window): () => void {
+  const onError = (event: ErrorEvent) => void reportError("window.error", event.error ?? event.message);
+  const onRejection = (event: PromiseRejectionEvent) => void reportError("unhandledrejection", event.reason);
+  target.addEventListener("error", onError);
+  target.addEventListener("unhandledrejection", onRejection);
+  return () => {
+    target.removeEventListener("error", onError);
+    target.removeEventListener("unhandledrejection", onRejection);
+  };
+}

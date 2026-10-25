@@ -84,6 +84,9 @@ describe("useCrudResource", () => {
     });
     expect(created).toBeUndefined();
     expect(result.current.items.map((r) => r.id)).toEqual(["1"]);
-    expect(toast.error).toHaveBeenCalledWith("Taki wpis już istnieje.");
+    expect(toast.error).toHaveBeenCalledWith(
+      "Taki wpis już istnieje.",
+      expect.objectContaining({ cause: expect.anything() })
+    );
   });
 });

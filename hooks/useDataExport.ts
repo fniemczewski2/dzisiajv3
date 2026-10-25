@@ -47,7 +47,7 @@ export function useDataExport() {
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       toast.success("Pobrano kopię danych.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Nie udało się przygotować kopii danych.");
+      toast.error(error instanceof Error ? error.message : "Nie udało się przygotować kopii danych.", { cause: error });
     } finally {
       setExporting(false);
     }

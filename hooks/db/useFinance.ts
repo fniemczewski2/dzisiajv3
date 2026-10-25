@@ -267,7 +267,7 @@ export function useTransactions({ from, to }: TransactionsOptions) {
         // Dzień bez transakcji to pusta lista, nie błąd.
         return ((data ?? []) as Transaction[]).map(normalizeTx);
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Nie udało się pobrać transakcji.");
+        if (!isAbortError(err)) toast.error("Nie udało się pobrać transakcji.", { cause: err });
         throw err;
       }
     },

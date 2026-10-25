@@ -110,7 +110,7 @@ export default function TaskForm({
         await setSlackTaskTarget(Number(created.id), slackListId);
         triggerSlackSync();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Nie udało się przypisać listy Slack.");
+        toast.error(err instanceof Error ? err.message : "Nie udało się przypisać listy Slack.", { cause: err });
       }
     }
 

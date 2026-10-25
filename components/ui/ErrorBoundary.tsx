@@ -2,6 +2,7 @@
 
 import React, { Component, ReactNode } from "react";
 import { AlertTriangle, ChevronRight, ChevronDown, Home, RefreshCw } from "lucide-react";
+import { reportError } from "@/lib/errorReport";
 
 interface Props {
   children: ReactNode;
@@ -26,6 +27,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("[ErrorBoundary] Nieobsłużony błąd komponentu:", error, errorInfo);
+    void reportError("ErrorBoundary", error);
   }
 
   handleReset = () => {

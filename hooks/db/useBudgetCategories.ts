@@ -39,7 +39,7 @@ export function useBudgetCategories(year: number) {
         if (error) throw error;
         return (data ?? []) as BudgetCategory[];
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania kategorii.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania kategorii.", { cause: err });
         throw err;
       }
     },

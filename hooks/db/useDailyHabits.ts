@@ -53,7 +53,7 @@ export function useDailyHabits(date?: string) {
         return data ? { ...data, water_amount: data.water_amount ?? 0 } : getDefaultHabits(targetDate, userId);
       } catch (err) {
         if (isAbortError(err)) throw err;
-        toast.error("Błąd ładowania nawyków.");
+        toast.error("Błąd ładowania nawyków.", { cause: err });
         // Pusty dzień zamiast blokady – odhaczenie i tak zapisze wiersz w bazie.
         return getDefaultHabits(targetDate, userId);
       }

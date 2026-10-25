@@ -60,7 +60,14 @@ export const USER_TABLES: readonly UserTable[] = [
   { table: "work_logs", label: "Czas pracy", owner: "user_id", stage: 1 },
   { table: "user_trains", label: "Śledzone pociągi", owner: "user_id", stage: 1 },
   { table: "notes", label: "Notatki", owner: "user_id", stage: 1 },
-  { table: "letters", label: "Pisma", owner: "user_id", stage: 1 },
+  {
+    table: "letter_attachments",
+    label: "Załączniki pism",
+    owner: "user_id",
+    // Bez ścieżek w Storage (wewnętrzne); nazwy i rozmiary plików są w eksporcie.
+    exportColumns: "id, letter_id, kind, file_name, size_bytes, created_at",
+    stage: 1,
+  },
   { table: "reports", label: "Protokoły", owner: "user_id", stage: 1 },
   { table: "products", label: "Produkty", owner: "user_id", stage: 1 },
   { table: "recipes", label: "Przepisy", owner: "user_id", stage: 1 },
@@ -84,6 +91,8 @@ export const USER_TABLES: readonly UserTable[] = [
   },
   { table: "shopping_lists", label: "Listy zakupów", owner: "user_id", stage: 2 },
   { table: "day_schemas", label: "Schematy dnia", owner: "user_id", stage: 2 },
+  // Pisma: załączniki wskazują na pisma, więc pisma usuwamy po załącznikach (etap 1).
+  { table: "letters", label: "Pisma", owner: "user_id", stage: 2 },
 
   // Etap 3.
   { table: "recurring_bills", label: "Rachunki stałe", owner: "user_id", stage: 3 },

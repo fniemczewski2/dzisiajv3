@@ -64,7 +64,12 @@ describe("useTransactions – komunikaty błędów", () => {
   it("prawdziwy błąd bazy pokazuje komunikat dokładnie raz", async () => {
     result = { data: null, error: { message: "permission denied", code: "42501" } };
     const { result: hook } = renderHook(() => useTransactions({ from: "2026-10-20", to: "2026-10-20" }));
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Nie udało się pobrać transakcji."));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Nie udało się pobrać transakcji.",
+        expect.objectContaining({ cause: expect.anything() })
+      )
+    );
     expect(hook.current.transactions).toEqual([]);
     expect(toast.error).toHaveBeenCalledTimes(1);
   });

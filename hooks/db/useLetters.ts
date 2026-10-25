@@ -16,6 +16,7 @@ import {
   type LetterUpdate,
 } from "@/types/letters";
 import { MAX_LETTER_ATTACHMENTS, MAX_LETTER_PDF_SIZE_MB } from "@/config/limits";
+import { archiveEntryPaths, archiveFileName, buildLetterArchive, downloadBlob } from "@/lib/letterArchive";
 
 const MESSAGES = {
   fetchError: "Błąd pobierania pism.",
@@ -236,6 +237,35 @@ export function useLetters() {
     [supabase, toast]
   );
 
+  /** Pobiera wszystkie pliki (pismo i odpowiedź) do jednego archiwum ZIP. Przy błędzie nic nie pobiera. */
+  const downloadLetterArchive = useCallback(
+    async (letter: Letter): Promise<void> => {
+      const sources = [...getAttachments(letter.id, "letter"), ...getAttachments(letter.id, "response")];
+      if (sources.length === 0) {
+        toast.error("Brak plików do pobrania.");
+        return;
+      }
+      const paths = archiveEntryPaths(sources.map((a) => ({ kind: a.kind, file_name: a.file_name })));
+      try {
+        const files = await Promise.all(
+          sources.map(async (a, i) => {
+            const { data, error } = await supabase.storage.from("letters").createSignedUrl(a.storage_path, 300);
+            if (error || !data) throw new Error(`Nie udało się przygotować pliku „${a.file_name}”.`);
+            const res = await fetch(data.signedUrl);
+            if (!res.ok) throw new Error(`Nie udało się pobrać pliku „${a.file_name}”.`);
+            return { path: paths[i], data: new Uint8Array(await res.arrayBuffer()) };
+          })
+        );
+        const zip = buildLetterArchive(letter.signature, files);
+        downloadBlob(new Blob([new Uint8Array(zip)], { type: "application/zip" }), archiveFileName(letter.signature));
+      } catch (err) {
+        console.error("[useLetters] archiwum pisma:", err);
+        toast.error(err instanceof Error ? err.message : "Nie udało się przygotować archiwum.");
+      }
+    },
+    [getAttachments, supabase, toast]
+  );
+
   const getLetterFileUrl = useCallback(
     async (path: string): Promise<string | null> => {
       const { data, error } = await supabase.storage.from("letters").createSignedUrl(path, 300);
@@ -260,5 +290,6 @@ export function useLetters() {
     addLetterAttachments,
     removeLetterAttachment,
     getLetterFileUrl,
+    downloadLetterArchive,
   };
 }

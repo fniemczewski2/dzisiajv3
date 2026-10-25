@@ -69,7 +69,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
         if (error) throw error;
         return data ? settingsFromRow(data) : DEFAULT_SETTINGS;
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Nie udało się pobrać ustawień.");
+        if (!isAbortError(err)) toast.error("Nie udało się pobrać ustawień.", { cause: err });
         throw err;
       }
     },
@@ -121,7 +121,7 @@ export function SettingsProvider({ children }: Readonly<{ children: ReactNode }>
         return { error: null };
       } catch (error) {
         applySettings(previous);
-        toast.error("Nie udało się zapisać ustawień.");
+        toast.error("Nie udało się zapisać ustawień.", { cause: error });
         return { error };
       } finally {
         setLoading(false);

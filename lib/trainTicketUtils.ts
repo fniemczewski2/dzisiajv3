@@ -86,7 +86,7 @@ export function useTicketUpload({ setFormData, setExpanded }: Readonly<UseTicket
     } catch (error) {
       console.error("Błąd podczas przesyłania biletu:", error);
       dismissLoading(toastId);
-      toast.error("Błąd połączenia z serwerem");
+      toast.error("Błąd połączenia z serwerem", { cause: error });
     } finally {
       setLoading(false);
       e.target.value = "";

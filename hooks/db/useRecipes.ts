@@ -77,7 +77,7 @@ export function useRecipes() {
       return ((data ?? []) as { name: string }[]).map((p) => p.name);
     } catch (err) {
       if (isAbortError(err)) return [];
-      toast.error("Błąd pobierania produktów.");
+      toast.error("Błąd pobierania produktów.", { cause: err });
       return [];
     }
   }, [supabase, userId, toast, withRetry, getProductsSignal]);

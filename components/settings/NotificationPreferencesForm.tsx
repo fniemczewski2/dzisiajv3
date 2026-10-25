@@ -114,7 +114,7 @@ export default function NotificationPreferences() {
   ];
 
   return (
-    <div className="space-y-2">
+    <section className="space-y-2" id="powiadomienia">
       {notifOptions.map(({ key, label, description, icon: Icon }) => {
         const isActive = settings[key as keyof typeof settings] !== false;
         return (
@@ -151,6 +151,6 @@ export default function NotificationPreferences() {
           </div>
         );
       })}
-    </div>
+    </section>
   );
 }

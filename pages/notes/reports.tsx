@@ -202,7 +202,7 @@ export default function ReportsPage() {
       await downloadReportPDF(report, await templates.load(report.template_id));
     } catch (err) {
       console.error("[reports] Generowanie PDF nie powiodło się:", err);
-      toast.error("Nie udało się wygenerować PDF.");
+      toast.error("Nie udało się wygenerować PDF.", { cause: err });
     } finally {
       setPdfBusyId(null);
     }
@@ -213,7 +213,7 @@ export default function ReportsPage() {
       downloadReportMarkdown(report);
     } catch (err) {
       console.error("[reports] Generowanie Markdown nie powiodło się:", err);
-      toast.error("Nie udało się wygenerować pliku Markdown.");
+      toast.error("Nie udało się wygenerować pliku Markdown.", { cause: err });
     }
   };
 

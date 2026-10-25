@@ -77,7 +77,10 @@ describe("useSettings – task_categories", () => {
     });
     expect(upserts).toHaveLength(1);
     expect(outcome?.error).toBeTruthy();
-    expect(toast.error).toHaveBeenCalledWith("Nie udało się zapisać ustawień.");
+    expect(toast.error).toHaveBeenCalledWith(
+      "Nie udało się zapisać ustawień.",
+      expect.objectContaining({ cause: expect.anything() })
+    );
     expect(toast.success).not.toHaveBeenCalled();
     expect(result.current.settings.task_categories).toEqual(["Dom"]);
   });

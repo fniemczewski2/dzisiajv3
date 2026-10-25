@@ -116,7 +116,7 @@ export function useTrains() {
         if (error) throw error;
         return (data || []).map(mapDbRowToTrain);
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania pociągów.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania pociągów.", { cause: err });
         throw err;
       }
     },

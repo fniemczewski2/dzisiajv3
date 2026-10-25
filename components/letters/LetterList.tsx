@@ -1,7 +1,7 @@
 // components/letters/LetterList.tsx
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { ChevronDown, Upload, Eye, Trash2 } from "lucide-react";
+import { ChevronDown, Download, Upload, Eye, Trash2 } from "lucide-react";
 import { useLetters } from "@/hooks/db/useLetters";
 import { EditButton, DeleteButton, FormButtons, CopyButtonSmall } from "../ui/CommonButtons";
 import NoResultsState from "../ui/NoResultsState";
@@ -132,7 +132,8 @@ export function AttachmentSlot({
 }
 
 export default function LetterList({ refreshToken }: Readonly<LetterListProps>) {
-  const { letters, editLetter, deleteLetter, fetchLetters, loading, getAttachments } = useLetters();
+  const { letters, editLetter, deleteLetter, fetchLetters, loading, getAttachments, downloadLetterArchive } =
+    useLetters();
   const [qText, setQText] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -314,6 +315,15 @@ export default function LetterList({ refreshToken }: Readonly<LetterListProps>) 
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono font-bold text-text">{l.signature}</span>
                     <CopyButtonSmall text={l.signature} label="sygnaturę" />
+                    <button
+                      type="button"
+                      onClick={() => void downloadLetterArchive(l)}
+                      disabled={getAttachments(l.id, "letter").length + getAttachments(l.id, "response").length === 0}
+                      aria-label={`Pobierz wszystkie pliki sygnatury ${l.signature} (ZIP)`}
+                      className="flex items-center gap-1 rounded-lg bg-surface px-2 py-0.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text disabled:opacity-50"
+                    >
+                      <Download className="h-3.5 w-3.5" aria-hidden="true" /> ZIP
+                    </button>
                     <span className="rounded-lg border border-primary bg-info-soft px-2 py-0.5 text-xs font-semibold text-primary">
                       {l.category === "Inne" ? l.category_other : l.category}
                     </span>

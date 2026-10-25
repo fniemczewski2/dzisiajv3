@@ -88,7 +88,7 @@ export default function ReportTemplatePanel() {
     } catch (err) {
       win?.close();
       console.error("[reports] podgląd szablonu:", err);
-      toast.error("Nie udało się otworzyć podglądu. Sprawdź, czy czcionki to poprawne pliki TTF/OTF.");
+      toast.error("Nie udało się otworzyć podglądu. Sprawdź, czy czcionki to poprawne pliki TTF/OTF.", { cause: err });
     } finally {
       setPreviewing(false);
     }

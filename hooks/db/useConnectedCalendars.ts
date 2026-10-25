@@ -61,7 +61,7 @@ export async function fetchProviderCalendars(
     });
   } catch (err) {
     if (isAbortError(err)) throw err;
-    toast.error(errorMessage);
+    toast.error(errorMessage, { cause: err });
     return [];
   }
 }
@@ -127,7 +127,7 @@ export function useConnectedCalendars(expanded: boolean) {
           .map((c: ExternalCalendar) => `${c.primaryAccountId}:::${c.id}`);
         return { accounts, calendars, selected };
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd podczas pobierania kalendarzy.");
+        if (!isAbortError(err)) toast.error("Błąd podczas pobierania kalendarzy.", { cause: err });
         throw err;
       }
     },

@@ -132,7 +132,7 @@ export function useTasks(dateFrom?: string, dateTo?: string) {
         return visibleTasks;
       } catch (err) {
         // Bez sieci widok zostaje przy danych z pamięci (także odtworzonych z IndexedDB).
-        if (!isAbortError(err)) toast.error("Błąd pobierania zadań.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania zadań.", { cause: err });
         throw err;
       }
     },

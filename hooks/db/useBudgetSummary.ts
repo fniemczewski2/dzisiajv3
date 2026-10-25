@@ -130,7 +130,7 @@ export function useBudgetSummary(
         if (error) throw error;
         return ((data ?? []) as YearTx[]).map((t) => ({ ...t, amount: Number(t.amount) }));
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania statystyk budżetu.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania statystyk budżetu.", { cause: err });
         throw err;
       }
     },

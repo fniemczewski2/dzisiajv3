@@ -64,7 +64,7 @@ export default function SettingsPage() {
       />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="page-title">
-          Menu&nbsp;&nbsp;
+          Ustawienia&nbsp;
           <LoveButton />
         </h1>
         <InstallButton />

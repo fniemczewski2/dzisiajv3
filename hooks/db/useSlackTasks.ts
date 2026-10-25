@@ -93,7 +93,7 @@ export function useSlackTasks() {
         await fn();
         toast.success(successMessage);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : errorMessage);
+        toast.error(err instanceof Error ? err.message : errorMessage, { cause: err });
       } finally {
         setBusy(false);
       }
@@ -107,7 +107,7 @@ export function useSlackTasks() {
       const { url } = await callSlackApi<{ url: string }>("/api/slack?action=auth-url");
       globalThis.location.href = url;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nie udało się rozpocząć łączenia.");
+      toast.error(err instanceof Error ? err.message : "Nie udało się rozpocząć łączenia.", { cause: err });
       setBusy(false);
     }
   }, [toast]);

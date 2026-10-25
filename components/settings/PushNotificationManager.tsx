@@ -200,7 +200,9 @@ export default function PushNotificationManager({ userId }: PushNotificationMana
       if (outcome.ok) toast.success(outcome.message);
       else toast.error(outcome.message);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Nie udało się wysłać powiadomienia testowego.");
+      toast.error(error instanceof Error ? error.message : "Nie udało się wysłać powiadomienia testowego.", {
+        cause: error,
+      });
     }
   };
 

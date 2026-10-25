@@ -58,7 +58,7 @@ export function useShoppingLists() {
         confirmedElementsRef.current = Object.fromEntries(listsWithDisplayInfo.map((l) => [l.id ?? "", l.elements]));
         return listsWithDisplayInfo;
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania list zakupów.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania list zakupów.", { cause: err });
         throw err;
       }
     },

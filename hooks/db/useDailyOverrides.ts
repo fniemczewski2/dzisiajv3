@@ -35,7 +35,7 @@ export function useDailyOverrides(dateStr: string) {
         if (error) throw error;
         return (data || []) as DailyOverride[];
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania rutyn dnia.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania rutyn dnia.", { cause: err });
         throw err;
       }
     },

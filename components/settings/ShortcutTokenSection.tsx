@@ -65,7 +65,7 @@ export default function ShortcutTokenSection() {
       setFreshToken(body.token);
       await loadStatus();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nie udało się wygenerować tokenu.");
+      toast.error(err instanceof Error ? err.message : "Nie udało się wygenerować tokenu.", { cause: err });
     } finally {
       setBusy(false);
     }
@@ -82,7 +82,7 @@ export default function ShortcutTokenSection() {
       setStatus(null);
       toast.success("Token unieważniony.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nie udało się unieważnić tokenu.");
+      toast.error(err instanceof Error ? err.message : "Nie udało się unieważnić tokenu.", { cause: err });
     } finally {
       setBusy(false);
     }

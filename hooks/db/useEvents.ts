@@ -68,7 +68,7 @@ export function useVirtualBirthdayEvents(): Event[] {
 
         return generated;
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania dat urodzin/imienin.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania dat urodzin/imienin.", { cause: err });
         throw err;
       }
     },
@@ -134,7 +134,7 @@ export function useEvents(rangeStart: string, rangeEnd: string, virtualEvents: E
         const fetchedEvents = (data || []) as Event[];
         return await resolveSharedEmails(fetchedEvents, userId, supabase, userEmailsRef);
       } catch (err) {
-        if (!isAbortError(err)) toast.error("Błąd pobierania wydarzeń.");
+        if (!isAbortError(err)) toast.error("Błąd pobierania wydarzeń.", { cause: err });
         throw err;
       }
     },

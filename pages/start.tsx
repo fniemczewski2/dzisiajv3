@@ -43,7 +43,7 @@ export default function StartPage() {
       if (error) throw error;
     } catch (err) {
       console.error("Błąd logowania:", err);
-      toast.error("Wystąpił błąd podczas logowania.");
+      toast.error("Wystąpił błąd podczas logowania.", { cause: err });
       setIsLoggingIn(false);
     }
   };

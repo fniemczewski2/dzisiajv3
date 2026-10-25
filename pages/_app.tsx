@@ -12,6 +12,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import "../styles/globals.css";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import { installGlobalErrorHandlers } from "@/lib/errorReport";
 import { ThemeProvider } from "next-themes";
 import CookieBanner from "@/components/CookieBanner";
 import Layout from "@/components/ui/Layout";
@@ -28,6 +29,9 @@ export default function MyApp({ Component, pageProps }: Readonly<AppProps>) {
       if (registration) void checkForServiceWorkerUpdate(registration);
     });
   }, []);
+
+  // Błędy spoza React (zdarzenia, timery, promisy bez catch) trafiają do tabeli errors.
+  useEffect(() => installGlobalErrorHandlers(), []);
 
   return (
     <ThemeProvider {...THEME_PROVIDER_PROPS}>
