@@ -109,3 +109,7 @@ export const MOOD_CONSENT_LEGACY_VERSION = "2026-10-18";
 
 /** Priorytet zadania, gdy źródło go nie podaje (import ze Slacka, protokoły, szybkie notatki). */
 export const DEFAULT_TASK_PRIORITY = 3;
+
+/** Kolor wydarzenia bez kategorii – neutralny granat aplikacji. */
+// Przeniesione z lib/categoryColors.ts.
+export const DEFAULT_EVENT_COLOR = "var(--event-default)";

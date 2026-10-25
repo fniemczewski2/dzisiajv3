@@ -10,13 +10,12 @@ import { DeleteButton } from "@/components/ui/CommonButtons";
 import CategoryColorPicker from "./CategoryColorPicker";
 import {
   DEFAULT_USER_TASK_CATEGORIES,
-  MAX_TASK_CATEGORIES,
-  MAX_TASK_CATEGORY_LENGTH,
   SYSTEM_TASK_CATEGORIES,
   normalizeTaskCategoryName,
   resolveUserTaskCategories,
   validateTaskCategoryName,
 } from "@/lib/taskCategories";
+import { MAX_TASK_CATEGORY_LENGTH, MAX_TASK_CATEGORIES } from "@/config/limits";
 import AddItemInput from "./AddItemInput";
 
 interface Row {

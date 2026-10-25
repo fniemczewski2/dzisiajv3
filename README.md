@@ -84,13 +84,13 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 | Daty             | `date-fns`                                                                                              |
 | PDF / kalendarz  | `pdfmake`, `ical.js`                                                                                    |
 | QR / vCard       | `qrcode.react`                                                                                          |
-| Logowanie        | Supabase Auth (OAuth Google / Microsoft)                                                                |
+| Logowanie        | Supabase Auth (OAuth Google)                                                                            |
 | Testy            | `vitest`, `@testing-library/react`, `jsdom`                                                             |
 | Lint             | [Oxlint](https://oxc.rs/) z regułami zależnymi od typów (`oxlint-tsgolint`, oparty na TypeScript 7)     |
 
 ## 🚀 Szybki start
 
-Wymagany Node.js 22.22.2+ lub 24.15.0+ (zob. `engines` w `package.json`).
+Wymagany Node.js 24.15.0+ (zob. `engines` w `package.json`).
 
 ```bash
 git clone https://github.com/fniemczewski2/dzisiajv3.git

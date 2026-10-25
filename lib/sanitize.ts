@@ -1,6 +1,6 @@
 // lib/sanitize.ts
 
-import { MAX_TITLE_LENGTH, MAX_PLACE_LENGTH } from "@/config/limits";
+import { MAX_EMAIL_LENGTH, MAX_TITLE_LENGTH, MAX_PLACE_LENGTH } from "@/config/limits";
 const SAFE_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
 export function sanitizeHref(raw: string): string | null {
@@ -28,7 +28,6 @@ export function sanitizeJsonLd(data: Record<string, unknown>): string {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
-const MAX_EMAIL_LENGTH = 254;
 
 export function validateEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;

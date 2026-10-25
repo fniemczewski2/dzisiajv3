@@ -96,8 +96,14 @@ export const serverEnv = {
   get tokenEncryptionKey(): string | undefined {
     return optional(process.env.CALENDAR_TOKEN_ENCRYPTION_KEY);
   },
+  /**
+   * Tokeny integracji bez szyfrowania są odrzucane domyślnie w produkcji (REJECT_PLAINTEXT_TOKENS=1 wymusza,
+   * =0 wyłącza jawnie – tylko na czas migracji `scripts/encrypt-legacy-tokens.mjs`).
+   */
   get rejectPlaintextTokens(): boolean {
-    return process.env.REJECT_PLAINTEXT_TOKENS === "1";
+    const flag = process.env.REJECT_PLAINTEXT_TOKENS;
+    if (flag === "0") return false;
+    return flag === "1" || process.env.NODE_ENV === "production";
   },
   google: oauthCredentials("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", () => [
     process.env.GOOGLE_CLIENT_ID,

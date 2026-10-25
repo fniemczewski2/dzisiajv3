@@ -9,8 +9,8 @@ import React, { useId } from "react";
 import { ArrowDown, ArrowUp, RotateCcw } from "lucide-react";
 import { DeleteButton } from "@/components/ui/CommonButtons";
 import type { HabitDef } from "@/types/habits";
-import { HABIT_ICON_NAMES, LEGACY_HABITS, MAX_HABIT_LABEL, newHabitId } from "@/lib/habits";
-import { MAX_HABITS } from "@/config/limits";
+import { HABIT_ICON_NAMES, LEGACY_HABITS, newHabitId } from "@/lib/habits";
+import { MAX_HABIT_LABEL, MAX_HABITS } from "@/config/limits";
 import { habitIcon } from "@/components/widgets/habitIconMap";
 import AddItemInput from "./AddItemInput";
 

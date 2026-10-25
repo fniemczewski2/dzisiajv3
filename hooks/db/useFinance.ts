@@ -4,7 +4,7 @@
 // od razu (optymistycznie), a błędy cofają stan i pokazują komunikat.
 
 import { useQueryState } from "@/hooks/useQueryState";
-import { FINANCE_HISTORY_MONTHS } from "@/config/limits";
+import { FINANCE_HISTORY_MONTHS, MAX_FINANCE_PROFILES } from "@/config/limits";
 import { useCallback, useMemo } from "react";
 import { addMonths, format, parseISO } from "date-fns";
 import { useAuth } from "@/providers/AuthProvider";
@@ -14,13 +14,7 @@ import { createAbortError, isAbortError } from "@/lib/abortUtils";
 import { getAppDate } from "@/lib/dateUtils";
 import { billOccurrences, importKey, suggestBillLink, suggestCategoryName } from "@/lib/finance";
 import type { BudgetCategory } from "@/types/bills";
-import {
-  MAX_FINANCE_PROFILES,
-  type FinanceProfile,
-  type NewTransaction,
-  type RecurringBill,
-  type Transaction,
-} from "@/types/finance";
+import { type FinanceProfile, type NewTransaction, type RecurringBill, type Transaction } from "@/types/finance";
 
 import { BILL_TASK_CATEGORY, billTaskTitle } from "@/shared/bills";
 

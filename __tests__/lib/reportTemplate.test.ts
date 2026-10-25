@@ -85,7 +85,8 @@ describe("PDF z szablonem", () => {
   });
 });
 
-import { normalizeTemplateSet, pickTemplate, templateAssetPaths, MAX_REPORT_TEMPLATES } from "@/lib/reportTemplate";
+import { normalizeTemplateSet, pickTemplate, templateAssetPaths } from "@/lib/reportTemplate";
+import { MAX_REPORT_TEMPLATES } from "@/config/limits";
 
 describe("zestaw szablonów (do 5)", () => {
   it("dawny pojedynczy szablon staje się „Szablonem podstawowym”", () => {

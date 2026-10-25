@@ -5,8 +5,6 @@
 
 import type { RecurrenceRule } from "@/shared/recurrence";
 
-export const MAX_FINANCE_PROFILES = 5;
-
 export interface FinanceProfile {
   id: string;
   user_id: string;

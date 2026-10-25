@@ -5,6 +5,7 @@
 // odzyskaniu połączenia (OfflineSync w _app). Przy wylogowaniu kolejka jest
 // czyszczona, więc na wspólnym urządzeniu nie zostają cudze dane.
 
+import { MAX_QUEUE_ATTEMPTS } from "@/config/limits";
 import { mapPool } from "@/shared/asyncPool";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { OFFLINE_QUEUE_DB, OFFLINE_QUEUE_DB_VERSION, OFFLINE_QUEUE_STORE } from "@/config/storage";
@@ -19,9 +20,6 @@ export interface QueuedInsert {
   /** Liczba nieudanych prób wysłania (błąd bazy, nie brak sieci). */
   attempts: number;
 }
-
-/** Po tylu odrzuceniach przez bazę wpis jest usuwany i zgłaszany jako utracony. */
-const MAX_QUEUE_ATTEMPTS = 3;
 
 function isSupported(): boolean {
   return typeof indexedDB !== "undefined";

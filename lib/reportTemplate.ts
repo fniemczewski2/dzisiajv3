@@ -5,8 +5,13 @@
 // „report-templates” w folderze użytkownika; w ustawieniach zapisujemy tylko
 // ścieżki i nazwy plików.
 
+import {
+  MAX_TEMPLATE_NAME,
+  MAX_REPORT_TEMPLATES,
+  REPORT_TEMPLATE_MAX_FONT_BYTES,
+  REPORT_TEMPLATE_MAX_LOGO_BYTES,
+} from "@/config/limits";
 import { DEFAULT_REPORT_LOGO_WIDTH } from "@/config/defaults";
-import { REPORT_TEMPLATE_MAX_FONT_BYTES, REPORT_TEMPLATE_MAX_LOGO_BYTES } from "@/config/limits";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isHexColor } from "./reportColors";
 import type {
@@ -18,8 +23,7 @@ import type {
 } from "@/types/reports";
 
 const REPORT_TEMPLATE_BUCKET = "report-templates";
-export const MAX_REPORT_TEMPLATES = 5;
-export const MAX_TEMPLATE_NAME = 40;
+
 /** Id szablonu przeniesionego z czasów, gdy był tylko jeden. */
 const LEGACY_TEMPLATE_ID = "default";
 export const LOGO_WIDTH_RANGE = { min: 60, max: 220 } as const;

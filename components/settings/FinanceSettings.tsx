@@ -8,10 +8,10 @@ import React, { useId } from "react";
 import { Trash2 } from "lucide-react";
 import { useFinanceProfiles } from "@/hooks/db/useFinance";
 import { useBudgetCategories } from "@/hooks/db/useBudgetCategories";
-import { CATEGORY_PALETTE } from "@/lib/categoryColors";
-import { MAX_FINANCE_PROFILES } from "@/types/finance";
+import { MAX_FINANCE_PROFILES } from "@/config/limits";
 import { getAppDate } from "@/lib/dateUtils";
 import AddItemInput from "./AddItemInput";
+import CategoryColorPicker from "./CategoryColorPicker";
 
 interface Props {
   dailyCategories: string[];
@@ -59,19 +59,13 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
             <label htmlFor={`${id}-c-${p.id}`} className="sr-only">
               Kolor profilu {p.name}
             </label>
-            <select
-              id={`${id}-c-${p.id}`}
-              value={p.color ?? ""}
-              onChange={(e) => void updateProfile(p.id, { color: e.target.value || null })}
-              className="input-field w-auto"
-            >
-              <option value="">bez koloru</option>
-              {CATEGORY_PALETTE.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <CategoryColorPicker
+              categoryName={p.name}
+              subject="nastroju"
+              allowNone={false}
+              value={p.color ?? null}
+              onChange={(color) => void updateProfile(p.id, { color: color || null })}
+            />
             <button
               type="button"
               onClick={() => void removeProfile(p.id)}

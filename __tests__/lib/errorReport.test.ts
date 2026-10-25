@@ -1,6 +1,7 @@
 // __tests__/lib/errorReport.test.ts
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { MAX_REPORTS_PER_PAGE } from "@/config/limits";
 
 const invoke = vi.fn();
 const getSession = vi.fn();
@@ -57,7 +58,7 @@ describe("reportError", () => {
   });
 
   it("limituje liczbę zgłoszeń na stronę", async () => {
-    const { reportError, MAX_REPORTS_PER_PAGE } = await load();
+    const { reportError } = await load();
     for (let i = 0; i < MAX_REPORTS_PER_PAGE + 5; i++) await reportError("window.error", new Error(`e${i}`));
     expect(invoke).toHaveBeenCalledTimes(MAX_REPORTS_PER_PAGE);
   });

@@ -7,7 +7,8 @@
 import { useNow } from "@/hooks/useNow";
 import React, { useId, useMemo } from "react";
 import { Bell, Plus, X } from "lucide-react";
-import { MAX_TASK_REMINDERS, reminderPresets, toLocalInput, validateReminders } from "@/lib/taskReminders";
+import { reminderPresets, toLocalInput, validateReminders } from "@/lib/taskReminders";
+import { MAX_TASK_REMINDERS } from "@/config/limits";
 import { addHours } from "date-fns";
 
 interface Props {

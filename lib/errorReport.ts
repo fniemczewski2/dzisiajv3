@@ -5,12 +5,10 @@
 // Raportowanie nigdy nie zgłasza własnych błędów i nie zapętla się: funkcja nie raportuje
 // swoich wywołań, a klient wysyła każdy unikalny błąd tylko raz na ładowanie strony.
 
+import { MAX_REPORTS_PER_PAGE } from "@/config/limits";
 import { createClient } from "@/lib/supabase/client";
 import { invokeEdgeFunction } from "@/lib/edgeFunctions";
 import { isAbortError } from "@/lib/abortUtils";
-
-/** Maksymalnie tyle zgłoszeń na jedno ładowanie strony (serwer dodatkowo ma limit na konto). */
-export const MAX_REPORTS_PER_PAGE = 10;
 
 /** Szum przeglądarki, który nie jest błędem aplikacji. */
 const IGNORED_MESSAGES = [/ResizeObserver loop/i];

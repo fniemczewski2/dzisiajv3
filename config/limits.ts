@@ -81,3 +81,35 @@ export const PAST_TRAINS_PAGE_SIZE = 10;
 // --- Protokoły (PDF) --------------------------------------------------------
 /** Maksymalna wysokość logo w nagłówku PDF (pt). */
 export const REPORT_LOGO_MAX_HEIGHT = 150;
+
+/** Maksymalnie tyle zgłoszeń na jedno ładowanie strony (serwer dodatkowo ma limit na konto). */
+// Przeniesione z lib/errorReport.ts.
+export const MAX_REPORTS_PER_PAGE = 10;
+
+// Przeniesione z lib/habits.ts.
+export const MAX_HABIT_LABEL = 24;
+
+/** Po tylu odrzuceniach przez bazę wpis jest usuwany i zgłaszany jako utracony. */
+// Przeniesione z lib/offlineQueue.ts.
+export const MAX_QUEUE_ATTEMPTS = 3;
+
+// Przeniesione z lib/reportTemplate.ts.
+export const MAX_REPORT_TEMPLATES = 5;
+
+// Przeniesione z lib/reportTemplate.ts.
+export const MAX_TEMPLATE_NAME = 40;
+
+// Przeniesione z lib/sanitize.ts.
+export const MAX_EMAIL_LENGTH = 254;
+
+// Przeniesione z lib/taskCategories.ts.
+export const MAX_TASK_CATEGORIES = 20;
+
+// Przeniesione z lib/taskCategories.ts.
+export const MAX_TASK_CATEGORY_LENGTH = 30;
+
+// Przeniesione z lib/taskReminders.ts.
+export const MAX_TASK_REMINDERS = 5;
+
+// Przeniesione z types/finance.ts.
+export const MAX_FINANCE_PROFILES = 5;

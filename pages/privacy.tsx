@@ -87,8 +87,9 @@ export default function PrivacyPage() {
               <strong>Powiadomienia push (opcjonalne):</strong>{" "}
               <span>
                 Po włączeniu powiadomień przechowujemy subskrypcję Web Push Twojej przeglądarki: adres usługi
-                powiadomień i klucze szyfrujące. Treść powiadomień (np. przypomnienia) jest szyfrowana przed wysłaniem
-                zgodnie ze standardem Web Push.
+                powiadomień i klucze szyfrujące. Treść powiadomień (np. przypomnienia) zapisujemy w bazie danych w
+                postaci jawnej, aby pokazać ją w historii powiadomień. Podczas wysyłki na urządzenie jest dodatkowo
+                szyfrowana zgodnie ze standardem Web Push.
               </span>
             </Li>
             <Li>
@@ -264,7 +265,7 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Usługi powiadomień przeglądarek</strong> (Google, Apple, Mozilla, Microsoft) – tylko po włączeniu
-              powiadomień: dostarczają zaszyfrowaną treść.
+              powiadomień: przekazują powiadomienie w postaci zaszyfrowanej (Web Push).
             </Li>
             <Li>
               <strong>Open-Meteo</strong> (Szwajcaria) – prognoza pogody i jakość powietrza; przeglądarka wysyła

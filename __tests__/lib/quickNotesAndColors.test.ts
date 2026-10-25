@@ -1,10 +1,10 @@
 // __tests__/lib/quickNotesAndColors.test.ts
 
-import { MAX_QUICK_NOTES_PER_SUBMIT } from "@/config/limits";
+import { MAX_QUICK_NOTES_PER_SUBMIT, MAX_TASK_REMINDERS } from "@/config/limits";
 import { describe, it, expect } from "vitest";
 import { splitQuickNoteText, stripBullet, readQuickNoteText } from "@/lib/quickNotes";
 import { CATEGORY_PALETTE, normalizeCategoryColors, remapCategoryColors } from "@/lib/categoryColors";
-import { validateReminders, MAX_TASK_REMINDERS } from "@/lib/taskReminders";
+import { validateReminders } from "@/lib/taskReminders";
 
 describe("szybkie notatki", () => {
   it("„- test” daje punkt „test”", () => {

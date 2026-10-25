@@ -25,9 +25,6 @@ export const CATEGORY_PALETTE: readonly PaletteColor[] = [
   { value: "#4A5A6D", name: "grafitowy" }, // 7.1:1
 ];
 
-/** Kolor wydarzenia bez kategorii – neutralny granat aplikacji. */
-export const DEFAULT_EVENT_COLOR = "var(--event-default)";
-
 const PALETTE_VALUES = new Set(CATEGORY_PALETTE.map((c) => c.value.toUpperCase()));
 
 export function isPaletteColor(value: unknown): value is string {

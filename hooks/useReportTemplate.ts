@@ -9,8 +9,6 @@ import { useSettings } from "@/hooks/db/useSettings";
 import { useToast } from "@/providers/ToastProvider";
 import type { NamedReportTemplate, ReportFontRole, ReportTemplateSet } from "@/types/reports";
 import {
-  MAX_REPORT_TEMPLATES,
-  MAX_TEMPLATE_NAME,
   clampLogoWidth,
   hasCustomTemplate,
   loadReportTemplate,
@@ -23,6 +21,7 @@ import {
   uploadLogo,
   type LoadedReportTemplate,
 } from "@/lib/reportTemplate";
+import { MAX_TEMPLATE_NAME, MAX_REPORT_TEMPLATES } from "@/config/limits";
 
 export function useReportTemplates() {
   const { user, supabase } = useAuth();

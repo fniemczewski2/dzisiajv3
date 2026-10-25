@@ -5,10 +5,10 @@
 // w bazie jako timestamptz (prawdziwy moment w czasie). Push wysyła edge
 // function process-notifications (typ task_reminder) co minutę.
 
+import { MAX_TASK_REMINDERS } from "@/config/limits";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { addDays, addHours, format, setHours, setMinutes } from "date-fns";
 
-export const MAX_TASK_REMINDERS = 5;
 const LOCAL_FORMAT = "yyyy-MM-dd'T'HH:mm";
 
 export interface TaskReminderRow {

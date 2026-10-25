@@ -26,7 +26,7 @@ import { overlappingEventIds } from "@/lib/eventConflicts";
 import { useCategoryColors } from "@/hooks/useTaskCategories";
 import { useRecurringTaskPreviews } from "@/hooks/db/useRecurringTaskPreviews";
 import { groupPreviewsByDate } from "@/lib/taskOccurrences";
-import { DEFAULT_EVENT_COLOR } from "@/lib/categoryColors";
+import { DEFAULT_EVENT_COLOR } from "@/config/defaults";
 
 interface MonthViewProps {
   events: Event[];

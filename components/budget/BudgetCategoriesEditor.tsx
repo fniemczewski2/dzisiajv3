@@ -265,6 +265,7 @@ export default function BudgetCategoriesEditor({
                       onClick={() => move(idx, -1)}
                       disabled={idx === 0 || loading}
                       type="button"
+                      aria-label={`Przesuń w górę: ${cat.name}`}
                       className="p-0.5 text-text-muted transition-colors hover:text-text disabled:opacity-20"
                     >
                       <ChevronUp className="h-3 w-3" />
@@ -273,6 +274,7 @@ export default function BudgetCategoriesEditor({
                       onClick={() => move(idx, 1)}
                       disabled={idx === categories.length - 1 || loading}
                       type="button"
+                      aria-label={`Przesuń w dół: ${cat.name}`}
                       className="p-0.5 text-text-muted transition-colors hover:text-text disabled:opacity-20"
                     >
                       <ChevronDown className="h-3 w-3" />

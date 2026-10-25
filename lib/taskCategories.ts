@@ -4,6 +4,7 @@
 // settings.task_categories). Kategorie systemowe mają przypisane działanie
 // i są zawsze dostępne, ale nie da się ich usunąć ani zmienić ich nazwy.
 
+import { MAX_TASK_CATEGORY_LENGTH } from "@/config/limits";
 import { TASK_CATEGORIES, DEFAULT_TASK_CATEGORY, MEETING_POLL_TASK_CATEGORY } from "@/config/tasks";
 
 /**
@@ -16,9 +17,6 @@ export const SYSTEM_TASK_CATEGORIES: readonly string[] = [MEETING_POLL_TASK_CATE
 export const DEFAULT_USER_TASK_CATEGORIES: readonly string[] = TASK_CATEGORIES.filter(
   (c) => !SYSTEM_TASK_CATEGORIES.includes(c)
 );
-
-export const MAX_TASK_CATEGORIES = 20;
-export const MAX_TASK_CATEGORY_LENGTH = 30;
 
 const sameName = (a: string, b: string) => a.localeCompare(b, "pl", { sensitivity: "base" }) === 0;
 

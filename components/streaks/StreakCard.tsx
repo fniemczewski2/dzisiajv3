@@ -120,6 +120,8 @@ export default function StreakCard({
                   <button
                     key={item.name}
                     type="button"
+                    aria-label={`Ikona: ${item.name}`}
+                    aria-pressed={editedIcon === item.name}
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditedIcon(item.name);
