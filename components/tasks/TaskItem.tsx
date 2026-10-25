@@ -105,7 +105,9 @@ function TaskDetails({ task }: { readonly task: Task }) {
   return (
     <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-3">
       {hasDescription && (
-        <span className="text-xs leading-relaxed whitespace-pre-wrap text-text-secondary">{linkifyText(task.description, `task-desc-${task.id}`)}</span>
+        <span className="text-xs leading-relaxed whitespace-pre-wrap text-text-secondary">
+          {linkifyText(task.description, `task-desc-${task.id}`)}
+        </span>
       )}
       {showShareInfo && (
         <span className="mt-1 truncate text-xs font-medium text-primary">{task.display_share_info}</span>

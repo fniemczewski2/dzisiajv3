@@ -50,7 +50,7 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
   };
 
   return (
-    <div className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
+    <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6" id="konto">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-text">
           <h3 className="text-lg font-bold">Użytkownik</h3>
@@ -130,6 +130,6 @@ export default function UserSection({ email, onSignOut }: Readonly<UserSectionPr
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

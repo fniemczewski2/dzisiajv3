@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useToast } from "@/providers/ToastProvider";
-import { AlertCircle, Link2, RefreshCw, Loader2, Star } from "lucide-react";
+import { AlertCircle, Link2, Loader2, Star } from "lucide-react";
 import { useSlackTasks, type SlackListConfig } from "@/hooks/db/useSlackTasks";
 import SlackListEditor from "./SlackListEditor";
-import { AddButton, DeleteButton, FormButtons, SecondaryFullButton } from "../ui/CommonButtons";
+import { AddButton, DeleteButton, FormButtons, RefreshButton, SecondaryFullButton } from "../ui/CommonButtons";
 
 const CONNECT_ERRORS: Record<string, string> = {
   cancelled: "Anulowano łączenie ze Slackiem.",
@@ -78,14 +78,7 @@ export default function SlackListsSection() {
           <div className="space-y-2">
             <p className="font-semibold">Nie udało się sprawdzić połączeń ze Slackiem</p>
             <p className="text-text-secondary">{slack.statusError}</p>
-            <button
-              type="button"
-              onClick={() => void slack.refresh()}
-              className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 font-medium text-text hover:bg-surface-hover"
-            >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Spróbuj ponownie
-            </button>
+            <RefreshButton onClick={() => void slack.refresh()} />
           </div>
         </div>
       </section>
@@ -96,23 +89,12 @@ export default function SlackListsSection() {
     slack.lists.filter((list) => list.connection_id === accountId);
 
   return (
-    <section className="card mb-4 space-y-4 p-4 shadow-sm transition-colors sm:p-6">
+    <section className="card mb-4 space-y-4 p-4 shadow-sm transition-colors sm:p-6" id="slack">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3 text-text">
-          <h3 className="text-lg font-bold">Zadania w Slack Lists</h3>
+          <h3 className="text-lg font-bold">Slack Lists</h3>
         </div>
-        {slack.lists.length > 0 && (
-          <button
-            type="button"
-            onClick={() => void slack.syncNow()}
-            disabled={slack.busy}
-            aria-busy={slack.busy}
-            className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <RefreshCw className={`h-4 w-4 ${slack.busy ? "animate-spin" : ""}`} aria-hidden="true" />
-            Synchronizuj
-          </button>
-        )}
+        {slack.lists.length > 0 && <RefreshButton onClick={() => void slack.syncNow()} aria-busy={slack.busy} />}
       </div>
 
       <div className="space-y-4">

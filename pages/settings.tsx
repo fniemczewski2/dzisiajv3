@@ -25,11 +25,11 @@ import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
 const OTHER_SECTIONS = [
   { id: "raporty", title: "Raporty PDF" },
   { id: "slack", title: "Slack" },
+  { id: "api", title: "API Skróty" },
   { id: "powiadomienia", title: "Powiadomienia" },
   { id: "lokalizacja", title: "Lokalizacja" },
-  { id: "szablony", title: "Szablony protokołów" },
-  { id: "integracje", title: "Integracje" },
   { id: "konto", title: "Konto" },
+  { id: "kopia", title: "Kopia danych" },
 ];
 
 export default function SettingsPage() {
@@ -70,15 +70,13 @@ export default function SettingsPage() {
         <InstallButton />
       </div>
 
-      {/* Tylko pierwsze wczytanie – przy zapisie sekcje zostają (inaczej zniknęłyby niezapisane zmiany). */}
       {fetching ? (
         <SkeletonSettings />
       ) : (
         <>
-          {/* Spis sekcji – skok do wybranej części ustawień */}
           <nav aria-label="Sekcje ustawień" className="-mx-3 mb-6 sm:mx-0">
             <ul className="flex gap-2 overflow-x-auto px-3 pb-1 sm:flex-wrap sm:px-0">
-              {[...SETTINGS_SECTIONS].map((s) => (
+              {[...SETTINGS_SECTIONS, ...OTHER_SECTIONS].map((s) => (
                 <li key={s.id} className="shrink-0">
                   <a
                     href={`#${s.id}`}
@@ -94,9 +92,9 @@ export default function SettingsPage() {
           <SettingsForm settings={settings} defaults={DEFAULT_SETTINGS} onSavePartial={savePartial} />
           <ReportTemplatePanel />
           <SlackListsSection />
+          <ShortcutTokenSection />
           <PushNotificationManager userId={user?.id} />
           <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
-          <ShortcutTokenSection />
           <UserSection email={user?.email} onSignOut={handleSignOut} />
           <DataExportSection />
           <div className="mb-6 flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">

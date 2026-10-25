@@ -28,7 +28,6 @@ function FilePickerButton({
         type="file"
         accept={accept}
         className="sr-only"
-        // Pole uruchamia przycisk obok – poza kolejnością tabulacji, z tą samą nazwą co przycisk.
         tabIndex={-1}
         aria-label={label}
         disabled={disabled}
@@ -57,7 +56,6 @@ export default function ReportTemplatePanel() {
   const t = useReportTemplates();
   const { set, busy } = t;
   const [chosenId, setChosenId] = useState<string | null>(set.default_id);
-  // Wybrany szablon zniknął (usunięty w innej karcie) – pokazujemy domyślny.
   const selectedId = chosenId && set.templates.some((x) => x.id === chosenId) ? chosenId : set.default_id;
   const [previewing, setPreviewing] = useState(false);
   const [logoWidthDraft, setLogoWidthDraft] = useState<number | null>(null);
@@ -83,7 +81,6 @@ export default function ReportTemplatePanel() {
 
   const preview = async () => {
     if (!template) return;
-    // Karta otwierana synchronicznie w kliknięciu – inaczej blokada wyskakujących okien.
     const win = window.open("", "_blank");
     setPreviewing(true);
     try {
@@ -98,14 +95,13 @@ export default function ReportTemplatePanel() {
   };
 
   return (
-    <section aria-labelledby={`${id}-h`} className="form-card mb-4 max-w-3xl">
+    <section aria-labelledby={`${id}-h`} className="form-card mb-4 max-w-3xl" id="raporty">
       <div className="flex items-start justify-between gap-3">
         <h3 id={`${id}-h`} className="text-lg font-bold text-text">
           Szablony PDF
         </h3>
       </div>
 
-      {/* Lista szablonów */}
       <fieldset className="min-w-0">
         <legend className="sr-only">Wybierz szablon do edycji</legend>
         <ul className="flex scrollbar-thin gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:px-0">

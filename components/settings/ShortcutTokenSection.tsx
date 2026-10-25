@@ -26,7 +26,6 @@ export default function ShortcutTokenSection() {
   const [freshToken, setFreshToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Stan tokenu (data utworzenia, ostatnie użycie) – sam token nigdy nie wraca z bazy.
   const queryStatus = useCallback(
     async ({ signal }: { signal: AbortSignal }): Promise<TokenStatus | null> => {
       const { data, error } = await supabase
@@ -90,7 +89,7 @@ export default function ShortcutTokenSection() {
   };
 
   return (
-    <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6">
+    <section className="card mb-4 p-4 shadow-sm transition-colors sm:p-6" id="api">
       <div className="mb-4 flex items-center gap-3 text-text">
         <h3 className="text-lg font-bold">API Skróty</h3>
       </div>
