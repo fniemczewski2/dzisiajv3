@@ -92,6 +92,14 @@ export const serverEnv = {
   get cronSecret(): string | undefined {
     return optional(process.env.CRON_SECRET);
   },
+  /** Sekret nagłówka x-mail-inbound-secret (bramka przekierowań poczty, wariant A). */
+  get mailInboundSecret(): string | undefined {
+    return optional(process.env.MAIL_INBOUND_SECRET);
+  },
+  /** Domena adresów przekierowania, np. poczta.dzisiaj.fun. */
+  get mailForwardingDomain(): string | undefined {
+    return optional(process.env.MAIL_FORWARDING_DOMAIN);
+  },
   /** Klucz AES-256 (base64) – walidację długości robi lib/server/tokenCrypto.ts. */
   get tokenEncryptionKey(): string | undefined {
     return optional(process.env.CALENDAR_TOKEN_ENCRYPTION_KEY);

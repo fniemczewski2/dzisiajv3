@@ -3,6 +3,7 @@
 import React from "react";
 import {
   Activity,
+  Mail,
   LayoutDashboard,
   CheckSquare,
   Calendar,
@@ -325,6 +326,31 @@ export const guideSections: GuideSection[] = [
       <>
         <K>Ochrona przed duplikatami.</K> Aplikacja nie pozwoli rozpocząć nowego wpisu, dopóki poprzedni pozostaje
         otwarty (brak zapisanego czasu zakończenia) – także przy wpisach dodanych automatycznie.
+      </>,
+    ],
+  },
+
+  {
+    id: "mail",
+    title: "Poczta",
+    mainIcon: <Mail className="h-6 w-6" />,
+    iconColorClass: "text-deco-cyan",
+    listItems: [
+      <>
+        <K>Konta Gmail i Outlook.</K> Podłącz do pięciu kont. Aplikacja pokazuje ostatnie wiadomości z folderu
+        odbiorczego, a treść pobiera dopiero po otwarciu wiadomości – nie zapisuje jej w bazie.
+      </>,
+      <>
+        <K>Odpowiedź po potwierdzeniu.</K> Napisz odpowiedź, sprawdź podgląd i potwierdź wysłanie. Bez potwierdzenia
+        wiadomość nie wychodzi; liczba wysyłek jest ograniczona.
+      </>,
+      <>
+        <K>Zadanie i wydarzenie jednym przyciskiem.</K> Z każdej wiadomości utworzysz zadanie „Odpowiedz: temat” w
+        kategorii <em>poczta</em>. Zaproszenia (plik .ics albo link do Zoom, Meet lub Teams) dodasz do kalendarza.
+      </>,
+      <>
+        <K>Przekierowanie zamiast dostępu do skrzynki.</K> Gdy administrator konta służbowego blokuje połączenie, utwórz
+        adres przekierowania i ustaw na niego automatyczne przekierowanie. Wiadomości są dostępne przez 72 godziny.
       </>,
     ],
   },

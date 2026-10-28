@@ -21,6 +21,14 @@ export const RATE_LIMITS = {
   vcard: { limit: 30, window: "60 s" },
   news: { limit: 20, window: "60 s" },
   locality: { limit: 60, window: "60 s" },
+  /** Odpowiedzi wysyłane z modułu poczty (na użytkownika). */
+  mailSend: { limit: 20, window: "10 m" },
+  /** Wiadomości przyjmowane z bramki przekierowań (na adres IP bramki). */
+  mailInbound: { limit: 120, window: "60 s" },
+  /** Obrazy z treści maili pobierane przez proxy (na użytkownika). */
+  mailImage: { limit: 300, window: "60 s" },
+  /** Usuwanie wiadomości (z aplikacji i do kosza w skrzynce), na użytkownika. */
+  mailDelete: { limit: 60, window: "10 m" },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

@@ -4,8 +4,9 @@ import { serverEnv } from "@/config/env";
 import { NextApiRequest, NextApiResponse } from "next";
 import { handleOAuthCallback } from "@/lib/server/oauthCallback";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  return handleOAuthCallback(req, res, {
+// Bez zwracania wyniku: Next.js ostrzega, gdy handler API zwraca wartość (res.redirect zwraca obiekt).
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  await handleOAuthCallback(req, res, {
     provider: "outlook",
     stateCookieName: "outlook_oauth_state",
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",

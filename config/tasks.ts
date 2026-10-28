@@ -18,5 +18,8 @@ export type TaskCategory = (typeof TASK_CATEGORIES)[number];
 export const DEFAULT_TASK_CATEGORY: TaskCategory = "inne";
 
 export const MEETING_POLL_TASK_CATEGORY = "terminy";
+
+/** Kategoria zadań utworzonych z poczty (kategoria systemowa – zawsze dostępna). */
+export const MAIL_TASK_CATEGORY = "poczta";
 export const MEETING_POLL_TASK_TITLE = "Ankieta spotkania";
 export const MEETING_POLL_TASK_PRIORITY = 3;

@@ -88,6 +88,7 @@ Dla każdego wiersza z tabeli poniżej: **Dashboard → Create cronjob**, potem:
 | Urodziny, imieniny, kontakt      | `…/process-notifications?type=people`                                                 | `x-cron-secret`                       | `0 9 * * *`               |
 | Nawyki                           | `…/process-notifications?type=daily_habits`                                           | `x-cron-secret`                       | `0 20 * * *`              |
 | Wieczorne podsumowanie           | `…/process-notifications?type=evening_audit`                                          | `x-cron-secret`                       | `0 21 * * *`              |
+| Czyszczenie bufora poczty        | `https://dzisiaj.fun/api/mail/inbox/purge`                                            | `Authorization: Bearer <CRON_SECRET>` | `0 * * * *`               |
 | Zadania cykliczne                | `https://<projekt>.supabase.co/functions/v1/process-reminders`                        | `x-cron-secret: <CRON_SECRET>`        | `0 3 * * *`               |
 
 **Skąd te częstotliwości (z kodu):**
@@ -196,3 +197,40 @@ tej osoby jest usuwany przy kolejnym eksporcie, wszystkie – przy usunięciu ko
 2. W repozytorium GitHub: sekret `SONAR_TOKEN`; dla własnego serwera zmienna `SONAR_HOST_URL`.
 3. Sprawdź `sonar.projectKey` i `sonar.organization` w `sonar-project.properties`.
 4. Analiza uruchamia się w CI po testach (raport pokrycia: `coverage/lcov.info`).
+
+## Przekierowania poczty (bramka)
+
+Wariant bez dostępu do skrzynki: użytkownik przekierowuje pocztę na adres `p-<token>@poczta.dzisiaj.fun`,
+Cloudflare Email Routing przekazuje ją do Email Workera (`docs/mail-gateway/`), a Worker – do
+`POST /api/mail/inbound`. Treść jest w aplikacji zaszyfrowana przez 72 godziny.
+
+Wymaganie: strefa DNS `dzisiaj.fun` w Cloudflare. Używamy **subdomeny** `poczta.dzisiaj.fun`, żeby nie zmieniać
+rekordów MX domeny głównej (skrzynki `@dzisiaj.fun` działają bez zmian).
+
+1. **Sekret**: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
+2. **Vercel → Settings → Environment Variables** (Production, opcjonalnie Preview):
+   `MAIL_FORWARDING_DOMAIN=poczta.dzisiaj.fun`, `MAIL_INBOUND_SECRET=<sekret>`; potem **Redeploy**.
+   Lokalnie te same wartości w `.env.local` (restart `npm run dev`).
+3. **Supabase → SQL Editor**: `supabase/sql/2026-10-25_mail_accounts.sql`, potem `2026-10-26_mail_inbox.sql`
+   (i `2026-10-28_mail_hidden_messages.sql`).
+4. **Worker** (w katalogu `docs/mail-gateway`): `npm install`, `npx wrangler login`,
+   `npx wrangler secret put MAIL_INBOUND_SECRET` (ta sama wartość co w Vercelu), `npm run deploy`.
+5. **Cloudflare → dzisiaj.fun → Email → Email Routing**: włącz dla subdomeny `poczta.dzisiaj.fun`
+   (Cloudflare doda rekordy MX i SPF dla subdomeny – zatwierdź). W **Routing rules → Catch-all address**:
+   akcja „Send to a Worker” → `dzisiaj-mail-gateway`, status **Enabled**.
+6. **Cron**: wiersz „Czyszczenie bufora poczty” z tabeli powyżej – bez niego wiadomości zostają po 72 godzinach.
+7. **Test aplikacji** (bez DNS): zob. polecenie `Invoke-RestMethod` w sekcji testu poniżej; oczekiwany kod `202`
+   dla adresu utworzonego w aplikacji, `404` dla nieznanego.
+8. **Test całości**: utwórz adres w aplikacji (Poczta → Przekierowania), wyślij na niego wiadomość z innej skrzynki,
+   sprawdź listę przekierowanych; logi Workera: `npx wrangler tail`.
+
+### Test odbioru bez bramki
+
+```powershell
+$body = @{ recipient = "p-<token>@poczta.dzisiaj.fun"; from = "test@example.com"; subject = "Test"; text = "Treść testowa" } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri "https://dzisiaj.fun/api/mail/inbound" `
+  -Headers @{ "x-mail-inbound-secret" = "<MAIL_INBOUND_SECRET>" } -ContentType "application/json" -Body $body
+```
+
+Przekierowanie w Gmailu: **Ustawienia → Przekazywanie i POP/IMAP → Dodaj adres przekierowania**. Gmail wysyła na nowy
+adres wiadomość z kodem potwierdzającym – pojawi się na liście przekierowanych w aplikacji; kod wpisz w Gmailu.

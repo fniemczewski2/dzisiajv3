@@ -174,7 +174,8 @@ export default function PrivacyPage() {
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-4 text-sm">
               <li>
-                Dane używane są <strong>wyłącznie</strong> do funkcji kalendarza.
+                Dane używane są <strong>wyłącznie</strong> do funkcji kalendarza oraz poczty (odczyt, odpowiedź i
+                tworzenie zadań lub wydarzeń na Twoje żądanie).
               </li>
               <li>
                 Dane <strong>nie są</strong> sprzedawane, udostępniane podmiotom trzecim ani wykorzystywane do
@@ -246,10 +247,15 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-none space-y-2">
             <Li>
-              <strong>Supabase Inc.</strong> (USA) – baza danych, logowanie, magazyn plików i funkcje serwerowe.
+              <strong>Supabase Inc.</strong> – baza danych w regionie UE (eu-north-1, Sztokholm), logowanie, magazyn
+              plików i funkcje serwerowe; siedziba spółki w USA.
             </Li>
             <Li>
               <strong>Vercel Inc.</strong> (USA) – hosting aplikacji.
+            </Li>
+            <Li>
+              <strong>Cloudflare, Inc.</strong> (USA) – przekierowania poczty na adres aplikacji (tylko jeśli z nich
+              korzystasz).
             </Li>
             <Li>
               <strong>Upstash Inc.</strong> (USA) – krótkotrwałe liczniki żądań (adres IP lub identyfikator konta) do
@@ -257,7 +263,7 @@ export default function PrivacyPage() {
             </Li>
             <Li>
               <strong>Google LLC / Microsoft Corp.</strong> (USA) – logowanie oraz, po połączeniu, synchronizacja
-              kalendarzy.
+              kalendarzy oraz odczyt i wysyłka poczty na Twoje żądanie.
             </Li>
             <Li>
               <strong>Slack Technologies, LLC</strong> (USA) – tylko po połączeniu konta Slack: wymiana danych zadań z
@@ -370,6 +376,13 @@ export default function PrivacyPage() {
               głównego.
             </Li>
             <Li>Token i konfiguracja integracji ze Slackiem – do momentu odłączenia Slacka lub usunięcia konta.</Li>
+            <Li>Tokeny kont poczty (Gmail, Outlook) – do momentu odłączenia konta lub usunięcia konta głównego.</Li>
+            <Li>Wiadomości przekierowane na adres aplikacji – 72 godziny, po czym są automatycznie usuwane.</Li>
+            <Li>Skrót tokenu adresu przekierowania – do jego odwołania lub usunięcia konta.</Li>
+            <Li>
+              Identyfikatory wiadomości usuniętych z aplikacji (bez treści) – do odłączenia konta poczty lub usunięcia
+              konta głównego.
+            </Li>
             <Li>
               Subskrypcje powiadomień push – do momentu wyłączenia powiadomień, wygaśnięcia subskrypcji w przeglądarce
               lub usunięcia konta.
@@ -410,6 +423,44 @@ export default function PrivacyPage() {
               przechowywane do usunięcia ankiety, usunięcia konta organizatora albo do Twojego żądania usunięcia.
               Przysługują Ci prawa opisane w punkcie 7, w tym prawo sprzeciwu; skontaktuj się z organizatorem albo z
               administratorem pod adresem z punktu 1.
+            </p>
+          </div>
+        </section>
+
+        <section id="poczta" className="mb-10 scroll-mt-6">
+          <h2 className="section-title mb-4">12. Poczta (Gmail, Outlook i przekierowania)</h2>
+          <div className="space-y-2 text-sm leading-relaxed text-text-secondary">
+            <p>
+              Po podłączeniu konta Gmail lub Outlook aplikacja pokazuje listę ostatnich wiadomości z folderu
+              odbiorczego, odczytuje treść wybranej wiadomości na Twoje żądanie, wysyła odpowiedź w wątku wyłącznie po
+              Twoim potwierdzeniu oraz tworzy z wiadomości zadanie („Odpowiedz: temat”) lub wydarzenie (z zaproszenia).
+            </p>
+            <p>
+              <strong>Treść wiadomości nie jest zapisywana w bazie danych.</strong> Zapisujemy adres podłączonego konta,
+              zaszyfrowane tokeny dostępu oraz – w zadaniu – wyłącznie nadawcę. Wydarzenie z zaproszenia zawiera termin,
+              miejsce i linki do konferencji.
+            </p>
+            <p>
+              Wiadomości przekierowane na adres aplikacji są przechowywane zaszyfrowane przez 72 godziny, po czym są
+              usuwane. Możesz je usunąć wcześniej.
+            </p>
+            <p>
+              Aplikacja jest w trakcie weryfikacji przez Google. Do czasu jej zakończenia połączenie konta Gmail jest
+              dostępne tylko dla wybranych kont testowych.
+            </p>
+            <p>
+              Podstawa prawna: zgoda (art. 6 ust. 1 lit. a RODO) oraz świadczenie usługi (art. 6 ust. 1 lit. b RODO).
+              Wiadomości zawierają dane osób trzecich (nadawców i odbiorców). Przetwarzamy je wyłącznie na Twoje
+              żądanie, w celu wyświetlenia, odpowiedzi lub utworzenia zadania, i nie kontaktujemy się z tymi osobami.
+            </p>
+            <p>
+              Wiadomość możesz usunąć z aplikacji – zapisujemy wtedy wyłącznie jej identyfikator, żeby nie wyświetlać
+              jej ponownie. Usunięcie w poczcie następuje tylko po Twoim wyborze i polega na przeniesieniu wiadomości do
+              kosza (Gmail) lub folderu „Elementy usunięte” (Outlook), skąd można ją przywrócić.
+            </p>
+            <p>
+              Odłączenie konta, odwołanie adresu przekierowania i usunięcie wiadomości z bufora są dostępne w
+              ustawieniach poczty. Uprawnienia możesz też cofnąć w ustawieniach konta Google lub Microsoft.
             </p>
           </div>
         </section>

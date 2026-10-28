@@ -2,6 +2,7 @@
 
 import {
   ListTodo,
+  Mail,
   Logs,
   Timer,
   Edit2,
@@ -64,6 +65,7 @@ export const NAVIGATION_BUTTONS: NavigationButton[] = [
   { path: "/tasks", title: "Zadania", icon: ListTodo, label: "Zadania", group: "Zadania" },
   { path: "/tasks/pomodoro", title: "Pomodoro", icon: Timer, label: "Pomodoro", group: "Zadania" },
   { path: "/worklogs", title: "Czas pracy", icon: Clock, label: "Czas\u00a0pracy", group: "Produktywność" },
+  { path: "/mail", title: "Poczta", icon: Mail, label: "Poczta", group: "Produktywność" },
   { path: "/calendar", title: "Kalendarz", icon: Calendar, label: "Kalendarz", group: "Planowanie" },
   { path: "/meetings", title: "Terminy", icon: CalendarClock, label: "Terminy", group: "Planowanie" },
   { path: "/people", title: "Ludzie", icon: User, label: "Ludzie", group: "Kontakty" },

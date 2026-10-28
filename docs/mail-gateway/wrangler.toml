@@ -1,0 +1,8 @@
+# Cloudflare Email Worker – bramka przekierowań poczty.
+# Sekret: npx wrangler secret put MAIL_INBOUND_SECRET
+name = "dzisiaj-mail-gateway"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+INBOUND_URL = "https://dzisiaj.fun/api/mail/inbound"

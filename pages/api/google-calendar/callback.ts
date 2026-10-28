@@ -5,8 +5,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { handleOAuthCallback } from "@/lib/server/oauthCallback";
 import { GOOGLE_TOKEN_URL } from "@/lib/server/oauthTokens";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  return handleOAuthCallback(req, res, {
+// Bez zwracania wyniku: Next.js ostrzega, gdy handler API zwraca wartość (res.redirect zwraca obiekt).
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  await handleOAuthCallback(req, res, {
     provider: "google",
     stateCookieName: "gcal_oauth_state",
     tokenUrl: GOOGLE_TOKEN_URL,

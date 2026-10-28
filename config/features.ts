@@ -2,6 +2,7 @@
 
 import {
   Backpack,
+  Mail,
   Bell,
   BusFront,
   Calculator,
@@ -249,6 +250,14 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         icon: Clock,
         path: "/worklogs",
         guideId: "worklogs",
+      },
+      {
+        title: "Poczta",
+        description:
+          "Konta Gmail i Outlook albo przekierowanie poczty: odczyt, odpowiedź po potwierdzeniu, zadanie i wydarzenie z wiadomości.",
+        icon: Mail,
+        path: "/mail",
+        guideId: "mail",
       },
     ],
   },

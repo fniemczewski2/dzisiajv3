@@ -122,10 +122,21 @@ Pełna lista z opisami jest w [`.env.example`](./.env.example); kod czyta zmienn
 | `TMDB_API_KEY`                                        | Filmy i seriale                                         | Klucz The Movie Database API                                                                                                   |
 | `PLK_API_KEY`                                         | Pociągi                                                 | Klucz PKP PLK Portal Danych Pasażera                                                                                           |
 | `CRON_SECRET`                                         | Endpointy cron                                          | Sekret nagłówka `x-cron-secret`                                                                                                |
+| `MAIL_FORWARDING_DOMAIN`                              | Poczta – przekierowania                                 | Domena adresów przekierowania (np. `poczta.dzisiaj.fun`); bez niej funkcja wyłączona                                           |
+| `MAIL_INBOUND_SECRET`                                 | Poczta – bramka przekierowań                            | Sekret nagłówka `x-mail-inbound-secret` (ta sama wartość w Workerze)                                                           |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`                        | Powiadomienia push                                      | Klucz publiczny VAPID (prywatny ustawia się w sekretach Edge Functions)                                                        |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Limity zapytań w produkcji                              | Upstash Redis (albo `KV_REST_API_URL` / `KV_REST_API_TOKEN` z integracji Vercel). Bez nich limiter działa w pamięci instancji. |
 | `CSP_REPORT_ONLY`                                     | –                                                       | `1` = CSP tylko raportuje zamiast blokować (diagnoza)                                                                          |
 | `NEXT_PUBLIC_SW_DEV`                                  | –                                                       | `1` = service worker także w `next dev` (testy powiadomień); domyślnie wyłączony w trybie deweloperskim                        |
+
+**Adresy przekierowania OAuth** – każdy musi być zarejestrowany dokładnie (schemat, host, port, ścieżka), osobno dla `http://localhost:3000` i dla domeny produkcyjnej; inaczej dostawca zwraca `redirect_uri_mismatch`:
+
+| Dostawca                                 | Adres                                                 | Uprawnienia                                                                                                                             |
+| ---------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/google-calendar/callback`  | kalendarz                                                                                                                               |
+| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/mail/gmail/callback`       | `gmail.modify` (odczyt i kosz), `gmail.send`, `userinfo.email` (zakresy „restricted”: bez weryfikacji Google tylko użytkownicy testowi) |
+| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/outlook-calendar/callback` | kalendarz                                                                                                                               |
+| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/mail/outlook/callback`     | delegowane `Mail.ReadWrite` (odczyt i kosz), `Mail.Send`, `User.Read`, `offline_access`                                                 |
 
 Edge Functions mają własne sekrety (Supabase → Edge Functions → Secrets): `CRON_SECRET`, `ALLOWED_ORIGIN` (adres aplikacji dla CORS, lokalnie `http://localhost:3000`), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 
@@ -203,7 +214,7 @@ Aplikację można zainstalować jako natywną (Ustawienia → Zainstaluj, lub na
 ## 🔐 Bezpieczeństwo
 
 - Tokeny OAuth (Google, Outlook, Slack) są szyfrowane (AES-256-GCM) przed zapisem do bazy – `lib/server/tokenCrypto.ts`.
-- Endpointy cron (`/api/calendar/sync-calendars`, `/api/meeting-polls/close-expired`, `/api/slack/sync`) porównują `CRON_SECRET` w czasie stałym (`lib/server/safeEqual.ts`).
+- Endpointy cron (`/api/calendar/sync-calendars`, `/api/meeting-polls/close-expired`, `/api/slack/sync`, `/api/mail/inbox/purge`) porównują `CRON_SECRET` w czasie stałym (`lib/server/safeEqual.ts`).
 - `/api/worklogs/auto` (Skróty Siri) uwierzytelnia **tokenem per użytkownik** generowanym w Ustawieniach (w bazie tylko SHA-256, tabela `shortcut_tokens`).
 - Endpointy pośredniczące (TMDB, PKP, RSS, geokodowanie) wymagają zalogowania i nie ujawniają kluczy API klientowi.
 - Publiczne endpointy (`/api/vcard`, ankiety) i endpointy narażone na nadużycia mają limity zapytań (Upstash Redis, `config/server.ts`).
