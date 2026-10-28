@@ -2,7 +2,6 @@
 
 import React from "react";
 import NoResultsState from "@/components/ui/NoResultsState";
-import { Trash2 } from "lucide-react";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import type { MailMessageSummary } from "@/lib/mail/client";
 import { formatMailDate, senderName } from "@/lib/mail/format";
@@ -50,11 +49,8 @@ export default function MessageList({ messages, selectedId, onSelect, onDelete, 
               </span>
               <span className="w-full truncate text-sm text-text-secondary">{m.subject || "(bez tematu)"}</span>
             </button>
-            <div className="p-2 flex items-center justify-center w-[20%]">
-              <DeleteButton
-                onClick={() => onDelete(m)}
-                aria-label={`Usuń wiadomość ${m.subject || "bez tematu"}`}
-              />
+            <div className="flex w-[20%] items-center justify-center p-2">
+              <DeleteButton onClick={() => onDelete(m)} aria-label={`Usuń wiadomość ${m.subject || "bez tematu"}`} />
             </div>
           </li>
         );
