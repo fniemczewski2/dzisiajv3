@@ -1,6 +1,8 @@
 // components/mail/MailAccountsPanel.tsx
 
 import React from "react";
+import { Plus, Unplug } from "lucide-react";
+import { IconActionButton, SecondaryFullButton, ToggleChip } from "@/components/ui/CommonButtons";
 import type { MailAccount } from "@/lib/mail/client";
 
 interface Props {
@@ -13,6 +15,8 @@ interface Props {
   busy: boolean;
 }
 
+const PROVIDER_NAME = { gmail: "Gmail", outlook: "Outlook" } as const;
+
 export default function MailAccountsPanel({
   accounts,
   selectedId,
@@ -23,7 +27,7 @@ export default function MailAccountsPanel({
   busy,
 }: Readonly<Props>) {
   return (
-    <section aria-labelledby="mail-accounts-heading" className="space-y-3">
+    <section aria-labelledby="mail-accounts-heading" className="card space-y-3 p-4">
       <h2 id="mail-accounts-heading" className="section-title">
         Konta pocztowe
       </h2>
@@ -32,48 +36,33 @@ export default function MailAccountsPanel({
       ) : (
         <ul className="space-y-2">
           {accounts.map((account) => (
-            <li key={account.id} className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => onSelect(account.id)}
-                aria-pressed={selectedId === account.id}
-                className={`min-h-11 flex-1 rounded-lg border px-3 text-left text-sm ${
-                  selectedId === account.id
-                    ? "border-primary font-semibold text-text"
-                    : "border-line text-text-secondary"
-                }`}
-              >
-                {account.email} <span className="text-xs">({account.provider === "gmail" ? "Gmail" : "Outlook"})</span>
-              </button>
-              <button
-                type="button"
+            <li key={account.id} className="flex min-w-0 items-center gap-2">
+              <div className="min-w-0 flex-1 wrap-anywhere">
+                <ToggleChip
+                  label={`${account.email} (${PROVIDER_NAME[account.provider]})`}
+                  active={selectedId === account.id}
+                  onClick={() => onSelect(account.id)}
+                />
+              </div>
+              <IconActionButton
+                Icon={Unplug}
+                title={`Odłącz konto ${account.email}`}
+                variant="danger"
                 onClick={() => onDisconnect(account.id)}
                 disabled={busy}
-                aria-label={`Odłącz konto ${account.email}`}
-                className="min-h-11 rounded-lg px-3 text-sm text-danger hover:bg-danger-soft disabled:opacity-50"
-              >
-                Odłącz
-              </button>
+              />
             </li>
           ))}
         </ul>
       )}
-      <button
-        type="button"
-        onClick={onConnectGmail}
-        disabled={busy}
-        className="min-h-11 rounded-lg border border-line-strong px-4 text-sm font-semibold text-text hover:bg-surface disabled:opacity-50"
-      >
-        Podłącz konto Gmail
-      </button>
-      <button
-        type="button"
-        onClick={onConnectOutlook}
-        disabled={busy}
-        className="min-h-11 rounded-lg border border-line-strong px-4 text-sm font-semibold text-text hover:bg-surface disabled:opacity-50"
-      >
-        Podłącz konto Outlook
-      </button>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <SecondaryFullButton Icon={Plus} onClick={onConnectGmail} disabled={busy}>
+          Podłącz konto Gmail
+        </SecondaryFullButton>
+        <SecondaryFullButton Icon={Plus} onClick={onConnectOutlook} disabled={busy}>
+          Podłącz konto Outlook
+        </SecondaryFullButton>
+      </div>
     </section>
   );
 }

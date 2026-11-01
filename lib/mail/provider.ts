@@ -34,7 +34,7 @@ export function gmailProvider(client: GmailClient, accountEmail: string): MailPr
   return {
     async listRecent(limit, query) {
       const ids = await client.listMessageIds(limit, gmailQuery(query ?? null));
-      return Promise.all(ids.map((id) => client.getMessageSummary(id)));
+      return client.getMessageSummaries(ids);
     },
     getMessage: (id) => client.getMessage(id),
     getAttachmentText: (messageId, attachmentId) => client.getAttachmentText(messageId, attachmentId),

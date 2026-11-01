@@ -10,7 +10,8 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
     css: true,
-    exclude: ["node_modules", ".next", "e2e/**"],
+    // „**/” – także zagnieżdżone node_modules (np. docs/mail-gateway po npm install) i projekty w docs/.
+    exclude: ["**/node_modules/**", ".next/**", "e2e/**", "docs/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

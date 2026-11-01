@@ -1,5 +1,6 @@
 // supabase/functions/transport-departures/index.ts
 
+import { MAX_FAVORITE_STOPS, MAX_MINUTES_AHEAD, MAX_NEARBY_GROUPS } from "../_shared/config.ts";
 import { createClient, type SupabaseClient } from "../_shared/supabase.ts";
 import {
   ambiguousNames,
@@ -19,8 +20,6 @@ import { jsonHeaders, preflight, withCors } from "../_shared/auth.ts";
 const PEKA_URL = "https://www.peka.poznan.pl/vm/method.vm";
 const ZDITM_URL = "https://www.zditm.szczecin.pl/api/v1/displays";
 const EXTERNAL_TIMEOUT_MS = 8_000;
-const MAX_MINUTES_AHEAD = 60;
-const MAX_NEARBY_GROUPS = 4;
 const NEARBY_RADIUS_M = 1_500;
 const SZCZECIN_ZONE = "S";
 const POZNAN_ZONES = new Set(["A", "B", "C", "P", "D"]);
@@ -188,7 +187,6 @@ function fetchBollard(stopCode: string, zoneId: string | null): Promise<Bollard 
   return zoneId === SZCZECIN_ZONE ? fetchZditmBollard(stopCode) : fetchPekaBollard(stopCode);
 }
 
-const MAX_FAVORITES = 10;
 const VALID_ZONES = new Set(["AUTO", SZCZECIN_ZONE, ...POZNAN_ZONES]);
 
 type Db = SupabaseClient;
@@ -246,7 +244,7 @@ async function handleStopNamesRequest(
   userPos: { lat: number; lon: number } | null
 ): Promise<Response> {
   const favorites = stopNames
-    .slice(0, MAX_FAVORITES)
+    .slice(0, MAX_FAVORITE_STOPS)
     .map(parseFavorite)
     .filter((f): f is FavoriteStop => f !== null);
   const posts = await fetchPostsByNames(

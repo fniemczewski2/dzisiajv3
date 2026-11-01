@@ -1,5 +1,7 @@
 // supabase/functions/_shared/recurrence.ts
 
+import { MAX_COUNT, MAX_INTERVAL, MAX_STEPS } from "./config.ts";
+
 export type RecurrenceFreq = "daily" | "weekly" | "monthly" | "yearly";
 
 export interface RecurrenceRule {
@@ -24,11 +26,6 @@ export interface RecurrenceRule {
   /** Liczba wszystkich wystąpień licząc od startu. */
   count?: number | null;
 }
-
-export const MAX_INTERVAL = 99;
-export const MAX_COUNT = 500;
-/** Bezpiecznik pętli – żadna reguła nie przejdzie więcej kroków. */
-const MAX_STEPS = 20_000;
 
 const DAY_MS = 86_400_000;
 

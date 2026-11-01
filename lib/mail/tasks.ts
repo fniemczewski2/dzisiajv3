@@ -3,9 +3,6 @@
 // Zadanie utworzone z wiadomości: tytuł „Odpowiedz: <temat>”, kategoria „poczta”.
 
 import { MAX_TITLE_LENGTH } from "@/config/limits";
-import { MAIL_TASK_CATEGORY } from "@/config/tasks";
-
-export { MAIL_TASK_CATEGORY };
 
 const PREFIX_RE = /^\s*((re|odp|fw|fwd|wg)\s*:\s*)+/i;
 

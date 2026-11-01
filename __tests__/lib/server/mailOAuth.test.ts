@@ -33,6 +33,11 @@ vi.mock("@/lib/server/fetchWithTimeout", () => ({ fetchWithTimeout: async () => 
 vi.mock("@/lib/server/tokenCrypto", () => ({ encryptToken: (v: string) => `enc:${v}` }));
 
 import { handleMailOAuthCallback, type MailOAuthConfig } from "@/lib/server/mailOAuth";
+// Importy statyczne: kompilacja tras odbywa się przy zbieraniu testów, nie w limicie czasu testu.
+import gmailCallback from "@/pages/api/mail/gmail/callback";
+import outlookCallback from "@/pages/api/mail/outlook/callback";
+import googleCalendarCallback from "@/pages/api/google-calendar/callback";
+import outlookCalendarCallback from "@/pages/api/outlook-calendar/callback";
 
 const config: MailOAuthConfig = {
   provider: "gmail",
@@ -179,15 +184,9 @@ describe("handlery OAuth nie zwracają wartości (Next.js: „API handler should
   });
 
   it("trasy /api/mail/<dostawca> i callbacki kalendarzy kończą się bez wartości", async () => {
-    const handlers = await Promise.all([
-      import("@/pages/api/mail/gmail/callback"),
-      import("@/pages/api/mail/outlook/callback"),
-      import("@/pages/api/google-calendar/callback"),
-      import("@/pages/api/outlook-calendar/callback"),
-    ]);
-    for (const mod of handlers) {
+    for (const handler of [gmailCallback, outlookCallback, googleCalendarCallback, outlookCalendarCallback]) {
       const { req, res } = call({ error: "access_denied" });
-      await expect(mod.default(req, res)).resolves.toBeUndefined();
+      await expect(handler(req, res)).resolves.toBeUndefined();
     }
   });
 });

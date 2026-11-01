@@ -139,3 +139,46 @@ describe("createGmailClient.trashMessage", () => {
     expect(init.method).toBe("POST");
   });
 });
+
+import { parseBatchResponse } from "@/lib/mail/gmail";
+
+describe("Gmail – żądanie zbiorcze listy", () => {
+  const part = (i: number, status: string, body: string) =>
+    `--resp\r\nContent-Type: application/http\r\nContent-ID: <response-item${i}>\r\n\r\nHTTP/1.1 ${status}\r\nContent-Type: application/json\r\n\r\n${body}\r\n`;
+
+  it("parseBatchResponse zwraca części 200 według Content-ID", () => {
+    const body =
+      part(1, "200 OK", JSON.stringify({ id: "b" })) +
+      part(0, "200 OK", JSON.stringify({ id: "a" })) +
+      part(2, "404 Not Found", JSON.stringify({ error: {} })) +
+      "--resp--";
+    const parts = parseBatchResponse(body, "resp");
+    expect(parts.get(0)).toEqual({ id: "a" });
+    expect(parts.get(1)).toEqual({ id: "b" });
+    expect(parts.has(2)).toBe(false);
+  });
+
+  it("jedno żądanie dla całej listy; nieudane części pobierane pojedynczo, kolejność zachowana", async () => {
+    const meta = (id: string) => ({ id, threadId: "t", payload: { headers: [{ name: "Subject", value: `S-${id}` }] } });
+    const batchBody = part(0, "200 OK", JSON.stringify(meta("m1"))) + part(1, "500 Internal", "{}") + "--resp--";
+    const fetchMock = vi.fn(async (url: string) =>
+      url.includes("/batch/")
+        ? new Response(batchBody, { status: 200, headers: { "content-type": "multipart/mixed; boundary=resp" } })
+        : jsonResponse(meta("m2"))
+    );
+    const msgs = await createGmailClient("T", fetchMock).getMessageSummaries(["m1", "m2"]);
+    expect(msgs.map((m) => m.subject)).toEqual(["S-m1", "S-m2"]);
+    const calls = fetchMock.mock.calls as unknown as [string, RequestInit][];
+    expect(calls.filter(([u]) => u.includes("/batch/"))).toHaveLength(1);
+    expect(calls.filter(([u]) => u.includes("/messages/m2?format=metadata"))).toHaveLength(1);
+    const [, init] = calls[0];
+    expect(init.body as string).toContain("GET /gmail/v1/users/me/messages/m1?format=metadata");
+    expect((init.headers as Record<string, string>)["Content-Type"]).toMatch(/^multipart\/mixed; boundary=batch_/);
+  });
+
+  it("pusta lista nie wysyła żądania", async () => {
+    const fetchMock = vi.fn();
+    expect(await createGmailClient("T", fetchMock).getMessageSummaries([])).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

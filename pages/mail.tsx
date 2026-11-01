@@ -1,11 +1,13 @@
 // pages/mail.tsx
 //
-// Poczta: konta Gmail/Outlook (odczyt, odpowiedź po potwierdzeniu, zadanie, wydarzenie) oraz przekierowania.
-// Treść wiadomości z kont nie jest zapisywana; komunikaty przez useToast, jak w pozostałych modułach.
+// Poczta: konta Gmail/Outlook (odczyt, odpowiedź po potwierdzeniu, zadanie, wydarzenie, usuwanie) oraz przekierowania.
+// Dane przez TanStack Query (hooks/useMail.ts): konto i fraza są częścią klucza, więc zmiana wyszukiwania
+// nie przełącza konta ani nie pobiera listy dwukrotnie. Treść nie jest zapisywana poza pamięcią.
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Seo from "@/components/ui/SEO";
+import { ToggleChip } from "@/components/ui/CommonButtons";
 import { useToast } from "@/providers/ToastProvider";
 import MailAccountsPanel from "@/components/mail/MailAccountsPanel";
 import MessageList from "@/components/mail/MessageList";
@@ -15,104 +17,77 @@ import InboxList from "@/components/mail/InboxList";
 import NoResultsState from "@/components/ui/NoResultsState";
 import SearchBar from "@/components/ui/SearchBar";
 import { useResponsive } from "@/hooks/useResponsive";
+import {
+  MAIL_KEYS,
+  useMailAccounts,
+  useMailCache,
+  useMailClient,
+  useMailForwarding,
+  useMailInbox,
+  useMailMessage,
+  useMailMessages,
+} from "@/hooks/useMail";
+import { MAIL_SEARCH_DEBOUNCE_MS } from "@/config/timing";
 import { callbackNoticeFor } from "@/lib/mail/notices";
 import { askDeleteMode } from "@/lib/mail/deleteFlow";
-import {
-  createMailClient,
-  type ForwardingAddress,
-  type InboxItem,
-  type MailAccount,
-  type MailMessageFull,
-  type MailMessageSummary,
-} from "@/lib/mail/client";
-import type { Invitation } from "@/lib/mail/invitations";
+import type { InboxItem, MailMessageSummary } from "@/lib/mail/client";
 
 type View = "accounts" | "forwarded";
+
+function emptyDetailHint(accountCount: number, openId: string | null): string {
+  if (accountCount === 0) return "Podłącz konto Gmail lub Outlook.";
+  if (openId) return "Wczytywanie wiadomości…";
+  return "Wybierz wiadomość z listy.";
+}
+
+function errorText(err: unknown, fallback: string): string {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
 
 export default function MailPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const client = useMemo(() => createMailClient(), []);
-
-  const [view, setView] = useState<View>("accounts");
-  const [accounts, setAccounts] = useState<MailAccount[]>([]);
-  const [accountId, setAccountId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<MailMessageSummary[]>([]);
-  const [loadingList, setLoadingList] = useState(false);
-  const [detail, setDetail] = useState<{ message: MailMessageFull; invitation: Invitation | null } | null>(null);
-  const [forwarding, setForwarding] = useState<ForwardingAddress[]>([]);
-  const [inbox, setInbox] = useState<InboxItem[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [query, setQuery] = useState("");
-  /** Fraza, dla której pobrano bieżącą listę (wyszukiwanie z opóźnieniem). */
-  const [searchedQuery, setSearchedQuery] = useState("");
-  const [inboxQuery, setInboxQuery] = useState("");
+  const client = useMailClient();
+  const cache = useMailCache();
   const isSmallScreen = useResponsive();
 
-  const fail = useCallback(
-    (fallback: string, err: unknown) =>
-      toast.error(err instanceof Error && err.message ? err.message : fallback, { cause: err }),
-    [toast]
-  );
+  const [view, setView] = useState<View>("accounts");
+  const [chosenAccountId, setChosenAccountId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [searchedQuery, setSearchedQuery] = useState("");
+  const [open, setOpen] = useState<{ accountId: string; id: string } | null>(null);
+  const [inboxQuery, setInboxQuery] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const loadMessages = useCallback(
-    async (id: string, search = "") => {
-      setLoadingList(true);
-      setDetail(null);
-      try {
-        setMessages(await client.listMessages(id, search));
-      } catch (err) {
-        setMessages([]);
-        fail("Nie udało się pobrać wiadomości.", err);
-      } finally {
-        setLoadingList(false);
-      }
-    },
-    [client, fail]
-  );
+  const accountsQuery = useMailAccounts();
+  const accounts = useMemo(() => accountsQuery.data ?? [], [accountsQuery.data]);
+  // Wybrane konto wynika z listy kont – bez efektu, który przełączałby konto po zmianie frazy.
+  const account = accounts.find((a) => a.id === chosenAccountId) ?? accounts[0] ?? null;
+  const accountId = account?.id ?? null;
 
-  const selectAccount = useCallback(
-    (id: string | null) => {
-      setAccountId(id);
-      if (id) void loadMessages(id, searchedQuery);
-      else {
-        setMessages([]);
-        setDetail(null);
-      }
-    },
-    [loadMessages, searchedQuery]
-  );
+  const messagesQuery = useMailMessages(accountId, searchedQuery);
+  const messages = messagesQuery.data ?? [];
+  const openId = open && open.accountId === accountId ? open.id : null;
+  const messageQuery = useMailMessage(accountId, openId);
+  const detail = messageQuery.data ?? null;
 
+  const forwardingQuery = useMailForwarding(view === "forwarded");
+  const inboxQueryResult = useMailInbox(view === "forwarded");
+  const inbox = useMemo(() => inboxQueryResult.data ?? [], [inboxQueryResult.data]);
+
+  // Wyszukiwanie u dostawcy z opóźnieniem – bez zapytania przy każdym znaku.
   useEffect(() => {
-    let active = true;
-    client
-      .listAccounts()
-      .then((list) => {
-        if (!active) return;
-        setAccounts(list);
-        selectAccount(list[0]?.id ?? null);
-      })
-      .catch((err: unknown) => fail("Nie udało się pobrać kont pocztowych.", err));
-    return () => {
-      active = false;
-    };
-  }, [client, fail, selectAccount]);
-
-  // Wyszukiwanie po stronie dostawcy z opóźnieniem – bez zapytania przy każdym znaku.
-  useEffect(() => {
-    if (!accountId || query === searchedQuery) return;
-    const timer = setTimeout(() => {
-      setSearchedQuery(query);
-      void loadMessages(accountId, query);
-    }, 400);
+    if (query === searchedQuery) return;
+    const timer = setTimeout(() => setSearchedQuery(query), MAIL_SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [accountId, query, searchedQuery, loadMessages]);
+  }, [query, searchedQuery]);
 
-  const filteredInbox = useMemo(() => {
-    const q = inboxQuery.trim().toLowerCase();
-    if (!q) return inbox;
-    return inbox.filter((i) => `${i.from}\n${i.subject}\n${i.text}`.toLowerCase().includes(q));
-  }, [inbox, inboxQuery]);
+  // Błędy zapytań: jeden komunikat na błąd.
+  const queryError =
+    accountsQuery.error ?? messagesQuery.error ?? messageQuery.error ?? forwardingQuery.error ?? inboxQueryResult.error;
+  useEffect(() => {
+    if (queryError) toast.error(errorText(queryError, "Nie udało się pobrać danych poczty."), { cause: queryError });
+  }, [queryError, toast]);
 
   // Wynik powrotu z Google/Microsoft: jeden komunikat, potem parametry znikają z adresu.
   useEffect(() => {
@@ -124,44 +99,41 @@ export default function MailPage() {
     void router.replace("/mail", undefined, { shallow: true });
   }, [router, toast]);
 
-  const openMessage = async (id: string) => {
-    if (!accountId) return;
-    try {
-      setDetail(await client.getMessage(accountId, id));
-    } catch (err) {
-      fail("Nie udało się otworzyć wiadomości.", err);
-    }
-  };
+  const filteredInbox = useMemo(() => {
+    const q = inboxQuery.trim().toLowerCase();
+    if (!q) return inbox;
+    return inbox.filter((i) => `${i.from}\n${i.subject}\n${i.text}`.toLowerCase().includes(q));
+  }, [inbox, inboxQuery]);
 
-  const connect = (start: () => Promise<string>) => async () => {
+  const run = async (action: () => Promise<void>, failure: string) => {
     setBusy(true);
     try {
-      window.location.assign(await start());
+      await action();
     } catch (err) {
-      fail("Nie udało się rozpocząć łączenia konta.", err);
-      setBusy(false);
-    }
-  };
-
-  const disconnect = async (id: string) => {
-    const account = accounts.find((a) => a.id === id);
-    if (!(await toast.confirm(`Odłączyć konto ${account?.email ?? ""}?`))) return;
-    setBusy(true);
-    try {
-      await client.disconnect(id);
-      const remaining = accounts.filter((a) => a.id !== id);
-      setAccounts(remaining);
-      if (accountId === id) selectAccount(remaining[0]?.id ?? null);
-      toast.success("Konto odłączono.");
-    } catch (err) {
-      fail("Nie udało się odłączyć konta.", err);
+      toast.error(errorText(err, failure), { cause: err });
     } finally {
       setBusy(false);
     }
   };
 
-  const deleteMessage = async (message: { id: string; subject: string }) => {
-    const account = accounts.find((a) => a.id === accountId);
+  const connect = (start: () => Promise<string>) =>
+    run(async () => {
+      window.location.assign(await start());
+    }, "Nie udało się rozpocząć łączenia konta.");
+
+  const disconnect = async (id: string) => {
+    const target = accounts.find((a) => a.id === id);
+    if (!(await toast.confirm(`Odłączyć konto ${target?.email ?? ""}?`))) return;
+    await run(async () => {
+      await client.disconnect(id);
+      await cache.invalidateQueries({ queryKey: MAIL_KEYS.accounts });
+      cache.removeQueries({ queryKey: MAIL_KEYS.messagesOf(id) });
+      if (open?.accountId === id) setOpen(null);
+      toast.success("Konto odłączono.");
+    }, "Nie udało się odłączyć konta.");
+  };
+
+  const deleteMessage = async (message: Pick<MailMessageSummary, "id" | "subject">) => {
     if (!account) return;
     const mode = await askDeleteMode(toast.confirm, {
       subject: message.subject,
@@ -169,11 +141,13 @@ export default function MailPage() {
       canDeleteInMailbox: account.canDeleteInMailbox,
     });
     if (mode === "cancel") return;
-    setBusy(true);
-    try {
+    await run(async () => {
       await client.deleteMessage({ accountId: account.id, messageId: message.id, mailbox: mode === "mailbox" });
-      setMessages((list) => list.filter((m) => m.id !== message.id));
-      if (detail?.message.id === message.id) setDetail(null);
+      cache.setQueriesData<MailMessageSummary[]>({ queryKey: MAIL_KEYS.messagesOf(account.id) }, (list) =>
+        list?.filter((m) => m.id !== message.id)
+      );
+      cache.removeQueries({ queryKey: MAIL_KEYS.message(account.id, message.id) });
+      if (openId === message.id) setOpen(null);
       toast.success(
         mode === "mailbox"
           ? `Usunięto z aplikacji i przeniesiono do kosza w ${account.provider === "gmail" ? "Gmailu" : "Outlooku"}.`
@@ -182,89 +156,54 @@ export default function MailPage() {
       if (mode === "app" && !account.canDeleteInMailbox) {
         toast.info("Aby usuwać wiadomości także w poczcie, odłącz i połącz konto ponownie (nowe uprawnienia).");
       }
-    } catch (err) {
-      fail("Nie udało się usunąć wiadomości.", err);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const loadForwarded = useCallback(async () => {
-    try {
-      const [addresses, items] = await Promise.all([client.listForwarding(), client.listInbox()]);
-      setForwarding(addresses);
-      setInbox(items);
-    } catch (err) {
-      fail("Nie udało się pobrać przekierowań.", err);
-    }
-  }, [client, fail]);
-
-  const switchView = (next: View) => {
-    setView(next);
-    if (next === "forwarded") void loadForwarded();
-  };
-
-  const withBusy = async (action: () => Promise<void>) => {
-    setBusy(true);
-    try {
-      await action();
-    } finally {
-      setBusy(false);
-    }
+    }, "Nie udało się usunąć wiadomości.");
   };
 
   const createForwarding = async (label: string): Promise<string | null> => {
-    setBusy(true);
-    try {
-      const created = await client.createForwarding(label);
-      await loadForwarded();
-      return created.address;
-    } catch (err) {
-      fail("Nie udało się utworzyć adresu przekierowania.", err);
-      return null;
-    } finally {
-      setBusy(false);
-    }
+    let address: string | null = null;
+    await run(async () => {
+      address = (await client.createForwarding(label)).address;
+      await cache.invalidateQueries({ queryKey: MAIL_KEYS.forwarding });
+    }, "Nie udało się utworzyć adresu przekierowania.");
+    return address;
   };
 
-  const revokeForwarding = (id: string) =>
-    withBusy(async () => {
-      if (!(await toast.confirm("Odwołać adres? Wiadomości wysłane na niego przestaną docierać."))) return;
-      try {
-        await client.revokeForwarding(id);
-        await loadForwarded();
-        toast.success("Adres odwołano.");
-      } catch (err) {
-        fail("Nie udało się odwołać adresu.", err);
-      }
-    });
+  const revokeForwarding = async (id: string) => {
+    if (!(await toast.confirm("Odwołać adres? Wiadomości wysłane na niego przestaną docierać."))) return;
+    await run(async () => {
+      await client.revokeForwarding(id);
+      await cache.invalidateQueries({ queryKey: MAIL_KEYS.forwarding });
+      toast.success("Adres odwołano.");
+    }, "Nie udało się odwołać adresu.");
+  };
 
   const inboxAction = (id: string, action: "task" | "event") =>
-    withBusy(async () => {
-      try {
+    run(
+      async () => {
         await client.inboxAction(id, action);
         toast.success(action === "task" ? "Dodano zadanie." : "Dodano wydarzenie do kalendarza.");
-      } catch (err) {
-        fail(action === "task" ? "Nie udało się dodać zadania." : "Nie udało się dodać wydarzenia.", err);
-      }
-    });
+      },
+      action === "task" ? "Nie udało się dodać zadania." : "Nie udało się dodać wydarzenia."
+    );
 
-  const deleteInbox = (id: string) =>
-    withBusy(async () => {
-      const item = inbox.find((i) => i.id === id);
-      const ok = await toast.confirm(
-        `Usunąć wiadomość „${item?.subject.trim() || "bez tematu"}” z aplikacji? W Twojej skrzynce pocztowej pozostanie bez zmian.`,
-        { confirmLabel: "Usuń", cancelLabel: "Anuluj" }
-      );
-      if (!ok) return;
-      try {
-        await client.deleteInbox(id);
-        setInbox((items) => items.filter((i) => i.id !== id));
-        toast.success("Usunięto z aplikacji.");
-      } catch (err) {
-        fail("Nie udało się usunąć wiadomości.", err);
-      }
-    });
+  const deleteInbox = async (id: string) => {
+    const item = inbox.find((i) => i.id === id);
+    const ok = await toast.confirm(
+      `Usunąć wiadomość „${item?.subject.trim() || "bez tematu"}” z aplikacji? W Twojej skrzynce pocztowej pozostanie bez zmian.`,
+      { confirmLabel: "Usuń", cancelLabel: "Anuluj" }
+    );
+    if (!ok) return;
+    await run(async () => {
+      await client.deleteInbox(id);
+      cache.setQueryData<InboxItem[]>(MAIL_KEYS.inbox, (list) => list?.filter((i) => i.id !== id));
+      toast.success("Usunięto z aplikacji.");
+    }, "Nie udało się usunąć wiadomości.");
+  };
+
+  const selectAccount = (id: string) => {
+    setChosenAccountId(id);
+    setOpen(null);
+  };
 
   return (
     <>
@@ -272,27 +211,17 @@ export default function MailPage() {
       <div className="space-y-6 pb-20">
         <div className="flex w-full flex-wrap items-center justify-between gap-4">
           <h1 className="page-title">Poczta</h1>
-          <fieldset aria-label="Widok poczty" className="flex gap-2 border-0 p-0">
-            {(["accounts", "forwarded"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={view === v}
-                onClick={() => switchView(v)}
-                className={`min-h-11 rounded-lg border px-4 text-sm ${
-                  view === v ? "border-primary font-semibold text-text" : "border-line text-text-secondary"
-                }`}
-              >
-                {v === "accounts" ? "Konta" : "Przekierowania"}
-              </button>
-            ))}
+          <fieldset className="flex gap-2 border-0 p-0">
+            <legend className="sr-only">Widok poczty</legend>
+            <ToggleChip label="Konta" active={view === "accounts"} onClick={() => setView("accounts")} />
+            <ToggleChip label="Przekierowania" active={view === "forwarded"} onClick={() => setView("forwarded")} />
           </fieldset>
         </div>
 
         {view === "forwarded" ? (
           <div className="mx-auto w-full max-w-3xl space-y-8">
             <ForwardingPanel
-              addresses={forwarding}
+              addresses={forwardingQuery.data ?? []}
               onCreate={createForwarding}
               onRevoke={(id) => void revokeForwarding(id)}
               busy={busy}
@@ -315,14 +244,14 @@ export default function MailPage() {
           </div>
         ) : (
           <div className="grid w-full min-w-0 gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-            {!(isSmallScreen && detail) && (
+            {!(isSmallScreen && openId) && (
               <div className="min-w-0 space-y-4">
                 <MailAccountsPanel
                   accounts={accounts}
                   selectedId={accountId}
-                  onSelect={(id) => selectAccount(id)}
-                  onConnectGmail={() => void connect(() => client.startGmailConnection())()}
-                  onConnectOutlook={() => void connect(() => client.startOutlookConnection())()}
+                  onSelect={selectAccount}
+                  onConnectGmail={() => void connect(() => client.startGmailConnection())}
+                  onConnectOutlook={() => void connect(() => client.startOutlookConnection())}
                   onDisconnect={(id) => void disconnect(id)}
                   busy={busy}
                 />
@@ -332,22 +261,22 @@ export default function MailPage() {
                       value={query}
                       onChange={setQuery}
                       placeholder="Szukaj w poczcie…"
-                      resultsCount={searchedQuery.trim() && !loadingList ? messages.length : undefined}
+                      resultsCount={searchedQuery.trim() && !messagesQuery.isFetching ? messages.length : undefined}
                       resultsLabel="wiadomości"
                     />
                     <MessageList
                       messages={messages}
-                      selectedId={detail?.message.id ?? null}
-                      onSelect={(id) => void openMessage(id)}
+                      selectedId={openId}
+                      onSelect={(id) => setOpen({ accountId, id })}
                       onDelete={(m) => void deleteMessage(m)}
-                      loading={loadingList}
+                      loading={messagesQuery.isLoading}
                       searching={searchedQuery.trim().length > 0}
                     />
                   </>
                 )}
               </div>
             )}
-            {(!isSmallScreen || detail) && (
+            {(!isSmallScreen || openId) && (
               <div className="min-w-0">
                 {detail && accountId ? (
                   <MessageDetail
@@ -355,13 +284,13 @@ export default function MailPage() {
                     accountId={accountId}
                     message={detail.message}
                     invitation={detail.invitation}
-                    onBack={isSmallScreen ? () => setDetail(null) : undefined}
+                    onBack={isSmallScreen ? () => setOpen(null) : undefined}
                     onDelete={() => void deleteMessage(detail.message)}
                   />
                 ) : (
                   <NoResultsState
                     text={accounts.length === 0 ? "kont pocztowych" : "otwartej wiadomości"}
-                    hint={accounts.length === 0 ? "Podłącz konto Gmail lub Outlook." : "Wybierz wiadomość z listy."}
+                    hint={emptyDetailHint(accounts.length, openId)}
                   />
                 )}
               </div>

@@ -21,6 +21,8 @@ import Seo from "@/components/ui/SEO";
 import SlackListsSection from "@/components/settings/SlackListsSection";
 import DataExportSection from "@/components/settings/DataExportSection";
 import ShortcutTokenSection from "@/components/settings/ShortcutTokenSection";
+import HealthConsentSection from "@/components/settings/HealthConsentSection";
+import ObsidianSection from "@/components/settings/ObsidianSection";
 
 const OTHER_SECTIONS = [
   { id: "raporty", title: "Raporty PDF" },
@@ -93,6 +95,8 @@ export default function SettingsPage() {
           <ReportTemplatePanel />
           <SlackListsSection />
           <ShortcutTokenSection />
+          <HealthConsentSection />
+          <ObsidianSection />
           <PushNotificationManager userId={user?.id} />
           <LocationSection onRequestLocation={requestGeolocation} locationStatus={locationStatus} />
           <UserSection email={user?.email} onSignOut={handleSignOut} />

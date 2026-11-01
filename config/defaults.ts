@@ -51,6 +51,8 @@ export const DEFAULT_SETTINGS: Settings = {
   mood_options: DEFAULT_MOODS,
   mood_consent_at: null,
   mood_consent_version: null,
+  health_consent_at: null,
+  health_consent_version: null,
   task_categories: null,
   category_colors: null,
   disabled_modules: null,
@@ -105,6 +107,8 @@ export const VCARD_DEFAULT_COLOR_DARK = "#0A2947";
  * Zgody zapisane przed wprowadzeniem wersji (pusta kolumna) dotyczą wersji pierwszej.
  */
 export const MOOD_CONSENT_VERSION = "2026-10-18";
+/** Wersja treści zgody na dane o zdrowiu ze Skrótów iOS; zmiana wymaga ponownej zgody. */
+export const HEALTH_CONSENT_VERSION = "2026-10-30";
 export const MOOD_CONSENT_LEGACY_VERSION = "2026-10-18";
 
 /** Priorytet zadania, gdy źródło go nie podaje (import ze Slacka, protokoły, szybkie notatki). */

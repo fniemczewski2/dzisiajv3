@@ -1,6 +1,6 @@
 // components/meetingPolls/MeetingPollResults.tsx
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useMeetingPollStats,
   type ConnectedCalendarOption,
@@ -293,7 +293,8 @@ function PollResultsHeader({
 }
 
 export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResultsProps>) {
-  const { getPollResults, finalizePoll } = useMeetingPolls();
+  const { getPollResults, finalizePoll, deleteResponse } = useMeetingPolls();
+  const queryClient = useQueryClient();
   const { supabase } = useAuth();
   const { toast } = useToast();
 
@@ -302,6 +303,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
     queryFn: () => getPollResults(pollId),
   });
   const data: MeetingPollResultsData | null = resultsQuery.data ?? null;
+
   const loadingResults = resultsQuery.isPending;
   const [selection, setSelection] = useState<GridSelection | null>(null);
   const [rangeAnchor, setRangeAnchor] = useState<{ date: string; index: number } | null>(null);
@@ -353,6 +355,18 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
       gridRef.current?.scrollIntoView?.({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
     }
   }, []);
+
+  const removeResponse = async (responseId: string, name: string) => {
+    const ok = await toast.confirm(`Usunąć odpowiedź „${name}”? Jej dostępność zniknie z wyników.`, {
+      confirmLabel: "Usuń",
+      cancelLabel: "Anuluj",
+    });
+    if (!ok) return;
+    if (await deleteResponse(pollId, responseId)) {
+      if (focusedId === responseId) focusPerson(null);
+      await queryClient.invalidateQueries({ queryKey: ["poll-results", pollId] });
+    }
+  };
 
   useEffect(() => {
     if (selection)
@@ -666,6 +680,7 @@ export default function MeetingPollResults({ pollId }: Readonly<MeetingPollResul
         slotDurationMinutes={duration}
         selectedId={focusedId}
         onSelect={focusPerson}
+        onDelete={(response) => void removeResponse(response.id, response.respondent_name)}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 // components/transport/TrackedTrainCard.tsx
 
+import { describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
 import { trainStatusWindow } from "@/lib/trainPlan";
 import React from "react";
 import { MapPin, Loader2, AlertTriangle, Clock, TrainFront, History } from "lucide-react";
@@ -51,9 +52,7 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
   let platformLabel = "Brak peronu";
   if (historical) platformLabel = `Odjazd ${train.date.split("-").reverse().join(".")}`;
   else if (platform && platform !== "-") platformLabel = `Peron ${platform}`;
-  const isCancelled = status?.toLowerCase().includes("odwołany");
   const isDepartedFromStart = status?.toLowerCase().includes("w trasie");
-  const isDelayed = delay > 0;
 
   const renderStatusBanner = () => {
     if (upcoming) {
@@ -99,33 +98,27 @@ export const TrackedTrainCard = ({ train, onDelete, historical = false, upcoming
       );
     }
 
-    if (isCancelled) {
-      return (
-        <div className="absolute top-0 left-0 flex w-full animate-pulse items-center justify-center gap-1 bg-danger-solid py-1.5 text-center text-xs font-bold text-white shadow-sm">
-          <AlertTriangle className="h-3 w-3" /> Pociąg odwołany
-        </div>
-      );
-    }
-
-    if (isDelayed) {
-      return (
-        <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-1 bg-warning-solid py-1.5 text-center text-xs font-bold text-white shadow-sm">
-          <Clock className="h-3 w-3" /> Opóźnienie: {delay} min
-        </div>
-      );
-    }
-
-    if (isDepartedFromStart) {
-      return (
-        <div className="absolute top-0 left-0 flex w-full items-center justify-center gap-1 bg-deco-violet-solid py-1.5 text-center text-xs font-bold text-white shadow-sm">
-          <TrainFront className="h-3 w-3" /> W trasie
-        </div>
-      );
-    }
-
+    const punctuality = describeTrainPunctuality({ status, delay });
+    const tone: Record<TrainPunctualityKind, string> = {
+      cancelled: "animate-pulse bg-danger-solid",
+      delayed: "bg-warning-solid",
+      onTime: isDepartedFromStart ? "bg-deco-violet-solid" : "bg-success-solid",
+      noData: "bg-input",
+      notTracked: "bg-input",
+    };
+    const Icon = {
+      cancelled: AlertTriangle,
+      delayed: Clock,
+      onTime: isDepartedFromStart ? TrainFront : Clock,
+      noData: Clock,
+      notTracked: Clock,
+    }[punctuality.kind];
     return (
-      <div className="absolute top-0 left-0 w-full bg-success-solid py-1.5 text-center text-xs font-bold text-white opacity-90 shadow-sm">
-        {status}
+      <div
+        className={`absolute top-0 left-0 flex w-full items-center justify-center gap-1 py-1.5 text-center text-xs font-bold text-white shadow-sm ${tone[punctuality.kind]}`}
+        aria-live="polite"
+      >
+        <Icon className="h-3 w-3" aria-hidden="true" /> {punctuality.label}
       </div>
     );
   };

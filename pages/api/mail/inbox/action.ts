@@ -5,6 +5,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CACHE_CONTROL } from "@/config/server";
 import { allowMethods, requireUser } from "@/lib/server/apiGuards";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { decryptToken } from "@/lib/server/tokenCrypto";
 import { isUuid } from "@/lib/server/mailRoute";
 import { getAppDate } from "@/lib/dateUtils";
@@ -15,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const auth = await requireUser(req, res);
   if (!auth) return;
   const { supabase, user } = auth;
+  if (!(await enforceRateLimit(res, "mailRead", user.id))) return;
   res.setHeader("Cache-Control", CACHE_CONTROL.private);
 
   const { id, action } = (req.body ?? {}) as { id?: unknown; action?: unknown };

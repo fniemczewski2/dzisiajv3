@@ -1,5 +1,6 @@
 // config/guideData.tsx
 
+import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import React from "react";
 import {
   Activity,
@@ -350,7 +351,8 @@ export const guideSections: GuideSection[] = [
       </>,
       <>
         <K>Przekierowanie zamiast dostępu do skrzynki.</K> Gdy administrator konta służbowego blokuje połączenie, utwórz
-        adres przekierowania i ustaw na niego automatyczne przekierowanie. Wiadomości są dostępne przez 72 godziny.
+        adres przekierowania i ustaw na niego automatyczne przekierowanie. Wiadomości są dostępne przez{" "}
+        {MAIL_INBOX_RETENTION_HOURS} godziny.
       </>,
     ],
   },

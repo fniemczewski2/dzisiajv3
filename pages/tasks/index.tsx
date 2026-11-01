@@ -3,12 +3,13 @@
 import { RECURRING_PREVIEW_DAYS } from "@/config/defaults";
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { List, ChevronLeft, Calendar, ChevronRight, ChevronsRight } from "lucide-react";
+import { useRouter } from "next/router";
+import { List, ChevronLeft, Calendar, ChevronRight, ChevronsRight, Repeat } from "lucide-react";
 import { format, addDays } from "date-fns";
 import TaskList from "@/components/tasks/TaskList";
 import { useTasks } from "@/hooks/db/useTasks";
 import { getAppDate, getAppDateTime } from "@/lib/dateUtils";
-import { AddButton } from "@/components/ui/CommonButtons";
+import { AddButton, IconActionButton } from "@/components/ui/CommonButtons";
 import { SkeletonTaskList } from "@/components/ui/Skeleton";
 import SearchBar from "@/components/ui/SearchBar";
 import { useQuickAction } from "@/hooks/useQuickAction";
@@ -43,6 +44,7 @@ export default function TasksPage() {
   const userCategories = useTaskCategories();
   const categoryColors = useCategoryColors();
 
+  const router = useRouter();
   const { tasks, loading, fetching, addTask, acceptTask, editTask, deleteTask, setDoneTask, fetchTasks } = useTasks();
   const { user } = useAuth();
   const { settings } = useSettings();
@@ -156,7 +158,14 @@ export default function TasksPage() {
             {todayDone}/{todayTotal}
           </span>
         </h1>
-        {!showForm && <AddButton onClick={openNew} />}
+        <div className="flex items-center gap-2">
+          <IconActionButton
+            Icon={Repeat}
+            title="Zadania cykliczne"
+            onClick={() => void router.push("/tasks/recurring")}
+          />
+          {!showForm && <AddButton onClick={openNew} />}
+        </div>
       </div>
 
       <fieldset className="card mb-4 flex max-w-md items-center justify-between gap-1 p-1.5">

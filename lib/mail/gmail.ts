@@ -7,6 +7,26 @@ import type { MailAttachment, MailInlineImage, MailMessage } from "@/lib/mail/ty
 import { htmlToPlainText } from "@/lib/mail/htmlText";
 
 const BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
+const BATCH_URL = "https://gmail.googleapis.com/batch/gmail/v1";
+/** Limit części w jednym żądaniu zbiorczym Gmail API. */
+const MAX_BATCH_PARTS = 100;
+const SUMMARY_HEADERS = ["Subject", "From", "To", "Date", "Message-ID"];
+
+/** Odpowiedź multipart/mixed z /batch: obiekty JSON części z kodem 200, w kolejności Content-ID. */
+export function parseBatchResponse(body: string, boundary: string): Map<number, unknown> {
+  const out = new Map<number, unknown>();
+  for (const part of body.split(`--${boundary}`)) {
+    const id = /Content-ID:\s*<?response-item(\d+)>?/i.exec(part);
+    const http = /HTTP\/1\.1 (\d{3})[^\r\n]*\r?\n[\s\S]*?\r?\n\r?\n([\s\S]*)$/.exec(part);
+    if (!id || !http || http[1] !== "200") continue;
+    try {
+      out.set(Number(id[1]), JSON.parse(http[2].trim()));
+    } catch {
+      // Uszkodzona część – wiadomość zostanie pobrana pojedynczo.
+    }
+  }
+  return out;
+}
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -127,11 +147,43 @@ export function createGmailClient(accessToken: string, fetchImpl: FetchLike = fe
       return (data.messages ?? []).map((m) => m.id);
     },
 
+    /**
+     * Nagłówki wielu wiadomości jednym żądaniem zbiorczym (zamiast N osobnych). Części zakończone błędem
+     * są pobierane pojedynczo, więc wynik ma tę samą kolejność i komplet wiadomości.
+     */
+    async getMessageSummaries(ids: readonly string[]): Promise<MailMessage[]> {
+      if (ids.length === 0) return [];
+      const query = `format=metadata${SUMMARY_HEADERS.map((h) => `&metadataHeaders=${encodeURIComponent(h)}`).join("")}`;
+      const boundary = `batch_${crypto.randomUUID()}`;
+      const slice = ids.slice(0, MAX_BATCH_PARTS);
+      const body =
+        slice
+          .map(
+            (id, i) =>
+              `--${boundary}\r\nContent-Type: application/http\r\nContent-ID: <item${i}>\r\n\r\nGET /gmail/v1/users/me/messages/${encodeURIComponent(id)}?${query}\r\n\r\n`
+          )
+          .join("") + `--${boundary}--`;
+      const res = await fetchImpl(BATCH_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": `multipart/mixed; boundary=${boundary}` },
+        body,
+      });
+      if (!res.ok) throw new GmailApiError(res.status, `Gmail API zwróciło błąd ${res.status}.`);
+      const responseBoundary = /boundary=("?)([^";]+)\1/i.exec(res.headers.get("content-type") ?? "")?.[2];
+      const parts = responseBoundary
+        ? parseBatchResponse(await res.text(), responseBoundary)
+        : new Map<number, unknown>();
+      return Promise.all(
+        slice.map((id, i) => {
+          const raw = parts.get(i) as GmailRawMessage | undefined;
+          return raw?.payload ? Promise.resolve(parseGmailMessage(raw)) : this.getMessageSummary(id);
+        })
+      );
+    },
+
     /** Same nagłówki wiadomości (bez treści i załączników) – do listy. */
     async getMessageSummary(id: string): Promise<MailMessage> {
-      const headers = ["Subject", "From", "To", "Date", "Message-ID"]
-        .map((h) => `&metadataHeaders=${encodeURIComponent(h)}`)
-        .join("");
+      const headers = SUMMARY_HEADERS.map((h) => `&metadataHeaders=${encodeURIComponent(h)}`).join("");
       const raw = await call<GmailRawMessage>(`/messages/${encodeURIComponent(id)}?format=metadata${headers}`);
       return parseGmailMessage(raw);
     },

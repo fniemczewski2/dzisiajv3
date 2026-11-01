@@ -4,14 +4,12 @@
 // `errors`). Limit: LOG_LIMIT zgłoszeń na LOG_WINDOW_MINUTES minut na konto.
 // Wpisy starsze niż 30 dni usuwa zadanie pg_cron (supabase/sql/…_retention.sql).
 
+import { MAX_ERROR_CONTEXT, MAX_ERROR_MESSAGE, MAX_ERROR_STACK } from "../_shared/config.ts";
 import { createClient } from "../_shared/supabase.ts";
 import { json, preflight, unauthorized, withCors } from "../_shared/auth.ts";
 
 const LOG_LIMIT = 20;
 const LOG_WINDOW_MINUTES = 10;
-const MAX_CONTEXT = 255;
-const MAX_MESSAGE = 2000;
-const MAX_STACK = 5000;
 
 interface ErrorReport {
   context?: unknown;
@@ -67,10 +65,10 @@ Deno.serve(
     }
 
     const { error } = await admin.from("errors").insert({
-      context: context.slice(0, MAX_CONTEXT),
+      context: context.slice(0, MAX_ERROR_CONTEXT),
       user_id: user.id,
-      message: message.slice(0, MAX_MESSAGE),
-      stack: stack ? stack.slice(0, MAX_STACK) : null,
+      message: message.slice(0, MAX_ERROR_MESSAGE),
+      stack: stack ? stack.slice(0, MAX_ERROR_STACK) : null,
       created_at: new Date().toISOString(),
     });
 

@@ -1,9 +1,9 @@
-// lib/mail/gmailAccess.ts
+// lib/mail/accessToken.ts
 //
-// Zwraca ważny access token konta Gmail: z bazy, gdy jeszcze jest ważny, albo po odświeżeniu.
+// Zwraca ważny access token konta poczty (Gmail lub Outlook): z bazy, gdy jeszcze jest ważny, albo po odświeżeniu.
 // Zależności (szyfrowanie, odświeżenie u Google, zapis) są wstrzykiwane, więc logika jest testowalna.
 
-export interface StoredGmailAccount {
+export interface StoredMailTokens {
   access_token: string;
   refresh_token: string | null;
   expires_at: string | null;
@@ -22,10 +22,7 @@ export const ACCESS_TOKEN_SKEW_MS = 60_000;
 /** Przybliżony czas życia tokenu po odświeżeniu (Google zwraca go zwykle po godzinie). */
 const REFRESHED_TOKEN_TTL_MS = 3_600_000;
 
-export async function resolveGmailAccessToken(
-  account: StoredGmailAccount,
-  deps: AccessTokenDeps
-): Promise<string | null> {
+export async function resolveAccessToken(account: StoredMailTokens, deps: AccessTokenDeps): Promise<string | null> {
   const now = deps.now ?? Date.now();
   const expiresAt = account.expires_at ? Date.parse(account.expires_at) : 0;
   if (expiresAt - ACCESS_TOKEN_SKEW_MS > now) return deps.decrypt(account.access_token);

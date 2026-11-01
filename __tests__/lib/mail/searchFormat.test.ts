@@ -1,7 +1,8 @@
 // __tests__/lib/mail/searchFormat.test.ts
 
 import { describe, it, expect } from "vitest";
-import { gmailQuery, MAX_SEARCH_LENGTH, normalizeSearchQuery, outlookSearchParam } from "@/lib/mail/search";
+import { gmailQuery, normalizeSearchQuery, outlookSearchParam } from "@/lib/mail/search";
+import { MAX_MAIL_SEARCH_LENGTH } from "@/config/limits";
 import { formatMailDate, senderName } from "@/lib/mail/format";
 import { htmlToPlainText } from "@/lib/mail/htmlText";
 
@@ -10,7 +11,7 @@ describe("wyszukiwanie", () => {
     expect(normalizeSearchQuery("  faktura \n  październik ")).toBe("faktura październik");
     expect(normalizeSearchQuery("   ")).toBeNull();
     expect(normalizeSearchQuery(42)).toBeNull();
-    expect(normalizeSearchQuery("x".repeat(500))).toHaveLength(MAX_SEARCH_LENGTH);
+    expect(normalizeSearchQuery("x".repeat(500))).toHaveLength(MAX_MAIL_SEARCH_LENGTH);
   });
   it("Gmail szuka zawsze w folderze odbiorczym", () => {
     expect(gmailQuery(null)).toBe("in:inbox");

@@ -113,3 +113,26 @@ export const MAX_TASK_REMINDERS = 5;
 
 // Przeniesione z types/finance.ts.
 export const MAX_FINANCE_PROFILES = 5;
+
+// --- Poczta -----------------------------------------------------------------
+/** Konta Gmail/Outlook na użytkownika. */
+export const MAX_MAIL_ACCOUNTS = 5;
+/** Aktywne adresy przekierowania na użytkownika. */
+export const MAX_FORWARDING_ADDRESSES = 5;
+/**
+ * [baza] Czas przechowywania przekierowanych wiadomości. Aplikacja ustawia expires_at z tej wartości;
+ * domyślna wartość kolumny w supabase/sql/2026-10-26_mail_inbox.sql musi być zgodna.
+ */
+export const MAIL_INBOX_RETENTION_HOURS = 72;
+export const MAX_MAIL_REPLY_LENGTH = 10_000;
+export const MAX_MAIL_SEARCH_LENGTH = 200;
+/** Wiadomości na liście konta. */
+export const MAIL_LIST_SIZE = 20;
+/** Przekierowane wiadomości na jednej stronie. */
+export const MAIL_INBOX_PAGE_SIZE = 50;
+/** Minimalna wysokość ramki z treścią HTML (px). */
+export const MAIL_FRAME_MIN_HEIGHT = 120;
+
+// --- Zdrowie (Skróty iOS) ----------------------------------------------------
+/** Treningi w jednym wysłaniu ze Skrótu. */
+export const MAX_HEALTH_WORKOUTS_PER_SUBMIT = 20;

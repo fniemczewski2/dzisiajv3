@@ -17,6 +17,8 @@ const STORAGE_KEY = "tanstack-query";
  * zapisywane – po ponownym uruchomieniu i tak byłyby nieaktualne.
  */
 const NOT_PERSISTED = new Set([
+  // Treść poczty: tylko w pamięci (polityka prywatności – treść wiadomości nie jest zapisywana).
+  "mail",
   "nearby-departures",
   "favorite-departures",
   "station-board",

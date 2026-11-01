@@ -6,12 +6,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireUser } from "@/lib/server/apiGuards";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { decryptToken, encryptToken } from "@/lib/server/tokenCrypto";
 import { refreshGoogleToken, refreshOutlookToken } from "@/lib/server/oauthTokens";
 import { createGmailClient, type FetchLike } from "@/lib/mail/gmail";
 import { createOutlookClient } from "@/lib/mail/outlook";
 import { gmailProvider, outlookProvider, type MailProviderClient } from "@/lib/mail/provider";
-import { resolveGmailAccessToken, type StoredGmailAccount } from "@/lib/mail/gmailAccess";
+import { resolveAccessToken, type StoredMailTokens } from "@/lib/mail/accessToken";
 import { canDeleteInMailbox } from "@/lib/mail/accountRules";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,7 +31,7 @@ export interface MailRouteContext {
   client: MailProviderClient;
 }
 
-type StoredMailAccount = StoredGmailAccount & {
+type StoredMailAccount = StoredMailTokens & {
   id: string;
   email: string;
   provider: "gmail" | "outlook";
@@ -52,6 +53,7 @@ export async function loadMailContext(
   const auth = await requireUser(req, res);
   if (!auth) return null;
   const { supabase, user } = auth;
+  if (!(await enforceRateLimit(res, "mailRead", user.id))) return null;
 
   if (!isUuid(accountId)) {
     res.status(400).json({ error: "Nieprawidłowy identyfikator konta." });
@@ -84,7 +86,7 @@ export async function loadMailContext(
         }
       : refreshGoogleToken;
 
-  const accessToken = await resolveGmailAccessToken(stored, {
+  const accessToken = await resolveAccessToken(stored, {
     decrypt: decryptToken,
     encrypt: encryptToken,
     refresh,

@@ -36,6 +36,8 @@ Pełny, zawsze aktualny opis każdej funkcji znajduje się w [`config/features.t
 - **Pomodoro** - konfigurowalny timer pracy/przerwy z Wake Lock i dźwiękiem
 - **Harmonogram dnia** - powtarzalne schematy dnia, które same pojawiają się w planie
 - **Czas pracy** - ręczne logowanie godzin pracy + automatyzacja przez Siri Shortcuts (start/stop bez otwierania aplikacji)
+- **Obsidian** - synchronizacja dwukierunkowa notatek (z folderami), przepisów, osób i protokołów jako Markdown z vaultem w OneDrive (folder aplikacji) lub Google Drive
+- **Poczta** - konta Gmail i Outlook (odczyt, wyszukiwanie, odpowiedź po potwierdzeniu, usuwanie z aplikacji lub do kosza) albo przekierowanie poczty bez dostępu do skrzynki; zadanie „Odpowiedz: temat” i wydarzenie z zaproszenia jednym przyciskiem
 
 ### 🗓️ Organizacja
 
@@ -131,12 +133,14 @@ Pełna lista z opisami jest w [`.env.example`](./.env.example); kod czyta zmienn
 
 **Adresy przekierowania OAuth** – każdy musi być zarejestrowany dokładnie (schemat, host, port, ścieżka), osobno dla `http://localhost:3000` i dla domeny produkcyjnej; inaczej dostawca zwraca `redirect_uri_mismatch`:
 
-| Dostawca                                 | Adres                                                 | Uprawnienia                                                                                                                             |
-| ---------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/google-calendar/callback`  | kalendarz                                                                                                                               |
-| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/mail/gmail/callback`       | `gmail.modify` (odczyt i kosz), `gmail.send`, `userinfo.email` (zakresy „restricted”: bez weryfikacji Google tylko użytkownicy testowi) |
-| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/outlook-calendar/callback` | kalendarz                                                                                                                               |
-| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/mail/outlook/callback`     | delegowane `Mail.ReadWrite` (odczyt i kosz), `Mail.Send`, `User.Read`, `offline_access`                                                 |
+| Dostawca                                 | Adres                                                  | Uprawnienia                                                                                                                             |
+| ---------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/google-calendar/callback`   | kalendarz                                                                                                                               |
+| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/mail/gmail/callback`        | `gmail.modify` (odczyt i kosz), `gmail.send`, `userinfo.email` (zakresy „restricted”: bez weryfikacji Google tylko użytkownicy testowi) |
+| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/outlook-calendar/callback`  | kalendarz                                                                                                                               |
+| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/mail/outlook/callback`      | delegowane `Mail.ReadWrite` (odczyt i kosz), `Mail.Send`, `User.Read`, `offline_access`                                                 |
+| Google Cloud (OAuth client, typ Web)     | `<NEXT_PUBLIC_APP_URL>/api/obsidian/gdrive/callback`   | `drive` (vault Obsidiana; zakres „restricted”, wymaga weryfikacji Google), `userinfo.email`                                             |
+| Microsoft Entra (App registration → Web) | `<NEXT_PUBLIC_APP_URL>/api/obsidian/onedrive/callback` | delegowane `Files.ReadWrite.AppFolder`, `User.Read`, `offline_access`                                                                   |
 
 Edge Functions mają własne sekrety (Supabase → Edge Functions → Secrets): `CRON_SECRET`, `ALLOWED_ORIGIN` (adres aplikacji dla CORS, lokalnie `http://localhost:3000`), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
 

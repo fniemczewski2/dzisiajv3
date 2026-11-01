@@ -1,10 +1,10 @@
-// __tests__/lib/mail/gmailAccess.test.ts
+// __tests__/lib/mail/accessToken.test.ts
 
 import { describe, it, expect, vi } from "vitest";
-import { ACCESS_TOKEN_SKEW_MS, resolveGmailAccessToken } from "@/lib/mail/gmailAccess";
+import { ACCESS_TOKEN_SKEW_MS, resolveAccessToken } from "@/lib/mail/accessToken";
 
 const NOW = Date.parse("2026-10-26T10:00:00Z");
-const deps = (over: Partial<Parameters<typeof resolveGmailAccessToken>[1]> = {}) => ({
+const deps = (over: Partial<Parameters<typeof resolveAccessToken>[1]> = {}) => ({
   decrypt: (v: string) => `plain:${v}`,
   encrypt: (v: string) => `enc:${v}`,
   refresh: vi.fn(async () => "FRESH"),
@@ -13,10 +13,10 @@ const deps = (over: Partial<Parameters<typeof resolveGmailAccessToken>[1]> = {})
   ...over,
 });
 
-describe("resolveGmailAccessToken", () => {
+describe("resolveAccessToken", () => {
   it("ważny token z bazy jest odszyfrowany i zwracany bez odświeżania", async () => {
     const d = deps();
-    const token = await resolveGmailAccessToken(
+    const token = await resolveAccessToken(
       { access_token: "enc:A", refresh_token: "enc:R", expires_at: new Date(NOW + 3_600_000).toISOString() },
       d
     );
@@ -26,7 +26,7 @@ describe("resolveGmailAccessToken", () => {
 
   it("token wygasający w ciągu minuty jest odświeżany i zapisywany ponownie", async () => {
     const d = deps();
-    const token = await resolveGmailAccessToken(
+    const token = await resolveAccessToken(
       {
         access_token: "enc:A",
         refresh_token: "enc:R",
@@ -41,17 +41,13 @@ describe("resolveGmailAccessToken", () => {
 
   it("wygasły token bez refresh tokenu daje null (konto do ponownego połączenia)", async () => {
     const d = deps();
-    expect(
-      await resolveGmailAccessToken({ access_token: "enc:A", refresh_token: null, expires_at: null }, d)
-    ).toBeNull();
+    expect(await resolveAccessToken({ access_token: "enc:A", refresh_token: null, expires_at: null }, d)).toBeNull();
     expect(d.refresh).not.toHaveBeenCalled();
   });
 
   it("nieudane odświeżenie nie zapisuje niczego i zwraca null", async () => {
     const d = deps({ refresh: vi.fn(async () => null) });
-    expect(
-      await resolveGmailAccessToken({ access_token: "enc:A", refresh_token: "enc:R", expires_at: null }, d)
-    ).toBeNull();
+    expect(await resolveAccessToken({ access_token: "enc:A", refresh_token: "enc:R", expires_at: null }, d)).toBeNull();
     expect(d.persist).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,6 @@
 // components/dashboard/TrainPlanItem.tsx
 
+import { describeTrainPunctuality, type TrainPunctualityKind } from "@/lib/trainPunctuality";
 import { useNow } from "@/hooks/useNow";
 import { TRAIN_STATUS_REFRESH_MS, TRAIN_PLAN_TICK_MS } from "@/config/timing";
 import React from "react";
@@ -21,16 +22,13 @@ function Detail({ label, value }: Readonly<{ label: string; value: string | null
   );
 }
 
-type Badge = { text: string; cls: string };
-
-const ON_TIME_BADGE_CLASS = "bg-success-solid text-white";
-
-function statusBadge(o: { cancelled: boolean; delayed: boolean; delay: number; onTime: boolean }): Badge {
-  if (o.cancelled) return { text: "Odwołany", cls: "bg-danger-solid text-white" };
-  if (o.delayed) return { text: `+${o.delay}`, cls: "bg-warning-solid text-white" };
-  if (o.onTime) return { text: "Planowo", cls: ON_TIME_BADGE_CLASS };
-  return { text: "Brak danych", cls: "bg-input text-white" };
-}
+const BADGE_CLASS: Record<TrainPunctualityKind, string> = {
+  cancelled: "bg-danger-solid text-white",
+  delayed: "bg-warning-solid text-white",
+  onTime: "bg-success-solid text-white",
+  noData: "bg-input text-white",
+  notTracked: "bg-input text-white",
+};
 
 function TimeValue({
   planned,
@@ -64,7 +62,6 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   const statusLower = status.toLowerCase();
   const cancelled = statusLower.includes("odwołany");
   const inTransit = statusLower.includes("w trasie");
-  const rateLimited = status === "Zbyt wiele zapytań";
   const arrived = hide;
   const delayed = !cancelled && delay > 0;
   const expected = isArrival ? stop.expected : (stop.expected ?? expectedDeparture(train, delay));
@@ -72,9 +69,12 @@ export const TrainPlanItem = React.memo(({ train }: Readonly<{ train: TrackedTra
   const title = train.trainName ? train.trainName : train.trainNumber || "Pociąg";
   const timeLabel = isArrival ? `Przyjazd do: ${stop.station}` : `Odjazd z: ${stop.station}`;
 
-  const onTime =
-    (relevant || inTransit || arrived) && !loading && !rateLimited && Boolean(status) && status !== "Błąd połączenia";
-  const badge = statusBadge({ cancelled, delayed, delay, onTime });
+  const punctuality = describeTrainPunctuality({
+    status: loading ? "" : status,
+    delay,
+    tracked: relevant || inTransit || arrived,
+  });
+  const badge = { text: punctuality.label, cls: BADGE_CLASS[punctuality.kind] };
   return (
     <div className={"group mb-2 rounded-lg border border-line bg-surface p-2 text-text shadow-sm transition-colors"}>
       <div className="flex items-start justify-between gap-2">

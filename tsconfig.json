@@ -21,5 +21,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "vitest.config.mts"],
-  "exclude": ["node_modules", "supabase", "**/*.deno.ts"]
+  "exclude": ["node_modules", "**/node_modules", "docs", "supabase", "**/*.deno.ts"]
 }

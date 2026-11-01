@@ -1,7 +1,7 @@
 // supabase/functions/process-notifications/batch_test.ts – deno test
 
 import type { SupabaseClient } from "../_shared/supabase.ts";
-import { rowsByUser, usersNotifiedToday } from "./batch.ts";
+import { rowsByUser, sentDataKeys, sentKey, usersNotifiedToday } from "./batch.ts";
 
 // Bez zależności od jsr/deno.land – tak samo jak pozostałe testy Deno w repozytorium.
 function assertEquals(actual: unknown, expected: unknown) {
@@ -62,4 +62,48 @@ Deno.test("usersNotifiedToday filtruje po typie, dniu i opcjonalnym slocie", asy
     "gte:created_at=2026-10-17T22:00:00Z",
     'contains:data={"slot":14}',
   ]);
+});
+
+Deno.test("sentDataKeys: jedno zapytanie na porcję, klucze użytkownik|wartość, filtr daty opcjonalny", async () => {
+  const calls: string[][] = [];
+  const rows = [
+    { user_id: "u1", data: { letter_id: "L1" } },
+    { user_id: "u2", data: { letter_id: "L2" } },
+    { user_id: "u3", data: { letter_id: "L3" } },
+  ];
+  const client = {
+    from: () => {
+      const filters: string[] = [];
+      let ids: string[] = [];
+      const q = {
+        select: () => q,
+        eq: (c: string, v: unknown) => (filters.push(`eq:${c}=${v}`), q),
+        gte: (c: string, v: unknown) => (filters.push(`gte:${c}=${v}`), q),
+        in: (_c: string, v: string[]) => ((ids = v), q),
+        then: (resolve: (r: unknown) => unknown) => {
+          calls.push(filters);
+          return Promise.resolve({ data: rows.filter((r) => ids.includes(r.user_id)), error: null }).then(resolve);
+        },
+      };
+      return q;
+    },
+  } as unknown as SupabaseClient;
+
+  const withDate = await sentDataKeys(
+    client,
+    "letters_deadline",
+    ["u1", "u2", "u1"],
+    "letter_id",
+    "2026-10-29T00:00:00Z"
+  );
+  assertEquals([...withDate].sort(), ["u1|L1", "u2|L2"]);
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0].includes("gte:created_at=2026-10-29T00:00:00Z"), true);
+
+  await sentDataKeys(client, "poll_closing", ["u3"], "letter_id");
+  assertEquals(
+    calls[1].some((f) => f.startsWith("gte:")),
+    false
+  );
+  assertEquals(sentKey("u1", "L1"), "u1|L1");
 });

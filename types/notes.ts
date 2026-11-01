@@ -8,5 +8,7 @@ export interface Note {
   user_id: string;
   pinned?: boolean;
   archived?: boolean;
+  /** Folder (np. „Fundacje/Zapłon”); null = katalog główny. */
+  folder?: string | null;
   updated_at?: string;
 }

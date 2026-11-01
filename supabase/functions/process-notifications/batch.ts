@@ -36,6 +36,36 @@ export async function usersNotifiedToday(
   return new Set(pages.flat());
 }
 
+/**
+ * Pary „użytkownik|wartość pola data” z wysłanych już powiadomień danego typu – jedno zapytanie
+ * (w porcjach) zamiast sprawdzania każdego elementu osobno. `since` pominięte = cała historia.
+ */
+export async function sentDataKeys(
+  supabase: SupabaseClient,
+  type: string,
+  userIds: readonly string[],
+  field: string,
+  since?: string
+): Promise<Set<string>> {
+  const pages = await Promise.all(
+    chunk([...new Set(userIds)], IN_CHUNK).map(async (ids) => {
+      let query = supabase.from("notifications").select("user_id, data").eq("type", type).in("user_id", ids);
+      if (since) query = query.gte("created_at", since);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []).map((row) => {
+        const value = (row.data as Record<string, unknown> | null)?.[field];
+        return sentKey(row.user_id as string, value);
+      });
+    })
+  );
+  return new Set(pages.flat());
+}
+
+export function sentKey(userId: string, value: unknown): string {
+  return `${userId}|${typeof value === "string" ? value : JSON.stringify(value ?? null)}`;
+}
+
 /** Proste filtry kolumn stosowane obok `user_id IN (...)`. */
 export interface RowFilters {
   eq?: Record<string, string | number | boolean>;

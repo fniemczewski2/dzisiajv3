@@ -8,6 +8,7 @@ create table if not exists public.mail_inbox (
   forwarding_id uuid not null references public.mail_forwarding_addresses (id) on delete cascade,
   payload_encrypted text not null,
   received_at timestamptz not null default now(),
+  -- Domyślna wartość = MAIL_INBOX_RETENTION_HOURS (config/limits.ts); aplikacja ustawia expires_at jawnie.
   expires_at timestamptz not null default (now() + interval '72 hours')
 );
 

@@ -2,20 +2,21 @@
 //
 // Odczyt i usuwanie przekierowanych wiadomości zalogowanego użytkownika (wygasłe nie są zwracane).
 
+import { MAIL_INBOX_PAGE_SIZE } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CACHE_CONTROL } from "@/config/server";
 import { allowMethods, requireUser } from "@/lib/server/apiGuards";
+import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { decryptToken } from "@/lib/server/tokenCrypto";
 import { isUuid } from "@/lib/server/mailRoute";
 import { invitationOf, parseInboundPayload } from "@/lib/mail/inbound";
-
-const INBOX_PAGE_SIZE = 50;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!allowMethods(req, res, ["GET", "DELETE"])) return;
   const auth = await requireUser(req, res);
   if (!auth) return;
   const { supabase } = auth;
+  if (!(await enforceRateLimit(res, "mailRead", auth.user.id))) return;
   res.setHeader("Cache-Control", CACHE_CONTROL.private);
 
   if (req.method === "GET") {
@@ -24,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select("id, payload_encrypted, received_at, expires_at")
       .gt("expires_at", new Date().toISOString())
       .order("received_at", { ascending: false })
-      .limit(INBOX_PAGE_SIZE);
+      .limit(MAIL_INBOX_PAGE_SIZE);
     if (error) return res.status(500).json({ error: "Nie udało się pobrać wiadomości." });
 
     const messages = (data ?? []).flatMap((row) => {

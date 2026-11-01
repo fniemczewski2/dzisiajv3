@@ -1,8 +1,10 @@
 // __tests__/lib/mail/inbound.test.ts
 
 import { describe, it, expect } from "vitest";
-import { invitationOf, MAX_INBOUND_TEXT, parseInboundPayload } from "@/lib/mail/inbound";
-import { planForwardingCreate, MAX_FORWARDING_ADDRESSES } from "@/lib/mail/forwarding";
+import { invitationOf, parseInboundPayload } from "@/lib/mail/inbound";
+import { MAX_INBOUND_TEXT } from "@/config/server";
+import { planForwardingCreate } from "@/lib/mail/forwarding";
+import { MAX_FORWARDING_ADDRESSES } from "@/config/limits";
 import { isInboundAuthorized } from "@/lib/server/inboundAuth";
 
 const valid = {

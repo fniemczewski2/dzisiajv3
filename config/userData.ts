@@ -69,6 +69,32 @@ export const USER_TABLES: readonly UserTable[] = [
     stage: 1,
   },
   { table: "reports", label: "Protokoły", owner: "user_id", stage: 1 },
+  { table: "health_daily", label: "Zdrowie – dane dzienne", owner: "user_id", stage: 1 },
+  { table: "health_workouts", label: "Zdrowie – treningi", owner: "user_id", stage: 1 },
+  {
+    table: "vault_connections",
+    label: "Połączenie z vaultem Obsidiana",
+    owner: "user_id",
+    // Bez tokenów (zaszyfrowane, wewnętrzne).
+    exportColumns: "provider, email, scope, last_synced_at, created_at",
+    stage: 1,
+  },
+  { table: "vault_sync_state", label: "Stan synchronizacji z Obsidianem", owner: "user_id", stage: 1 },
+  {
+    table: "mail_hidden_messages",
+    label: "Wiadomości usunięte z aplikacji",
+    owner: "user_id",
+    exportColumns: "id, account_id, message_id, created_at",
+    stage: 1,
+  },
+  {
+    table: "mail_inbox",
+    label: "Przekierowane wiadomości",
+    owner: "user_id",
+    // Treść jest zaszyfrowana kluczem serwera i wygasa po 72 h – eksport zawiera metadane.
+    exportColumns: "id, forwarding_id, received_at, expires_at",
+    stage: 1,
+  },
   { table: "products", label: "Produkty", owner: "user_id", stage: 1 },
   { table: "recipes", label: "Przepisy", owner: "user_id", stage: 1 },
   { table: "movies", label: "Filmy i seriale", owner: "user_id", stage: 1 },
@@ -77,6 +103,22 @@ export const USER_TABLES: readonly UserTable[] = [
   { table: "vcard_profiles", label: "Wizytówki", owner: "user_id", stage: 1 },
 
   // Etap 2 – wskazują na tabele z etapów 3–4.
+  {
+    table: "mail_accounts",
+    label: "Konta poczty",
+    owner: "user_id",
+    // Bez tokenów dostępu (zaszyfrowane, wewnętrzne).
+    exportColumns: "id, provider, email, scope, created_at, updated_at",
+    stage: 2,
+  },
+  {
+    table: "mail_forwarding_addresses",
+    label: "Adresy przekierowania poczty",
+    owner: "user_id",
+    // Bez skrótu tokenu (wewnętrzny).
+    exportColumns: "id, label, created_at, revoked_at",
+    stage: 2,
+  },
   { table: "tasks", label: "Zadania", owner: "user_id", stage: 2 },
   { table: "events", label: "Wydarzenia", owner: "user_id", stage: 2 },
   { table: "transactions", label: "Transakcje", owner: "user_id", stage: 2 },

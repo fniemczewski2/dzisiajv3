@@ -4,7 +4,8 @@
 // zapisujemy wyłącznie nadawcę, żeby zadanie wskazywało źródło.
 
 import { DEFAULT_TASK_PRIORITY } from "@/config/defaults";
-import { replyTaskTitle, MAIL_TASK_CATEGORY } from "@/lib/mail/tasks";
+import { MAIL_TASK_CATEGORY } from "@/config/tasks";
+import { replyTaskTitle } from "@/lib/mail/tasks";
 
 export interface MailTaskRow {
   title: string;
@@ -16,13 +17,20 @@ export interface MailTaskRow {
   user_id: string;
 }
 
+/** Dzień po „YYYY-MM-DD” – zadania z poczty domyślnie na jutro. */
+export function nextDay(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 export function buildMailTaskRow(input: { subject: string; from: string; userId: string; today: string }): MailTaskRow {
   return {
     title: replyTaskTitle(input.subject),
     category: MAIL_TASK_CATEGORY,
     priority: DEFAULT_TASK_PRIORITY,
     description: `Od: ${input.from}`.slice(0, 500),
-    due_date: input.today,
+    due_date: nextDay(input.today),
     status: "pending",
     user_id: input.userId,
   };

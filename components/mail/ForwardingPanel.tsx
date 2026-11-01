@@ -2,9 +2,11 @@
 //
 // Adresy przekierowania (wariant A). Adres z tokenem jest pokazywany jednorazowo po utworzeniu.
 
+import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import React, { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+import { IconActionButton, SecondaryFullButton } from "@/components/ui/CommonButtons";
 import type { ForwardingAddress } from "@/lib/mail/client";
-import { INBOX_RETENTION_HOURS } from "@/lib/mail/forwarding";
 
 interface Props {
   addresses: ForwardingAddress[];
@@ -33,7 +35,7 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
       </h2>
       <p className="text-sm text-text-secondary">
         Ustaw w swojej poczcie automatyczne przekierowanie na adres poniżej. Wiadomości są w aplikacji przez{" "}
-        {INBOX_RETENTION_HOURS} godziny.
+        {MAIL_INBOX_RETENTION_HOURS} godziny.
       </p>
       {created && (
         <output className="block rounded-lg bg-surface px-3 py-2 text-sm break-all text-text">
@@ -44,15 +46,13 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
         {active.map((a) => (
           <li key={a.id} className="flex items-center gap-2">
             <span className="flex-1 text-sm text-text">{a.label || "Bez nazwy"}</span>
-            <button
-              type="button"
+            <IconActionButton
+              Icon={Trash2}
+              title={`Odwołaj adres ${a.label || "bez nazwy"}`}
+              variant="danger"
               onClick={() => onRevoke(a.id)}
               disabled={busy}
-              aria-label={`Odwołaj adres ${a.label || a.id}`}
-              className="min-h-11 rounded-lg px-3 text-sm text-danger hover:bg-danger-soft disabled:opacity-50"
-            >
-              Odwołaj
-            </button>
+            />
           </li>
         ))}
       </ul>
@@ -66,14 +66,9 @@ export default function ForwardingPanel({ addresses, onCreate, onRevoke, busy }:
             className="input-field mt-1 w-full"
           />
         </label>
-        <button
-          type="button"
-          onClick={() => void create()}
-          disabled={busy}
-          className="min-h-11 rounded-lg border border-line-strong px-4 text-sm font-semibold text-text hover:bg-surface disabled:opacity-50"
-        >
+        <SecondaryFullButton Icon={Plus} onClick={() => void create()} disabled={busy} className="sm:w-auto">
           Utwórz adres
-        </button>
+        </SecondaryFullButton>
       </div>
     </section>
   );

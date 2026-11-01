@@ -16,6 +16,8 @@ export interface RateLimitRule {
 export const RATE_LIMITS = {
   worklogsAuto: { limit: 30, window: "60 s" },
   quickNotes: { limit: 30, window: "60 s" },
+  /** Dane zdrowotne ze Skrótów iOS (na adres IP). */
+  healthShortcut: { limit: 30, window: "60 s" },
   pollRespond: { limit: 5, window: "10 m" },
   pollPublicRead: { limit: 60, window: "60 s" },
   vcard: { limit: 30, window: "60 s" },
@@ -29,6 +31,10 @@ export const RATE_LIMITS = {
   mailImage: { limit: 300, window: "60 s" },
   /** Usuwanie wiadomości (z aplikacji i do kosza w skrzynce), na użytkownika. */
   mailDelete: { limit: 60, window: "10 m" },
+  /** Odczyt poczty (lista, treść, zadanie, wydarzenie, konta, przekierowania), na użytkownika. */
+  mailRead: { limit: 120, window: "60 s" },
+  /** Synchronizacja z vaultem Obsidiana (na użytkownika). */
+  vaultSync: { limit: 10, window: "10 m" },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;
@@ -94,3 +100,54 @@ export const RSS_LIMITS = {
   maxRedirects: 3,
   maxItemsTotal: 300,
 } as const;
+
+// --- Poczta: limity przetwarzania -------------------------------------------
+/** Górny limit pobrania od dostawcy (lista + zapas na wiadomości usunięte z aplikacji). */
+export const MAIL_LIST_MAX_FETCH = 50;
+/** Ile identyfikatorów usuniętych wiadomości odczytujemy na konto. */
+export const MAIL_HIDDEN_LOOKUP = 1000;
+export const MAX_INBOUND_TEXT = 100_000;
+export const MAX_INBOUND_HTML = 300_000;
+/** RFC 5322: zalecana maksymalna długość linii nagłówka. */
+export const MAX_INBOUND_SUBJECT = 998;
+export const MAX_INBOUND_ICS = 200_000;
+export const MAX_INLINE_IMAGES = 10;
+/** Limit długości base64 jednego obrazu osadzonego (~1,5 MB danych). */
+export const MAX_INLINE_IMAGE_BASE64 = 2_000_000;
+export const IMAGE_PROXY_MAX_BYTES = 5 * 1024 * 1024;
+export const IMAGE_PROXY_MAX_REDIRECTS = 3;
+export const IMAGE_PROXY_TIMEOUT_MS = 8_000;
+
+// --- Poczta: OAuth ----------------------------------------------------------
+/**
+ * Zakresy Gmail API. gmail.modify (odczyt i kosz) i gmail.send są zakresami „restricted”:
+ * przed udostępnieniem wszystkim użytkownikom aplikacja wymaga weryfikacji Google.
+ */
+export const GMAIL_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/userinfo.email",
+] as const;
+export const GMAIL_STATE_COOKIE = "mail_gmail_state";
+export const GMAIL_REDIRECT_PATH = "/api/mail/gmail/callback";
+/** Mail.ReadWrite: odczyt i przeniesienie do „Elementów usuniętych”; Mail.Send: odpowiedzi. */
+export const OUTLOOK_MAIL_SCOPES = ["offline_access", "User.Read", "Mail.ReadWrite", "Mail.Send"] as const;
+export const OUTLOOK_STATE_COOKIE = "mail_outlook_state";
+export const OUTLOOK_MAIL_REDIRECT_PATH = "/api/mail/outlook/callback";
+
+// --- Obsidian: vault w OneDrive / Google Drive --------------------------------
+/** Folder aplikacji w OneDrive – dostęp tylko do niego (także do plików utworzonych przez Obsidiana). */
+export const VAULT_ONEDRIVE_SCOPES = ["offline_access", "User.Read", "Files.ReadWrite.AppFolder"] as const;
+/**
+ * Pełny dostęp do Dysku (zakres „restricted”) – wymagany, żeby widzieć pliki utworzone w Obsidianie.
+ * Przed udostępnieniem wszystkim użytkownikom wymaga weryfikacji Google.
+ */
+export const VAULT_GDRIVE_SCOPES = [
+  "https://www.googleapis.com/auth/drive",
+  "https://www.googleapis.com/auth/userinfo.email",
+] as const;
+export const VAULT_STATE_COOKIE = "vault_oauth_state";
+export const VAULT_ONEDRIVE_REDIRECT_PATH = "/api/obsidian/onedrive/callback";
+export const VAULT_GDRIVE_REDIRECT_PATH = "/api/obsidian/gdrive/callback";
+/** Górny limit plików czytanych w jednej synchronizacji. */
+export const MAX_VAULT_FILES = 2000;

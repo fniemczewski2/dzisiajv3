@@ -42,6 +42,10 @@ export interface Settings {
   mood_consent_at?: string | null;
   /** Wersja treści zgody (config/defaults.ts, MOOD_CONSENT_VERSION). */
   mood_consent_version?: string | null;
+  /** Zgoda na dane o zdrowiu ze Skrótów iOS (art. 9 RODO); null = brak zgody. */
+  health_consent_at?: string | null;
+  /** Wersja treści zgody (config/defaults.ts, HEALTH_CONSENT_VERSION). */
+  health_consent_version?: string | null;
   /** Własne kategorie zadań; null = kategorie domyślne. */
   task_categories?: string[] | null;
   /** Kolory kategorii: nazwa kategorii → kolor z palety (CATEGORY_PALETTE). */

@@ -1,7 +1,8 @@
 // __tests__/lib/mail/tasks.test.ts
 
 import { describe, it, expect } from "vitest";
-import { MAIL_TASK_CATEGORY, replyTaskTitle } from "@/lib/mail/tasks";
+import { replyTaskTitle } from "@/lib/mail/tasks";
+import { MAIL_TASK_CATEGORY } from "@/config/tasks";
 
 describe("replyTaskTitle", () => {
   it("tworzy tytuł Odpowiedz: <temat>", () => {

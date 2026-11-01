@@ -2,9 +2,7 @@
 //
 // Adres autoryzacji Microsoft dla poczty oraz odczyt adresu konta z Graph.
 
-import { OUTLOOK_MAIL_SCOPES } from "@/lib/mail/outlook";
-
-export const OUTLOOK_MAIL_REDIRECT_PATH = "/api/mail/outlook/callback";
+import { OUTLOOK_MAIL_SCOPES } from "@/config/server";
 
 export function buildMicrosoftMailAuthUrl(params: { clientId: string; redirectUri: string; state: string }): string {
   const url = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");

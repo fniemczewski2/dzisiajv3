@@ -3,9 +3,10 @@
 // Wiadomość: nagłówek, przyciski „Zadanie” i „Wydarzenie” (jak na pulpicie), zaproszenie, treść (HTML lub tekst)
 // i odpowiedź. Odpowiedź: podgląd, a potem potwierdzenie toast.confirm – dopiero wtedy jest wysyłana.
 
+import { MAX_MAIL_REPLY_LENGTH } from "@/config/limits";
 import React, { useState } from "react";
-import { Calendar, CalendarCheck, ChevronLeft, ListTodo, MapPin, Video } from "lucide-react";
-import { AddSpecificButton, DeleteButton } from "@/components/ui/CommonButtons";
+import { Calendar, CalendarCheck, ChevronLeft, Eye, ListTodo, MapPin, Send, Video } from "lucide-react";
+import { AddSpecificButton, DeleteButton, SecondaryFullButton } from "@/components/ui/CommonButtons";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useToast } from "@/providers/ToastProvider";
 import { linkifyText } from "@/lib/noteFormatting";
@@ -22,8 +23,6 @@ interface Props {
   onBack?: () => void;
   onDelete: () => void;
 }
-
-const MAX_REPLY_LENGTH = 10_000;
 
 export default function MessageDetail({ client, accountId, message, invitation, onBack, onDelete }: Readonly<Props>) {
   const { toast } = useToast();
@@ -64,13 +63,9 @@ export default function MessageDetail({ client, accountId, message, invitation, 
   return (
     <article className="card min-w-0 space-y-4 p-4 sm:p-5" aria-labelledby="message-subject">
       {onBack && (
-        <button
-          type="button"
-          onClick={onBack}
-          className="-ml-1 flex min-h-11 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-text-secondary hover:text-text"
-        >
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Wiadomości
-        </button>
+        <SecondaryFullButton Icon={ChevronLeft} onClick={onBack} className="sm:w-auto">
+          Wiadomości
+        </SecondaryFullButton>
       )}
 
       <header className="flex min-w-0 items-start justify-between gap-3 border-b border-line pb-3">
@@ -130,8 +125,11 @@ export default function MessageDetail({ client, accountId, message, invitation, 
         >
           <h3 id="invitation-heading" className="flex items-center gap-2 text-sm font-semibold wrap-anywhere text-text">
             <CalendarCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            Zaproszenie: {invitation.title}
+            {invitation.source === "date" ? "Termin w treści" : "Zaproszenie"}: {invitation.title}
           </h3>
+          {invitation.source === "date" && (
+            <p className="text-xs text-text-muted">Wykryto datę w treści wiadomości. Sprawdź termin przed dodaniem.</p>
+          )}
           {invitation.start ? (
             <p className="text-sm text-text-secondary">
               {formatMailDate(invitation.start)}
@@ -179,7 +177,7 @@ export default function MessageDetail({ client, accountId, message, invitation, 
             setPreviewing(false);
           }}
           rows={5}
-          maxLength={MAX_REPLY_LENGTH}
+          maxLength={MAX_MAIL_REPLY_LENGTH}
           className="input-field w-full"
           placeholder="Napisz odpowiedź…"
         />
@@ -187,24 +185,25 @@ export default function MessageDetail({ client, accountId, message, invitation, 
           <div className="space-y-3 rounded-lg border border-line p-3">
             <p className="text-sm wrap-anywhere text-text-secondary">Do: {message.from}</p>
             <p className="text-sm wrap-anywhere whitespace-pre-wrap text-text">{body.trim()}</p>
-            <button
-              type="button"
+            <SecondaryFullButton
+              Icon={Send}
               onClick={() => void send()}
               disabled={busy || body.trim().length === 0}
-              className="min-h-11 rounded-lg bg-secondary px-4 text-sm font-semibold text-white hover:bg-secondary-hover disabled:opacity-50"
+              ariaBusy={busy}
+              className="sm:w-auto"
             >
               Wyślij
-            </button>
+            </SecondaryFullButton>
           </div>
         ) : (
-          <button
-            type="button"
+          <SecondaryFullButton
+            Icon={Eye}
             onClick={() => setPreviewing(true)}
             disabled={body.trim().length === 0}
-            className="min-h-11 rounded-lg border border-line-strong px-4 text-sm font-semibold text-text hover:bg-surface disabled:opacity-50"
+            className="sm:w-auto"
           >
             Podgląd odpowiedzi
-          </button>
+          </SecondaryFullButton>
         )}
       </section>
     </article>

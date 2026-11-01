@@ -3,12 +3,8 @@
 // Walidacja przychodzącej wiadomości przekierowanej do aplikacji (wariant A).
 // Zwraca wyłącznie pola, których aplikacja używa; nagłówki techniczne i załączniki binarne odrzucane.
 
+import { MAX_INBOUND_HTML, MAX_INBOUND_ICS, MAX_INBOUND_SUBJECT, MAX_INBOUND_TEXT } from "@/config/server";
 import { detectInvitation, type Invitation } from "@/lib/mail/invitations";
-
-export const MAX_INBOUND_TEXT = 100_000;
-const MAX_INBOUND_HTML = 300_000;
-const MAX_INBOUND_SUBJECT = 998;
-const MAX_INBOUND_ICS = 200_000;
 
 export interface InboundAttachment {
   attachmentId: string;

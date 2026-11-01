@@ -3,12 +3,13 @@
 // Przekierowane wiadomości z bufora: zwinięte do nagłówka, rozwinięcie pokazuje treść (HTML lub tekst).
 // Zadanie i wydarzenie tymi samymi przyciskami co na pulpicie; wydarzenie tylko przy zaproszeniu z terminem.
 
+import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import React, { useState } from "react";
 import { Calendar, ChevronDown, ListTodo } from "lucide-react";
 import NoResultsState from "@/components/ui/NoResultsState";
 import { AddSpecificButton, DeleteButton } from "@/components/ui/CommonButtons";
 import { useResponsive } from "@/hooks/useResponsive";
-import { INBOX_RETENTION_HOURS } from "@/lib/mail/forwarding";
+
 import { formatMailDate, senderName } from "@/lib/mail/format";
 import type { InboxItem } from "@/lib/mail/client";
 import MailBody from "./MailBody";
@@ -32,7 +33,7 @@ export default function InboxList({ items, searching, onTask, onEvent, onDelete,
     ) : (
       <NoResultsState
         text="przekierowanych wiadomości"
-        hint={`Przekierowane wiadomości są dostępne przez ${INBOX_RETENTION_HOURS} godziny.`}
+        hint={`Przekierowane wiadomości są dostępne przez ${MAIL_INBOX_RETENTION_HOURS} godziny.`}
       />
     );
   }
@@ -66,7 +67,7 @@ export default function InboxList({ items, searching, onTask, onEvent, onDelete,
                   <span className="truncate text-sm text-text-secondary">{item.subject || "(bez tematu)"}</span>
                   {item.invitation && (
                     <span className="truncate text-xs font-semibold text-primary">
-                      Zaproszenie: {item.invitation.title}
+                      {item.invitation.source === "date" ? "Termin w treści" : "Zaproszenie"}: {item.invitation.title}
                     </span>
                   )}
                 </span>

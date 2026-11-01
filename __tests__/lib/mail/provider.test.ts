@@ -51,7 +51,7 @@ describe("gmailProvider.listRecent", () => {
   it("pobiera nagłówki zamiast pełnych wiadomości", async () => {
     const client = {
       listMessageIds: vi.fn(async () => ["a", "b"]),
-      getMessageSummary: vi.fn(async (id: string) => ({ ...original, id })),
+      getMessageSummaries: vi.fn(async (ids: string[]) => ids.map((id) => ({ ...original, id }))),
       getMessage: vi.fn(),
     } as never;
     const list = await gmailProvider(client, "ja@y.pl").listRecent(2);

@@ -57,7 +57,7 @@ describe("TrainPlanItem", () => {
     const train = makeTrain();
     render(<TrainPlanItem train={train} />);
 
-    expect(await screen.findByText("+12")).toBeInTheDocument();
+    expect(await screen.findByText("Opóźnienie 12 min")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("12 | 45")).toBeInTheDocument();
     expect(screen.getByText(hm(52))).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe("TrainPlanItem", () => {
     render(<TrainPlanItem train={makeTrain(soon(-20))} />);
 
     expect(await screen.findByText("7")).toBeInTheDocument();
-    expect(screen.getByText("+3")).toBeInTheDocument();
+    expect(screen.getByText("Opóźnienie 3 min")).toBeInTheDocument();
     expect(screen.getByText(hm(63))).toBeInTheDocument();
     expect(screen.getByText("Przyjazd do: Warszawa Centralna")).toBeInTheDocument();
   });

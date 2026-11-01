@@ -4,6 +4,8 @@
 // Decydują, kto jest odbiorcą i jaki tekst dostanie, na podstawie wiersza z bazy – nie na podstawie
 // danych przysłanych przez klienta.
 
+import { MAX_SHARED_NOTIFY_TEXT } from "./config.ts";
+
 export type SharedKind = "task" | "event" | "list_item";
 
 export interface TaskRow {
@@ -48,11 +50,9 @@ export const PUSH_URL_BY_KIND: Record<SharedKind, string> = {
   list_item: "/notes/shopping",
 };
 
-const MAX_TEXT = 120;
-
 function clip(value: string): string {
   const clean = value.replaceAll(/\s+/g, " ").trim();
-  return clean.length > MAX_TEXT ? `${clean.slice(0, MAX_TEXT - 1)}…` : clean;
+  return clean.length > MAX_SHARED_NOTIFY_TEXT ? `${clean.slice(0, MAX_SHARED_NOTIFY_TEXT - 1)}…` : clean;
 }
 
 /** Ustala odbiorcę; zwraca powód odmowy, gdy nadawca nie ma prawa powiadomić kogoś o tym wierszu. */

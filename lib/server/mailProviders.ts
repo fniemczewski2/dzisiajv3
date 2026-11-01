@@ -2,13 +2,18 @@
 //
 // Konfiguracja OAuth dostawców poczty dla wspólnego przepływu z lib/server/mailOAuth.ts.
 
+import {
+  GMAIL_REDIRECT_PATH,
+  GMAIL_SCOPES,
+  GMAIL_STATE_COOKIE,
+  OUTLOOK_MAIL_REDIRECT_PATH,
+  OUTLOOK_MAIL_SCOPES,
+  OUTLOOK_STATE_COOKIE,
+} from "@/config/server";
 import { serverEnv } from "@/config/env";
 import { GOOGLE_TOKEN_URL } from "@/lib/server/oauthTokens";
-import { GMAIL_REDIRECT_PATH, GMAIL_SCOPES, GMAIL_STATE_COOKIE } from "@/lib/server/gmailScopes";
 import { buildGoogleAuthUrl, profileEmail } from "@/lib/mail/accountRules";
-import { buildMicrosoftMailAuthUrl, graphProfileEmail, OUTLOOK_MAIL_REDIRECT_PATH } from "@/lib/mail/outlookAuth";
-import { OUTLOOK_MAIL_SCOPES } from "@/lib/mail/outlook";
-import { OUTLOOK_STATE_COOKIE } from "@/lib/mail/outlookState";
+import { buildMicrosoftMailAuthUrl, graphProfileEmail } from "@/lib/mail/outlookAuth";
 import type { MailOAuthConfig } from "@/lib/server/mailOAuth";
 
 export const GMAIL_OAUTH: MailOAuthConfig = {

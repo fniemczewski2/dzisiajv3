@@ -2,7 +2,7 @@
 //
 // Fraza wyszukiwania wiadomości: normalizacja i przekład na składnię Gmaila oraz Microsoft Graph.
 
-export const MAX_SEARCH_LENGTH = 200;
+import { MAX_MAIL_SEARCH_LENGTH } from "@/config/limits";
 
 /** Przycina, skleja białe znaki i usuwa znaki sterujące; pusta fraza → null. */
 export function normalizeSearchQuery(value: unknown): string | null {
@@ -12,7 +12,7 @@ export function normalizeSearchQuery(value: unknown): string | null {
     .join("")
     .replaceAll(/\s+/g, " ")
     .trim()
-    .slice(0, MAX_SEARCH_LENGTH);
+    .slice(0, MAX_MAIL_SEARCH_LENGTH);
   return clean.length > 0 ? clean : null;
 }
 

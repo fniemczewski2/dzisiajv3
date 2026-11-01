@@ -3,6 +3,7 @@
 // Odbiór wiadomości przekierowanej z bramki poczty (wariant A). Dostęp chroniony sekretem nagłówka.
 // Adres odbiorcy wskazuje konto; treść trafia do bufora szyfrowanego z czasem wygaśnięcia.
 
+import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { serverEnv } from "@/config/env";
 import { allowMethods } from "@/lib/server/apiGuards";
@@ -10,7 +11,7 @@ import { clientIp, enforceRateLimit } from "@/lib/server/rateLimit";
 import { supabaseAdmin } from "@/lib/server/supabaseAdmin";
 import { isInboundAuthorized } from "@/lib/server/inboundAuth";
 import { encryptToken } from "@/lib/server/tokenCrypto";
-import { hashForwardingToken, INBOX_RETENTION_HOURS, tokenFromRecipient } from "@/lib/mail/forwarding";
+import { hashForwardingToken, tokenFromRecipient } from "@/lib/mail/forwarding";
 import { parseInboundPayload } from "@/lib/mail/inbound";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -46,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     user_id: address.user_id,
     forwarding_id: address.id,
     payload_encrypted: encryptToken(payload),
-    expires_at: new Date(Date.now() + INBOX_RETENTION_HOURS * 3_600_000).toISOString(),
+    expires_at: new Date(Date.now() + MAIL_INBOX_RETENTION_HOURS * 3_600_000).toISOString(),
   });
   if (error) return res.status(500).json({ error: "Nie udało się zapisać wiadomości." });
   return res.status(202).end();

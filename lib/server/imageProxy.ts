@@ -4,13 +4,15 @@
 // a proxy ukrywa adres IP użytkownika przed nadawcą). Ochrona przed SSRF: tylko http(s), domyślne porty,
 // adresy publiczne (sprawdzane po rozwiązaniu DNS i po każdym przekierowaniu), bez SVG, limit rozmiaru.
 
+import { IMAGE_PROXY_MAX_BYTES, IMAGE_PROXY_MAX_REDIRECTS, IMAGE_PROXY_TIMEOUT_MS } from "@/config/server";
 import { BlockList, isIP } from "node:net";
 import { lookup } from "node:dns/promises";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import type { LookupFunction } from "node:net";
+import { Readable } from "node:stream";
 
 const PROXY_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/avif", "image/bmp"]);
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const MAX_REDIRECTS = 3;
-const TIMEOUT_MS = 8_000;
 
 const BLOCKED = new BlockList();
 for (const [net, prefix] of [
@@ -79,16 +81,57 @@ export type ResolveFn = (host: string) => Promise<string[]>;
 
 const defaultResolve: ResolveFn = async (host) => (await lookup(host, { all: true })).map((a) => a.address);
 
-/** Wszystkie adresy hosta muszą być publiczne. */
-async function hostIsPublic(url: URL, resolve: ResolveFn = defaultResolve): Promise<boolean> {
+export interface ResolvedHost {
+  address: string;
+  family: 4 | 6;
+}
+
+/**
+ * Wszystkie adresy hosta muszą być publiczne; zwraca pierwszy z nich – połączenie idzie dokładnie pod ten adres
+ * (ochrona przed DNS rebinding: brak drugiego zapytania DNS między sprawdzeniem a połączeniem).
+ */
+export async function resolvePublicHost(url: URL, resolve: ResolveFn = defaultResolve): Promise<ResolvedHost | null> {
   const host = url.hostname.replace(/^\[|\]$/g, "");
-  if (isIP(host)) return isPublicAddress(host);
+  if (isIP(host)) return isPublicAddress(host) ? { address: host, family: isIP(host) as 4 | 6 } : null;
   try {
     const addresses = await resolve(host);
-    return addresses.length > 0 && addresses.every(isPublicAddress);
+    if (addresses.length === 0 || !addresses.every(isPublicAddress)) return null;
+    return { address: addresses[0], family: isIP(addresses[0]) as 4 | 6 };
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** lookup dla node:http(s), który zawsze zwraca sprawdzony wcześniej adres (TLS i SNI nadal po nazwie hosta). */
+export function pinnedLookup(target: ResolvedHost): LookupFunction {
+  return ((_hostname: string, options: { all?: boolean }, callback: (...args: unknown[]) => void) => {
+    if (options?.all) callback(null, [{ address: target.address, family: target.family }]);
+    else callback(null, target.address, target.family);
+  }) as unknown as LookupFunction;
+}
+
+const NO_BODY_STATUS = new Set([101, 204, 205, 304]);
+
+/** GET bez przekierowań, z połączeniem pod przypięty adres IP. */
+function pinnedGet(url: URL, target: ResolvedHost, signal: AbortSignal): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const request = url.protocol === "https:" ? httpsRequest : httpRequest;
+    const req = request(
+      url,
+      { method: "GET", headers: { Accept: "image/*" }, signal, lookup: pinnedLookup(target) },
+      (res) => {
+        const headers = new Headers();
+        for (const [name, value] of Object.entries(res.headers)) {
+          if (value !== undefined) headers.set(name, Array.isArray(value) ? value.join(", ") : String(value));
+        }
+        const status = res.statusCode ?? 502;
+        const body = NO_BODY_STATUS.has(status) ? null : (Readable.toWeb(res) as ReadableStream<Uint8Array>);
+        resolve(new Response(body, { status, headers }));
+      }
+    );
+    req.on("error", reject);
+    req.end();
+  });
 }
 
 export type ProxyResult =
@@ -98,15 +141,14 @@ export async function fetchRemoteImage(
   start: URL,
   deps: { fetchImpl?: typeof fetch; resolve?: ResolveFn } = {}
 ): Promise<ProxyResult> {
-  const fetchImpl = deps.fetchImpl ?? fetch;
   let url = start;
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    if (!(await hostIsPublic(url, deps.resolve))) return { ok: false, status: 403, reason: "Adres niedozwolony." };
-    const res = await fetchImpl(url, {
-      redirect: "manual",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: { Accept: "image/*" },
-    });
+  for (let hop = 0; hop <= IMAGE_PROXY_MAX_REDIRECTS; hop++) {
+    const target = await resolvePublicHost(url, deps.resolve);
+    if (!target) return { ok: false, status: 403, reason: "Adres niedozwolony." };
+    const signal = AbortSignal.timeout(IMAGE_PROXY_TIMEOUT_MS);
+    const res = deps.fetchImpl
+      ? await deps.fetchImpl(url, { redirect: "manual", signal, headers: { Accept: "image/*" } })
+      : await pinnedGet(url, target, signal);
     if (res.status >= 300 && res.status < 400) {
       const next = parseImageUrl(
         res.headers.get("location") ? new URL(res.headers.get("location") as string, url).toString() : ""
@@ -119,7 +161,7 @@ export async function fetchRemoteImage(
     const contentType = (res.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
     if (!PROXY_IMAGE_TYPES.has(contentType)) return { ok: false, status: 415, reason: "Nieobsługiwany typ obrazu." };
     const declared = Number(res.headers.get("content-length") ?? "0");
-    if (declared > MAX_IMAGE_BYTES) return { ok: false, status: 413, reason: "Obraz jest za duży." };
+    if (declared > IMAGE_PROXY_MAX_BYTES) return { ok: false, status: 413, reason: "Obraz jest za duży." };
 
     const reader = res.body.getReader();
     const chunks: Uint8Array[] = [];
@@ -128,7 +170,7 @@ export async function fetchRemoteImage(
       const { done, value } = await reader.read();
       if (done) break;
       total += value.byteLength;
-      if (total > MAX_IMAGE_BYTES) {
+      if (total > IMAGE_PROXY_MAX_BYTES) {
         await reader.cancel();
         return { ok: false, status: 413, reason: "Obraz jest za duży." };
       }

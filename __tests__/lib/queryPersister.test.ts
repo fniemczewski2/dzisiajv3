@@ -33,3 +33,12 @@ describe("zapis pamięci zapytań w IndexedDB", () => {
     expect(await queryPersister.restoreClient()).toBeUndefined();
   });
 });
+
+describe("poczta nie jest utrwalana", () => {
+  it("zapytania z kluczem mail zostają tylko w pamięci", async () => {
+    const { shouldPersistQuery } = await import("@/lib/queryPersister");
+    const query = (key: unknown[]) => ({ queryKey: key, state: { status: "success" } }) as never;
+    expect(shouldPersistQuery(query(["mail", "message", "acc", "m1"]))).toBe(false);
+    expect(shouldPersistQuery(query(["mail", "accounts"]))).toBe(false);
+  });
+});

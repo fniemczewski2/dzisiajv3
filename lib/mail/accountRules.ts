@@ -3,7 +3,7 @@
 // Czysta logika kont poczty: limit kont, normalizacja adresu, odpowiedź tokenowa Google,
 // adres autoryzacji i bezpieczny widok konta (bez tokenów).
 
-export const MAX_MAIL_ACCOUNTS = 5;
+import { MAX_MAIL_ACCOUNTS } from "@/config/limits";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/;
 

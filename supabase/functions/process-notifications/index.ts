@@ -11,7 +11,7 @@ import {
   weekdayIndexPL,
 } from "../_shared/notificationTime.ts";
 import { getErrorMessage } from "../_shared/errors.ts";
-import { usersNotifiedToday, rowsByUser } from "./batch.ts";
+import { usersNotifiedToday, rowsByUser, sentDataKeys, sentKey } from "./batch.ts";
 import { mapPool } from "../_shared/asyncPool.ts";
 
 interface ScheduleEntry {
@@ -168,7 +168,6 @@ interface NotifCtx {
     targetUrl: string,
     dataObj?: Record<string, unknown>
   ) => Promise<void>;
-  wasAlreadySentToday: (userId: string, notifType: string) => Promise<boolean>;
   incrementProcessed: () => void;
 }
 
@@ -545,17 +544,13 @@ async function processOneDaySchema(
     (item) => item.notify === true && Math.abs(timeToMinutes(item.time) - currentMinutes) <= 1
   );
 
-  await mapPool(itemsToNotify, 5, async (item) => {
-    const { data: alreadySent } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("user_id", schema.user_id)
-      .eq("type", "day_schema")
-      .gte("created_at", startOfDayUTC)
-      .contains("data", { label: item.label })
-      .maybeSingle();
+  const sentLabels =
+    itemsToNotify.length > 0
+      ? await sentDataKeys(supabase, "day_schema", [schema.user_id], "label", startOfDayUTC)
+      : new Set<string>();
 
-    if (!alreadySent) {
+  await mapPool(itemsToNotify, 5, async (item) => {
+    if (!sentLabels.has(sentKey(schema.user_id, item.label))) {
       await sendPushAndLog(schema.user_id, `Teraz: ${item.label} 🕒`, `Zgodnie ze schematem: "${schema.name}"`, "/", {
         label: item.label,
         time: currentTime,
@@ -679,30 +674,26 @@ async function processLettersDeadlineType(ctx: NotifCtx): Promise<void> {
   const pendingLetters = (letters || []).filter((l) => !answeredIds.has(l.id));
 
   const optedOutLetters = await optedOutUsers(supabase, "notif_letters");
-  await mapPool(
-    pendingLetters.filter((l) => !optedOutLetters.has(l.user_id)),
-    5,
-    async (letter) => {
-      const { data: alreadySent } = await supabase
-        .from("notifications")
-        .select("id")
-        .eq("user_id", letter.user_id)
-        .eq("type", "letters_deadline")
-        .gte("created_at", startOfDayUTC)
-        .contains("data", { letter_id: letter.id })
-        .maybeSingle();
-      if (alreadySent) return;
-
-      await sendPushAndLog(
-        letter.user_id,
-        `Termin odpowiedzi dziś: ${letter.signature}`,
-        `Pismo do: ${letter.recipient}. Odpowiedź nie została jeszcze załączona.`,
-        "/notes/letters",
-        { letter_id: letter.id, due: letter.response_date }
-      );
-      incrementProcessed();
-    }
+  const lettersToNotify = pendingLetters.filter((l) => !optedOutLetters.has(l.user_id));
+  const sentLetters = await sentDataKeys(
+    supabase,
+    "letters_deadline",
+    lettersToNotify.map((l) => l.user_id),
+    "letter_id",
+    startOfDayUTC
   );
+  await mapPool(lettersToNotify, 5, async (letter) => {
+    if (sentLetters.has(sentKey(letter.user_id, letter.id))) return;
+
+    await sendPushAndLog(
+      letter.user_id,
+      `Termin odpowiedzi dziś: ${letter.signature}`,
+      `Pismo do: ${letter.recipient}. Odpowiedź nie została jeszcze załączona.`,
+      "/notes/letters",
+      { letter_id: letter.id, due: letter.response_date }
+    );
+    incrementProcessed();
+  });
 }
 async function processPollClosingType(ctx: NotifCtx): Promise<void> {
   const { supabase, realNow, sendPushAndLog, incrementProcessed } = ctx;
@@ -720,35 +711,31 @@ async function processPollClosingType(ctx: NotifCtx): Promise<void> {
   }
 
   const optedOutPolls = await optedOutUsers(supabase, "notif_polls");
-  await mapPool(
-    (polls || []).filter((p) => !optedOutPolls.has(p.user_id)),
-    5,
-    async (poll) => {
-      // Raz na ankietę: sprawdzamy całą historię, nie tylko dzisiejszy dzień.
-      const { data: alreadySent } = await supabase
-        .from("notifications")
-        .select("id")
-        .eq("user_id", poll.user_id)
-        .eq("type", "poll_closing")
-        .contains("data", { poll_id: poll.id })
-        .maybeSingle();
-      if (alreadySent) return;
-
-      const { count } = await supabase
-        .from("meeting_poll_responses")
-        .select("id", { count: "exact", head: true })
-        .eq("poll_id", poll.id);
-
-      await sendPushAndLog(
-        poll.user_id,
-        `Ankieta „${poll.title}” została zamknięta`,
-        `Odpowiedzi: ${count ?? 0}. Sfinalizuj termin spotkania.`,
-        "/meetings",
-        { poll_id: poll.id }
-      );
-      incrementProcessed();
-    }
+  const pollsToNotify = (polls || []).filter((p) => !optedOutPolls.has(p.user_id));
+  // Raz na ankietę: cała historia, nie tylko dzisiejszy dzień.
+  const sentPolls = await sentDataKeys(
+    supabase,
+    "poll_closing",
+    pollsToNotify.map((p) => p.user_id),
+    "poll_id"
   );
+  await mapPool(pollsToNotify, 5, async (poll) => {
+    if (sentPolls.has(sentKey(poll.user_id, poll.id))) return;
+
+    const { count } = await supabase
+      .from("meeting_poll_responses")
+      .select("id", { count: "exact", head: true })
+      .eq("poll_id", poll.id);
+
+    await sendPushAndLog(
+      poll.user_id,
+      `Ankieta „${poll.title}” została zamknięta`,
+      `Odpowiedzi: ${count ?? 0}. Sfinalizuj termin spotkania.`,
+      "/meetings",
+      { poll_id: poll.id }
+    );
+    incrementProcessed();
+  });
 }
 
 function getMMDD(d: Date): string {
@@ -998,7 +985,7 @@ const BILL_PUSH_HOUR = 8;
  * i tylko rachunki bez płatności powiązanej w tym miesiącu.
  */
 async function processBillDueType(ctx: NotifCtx): Promise<void> {
-  const { supabase, today, plNow, wasAlreadySentToday, sendPushAndLog } = ctx;
+  const { supabase, today, plNow, startOfDayUTC, sendPushAndLog } = ctx;
   if (Number(plNow.hour) < BILL_PUSH_HOUR) return;
 
   const { data: users } = await supabase
@@ -1037,8 +1024,9 @@ async function processBillDueType(ctx: NotifCtx): Promise<void> {
   const byUser = new Map<string, typeof due>();
   for (const b of due) if (!paidIds.has(b.id)) byUser.set(b.user_id, [...(byUser.get(b.user_id) ?? []), b]);
 
+  const notifiedBills = await usersNotifiedToday(supabase, "bill_due", startOfDayUTC, [...byUser.keys()]);
   await mapPool([...byUser.entries()], 5, async ([userId, list]) => {
-    if (await wasAlreadySentToday(userId, "bill_due")) return;
+    if (notifiedBills.has(userId)) return;
     const total = list.reduce((s, b) => s + Number(b.amount), 0);
     const title = list.length === 1 ? `Dziś płatność: ${list[0].name}` : `Dziś płatności: ${list.length}`;
     const message =
@@ -1123,18 +1111,6 @@ Deno.serve(async (req) => {
       }
     };
 
-    const wasAlreadySentToday = async (userId: string, notifType: string): Promise<boolean> => {
-      const { data } = await supabase
-        .from("notifications")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("type", notifType)
-        .gte("created_at", startOfDayUTC)
-        .limit(1)
-        .maybeSingle();
-      return !!data;
-    };
-
     const ctx: NotifCtx = {
       supabase,
       today,
@@ -1143,7 +1119,6 @@ Deno.serve(async (req) => {
       plNow,
       startOfDayUTC,
       sendPushAndLog,
-      wasAlreadySentToday,
       incrementProcessed: () => {
         processedCount++;
       },

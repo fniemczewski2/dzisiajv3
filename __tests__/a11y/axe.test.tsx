@@ -8,6 +8,9 @@ import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 
+// axe-core przy pierwszym imporcie i pełnym przebiegu reguł potrzebuje więcej niż domyślne 5 s na wolniejszych maszynach.
+vi.setConfig({ testTimeout: 30_000 });
+
 vi.mock("next/router", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn(), pathname: "/" }) }));
 
 async function violations(container: HTMLElement) {

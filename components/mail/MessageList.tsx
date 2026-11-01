@@ -5,7 +5,7 @@ import NoResultsState from "@/components/ui/NoResultsState";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import type { MailMessageSummary } from "@/lib/mail/client";
 import { formatMailDate, senderName } from "@/lib/mail/format";
-import { DeleteButton } from "../ui/CommonButtons";
+import { DeleteButton } from "@/components/ui/CommonButtons";
 
 interface Props {
   messages: MailMessageSummary[];
@@ -30,7 +30,7 @@ export default function MessageList({ messages, selectedId, onSelect, onDelete, 
       {messages.map((m) => {
         const selected = selectedId === m.id;
         return (
-          <li key={m.id} className="group flex min-w-0 justify-between">
+          <li key={m.id} className="flex min-w-0 items-stretch">
             <button
               type="button"
               onClick={() => onSelect(m.id)}
@@ -49,8 +49,12 @@ export default function MessageList({ messages, selectedId, onSelect, onDelete, 
               </span>
               <span className="w-full truncate text-sm text-text-secondary">{m.subject || "(bez tematu)"}</span>
             </button>
-            <div className="flex w-[20%] items-center justify-center p-2">
-              <DeleteButton onClick={() => onDelete(m)} aria-label={`Usuń wiadomość ${m.subject || "bez tematu"}`} />
+            <div className="flex shrink-0 items-center pr-2">
+              <DeleteButton
+                onClick={() => onDelete(m)}
+                small
+                ariaLabel={`Usuń wiadomość ${m.subject || "bez tematu"}`}
+              />
             </div>
           </li>
         );

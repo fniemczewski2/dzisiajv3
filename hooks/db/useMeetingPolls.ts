@@ -191,6 +191,29 @@ export function useMeetingPolls() {
     [supabase, toast]
   );
 
+  /** Organizator usuwa pojedynczą odpowiedź. Zwraca true po usunięciu. */
+  const deleteResponse = useCallback(
+    async (pollId: string, responseId: string): Promise<boolean> => {
+      try {
+        const response = await fetch(
+          `/api/meeting-polls/${encodeURIComponent(pollId)}/responses?responseId=${encodeURIComponent(responseId)}`,
+          { method: "DELETE" }
+        );
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { error?: string } | null;
+          toast.error(body?.error ?? "Nie udało się usunąć odpowiedzi.");
+          return false;
+        }
+        toast.success("Usunięto odpowiedź.");
+        return true;
+      } catch (err) {
+        toast.error("Nie udało się usunąć odpowiedzi.", { cause: err });
+        return false;
+      }
+    },
+    [toast]
+  );
+
   const finalizePoll = useCallback(
     async (pollId: string, slots: FinalizeSlotInput[]): Promise<FinalizeResultSlot[] | null> => {
       try {
@@ -224,5 +247,6 @@ export function useMeetingPolls() {
     deletePoll,
     getPollResults,
     finalizePoll,
+    deleteResponse,
   };
 }

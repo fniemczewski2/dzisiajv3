@@ -6,14 +6,8 @@
 // Pod spodem opis reguły słowami – ogłaszany czytnikom ekranu.
 
 import React, { useId } from "react";
-import {
-  describeRule,
-  MAX_COUNT,
-  MAX_INTERVAL,
-  weekdayPosition,
-  type RecurrenceFreq,
-  type RecurrenceRule,
-} from "@/shared/recurrence";
+import { describeRule, weekdayPosition, type RecurrenceFreq, type RecurrenceRule } from "@/shared/recurrence";
+import { MAX_COUNT, MAX_INTERVAL } from "@/shared/config";
 
 interface Props {
   value: RecurrenceRule | null;

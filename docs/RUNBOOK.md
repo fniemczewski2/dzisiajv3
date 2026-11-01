@@ -234,3 +234,39 @@ Invoke-RestMethod -Method Post -Uri "https://dzisiaj.fun/api/mail/inbound" `
 
 Przekierowanie w Gmailu: **Ustawienia → Przekazywanie i POP/IMAP → Dodaj adres przekierowania**. Gmail wysyła na nowy
 adres wiadomość z kodem potwierdzającym – pojawi się na liście przekierowanych w aplikacji; kod wpisz w Gmailu.
+
+## Skróty iOS: dane o zdrowiu (Apple Zdrowie)
+
+Warunki: migracja `supabase/sql/2026-10-30_health_shortcuts.sql`, token skrótów (Ustawienia → Skróty) i zgoda w
+Ustawieniach → „Zdrowie ze Skrótów iOS”. Bez aktualnej zgody endpoint zwraca `403` i niczego nie zapisuje.
+
+`POST https://dzisiaj.fun/api/health/shortcut`, nagłówek z tokenem jak w pozostałych skrótach, treść JSON:
+
+```json
+{
+  "date": "2026-10-30",
+  "steps": 8423,
+  "heartRate": { "avg": 72, "min": 51, "max": 148, "resting": 55 },
+  "sleepMinutes": 431,
+  "workouts": [
+    {
+      "type": "Bieg",
+      "start": "2026-10-30T07:10:00+01:00",
+      "end": "2026-10-30T07:45:00+01:00",
+      "durationMinutes": 35,
+      "distanceKm": "6,2",
+      "energyKcal": 410,
+      "avgHeartRate": 151
+    }
+  ]
+}
+```
+
+- Wymagane jest tylko `date`; pozostałe pola są opcjonalne. Pole pominięte nie zmienia zapisanej wartości, więc
+  osobne automatyzacje (np. sen rano, kroki wieczorem) nie nadpisują się.
+- Liczby mogą być tekstem z przecinkiem. Czas treningu w ISO 8601 (w Skrótach: „Formatuj datę” → ISO 8601).
+- Trening jest identyfikowany przez rodzaj i początek – ponowne wysłanie aktualizuje go zamiast duplikować.
+
+Budowa Skrótu (nazwy akcji mogą się różnić zależnie od wersji iOS): „Znajdź próbki zdrowia” dla kroków (suma z
+dzisiaj), tętna i analizy snu → obliczenia → „Słownik” z polami jak wyżej → „Pobierz zawartość adresu URL” (POST,
+JSON, nagłówek z tokenem). Automatyzacja osobista „O określonej godzinie” (np. 23:30) wysyła dane codziennie.

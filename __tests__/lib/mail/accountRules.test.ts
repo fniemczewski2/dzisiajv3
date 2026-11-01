@@ -2,7 +2,6 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  MAX_MAIL_ACCOUNTS,
   buildGoogleAuthUrl,
   normalizeEmail,
   parseTokenResponse,
@@ -10,6 +9,7 @@ import {
   profileEmail,
   toPublicAccount,
 } from "@/lib/mail/accountRules";
+import { MAX_MAIL_ACCOUNTS } from "@/config/limits";
 
 describe("planAccountSave", () => {
   it("nowe konto przy wolnym miejscu i refresh tokenie: insert", () => {

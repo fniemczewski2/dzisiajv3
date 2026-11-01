@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { Users, Mail, UserCheck, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
-import { ACTION_LABEL_CLASS, actionButton, CopyButtonSmall } from "../ui/CommonButtons";
+import { ACTION_LABEL_CLASS, actionButton, CopyButtonSmall, DeleteButton } from "../ui/CommonButtons";
 import { formatDurationMinutes } from "@/lib/meetingPollGrid";
 import type { MeetingPollResponseRow, MeetingPollAvailabilityRow } from "@/types/meetingPolls";
 
@@ -12,6 +12,8 @@ interface MeetingPollRespondentsProps {
   slotDurationMinutes: number;
   selectedId?: string | null;
   onSelect?: (id: string | null) => void;
+  /** Tylko organizator: usunięcie odpowiedzi. */
+  onDelete?: (response: MeetingPollResponseRow) => void;
 }
 
 function formatSubmittedAt(value: string): string {
@@ -43,6 +45,7 @@ export default function MeetingPollRespondents({
   slotDurationMinutes,
   selectedId = null,
   onSelect,
+  onDelete,
 }: Readonly<MeetingPollRespondentsProps>) {
   const [expanded, setExpanded] = useState(true);
 
@@ -125,6 +128,12 @@ export default function MeetingPollRespondents({
                       </p>
                     </div>
 
+                    {onDelete && (
+                      <DeleteButton
+                        onClick={() => onDelete(response)}
+                        ariaLabel={`Usuń odpowiedź: ${response.respondent_name}`}
+                      />
+                    )}
                     {onSelect && (
                       <button
                         type="button"

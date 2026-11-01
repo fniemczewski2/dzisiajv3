@@ -2,6 +2,8 @@
 //
 // Wspólne nagłówki HTTP, CORS i sprawdzanie sekretu crona dla Edge Functions.
 
+import { DEFAULT_ORIGINS } from "./config.ts";
+
 /**
  * Porównanie sekretów w czasie niezależnym od miejsca pierwszej różnicy.
  * Bez zależności od deno.land/std (stara, nieprzypięta biblioteka).
@@ -28,7 +30,6 @@ export function verifyCronSecret(req: Request, headerName = "x-cron-secret"): bo
  * Nagłówek Access-Control-Allow-Origin może zawierać tylko jeden adres, dlatego
  * wartość jest dobierana do nagłówka Origin żądania w `withCors`.
  */
-const DEFAULT_ORIGINS = ["https://dzisiaj.fun", "https://www.dzisiaj.fun"];
 
 function normalizeOrigin(value: string): string {
   return value.trim().replace(/\/+$/, "");

@@ -8,8 +8,6 @@ import { htmlToPlainText } from "@/lib/mail/htmlText";
 import { outlookSearchParam } from "@/lib/mail/search";
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
-/** Mail.ReadWrite: odczyt i przeniesienie do „Elementów usuniętych”; Mail.Send: odpowiedzi. */
-export const OUTLOOK_MAIL_SCOPES = ["offline_access", "User.Read", "Mail.ReadWrite", "Mail.Send"] as const;
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 

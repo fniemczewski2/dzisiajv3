@@ -3,6 +3,7 @@
 // Wykrywanie zaproszeń na spotkania: załącznik iCalendar (.ics), linki do konferencji
 // oraz wiadomości z zaproszeniem bez załącznika. Czysta logika, bez zależności od sieci.
 
+import { findDateMention } from "@/lib/mail/dateMentions";
 import type { MailAttachment } from "@/lib/mail/types";
 
 const CONFERENCE_RE =
@@ -20,7 +21,8 @@ export interface IcsEvent {
 }
 
 export interface Invitation {
-  source: "ics" | "link";
+  /** ics – plik kalendarza; link – zaproszenie z linkiem do spotkania; date – termin znaleziony w treści (podpowiedź). */
+  source: "ics" | "link" | "date";
   title: string;
   start: string | null;
   end: string | null;
@@ -154,7 +156,7 @@ export interface InvitationMessage {
 }
 
 /** Zwraca zaproszenie, jeśli wiadomość je zawiera; w przeciwnym razie null. */
-export function detectInvitation(message: InvitationMessage): Invitation | null {
+export function detectInvitation(message: InvitationMessage, now: Date = new Date()): Invitation | null {
   const ics = message.attachments.find(
     (a) => a.icsText && (a.mimeType.toLowerCase() === "text/calendar" || a.filename.toLowerCase().endsWith(".ics"))
   );
@@ -176,12 +178,25 @@ export function detectInvitation(message: InvitationMessage): Invitation | null 
   }
 
   if (links.length > 0 && INVITE_HINT_RE.test(`${message.subject}\n${message.text}`)) {
+    const linked = findDateMention(`${message.subject}\n${message.text}`, now);
     return {
       source: "link",
       title: message.subject,
-      start: null,
-      end: null,
-      allDay: false,
+      start: linked?.start ?? null,
+      end: linked?.end ?? null,
+      allDay: linked?.allDay ?? false,
+      location: null,
+      conferenceLinks: links,
+    };
+  }
+  const mention = findDateMention(`${message.subject}\n${message.text}`, now);
+  if (mention) {
+    return {
+      source: "date",
+      title: message.subject,
+      start: mention.start,
+      end: mention.end,
+      allDay: mention.allDay,
       location: null,
       conferenceLinks: links,
     };

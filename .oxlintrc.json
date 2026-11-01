@@ -24,6 +24,8 @@
   },
   "ignorePatterns": [
     ".next/**",
+    "**/node_modules/**",
+    "docs/**",
     "coverage/**",
     "public/sw.js",
     "public/auth-callback.js",

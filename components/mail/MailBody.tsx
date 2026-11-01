@@ -4,8 +4,10 @@
 // linki otwierają się w nowej karcie), wysokość dopasowana do treści, zdalne obrazy po zgodzie.
 // Tekst: klikalne adresy i zawijanie długich ciągów.
 
+import { MAIL_FRAME_MIN_HEIGHT } from "@/config/limits";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ImageOff } from "lucide-react";
+import { Image as ImageIcon, ImageOff } from "lucide-react";
+import { SecondaryFullButton } from "@/components/ui/CommonButtons";
 import { linkifyText } from "@/lib/noteFormatting";
 import { prepareEmailHtml } from "@/lib/mail/emailHtml";
 
@@ -16,11 +18,9 @@ interface Props {
   keyPrefix: string;
 }
 
-const MIN_FRAME_HEIGHT = 120;
-
 export default function MailBody({ html, text, inlineImages, keyPrefix }: Readonly<Props>) {
   const [showImages, setShowImages] = useState(false);
-  const [height, setHeight] = useState(MIN_FRAME_HEIGHT);
+  const [height, setHeight] = useState(MAIL_FRAME_MIN_HEIGHT);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
 
@@ -31,7 +31,7 @@ export default function MailBody({ html, text, inlineImages, keyPrefix }: Readon
 
   const measure = useCallback(() => {
     const doc = frameRef.current?.contentDocument;
-    if (doc?.documentElement) setHeight(Math.max(MIN_FRAME_HEIGHT, doc.documentElement.scrollHeight));
+    if (doc?.documentElement) setHeight(Math.max(MAIL_FRAME_MIN_HEIGHT, doc.documentElement.scrollHeight));
   }, []);
 
   const onLoad = () => {
@@ -65,13 +65,9 @@ export default function MailBody({ html, text, inlineImages, keyPrefix }: Readon
               Obrazy zewnętrzne ukryte ({prepared.blockedImages}). Mogą informować nadawcę o otwarciu wiadomości.
             </span>
           </span>
-          <button
-            type="button"
-            onClick={() => setShowImages(true)}
-            className="min-h-11 rounded-lg border border-line-strong px-3 text-sm font-semibold text-text hover:bg-surface-hover"
-          >
+          <SecondaryFullButton Icon={ImageIcon} onClick={() => setShowImages(true)} className="sm:w-auto">
             Pokaż obrazy
-          </button>
+          </SecondaryFullButton>
         </div>
       )}
       <iframe

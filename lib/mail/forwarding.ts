@@ -3,6 +3,8 @@
 // Wariant A (bez dostępu do skrzynki): każde konto dostaje unikalny adres, na który
 // użytkownik ustawia przekierowanie. Token jest losowy; w bazie przechowujemy wyłącznie jego skrót.
 
+import { MAX_FORWARDING_ADDRESSES } from "@/config/limits";
+
 const FORWARDING_LOCAL_PREFIX = "p-";
 
 export function createForwardingToken(): string {
@@ -30,12 +32,6 @@ export async function hashForwardingToken(token: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
-
-/** Najwyżej tyle aktywnych adresów przekierowania na użytkownika. */
-export const MAX_FORWARDING_ADDRESSES = 5;
-
-/** Czas, po którym przekierowana wiadomość znika z bufora (wariant A). */
-export const INBOX_RETENTION_HOURS = 72;
 
 export function planForwardingCreate(activeCount: number): { ok: true } | { ok: false; reason: "limit" } {
   return activeCount >= MAX_FORWARDING_ADDRESSES ? { ok: false, reason: "limit" } : { ok: true };

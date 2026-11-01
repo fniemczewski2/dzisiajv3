@@ -3,14 +3,13 @@
 // Wysyła odpowiedź w wątku (Gmail lub Outlook). Wymaga jawnego potwierdzenia (confirm: true) z interfejsu;
 // bez tej flagi nic nie jest wysyłane. Limit wysyłek: RATE_LIMITS.mailSend (na użytkownika).
 
+import { MAX_MAIL_REPLY_LENGTH } from "@/config/limits";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { CACHE_CONTROL } from "@/config/server";
 import { allowMethods } from "@/lib/server/apiGuards";
 import { enforceRateLimit } from "@/lib/server/rateLimit";
 import { isValidMessageId, loadMailContext } from "@/lib/server/mailRoute";
 import { ReplyAddressError } from "@/lib/mail/provider";
-
-const MAX_REPLY_LENGTH = 10_000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!allowMethods(req, res, ["POST"])) return;
@@ -22,8 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Nieprawidłowy identyfikator wiadomości." });
   }
   const body = typeof input.body === "string" ? input.body.trim() : "";
-  if (body.length === 0 || body.length > MAX_REPLY_LENGTH) {
-    return res.status(400).json({ error: `Treść odpowiedzi: od 1 do ${MAX_REPLY_LENGTH} znaków.` });
+  if (body.length === 0 || body.length > MAX_MAIL_REPLY_LENGTH) {
+    return res.status(400).json({ error: `Treść odpowiedzi: od 1 do ${MAX_MAIL_REPLY_LENGTH} znaków.` });
   }
 
   const ctx = await loadMailContext(req, res, input.accountId);

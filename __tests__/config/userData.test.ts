@@ -45,6 +45,8 @@ describe("rejestr tabel z danymi użytkownika", () => {
       ["day_schema_choices", "day_schemas"],
       ["bills", "budget_categories"],
       ["letter_attachments", "letters"],
+      ["mail_hidden_messages", "mail_accounts"],
+      ["mail_inbox", "mail_forwarding_addresses"],
     ];
     for (const [child, parent] of dependencies)
       expect(stage(child), `${child} → ${parent}`).toBeLessThan(stage(parent));

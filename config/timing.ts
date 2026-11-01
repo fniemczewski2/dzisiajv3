@@ -56,3 +56,6 @@ export const STATION_BOARD_STALE_MS = 60_000;
 export const CONFLICT_CHECK_DEBOUNCE_MS = 300;
 /** Pobrany plik: adres obiektu (blob URL) zwalniamy po tylu ms od rozpoczęcia pobierania. */
 export const DOWNLOAD_URL_REVOKE_MS = 1000;
+
+/** Wyszukiwanie w poczcie (zapytanie do Gmail/Graph) – dłużej niż lokalne filtrowanie, żeby nie wysyłać żądania co znak. */
+export const MAIL_SEARCH_DEBOUNCE_MS = 400;

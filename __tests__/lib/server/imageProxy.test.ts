@@ -99,3 +99,37 @@ describe("fetchRemoteImage", () => {
     expect(actual).toMatchObject({ ok: false, status: 413 });
   });
 });
+
+import { pinnedLookup, resolvePublicHost } from "@/lib/server/imageProxy";
+
+describe("ochrona przed DNS rebinding", () => {
+  it("resolvePublicHost zwraca pierwszy publiczny adres i rodzinę; mieszane adresy są odrzucane", async () => {
+    expect(
+      await resolvePublicHost(new URL("https://cdn.example/a.png"), async () => ["93.184.216.34", "2606:2800::1"])
+    ).toEqual({
+      address: "93.184.216.34",
+      family: 4,
+    });
+    expect(
+      await resolvePublicHost(new URL("https://cdn.example/a.png"), async () => ["93.184.216.34", "10.0.0.1"])
+    ).toBeNull();
+    expect(await resolvePublicHost(new URL("http://[2606:2800::1]/a.png"))).toEqual({
+      address: "2606:2800::1",
+      family: 6,
+    });
+  });
+
+  it("pinnedLookup zawsze zwraca sprawdzony adres, niezależnie od nazwy hosta (także w trybie all)", () => {
+    const lookup = pinnedLookup({ address: "93.184.216.34", family: 4 }) as unknown as (
+      host: string,
+      opts: { all?: boolean },
+      cb: (...args: unknown[]) => void
+    ) => void;
+    const single = vi.fn();
+    lookup("evil.example", {}, single);
+    expect(single).toHaveBeenCalledWith(null, "93.184.216.34", 4);
+    const all = vi.fn();
+    lookup("evil.example", { all: true }, all);
+    expect(all).toHaveBeenCalledWith(null, [{ address: "93.184.216.34", family: 4 }]);
+  });
+});

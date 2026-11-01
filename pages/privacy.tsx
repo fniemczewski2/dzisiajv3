@@ -1,5 +1,6 @@
 // pages/privacy.tsx
 
+import { MAIL_INBOX_RETENTION_HOURS } from "@/config/limits";
 import Seo from "@/components/ui/SEO";
 export default function PrivacyPage() {
   return (
@@ -149,6 +150,19 @@ export default function PrivacyPage() {
               </span>
             </Li>
           </ul>
+          <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+            <strong>Synchronizacja z Obsidianem (opcjonalna):</strong> na Twoje polecenie aplikacja zapisuje notatki,
+            przepisy, osoby i protokoły jako pliki w Twoim OneDrive (folder aplikacji) lub Google Drive (folder
+            „dzisiaj.fun”) i odczytuje ich zmiany. Przechowujemy zaszyfrowane tokeny dostępu i skróty treści potrzebne
+            do wykrywania zmian; samych plików nie kopiujemy poza Twoją chmurę. Odłączenie usuwa tokeny i stan
+            synchronizacji.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+            <strong>Dane o zdrowiu ze Skrótów iOS (opcjonalne):</strong> liczba kroków, tętno, czas snu i treningi
+            przesyłane przez Ciebie z Apple Zdrowie. Przetwarzamy je wyłącznie na podstawie Twojej wyraźnej zgody (art.
+            9 ust. 2 lit. a RODO), w celu wyświetlania w aplikacji. Bez zgody dane nie są przyjmowane. Cofnięcie zgody w
+            ustawieniach usuwa zapisane dane.
+          </p>
         </Section>
 
         <Section title="3. Zgodność z API dostawców (Google i Microsoft)">
@@ -299,10 +313,11 @@ export default function PrivacyPage() {
           </ul>
           <p className="mt-3">
             <strong>Przekazywanie poza Europejski Obszar Gospodarczy:</strong> część odbiorców ma siedzibę w USA.
-            Przekazanie odbywa się na podstawie decyzji Komisji Europejskiej stwierdzającej odpowiedni stopień ochrony
-            (EU-US Data Privacy Framework) – dla podmiotów certyfikowanych – albo standardowych klauzul umownych (art.
-            46 ust. 2 lit. c RODO). Kopię zabezpieczeń możesz otrzymać, pisząc na adres z punktu 1. Szwajcaria ma
-            decyzję Komisji stwierdzającą odpowiedni stopień ochrony.
+            Przekazanie odbywa się na podstawie decyzji wykonawczej Komisji (UE) 2023/1795 stwierdzającej odpowiedni
+            stopień ochrony (EU-US Data Privacy Framework, art. 45 RODO) – dla podmiotów certyfikowanych – albo
+            standardowych klauzul umownych przyjętych decyzją wykonawczą Komisji (UE) 2021/914 (art. 46 ust. 2 lit. c
+            RODO). Kopię zabezpieczeń możesz otrzymać, pisząc na adres z punktu 1. Szwajcaria ma decyzję Komisji
+            stwierdzającą odpowiedni stopień ochrony.
           </p>
         </Section>
 
@@ -377,7 +392,10 @@ export default function PrivacyPage() {
             </Li>
             <Li>Token i konfiguracja integracji ze Slackiem – do momentu odłączenia Slacka lub usunięcia konta.</Li>
             <Li>Tokeny kont poczty (Gmail, Outlook) – do momentu odłączenia konta lub usunięcia konta głównego.</Li>
-            <Li>Wiadomości przekierowane na adres aplikacji – 72 godziny, po czym są automatycznie usuwane.</Li>
+            <Li>
+              Wiadomości przekierowane na adres aplikacji – {MAIL_INBOX_RETENTION_HOURS} godziny, po czym są
+              automatycznie usuwane.
+            </Li>
             <Li>Skrót tokenu adresu przekierowania – do jego odwołania lub usunięcia konta.</Li>
             <Li>
               Identyfikatory wiadomości usuniętych z aplikacji (bez treści) – do odłączenia konta poczty lub usunięcia
@@ -441,8 +459,8 @@ export default function PrivacyPage() {
               miejsce i linki do konferencji.
             </p>
             <p>
-              Wiadomości przekierowane na adres aplikacji są przechowywane zaszyfrowane przez 72 godziny, po czym są
-              usuwane. Możesz je usunąć wcześniej.
+              Wiadomości przekierowane na adres aplikacji są przechowywane zaszyfrowane przez{" "}
+              {MAIL_INBOX_RETENTION_HOURS} godziny, po czym są usuwane. Możesz je usunąć wcześniej.
             </p>
             <p>
               Aplikacja jest w trakcie weryfikacji przez Google. Do czasu jej zakończenia połączenie konta Gmail jest
