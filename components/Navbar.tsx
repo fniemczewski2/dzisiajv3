@@ -1,12 +1,12 @@
 // components/Navbar.tsx
 
-import { Calendar, Coins, LayoutDashboard, ListTodo, Menu, Pen, Settings as SettingsIcon, X } from "lucide-react";
+import { Calendar, LayoutDashboard, ListTodo, Menu, Pen, Settings as SettingsIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSettings } from "@/hooks/db/useSettings";
 import { useAuth } from "@/providers/AuthProvider";
-import { NAVIGATION_BUTTONS } from "@/config/modules";
+import { BOTTOM_BAR, menuItemsFor, menuRowSizes } from "@/config/modules";
 import GlobalSearch from "./ui/GlobalSearch";
 import { useEnabledModules } from "@/hooks/useEnabledModules";
 
@@ -33,44 +33,29 @@ function DefaultNav() {
 function AuthenticatedNav() {
   const router = useRouter();
   const { settings } = useSettings();
-
-  switch (settings.main_view) {
-    case "tasks":
-      return (
-        <>
-          <NavLink href="/" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-          <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-          <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
-          <NavLink href="/calendar" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
-        </>
-      );
-    case "calendar":
-      return (
-        <>
-          <NavLink href="/" Icon={Calendar} label="Kalendarz" currentPath={router.pathname} />
-          <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-          <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-          <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
-        </>
-      );
-    case "day_view":
-      return (
-        <>
-          <NavLink href="/" Icon={LayoutDashboard} label="Dzisiaj" currentPath={router.pathname} />
-          <NavLink href="/tasks" Icon={ListTodo} label="Zadania" currentPath={router.pathname} />
-          <NavLink href="/notes" Icon={Pen} label="Notatki" currentPath={router.pathname} />
-          <NavLink href="/bills" Icon={Coins} label="Finanse" currentPath={router.pathname} />
-        </>
-      );
-    default:
-      return <DefaultNav />;
-  }
+  const items = BOTTOM_BAR[settings.main_view];
+  if (!items) return <DefaultNav />;
+  return (
+    <>
+      {items.map((item) => (
+        <NavLink key={item.href} href={item.href} Icon={item.icon} label={item.label} currentPath={router.pathname} />
+      ))}
+    </>
+  );
 }
 
 export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isEnabled } = useEnabledModules();
+  const { settings } = useSettings();
+  // Bez pozycji z dolnego paska i bez wyłączonych modułów; wiersze po 4 lub 3 elementy jednakowej szerokości.
+  const visible = menuItemsFor(user ? settings.main_view : null).filter((item) => isEnabled(item.path));
+  const menuRows = menuRowSizes(visible.length).reduce<{ rows: (typeof visible)[]; offset: number }>(
+    (acc, size) => ({ rows: [...acc.rows, visible.slice(acc.offset, acc.offset + size)], offset: acc.offset + size }),
+    { rows: [], offset: 0 }
+  ).rows;
 
   useEffect(() => {
     const handleRouteChange = () => setIsMenuOpen(false);
@@ -112,18 +97,23 @@ export default function Navbar() {
         >
           <div className="overflow-hidden">
             <div className="max-h-[80vh] space-y-2 overflow-y-auto overscroll-contain pr-0.5">
-              <div className="grid grid-cols-4 gap-1.5 border-b border-line pb-1.5">
-                {NAVIGATION_BUTTONS.map((item) => (
-                  <MenuItemLink
-                    key={item.path}
-                    href={item.path}
-                    title={item.title}
-                    Icon={item.icon}
-                    label={item.label}
-                    badge={item.badge}
-                    isActive={router.pathname === item.path}
-                    onNavigate={() => setIsMenuOpen(false)}
-                  />
+              <div className="space-y-1.5 border-b border-line pb-1.5">
+                {menuRows.map((row) => (
+                  <div key={row[0].path} className="flex justify-center gap-1.5">
+                    {row.map((item) => (
+                      <div key={item.path} className="flex w-[calc((100%-1.125rem)/4)]">
+                        <MenuItemLink
+                          href={item.path}
+                          title={item.title}
+                          Icon={item.icon}
+                          label={item.label}
+                          badge={item.badge}
+                          isActive={router.pathname === item.path}
+                          onNavigate={() => setIsMenuOpen(false)}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 ))}
               </div>
               <div className="flex w-full items-center gap-2 border-b border-line pb-1.5">

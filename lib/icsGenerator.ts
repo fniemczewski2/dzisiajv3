@@ -1,66 +1,50 @@
 // lib/icsGenerator.ts
+//
+// Eksport pojedynczego wydarzenia do pliku .ics.
 
 import ICAL from "ical.js";
 import { Event } from "@/types/events";
 import { format } from "date-fns";
 import { parseEventDate } from "./dateUtils";
 
-function escapeICalText(s?: string) {
-  if (!s) return "";
-  return s
-    .replaceAll("\\", String.raw`\\`)
-    .replaceAll(";", String.raw`\;`)
-    .replaceAll(",", String.raw`\,`)
-    .replaceAll("\r\n", String.raw`\n`)
-    .replaceAll("\n", String.raw`\n`);
+/**
+ * Treść pliku .ics dla jednego wydarzenia. Tekst przekazujemy do ical.js bez własnej ucieczki – biblioteka sama
+ * zamienia przecinki, średniki, ukośniki i nowe linie (ręczna ucieczka dawała w kalendarzach „\,” i „\;”).
+ * Bez pola ORGANIZER: aplikacja nie zna adresu e-mail organizatora, a identyfikator użytkownika nie może trafiać do pliku.
+ */
+export function buildSingleEventICS(ev: Event, now: Date = new Date()): string {
+  const vcalendar = new ICAL.Component(["vcalendar", [], []]);
+  vcalendar.updatePropertyWithValue("prodid", "-//Dzisiajv3//PL");
+  vcalendar.updatePropertyWithValue("version", "2.0");
+  vcalendar.updatePropertyWithValue("calscale", "GREGORIAN");
+  vcalendar.updatePropertyWithValue("method", "PUBLISH");
+
+  const vevent = new ICAL.Component("vevent");
+  vevent.addPropertyWithValue("uid", eventUid(ev));
+  vevent.addPropertyWithValue("dtstamp", ICAL.Time.fromJSDate(now, false));
+  vevent.addPropertyWithValue("dtstart", ICAL.Time.fromJSDate(parseEventDate(ev.start_time), false));
+  vevent.addPropertyWithValue("dtend", ICAL.Time.fromJSDate(parseEventDate(ev.end_time), false));
+  vevent.getFirstProperty("dtstart")?.setParameter("VALUE", "DATE-TIME");
+  vevent.getFirstProperty("dtend")?.setParameter("VALUE", "DATE-TIME");
+  if (ev.title) vevent.addPropertyWithValue("summary", ev.title);
+  if (ev.description) vevent.addPropertyWithValue("description", ev.description);
+  if (ev.place) vevent.addPropertyWithValue("location", ev.place);
+
+  vcalendar.addSubcomponent(vevent);
+  return vcalendar.toString();
+}
+
+function eventUid(ev: Event): string {
+  return ev.id ? ev.id.replaceAll(/\s+/g, "_") : `evt-${Date.now()}`;
 }
 
 export const generateSingleEventICS = (ev: Event) => {
   try {
-    const vcalendar = new ICAL.Component(["vcalendar", [], []]);
-    vcalendar.updatePropertyWithValue("prodid", "-//Dzisiajv3//PL");
-    vcalendar.updatePropertyWithValue("version", "2.0");
-    vcalendar.updatePropertyWithValue("calscale", "GREGORIAN");
-    vcalendar.updatePropertyWithValue("method", "PUBLISH");
-
-    const vevent = new ICAL.Component("vevent");
-    const uid = ev.id ? ev.id.replaceAll(/\s+/g, "_") : `evt-${Date.now()}`;
-
-    const dtStart = parseEventDate(ev.start_time);
-    const dtEnd = parseEventDate(ev.end_time);
-
-    const icalStart = ICAL.Time.fromJSDate(dtStart, false);
-    const icalEnd = ICAL.Time.fromJSDate(dtEnd, false);
-    const icalStamp = ICAL.Time.fromJSDate(new Date(), false);
-
-    vevent.addPropertyWithValue("uid", uid);
-    vevent.addPropertyWithValue("dtstamp", icalStamp);
-    vevent.addPropertyWithValue("dtstart", icalStart);
-    vevent.addPropertyWithValue("dtend", icalEnd);
-
-    const propStart = vevent.getFirstProperty("dtstart");
-    const propEnd = vevent.getFirstProperty("dtend");
-    if (propStart) propStart.setParameter("VALUE", "DATE-TIME");
-    if (propEnd) propEnd.setParameter("VALUE", "DATE-TIME");
-
-    if (ev.title) vevent.addPropertyWithValue("summary", escapeICalText(ev.title));
-    if (ev.description) vevent.addPropertyWithValue("description", escapeICalText(ev.description));
-    if (ev.place) vevent.addPropertyWithValue("location", escapeICalText(ev.place));
-    if (ev.user_id) vevent.addPropertyWithValue("organizer", `MAILTO:${ev.user_id}`);
-
-    vcalendar.addSubcomponent(vevent);
-
-    const icsString = vcalendar.toString();
-    const blob = new Blob([icsString], {
-      type: "text/calendar;charset=utf-8",
-    });
+    const blob = new Blob([buildSingleEventICS(ev)], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-
-    const startDate = parseEventDate(ev.start_time);
-    const datePart = format(startDate, "yyyy-MM-dd");
-    a.download = `${datePart}_${uid}.ics`;
+    a.download = `${format(parseEventDate(ev.start_time), "yyyy-MM-dd")}_${eventUid(ev)}.ics`;
     document.body.appendChild(a);
     a.click();
     a.remove();
