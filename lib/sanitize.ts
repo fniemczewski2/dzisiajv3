@@ -37,12 +37,19 @@ export function validateEmail(value: unknown): string | null {
 }
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** RRRR-MM-DD i istniejący dzień kalendarza (np. 2026-02-30 jest odrzucane). */
+function isValidIsoDate(value: unknown): value is string {
+  if (typeof value !== "string" || !ISO_DATE_RE.test(value)) return false;
+  const d = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}
 const HHMM_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export function validateSlot(value: unknown): { date: string; start_time: string } | null {
   if (typeof value !== "object" || value === null) return null;
   const { date, start_time } = value as Record<string, unknown>;
-  if (typeof date !== "string" || !ISO_DATE_RE.test(date)) return null;
+  if (!isValidIsoDate(date)) return null;
   if (typeof start_time !== "string" || !HHMM_RE.test(start_time)) return null;
   return { date, start_time };
 }
@@ -65,7 +72,7 @@ export function validateFinalizeSlot(value: unknown): FinalizeSlotValidated | nu
   if (typeof value !== "object" || value === null) return null;
   const { date, start_time, end_time, title, place } = value as Record<string, unknown>;
 
-  if (typeof date !== "string" || !ISO_DATE_RE.test(date)) return null;
+  if (!isValidIsoDate(date)) return null;
   if (typeof start_time !== "string" || !HHMM_RE.test(start_time)) return null;
   if (typeof end_time !== "string" || !HHMM_RE.test(end_time)) return null;
   if (end_time <= start_time) return null;
