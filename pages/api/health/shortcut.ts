@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const token = extractShortcutToken(req);
   if (!looksLikeShortcutToken(token)) {
-    res.status(401).json({ error: "Brak autoryzacji." });
+    res.status(401).json({ error: "Brak autoryzacji (token)." });
     return;
   }
   const parsed = parseHealthPayload(req.body);
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const admin = supabaseAdmin();
   const userId = await resolveShortcutUser(admin, token);
   if (!userId) {
-    res.status(401).json({ error: "Brak autoryzacji." });
+    res.status(401).json({ error: "Brak autoryzacji (userId)." });
     return;
   }
 
