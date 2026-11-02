@@ -15,16 +15,39 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseHealthPayload, type ParsedHealthPayload } from "@/lib/health/shortcutPayload";
 
 /**
- * Treść jako obiekt. Gdy nagłówek Content-Type nie jest dokładnie „application/json” (np. Skróty z ręcznie dodanym
- * nagłówkiem wysyłają „application/json, application/json”), Next.js przekazuje treść jako tekst – dekodujemy ją sami.
+ * Normalizacja payloadu. Zabezpiecza przed zachowaniem Skrótów iOS, 
+ * które potrafią przesyłać zagnieżdżone listy (np. z akcji "Tekst") jako zwykłe stringi.
  */
 function jsonBody(body: unknown): unknown {
-  if (typeof body !== "string") return body;
-  try {
-    return JSON.parse(body) as unknown;
-  } catch {
-    return body;
+  let parsedBody = body;
+
+  // 1. Rozkoduj główne body, jeśli przyszło jako tekst
+  if (typeof parsedBody === "string") {
+    try {
+      parsedBody = JSON.parse(parsedBody);
+    } catch {
+      return parsedBody;
+    }
   }
+
+  // 2. Jeśli mamy obiekt, sprawdź tablice, które Skróty mogły wysłać jako tekst w cudzysłowach
+  if (parsedBody && typeof parsedBody === "object") {
+    const obj = parsedBody as Record<string, unknown>;
+    const arrayFields = ["sleepSegments", "heartRateSamples", "workouts"];
+    
+    for (const field of arrayFields) {
+      if (typeof obj[field] === "string") {
+        try {
+          // Konwertuje tekst "[{...}]" na rzeczywistą tablicę [{...}]
+          obj[field] = JSON.parse(obj[field] as string);
+        } catch (e) {
+          // Jeśli się nie uda, zostawiamy jak jest – walidator odrzuci to z błędem
+        }
+      }
+    }
+  }
+
+  return parsedBody;
 }
 
 /** Rejestr tętna z dnia to kilkaset pomiarów – większy limit treści niż domyślny 1 MB. */
