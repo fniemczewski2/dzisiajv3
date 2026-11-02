@@ -66,6 +66,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sort_people: "alphabetical",
   hide_priority_5: false,
   sort_bills: "month",
+  daily_spending_limit: 0,
+  daily_steps_goal: 10000,
 };
 
 /**

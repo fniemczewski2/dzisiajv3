@@ -70,6 +70,9 @@ export interface Settings {
   hide_priority_5: boolean;
 
   sort_bills: string;
+
+  daily_spending_limit?: number | null;
+  daily_steps_goal?: number | null;
 }
 
 export interface EmailByIdRow {

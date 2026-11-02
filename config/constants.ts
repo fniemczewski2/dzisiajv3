@@ -100,3 +100,5 @@ export const REQUIRED_CATEGORIES = [
   "Wakacje",
   "Inne",
 ];
+
+export const HEART_RATE_LIMITS = [60, 100]

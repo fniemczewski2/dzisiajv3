@@ -16,9 +16,11 @@ import CategoryColorPicker from "./CategoryColorPicker";
 interface Props {
   dailyCategories: string[];
   onDailyCategoriesChange: (next: string[]) => void;
+  dailyLimit: number | null | undefined; 
+  onDailyLimitChange: (next: number) => void;
 }
 
-export default function FinanceSettings({ dailyCategories, onDailyCategoriesChange }: Readonly<Props>) {
+export default function FinanceSettings({ dailyCategories, onDailyCategoriesChange, dailyLimit, onDailyLimitChange }: Readonly<Props>) {
   const id = useId();
   const { profiles, addProfile, updateProfile, removeProfile } = useFinanceProfiles();
   const { categories } = useBudgetCategories(Number(getAppDate().slice(0, 4)));
@@ -88,6 +90,20 @@ export default function FinanceSettings({ dailyCategories, onDailyCategoriesChan
 
       <fieldset className="mt-2 min-w-0 space-y-2 rounded-xl border border-line p-4">
         <legend className="mb-1 text-sm font-medium text-text">Wydatki dnia</legend>
+        <div className="flex items-center gap-3">
+           <label htmlFor={`${id}-limit`} className="form-label">
+             Limit dzienny:
+           </label>
+           <input
+             id={`${id}-limit`}
+             type="number"
+             min="0"
+             step="10"
+             value={dailyLimit || 0}
+             onChange={(e) => onDailyLimitChange(parseFloat(e.target.value) || 0)}
+             className="input-field flex-1"
+           />
+        </div>
         <p className="mb-2 text-sm text-text-secondary">
           Kwota na planie dnia to suma transakcji z dnia w zaznaczonych kategoriach.
         </p>

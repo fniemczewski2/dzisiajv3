@@ -1,9 +1,4 @@
 // components/widgets/DailySpendingForm.tsx
-//
-// Wydatki dnia liczone z transakcji w kategoriach wskazanych w Ustawieniach
-// (Finanse → kategorie wydatków dnia). Szybkie dodanie wydatku tworzy
-// transakcję, więc kwota trafia też do budżetu i podsumowania miesiąca.
-
 import React, { useId, useMemo } from "react";
 import { Coins } from "lucide-react";
 import { getAppDate } from "@/lib/dateUtils";
@@ -16,7 +11,7 @@ interface DailySpendingFormProps {
   date?: string;
 }
 
-export default function DailySpendingForm({ date }: Readonly<DailySpendingFormProps>) {
+export default function DailySpendingWidget({ date }: Readonly<DailySpendingFormProps>) {
   const id = useId();
   const today = getAppDate();
   const targetDate = date ?? today;
@@ -27,10 +22,21 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
 
   const selectedNames = useMemo(() => settings.daily_spending_categories ?? [], [settings.daily_spending_categories]);
   const total = dailySpending(transactions, targetDate, selectedNames, categories);
+  
   if (loading) return null;
 
+  // Pobierz limit z ustawień (zmień nazwę klucza, jeśli w DB nazywa się inaczej)
+  const limit = settings.daily_spending_limit || 0; 
+  console.log(settings, "DailySpendingWidget - total:", total, "limit:", limit); // Debugging log
+  
+  // Oblicz procent postępu (zabezpieczenie przed dzieleniem przez 0 i przekroczeniem 100%)
+  const percentage = limit > 0 ? Math.min(100, Math.max(0, (total / limit) * 100)) : 0;
+  const isOverLimit = total > limit;
+
+
   return (
-    <section aria-labelledby={`${id}-h`} className="widget px-4 py-3">
+    // Dodano `relative` oraz `overflow-hidden` (aby pasek nie wychodził poza zaokrąglone rogi kontenera)
+    <section aria-labelledby={`${id}-h`} className="widget relative overflow-hidden px-4 py-3 w-full">
       <h2 id={`${id}-h`} className="sr-only">
         Wydatki dnia
       </h2>
@@ -40,6 +46,15 @@ export default function DailySpendingForm({ date }: Readonly<DailySpendingFormPr
           {formatPln(total)}
         </div>
       </div>
+
+      {/* Pasek postępu udający border na samym dole */}
+      {limit > 0 && (
+        <div 
+          className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ease-out ${isOverLimit ? "bg-warning" : "bg-(--theme-fill)"}`}
+          style={{ width: `${percentage}%` }}
+          aria-hidden="true"
+        />
+      )}
     </section>
   );
 }

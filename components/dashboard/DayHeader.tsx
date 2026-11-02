@@ -54,7 +54,7 @@ export default function DayHeader({
             <h1 className="page-title text-center text-lg first-letter:uppercase sm:text-2xl" aria-live="polite">
               {format(date, "eeee, d\u00A0MMM", { locale: pl })}
             </h1>
-            {holiday && <span className="mt-1 text-xs font-medium text-danger">{holiday}</span>}
+            {holiday && <span className="mt-1 text-xs font-medium text-warning">{holiday}</span>}
           </div>
 
           <button

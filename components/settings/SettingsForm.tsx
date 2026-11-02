@@ -257,8 +257,8 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         {...common}
         id="nawyki"
         title="Nawyki i plan dnia"
-        description="Nawyki, woda i nastrój na planie dnia."
-        keys={["show_habits", "custom_habits", "show_water_tracker", "show_mood_tracker", "mood_options"] as const}
+        description="Nawyki i widgety na planie dnia."
+        keys={["show_habits", "custom_habits", "show_water_tracker", "show_mood_tracker", "mood_options", "daily_steps_goal"] as const}
       >
         {(d, set) => (
           <>
@@ -282,6 +282,20 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
                 onChange={(v) => set("show_mood_tracker", v)}
               />
             </div>
+            <div className="flex items-center gap-3">
+              <label htmlFor="daily_steps_goal" className="form-label">
+                Cel&nbsp;kroków:
+              </label>
+              <input
+                id="daily_steps_goal"
+                type="number"
+                min="0"
+                step="1000"
+                value={d.daily_steps_goal || 10000}
+                onChange={(e) => set("daily_steps_goal", parseInt(e.target.value) || 0)}
+                className="input-field flex-1"
+              />
+            </div>
             {d.show_habits !== false && (
               <HabitsEditor
                 value={resolveHabits({ ...settings, ...d })}
@@ -301,7 +315,7 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
         id="finanse"
         title="Finanse"
         description="Profile finansowe zapisują się od razu; pozostałe pola – przyciskiem „Zapisz”."
-        keys={["show_budget_items", "daily_spending_categories"] as const}
+        keys={["show_budget_items", "daily_spending_categories", "daily_spending_limit"] as const}
       >
         {(d, set) => (
           <>
@@ -314,6 +328,8 @@ export default function SettingsForm({ settings, defaults, onSavePartial }: Read
             <FinanceSettings
               dailyCategories={d.daily_spending_categories ?? []}
               onDailyCategoriesChange={(next) => set("daily_spending_categories", next)}
+              dailyLimit={d.daily_spending_limit}
+              onDailyLimitChange={(next) => set("daily_spending_limit", next)}
             />
           </>
         )}
